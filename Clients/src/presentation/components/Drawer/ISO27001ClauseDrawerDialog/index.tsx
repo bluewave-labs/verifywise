@@ -254,7 +254,9 @@ const VWISO27001ClauseDrawerDialog = ({
         }
       }
     } catch (error) {
-      console.error("Error fetching subclause:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching subclause:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load clause data",
@@ -292,7 +294,9 @@ const VWISO27001ClauseDrawerDialog = ({
       const validRisks = riskResults.filter((risk) => risk !== null);
       setLinkedRiskObjects(validRisks);
     } catch (error) {
-      console.error("Error fetching linked risks:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching linked risks:", error);
+      }
       setLinkedRiskObjects([]);
     }
   };
@@ -407,7 +411,9 @@ const VWISO27001ClauseDrawerDialog = ({
         body: "File downloaded successfully",
       });
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to download file. Please try again.",
@@ -446,7 +452,9 @@ const VWISO27001ClauseDrawerDialog = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load risk details",
@@ -513,7 +521,9 @@ const VWISO27001ClauseDrawerDialog = ({
         await fetchLinkedRisks(updatedRiskIds);
       }
     } catch (error) {
-      console.error("Error refreshing data:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error refreshing data:", error);
+      }
     }
   };
 

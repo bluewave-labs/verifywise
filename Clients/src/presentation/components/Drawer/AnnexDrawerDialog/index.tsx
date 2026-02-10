@@ -209,7 +209,9 @@ const VWISO42001AnnexDrawerDialog = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to download file",
@@ -246,7 +248,9 @@ const VWISO42001AnnexDrawerDialog = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load risk details",
@@ -288,7 +292,9 @@ const VWISO42001AnnexDrawerDialog = ({
         setLinkedRiskObjects(response.data as LinkedRisk[]);
       }
     } catch (error) {
-      console.error("Error fetching linked risks:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching linked risks:", error);
+      }
       setCurrentRisks([]);
       setLinkedRiskObjects([]);
     }
@@ -337,7 +343,9 @@ const VWISO42001AnnexDrawerDialog = ({
             setEvidenceFiles(response.data.evidence_links as FileData[]);
           }
         } catch (error) {
-          console.error("Error fetching annex category:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error fetching annex category:", error);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -414,7 +422,9 @@ const VWISO42001AnnexDrawerDialog = ({
       });
 
       if (!fetchedAnnex) {
-        console.error("Fetched annex is undefined");
+        if (process.env.NODE_ENV === "development") {
+          console.error("Fetched annex is undefined");
+        }
         handleAlert({
           variant: "error",
           body: "Error: Annex data not found",
@@ -448,7 +458,9 @@ const VWISO42001AnnexDrawerDialog = ({
         throw new Error("Failed to save annex category");
       }
     } catch (error) {
-      console.error("Error saving annex category:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error saving annex category:", error);
+      }
       const errorMessage =
         error instanceof Error
           ? error.message

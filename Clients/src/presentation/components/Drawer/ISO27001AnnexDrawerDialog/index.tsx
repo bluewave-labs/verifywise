@@ -195,7 +195,9 @@ const VWISO27001AnnexDrawerDialog = ({
             setEvidenceFiles(response.data.evidence_links as FileData[]);
           }
         } catch (error) {
-          console.error("Error fetching annex control:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error fetching annex control:", error);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -286,7 +288,9 @@ const VWISO27001AnnexDrawerDialog = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to download file",
@@ -346,7 +350,9 @@ const VWISO27001AnnexDrawerDialog = ({
       const validRisks = riskResults.filter((risk) => risk !== null);
       setLinkedRiskObjects(validRisks);
     } catch (error) {
-      console.error("Error fetching linked risks:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching linked risks:", error);
+      }
       setLinkedRiskObjects([]);
     }
   };
@@ -378,7 +384,9 @@ const VWISO27001AnnexDrawerDialog = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load risk details",
@@ -446,7 +454,9 @@ const VWISO27001AnnexDrawerDialog = ({
       });
 
       if (!fetchedAnnex) {
-        console.error("Fetched annex is undefined");
+        if (process.env.NODE_ENV === "development") {
+          console.error("Fetched annex is undefined");
+        }
         handleAlert({
           variant: "error",
           body: "Error: Annex data not found",
@@ -481,7 +491,9 @@ const VWISO27001AnnexDrawerDialog = ({
           );
         }
       } catch (apiError) {
-        console.error("API call failed:", apiError);
+        if (process.env.NODE_ENV === "development") {
+          console.error("API call failed:", apiError);
+        }
         // If it's an axios error, extract the error message
         if (
           apiError &&
@@ -499,7 +511,9 @@ const VWISO27001AnnexDrawerDialog = ({
         throw apiError;
       }
     } catch (error) {
-      console.error("Error saving annex control:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error saving annex control:", error);
+      }
       const errorMessage =
         error instanceof Error
           ? error.message

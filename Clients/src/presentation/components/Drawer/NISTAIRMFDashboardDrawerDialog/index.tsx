@@ -119,7 +119,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
             setLinkedRiskObjects(response.data as LinkedRisk[]);
           }
         } catch (error) {
-          console.error("Error fetching linked risks:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error fetching linked risks:", error);
+          }
           setCurrentRisks([]);
           setLinkedRiskObjects([]);
         }
@@ -322,7 +324,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         body: "File downloaded successfully",
       });
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to download file. Please try again.",
@@ -481,7 +485,9 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       setAlert({
         variant: "error",
         body: "Failed to load risk details",

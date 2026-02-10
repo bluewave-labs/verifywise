@@ -18,7 +18,7 @@ import {
   NotificationType,
   NotificationEntityType,
 } from "../domain.layer/interfaces/i.notification";
-import { insertAlertHistoryQuery, getActiveRulesQuery } from "../utils/shadowAiRules.utils";
+import { insertAlertHistoryQuery, getActiveRulesQuery, getRecentAlertKeys } from "../utils/shadowAiRules.utils";
 import { sequelize } from "../database/db";
 import logger from "../utils/logger/fileLogger";
 
@@ -30,6 +30,9 @@ const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   risk_score_exceeded: "Risk score threshold exceeded",
   new_user_detected: "New user using AI tools",
 };
+
+const MAX_ALERTS_PER_BATCH = 50;
+const DEFAULT_COOLDOWN_MINUTES = 1440; // 24 hours
 
 interface AlertContext {
   toolName?: string;
@@ -253,11 +256,20 @@ export async function evaluateRulesForBatch(
     }
   }
 
+  // Pre-fetch recent alert keys for cooldown deduplication (single batch query)
+  const cooldownRules = rules.map((r) => ({
+    id: r.id!,
+    cooldown_minutes: (r.cooldown_minutes as number) || DEFAULT_COOLDOWN_MINUTES,
+  }));
+  const recentKeys = await getRecentAlertKeys(tenant, cooldownRules);
+
   for (const rule of rules) {
     switch (rule.trigger_type) {
       case "new_tool_detected":
         // Fire once per newly detected tool
         for (const toolId of batch.newToolIds) {
+          const cooldownKey = `${rule.id}:tool:${toolId}`;
+          if (recentKeys.has(cooldownKey)) continue;
           triggered.push({
             rule,
             context: {
@@ -272,6 +284,8 @@ export async function evaluateRulesForBatch(
         const threshold = (rule.trigger_config?.event_count_threshold as number) || 100;
         // Check cumulative total_events (after counter update), not just batch count
         for (const [toolId, batchCount] of batch.toolEventCounts) {
+          const cooldownKey = `${rule.id}:tool:${toolId}`;
+          if (recentKeys.has(cooldownKey)) continue;
           const toolData = toolDataMap.get(toolId);
           // total_events already includes this batch (counters updated before commit)
           const cumulativeEvents = toolData ? toolData.total_events : batchCount;
@@ -296,6 +310,8 @@ export async function evaluateRulesForBatch(
         const sensitiveSet = new Set(sensitiveList.map((d) => d.toLowerCase()));
         for (const dept of batch.allDepartments) {
           if (sensitiveSet.has(dept.toLowerCase())) {
+            const cooldownKey = `${rule.id}:dept:${dept}`;
+            if (recentKeys.has(cooldownKey)) continue;
             triggered.push({
               rule,
               context: { department: dept },
@@ -310,6 +326,8 @@ export async function evaluateRulesForBatch(
         for (const attempt of batch.blockedAttempts) {
           const toolData = toolDataMap.get(attempt.toolId);
           if (toolData && toolData.status === "blocked") {
+            const cooldownKey = `${rule.id}:tool:${attempt.toolId}`;
+            if (recentKeys.has(cooldownKey)) continue;
             triggered.push({
               rule,
               context: {
@@ -326,6 +344,8 @@ export async function evaluateRulesForBatch(
         const minScore = (rule.trigger_config?.risk_score_min as number) || 70;
         // Use pre-fetched tool data instead of N queries
         for (const toolId of batch.toolEventCounts.keys()) {
+          const cooldownKey = `${rule.id}:tool:${toolId}`;
+          if (recentKeys.has(cooldownKey)) continue;
           const toolData = toolDataMap.get(toolId);
           if (toolData && toolData.risk_score != null && toolData.risk_score >= minScore) {
             triggered.push({
@@ -345,6 +365,8 @@ export async function evaluateRulesForBatch(
         // Fire for users not previously seen in events (using pre-fetched data)
         for (const email of batch.allEmails) {
           if (!existingEmails.has(email)) {
+            const cooldownKey = `${rule.id}:email:${email}`;
+            if (recentKeys.has(cooldownKey)) continue;
             // Find the department for this specific user from batch context
             let userDept: string | undefined;
             for (const [, depts] of batch.toolDepartments) {
@@ -364,6 +386,14 @@ export async function evaluateRulesForBatch(
         }
         break;
     }
+  }
+
+  // Per-batch alert cap — hard safety net
+  if (triggered.length > MAX_ALERTS_PER_BATCH) {
+    logger.warn(
+      `Alert cap reached: ${triggered.length} alerts truncated to ${MAX_ALERTS_PER_BATCH} for tenant ${tenant.substring(0, 4)}...`
+    );
+    triggered.length = MAX_ALERTS_PER_BATCH;
   }
 
   // Send alerts for all triggered rules

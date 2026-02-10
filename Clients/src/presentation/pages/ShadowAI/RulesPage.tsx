@@ -110,6 +110,9 @@ export default function RulesPage() {
   const [formUsageThreshold, setFormUsageThreshold] = useState("100");
   const [formDepartments, setFormDepartments] = useState("");
 
+  // Cooldown
+  const [formCooldown, setFormCooldown] = useState("1440");
+
   // Notification
   const { userId } = useAuth();
   const [notifyMe, setNotifyMe] = useState(true);
@@ -268,6 +271,7 @@ export default function RulesPage() {
         trigger_type: formTrigger,
         trigger_config: buildTriggerConfig(),
         actions: [{ type: "send_alert" }],
+        cooldown_minutes: parseInt(formCooldown, 10),
         notification_user_ids: recipientIds.length > 0 ? recipientIds : undefined,
       });
       setCreateModalOpen(false);
@@ -303,6 +307,7 @@ export default function RulesPage() {
     setFormRiskScoreMin("70");
     setFormUsageThreshold("100");
     setFormDepartments("");
+    setFormCooldown("1440");
     setNotifyMe(true);
     setFormErrors({});
   };
@@ -433,12 +438,23 @@ export default function RulesPage() {
                       )}
                     </Typography>
                   )}
-                  {/* Notification */}
-                  {rule.notification_user_ids && rule.notification_user_ids.length > 0 && (
-                    <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
-                      Notifies via in-app + email
-                    </Typography>
-                  )}
+                  {/* Cooldown & notification */}
+                  <Stack direction="row" alignItems="center" gap="8px" flexWrap="wrap">
+                    {rule.cooldown_minutes != null && (
+                      <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                        Cooldown: {rule.cooldown_minutes >= 1440
+                          ? `${rule.cooldown_minutes / 1440}d`
+                          : rule.cooldown_minutes >= 60
+                            ? `${rule.cooldown_minutes / 60}h`
+                            : `${rule.cooldown_minutes}m`}
+                      </Typography>
+                    )}
+                    {rule.notification_user_ids && rule.notification_user_ids.length > 0 && (
+                      <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                        {rule.cooldown_minutes != null ? "· " : ""}Notifies via in-app + email
+                      </Typography>
+                    )}
+                  </Stack>
                   <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
                     Actions:{" "}
                     {Array.isArray(rule.actions)
@@ -667,6 +683,22 @@ export default function RulesPage() {
               error={formErrors.departments}
             />
           )}
+
+          {/* Cooldown period */}
+          <Select
+            id="cooldown-select"
+            label="Cooldown period"
+            value={formCooldown}
+            onChange={(e: SelectChangeEvent<string | number>) =>
+              setFormCooldown(String(e.target.value))
+            }
+            items={[
+              { _id: "60", name: "1 hour" },
+              { _id: "360", name: "6 hours" },
+              { _id: "720", name: "12 hours" },
+              { _id: "1440", name: "24 hours" },
+            ]}
+          />
 
           {/* Notification */}
           <FormControlLabel

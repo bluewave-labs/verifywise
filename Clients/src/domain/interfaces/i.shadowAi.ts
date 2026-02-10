@@ -63,6 +63,7 @@ export interface IShadowAiRule {
   trigger_type: ShadowAiTriggerType;
   trigger_config: Record<string, unknown>;
   actions: IShadowAiRuleAction[];
+  cooldown_minutes?: number;
   notification_user_ids?: number[];
   created_by: number;
   created_at?: string;

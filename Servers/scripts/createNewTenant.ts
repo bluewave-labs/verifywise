@@ -2864,6 +2864,7 @@ export const createNewTenant = async (
         trigger_type    VARCHAR(100) NOT NULL,
         trigger_config  JSONB DEFAULT '{}',
         actions         JSONB NOT NULL,
+        cooldown_minutes INTEGER DEFAULT 1440,
         created_by      INTEGER NOT NULL,
         created_at      TIMESTAMPTZ DEFAULT NOW(),
         updated_at      TIMESTAMPTZ DEFAULT NOW()

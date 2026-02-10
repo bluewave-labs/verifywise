@@ -482,7 +482,7 @@ export async function createRule(req: Request, res: Response) {
       return res.status(403).json(STATUS_CODE[403]("Insufficient permissions"));
     }
 
-    const { name, description, is_active, trigger_type, trigger_config, actions, notification_user_ids } = req.body;
+    const { name, description, is_active, trigger_type, trigger_config, actions, cooldown_minutes, notification_user_ids } = req.body;
 
     if (!name || !trigger_type || !actions || !Array.isArray(actions)) {
       return res.status(400).json(STATUS_CODE[400]("Missing required fields: name, trigger_type, actions"));
@@ -495,6 +495,7 @@ export async function createRule(req: Request, res: Response) {
       trigger_type,
       trigger_config: trigger_config || {},
       actions,
+      cooldown_minutes: cooldown_minutes != null ? cooldown_minutes : undefined,
       created_by: userId,
       notification_user_ids,
     });

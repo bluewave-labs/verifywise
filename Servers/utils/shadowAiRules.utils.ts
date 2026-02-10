@@ -88,6 +88,7 @@ export async function createRuleQuery(
     trigger_type: string;
     trigger_config: Record<string, unknown>;
     actions: Array<{ type: string; assign_to?: number }>;
+    cooldown_minutes?: number;
     created_by: number;
     notification_user_ids?: number[];
   },
@@ -95,9 +96,9 @@ export async function createRuleQuery(
 ): Promise<IShadowAiRule> {
   const [result] = await sequelize.query(
     `INSERT INTO "${tenant}".shadow_ai_rules
-       (name, description, is_active, trigger_type, trigger_config, actions, created_by)
+       (name, description, is_active, trigger_type, trigger_config, actions, cooldown_minutes, created_by)
      VALUES
-       (:name, :description, :is_active, :trigger_type, :trigger_config, :actions, :created_by)
+       (:name, :description, :is_active, :trigger_type, :trigger_config, :actions, :cooldown_minutes, :created_by)
      RETURNING *`,
     {
       replacements: {
@@ -107,6 +108,7 @@ export async function createRuleQuery(
         trigger_type: rule.trigger_type,
         trigger_config: JSON.stringify(rule.trigger_config),
         actions: JSON.stringify(rule.actions),
+        cooldown_minutes: rule.cooldown_minutes ?? 1440,
         created_by: rule.created_by,
       },
       ...(transaction ? { transaction } : {}),
@@ -151,6 +153,7 @@ export async function updateRuleQuery(
     trigger_type?: string;
     trigger_config?: Record<string, unknown>;
     actions?: Array<{ type: string; assign_to?: number }>;
+    cooldown_minutes?: number;
     notification_user_ids?: number[];
   },
   transaction?: Transaction
@@ -182,6 +185,10 @@ export async function updateRuleQuery(
   if (updates.actions !== undefined) {
     setClauses.push("actions = :actions");
     replacements.actions = JSON.stringify(updates.actions);
+  }
+  if (updates.cooldown_minutes !== undefined) {
+    setClauses.push("cooldown_minutes = :cooldown_minutes");
+    replacements.cooldown_minutes = updates.cooldown_minutes;
   }
 
   const [rows] = await sequelize.query(
@@ -293,6 +300,69 @@ export async function getAlertHistoryQuery(
     })),
     total: parseInt((countResult as any[])[0].total, 10),
   };
+}
+
+/**
+ * Get recent alert keys for cooldown checks.
+ * Returns a Set of "ruleId:keyType:keyValue" strings for alerts
+ * that fired within each rule's cooldown window.
+ *
+ * Uses a single batch query to avoid N+1 lookups.
+ */
+export async function getRecentAlertKeys(
+  tenant: string,
+  rules: Array<{ id: number; cooldown_minutes: number }>
+): Promise<Set<string>> {
+  const result = new Set<string>();
+  if (rules.length === 0) return result;
+
+  // Find the maximum cooldown window to limit the query range
+  const maxCooldown = Math.max(...rules.map((r) => r.cooldown_minutes));
+  const ruleIds = rules.map((r) => r.id);
+
+  // Build a cooldown map for per-rule filtering
+  const cooldownMap = new Map<number, number>();
+  for (const r of rules) {
+    cooldownMap.set(r.id, r.cooldown_minutes);
+  }
+
+  try {
+    const [rows] = await sequelize.query(
+      `SELECT rule_id, trigger_data, fired_at
+       FROM "${tenant}".shadow_ai_alert_history
+       WHERE rule_id IN (:ruleIds)
+       AND fired_at > NOW() - INTERVAL '1 minute' * :maxCooldown`,
+      { replacements: { ruleIds, maxCooldown } }
+    );
+
+    for (const row of rows as any[]) {
+      const ruleId = row.rule_id;
+      const cooldownMinutes = cooldownMap.get(ruleId);
+      if (cooldownMinutes === undefined) continue;
+
+      // Check if this specific alert is within its rule's cooldown
+      const firedAt = new Date(row.fired_at);
+      const cutoff = new Date(Date.now() - cooldownMinutes * 60 * 1000);
+      if (firedAt < cutoff) continue;
+
+      const data = safeJsonParse<Record<string, unknown>>(row.trigger_data, {});
+
+      // Build dedup keys based on what context data is present
+      if (data.tool_id != null) {
+        result.add(`${ruleId}:tool:${data.tool_id}`);
+      }
+      if (data.user_email) {
+        result.add(`${ruleId}:email:${data.user_email}`);
+      }
+      if (data.department) {
+        result.add(`${ruleId}:dept:${data.department}`);
+      }
+    }
+  } catch {
+    // If query fails (table doesn't exist yet), return empty set
+  }
+
+  return result;
 }
 
 /**

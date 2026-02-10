@@ -129,6 +129,12 @@ async function addIndexesForTenant(queryInterface, tenantHash, transaction) {
     ON "${tenantHash}".shadow_ai_alert_history(rule_id);
   `, { transaction });
 
+  // Composite index on alert_history for cooldown lookups
+  await queryInterface.sequelize.query(`
+    CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_cooldown
+    ON "${tenantHash}".shadow_ai_alert_history(rule_id, fired_at);
+  `, { transaction });
+
   // Index on rules for active filter
   await queryInterface.sequelize.query(`
     CREATE INDEX IF NOT EXISTS idx_shadow_rules_active
@@ -154,6 +160,7 @@ async function dropIndexesForTenant(queryInterface, tenantHash, transaction) {
     'idx_shadow_monthly_rollups_tool',
     'idx_shadow_alert_history_fired',
     'idx_shadow_alert_history_rule',
+    'idx_shadow_alert_history_cooldown',
     'idx_shadow_rules_active',
     'idx_shadow_rule_notifications_rule',
   ];

@@ -8,7 +8,7 @@
  * @module pages/AIDetection
  */
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Stack } from "@mui/material";
 import { Search, History, FileSearch, Settings } from "lucide-react";
@@ -18,6 +18,7 @@ import ScanPage from "./ScanPage";
 import HistoryPage from "./HistoryPage";
 import ScanDetailsPage from "./ScanDetailsPage";
 import SettingsPage from "./SettingsPage";
+import AIDetectionOnboarding from "../../components/Modals/AIDetectionOnboarding";
 import { getScans } from "../../../application/repository/aiDetection.repository";
 import { ScansResponse } from "../../../domain/ai-detection/types";
 import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
@@ -29,6 +30,7 @@ export default function AIDetectionPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { scanId } = useParams<{ scanId: string }>();
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   // Use sidebar context to share state with ContextSidebar
   const {
@@ -176,6 +178,10 @@ export default function AIDetectionPage() {
     <Stack className="vwhome" gap="16px">
       <PageBreadcrumbs items={getBreadcrumbItems()} />
       {renderContent()}
+      <AIDetectionOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </Stack>
   );
 }

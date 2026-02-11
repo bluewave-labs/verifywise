@@ -40,6 +40,7 @@ import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
+import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import AIDetectionPage from "../../presentation/pages/AIDetection";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
@@ -54,6 +55,8 @@ export const createRoutes = (
 ) => [
   // ReactFlow Demo - Development only (must be before dashboard route)
   ...(isDev ? [<Route key="reactflow-demo" path="/reactflow-demo" element={<ReactFlowDemo />} />] : []),
+  // Wizard Showcase - Development only
+  ...(isDev ? [<Route key="wizard-showcase" path="/wizard-showcase" element={<WizardShowcase />} />] : []),
   <Route
     key="dashboard"
     path="/"

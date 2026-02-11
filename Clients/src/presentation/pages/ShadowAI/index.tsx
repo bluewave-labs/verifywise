@@ -6,7 +6,7 @@
  * Follows the same pattern as AIDetectionPage.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Stack } from "@mui/material";
 import { Eye, BarChart3, Users, Bot, ShieldAlert, Settings } from "lucide-react";
@@ -18,12 +18,14 @@ import UserActivityPage from "./UserActivityPage";
 import AIToolsPage from "./AIToolsPage";
 import RulesPage from "./RulesPage";
 import SettingsPage from "./SettingsPage";
+import ShadowAIOnboarding from "../../components/Modals/ShadowAIOnboarding";
 
 type ActiveTab = "insights" | "users" | "tools" | "rules" | "settings";
 
 export default function ShadowAIPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const sidebarContext = useShadowAISidebarContextSafe();
   const setToolsCount = sidebarContext?.setToolsCount;
   const setRecentTools = sidebarContext?.setRecentTools;
@@ -140,6 +142,10 @@ export default function ShadowAIPage() {
     <Stack className="vwhome" gap="16px">
       <PageBreadcrumbs items={getBreadcrumbItems()} />
       {renderContent()}
+      <ShadowAIOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </Stack>
   );
 }

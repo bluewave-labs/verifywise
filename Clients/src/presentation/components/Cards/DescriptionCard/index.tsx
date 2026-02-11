@@ -1,14 +1,16 @@
+import { ReactNode } from "react";
+
 import { Stack, Typography, Box } from "@mui/material";
+
 import { descCardbodyStyle, infoCardStyle, infoCardTitleStyle } from "./style";
-import React from "react";
 
 interface DescriptionCardProps {
   title: string;
   body: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
-const DescriptionCard = ({ title, body, icon }: DescriptionCardProps) => {
+export function DescriptionCard({ title, body, icon }: DescriptionCardProps) {
   return (
     <Stack sx={infoCardStyle}>
       {icon && (
@@ -28,6 +30,4 @@ const DescriptionCard = ({ title, body, icon }: DescriptionCardProps) => {
       <Typography sx={descCardbodyStyle}>{body}</Typography>
     </Stack>
   );
-};
-
-export default DescriptionCard;
+}

@@ -19,7 +19,7 @@ import { AlertState } from "../../../application/interfaces/appStates";
 import { useDashboard } from "../../../application/hooks/useDashboard";
 import { useActiveModule } from "../../../application/hooks/useActiveModule";
 import AppSwitcher from "../../components/AppSwitcher";
-import ContextSidebar from "../../components/ContextSidebar";
+import { ContextSidebar } from "../../components/ContextSidebar";
 import { useAuth } from "../../../application/hooks/useAuth";
 
 interface DashboardProps {

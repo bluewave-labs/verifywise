@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
 import { Stack, Box, Typography } from "@mui/material";
-import { Upload as UploadIcon } from "lucide-react";
+import { Upload as UploadIcon, FolderPlus as FolderPlusIcon } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -9,7 +9,14 @@ import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
-import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import {
+  getUserFilesMetaData,
+  getFilesWithMetadata,
+  getFileMetadata,
+  updateFileMetadata,
+  FileMetadata,
+  UpdateFileMetadataInput,
+} from "../../../application/repository/file.repository";
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import HelperIcon from "../../components/HelperIcon";
@@ -18,8 +25,8 @@ import { FileModel } from "../../../domain/models/Common/file/file.model";
 import PageHeader from "../../components/Layout/PageHeader";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
-import { secureLogError } from "../../../application/utils/secureLogger.utils"; // SECURITY: No PII
-import { useAuth } from "../../../application/hooks/useAuth"; // RBAC
+import { secureLogError } from "../../../application/utils/secureLogger.utils";
+import { useAuth } from "../../../application/hooks/useAuth";
 import TipBox from "../../components/TipBox";
 import { SearchBox } from "../../components/Search";
 import { GroupBy } from "../../components/Table/GroupBy";
@@ -31,39 +38,38 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
-// Constants (DRY + Maintainability)
+// Virtual folder imports
+import { useVirtualFolders } from "../../../application/hooks/useVirtualFolders";
+import { useFolderFiles } from "../../../application/hooks/useFolderFiles";
+import {
+  IFolderTreeNode,
+  IVirtualFolderInput,
+  IVirtualFolderUpdate,
+  IVirtualFolder,
+} from "../../../domain/interfaces/i.virtualFolder";
+import { assignFilesToFolder } from "../../../application/repository/virtualFolder.repository";
+import FolderTree from "./components/FolderTree";
+import FolderBreadcrumb from "./components/FolderBreadcrumb";
+import CreateFolderModal from "./components/CreateFolderModal";
+import AssignToFolderModal from "./components/AssignToFolderModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+import Alert from "../../components/Alert";
+import { AlertProps } from "../../types/alert.types";
+
+// File metadata enhancement imports
+import { useFileColumnVisibility } from "../../../application/hooks/useFileColumnVisibility";
+import { ColumnSelector } from "./components/ColumnSelector";
+import { FilePreviewPanel } from "./components/FilePreviewPanel";
+import { FileMetadataEditor } from "./components/FileMetadataEditor";
+import { FileVersionHistoryDrawer } from "./components/FileVersionHistoryDrawer";
+
+// Constants
 const FILE_MANAGER_CONTEXT = "FileManager";
-const AUDITOR_ROLE = "Auditor"; // Role that cannot upload files
-
-const COLUMN_NAMES = [
-  "File",
-  "Project Name",
-  "Upload Date",
-  "Uploader",
-  "Source",
-  "Action",
-];
-
-interface Column {
-  id: number;
-  name: string;
-  sx: { width: string };
-}
-
-const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
-  id: index + 1,
-  name,
-  sx: {
-    minWidth: "fit-content",
-    width: "fit-content",
-    maxWidth: "50%",
-  },
-}));
+const AUDITOR_ROLE = "Auditor";
+const MANAGE_ROLES = ["Admin", "Editor"];
 
 /**
- * Main component for managing files, displaying a table,
- * sorting, and handling actions (Download/Remove).
- * @returns {JSX.Element} The FileManager component.
+ * Main component for managing files with virtual folder support.
  */
 const FileManager: React.FC = (): JSX.Element => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -75,16 +81,94 @@ const FileManager: React.FC = (): JSX.Element => {
   // Fetch projects for the dropdown options
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
 
-  // Use hook for initial data load (keeps hook unchanged as requested)
+  // Use hook for initial data load
   const { filesData: initialFilesData, loading: initialLoading } =
     useUserFilesMetaData();
 
-  // Local state to manage files (allows manual refresh)
+  // Local state to manage files
   const [filesData, setFilesData] = useState<FileModel[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  // Sync initial data from hook to local state (always sync, even if empty)
+  // Virtual folder hooks
+  const {
+    folderTree,
+    selectedFolder,
+    breadcrumb,
+    loading: loadingFolders,
+    loadingBreadcrumb,
+    setSelectedFolder,
+    refreshFolders,
+    handleCreateFolder,
+    handleUpdateFolder,
+    handleDeleteFolder,
+  } = useVirtualFolders();
+
+  const {
+    files: folderFiles,
+    loading: loadingFolderFiles,
+    refreshFiles,
+    getFileCurrentFolders,
+    handleUpdateFileFolders,
+  } = useFolderFiles(selectedFolder);
+
+  // Folder modal states
+  const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
+  const [parentFolderForCreate, setParentFolderForCreate] = useState<IFolderTreeNode | null>(null);
+  const [editingFolder, setEditingFolder] = useState<IFolderTreeNode | null>(null);
+  const [isSubmittingFolder, setIsSubmittingFolder] = useState(false);
+
+  // Assign to folder modal states
+  const [isAssignFolderModalOpen, setIsAssignFolderModalOpen] = useState(false);
+  const [selectedFileForAssign, setSelectedFileForAssign] = useState<{ id: number; name: string } | null>(null);
+  const [currentFileFolders, setCurrentFileFolders] = useState<IVirtualFolder[]>([]);
+  const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
+
+  // Delete folder confirmation modal states
+  const [isDeleteFolderModalOpen, setIsDeleteFolderModalOpen] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState<IFolderTreeNode | null>(null);
+  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
+
+  // Toast alert state
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+
+  // File metadata enhancement hooks
+  const {
+    visibleColumns,
+    availableColumns,
+    toggleColumn,
+    resetToDefaults: resetColumnsToDefaults,
+    getTableColumns,
+    visibleColumnKeys,
+  } = useFileColumnVisibility();
+
+  // Files with metadata for enhanced view
+  const [filesWithMetadata, setFilesWithMetadata] = useState<FileMetadata[]>([]);
+  const [, setLoadingMetadata] = useState(false);
+
+  // Preview panel state
+  const [previewFile, setPreviewFile] = useState<FileMetadata | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Metadata editor state
+  const [editingFile, setEditingFile] = useState<FileMetadata | null>(null);
+  const [isMetadataEditorOpen, setIsMetadataEditorOpen] = useState(false);
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+
+  // Version history drawer state
+  const [versionHistoryFileId, setVersionHistoryFileId] = useState<string | number | null>(null);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+
+  // Auto-dismiss alerts
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 4000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [alert]);
+
+  // Sync initial data from hook to local state
   useEffect(() => {
     setFilesData(initialFilesData);
     setLoadingFiles(initialLoading);
@@ -96,22 +180,17 @@ const FileManager: React.FC = (): JSX.Element => {
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
-  // REQUIREMENT: "Upload allowed for all users except Auditors"
-  // SECURITY: Default-deny - require authenticated role that is not Auditor
-  // Note: Server-side must also enforce this to prevent authorization bypass via direct API calls
-  const isUploadAllowed =
-    Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
+  // Permission checks
+  const isUploadAllowed = Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
+  const canManageFolders = Boolean(userRoleName) && MANAGE_ROLES.includes(userRoleName);
 
-  // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
+  // Manual refetch function
   const refetch = useCallback(async () => {
     try {
       setLoadingFiles(true);
       const response = await getUserFilesMetaData();
       setFilesData(transformFilesData(response));
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
-      //  includes user ID/email/name which violates GDPR/compliance
       secureLogError("Error refetching files", FILE_MANAGER_CONTEXT);
       setFilesData([]);
     } finally {
@@ -119,33 +198,339 @@ const FileManager: React.FC = (): JSX.Element => {
     }
   }, []);
 
-  // Handle upload button click (Defensive: Check permissions)
+  // Fetch files with enhanced metadata
+  const fetchFilesWithMetadata = useCallback(async () => {
+    try {
+      setLoadingMetadata(true);
+      const response = await getFilesWithMetadata();
+      setFilesWithMetadata(response.files);
+      if (response.files.length === 0) {
+        console.warn("[FileManager] Metadata endpoint returned 0 files — preview and edit metadata will use fallback fetch");
+      }
+    } catch (error) {
+      console.warn("[FileManager] Failed to fetch files with metadata — preview and edit metadata will use fallback fetch:", error);
+      secureLogError("Error fetching files with metadata", FILE_MANAGER_CONTEXT);
+      setFilesWithMetadata([]);
+    } finally {
+      setLoadingMetadata(false);
+    }
+  }, []);
+
+  // Load files with metadata on mount
+  useEffect(() => {
+    fetchFilesWithMetadata();
+  }, [fetchFilesWithMetadata]);
+
+  // Handle upload button click
   const handleUploadClick = useCallback(() => {
-    // Defensive: Double-check permission before opening modal
     if (!isUploadAllowed) {
-      console.warn(
-        "[FileManager] Upload attempt by unauthorized role:",
-        userRoleName
-      );
+      console.warn("[FileManager] Upload attempt by unauthorized role:", userRoleName);
       return;
     }
     setIsUploadModalOpen(true);
   }, [isUploadAllowed, userRoleName]);
 
-  // Handle upload success - refetch files
-  const handleUploadSuccess = useCallback(() => {
-    refetch();
-  }, [refetch]);
+  // Handle upload success - auto-assign to current folder if viewing one
+  const handleUploadSuccess = useCallback(async (uploadedFiles?: Array<{ id: number }>) => {
+    // If viewing a specific folder, auto-assign uploaded files to it
+    if (typeof selectedFolder === "number" && uploadedFiles?.length) {
+      try {
+        const fileIds = uploadedFiles.map((f) => f.id).filter(Boolean);
+        if (fileIds.length > 0) {
+          await assignFilesToFolder(selectedFolder, fileIds);
+        }
+      } catch (err) {
+        console.error("Failed to assign uploaded files to folder:", err);
+      }
+    }
 
-  // Handle file deleted - refetch files
+    refetch();
+    fetchFilesWithMetadata();
+    refreshFolders();
+    refreshFiles(selectedFolder);
+  }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
+
+  // Handle file deleted
   const handleFileDeleted = useCallback(() => {
     refetch();
-  }, [refetch]);
+    fetchFilesWithMetadata();
+    refreshFolders();
+    refreshFiles(selectedFolder);
+  }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
+
+  // Preview panel handlers
+  const handleOpenPreview = useCallback(async (fileId: number | string) => {
+    const idStr = String(fileId);
+    const file = filesWithMetadata.find((f) => String(f.id) === idStr);
+    if (file) {
+      setPreviewFile(file);
+      setIsPreviewOpen(true);
+    } else {
+      // Fallback: fetch metadata directly from server
+      console.warn(`[FileManager] Preview: file ID ${idStr} not found in cached metadata, fetching directly...`);
+      try {
+        const metadata = await getFileMetadata({ id: idStr });
+        setPreviewFile(metadata);
+        setIsPreviewOpen(true);
+      } catch (error) {
+        console.error(`[FileManager] Preview: failed to fetch metadata for file ID ${idStr}:`, error);
+        setAlert({ variant: "error", body: "Unable to preview file. Metadata not available.", isToast: true });
+      }
+    }
+  }, [filesWithMetadata]);
+
+  const handleClosePreview = useCallback(() => {
+    setIsPreviewOpen(false);
+    setPreviewFile(null);
+  }, []);
+
+  // Metadata editor handlers
+  const handleOpenMetadataEditor = useCallback(async (fileId: number | string) => {
+    const idStr = String(fileId);
+    const file = filesWithMetadata.find((f) => String(f.id) === idStr);
+    if (file) {
+      setEditingFile(file);
+      setIsMetadataEditorOpen(true);
+    } else {
+      // Fallback: fetch metadata directly from server
+      console.warn(`[FileManager] Edit metadata: file ID ${idStr} not found in cached metadata, fetching directly...`);
+      try {
+        const metadata = await getFileMetadata({ id: idStr });
+        setEditingFile(metadata);
+        setIsMetadataEditorOpen(true);
+      } catch (error) {
+        console.error(`[FileManager] Edit metadata: failed to fetch metadata for file ID ${idStr}:`, error);
+        setAlert({ variant: "error", body: "Unable to edit metadata. File data not available.", isToast: true });
+      }
+    }
+  }, [filesWithMetadata]);
+
+  const handleCloseMetadataEditor = useCallback(() => {
+    setIsMetadataEditorOpen(false);
+    setEditingFile(null);
+  }, []);
+
+  const handleSubmitMetadata = useCallback(async (updates: UpdateFileMetadataInput) => {
+    if (!editingFile) return;
+
+    setIsSubmittingMetadata(true);
+    try {
+      await updateFileMetadata({ id: editingFile.id, updates });
+      await fetchFilesWithMetadata();
+      handleCloseMetadataEditor();
+      setAlert({ variant: "success", body: "File metadata updated successfully", isToast: true });
+    } catch (error) {
+      console.error("Error updating file metadata:", error);
+      const message = error instanceof Error ? error.message : "Failed to update file metadata";
+      setAlert({ variant: "error", body: message, isToast: true });
+    } finally {
+      setIsSubmittingMetadata(false);
+    }
+  }, [editingFile, fetchFilesWithMetadata, handleCloseMetadataEditor]);
+
+  // Version history handlers
+  const handleOpenVersionHistory = useCallback((fileId: number | string) => {
+    setVersionHistoryFileId(fileId);
+    setIsVersionHistoryOpen(true);
+  }, []);
+
+  const handleCloseVersionHistory = useCallback(() => {
+    setIsVersionHistoryOpen(false);
+    setVersionHistoryFileId(null);
+  }, []);
+
+  // Folder management handlers
+  const handleOpenCreateFolder = useCallback((parentId: number | null) => {
+    if (parentId) {
+      // Find the parent folder in the tree
+      const findFolder = (folders: IFolderTreeNode[], id: number): IFolderTreeNode | null => {
+        for (const folder of folders) {
+          if (folder.id === id) return folder;
+          const found = findFolder(folder.children, id);
+          if (found) return found;
+        }
+        return null;
+      };
+      setParentFolderForCreate(findFolder(folderTree, parentId));
+    } else {
+      setParentFolderForCreate(null);
+    }
+    setEditingFolder(null);
+    setIsCreateFolderModalOpen(true);
+  }, [folderTree]);
+
+  const handleOpenEditFolder = useCallback((folder: IFolderTreeNode) => {
+    setEditingFolder(folder);
+    setParentFolderForCreate(null);
+    setIsCreateFolderModalOpen(true);
+  }, []);
+
+  const handleCloseCreateFolder = useCallback(() => {
+    setIsCreateFolderModalOpen(false);
+    setParentFolderForCreate(null);
+    setEditingFolder(null);
+  }, []);
+
+  const handleSubmitFolder = useCallback(async (input: IVirtualFolderInput) => {
+    setIsSubmittingFolder(true);
+    try {
+      if (editingFolder) {
+        const update: IVirtualFolderUpdate = {
+          name: input.name,
+          description: input.description,
+          color: input.color,
+        };
+        await handleUpdateFolder(editingFolder.id, update);
+        setAlert({ variant: "success", body: `Folder "${input.name}" updated successfully`, isToast: true });
+      } else {
+        await handleCreateFolder(input);
+        setAlert({ variant: "success", body: `Folder "${input.name}" created successfully`, isToast: true });
+      }
+      handleCloseCreateFolder();
+    } catch (error) {
+      console.error("Error saving folder:", error);
+      const message = error instanceof Error ? error.message : "Failed to save folder";
+      setAlert({ variant: "error", body: message, isToast: true });
+    } finally {
+      setIsSubmittingFolder(false);
+    }
+  }, [editingFolder, handleCreateFolder, handleUpdateFolder, handleCloseCreateFolder]);
+
+  const handleOpenDeleteFolder = useCallback((folder: IFolderTreeNode) => {
+    setFolderToDelete(folder);
+    setIsDeleteFolderModalOpen(true);
+  }, []);
+
+  const handleCloseDeleteFolder = useCallback(() => {
+    setIsDeleteFolderModalOpen(false);
+    setFolderToDelete(null);
+  }, []);
+
+  const handleConfirmDeleteFolder = useCallback(async () => {
+    if (folderToDelete) {
+      setIsDeletingFolder(true);
+      const folderName = folderToDelete.name;
+      try {
+        await handleDeleteFolder(folderToDelete.id);
+        // If viewing the deleted folder, reset to "all"
+        if (typeof selectedFolder === "number" && selectedFolder === folderToDelete.id) {
+          setSelectedFolder("all");
+        }
+        handleCloseDeleteFolder();
+        setAlert({ variant: "success", body: `Folder "${folderName}" deleted successfully`, isToast: true });
+      } catch (error) {
+        console.error("Error deleting folder:", error);
+        const message = error instanceof Error ? error.message : "Failed to delete folder";
+        setAlert({ variant: "error", body: message, isToast: true });
+      } finally {
+        setIsDeletingFolder(false);
+      }
+    }
+  }, [folderToDelete, handleDeleteFolder, handleCloseDeleteFolder, selectedFolder, setSelectedFolder]);
+
+  // Build a metadata lookup map for O(1) access
+  const metadataMap = useMemo(() => {
+    const map = new Map<string, FileMetadata>();
+    for (const meta of filesWithMetadata) {
+      map.set(String(meta.id), meta);
+    }
+    return map;
+  }, [filesWithMetadata]);
+
+  // Get active files based on selected folder, enriched with metadata
+  const activeFilesData = useMemo(() => {
+    // When loading folder files, return empty to prevent flash of stale data
+    if (loadingFolderFiles && selectedFolder !== "all") {
+      return [];
+    }
+
+    // Helper to enrich a FileModel with metadata
+    const enrichWithMetadata = (file: FileModel): FileModel => {
+      const meta = metadataMap.get(String(file.id));
+      if (meta) {
+        file.version = meta.version;
+        file.reviewStatus = meta.review_status;
+        file.fileGroupId = meta.file_group_id;
+      }
+      return file;
+    };
+
+    // When viewing "all", use the original filesData
+    // When viewing a folder or "uncategorized", use folderFiles converted to FileModel format
+    if (selectedFolder === "all") {
+      return filesData.map(enrichWithMetadata);
+    }
+
+    // Convert folder files to FileModel instances for compatibility with existing table
+    return folderFiles.map((file) => {
+      const uploaderName = file.uploader_name && file.uploader_surname
+        ? `${file.uploader_name} ${file.uploader_surname}`
+        : file.uploader_name || file.uploader_surname || "Unknown";
+      const fileModel = FileModel.createNewFile({
+        id: file.id.toString(),
+        fileName: file.filename,
+        size: file.size,
+        uploadDate: new Date(file.upload_date),
+        uploaderName,
+        uploader: uploaderName,
+        projectId: file.project_id?.toString(),
+        projectTitle: file.project_title,
+        source: file.source || "File Manager",
+      });
+      return enrichWithMetadata(fileModel);
+    });
+  }, [selectedFolder, filesData, folderFiles, loadingFolderFiles, metadataMap]);
+
+  // Assign to folder modal handlers
+  const handleOpenAssignFolder = useCallback(async (fileId: number) => {
+    // Find the file name from active files
+    const file = activeFilesData.find((f) => Number(f.id) === fileId);
+    if (!file) return;
+
+    setSelectedFileForAssign({ id: fileId, name: file.fileName || "" });
+
+    // Fetch current folder assignments
+    try {
+      const folders = await getFileCurrentFolders(fileId);
+      setCurrentFileFolders(folders);
+    } catch (err) {
+      console.error("Error fetching file folders:", err);
+      setCurrentFileFolders([]);
+    }
+
+    setIsAssignFolderModalOpen(true);
+  }, [activeFilesData, getFileCurrentFolders]);
+
+  const handleCloseAssignFolder = useCallback(() => {
+    setIsAssignFolderModalOpen(false);
+    setSelectedFileForAssign(null);
+    setCurrentFileFolders([]);
+  }, []);
+
+  const handleSubmitAssignFolder = useCallback(async (folderIds: number[]) => {
+    if (!selectedFileForAssign) return;
+
+    setIsSubmittingAssignment(true);
+    try {
+      await handleUpdateFileFolders(selectedFileForAssign.id, folderIds);
+      handleCloseAssignFolder();
+      // Refresh folders to update file counts
+      refreshFolders();
+      refreshFiles(selectedFolder);
+      setAlert({ variant: "success", body: "File folder assignments updated", isToast: true });
+    } catch (error) {
+      console.error("Error assigning file to folders:", error);
+      const message = error instanceof Error ? error.message : "Failed to update folder assignments";
+      setAlert({ variant: "error", body: message, isToast: true });
+    } finally {
+      setIsSubmittingAssignment(false);
+    }
+  }, [selectedFileForAssign, handleUpdateFileFolders, handleCloseAssignFolder, refreshFolders, refreshFiles, selectedFolder]);
 
   // FilterBy - Dynamic options generators
   const getUniqueProjects = useCallback(() => {
     const projectIds = new Set<string>();
-    filesData.forEach((file) => {
+    activeFilesData.forEach((file) => {
       if (file.projectId) {
         projectIds.add(file.projectId.toString());
       }
@@ -161,11 +546,11 @@ const FileManager: React.FC = (): JSX.Element => {
         };
       })
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [filesData, projects]);
+  }, [activeFilesData, projects]);
 
   const getUniqueUploaders = useCallback(() => {
     const uploaders = new Set<string>();
-    filesData.forEach((file) => {
+    activeFilesData.forEach((file) => {
       if (file.uploaderName || file.uploader) {
         uploaders.add(file.uploaderName || file.uploader || "");
       }
@@ -177,97 +562,57 @@ const FileManager: React.FC = (): JSX.Element => {
         value: uploader,
         label: uploader,
       }));
-  }, [filesData]);
+  }, [activeFilesData]);
 
-  // FilterBy - Filter columns configuration
+  // FilterBy configuration
   const fileFilterColumns: FilterColumn[] = useMemo(
     () => [
-      {
-        id: "fileName",
-        label: "File name",
-        type: "text" as const,
-      },
-      {
-        id: "projectId",
-        label: "Use case",
-        type: "select" as const,
-        options: getUniqueProjects(),
-      },
-      {
-        id: "uploader",
-        label: "Uploader",
-        type: "select" as const,
-        options: getUniqueUploaders(),
-      },
-      {
-        id: "uploadDate",
-        label: "Upload date",
-        type: "date" as const,
-      },
+      { id: "fileName", label: "File name", type: "text" as const },
+      { id: "projectId", label: "Use case", type: "select" as const, options: getUniqueProjects() },
+      { id: "uploader", label: "Uploader", type: "select" as const, options: getUniqueUploaders() },
+      { id: "uploadDate", label: "Upload date", type: "date" as const },
     ],
     [getUniqueProjects, getUniqueUploaders]
   );
 
-  // FilterBy - Field value getter
   const getFileFieldValue = useCallback(
-    (
-      item: FileModel,
-      fieldId: string
-    ): string | number | Date | null | undefined => {
+    (item: FileModel, fieldId: string): string | number | Date | null | undefined => {
       switch (fieldId) {
-        case "fileName":
-          return item.fileName;
-        case "projectId":
-          return item.projectId?.toString();
-        case "uploader":
-          return item.uploaderName || item.uploader;
-        case "uploadDate":
-          return item.uploadDate;
-        default:
-          return null;
+        case "fileName": return item.fileName;
+        case "projectId": return item.projectId?.toString();
+        case "uploader": return item.uploaderName || item.uploader;
+        case "uploadDate": return item.uploadDate;
+        default: return null;
       }
     },
     []
   );
 
-  // FilterBy - Initialize hook
-  const {
-    filterData: filterFileData,
-    handleFilterChange: handleFileFilterChange,
-  } = useFilterBy<FileModel>(getFileFieldValue);
+  const { filterData: filterFileData, handleFilterChange: handleFileFilterChange } =
+    useFilterBy<FileModel>(getFileFieldValue);
 
-  // Filter files using FilterBy and search
+  // Filter files
   const filteredFiles = useMemo(() => {
-    // First apply FilterBy conditions
-    let result = filterFileData(filesData);
-
-    // Apply search filter last
+    let result = filterFileData(activeFilesData);
     if (searchTerm.trim()) {
       const query = searchTerm.toLowerCase();
-      result = result.filter((file) =>
-        file.fileName?.toLowerCase().includes(query)
-      );
+      result = result.filter((file) => file.fileName?.toLowerCase().includes(query));
     }
-
     return result;
-  }, [filterFileData, filesData, searchTerm]);
+  }, [filterFileData, activeFilesData, searchTerm]);
 
-  // Define how to get the group key for each file
+  // Grouping
   const getFileGroupKey = useCallback(
     (file: FileModel, field: string): string => {
       switch (field) {
-        case "project":
-          return file.projectTitle || "No Project";
-        case "uploader":
-          return file.uploaderName || file.uploader || "Unknown";
-        default:
-          return "Other";
+        case "project": return file.projectTitle || "No Project";
+        case "uploader": return file.uploaderName || file.uploader || "Unknown";
+        default: return "Other";
       }
     },
     []
   );
 
-  // Apply grouping to filtered files
   const groupedFiles = useTableGrouping({
     data: filteredFiles,
     groupByField: groupBy,
@@ -275,14 +620,17 @@ const FileManager: React.FC = (): JSX.Element => {
     getGroupKey: getFileGroupKey,
   });
 
+  // Always show loading when folder files are loading (covers both folder and uncategorized views)
+  const isLoading = loadingProjects || loadingFiles || loadingFolderFiles;
+
   const boxStyles = useMemo(
     () => ({
       ...filesTableFrame,
       alignItems: filteredFiles.length === 0 ? "center" : "stretch",
-      pointerEvents: loadingFiles ? "none" : "auto",
-      opacity: loadingFiles ? 0.5 : 1,
+      pointerEvents: isLoading ? "none" : "auto",
+      opacity: isLoading ? 0.5 : 1,
     }),
-    [filteredFiles.length, loadingFiles]
+    [filteredFiles.length, isLoading]
   );
 
   useEffect(() => {
@@ -305,79 +653,144 @@ const FileManager: React.FC = (): JSX.Element => {
       />
       <FileManagerHeader />
       <TipBox entityName="file-manager" />
-      {/* Project filter dropdown */}
-      {loadingProjects || loadingFiles ? (
-        <>
-          <Typography>Loading projects...</Typography>
-          <CustomizableSkeleton
-            variant="rectangular"
-            sx={filesTablePlaceholder}
-          />
-        </>
-      ) : (
-        <Stack gap={"16px"} data-joyride-id="file-manager-content">
+
+      {/* Main content area with folder sidebar */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 0,
+          border: "1px solid #E0E4E9",
+          borderRadius: "8px",
+          overflow: "hidden",
+          minHeight: "600px",
+        }}
+      >
+        {/* Folder sidebar */}
+        <FolderTree
+          folders={folderTree}
+          selectedFolder={selectedFolder}
+          onSelectFolder={setSelectedFolder}
+          onCreateFolder={handleOpenCreateFolder}
+          onEditFolder={handleOpenEditFolder}
+          onDeleteFolder={handleOpenDeleteFolder}
+          loading={loadingFolders}
+          canManage={canManageFolders}
+        />
+
+        {/* File content area */}
+        <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", backgroundColor: "#FFFFFF" }}>
+          {/* Breadcrumb and actions */}
           <Box
             sx={{
+              padding: "12px 16px",
+              borderBottom: "1px solid #E0E4E9",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              width: "100%",
+            }}
+          >
+            <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+              <FolderBreadcrumb
+                selectedFolder={selectedFolder}
+                breadcrumb={breadcrumb}
+                onSelectFolder={setSelectedFolder}
+                loading={loadingBreadcrumb}
+              />
+            </Box>
+            <Stack direction="row" gap="8px" sx={{ flexShrink: 0 }}>
+              {canManageFolders && (
+                <CustomizableButton
+                  variant="outlined"
+                  text="New folder"
+                  onClick={() => handleOpenCreateFolder(null)}
+                  sx={{ height: "34px" }}
+                  icon={<FolderPlusIcon size={16} />}
+                />
+              )}
+              {isUploadAllowed && (
+                <CustomizableButton
+                  variant="contained"
+                  text="Upload file"
+                  onClick={handleUploadClick}
+                  sx={{ height: "34px" }}
+                  icon={<UploadIcon size={16} />}
+                />
+              )}
+            </Stack>
+          </Box>
+
+          {/* Filters and search */}
+          <Box
+            sx={{
+              padding: "12px 16px",
+              borderBottom: "1px solid #E0E4E9",
+              display: "flex",
+              alignItems: "center",
               gap: 2,
             }}
           >
-            <Box
-              sx={{ display: "flex", gap: 2, flex: 1, alignItems: "center" }}
-            >
-              <FilterBy
-                columns={fileFilterColumns}
-                onFilterChange={handleFileFilterChange}
-              />
-              <GroupBy
-                options={[
-                  { id: "project", label: "Project" },
-                  { id: "uploader", label: "Uploader" },
-                ]}
-                onGroupChange={handleGroupChange}
-              />
-              <SearchBox
-                placeholder="Search files by name..."
-                value={searchTerm}
-                onChange={setSearchTerm}
-                inputProps={{ "aria-label": "Search files" }}
-                sx={{ width: "220px" }}
-              />
-            </Box>
-            {/* RBAC: Only show upload button for non-Auditors */}
-            {isUploadAllowed && (
-              <Box data-joyride-id="upload-file-button">
-                <CustomizableButton
-                  variant="contained"
-                  text="Upload new file"
-                  sx={{
-                    gap: 2,
-                  }}
-                  icon={<UploadIcon size={16} />}
-                  onClick={handleUploadClick}
+            <FilterBy columns={fileFilterColumns} onFilterChange={handleFileFilterChange} />
+            <GroupBy
+              options={[
+                { id: "project", label: "Project" },
+                { id: "uploader", label: "Uploader" },
+              ]}
+              onGroupChange={handleGroupChange}
+            />
+            <ColumnSelector
+              columns={availableColumns}
+              visibleColumns={visibleColumns}
+              onToggleColumn={toggleColumn}
+              onResetToDefaults={resetColumnsToDefaults}
+            />
+            <Box sx={{ flex: 1 }} />
+            <SearchBox
+              placeholder="Search files..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+              inputProps={{ "aria-label": "Search files" }}
+              sx={{ width: "200px" }}
+            />
+          </Box>
+
+          {/* File table */}
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              padding: "16px",
+            }}
+          >
+            {isLoading ? (
+              <Box sx={{ padding: "24px", textAlign: "center" }}>
+                <Typography sx={{ color: "#667085" }}>Loading files...</Typography>
+                <CustomizableSkeleton variant="rectangular" sx={{ ...filesTablePlaceholder, marginTop: 2 }} />
+              </Box>
+            ) : (
+              <Box sx={boxStyles}>
+                <GroupedTableView
+                  groupedData={groupedFiles}
+                  ungroupedData={filteredFiles}
+                  renderTable={(data, options) => (
+                    <FileTable
+                      cols={getTableColumns()}
+                      files={data}
+                      onFileDeleted={handleFileDeleted}
+                      hidePagination={options?.hidePagination}
+                      onAssignToFolder={canManageFolders ? handleOpenAssignFolder : undefined}
+                      onPreview={handleOpenPreview}
+                      onEditMetadata={canManageFolders ? handleOpenMetadataEditor : undefined}
+                      onViewHistory={handleOpenVersionHistory}
+                      visibleColumnKeys={visibleColumnKeys}
+                    />
+                  )}
                 />
               </Box>
             )}
           </Box>
-          <Box sx={boxStyles}>
-            <GroupedTableView
-              groupedData={groupedFiles}
-              ungroupedData={filteredFiles}
-              renderTable={(data, options) => (
-                <FileTable
-                  cols={COLUMNS}
-                  files={data}
-                  onFileDeleted={handleFileDeleted}
-                  hidePagination={options?.hidePagination}
-                />
-              )}
-            />
-          </Box>
-        </Stack>
-      )}
+        </Box>
+      </Box>
+
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <FileManagerUploadModal
@@ -386,23 +799,99 @@ const FileManager: React.FC = (): JSX.Element => {
           onSuccess={handleUploadSuccess}
         />
       )}
+
+      {/* Create/Edit Folder Modal */}
+      <CreateFolderModal
+        isOpen={isCreateFolderModalOpen}
+        onClose={handleCloseCreateFolder}
+        onSubmit={handleSubmitFolder}
+        parentFolder={parentFolderForCreate}
+        editFolder={editingFolder}
+        isSubmitting={isSubmittingFolder}
+      />
+
+      {/* Assign to Folder Modal */}
+      <AssignToFolderModal
+        isOpen={isAssignFolderModalOpen}
+        onClose={handleCloseAssignFolder}
+        onSubmit={handleSubmitAssignFolder}
+        folders={folderTree}
+        currentFolders={currentFileFolders}
+        fileName={selectedFileForAssign?.name}
+        isSubmitting={isSubmittingAssignment}
+      />
+
+      {/* Delete Folder Confirmation Modal */}
+      {isDeleteFolderModalOpen && folderToDelete && (
+        <ConfirmationModal
+          title="Delete folder"
+          body={
+            <Typography sx={{ color: "#344054", fontSize: 14 }}>
+              Are you sure you want to delete "{folderToDelete.name}"?
+              {folderToDelete.children.length > 0 && " This will also delete all subfolders."}
+              {" "}Files in this folder will not be deleted.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Delete"
+          onCancel={handleCloseDeleteFolder}
+          onProceed={handleConfirmDeleteFolder}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          isOpen={isDeleteFolderModalOpen}
+          isLoading={isDeletingFolder}
+        />
+      )}
+
+      {/* File Preview Panel */}
+      <FilePreviewPanel
+        isOpen={isPreviewOpen}
+        onClose={handleClosePreview}
+        file={previewFile}
+        onEdit={(file) => {
+          handleClosePreview();
+          handleOpenMetadataEditor(file.id);
+        }}
+      />
+
+      {/* File Metadata Editor */}
+      <FileMetadataEditor
+        isOpen={isMetadataEditorOpen}
+        onClose={handleCloseMetadataEditor}
+        onSubmit={handleSubmitMetadata}
+        file={editingFile}
+        isSubmitting={isSubmittingMetadata}
+      />
+
+      {/* File Version History Drawer */}
+      <FileVersionHistoryDrawer
+        isOpen={isVersionHistoryOpen}
+        onClose={handleCloseVersionHistory}
+        fileId={versionHistoryFileId}
+      />
+
+      {/* Toast Alert */}
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
     </Stack>
   );
 };
 
 /**
  * Header component for the FileManager.
- * Uses React.forwardRef to handle the ref passed from the parent component.
  */
 const FileManagerHeader: React.FC = () => (
   <PageHeader
     title="Evidence & documents"
-    description="This table lists all the files uploaded to the system."
+    description="Organize and manage all files uploaded to the system."
     rightContent={
-      <HelperIcon
-        articlePath="ai-governance/evidence-collection"
-        size="small"
-      />
+      <HelperIcon articlePath="ai-governance/evidence-collection" size="small" />
     }
   />
 );

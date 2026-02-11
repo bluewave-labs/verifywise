@@ -27,7 +27,7 @@ class TestModelInventoryModel {
   id?: number;
   provider_model!: string;
   version!: string;
-  approver!: string;
+  approver?: string;
   capabilities!: string;
   security_assessment!: boolean;
   status!: ModelInventoryStatus;

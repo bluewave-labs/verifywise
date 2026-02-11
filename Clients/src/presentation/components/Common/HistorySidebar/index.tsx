@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Box,
   Typography,
@@ -8,6 +7,7 @@ import {
   Collapse,
   Avatar,
 } from "@mui/material";
+import React from "react";
 import { Clock } from "lucide-react";
 import {
   useEntityChangeHistory,
@@ -77,12 +77,12 @@ const formatRelativeTime = (date: string | Date): string => {
   return `${targetDate.format("MMMM D, YYYY")} at ${targetDate.format("h:mm A")}`;
 };
 
-const HistorySidebar: React.FC<HistorySidebarProps> = ({
+export function HistorySidebar({
   isOpen,
   entityType,
   entityId,
   height = "auto",
-}) => {
+}: HistorySidebarProps) {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
   const {
@@ -159,8 +159,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
     if (history.length > 0) {
       fetchAvatars();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [history]); // Only depend on history, not fetchProfilePhotoAsBlobUrl
+  }, [history, fetchProfilePhotoAsBlobUrl]);
 
   // Group history entries by change event (by changed_at timestamp)
   const groupedHistory = React.useMemo(() => {
@@ -699,6 +698,4 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
       </Box>
     </Collapse>
   );
-};
-
-export default HistorySidebar;
+}

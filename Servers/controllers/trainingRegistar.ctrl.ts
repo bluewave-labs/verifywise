@@ -17,6 +17,8 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger from "../utils/logger/fileLogger";
+import { notifyTrainingAssigned } from "../services/inAppNotification.service";
+import { getAllUsersQuery } from "../utils/user.utils";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -161,6 +163,38 @@ export async function createNewTrainingRegistar(
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
+
+      // Send training assigned notifications to org admins
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      try {
+        const users = await getAllUsersQuery(req.organizationId!);
+        const admins = users.filter((user) => user.role_id === 1);
+        const creatorUser = users.find((user) => user.id === req.userId);
+        const creatorName = creatorUser
+          ? `${creatorUser.name} ${creatorUser.surname}`
+          : "System";
+
+        const trainingData = createdNewTrainingRegistar?.dataValues || createdNewTrainingRegistar;
+        const trainingId = trainingData?.id || 0;
+
+        for (const admin of admins) {
+          await notifyTrainingAssigned(
+            req.tenantId!,
+            admin.id!,
+            {
+              id: trainingId,
+              name: newTrainingRegistar.training_name,
+              description: newTrainingRegistar.description,
+              duration: newTrainingRegistar.duration,
+            },
+            creatorName,
+            baseUrl,
+          );
+        }
+      } catch (notifyError) {
+        logger.error("Failed to send training assigned notification:", notifyError);
+      }
+
       return res.status(201).json(STATUS_CODE[201](createdNewTrainingRegistar));
     }
 

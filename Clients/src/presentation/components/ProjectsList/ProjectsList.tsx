@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
-import ProjectCard from "../Cards/ProjectCard";
+import { ProjectCard } from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";

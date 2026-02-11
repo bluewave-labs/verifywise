@@ -2,14 +2,16 @@
  * Custom hook to fetch and manage project risks data.
  *
  * @param {Object} params - The parameters object.
- * @param {number} [params.id] - The optional project ID to fetch specific project risks.
+ * @param {number} [params.projectId] - The project ID to fetch risks for.
+ * @param {any} [params.refreshKey] - Optional key to trigger a refetch.
  * @returns {Object} - The hook returns an object containing:
  *   - `projectRisks` {ProjectRisk[]} - The list of project risks.
  *   - `loadingProjectRisks` {boolean} - The loading state of the project risks.
  *   - `error` {string | boolean} - The error state of the project risks request.
  *   - `projectRisksSummary` {Object} - The summary of project risks categorized by risk levels.
  */
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 import { getAllProjectRisksByProjectId } from "../repository/projectRisk.repository";
 
@@ -43,68 +45,50 @@ export interface ProjectRisk {
   recommendations?: any;
 }
 
+const PROJECT_RISKS_QUERY_KEY = ['projectRisks'] as const;
+
 const useProjectRisks = ({ projectId, refreshKey }: { projectId: number, refreshKey?: any }) => {
-  const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
-  const [loadingProjectRisks, setLoadingProjectRisks] = useState<boolean>(true);
-  const [error, setError] = useState<string | boolean>(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const updateProjectRisks = async () => {
-      setLoadingProjectRisks(true);
-      try {
-        const response = await getAllProjectRisksByProjectId({
+  const { data: projectRisks = [], isLoading: loadingProjectRisks, error } = useQuery({
+    queryKey: [...PROJECT_RISKS_QUERY_KEY, projectId, refreshKey],
+    queryFn: async ({ signal }) => {
+      const response = await getAllProjectRisksByProjectId({
         projectId: String(projectId),
         signal,
       });
-        if (response.data) {
-          setProjectRisks(response.data);
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(`Request failed: ${err.message}`);
-        } else {
-          setError(`Request failed`);
-        }
-      } finally {
-        setLoadingProjectRisks(false);
-      }
-    };
-
-    updateProjectRisks();
-
-    return () => {
-      controller.abort();
-    };
-  }, [projectId, refreshKey]);
-
-  const projectRisksSummary = projectRisks.reduce(
-    (acc, risk) => {
-      const _risk = convertToCamelCaseRiskKey(risk.risk_level_autocalculated);
-      const key = `${_risk.replace(/risks?$/i, "")}Risks`;
-      if (key in acc && key !== 'total') {
-        const riskKey = key as 'veryHighRisks' | 'highRisks' | 'mediumRisks' | 'lowRisks' | 'veryLowRisks';
-        acc[riskKey] = acc[riskKey] + 1;
-      }
-      acc.total = acc.total + 1;
-      return acc;
+      return response.data as ProjectRisk[] || [];
     },
-    {
-      total: 0,
-      veryHighRisks: 0,
-      highRisks: 0,
-      mediumRisks: 0,
-      lowRisks: 0,
-      veryLowRisks: 0,
-    }
-  );
+    enabled: !!projectId,
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+  });
+
+  const projectRisksSummary = useMemo(() => {
+    return projectRisks.reduce(
+      (acc, risk) => {
+        const _risk = convertToCamelCaseRiskKey(risk.risk_level_autocalculated);
+        const key = `${_risk.replace(/risks?$/i, "")}Risks`;
+        if (key in acc && key !== 'total') {
+          const riskKey = key as 'veryHighRisks' | 'highRisks' | 'mediumRisks' | 'lowRisks' | 'veryLowRisks';
+          acc[riskKey] = acc[riskKey] + 1;
+        }
+        acc.total = acc.total + 1;
+        return acc;
+      },
+      {
+        total: 0,
+        veryHighRisks: 0,
+        highRisks: 0,
+        mediumRisks: 0,
+        lowRisks: 0,
+        veryLowRisks: 0,
+      }
+    );
+  }, [projectRisks]);
 
   return {
     projectRisks,
     loadingProjectRisks,
-    error,
+    error: error instanceof Error ? error.message : error ? String(error) : false,
     projectRisksSummary,
   };
 };

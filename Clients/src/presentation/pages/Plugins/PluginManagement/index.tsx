@@ -28,10 +28,6 @@ import {
   FileSpreadsheet as FileSpreadsheetIcon,
   Package as PackageIcon,
   Database as DatabaseIcon,
-  Globe as GlobeIcon,
-  Building2 as BuildingIcon,
-  Layers as LayersIcon,
-  BookOpen as BookOpenIcon,
 } from "lucide-react";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../../components/Layout/PageHeader";
@@ -92,26 +88,6 @@ const PluginManagement: React.FC = () => {
   const [connectingOAuth, setConnectingOAuth] = useState(false);
 
   const isAdmin = userRoleName === "Admin";
-
-  // Helper function to get flag emoji from region
-  const getRegionFlag = (region?: string): string => {
-    if (!region) return "🌐";
-    const regionFlags: Record<string, string> = {
-      "European Union": "🇪🇺",
-      "United States": "🇺🇸",
-      "United Kingdom": "🇬🇧",
-      "Canada": "🇨🇦",
-      "Australia": "🇦🇺",
-      "Brazil": "🇧🇷",
-      "Singapore": "🇸🇬",
-      "Japan": "🇯🇵",
-      "South Korea": "🇰🇷",
-      "China": "🇨🇳",
-      "India": "🇮🇳",
-      "Global": "🌐",
-    };
-    return regionFlags[region] || "🌐";
-  };
 
   // Check if plugin is a compliance/framework plugin
   const isFrameworkPlugin = plugin?.category === "compliance";
@@ -463,41 +439,31 @@ const PluginManagement: React.FC = () => {
                     <Divider />
                     <Box>
                       <Typography variant="subtitle2" fontWeight={600} fontSize={14} mb={2}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <BookOpenIcon size={16} color="#13715B" />
-                          Framework Details
-                        </Box>
+                        Framework Details
                       </Typography>
                       <Box sx={frameworkDetailsGrid}>
                         {/* Region */}
                         <Box sx={frameworkDetailItem}>
-                          <Typography sx={frameworkDetailLabel}>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                              <GlobeIcon size={12} />
-                              Region
-                            </Box>
-                          </Typography>
-                          <Typography sx={frameworkDetailValue}>
-                            <span style={{ fontSize: "18px" }}>{getRegionFlag(plugin.region)}</span>
+                          <Box component="span" sx={frameworkDetailLabel}>
+                            Region
+                          </Box>
+                          <Box component="span" sx={frameworkDetailValue}>
                             {plugin.region || "Global"}
-                          </Typography>
+                          </Box>
                         </Box>
 
                         {/* Framework Type */}
                         <Box sx={frameworkDetailItem}>
-                          <Typography sx={frameworkDetailLabel}>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                              {plugin.frameworkType === "organizational" ? <BuildingIcon size={12} /> : <LayersIcon size={12} />}
-                              Framework Type
-                            </Box>
-                          </Typography>
+                          <Box component="span" sx={frameworkDetailLabel}>
+                            Framework Type
+                          </Box>
                           <Box>
                             <MuiChip
                               size="small"
                               label={plugin.frameworkType === "organizational" ? "Organizational" : "Project-Based"}
                               sx={frameworkTypeChip(plugin.frameworkType === "organizational")}
                             />
-                            <Typography sx={frameworkTypeDescription}>
+                            <Typography component="span" sx={{ ...frameworkTypeDescription, display: "block" }}>
                               {plugin.frameworkType === "organizational"
                                 ? "Organization-wide framework that applies globally across all projects"
                                 : "Project-specific framework that can be applied to individual projects"}
@@ -651,7 +617,7 @@ const PluginManagement: React.FC = () => {
           {/* Configuration Card - Only show for installed plugins that require configuration */}
           {plugin.installationStatus === PluginInstallationStatus.INSTALLED && plugin.requiresConfiguration !== false && (
             <Card sx={cardStyles.base(theme)}>
-              <CardContent sx={{ p: 3 }}>
+              <CardContent sx={{ p: "16px" }}>
                 <Stack spacing={3}>
                   {/* Configuration Header */}
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>

@@ -66,6 +66,12 @@ export interface IconButtonProps {
   hardDeleteWarningMessage?: string | React.ReactNode;
   onDownloadPDF?: () => void | Promise<void>;
   onDownloadDOCX?: () => void | Promise<void>;
+  // Virtual folder props
+  onAssignToFolder?: () => void;
+  // File metadata props
+  onPreview?: () => void | Promise<void>;
+  onEditMetadata?: () => void | Promise<void>;
+  onViewHistory?: () => void;
 }
 
 /**

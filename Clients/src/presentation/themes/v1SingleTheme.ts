@@ -74,6 +74,7 @@ const flashColors = {
 // Table colors for consistent styling
 const tableColors = {
   rowHover: "#f5f5f5",
+  rowAlternate: "#fafbfc",
   sortedColumn: "#f5f5f5",
   sortedColumnFirst: "#e8e8e8",
 };

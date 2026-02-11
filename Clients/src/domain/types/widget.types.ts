@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from "react";
 import { Dayjs } from "dayjs";
 import { RiskModel } from "../models/Common/risks/risk.model";
 
@@ -72,7 +73,7 @@ export interface SelectCorProps {
   error?: string;
   getOptionValue?: (item: any) => any;
   disabled?: boolean;
-  customRenderValue?: (value: any, selectedItem: any) => string;
+  customRenderValue?: (value: any, selectedItem: any) => React.ReactNode;
   isFilterApplied?: boolean;
 }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
+import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { PolicyStatusCardProps } from "../../types/interfaces/i.policy";
 
 const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({

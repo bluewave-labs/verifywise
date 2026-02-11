@@ -86,6 +86,7 @@ export const routeMapping: Record<string, string> = {
 
   // Model inventory
   "/model-inventory": "Model Inventory",
+  "/model-inventory/models": "Models",
   "/model-inventory/model-risks": "Model risks",
   "/model-inventory/evidence-hub": "Evidence hub",
   // Plugin tabs are handled dynamically by the breadcrumb component
@@ -204,8 +205,8 @@ export const dynamicRoutePatterns = [
     description: "Fairness results for specific analysis",
   },
   {
-    pattern: /\/model-inventory\/\d+/,
-    label: "Model Details",
+    pattern: /\/model-inventory\/models\/\d+/,
+    label: "Model",
     description: "Detailed view of specific model",
   },
   {

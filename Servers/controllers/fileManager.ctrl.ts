@@ -20,9 +20,17 @@ import {
   uploadOrganizationFile,
   getFileById,
   getOrganizationFiles,
+  getOrganizationFilesWithMetadata,
   logFileAccess,
   deleteFileById,
+  updateFileMetadata,
+  getFileWithMetadata,
+  getHighlightedFiles,
+  getFilePreview,
+  getFileVersionHistory as getFileVersionHistoryRepo,
   FileSource,
+  UpdateFileMetadataInput,
+  ReviewStatus,
 } from "../repositories/file.repository";
 import {
   validateFileUpload,
@@ -35,6 +43,10 @@ import {
 } from "../utils/logger/logHelper";
 import { getUserProjects } from "../utils/user.utils";
 import { getProjectByIdQuery } from "../utils/project.utils";
+import {
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+} from "../utils/changeHistory.base.utils";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -101,6 +113,89 @@ const hasPermission = (
   }
 
   return hasAccess;
+};
+
+/**
+ * Pagination limits to prevent unbounded queries
+ */
+const PAGINATION_LIMITS = {
+  maxPageSize: 100,
+  maxPage: 10000,
+  defaultPageSize: 20,
+};
+
+/**
+ * Validates and normalizes pagination parameters
+ * @param page - Page number from query
+ * @param pageSize - Page size from query
+ * @returns Validated pagination parameters or null if invalid
+ */
+const validatePagination = (
+  page: number | undefined,
+  pageSize: number | undefined
+): { page: number | undefined; pageSize: number | undefined; offset: number | undefined } | { error: string } => {
+  // Validate page if provided
+  if (page !== undefined) {
+    if (!Number.isSafeInteger(page) || page < 1 || page > PAGINATION_LIMITS.maxPage) {
+      return { error: `Page must be a positive integer between 1 and ${PAGINATION_LIMITS.maxPage}` };
+    }
+  }
+
+  // Validate pageSize if provided
+  if (pageSize !== undefined) {
+    if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > PAGINATION_LIMITS.maxPageSize) {
+      return { error: `Page size must be a positive integer between 1 and ${PAGINATION_LIMITS.maxPageSize}` };
+    }
+  }
+
+  const validPage = page && page > 0 ? page : undefined;
+  const validPageSize = pageSize && pageSize > 0 ? Math.min(pageSize, PAGINATION_LIMITS.maxPageSize) : undefined;
+  const offset =
+    validPage !== undefined && validPageSize !== undefined
+      ? (validPage - 1) * validPageSize
+      : undefined;
+
+  return { page: validPage, pageSize: validPageSize, offset };
+};
+
+/**
+ * Validates tags array
+ * @param tags - Tags array to validate
+ * @returns Validated tags array or error
+ */
+const validateTags = (
+  tags: unknown
+): { tags: string[] } | { error: string } => {
+  if (!Array.isArray(tags)) {
+    return { error: "Tags must be an array" };
+  }
+
+  // Limit number of tags
+  if (tags.length > 50) {
+    return { error: "Maximum 50 tags allowed" };
+  }
+
+  // Validate each tag
+  const validatedTags: string[] = [];
+  for (const tag of tags) {
+    if (typeof tag !== 'string') {
+      return { error: "Each tag must be a string" };
+    }
+    const trimmedTag = tag.trim();
+    if (trimmedTag.length === 0) {
+      continue; // Skip empty tags
+    }
+    if (trimmedTag.length > 100) {
+      return { error: "Tag length must not exceed 100 characters" };
+    }
+    // Only allow alphanumeric, spaces, hyphens, and underscores
+    if (!/^[\w\s-]+$/u.test(trimmedTag)) {
+      return { error: "Tags can only contain letters, numbers, spaces, hyphens, and underscores" };
+    }
+    validatedTags.push(trimmedTag);
+  }
+
+  return { tags: validatedTags };
 };
 
 /**
@@ -237,6 +332,13 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
   const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
   const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
 
+  // Validate pagination
+  const paginationResult = validatePagination(page, pageSize);
+  if ('error' in paginationResult) {
+    return res.status(400).json(STATUS_CODE[400](paginationResult.error));
+  }
+  const { page: validPage, pageSize: validPageSize, offset } = paginationResult;
+
   logProcessing({
     description: `Retrieving file list for organization ${orgId}`,
     functionName: "listFiles",
@@ -246,13 +348,6 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
   });
 
   try {
-    const validPage = page && page > 0 ? page : undefined;
-    const validPageSize = pageSize && pageSize > 0 ? pageSize : undefined;
-    const offset =
-      validPage !== undefined && validPageSize !== undefined
-        ? (validPage - 1) * validPageSize
-        : undefined;
-
     const { files, total } = await getOrganizationFiles(orgId, tenant, {
       limit: validPageSize,
       offset,
@@ -429,23 +524,23 @@ export const downloadFile = async (
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
-      return res.status(404).json(STATUS_CODE[404]("File content not found"));
+      return res.status(404).json(STATUS_CODE[404]("File content not available. This file may need to be re-uploaded."));
     }
 
     // Set headers for file download (unified files table uses 'type' for mimetype)
     res.setHeader("Content-Type", file.type || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    const safeFilename = file.filename
+      .replace(/["\r\n]/g, '')
+      .replace(/[^\x20-\x7E]/g, '_');
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${file.filename}"`
+      `attachment; filename="${safeFilename}"`
     );
 
     // Set Content-Length
-    const contentLength = file.size || (file.content ? file.content.length : 0);
+    const contentLength = file.content ? file.content.length : 0;
     res.setHeader("Content-Length", contentLength);
-
-    // Send file content from database
-    res.send(file.content);
 
     await logSuccess({
       eventType: "Read",
@@ -455,6 +550,9 @@ export const downloadFile = async (
       userId: req.userId!,
       tenantId: req.tenantId!,
     });
+
+    // Send file content from database (after logging to avoid async interference)
+    res.end(file.content);
   } catch (error) {
     await logFailure({
       eventType: "Error",
@@ -624,6 +722,658 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       eventType: "Error",
       description: "Failed to delete file",
       functionName: "removeFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file with full metadata
+ *
+ * GET /file-manager/:id/metadata
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} File metadata including tags, status, version, etc.
+ */
+export const getFileMetadata = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { userId, orgId, tenant } = auth;
+
+  logProcessing({
+    description: `Getting metadata for file ID ${fileId}`,
+    functionName: "getFileMetadata",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const file = await getFileWithMetadata(fileId, tenant);
+
+    if (!file) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    // Authorization check based on file type
+    const isOrganizationFile = file.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
+      if (Number(file.org_id) !== orgId) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    } else {
+      // Project-level file: verify user has access to the project
+      const userProjects = await getUserProjects(userId, tenant);
+      const userProjectIds = userProjects.map((p) => p.id);
+      const projectId = file.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
+
+      const isProjectMember = userProjectIds.includes(projectId);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(file.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved metadata for file: ${file.filename}`,
+      functionName: "getFileMetadata",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](file));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file metadata",
+      functionName: "getFileMetadata",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Update file metadata
+ *
+ * PATCH /file-manager/:id/metadata
+ *
+ * @param {Request} req - Express request with file ID in params and metadata in body
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} Updated file metadata
+ */
+export const updateMetadata = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { userId, orgId, tenant } = auth;
+
+  // Defense-in-depth: Verify user has edit permission
+  if (!hasPermission(req, "update:file-metadata", ["Admin", "Reviewer", "Editor"])) {
+    return res
+      .status(403)
+      .json(STATUS_CODE[403]("Insufficient permissions to update file metadata"));
+  }
+
+  logProcessing({
+    description: `Updating metadata for file ID ${fileId}`,
+    functionName: "updateMetadata",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // Get current file to verify access
+    const currentFile = await getFileById(fileId, tenant);
+
+    if (!currentFile) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    // Authorization check based on file type
+    const isOrganizationFile = currentFile.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
+      if (Number(currentFile.org_id) !== orgId) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    } else {
+      // Project-level file: verify user has access to the project
+      const userProjects = await getUserProjects(userId, tenant);
+      const userProjectIds = userProjects.map((p) => p.id);
+      const projectId = currentFile.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
+
+      const isProjectMember = userProjectIds.includes(projectId);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(currentFile.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    }
+
+    // Validate input
+    const { tags, review_status, version, expiry_date, description } = req.body;
+
+    // Validate review_status if provided
+    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired', 'superseded'];
+    if (review_status && !validStatuses.includes(review_status)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid review status"));
+    }
+
+    // Validate version format if provided (semver-like: X.Y or X.Y.Z)
+    if (version && !/^[0-9]+\.[0-9]+(\.[0-9]+)?$/.test(version)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid version format. Use X.Y or X.Y.Z"));
+    }
+
+    // Validate tags using helper function if provided
+    let validatedTags: string[] | undefined;
+    if (tags !== undefined) {
+      const tagsResult = validateTags(tags);
+      if ('error' in tagsResult) {
+        return res.status(400).json(STATUS_CODE[400](tagsResult.error));
+      }
+      validatedTags = tagsResult.tags;
+    }
+
+    // Validate expiry_date format and value if provided
+    if (expiry_date && expiry_date !== null) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(expiry_date)) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid date format. Use YYYY-MM-DD"));
+      }
+      // Validate it's a real date
+      const parsedDate = new Date(expiry_date);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid date value"));
+      }
+    }
+
+    // Validate description length if provided
+    if (description !== undefined && description !== null) {
+      if (typeof description !== 'string') {
+        return res.status(400).json(STATUS_CODE[400]("Description must be a string"));
+      }
+      if (description.length > 2000) {
+        return res.status(400).json(STATUS_CODE[400]("Description must not exceed 2000 characters"));
+      }
+    }
+
+    const updates: UpdateFileMetadataInput = {
+      last_modified_by: userId,
+    };
+
+    if (validatedTags !== undefined) updates.tags = validatedTags;
+    if (review_status !== undefined) updates.review_status = review_status;
+    if (version !== undefined) updates.version = version;
+    if (expiry_date !== undefined) updates.expiry_date = expiry_date;
+    if (description !== undefined) updates.description = description;
+
+    // Fetch current metadata state before update (for change tracking)
+    const beforeState = await getFileWithMetadata(fileId, tenant);
+
+    const updatedFile = await updateFileMetadata(fileId, updates, tenant);
+
+    if (!updatedFile) {
+      return res.status(404).json(STATUS_CODE[404]("File not found after update"));
+    }
+
+    // Record changes in file change history
+    try {
+      if (beforeState) {
+        const changes = await trackEntityChanges(
+          "file",
+          beforeState,
+          updatedFile
+        );
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            "file",
+            fileId,
+            userId,
+            tenant,
+            changes
+          );
+        }
+      }
+    } catch (historyError) {
+      // Don't fail the update if history recording fails
+      console.error("Failed to record file change history:", historyError);
+    }
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Updated metadata for file: ${currentFile.filename}`,
+      functionName: "updateMetadata",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](updatedFile));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to update file metadata",
+      functionName: "updateMetadata",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get list of files with full metadata
+ *
+ * GET /file-manager/with-metadata
+ *
+ * Query parameters:
+ * - page: Page number (optional)
+ * - pageSize: Items per page (optional)
+ *
+ * @param {Request} req - Express request
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} List of files with full metadata
+ */
+export const listFilesWithMetadata = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { orgId, tenant } = auth;
+
+  const page = req.query.page ? Number(Array.isArray(req.query.page) ? req.query.page[0] : req.query.page) : undefined;
+  const pageSize = req.query.pageSize ? Number(Array.isArray(req.query.pageSize) ? req.query.pageSize[0] : req.query.pageSize) : undefined;
+
+  // Validate pagination
+  const paginationResult = validatePagination(page, pageSize);
+  if ('error' in paginationResult) {
+    return res.status(400).json(STATUS_CODE[400](paginationResult.error));
+  }
+  const { page: validPage, pageSize: validPageSize, offset } = paginationResult;
+
+  logProcessing({
+    description: `Retrieving files with metadata for organization ${orgId}`,
+    functionName: "listFilesWithMetadata",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const { files, total } = await getOrganizationFilesWithMetadata(orgId, tenant, {
+      limit: validPageSize,
+      offset,
+    });
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved ${files.length} files with metadata for organization ${orgId}`,
+      functionName: "listFilesWithMetadata",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        files,
+        pagination: {
+          total,
+          page: validPage,
+          pageSize: validPageSize,
+          totalPages: validPageSize ? Math.ceil(total / validPageSize) : 1,
+        },
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to retrieve files with metadata",
+      functionName: "listFilesWithMetadata",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get highlighted files (due for update, pending approval, recently modified)
+ *
+ * GET /file-manager/highlighted
+ *
+ * Query parameters:
+ * - daysUntilExpiry: Days before expiry to flag (default 30)
+ * - recentDays: Days to consider as recent (default 7)
+ *
+ * @param {Request} req - Express request
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} Categorized file IDs
+ */
+export const getHighlighted = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { orgId, tenant } = auth;
+
+  const daysUntilExpiry = req.query.daysUntilExpiry
+    ? Number(Array.isArray(req.query.daysUntilExpiry) ? req.query.daysUntilExpiry[0] : req.query.daysUntilExpiry)
+    : 30;
+  const recentDays = req.query.recentDays
+    ? Number(Array.isArray(req.query.recentDays) ? req.query.recentDays[0] : req.query.recentDays)
+    : 7;
+
+  logProcessing({
+    description: `Getting highlighted files for organization ${orgId}`,
+    functionName: "getHighlighted",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const highlighted = await getHighlightedFiles(orgId, tenant, daysUntilExpiry, recentDays);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved highlighted files for organization ${orgId}`,
+      functionName: "getHighlighted",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](highlighted));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get highlighted files",
+      functionName: "getHighlighted",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file preview content
+ *
+ * GET /file-manager/:id/preview
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} File content for preview or error if too large
+ */
+export const previewFile = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { userId, orgId, tenant } = auth;
+
+  logProcessing({
+    description: `Getting preview for file ID ${fileId}`,
+    functionName: "previewFile",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // First check file access
+    const fileMeta = await getFileById(fileId, tenant);
+
+    if (!fileMeta) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    // Authorization check based on file type
+    const isOrganizationFile = fileMeta.project_id == null;
+
+    if (isOrganizationFile) {
+      // Organization-level file: verify user belongs to the same org
+      if (Number(fileMeta.org_id) !== orgId) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    } else {
+      // Project-level file: verify user has access to the project
+      const userProjects = await getUserProjects(userId, tenant);
+      const userProjectIds = userProjects.map((p) => p.id);
+      const projectId = fileMeta.project_id!;
+      const project = await getProjectByIdQuery(projectId, tenant);
+
+      const isProjectMember = userProjectIds.includes(projectId);
+      const isProjectOwner = project && Number(project.owner) === userId;
+      const isFileOwner = Number(fileMeta.uploaded_by) === userId;
+
+      if (!isProjectMember && !isProjectOwner && !isFileOwner) {
+        return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    }
+
+    // Get preview content
+    const preview = await getFilePreview(fileId, tenant);
+
+    if (!preview) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    if (!preview.canPreview) {
+      // Check if file has no content vs too large
+      if (preview.content.length === 0) {
+        return res.status(404).json(STATUS_CODE[404]("File content not available. This file may need to be re-uploaded."));
+      }
+      return res.status(413).json(STATUS_CODE[400]("File too large for preview"));
+    }
+
+    // Log file access for preview
+    try {
+      await logFileAccess(fileId, userId, orgId, "view", tenant);
+    } catch (error) {
+      console.error("Failed to log file access:", error);
+    }
+
+    // Allowlist of safe MIME types for preview to prevent XSS
+    const SAFE_PREVIEW_MIMETYPES = new Set([
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml', // Note: SVG can contain scripts but browser should respect nosniff
+      'text/plain',
+      'text/csv',
+      'text/html', // Will be treated as plain text due to CSP
+      'application/json',
+      'application/xml',
+      'text/xml',
+    ]);
+
+    // Sanitize MIME type - only allow known safe types, default to octet-stream
+    const requestedMimetype = preview.mimetype?.toLowerCase()?.trim() || '';
+    const safeMimetype = SAFE_PREVIEW_MIMETYPES.has(requestedMimetype)
+      ? requestedMimetype
+      : 'application/octet-stream';
+
+    // Sanitize filename to prevent header injection
+    const safeFilename = preview.filename
+      .replace(/["\r\n]/g, '') // Remove quotes and newlines
+      .replace(/[^\x20-\x7E]/g, '_'); // Replace non-ASCII with underscore
+
+    // Set headers for inline display with XSS protection
+    res.setHeader("Content-Type", safeMimetype);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Content-Security-Policy", "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${safeFilename}"`
+    );
+    res.setHeader("Content-Length", preview.content.length);
+
+    res.send(preview.content);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Preview served for file: ${preview.filename}`,
+      functionName: "previewFile",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file preview",
+      functionName: "previewFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file version history (all files in the same file group)
+ *
+ * GET /file-manager/:id/versions
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} List of file versions in the same group
+ */
+export const getFileVersionHistory = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { tenant } = auth;
+
+  logProcessing({
+    description: `Getting version history for file ID ${fileId}`,
+    functionName: "getFileVersionHistory",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // Get the file to extract file_group_id
+    const file = await getFileWithMetadata(fileId, tenant);
+
+    if (!file) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    if (!file.file_group_id) {
+      // No group ID means no version history — return just this file
+      return res.status(200).json(STATUS_CODE[200]({ versions: [file] }));
+    }
+
+    const versions = await getFileVersionHistoryRepo(file.file_group_id, tenant);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved ${versions.length} versions for file group: ${file.file_group_id}`,
+      functionName: "getFileVersionHistory",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200]({ versions }));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file version history",
+      functionName: "getFileVersionHistory",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
       userId: req.userId!,

@@ -8,6 +8,7 @@ import { ITask } from "../../../domain/interfaces/i.task";
 import { IUser } from "../../../domain/interfaces/i.user";
 import { EventModel } from "../../../domain/models/Common/evenTracker/eventTracker.model";
 import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
+import { FileColumn } from "../../../application/hooks/useFileColumnVisibility";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -121,14 +122,25 @@ export interface IFileBasicTableProps {
   table: string;
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
+  onAssignToFolder?: (fileId: number) => void;
+  onPreview?: (fileId: number | string) => void | Promise<void>;
+  onEditMetadata?: (fileId: number | string) => void | Promise<void>;
+  onViewHistory?: (fileId: number | string) => void;
+  /** Column keys that are visible (for conditional cell rendering) */
+  visibleColumnKeys?: FileColumn[];
 }
 
 export interface IFileTableProps {
   cols: any[];
-
   files: FileModel[];
   onFileDeleted?: () => void | Promise<void>;
   hidePagination?: boolean;
+  onAssignToFolder?: (fileId: number) => void;
+  onPreview?: (fileId: number | string) => void | Promise<void>;
+  onEditMetadata?: (fileId: number | string) => void | Promise<void>;
+  onViewHistory?: (fileId: number | string) => void;
+  /** Column keys that are visible (for conditional cell rendering) */
+  visibleColumnKeys?: FileColumn[];
 }
 
 export interface IProjectRiskTableBodyProps {

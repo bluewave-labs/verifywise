@@ -1,6 +1,6 @@
 import { FC, memo } from "react";
 import { Stack, Tooltip, Box, Typography, useTheme } from "@mui/material";
-import { Shield, FlaskConical, Network, ScanSearch } from "lucide-react";
+import { Shield, FlaskConical, ScanSearch } from "lucide-react";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import "./index.css";
 
@@ -35,14 +35,6 @@ const modules: ModuleItem[] = [
     icon: <ScanSearch size={16} strokeWidth={1.5} />,
     label: "AI Detection",
     description: "Scan repositories to detect AI/ML libraries and frameworks",
-  },
-  {
-    id: "gateway",
-    icon: <Network size={16} strokeWidth={1.5} />,
-    label: "Gateway",
-    description:
-      "Control, monitor, and govern all LLM traffic across your organization.",
-    disabled: true,
   },
 ];
 

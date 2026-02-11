@@ -16,6 +16,11 @@ const FileTable: React.FC<IFileTableProps> = ({
   files,
   onFileDeleted,
   hidePagination = false,
+  onAssignToFolder,
+  onPreview,
+  onEditMetadata,
+  onViewHistory,
+  visibleColumnKeys,
 }) => {
   const [sortField, setSortField] = useState<keyof FileModel | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -81,6 +86,8 @@ const FileTable: React.FC<IFileTableProps> = ({
         uploadDate: file.getFormattedUploadDate(),
         uploader: file.uploaderName || file.uploader,
         source: file.source,
+        version: file.version,
+        reviewStatus: file.reviewStatus,
       })),
     [sortedFiles]
   );
@@ -98,6 +105,11 @@ const FileTable: React.FC<IFileTableProps> = ({
       table="fileManager"
       onFileDeleted={onFileDeleted}
       hidePagination={hidePagination}
+      onAssignToFolder={onAssignToFolder}
+      onPreview={onPreview}
+      onEditMetadata={onEditMetadata}
+      onViewHistory={onViewHistory}
+      visibleColumnKeys={visibleColumnKeys}
     />
   );
 };

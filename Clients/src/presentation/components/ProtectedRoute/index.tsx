@@ -1,12 +1,12 @@
 import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
   setUserExists,
   clearAuthState,
 } from "../../../application/redux/auth/authSlice";
-import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
+import { getAllEntities } from "../../../application/repository/entity.repository";
 import CustomizableToast from "../Toast";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { IProtectedRouteProps } from "../../types/widget.types";
@@ -18,6 +18,10 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
+
+  // Track if we've already validated the token in this session
+  const hasValidatedRef = useRef(false);
+  const lastTokenRef = useRef<string | null>(null);
 
   // List of public routes that don't need authentication
   const publicRoutes = [
@@ -55,11 +59,14 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
               tokenError
             );
             dispatch(clearAuthState());
+            hasValidatedRef.current = false;
             return; // Exit early since token is invalid
           }
         }
 
         dispatch(setUserExists(userExists));
+        hasValidatedRef.current = true;
+        lastTokenRef.current = authState.authToken;
       } catch (error) {
         console.error("Error checking if user exists:", error);
         // If there's a network error but we have a token, don't clear it
@@ -69,9 +76,14 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
       }
     };
 
-    // Only run the check if we're not on public auth pages and we have a valid token
-    // This prevents unnecessary API calls during logout
-    if (!isPublicRoute && authState.authToken) {
+    // Only run the check if:
+    // 1. We're not on public auth pages
+    // 2. We have a valid token
+    // 3. We haven't already validated OR the token has changed
+    const tokenChanged = lastTokenRef.current !== authState.authToken;
+    const needsValidation = !hasValidatedRef.current || tokenChanged;
+
+    if (!isPublicRoute && authState.authToken && needsValidation) {
       checkUserExistsInDatabase();
     } else {
       setLoading(false);

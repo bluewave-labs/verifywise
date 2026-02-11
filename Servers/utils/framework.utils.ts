@@ -175,6 +175,19 @@ const deleteFrameworkEvidenceFiles = async (
   tenant: string,
   transaction: Transaction
 ): Promise<void> => {
+  // First clean up any virtual folder mappings for these files
+  await sequelize.query(
+    `DELETE FROM "${tenant}".file_folder_mappings
+     WHERE file_id IN (
+       SELECT id FROM "${tenant}".files
+       WHERE project_id = :project_id AND source IN (:source)
+     )`,
+    {
+      replacements: { project_id: projectId, source },
+      transaction,
+    }
+  );
+
   await sequelize.query(
     `DELETE FROM "${tenant}".files WHERE project_id = :project_id AND source IN (:source)`,
     {

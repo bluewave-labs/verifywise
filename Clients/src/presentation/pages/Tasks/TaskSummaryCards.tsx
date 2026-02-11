@@ -1,5 +1,5 @@
 import React from "react";
-import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
+import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { TaskSummary } from "../../../domain/interfaces/i.task";
 
 interface TaskSummaryCardsProps {

@@ -40,7 +40,7 @@ import {
 } from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { History as HistoryIcon } from "lucide-react";
-import HistorySidebar from "../../Common/HistorySidebar";
+import { HistorySidebar } from "../../Common/HistorySidebar";
 import { useVendorRiskChangeHistory } from "../../../../application/hooks/useVendorRiskChangeHistory";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
 const RiskLevel = lazy(() => import("../../RiskLevel"));

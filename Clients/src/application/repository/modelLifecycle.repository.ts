@@ -7,6 +7,8 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import {
   LifecyclePhase,
+  LifecycleItem,
+  LifecycleValue,
   LifecycleProgress,
   CreatePhaseInput,
   UpdatePhaseInput,
@@ -24,8 +26,8 @@ export async function getLifecycleConfig(
 ): Promise<LifecyclePhase[]> {
   try {
     const params = includeInactive ? { includeInactive: "true" } : {};
-    const response = await apiServices.get("/model-lifecycle/config", { params });
-    return response.data?.data ?? response.data;
+    const response = await apiServices.get<Record<string, unknown>>("/model-lifecycle/config", { params });
+    return (response.data?.data ?? response.data) as LifecyclePhase[];
   } catch (error) {
     console.error("Error fetching lifecycle config:", error);
     throw error;
@@ -34,8 +36,8 @@ export async function getLifecycleConfig(
 
 export async function createPhase(data: CreatePhaseInput): Promise<LifecyclePhase> {
   try {
-    const response = await apiServices.post("/model-lifecycle/phases", data);
-    return response.data?.data ?? response.data;
+    const response = await apiServices.post<Record<string, unknown>>("/model-lifecycle/phases", data);
+    return (response.data?.data ?? response.data) as LifecyclePhase;
   } catch (error) {
     console.error("Error creating lifecycle phase:", error);
     throw error;
@@ -47,8 +49,8 @@ export async function updatePhase(
   data: UpdatePhaseInput
 ): Promise<LifecyclePhase> {
   try {
-    const response = await apiServices.patch(`/model-lifecycle/phases/${phaseId}`, data);
-    return response.data?.data ?? response.data;
+    const response = await apiServices.patch<Record<string, unknown>>(`/model-lifecycle/phases/${phaseId}`, data);
+    return (response.data?.data ?? response.data) as LifecyclePhase;
   } catch (error) {
     console.error("Error updating lifecycle phase:", error);
     throw error;
@@ -78,11 +80,11 @@ export async function createItem(
   data: CreateItemInput
 ): Promise<any> {
   try {
-    const response = await apiServices.post(
+    const response = await apiServices.post<Record<string, unknown>>(
       `/model-lifecycle/phases/${phaseId}/items`,
       data
     );
-    return response.data?.data ?? response.data;
+    return (response.data?.data ?? response.data) as LifecycleItem;
   } catch (error) {
     console.error("Error creating lifecycle item:", error);
     throw error;
@@ -94,8 +96,8 @@ export async function updateItem(
   data: UpdateItemInput
 ): Promise<any> {
   try {
-    const response = await apiServices.patch(`/model-lifecycle/items/${itemId}`, data);
-    return response.data?.data ?? response.data;
+    const response = await apiServices.patch<Record<string, unknown>>(`/model-lifecycle/items/${itemId}`, data);
+    return (response.data?.data ?? response.data) as LifecycleItem;
   } catch (error) {
     console.error("Error updating lifecycle item:", error);
     throw error;
@@ -133,8 +135,8 @@ export async function getModelLifecycle(
   modelId: number
 ): Promise<LifecyclePhase[]> {
   try {
-    const response = await apiServices.get(`/modelInventory/${modelId}/lifecycle`);
-    return response.data?.data ?? response.data;
+    const response = await apiServices.get<Record<string, unknown>>(`/modelInventory/${modelId}/lifecycle`);
+    return (response.data?.data ?? response.data) as LifecyclePhase[];
   } catch (error) {
     console.error("Error fetching model lifecycle:", error);
     throw error;
@@ -147,11 +149,11 @@ export async function upsertItemValue(
   data: UpsertValueInput
 ): Promise<any> {
   try {
-    const response = await apiServices.put(
+    const response = await apiServices.put<Record<string, unknown>>(
       `/modelInventory/${modelId}/lifecycle/items/${itemId}`,
       data
     );
-    return response.data?.data ?? response.data;
+    return (response.data?.data ?? response.data) as LifecycleValue;
   } catch (error) {
     console.error("Error upserting lifecycle value:", error);
     throw error;
@@ -164,11 +166,11 @@ export async function addFileToItem(
   fileId: number
 ): Promise<any> {
   try {
-    const response = await apiServices.post(
+    const response = await apiServices.post<Record<string, unknown>>(
       `/modelInventory/${modelId}/lifecycle/items/${itemId}/files`,
       { fileId }
     );
-    return response.data?.data ?? response.data;
+    return (response.data?.data ?? response.data) as LifecycleValue;
   } catch (error) {
     console.error("Error adding file to lifecycle item:", error);
     throw error;
@@ -194,10 +196,10 @@ export async function getLifecycleProgress(
   modelId: number
 ): Promise<LifecycleProgress> {
   try {
-    const response = await apiServices.get(
+    const response = await apiServices.get<Record<string, unknown>>(
       `/modelInventory/${modelId}/lifecycle/progress`
     );
-    return response.data?.data ?? response.data;
+    return (response.data?.data ?? response.data) as LifecycleProgress;
   } catch (error) {
     console.error("Error fetching lifecycle progress:", error);
     throw error;

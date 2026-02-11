@@ -46,6 +46,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 import { ISO27001GetSubClauseById } from "../../../../application/repository/subClause_iso.repository";
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 
 export const inputStyles = {
   minWidth: 200,
@@ -54,11 +55,41 @@ export const inputStyles = {
   height: 34,
 };
 
+interface ISO27001SubClauseData {
+  id?: number;
+  title?: string;
+  status?: string;
+  implementation_description?: string;
+  owner?: number;
+  reviewer?: number;
+  approver?: number;
+  due_date?: string;
+  auditor_feedback?: string;
+  evidence_links?: FileData[];
+  risks?: number[];
+  requirement_summary?: string;
+  key_questions?: string[];
+  evidence_examples?: string[];
+}
+
+interface ISO27001ClauseRef {
+  id?: number;
+  title?: string;
+  arrangement?: number;
+  clause_no?: number;
+}
+
+interface LinkedRiskObject {
+  id: number;
+  risk_name: string;
+  risk_level?: string;
+}
+
 interface VWISO27001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: (event?: any, reason?: string) => void;
-  subClause: any;
-  clause: any;
+  onClose: (event?: React.SyntheticEvent | Record<string, never>, reason?: string) => void;
+  subClause: ISO27001SubClauseData;
+  clause: ISO27001ClauseRef;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
@@ -94,7 +125,7 @@ const VWISO27001ClauseDrawerDialog = ({
   // STATE - FORM DATA
   // ========================================================================
 
-  const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
+  const [fetchedSubClause, setFetchedSubClause] = useState<ISO27001SubClauseData | null>(null);
   const [formData, setFormData] = useState({
     implementation_description: "",
     status: "",
@@ -119,17 +150,17 @@ const VWISO27001ClauseDrawerDialog = ({
   // ========================================================================
 
   const [currentRisks, setCurrentRisks] = useState<number[]>([]);
-  const [linkedRiskObjects, setLinkedRiskObjects] = useState<any[]>([]);
+  const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRiskObject[]>([]);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState(false);
 
   // Risk detail modal state
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
-  const [selectedRiskForView, setSelectedRiskForView] = useState<any | null>(
+  const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRiskObject | null>(
     null
   );
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // Audit status modal
@@ -254,7 +285,9 @@ const VWISO27001ClauseDrawerDialog = ({
         }
       }
     } catch (error) {
-      console.error("Error fetching subclause:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching subclause:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load clause data",
@@ -292,7 +325,9 @@ const VWISO27001ClauseDrawerDialog = ({
       const validRisks = riskResults.filter((risk) => risk !== null);
       setLinkedRiskObjects(validRisks);
     } catch (error) {
-      console.error("Error fetching linked risks:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching linked risks:", error);
+      }
       setLinkedRiskObjects([]);
     }
   };
@@ -407,7 +442,9 @@ const VWISO27001ClauseDrawerDialog = ({
         body: "File downloaded successfully",
       });
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to download file. Please try again.",
@@ -419,7 +456,7 @@ const VWISO27001ClauseDrawerDialog = ({
   // EVENT HANDLERS - RISK MANAGEMENT
   // ========================================================================
 
-  const handleViewRiskDetails = async (risk: any) => {
+  const handleViewRiskDetails = async (risk: LinkedRiskObject) => {
     setSelectedRiskForView(risk);
     try {
       const response = await getEntityById({
@@ -446,7 +483,9 @@ const VWISO27001ClauseDrawerDialog = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load risk details",
@@ -457,7 +496,7 @@ const VWISO27001ClauseDrawerDialog = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {
@@ -513,7 +552,9 @@ const VWISO27001ClauseDrawerDialog = ({
         await fetchLinkedRisks(updatedRiskIds);
       }
     } catch (error) {
-      console.error("Error refreshing data:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error refreshing data:", error);
+      }
     }
   };
 
@@ -706,7 +747,7 @@ const VWISO27001ClauseDrawerDialog = ({
                     sx={{
                       border: "1px solid #eee",
                       padding: "12px",
-                      backgroundColor: "#f8f9fa",
+                      backgroundColor: "background.accent",
                       borderRadius: "4px",
                     }}
                   >
@@ -738,7 +779,7 @@ const VWISO27001ClauseDrawerDialog = ({
                       </Typography>
                       <Stack spacing={1}>
                         {displayData.key_questions.map(
-                          (question: any, idx: any) => (
+                          (question: string, idx: number) => (
                             <Typography
                               key={idx}
                               fontSize={12}
@@ -772,7 +813,7 @@ const VWISO27001ClauseDrawerDialog = ({
                       </Typography>
                       <Stack spacing={1}>
                         {displayData.evidence_examples.map(
-                          (example: any, idx: any) => (
+                          (example: string, idx: number) => (
                             <Typography
                               key={idx}
                               fontSize={12}
@@ -928,7 +969,7 @@ const VWISO27001ClauseDrawerDialog = ({
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   Evidence files
                 </Typography>
-                <Typography variant="body2" color="#6B7280">
+                <Typography variant="body2" color="text.tertiary">
                   Upload evidence files to document compliance with this
                   requirement.
                 </Typography>
@@ -961,12 +1002,12 @@ const VWISO27001ClauseDrawerDialog = ({
                         minWidth: 155,
                         height: 25,
                         fontSize: 11,
-                        border: "1px solid #D0D5DD",
-                        backgroundColor: "white",
-                        color: "#344054",
+                        border: `1px solid ${theme.palette.border.dark}`,
+                        backgroundColor: "background.main",
+                        color: "text.secondary",
                         "&:hover": {
-                          backgroundColor: "#F9FAFB",
-                          border: "1px solid #D0D5DD",
+                          backgroundColor: "background.accent",
+                          border: `1px solid ${theme.palette.border.dark}`,
                         },
                       }}
                       disableRipple={
@@ -977,16 +1018,16 @@ const VWISO27001ClauseDrawerDialog = ({
                     </Button>
 
                     <Stack direction="row" spacing={2}>
-                      <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                      <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                         {`${evidenceFiles.length || 0} files attached`}
                       </Typography>
                       {uploadFiles.length > 0 && (
-                        <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                        <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                           {`+${uploadFiles.length} pending upload`}
                         </Typography>
                       )}
                       {deletedFilesIds.length > 0 && (
-                        <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                        <Typography sx={{ fontSize: 11, color: "status.error.main" }}>
                           {`-${deletedFilesIds.length} pending delete`}
                         </Typography>
                       )}
@@ -1012,11 +1053,11 @@ const VWISO27001ClauseDrawerDialog = ({
                             alignItems: "center",
                             justifyContent: "space-between",
                             padding: "10px 12px",
-                            border: "1px solid #EAECF0",
+                            border: `1px solid ${theme.palette.border.light}`,
                             borderRadius: "4px",
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "background.main",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
+                              backgroundColor: "background.accent",
                             },
                           }}
                         >
@@ -1028,7 +1069,7 @@ const VWISO27001ClauseDrawerDialog = ({
                               minWidth: 0,
                             }}
                           >
-                            <FileIcon size={18} color="#475467" />
+                            <FileIcon size={18} color={theme.palette.text.tertiary} />
                             <Box sx={{ minWidth: 0, flex: 1 }}>
                               <Typography
                                 sx={{
@@ -1044,7 +1085,7 @@ const VWISO27001ClauseDrawerDialog = ({
                               </Typography>
                               {file.size && (
                                 <Typography
-                                  sx={{ fontSize: 11, color: "#6B7280" }}
+                                  sx={{ fontSize: 11, color: "text.tertiary" }}
                                 >
                                   {((file.size || 0) / 1024).toFixed(1)} KB
                                 </Typography>
@@ -1062,9 +1103,9 @@ const VWISO27001ClauseDrawerDialog = ({
                                   )
                                 }
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#13715B",
+                                    color: "primary.main",
                                     backgroundColor: "rgba(19, 113, 91, 0.08)",
                                   },
                                 }}
@@ -1080,9 +1121,9 @@ const VWISO27001ClauseDrawerDialog = ({
                                 }
                                 disabled={isEditingDisabled}
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#D32F2F",
+                                    color: "status.error.main",
                                     backgroundColor: "rgba(211, 47, 47, 0.08)",
                                   },
                                 }}
@@ -1112,9 +1153,9 @@ const VWISO27001ClauseDrawerDialog = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                           padding: "10px 12px",
-                          border: "1px solid #FEF3C7",
+                          border: `1px solid ${theme.palette.status.warning.border}`,
                           borderRadius: "4px",
-                          backgroundColor: "#FFFBEB",
+                          backgroundColor: "status.warning.bg",
                         }}
                       >
                         <Box
@@ -1125,7 +1166,7 @@ const VWISO27001ClauseDrawerDialog = ({
                             minWidth: 0,
                           }}
                         >
-                          <FileIcon size={18} color="#D97706" />
+                          <FileIcon size={18} color={theme.palette.status.warning.text} />
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
                               sx={{
@@ -1157,7 +1198,7 @@ const VWISO27001ClauseDrawerDialog = ({
                             sx={{
                               color: "#92400E",
                               "&:hover": {
-                                color: "#D32F2F",
+                                color: "status.error.main",
                                 backgroundColor: "rgba(211, 47, 47, 0.08)",
                               },
                             }}
@@ -1176,10 +1217,10 @@ const VWISO27001ClauseDrawerDialog = ({
                     sx={{
                       textAlign: "center",
                       py: 4,
-                      color: "#6B7280",
-                      border: "2px dashed #D1D5DB",
+                      color: "text.tertiary",
+                      border: `2px dashed ${theme.palette.border.dark}`,
                       borderRadius: 1,
-                      backgroundColor: "#F9FAFB",
+                      backgroundColor: "background.accent",
                     }}
                   >
                     <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1200,7 +1241,7 @@ const VWISO27001ClauseDrawerDialog = ({
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   Linked risks
                 </Typography>
-                <Typography variant="body2" color="#6B7280">
+                <Typography variant="body2" color="text.tertiary">
                   Link risks from your risk database to track which risks are
                   addressed by this requirement.
                 </Typography>
@@ -1216,12 +1257,12 @@ const VWISO27001ClauseDrawerDialog = ({
                       minWidth: 155,
                       height: 25,
                       fontSize: 11,
-                      border: "1px solid #D0D5DD",
-                      backgroundColor: "white",
-                      color: "#344054",
+                      border: `1px solid ${theme.palette.border.dark}`,
+                      backgroundColor: "background.main",
+                      color: "text.secondary",
                       "&:hover": {
-                        backgroundColor: "#F9FAFB",
-                        border: "1px solid #D0D5DD",
+                        backgroundColor: "background.accent",
+                        border: `1px solid ${theme.palette.border.dark}`,
                       },
                     }}
                     disableRipple={
@@ -1232,16 +1273,16 @@ const VWISO27001ClauseDrawerDialog = ({
                   </Button>
 
                   <Stack direction="row" spacing={2}>
-                    <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                    <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                       {`${currentRisks.length || 0} risks linked`}
                     </Typography>
                     {selectedRisks.length > 0 && (
-                      <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                      <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                         {`+${selectedRisks.length} pending save`}
                       </Typography>
                     )}
                     {deletedRisks.length > 0 && (
-                      <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                      <Typography sx={{ fontSize: 11, color: "status.error.main" }}>
                         {`-${deletedRisks.length} pending delete`}
                       </Typography>
                     )}
@@ -1261,11 +1302,11 @@ const VWISO27001ClauseDrawerDialog = ({
                             alignItems: "center",
                             justifyContent: "space-between",
                             padding: "10px 12px",
-                            border: "1px solid #EAECF0",
+                            border: `1px solid ${theme.palette.border.light}`,
                             borderRadius: "4px",
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "background.main",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
+                              backgroundColor: "background.accent",
                             },
                           }}
                         >
@@ -1284,7 +1325,7 @@ const VWISO27001ClauseDrawerDialog = ({
                             </Typography>
                             {risk.risk_level && (
                               <Typography
-                                sx={{ fontSize: 11, color: "#6B7280" }}
+                                sx={{ fontSize: 11, color: "text.tertiary" }}
                               >
                                 Risk level: {risk.risk_level}
                               </Typography>
@@ -1297,9 +1338,9 @@ const VWISO27001ClauseDrawerDialog = ({
                                 size="small"
                                 onClick={() => handleViewRiskDetails(risk)}
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#13715B",
+                                    color: "primary.main",
                                     backgroundColor: "rgba(19, 113, 91, 0.08)",
                                   },
                                 }}
@@ -1320,9 +1361,9 @@ const VWISO27001ClauseDrawerDialog = ({
                                 }}
                                 disabled={isEditingDisabled}
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#D32F2F",
+                                    color: "status.error.main",
                                     backgroundColor: "rgba(211, 47, 47, 0.08)",
                                   },
                                 }}
@@ -1340,14 +1381,14 @@ const VWISO27001ClauseDrawerDialog = ({
                 {currentRisks.length === 0 && selectedRisks.length === 0 && (
                   <Box
                     sx={{
-                      border: "2px dashed #D0D5DD",
+                      border: `2px dashed ${theme.palette.border.dark}`,
                       borderRadius: "4px",
                       padding: "20px",
                       textAlign: "center",
-                      backgroundColor: "#FAFBFC",
+                      backgroundColor: "background.accent",
                     }}
                   >
-                    <Typography sx={{ color: "#6B7280" }}>
+                    <Typography sx={{ color: "text.tertiary" }}>
                       No risks linked yet
                     </Typography>
                   </Box>
@@ -1398,8 +1439,8 @@ const VWISO27001ClauseDrawerDialog = ({
               variant="contained"
               text="Save"
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: "primary.main",
+                border: `1px solid ${theme.palette.primary.main}`,
                 gap: 2,
               }}
               onClick={handleSave}

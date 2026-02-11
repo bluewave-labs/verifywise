@@ -220,7 +220,7 @@ const ModelDetailPage = () => {
         </Stack>
       ) : (
         <Stack spacing={0}>
-          {phases.map((phase, index) => (
+          {phases.map((phase) => (
             <Box
               key={phase.id}
               ref={(el: HTMLDivElement | null) => {

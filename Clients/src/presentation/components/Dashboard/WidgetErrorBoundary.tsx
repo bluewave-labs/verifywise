@@ -73,11 +73,9 @@ class WidgetErrorBoundary extends Component<Props, State> {
           }}
         >
           <CardContent sx={{ textAlign: 'center', p: 3 }}>
-            <AlertCircle
-              size={48}
-              color="red"
-              style={{ marginBottom: 16 }}
-            />
+            <Box sx={{ color: 'error.main', display: 'inline-flex', mb: 2 }}>
+              <AlertCircle size={48} />
+            </Box>
 
             <Typography
               variant="h6"

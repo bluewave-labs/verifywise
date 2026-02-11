@@ -768,7 +768,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <SelectComponent
           id="approver"
           label="Approver"
-          value={values.approver}
+          value={values.approver ?? ""}
           error={errors.approver}
           sx={{ width: 220 }}
           items={userOptions}

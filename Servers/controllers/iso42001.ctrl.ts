@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
 import { SubClauseISO } from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
-import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -550,18 +550,8 @@ export async function getAnnexesByProjectId(
   }
 }
 
-// helper function to delete files
-async function deleteFiles(
-  filesToDelete: number[],
-  tenant: string,
-  transaction: any
-): Promise<void> {
-  await Promise.all(
-    filesToDelete.map(async (fileId) => {
-      await deleteFileById(fileId, tenant, transaction);
-    })
-  );
-}
+// Note: Files are only unlinked from evidence_links, not deleted from file manager
+// This allows the same file to be used as evidence in multiple places
 
 // helper function to upload files
 async function uploadFiles(
@@ -736,14 +726,14 @@ export async function saveClauses(
       project_id: string;
     };
 
-    const filesToDeleteRaw = JSON.parse(subClause.delete || "[]");
+    // Files to unlink (not delete) - the actual file stays in file manager
+    const filesToUnlinkRaw = JSON.parse(subClause.delete || "[]");
     // Ensure all file IDs are numbers (handle cases where frontend sends strings)
-    const filesToDelete = Array.isArray(filesToDeleteRaw)
-      ? filesToDeleteRaw
-        .map((id) => (typeof id === "string" ? parseInt(id) : id))
-        .filter((id) => !isNaN(id))
+    const filesToUnlink = Array.isArray(filesToUnlinkRaw)
+      ? filesToUnlinkRaw
+        .map((id: string | number) => (typeof id === "string" ? parseInt(id) : id))
+        .filter((id: number) => !isNaN(id))
       : [];
-    await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
     // Get project_id from subclause
     const projectIdResult = (await sequelize.query(
@@ -776,7 +766,7 @@ export async function saveClauses(
       subClauseId,
       subClause,
       uploadedFiles,
-      filesToDelete,
+      filesToUnlink,
       req.tenantId!,
       transaction
     );
@@ -840,14 +830,14 @@ export async function saveAnnexes(
       risksMitigated: string;
     };
 
-    const filesToDeleteRaw = JSON.parse(annexCategory.delete || "[]");
+    // Files to unlink (not delete) - the actual file stays in file manager
+    const filesToUnlinkRaw = JSON.parse(annexCategory.delete || "[]");
     // Ensure all file IDs are numbers (handle cases where frontend sends strings)
-    const filesToDelete = Array.isArray(filesToDeleteRaw)
-      ? filesToDeleteRaw
-        .map((id) => (typeof id === "string" ? parseInt(id) : id))
-        .filter((id) => !isNaN(id))
+    const filesToUnlink = Array.isArray(filesToUnlinkRaw)
+      ? filesToUnlinkRaw
+        .map((id: string | number) => (typeof id === "string" ? parseInt(id) : id))
+        .filter((id: number) => !isNaN(id))
       : [];
-    await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
     // Get project_id from annex category
     const projectIdResult = (await sequelize.query(
@@ -880,7 +870,7 @@ export async function saveAnnexes(
       annexCategoryId,
       annexCategory,
       uploadedFiles,
-      filesToDelete,
+      filesToUnlink,
       req.tenantId!,
       transaction
     );

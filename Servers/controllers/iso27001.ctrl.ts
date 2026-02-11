@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
-import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -548,18 +548,9 @@ export async function getAnnexesByProjectId(
   }
 }
 
-// helper function to delete files
-async function deleteFiles(
-  filesToDelete: number[],
-  tenant: string,
-  transaction: any
-): Promise<void> {
-  await Promise.all(
-    filesToDelete.map(async (fileId) => {
-      await deleteFileById(fileId, tenant, transaction);
-    })
-  );
-}
+// Note: Files are only unlinked from evidence_links, not deleted from file manager
+// This allows the same file to be used as evidence in multiple places
+// The actual unlinking happens in updateSubClauseQuery/updateAnnexControlQuery
 
 // helper function to upload files
 async function uploadFiles(
@@ -621,8 +612,8 @@ export async function saveClauses(
       project_id: string;
     };
 
-    const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
-    await deleteFiles(filesToDelete, req.tenantId!, transaction);
+    // Files to unlink (not delete) - the actual file stays in file manager
+    const filesToUnlink = JSON.parse(subClause.delete || "[]") as number[];
 
     // // Get project_id from subclause
     // const projectIdResult = (await sequelize.query(
@@ -655,7 +646,7 @@ export async function saveClauses(
       subClauseId,
       subClause,
       uploadedFiles,
-      filesToDelete,
+      filesToUnlink,
       req.tenantId!,
       transaction
     );
@@ -722,14 +713,14 @@ export async function saveAnnexes(
     logger.debug(
       `Processing annex control data: ${JSON.stringify(annexControl)}`
     );
-    logger.debug(`Files to delete: ${annexControl.delete}`);
+    logger.debug(`Files to unlink: ${annexControl.delete}`);
     logger.debug(
       `Files in request: ${Array.isArray(req.files) ? req.files.length : req.files ? 1 : 0
       }`
     );
 
-    const filesToDelete = JSON.parse(annexControl.delete || "[]") as number[];
-    await deleteFiles(filesToDelete, req.tenantId!, transaction);
+    // Files to unlink (not delete) - the actual file stays in file manager
+    const filesToUnlink = JSON.parse(annexControl.delete || "[]") as number[];
 
     // // Get project_id from annex control
     // const projectIdResult = (await sequelize.query(
@@ -763,7 +754,7 @@ export async function saveAnnexes(
       annexControlId,
       annexControl,
       uploadedFiles,
-      filesToDelete,
+      filesToUnlink,
       req.tenantId!,
       transaction
     );

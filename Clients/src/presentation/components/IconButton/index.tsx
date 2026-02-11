@@ -96,12 +96,25 @@ const IconButton: React.FC<IconButtonProps> = ({
     setAnchorEl(null);
   }
 
-  const handleDelete = (e?: React.SyntheticEvent) => {
-    onDelete();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async (e?: React.SyntheticEvent) => {
+    setIsDeleting(true);
     setIsOpenRemoveModal(false);
 
     if (e) {
       closeDropDownMenu(e);
+    }
+
+    try {
+      const result = await onDelete();
+      if (result === false) {
+        setAlert({ variant: "error", body: "Failed to delete. Please try again.", isToast: true });
+      }
+    } catch {
+      setAlert({ variant: "error", body: "Failed to delete. Please try again.", isToast: true });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -118,13 +131,12 @@ const IconButton: React.FC<IconButtonProps> = ({
         console.error("Error checking for risks:", error);
         onDeleteWithRisks(false);
       }
+      setIsOpenRemoveModal(false);
+      if (e) {
+        closeDropDownMenu(e);
+      }
     } else {
-      onDelete();
-    }
-
-    setIsOpenRemoveModal(false);
-    if (e) {
-      closeDropDownMenu(e);
+      await handleDelete(e);
     }
   };
 
@@ -488,8 +500,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
                 } else {
-                  onDelete();
-                  if (e) closeDropDownMenu(e);
+                  handleDelete(e);
                 }
               } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
@@ -499,8 +510,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                   if (checkForRisks && onDeleteWithRisks) {
                     handleDeleteWithRiskCheck(e);
                   } else {
-                    onDelete();
-                    if (e) closeDropDownMenu(e);
+                    handleDelete(e);
                   }
                 }
               }

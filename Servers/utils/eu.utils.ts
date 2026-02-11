@@ -1073,6 +1073,46 @@ export const updateSubcontrolEUByIdQuery = async (
   const subcontrolResult = result[0] as any;
   (subcontrolResult as any).risks = [];
 
+  // Create file entity links for new evidence files
+  for (const file of evidenceUploadedFiles) {
+    await sequelize.query(
+      `INSERT INTO "${tenant}".file_entity_links
+        (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+       VALUES (:fileId, 'eu_ai_act', 'subcontrol', :entityId, 'evidence', NOW())
+       ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+      {
+        replacements: { fileId: parseInt(file.id), entityId: id },
+        transaction,
+      }
+    );
+  }
+
+  // Create file entity links for new feedback files
+  for (const file of feedbackUploadedFiles) {
+    await sequelize.query(
+      `INSERT INTO "${tenant}".file_entity_links
+        (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+       VALUES (:fileId, 'eu_ai_act', 'subcontrol', :entityId, 'feedback', NOW())
+       ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+      {
+        replacements: { fileId: parseInt(file.id), entityId: id },
+        transaction,
+      }
+    );
+  }
+
+  // Remove file entity links for deleted files
+  for (const fileId of deletedFiles) {
+    await sequelize.query(
+      `DELETE FROM "${tenant}".file_entity_links
+       WHERE file_id = :fileId AND entity_type = 'subcontrol' AND entity_id = :entityId`,
+      {
+        replacements: { fileId, entityId: id },
+        transaction,
+      }
+    );
+  }
+
   // Handle risks if provided
   if (
     subcontrol.risksDelete !== undefined ||
@@ -1222,6 +1262,34 @@ export const addFileToAnswerEU = async (
       transaction,
     }
   )) as [AnswerEUModel[], number];
+
+  // Create file entity links for new evidence files
+  const answerId = answer[0][0].id;
+  for (const file of uploadedFiles) {
+    await sequelize.query(
+      `INSERT INTO "${tenant}".file_entity_links
+        (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+       VALUES (:fileId, 'eu_ai_act', 'assessment', :entityId, 'evidence', NOW())
+       ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+      {
+        replacements: { fileId: parseInt(file.id), entityId: answerId },
+        transaction,
+      }
+    );
+  }
+
+  // Remove file entity links for deleted files
+  for (const fileId of deletedFiles) {
+    await sequelize.query(
+      `DELETE FROM "${tenant}".file_entity_links
+       WHERE file_id = :fileId AND entity_type = 'assessment' AND entity_id = :entityId`,
+      {
+        replacements: { fileId, entityId: answerId },
+        transaction,
+      }
+    );
+  }
+
   const question = (await sequelize.query(
     `SELECT * FROM public.questions_struct_eu WHERE id = :id`,
     { replacements: { id: answer[0][0].question_id }, transaction }
@@ -1365,6 +1433,37 @@ export const updateQuestionEUByIdQuery = async (
       ? result[0][0]
       : (result[0] as any);
   (answer as any).dataValues.risks = [];
+
+  // Create file entity links for new evidence files
+  if (question.evidence_files && Array.isArray(question.evidence_files)) {
+    for (const file of question.evidence_files) {
+      const fileData = file as { id: string };
+      await sequelize.query(
+        `INSERT INTO "${tenant}".file_entity_links
+          (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+         VALUES (:fileId, 'eu_ai_act', 'assessment', :entityId, 'evidence', NOW())
+         ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+        {
+          replacements: { fileId: parseInt(fileData.id), entityId: id },
+          transaction,
+        }
+      );
+    }
+  }
+
+  // Remove file entity links for deleted files
+  if (question.delete && Array.isArray(question.delete)) {
+    for (const fileId of question.delete) {
+      await sequelize.query(
+        `DELETE FROM "${tenant}".file_entity_links
+         WHERE file_id = :fileId AND entity_type = 'assessment' AND entity_id = :entityId`,
+        {
+          replacements: { fileId, entityId: id },
+          transaction,
+        }
+      );
+    }
+  }
 
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".answers_eu__risks WHERE answer_id = :id`,

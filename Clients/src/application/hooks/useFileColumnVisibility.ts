@@ -14,7 +14,6 @@ import { useState, useCallback, useEffect, useMemo } from "react";
  */
 export type FileColumn =
   | "file"
-  | "project_name"
   | "upload_date"
   | "uploader"
   | "source"
@@ -39,7 +38,6 @@ export interface ColumnConfig {
  */
 export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "file", label: "File", defaultVisible: true, alwaysVisible: true },
-  { key: "project_name", label: "Project name", defaultVisible: true },
   { key: "upload_date", label: "Upload date", defaultVisible: true },
   { key: "uploader", label: "Uploader", defaultVisible: true },
   { key: "source", label: "Source", defaultVisible: true },
@@ -48,7 +46,7 @@ export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: "action", label: "Action", defaultVisible: true, alwaysVisible: true },
 ];
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const STORAGE_KEY = "verifywise:file-column-visibility";
 const VERSION_KEY = "verifywise:file-column-visibility-version";
 

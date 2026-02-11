@@ -31,6 +31,9 @@ export interface FileMetadata {
   last_modifier_surname?: string;
   description?: string;
   file_group_id?: string;
+  // Approval workflow
+  approval_workflow_id?: number;
+  approval_workflow_name?: string;
 }
 
 // Input for updating file metadata
@@ -71,6 +74,9 @@ export interface FileUploadResponse {
     upload_date: string;
     uploaded_by: number;
     modelId?: string; // optional
+    review_status?: ReviewStatus;
+    approval_workflow_id?: number;
+    approval_request_id?: number;
   };
 }
 
@@ -108,7 +114,6 @@ export async function getUserFilesMetaData({
     ]);
 
     // Extract and return all file data from API
-    // Keep all fields intact so transformFileData can process them
     const rawFiles = [...(fileManageResponse.data?.data?.files ?? []), ...(fileResponse.data ?? [])];
 
     return rawFiles.map((f: any) => ({
@@ -118,8 +123,8 @@ export async function getUserFilesMetaData({
         mimetype: f?.mimetype,
         upload_date: f?.upload_date || f?.uploaded_time,
         uploaded_by: String(f?.uploaded_by),
-        uploader_name: f?.uploader_name,         // Include uploader name
-        uploader_surname: f?.uploader_surname,   // Include uploader surname
+        uploader_name: f?.uploader_name,
+        uploader_surname: f?.uploader_surname,
         source: f?.source,
         project_title: f?.project_title,
         project_id: f?.project_id,
@@ -127,6 +132,15 @@ export async function getUserFilesMetaData({
         sub_id: f?.sub_id,
         meta_id: f?.meta_id,
         is_evidence: f?.is_evidence,
+        // Metadata fields (may not be present in all responses)
+        tags: f?.tags || [],
+        review_status: f?.review_status,
+        version: f?.version,
+        expiry_date: f?.expiry_date,
+        description: f?.description,
+        file_group_id: f?.file_group_id,
+        approval_workflow_id: f?.approval_workflow_id,
+        approval_workflow_name: f?.approval_workflow_name,
     })) as FileMetadata[];
 }
 
@@ -138,6 +152,7 @@ export async function getUserFilesMetaData({
  * @param {File} file - The file to upload
  * @param {string} model_id - Optional model ID to associate with the file
  * @param {string} source - Optional source identifier (e.g., "policy_editor", "evidence")
+ * @param {number} approval_workflow_id - Optional approval workflow ID for file review
  * @param {AbortSignal} signal - Optional abort signal for cancellation
  * @returns {Promise<FileUploadResponse>} Upload response with file metadata
  */
@@ -145,11 +160,13 @@ export async function uploadFileToManager({
   file,
   model_id,
   source,
+  approval_workflow_id,
   signal,
 }: {
   file: File;
   model_id?: string | number | undefined | null;
   source?: string;
+  approval_workflow_id?: number;
   signal?: AbortSignal;
 }): Promise<FileUploadResponse> {
   const formData = new FormData();
@@ -161,6 +178,11 @@ export async function uploadFileToManager({
   // Append source to identify where the file was uploaded from
   if (source) {
     formData.append("source", source);
+  }
+
+  // Append approval_workflow_id for file review workflow
+  if (approval_workflow_id) {
+    formData.append("approval_workflow_id", String(approval_workflow_id));
   }
 
   // Delete Content-Type header to let axios auto-detect and set the proper boundary
@@ -301,6 +323,8 @@ export async function getFilesWithMetadata({
       last_modifier_surname: f?.last_modifier_surname,
       description: f?.description,
       file_group_id: f?.file_group_id,
+      approval_workflow_id: f?.approval_workflow_id,
+      approval_workflow_name: f?.approval_workflow_name,
     })),
     pagination: data?.pagination,
   };
@@ -342,6 +366,8 @@ export async function getFileMetadata({
     last_modifier_surname: f?.last_modifier_surname,
     description: f?.description,
     file_group_id: f?.file_group_id,
+    approval_workflow_id: f?.approval_workflow_id,
+    approval_workflow_name: f?.approval_workflow_name,
   };
 }
 
@@ -384,6 +410,8 @@ export async function updateFileMetadata({
     last_modifier_surname: f?.last_modifier_surname,
     description: f?.description,
     file_group_id: f?.file_group_id,
+    approval_workflow_id: f?.approval_workflow_id,
+    approval_workflow_name: f?.approval_workflow_name,
   };
 }
 
@@ -474,5 +502,133 @@ export async function getFileVersionHistory({
     expiry_date: f?.expiry_date,
     description: f?.description,
     file_group_id: f?.file_group_id,
+  }));
+}
+
+// ============================================================================
+// File Entity Linking (Framework-agnostic evidence attachment)
+// ============================================================================
+
+export type FrameworkType = 'eu_ai_act' | 'nist_ai' | 'iso_27001' | 'iso_42001' | string;
+export type EntityType = 'assessment' | 'subcontrol' | 'subclause' | 'annex_control' | 'annex_category' | string;
+export type LinkType = 'evidence' | 'feedback' | 'attachment' | 'reference';
+
+export interface FileEntityLink {
+  id?: number;
+  file_id: number;
+  framework_type: FrameworkType;
+  entity_type: EntityType;
+  entity_id: number;
+  project_id?: number;
+  link_type?: LinkType;
+  created_by?: number;
+  created_at?: string;
+}
+
+export interface AttachFileParams {
+  file_id: number;
+  framework_type: FrameworkType;
+  entity_type: EntityType;
+  entity_id: number;
+  project_id?: number;
+  link_type?: LinkType;
+}
+
+export interface AttachFilesParams {
+  file_ids: number[];
+  framework_type: FrameworkType;
+  entity_type: EntityType;
+  entity_id: number;
+  project_id?: number;
+  link_type?: LinkType;
+}
+
+/**
+ * Attach a single file to an entity (control, assessment, subclause, etc.)
+ * Works across all frameworks.
+ *
+ * @param {AttachFileParams} params - File attachment parameters
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<{ message: string; link?: FileEntityLink }>}
+ */
+export async function attachFileToEntity(
+  params: AttachFileParams,
+  signal?: AbortSignal
+): Promise<{ message: string; link?: FileEntityLink }> {
+  const response = await apiServices.post<any>("/files/attach", params, { signal });
+  return response.data;
+}
+
+/**
+ * Attach multiple files to an entity at once
+ *
+ * @param {AttachFilesParams} params - Bulk file attachment parameters
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<{ message: string; results: { file_id: number; success: boolean; message: string }[] }>}
+ */
+export async function attachFilesToEntity(
+  params: AttachFilesParams,
+  signal?: AbortSignal
+): Promise<{
+  message: string;
+  results: { file_id: number; success: boolean; message: string }[];
+}> {
+  const response = await apiServices.post<any>("/files/attach-bulk", params, { signal });
+  return response.data;
+}
+
+/**
+ * Detach a file from an entity
+ *
+ * @param {AttachFileParams} params - File detachment parameters (file_id, framework_type, entity_type, entity_id)
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<{ message: string }>}
+ */
+export async function detachFileFromEntity(
+  params: Pick<AttachFileParams, 'file_id' | 'framework_type' | 'entity_type' | 'entity_id'>,
+  signal?: AbortSignal
+): Promise<{ message: string }> {
+  const response = await apiServices.delete<any>("/files/detach", {
+    data: params,
+    signal,
+  });
+  return response.data;
+}
+
+/**
+ * Get all files attached to a specific entity
+ *
+ * @param {FrameworkType} frameworkType - The framework type
+ * @param {EntityType} entityType - The entity type
+ * @param {number} entityId - The entity ID
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<FileMetadata[]>}
+ */
+export async function getEntityFiles(
+  frameworkType: FrameworkType,
+  entityType: EntityType,
+  entityId: number,
+  signal?: AbortSignal
+): Promise<FileMetadata[]> {
+  const response = await apiServices.get<any>(
+    `/files/entity/${frameworkType}/${entityType}/${entityId}`,
+    { signal }
+  );
+  const files = response.data || [];
+  return files.map((f: any) => ({
+    id: String(f.id),
+    filename: f.filename,
+    size: f?.size,
+    mimetype: f?.mimetype,
+    upload_date: f?.upload_date,
+    uploaded_by: String(f?.uploaded_by),
+    uploader_name: f?.uploader_name,
+    uploader_surname: f?.uploader_surname,
+    source: f?.source,
+    project_id: f?.project_id,
+    tags: f?.tags || [],
+    review_status: f?.review_status,
+    version: f?.version,
+    link_type: f?.link_type,
   }));
 }

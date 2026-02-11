@@ -33,6 +33,7 @@ import TabBar from "../../TabBar";
 import { CustomizableButton } from "../../button/customizable-button";
 import RichTextEditor from "../../RichTextEditor";
 import StandardModal from "../../Modals/StandardModal";
+import FilePickerModal from "../../FilePickerModal";
 
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
@@ -80,10 +81,12 @@ interface SubcontrolFormData {
   evidence_files: FileData[];
   uploadEvidenceFiles: FileData[];
   deletedEvidenceFileIds: number[];
+  pendingAttachEvidenceFiles: FileData[]; // Files from File Manager to attach
   feedback_description: string;
   feedback_files: FileData[];
   uploadFeedbackFiles: FileData[];
   deletedFeedbackFileIds: number[];
+  pendingAttachFeedbackFiles: FileData[]; // Files from File Manager to attach
   // Cross Mappings tab fields
   risks: number[];
   selectedRisks: number[];
@@ -135,6 +138,10 @@ const NewControlPane = ({
   const [selectedRiskForView, setSelectedRiskForView] = useState<any>(null);
   const [riskFormData, setRiskFormData] = useState<any>(null);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
+
+  // File picker modal state
+  const [showEvidenceFilePicker, setShowEvidenceFilePicker] = useState(false);
+  const [showFeedbackFilePicker, setShowFeedbackFilePicker] = useState(false);
 
   // ========================================================================
   // PERMISSIONS
@@ -239,10 +246,12 @@ const NewControlPane = ({
           evidence_files: evidenceFiles,
           uploadEvidenceFiles: [],
           deletedEvidenceFileIds: [],
+          pendingAttachEvidenceFiles: [],
           feedback_description: sanitizeField(sc.feedback_description),
           feedback_files: feedbackFiles,
           uploadFeedbackFiles: [],
           deletedFeedbackFileIds: [],
+          pendingAttachFeedbackFiles: [],
           risks: risks,
           selectedRisks: [],
           deletedRisks: [],
@@ -587,6 +596,56 @@ const NewControlPane = ({
     });
   };
 
+  const handleAttachExistingEvidenceFiles = (selectedFiles: FileData[]) => {
+    if (selectedFiles.length === 0) return;
+
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
+    setSubcontrolFormData((prev) => ({
+      ...prev,
+      [subcontrolId]: {
+        ...prev[subcontrolId],
+        pendingAttachEvidenceFiles: [
+          ...prev[subcontrolId].pendingAttachEvidenceFiles,
+          ...selectedFiles,
+        ],
+      },
+    }));
+
+    handleAlert({
+      variant: "info",
+      body: "Please save the changes to attach the selected files.",
+      setAlert,
+    });
+  };
+
+  const handleAttachExistingFeedbackFiles = (selectedFiles: FileData[]) => {
+    if (selectedFiles.length === 0) return;
+
+    const currentSubcontrol = controlData.subControls![selectedSubcontrolIndex];
+    if (!currentSubcontrol.id) return;
+
+    const subcontrolId = currentSubcontrol.id;
+    setSubcontrolFormData((prev) => ({
+      ...prev,
+      [subcontrolId]: {
+        ...prev[subcontrolId],
+        pendingAttachFeedbackFiles: [
+          ...prev[subcontrolId].pendingAttachFeedbackFiles,
+          ...selectedFiles,
+        ],
+      },
+    }));
+
+    handleAlert({
+      variant: "info",
+      body: "Please save the changes to attach the selected files.",
+      setAlert,
+    });
+  };
+
   const handleDownloadFile = async (fileId: string, fileName: string) => {
     try {
       // Validate fileId
@@ -815,6 +874,25 @@ const NewControlPane = ({
         ]
       );
 
+      // Collect attached file IDs (files from File Manager to link)
+      const attachedEvidenceFiles: Record<number, number[]> = {};
+      const attachedFeedbackFiles: Record<number, number[]> = {};
+
+      controlData.subControls?.forEach((sc) => {
+        if (!sc.id) return;
+        const formDataForSC = subcontrolFormData[sc.id];
+        if (formDataForSC?.pendingAttachEvidenceFiles.length > 0) {
+          attachedEvidenceFiles[sc.id] = formDataForSC.pendingAttachEvidenceFiles.map(
+            (f) => parseInt(f.id)
+          );
+        }
+        if (formDataForSC?.pendingAttachFeedbackFiles.length > 0) {
+          attachedFeedbackFiles[sc.id] = formDataForSC.pendingAttachFeedbackFiles.map(
+            (f) => parseInt(f.id)
+          );
+        }
+      });
+
       // Debug logging
       console.log("Files to upload:", {
         evidence: Object.values(subcontrolFormData).map(
@@ -824,9 +902,21 @@ const NewControlPane = ({
           (d) => d.uploadFeedbackFiles.length
         ),
       });
+      console.log("Files to attach:", {
+        evidence: attachedEvidenceFiles,
+        feedback: attachedFeedbackFiles,
+      });
       console.log("Files to delete:", allDeletedFileIds);
 
       formData.append("delete", JSON.stringify(allDeletedFileIds));
+
+      // Add attached file IDs (for linking existing files from File Manager)
+      if (Object.keys(attachedEvidenceFiles).length > 0) {
+        formData.append("attach_evidence_files", JSON.stringify(attachedEvidenceFiles));
+      }
+      if (Object.keys(attachedFeedbackFiles).length > 0) {
+        formData.append("attach_feedback_files", JSON.stringify(attachedFeedbackFiles));
+      }
 
       // Add user and project info
       formData.append("user_id", userId?.toString() || "1");
@@ -1337,28 +1427,51 @@ const NewControlPane = ({
                         subcontrol.
                       </Typography>
 
-                      {/* Upload Button */}
-                      <Button
-                        variant="contained"
-                        onClick={() => evidenceFileInputRef.current?.click()}
-                        disabled={isEditingDisabled}
-                        sx={{
-                          borderRadius: 2,
-                          width: 155,
-                          height: 25,
-                          fontSize: 11,
-                          border: "1px solid #D0D5DD",
-                          backgroundColor: "white",
-                          color: "#344054",
-                          textTransform: "none",
-                          "&:hover": {
-                            backgroundColor: "#F9FAFB",
+                      {/* Upload and Attach Buttons */}
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="contained"
+                          onClick={() => evidenceFileInputRef.current?.click()}
+                          disabled={isEditingDisabled}
+                          sx={{
+                            borderRadius: 2,
+                            width: 155,
+                            height: 25,
+                            fontSize: 11,
                             border: "1px solid #D0D5DD",
-                          },
-                        }}
-                      >
-                        Add evidence files
-                      </Button>
+                            backgroundColor: "white",
+                            color: "#344054",
+                            textTransform: "none",
+                            "&:hover": {
+                              backgroundColor: "#F9FAFB",
+                              border: "1px solid #D0D5DD",
+                            },
+                          }}
+                        >
+                          Add evidence files
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={() => setShowEvidenceFilePicker(true)}
+                          disabled={isEditingDisabled}
+                          sx={{
+                            borderRadius: 2,
+                            width: 155,
+                            height: 25,
+                            fontSize: 11,
+                            border: "1px solid #D0D5DD",
+                            backgroundColor: "white",
+                            color: "#344054",
+                            textTransform: "none",
+                            "&:hover": {
+                              backgroundColor: "#F9FAFB",
+                              border: "1px solid #D0D5DD",
+                            },
+                          }}
+                        >
+                          Attach existing files
+                        </Button>
+                      </Stack>
                       <input
                         ref={evidenceFileInputRef}
                         type="file"
@@ -1370,6 +1483,7 @@ const NewControlPane = ({
                       {/* File Count Indicators */}
                       {(currentFormData.evidence_files.length > 0 ||
                         currentFormData.uploadEvidenceFiles.length > 0 ||
+                        currentFormData.pendingAttachEvidenceFiles.length > 0 ||
                         currentFormData.deletedEvidenceFileIds.length > 0) && (
                         <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
                           {currentFormData.evidence_files.length > 0 && (
@@ -1382,6 +1496,12 @@ const NewControlPane = ({
                             <Typography sx={{ fontSize: 11, color: "#13715B" }}>
                               +{currentFormData.uploadEvidenceFiles.length}{" "}
                               pending upload
+                            </Typography>
+                          )}
+                          {currentFormData.pendingAttachEvidenceFiles.length > 0 && (
+                            <Typography sx={{ fontSize: 11, color: "#0369A1" }}>
+                              +{currentFormData.pendingAttachEvidenceFiles.length}{" "}
+                              pending attach
                             </Typography>
                           )}
                           {currentFormData.deletedEvidenceFileIds.length >
@@ -1436,6 +1556,17 @@ const NewControlPane = ({
                                   >
                                     {file.fileName}
                                   </Typography>
+                                  {file.source && (
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        color: "#6B7280",
+                                        mt: 0.25,
+                                      }}
+                                    >
+                                      Source: {file.source}
+                                    </Typography>
+                                  )}
                                 </Box>
                               </Box>
                               <Box
@@ -1559,9 +1690,90 @@ const NewControlPane = ({
                         </Box>
                       )}
 
+                      {/* Pending Attach Files (from File Manager) */}
+                      {currentFormData.pendingAttachEvidenceFiles.length > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                          <Typography
+                            sx={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "#0369A1",
+                              mb: 1,
+                            }}
+                          >
+                            Pending attach from File Manager
+                          </Typography>
+                          <Stack spacing={1}>
+                            {currentFormData.pendingAttachEvidenceFiles.map((file) => (
+                              <Box
+                                key={file.id}
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  padding: "10px 12px",
+                                  border: "1px solid #BAE6FD",
+                                  borderRadius: "4px",
+                                  backgroundColor: "#F0F9FF",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1.5,
+                                    flex: 1,
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  <FileIcon size={18} color="#0369A1" />
+                                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 13,
+                                        fontWeight: 500,
+                                        color: "#0C4A6E",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {file.fileName}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Tooltip title="Remove from queue">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      setSubcontrolFormData((prev) => ({
+                                        ...prev,
+                                        [currentSubcontrol.id!]: {
+                                          ...prev[currentSubcontrol.id!],
+                                          pendingAttachEvidenceFiles: prev[
+                                            currentSubcontrol.id!
+                                          ].pendingAttachEvidenceFiles.filter(
+                                            (f) => f.id !== file.id
+                                          ),
+                                        },
+                                      }));
+                                    }}
+                                    disabled={isEditingDisabled}
+                                    sx={{ flexShrink: 0, marginLeft: 1 }}
+                                  >
+                                    <DeleteIcon size={16} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
+
                       {/* Empty State */}
                       {currentFormData.evidence_files.length === 0 &&
-                        currentFormData.uploadEvidenceFiles.length === 0 && (
+                        currentFormData.uploadEvidenceFiles.length === 0 &&
+                        currentFormData.pendingAttachEvidenceFiles.length === 0 && (
                           <Box
                             sx={{
                               textAlign: "center",
@@ -1606,28 +1818,51 @@ const NewControlPane = ({
                         subcontrol.
                       </Typography>
 
-                      {/* Upload Button */}
-                      <Button
-                        variant="contained"
-                        onClick={() => feedbackFileInputRef.current?.click()}
-                        disabled={isAuditingDisabled}
-                        sx={{
-                          borderRadius: 2,
-                          width: 155,
-                          height: 25,
-                          fontSize: 11,
-                          border: "1px solid #D0D5DD",
-                          backgroundColor: "white",
-                          color: "#344054",
-                          textTransform: "none",
-                          "&:hover": {
-                            backgroundColor: "#F9FAFB",
+                      {/* Upload and Attach Buttons */}
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="contained"
+                          onClick={() => feedbackFileInputRef.current?.click()}
+                          disabled={isAuditingDisabled}
+                          sx={{
+                            borderRadius: 2,
+                            width: 155,
+                            height: 25,
+                            fontSize: 11,
                             border: "1px solid #D0D5DD",
-                          },
-                        }}
-                      >
-                        Add feedback files
-                      </Button>
+                            backgroundColor: "white",
+                            color: "#344054",
+                            textTransform: "none",
+                            "&:hover": {
+                              backgroundColor: "#F9FAFB",
+                              border: "1px solid #D0D5DD",
+                            },
+                          }}
+                        >
+                          Add feedback files
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={() => setShowFeedbackFilePicker(true)}
+                          disabled={isAuditingDisabled}
+                          sx={{
+                            borderRadius: 2,
+                            width: 155,
+                            height: 25,
+                            fontSize: 11,
+                            border: "1px solid #D0D5DD",
+                            backgroundColor: "white",
+                            color: "#344054",
+                            textTransform: "none",
+                            "&:hover": {
+                              backgroundColor: "#F9FAFB",
+                              border: "1px solid #D0D5DD",
+                            },
+                          }}
+                        >
+                          Attach existing files
+                        </Button>
+                      </Stack>
 
                       <input
                         ref={feedbackFileInputRef}
@@ -1640,6 +1875,7 @@ const NewControlPane = ({
                       {/* File Count Indicators */}
                       {(currentFormData.feedback_files.length > 0 ||
                         currentFormData.uploadFeedbackFiles.length > 0 ||
+                        currentFormData.pendingAttachFeedbackFiles.length > 0 ||
                         currentFormData.deletedFeedbackFileIds.length > 0) && (
                         <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
                           {currentFormData.feedback_files.length > 0 && (
@@ -1652,6 +1888,12 @@ const NewControlPane = ({
                             <Typography sx={{ fontSize: 11, color: "#13715B" }}>
                               +{currentFormData.uploadFeedbackFiles.length}{" "}
                               pending upload
+                            </Typography>
+                          )}
+                          {currentFormData.pendingAttachFeedbackFiles.length > 0 && (
+                            <Typography sx={{ fontSize: 11, color: "#0369A1" }}>
+                              +{currentFormData.pendingAttachFeedbackFiles.length}{" "}
+                              pending attach
                             </Typography>
                           )}
                           {currentFormData.deletedFeedbackFileIds.length >
@@ -1706,6 +1948,17 @@ const NewControlPane = ({
                                   >
                                     {file.fileName}
                                   </Typography>
+                                  {file.source && (
+                                    <Typography
+                                      sx={{
+                                        fontSize: 11,
+                                        color: "#6B7280",
+                                        mt: 0.25,
+                                      }}
+                                    >
+                                      Source: {file.source}
+                                    </Typography>
+                                  )}
                                 </Box>
                               </Box>
                               <Box
@@ -1829,9 +2082,90 @@ const NewControlPane = ({
                         </Box>
                       )}
 
+                      {/* Pending Attach Files (from File Manager) */}
+                      {currentFormData.pendingAttachFeedbackFiles.length > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                          <Typography
+                            sx={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "#0369A1",
+                              mb: 1,
+                            }}
+                          >
+                            Pending attach from File Manager
+                          </Typography>
+                          <Stack spacing={1}>
+                            {currentFormData.pendingAttachFeedbackFiles.map((file) => (
+                              <Box
+                                key={file.id}
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  padding: "10px 12px",
+                                  border: "1px solid #BAE6FD",
+                                  borderRadius: "4px",
+                                  backgroundColor: "#F0F9FF",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1.5,
+                                    flex: 1,
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  <FileIcon size={18} color="#0369A1" />
+                                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                                    <Typography
+                                      sx={{
+                                        fontSize: 13,
+                                        fontWeight: 500,
+                                        color: "#0C4A6E",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {file.fileName}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Tooltip title="Remove from queue">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                      setSubcontrolFormData((prev) => ({
+                                        ...prev,
+                                        [currentSubcontrol.id!]: {
+                                          ...prev[currentSubcontrol.id!],
+                                          pendingAttachFeedbackFiles: prev[
+                                            currentSubcontrol.id!
+                                          ].pendingAttachFeedbackFiles.filter(
+                                            (f) => f.id !== file.id
+                                          ),
+                                        },
+                                      }));
+                                    }}
+                                    disabled={isAuditingDisabled}
+                                    sx={{ flexShrink: 0, marginLeft: 1 }}
+                                  >
+                                    <DeleteIcon size={16} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
+
                       {/* Empty State */}
                       {currentFormData.feedback_files.length === 0 &&
-                        currentFormData.uploadFeedbackFiles.length === 0 && (
+                        currentFormData.uploadFeedbackFiles.length === 0 &&
+                        currentFormData.pendingAttachFeedbackFiles.length === 0 && (
                           <Box
                             sx={{
                               textAlign: "center",
@@ -2134,6 +2468,32 @@ const NewControlPane = ({
           />
         </Suspense>
       </StandardModal>
+
+      {/* File Picker Modal for Evidence Files */}
+      <FilePickerModal
+        open={showEvidenceFilePicker}
+        onClose={() => setShowEvidenceFilePicker(false)}
+        onSelect={handleAttachExistingEvidenceFiles}
+        excludeFileIds={[
+          ...currentFormData?.evidence_files.map((f) => f.id) || [],
+          ...currentFormData?.pendingAttachEvidenceFiles.map((f) => f.id) || [],
+        ]}
+        multiSelect={true}
+        title="Attach Existing Files as Evidence"
+      />
+
+      {/* File Picker Modal for Feedback Files */}
+      <FilePickerModal
+        open={showFeedbackFilePicker}
+        onClose={() => setShowFeedbackFilePicker(false)}
+        onSelect={handleAttachExistingFeedbackFiles}
+        excludeFileIds={[
+          ...currentFormData?.feedback_files.map((f) => f.id) || [],
+          ...currentFormData?.pendingAttachFeedbackFiles.map((f) => f.id) || [],
+        ]}
+        multiSelect={true}
+        title="Attach Existing Files as Feedback"
+      />
     </>
   );
 };

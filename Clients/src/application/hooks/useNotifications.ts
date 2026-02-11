@@ -488,6 +488,31 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
     };
   }, [connect, disconnect]);
 
+  // Reconnect when tab becomes visible or network comes back online
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !isConnected && !isManuallyDisconnectedRef.current) {
+        // Tab became visible and we're not connected - reconnect
+        connect();
+      }
+    };
+
+    const handleOnline = () => {
+      if (!isConnected && !isManuallyDisconnectedRef.current) {
+        // Network came back - reconnect
+        connect();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [connect, isConnected]);
+
   // Fetch stored notifications on mount
   useEffect(() => {
     if (fetchOnMount && authToken) {

@@ -29,5 +29,5 @@ export enum ApprovalResult {
 
 export enum EntityType {
   USE_CASE = "use_case",
-  PROJECT = "project",
+  FILE = "file",
 }

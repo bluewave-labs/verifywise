@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Stack, Box, Typography } from "@mui/material";
+import { Info } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import StandardModal from "../../../../components/Modals/StandardModal";
 import {
@@ -85,7 +86,8 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
 
     const updates: UpdateFileMetadataInput = {
       tags,
-      review_status: reviewStatus,
+      // Don't include review_status if file has an active approval workflow
+      ...(file?.approval_workflow_id ? {} : { review_status: reviewStatus }),
       version: version || undefined,
       expiry_date: expiryDate ? expiryDate.format("YYYY-MM-DD") : null,
       description: description || null,
@@ -118,17 +120,55 @@ export const FileMetadataEditor: React.FC<FileMetadataEditorProps> = ({
         />
 
         {/* Review Status */}
-        <Select
-          id="review-status"
-          label="Review status"
-          value={reviewStatus}
-          items={REVIEW_STATUS_OPTIONS}
-          onChange={(e) => setReviewStatus(e.target.value as ReviewStatus)}
-          customRenderValue={(value) => {
-            const status = value as ReviewStatus;
-            return <StatusBadge status={status} size="small" />;
-          }}
-        />
+        <Box>
+          <Select
+            id="review-status"
+            label="Review status"
+            value={reviewStatus}
+            items={REVIEW_STATUS_OPTIONS}
+            onChange={(e) => setReviewStatus(e.target.value as ReviewStatus)}
+            disabled={!!file.approval_workflow_id}
+            customRenderValue={(value) => {
+              const status = value as ReviewStatus;
+              return <StatusBadge status={status} size="small" />;
+            }}
+            sx={file.approval_workflow_id ? {
+              "&.Mui-disabled": {
+                backgroundColor: "#F9FAFB",
+                cursor: "not-allowed",
+              },
+              "& .MuiSelect-select.Mui-disabled": {
+                WebkitTextFillColor: "inherit",
+              },
+            } : undefined}
+          />
+          {file.approval_workflow_id && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                padding: "8px 12px",
+                backgroundColor: "#F0F9FF",
+                borderRadius: "4px",
+                border: "1px solid #B9E6FE",
+                mt: 1,
+              }}
+            >
+              <Info size={14} color="#0369A1" style={{ marginTop: 2, flexShrink: 0 }} />
+              <Box>
+                <Typography sx={{ fontSize: 12, color: "#0369A1" }}>
+                  Status is controlled by the approval workflow and cannot be changed manually.
+                </Typography>
+                {file.approval_workflow_name && (
+                  <Typography sx={{ fontSize: 12, color: "#0369A1", mt: 0.5 }}>
+                    Workflow: <strong>{file.approval_workflow_name}</strong>
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          )}
+        </Box>
 
         {/* Version */}
         <Field

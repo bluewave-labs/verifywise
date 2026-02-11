@@ -88,7 +88,7 @@ export const createNewTenant = async (
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".approval_workflows (
         id SERIAL PRIMARY KEY,
         workflow_title VARCHAR(255) NOT NULL,
-        entity_type VARCHAR(50) NOT NULL CHECK (entity_type IN ('use_case', 'project')),
+        entity_type VARCHAR(50) NOT NULL CHECK (entity_type IN ('use_case', 'file')),
         description TEXT,
         created_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
         is_active BOOLEAN NOT NULL DEFAULT true,
@@ -129,7 +129,7 @@ export const createNewTenant = async (
         request_name VARCHAR(255) NOT NULL,
         workflow_id INTEGER NOT NULL REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE CASCADE,
         entity_id INTEGER,
-        entity_type VARCHAR(50),
+        entity_type VARCHAR(50) CHECK (entity_type IN ('use_case', 'file')),
         entity_data JSONB,
         status VARCHAR(50) NOT NULL CHECK (status IN ('Pending', 'Approved', 'Rejected', 'Withdrawn')) DEFAULT 'Pending',
         requested_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -414,6 +414,7 @@ export const createNewTenant = async (
       updated_at timestamp with time zone DEFAULT now(),
       description text,
       file_group_id UUID DEFAULT gen_random_uuid(),
+      approval_workflow_id integer,
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
@@ -427,7 +428,10 @@ export const createNewTenant = async (
       CONSTRAINT files_last_modified_by_fkey FOREIGN KEY (last_modified_by)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL,
-      CONSTRAINT chk_review_status CHECK (review_status IN ('draft', 'pending_review', 'approved', 'rejected', 'expired')),
+      CONSTRAINT files_approval_workflow_id_fkey FOREIGN KEY (approval_workflow_id)
+        REFERENCES "${tenantHash}".approval_workflows (id) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE SET NULL,
+      CONSTRAINT chk_review_status CHECK (review_status IN ('draft', 'pending_review', 'approved', 'rejected', 'expired', 'superseded')),
       CONSTRAINT chk_version_format CHECK (version ~ '^[0-9]+\\.[0-9]+(\\.[0-9]+)?$')
     );`,
       { transaction }
@@ -460,6 +464,72 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX IF NOT EXISTS idx_files_file_group_id ON "${tenantHash}".files(file_group_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_approval_workflow_id ON "${tenantHash}".files(approval_workflow_id);`,
+      { transaction }
+    );
+
+    // File entity links table for flexible file-to-entity linking
+    // Works with any framework: EU AI Act, NIST AI, ISO 27001, ISO 42001, plugins
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_entity_links (
+        id SERIAL PRIMARY KEY,
+        file_id INTEGER NOT NULL REFERENCES "${tenantHash}".files(id) ON DELETE CASCADE,
+        framework_type VARCHAR(50) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id INTEGER NOT NULL,
+        project_id INTEGER,
+        link_type VARCHAR(20) DEFAULT 'evidence',
+        created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(file_id, framework_type, entity_type, entity_id)
+      );`,
+      { transaction }
+    );
+
+    // Indexes for file_entity_links
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_entity_links_file_id ON "${tenantHash}".file_entity_links(file_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_entity_links_entity ON "${tenantHash}".file_entity_links(framework_type, entity_type, entity_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_entity_links_project ON "${tenantHash}".file_entity_links(project_id);`,
+      { transaction }
+    );
+
+    // File change history table for tracking file modifications
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_change_history (
+        id SERIAL PRIMARY KEY,
+        file_id INTEGER NOT NULL REFERENCES "${tenantHash}".files(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );`,
+      { transaction }
+    );
+
+    // Indexes for file_change_history
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_change_history_file_id ON "${tenantHash}".file_change_history(file_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_change_history_changed_at ON "${tenantHash}".file_change_history(changed_at DESC);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_change_history_file_changed ON "${tenantHash}".file_change_history(file_id, changed_at DESC);`,
       { transaction }
     );
 
@@ -2177,6 +2247,24 @@ export const createNewTenant = async (
       );
     `, { transaction });
 
+    // Legacy evaluation_llm_api_keys table (for backward compatibility)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".evaluation_llm_api_keys (
+        id SERIAL PRIMARY KEY,
+        provider VARCHAR(50) NOT NULL UNIQUE,
+        encrypted_api_key TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });
+
+    // Create trigger on evaluation_llm_api_keys table
+    await sequelize.query(`
+      CREATE TRIGGER trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
+      BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
+      FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
+    `, { transaction });
+
     // Create trigger on llm_evals_api_keys table
     await sequelize.query(`
       CREATE TRIGGER trg_${tenantHash}_update_llm_evals_api_keys_updated_at
@@ -2548,6 +2636,299 @@ export const createNewTenant = async (
     await sequelize.query(`
       CREATE INDEX IF NOT EXISTS idx_incident_change_history_incident_changed
       ON "${tenantHash}".incident_change_history(incident_id, changed_at DESC);
+    `, { transaction });
+
+    // ── Notifications Tables ──────────────────────────────────────────
+
+    // Create notification type enum
+    await sequelize.query(`
+      DO $$ BEGIN
+        CREATE TYPE "${tenantHash}".enum_notification_type AS ENUM (
+          'task_assigned',
+          'task_completed',
+          'review_requested',
+          'review_approved',
+          'review_rejected',
+          'approval_requested',
+          'approval_approved',
+          'approval_rejected',
+          'approval_complete',
+          'policy_due_soon',
+          'policy_overdue',
+          'training_assigned',
+          'training_completed',
+          'vendor_review_due',
+          'file_uploaded',
+          'comment_added',
+          'mention',
+          'system'
+        );
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `, { transaction });
+
+    // Create entity type enum for notifications
+    await sequelize.query(`
+      DO $$ BEGIN
+        CREATE TYPE "${tenantHash}".enum_notification_entity_type AS ENUM (
+          'project',
+          'task',
+          'policy',
+          'vendor',
+          'model',
+          'training',
+          'file',
+          'use_case',
+          'risk',
+          'assessment',
+          'comment',
+          'user'
+        );
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `, { transaction });
+
+    // Notifications table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        type "${tenantHash}".enum_notification_type NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        entity_type "${tenantHash}".enum_notification_entity_type NULL,
+        entity_id INTEGER NULL,
+        entity_name VARCHAR(255) NULL,
+        action_url VARCHAR(500) NULL,
+        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+        read_at TIMESTAMP WITH TIME ZONE NULL,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        created_by INTEGER NULL REFERENCES public.users(id) ON DELETE SET NULL,
+        metadata JSONB NULL
+      );
+    `, { transaction });
+
+    // Indexes for notifications
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON "${tenantHash}".notifications(user_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON "${tenantHash}".notifications(user_id, is_read) WHERE is_read = FALSE;`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON "${tenantHash}".notifications(created_at DESC);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_notifications_entity ON "${tenantHash}".notifications(entity_type, entity_id);`,
+      { transaction }
+    );
+
+    // ── Entity Graph Tables ──────────────────────────────────────────
+
+    // Entity graph annotations table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".entity_graph_annotations (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        user_id INTEGER NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id VARCHAR(100) NOT NULL,
+        organization_id INTEGER NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
+        FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE
+      );
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_annotations_user_entity_${tenantHash.replace(/[^a-z0-9]/g, "_")}
+      ON "${tenantHash}".entity_graph_annotations(user_id, entity_type, entity_id);
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_annotations_user_${tenantHash.replace(/[^a-z0-9]/g, "_")}
+      ON "${tenantHash}".entity_graph_annotations(user_id, organization_id);
+    `, { transaction });
+
+    // Entity graph views table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".entity_graph_views (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        user_id INTEGER NOT NULL,
+        organization_id INTEGER NOT NULL,
+        config JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
+        FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE
+      );
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_views_user_${tenantHash.replace(/[^a-z0-9]/g, "_")}
+      ON "${tenantHash}".entity_graph_views(user_id, organization_id);
+    `, { transaction });
+
+    // Entity graph gap rules table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".entity_graph_gap_rules (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL UNIQUE,
+        organization_id INTEGER NOT NULL,
+        rules JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE,
+        FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE
+      );
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_gap_rules_org_${tenantHash.replace(/[^a-z0-9]/g, "_")}
+      ON "${tenantHash}".entity_graph_gap_rules(organization_id);
+    `, { transaction });
+
+    // ── AI Incident Management Tables ──────────────────────────────────────────
+
+    // AI incident managements table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_incident_managements (
+        id SERIAL PRIMARY KEY,
+        incident_id TEXT UNIQUE DEFAULT NULL,
+        ai_project TEXT NOT NULL,
+        type TEXT NOT NULL,
+        severity TEXT CHECK (severity IN ('Minor', 'Serious', 'Very serious')) NOT NULL,
+        occurred_date TIMESTAMPTZ NOT NULL,
+        date_detected TIMESTAMPTZ NOT NULL,
+        reporter TEXT NOT NULL,
+        status TEXT CHECK (status IN ('Open', 'Investigating', 'Mitigated', 'Closed')) DEFAULT 'Open' NOT NULL,
+        categories_of_harm JSON NOT NULL,
+        affected_persons_groups TEXT,
+        description TEXT NOT NULL,
+        relationship_causality TEXT,
+        immediate_mitigations TEXT,
+        planned_corrective_actions TEXT,
+        model_system_version TEXT,
+        interim_report BOOLEAN DEFAULT FALSE NOT NULL,
+        approval_status TEXT CHECK (approval_status IN ('Pending', 'Approved', 'Rejected', 'Not required')) DEFAULT 'Pending' NOT NULL,
+        approved_by TEXT,
+        approval_date TIMESTAMPTZ,
+        approval_notes TEXT,
+        archived BOOLEAN DEFAULT FALSE NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+      );
+    `, { transaction });
+
+    // Create sequence for incident_id
+    await sequelize.query(`
+      CREATE SEQUENCE IF NOT EXISTS "${tenantHash}".incident_id_seq START 1;
+    `, { transaction });
+
+    // Set default value on incident_id column
+    await sequelize.query(`
+      ALTER TABLE "${tenantHash}".ai_incident_managements
+      ALTER COLUMN incident_id
+      SET DEFAULT 'INC-' || nextval('"${tenantHash}".incident_id_seq');
+    `, { transaction });
+
+    // Indexes for ai_incident_managements
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_${tenantHash}_ai_incident_severity ON "${tenantHash}".ai_incident_managements (severity);
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_${tenantHash}_ai_incident_status ON "${tenantHash}".ai_incident_managements (status);
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_${tenantHash}_ai_incident_approval_status ON "${tenantHash}".ai_incident_managements (approval_status);
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_${tenantHash}_ai_incident_created_at ON "${tenantHash}".ai_incident_managements (created_at);
+    `, { transaction });
+
+    // ── Bias and Fairness Evaluations Tables ──────────────────────────────────────────
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".bias_fairness_evaluations (
+        id SERIAL PRIMARY KEY,
+        eval_id VARCHAR(255) UNIQUE NOT NULL,
+        model_name VARCHAR(255) NOT NULL,
+        dataset_name VARCHAR(255) NOT NULL,
+        model_task VARCHAR(100) NOT NULL,
+        label_behavior VARCHAR(50) NOT NULL,
+        config_data JSONB NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        results JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_${tenantHash}_bias_fairness_evaluations_status ON "${tenantHash}".bias_fairness_evaluations(status);
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_${tenantHash}_bias_fairness_evaluations_eval_id ON "${tenantHash}".bias_fairness_evaluations(eval_id);
+    `, { transaction });
+
+    // ── MLflow Integration Tables ──────────────────────────────────────────
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".mlflow_integrations (
+        id SERIAL PRIMARY KEY,
+        tracking_server_url VARCHAR(255) NOT NULL,
+        auth_method VARCHAR(10) NOT NULL DEFAULT 'none' CHECK (auth_method IN ('none', 'basic', 'token')),
+        username VARCHAR(255),
+        username_iv VARCHAR(255),
+        password VARCHAR(255),
+        password_iv VARCHAR(255),
+        api_token VARCHAR(255),
+        api_token_iv VARCHAR(255),
+        verify_ssl BOOLEAN NOT NULL DEFAULT TRUE,
+        timeout INTEGER NOT NULL DEFAULT 30,
+        last_tested_at TIMESTAMP,
+        last_test_status VARCHAR(10) CHECK (last_test_status IN ('success', 'error')),
+        last_test_message TEXT,
+        updated_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".mlflow_model_records (
+        id SERIAL PRIMARY KEY,
+        model_name VARCHAR(255) NOT NULL,
+        version VARCHAR(255) NOT NULL,
+        lifecycle_stage VARCHAR(255),
+        run_id VARCHAR(255),
+        description TEXT,
+        source VARCHAR(255),
+        status VARCHAR(255),
+        tags JSONB NOT NULL DEFAULT '{}'::jsonb,
+        metrics JSONB NOT NULL DEFAULT '{}'::jsonb,
+        parameters JSONB NOT NULL DEFAULT '{}'::jsonb,
+        experiment_id VARCHAR(255),
+        experiment_name VARCHAR(255),
+        artifact_location TEXT,
+        training_status VARCHAR(255),
+        training_started_at TIMESTAMP,
+        training_ended_at TIMESTAMP,
+        source_version VARCHAR(255),
+        model_created_at TIMESTAMP,
+        model_updated_at TIMESTAMP,
+        last_synced_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT mlflow_model_records_org_model_version_unique UNIQUE (model_name, version)
+      );
     `, { transaction });
 
     // ── Model Lifecycle Tables ──────────────────────────────────────────

@@ -21,7 +21,16 @@ export class ApprovalWorkflowModel {
         // Map entity_type to entity number
         if (data.entity_type) {
             this.entity_type = data.entity_type;
-            this.entity = data.entity_type === "use_case" ? 1 : 2;
+            switch (data.entity_type) {
+                case "use_case":
+                    this.entity = 1;
+                    break;
+                case "file":
+                    this.entity = 2;
+                    break;
+                default:
+                    this.entity = 1;
+            }
         } else {
             this.entity = data.entity;
         }

@@ -41,7 +41,7 @@ export type {
  */
 export interface IconButtonProps {
   id: string | number;
-  onDelete: () => void;
+  onDelete: () => Promise<boolean> | boolean | void;
   onEdit: () => void;
   warningTitle?: string;
   warningMessage?: string | React.ReactNode;

@@ -32,12 +32,13 @@ from validate.enrich import enrich_with_obligations
 from infer.runner import run_inference, run_inference_resumable, InferConfig
 from infer.load_models import load_models_config
 from infer.paths import model_output_path
+from infer.stats import compute_model_stats
+from infer.manifest import write_infer_manifest
 from llm.mock import MockChatClient
 from llm.openrouter import OpenRouterChatClient
 
 from infer.resume import load_completed_pairs
-
-import json
+from reports.infer_report import build_infer_report
 
 
 console = Console()
@@ -305,6 +306,9 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
     if args.stage == "infer":
         scenarios_in = final_dir / "scenarios.jsonl"
+        infer_report_path = final_dir / "infer_report.json"
+        infer_manifest_path = final_dir / "infer_manifest.json"
+
         if not scenarios_in.exists():
             console.print(f"[red]Missing input:[/red] {scenarios_in}")
             return 2
@@ -318,6 +322,9 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         if args.models_config:
             cfg_file = Path(args.models_config)
             models_cfg = load_models_config(cfg_file)
+
+            per_model_stats = []
+            outputs = []
 
             for spec in models_cfg.models:
                 if spec.provider != "openrouter":
@@ -352,10 +359,48 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                     write_jsonl(out_path, successes)
                     write_jsonl(fail_path, failures)
 
+                stats = compute_model_stats(out_path, fail_path)
+                stats["model_id"] = spec.model_id
+                per_model_stats.append(stats)
+
+                outputs.append({
+                    "model_id": spec.model_id,
+                    "success_path": str(out_path),
+                    "success_sha256": sha256_file(out_path) if out_path.exists() else None,
+                    "failure_path": str(fail_path),
+                    "failure_sha256": sha256_file(fail_path) if fail_path.exists() else None,
+                })
+
                 console.print(f"[green]Done:[/green] {spec.model_id} -> {out_path}")
                 console.print(f"[yellow]- skipped: {len(skip)}[/yellow]")
                 console.print(f"[green]- successes: {len(successes)}[/green]")
                 console.print(f"[red]- failures: {len(failures)}[/red]")
+
+            models_list = [{"model_id": s.model_id, "provider": s.provider} for s in models_cfg.models]
+            report = build_infer_report(
+                models=models_list,
+                per_model_stats=per_model_stats,
+                total_scenarios=len(scenarios),
+            )
+            report["generated_at"] = datetime.now(timezone.utc).isoformat()
+            report["dataset_version"] = args.dataset_version
+            infer_report_path.parent.mkdir(parents=True, exist_ok=True)
+            infer_report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+            write_infer_manifest(
+                out_path=infer_manifest_path,
+                dataset_version=args.dataset_version,
+                scenarios_path=scenarios_in,
+                models_config_path=cfg_file,
+                temperature=float(args.temperature),
+                max_tokens=int(args.max_tokens),
+                retry_max_attempts=int(args.retry_max_attempts),
+                resume=bool(args.resume),
+                outputs=outputs,
+            )
+
+            console.print(f"- wrote: {infer_report_path}")
+            console.print(f"- wrote: {infer_manifest_path}")
 
             return 0
 

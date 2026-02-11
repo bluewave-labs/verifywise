@@ -28,7 +28,6 @@ import {
   ClassificationValue,
   ClassificationItemConfig,
   ChecklistItemConfig,
-  PeopleItemConfig,
   TextItemConfig,
   TextareaItemConfig,
 } from "../../../../../domain/interfaces/i.modelLifecycle";
@@ -54,7 +53,6 @@ const LifecycleItemField = ({
   item,
   onValueChanged,
 }: LifecycleItemFieldProps) => {
-  const theme = useTheme();
   const value = item.value;
 
   switch (item.item_type) {
@@ -336,7 +334,6 @@ const PeopleFieldRenderer = ({
   onValueChanged,
 }: PeopleFieldRendererProps) => {
   const theme = useTheme();
-  const config = item.config as PeopleItemConfig;
   const { users } = useUsers();
   const currentPeople: PeopleValue[] = Array.isArray(value?.value_json)
     ? (value.value_json as PeopleValue[])

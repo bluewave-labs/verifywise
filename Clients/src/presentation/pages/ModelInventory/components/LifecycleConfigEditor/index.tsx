@@ -30,7 +30,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  LifecyclePhase,
   LifecycleItem,
   LifecycleItemType,
 } from "../../../../../domain/interfaces/i.modelLifecycle";

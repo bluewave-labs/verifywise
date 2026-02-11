@@ -1088,9 +1088,14 @@ export const createNewTenant = async (
         "last_updated_by" INTEGER NOT NULL,
         "last_updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "review_status" VARCHAR(50) DEFAULT NULL,
+        "review_comment" TEXT DEFAULT NULL,
+        "reviewed_by" INTEGER DEFAULT NULL,
+        "reviewed_at" TIMESTAMP DEFAULT NULL,
         is_demo boolean NOT NULL DEFAULT false,
         FOREIGN KEY ("author_id") REFERENCES public.users(id) ON DELETE SET NULL,
-        FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
+        FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL,
+        FOREIGN KEY ("reviewed_by") REFERENCES public.users(id) ON DELETE SET NULL
       );`,
       { transaction }
     );

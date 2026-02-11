@@ -46,10 +46,37 @@ import {
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { GetAnnexControlISO27001ById } from "../../../../application/repository/annex_struct_iso.repository";
 import Alert from "../../Alert";
+import { SelectChangeEvent } from "@mui/material";
+import { RiskFormValues } from "../../AddNewRiskForm/interface";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
+
+interface AnnexControlData {
+  id: number;
+  title: string;
+  requirement_summary: string;
+  key_questions: string[];
+  evidence_examples: string[];
+  implementation_description: string;
+  status: string;
+  owner: number | null;
+  reviewer: number | null;
+  approver: number | null;
+  auditor_feedback: string;
+  risks: number[];
+  due_date: string | null;
+  evidence_links: FileData[];
+}
+
+interface AnnexControlResponse {
+  data: AnnexControlData;
+}
+
+interface AnnexRef {
+  id: number;
+}
 
 interface Control {
   id: number;
@@ -66,7 +93,7 @@ interface LinkedRisk {
   risk_name: string;
   risk_level: string;
   description?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 interface VWISO27001AnnexDrawerDialogProps {
@@ -74,7 +101,7 @@ interface VWISO27001AnnexDrawerDialogProps {
   open: boolean;
   onClose: () => void;
   control: Control;
-  annex: any;
+  annex: AnnexRef;
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
@@ -93,14 +120,14 @@ const VWISO27001AnnexDrawerDialog = ({
   onSaveSuccess,
 }: VWISO27001AnnexDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [fetchedAnnex, setFetchedAnnex] = useState<any>();
+  const [fetchedAnnex, setFetchedAnnex] = useState<AnnexControlData>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState("details");
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
     useState<boolean>(false);
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const theme = useTheme();
@@ -166,9 +193,9 @@ const VWISO27001AnnexDrawerDialog = ({
       if (open && annex?.id) {
         setIsLoading(true);
         try {
-          const response: any = await GetAnnexControlISO27001ById({
+          const response = await GetAnnexControlISO27001ById({
             routeUrl: `/iso-27001/annexControl/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
-          });
+          }) as AnnexControlResponse;
           setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values
@@ -200,7 +227,9 @@ const VWISO27001AnnexDrawerDialog = ({
           );
           setEvidenceFiles(allEvidenceFiles);
         } catch (error) {
-          console.error("Error fetching annex control:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error fetching annex control:", error);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -312,7 +341,9 @@ const VWISO27001AnnexDrawerDialog = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to download file",
@@ -321,14 +352,14 @@ const VWISO27001AnnexDrawerDialog = ({
     }
   };
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | number | Dayjs | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleSelectChange = (field: string) => (event: any) => {
+  const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     const value = event.target.value.toString();
     if (
       field === "status" &&
@@ -372,7 +403,9 @@ const VWISO27001AnnexDrawerDialog = ({
       const validRisks = riskResults.filter((risk) => risk !== null);
       setLinkedRiskObjects(validRisks);
     } catch (error) {
-      console.error("Error fetching linked risks:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching linked risks:", error);
+      }
       setLinkedRiskObjects([]);
     }
   };
@@ -465,7 +498,9 @@ const VWISO27001AnnexDrawerDialog = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       handleAlert({
         variant: "error",
         body: "Failed to load risk details",
@@ -477,7 +512,7 @@ const VWISO27001AnnexDrawerDialog = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {
@@ -533,7 +568,9 @@ const VWISO27001AnnexDrawerDialog = ({
       });
 
       if (!fetchedAnnex) {
-        console.error("Fetched annex is undefined");
+        if (process.env.NODE_ENV === "development") {
+          console.error("Fetched annex is undefined");
+        }
         handleAlert({
           variant: "error",
           body: "Error: Annex data not found",
@@ -592,25 +629,29 @@ const VWISO27001AnnexDrawerDialog = ({
           );
         }
       } catch (apiError) {
-        console.error("API call failed:", apiError);
+        if (process.env.NODE_ENV === "development") {
+          console.error("API call failed:", apiError);
+        }
         // If it's an axios error, extract the error message
         if (
           apiError &&
           typeof apiError === "object" &&
           "response" in apiError
         ) {
-          const axiosError = apiError as any;
-          const errorMessage =
+          const axiosError = apiError as { response?: { status: number; data?: { message?: string } }; message?: string };
+          const errorMessage = String(
             axiosError.response?.data?.message ||
-            axiosError.response?.data ||
             axiosError.message ||
-            "Failed to save annex control";
+            "Failed to save annex control"
+          );
           throw new Error(errorMessage);
         }
         throw apiError;
       }
     } catch (error) {
-      console.error("Error saving annex control:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error saving annex control:", error);
+      }
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -715,7 +756,7 @@ const VWISO27001AnnexDrawerDialog = ({
                   sx={{
                     border: "1px solid #eee",
                     padding: "12px",
-                    backgroundColor: "#f8f9fa",
+                    backgroundColor: "background.accent",
                     borderRadius: "4px",
                   }}
                 >
@@ -926,7 +967,7 @@ const VWISO27001AnnexDrawerDialog = ({
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                 Evidence files
               </Typography>
-              <Typography variant="body2" color="#6B7280">
+              <Typography variant="body2" color="text.tertiary">
                 Upload evidence files to document compliance with this
                 requirement.
               </Typography>
@@ -1000,11 +1041,11 @@ const VWISO27001AnnexDrawerDialog = ({
                   </Stack>
 
                   <Stack direction="row" spacing={2}>
-                    <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                    <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                       {`${evidenceFiles.length || 0} files attached`}
                     </Typography>
                     {uploadFiles.length > 0 && (
-                      <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                      <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                         {`+${uploadFiles.length} pending upload`}
                       </Typography>
                     )}
@@ -1014,7 +1055,7 @@ const VWISO27001AnnexDrawerDialog = ({
                       </Typography>
                     )}
                     {deletedFilesIds.length > 0 && (
-                      <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                      <Typography sx={{ fontSize: 11, color: "status.error.main" }}>
                         {`-${deletedFilesIds.length} pending delete`}
                       </Typography>
                     )}
@@ -1042,11 +1083,11 @@ const VWISO27001AnnexDrawerDialog = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                           padding: "10px 12px",
-                          border: "1px solid #EAECF0",
+                          border: `1px solid ${theme.palette.border.light}`,
                           borderRadius: "4px",
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "background.main",
                           "&:hover": {
-                            backgroundColor: "#F9FAFB",
+                            backgroundColor: "background.accent",
                           },
                         }}
                       >
@@ -1058,7 +1099,7 @@ const VWISO27001AnnexDrawerDialog = ({
                             minWidth: 0,
                           }}
                         >
-                          <FileIcon size={18} color="#475467" />
+                          <FileIcon size={18} color={theme.palette.text.tertiary} />
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
                               sx={{
@@ -1095,9 +1136,9 @@ const VWISO27001AnnexDrawerDialog = ({
                                 )
                               }
                               sx={{
-                                color: "#475467",
+                                color: "text.tertiary",
                                 "&:hover": {
-                                  color: "#13715B",
+                                  color: "primary.main",
                                   backgroundColor: "rgba(19, 113, 91, 0.08)",
                                 },
                               }}
@@ -1113,9 +1154,9 @@ const VWISO27001AnnexDrawerDialog = ({
                               }
                               disabled={isEditingDisabled}
                               sx={{
-                                color: "#475467",
+                                color: "text.tertiary",
                                 "&:hover": {
-                                  color: "#D32F2F",
+                                  color: "status.error.main",
                                   backgroundColor: "rgba(211, 47, 47, 0.08)",
                                 },
                               }}
@@ -1145,9 +1186,9 @@ const VWISO27001AnnexDrawerDialog = ({
                         alignItems: "center",
                         justifyContent: "space-between",
                         padding: "10px 12px",
-                        border: "1px solid #FEF3C7",
+                        border: `1px solid ${theme.palette.status.warning.border}`,
                         borderRadius: "4px",
-                        backgroundColor: "#FFFBEB",
+                        backgroundColor: "status.warning.bg",
                       }}
                     >
                       <Box
@@ -1158,7 +1199,7 @@ const VWISO27001AnnexDrawerDialog = ({
                           minWidth: 0,
                         }}
                       >
-                        <FileIcon size={18} color="#D97706" />
+                        <FileIcon size={18} color={theme.palette.status.warning.text} />
                         <Box sx={{ minWidth: 0, flex: 1 }}>
                           <Typography
                             sx={{
@@ -1188,7 +1229,7 @@ const VWISO27001AnnexDrawerDialog = ({
                           sx={{
                             color: "#92400E",
                             "&:hover": {
-                              color: "#D97706",
+                              color: "status.warning.text",
                               backgroundColor: "rgba(217, 119, 6, 0.08)",
                             },
                           }}
@@ -1272,10 +1313,10 @@ const VWISO27001AnnexDrawerDialog = ({
                   sx={{
                     textAlign: "center",
                     py: 4,
-                    color: "#6B7280",
-                    border: "2px dashed #D1D5DB",
+                    color: "text.tertiary",
+                    border: `2px dashed ${theme.palette.border.dark}`,
                     borderRadius: 1,
-                    backgroundColor: "#F9FAFB",
+                    backgroundColor: "background.accent",
                   }}
                 >
                   <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1292,7 +1333,7 @@ const VWISO27001AnnexDrawerDialog = ({
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                 Linked risks
               </Typography>
-              <Typography variant="body2" color="#6B7280">
+              <Typography variant="body2" color="text.tertiary">
                 Link risks from your risk database to track which risks are
                 addressed by this requirement.
               </Typography>
@@ -1305,9 +1346,9 @@ const VWISO27001AnnexDrawerDialog = ({
                     width: 155,
                     height: 25,
                     fontSize: 11,
-                    border: "1px solid #D0D5DD",
-                    backgroundColor: "white",
-                    color: "#344054",
+                    border: `1px solid ${theme.palette.border.dark}`,
+                    backgroundColor: "background.main",
+                    color: "text.secondary",
                   }}
                   onClick={() => setIsLinkedRisksModalOpen(true)}
                   disabled={isEditingDisabled}
@@ -1316,16 +1357,16 @@ const VWISO27001AnnexDrawerDialog = ({
                 </Button>
 
                 <Stack direction="row" spacing={2}>
-                  <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                  <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                     {`${currentRisks.length || 0} risks linked`}
                   </Typography>
                   {selectedRisks.length > 0 && (
-                    <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                    <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                       {`+${selectedRisks.length} pending save`}
                     </Typography>
                   )}
                   {deletedRisks.length > 0 && (
-                    <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                    <Typography sx={{ fontSize: 11, color: "status.error.main" }}>
                       {`-${deletedRisks.length} pending delete`}
                     </Typography>
                   )}
@@ -1345,11 +1386,11 @@ const VWISO27001AnnexDrawerDialog = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                           padding: "10px 12px",
-                          border: "1px solid #EAECF0",
+                          border: `1px solid ${theme.palette.border.light}`,
                           borderRadius: "4px",
-                          backgroundColor: "#FFFFFF",
+                          backgroundColor: "background.main",
                           "&:hover": {
-                            backgroundColor: "#F9FAFB",
+                            backgroundColor: "background.accent",
                           },
                         }}
                       >
@@ -1367,7 +1408,7 @@ const VWISO27001AnnexDrawerDialog = ({
                             {risk.risk_name}
                           </Typography>
                           {risk.risk_level && (
-                            <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                            <Typography sx={{ fontSize: 11, color: "text.tertiary" }}>
                               Risk level: {risk.risk_level}
                             </Typography>
                           )}
@@ -1379,9 +1420,9 @@ const VWISO27001AnnexDrawerDialog = ({
                               size="small"
                               onClick={() => handleViewRiskDetails(risk)}
                               sx={{
-                                color: "#475467",
+                                color: "text.tertiary",
                                 "&:hover": {
-                                  color: "#13715B",
+                                  color: "primary.main",
                                   backgroundColor: "rgba(19, 113, 91, 0.08)",
                                 },
                               }}
@@ -1403,9 +1444,9 @@ const VWISO27001AnnexDrawerDialog = ({
                               }}
                               disabled={isEditingDisabled}
                               sx={{
-                                color: "#475467",
+                                color: "text.tertiary",
                                 "&:hover": {
-                                  color: "#D32F2F",
+                                  color: "status.error.main",
                                   backgroundColor: "rgba(211, 47, 47, 0.08)",
                                 },
                               }}
@@ -1425,10 +1466,10 @@ const VWISO27001AnnexDrawerDialog = ({
                   sx={{
                     textAlign: "center",
                     py: 4,
-                    color: "#6B7280",
-                    border: "2px dashed #D1D5DB",
+                    color: "text.tertiary",
+                    border: `2px dashed ${theme.palette.border.dark}`,
                     borderRadius: 1,
-                    backgroundColor: "#F9FAFB",
+                    backgroundColor: "background.accent",
                   }}
                 >
                   <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1542,8 +1583,8 @@ const VWISO27001AnnexDrawerDialog = ({
             variant="contained"
             text="Save"
             sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              backgroundColor: "primary.main",
+              border: `1px solid ${theme.palette.primary.main}`,
               gap: 2,
             }}
             onClick={handleSave}

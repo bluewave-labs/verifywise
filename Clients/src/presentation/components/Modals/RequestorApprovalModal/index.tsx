@@ -38,7 +38,7 @@ import StandardModal from "../StandardModal";
 import { useTheme } from "@mui/material";
 import type { FC } from "react";
 import React, { useEffect, useState } from "react";
-import { ApprovalStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
+import { ApprovalStatus, ApprovalStepStatus } from "../../../../domain/enums/aiApprovalWorkflow.enum";
 import StepDetailsModal from './StepDetailsModal';
 import dayjs from "dayjs";
 import DualButtonModal from "../../Dialogs/ConfirmationModal";
@@ -338,7 +338,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                         id: step.id,
                         title: step.step_name || `Step ${index + 1}`,
                         date: step.date_completed || step.date_assigned,
-                        status: step.status?.toLowerCase() === 'completed' ? 'completed' : 'pending',
+                        status: step.status?.toLowerCase() === ApprovalStepStatus.Completed ? ApprovalStepStatus.Completed : ApprovalStepStatus.Pending,
                         approverName: step.approvals?.map((a: any) => `${a.name} ${a.surname}`).join(', '),
                         approvalResult: step.approvals?.[0]?.approval_result,
                         comment: step.approvals?.[0]?.comments,
@@ -722,9 +722,9 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 <Box>
                                     <Stack direction="row" spacing={8} alignItems="flex-start">
                                         <Box
-                                            sx={stepCircleStyle(theme, step.status === 'completed')}
+                                            sx={stepCircleStyle(theme, step.status === ApprovalStepStatus.Completed)}
                                         >
-                                            {step.status === 'completed' ? (
+                                            {step.status === ApprovalStepStatus.Completed ? (
                                                 <Check size={12} color="#FFFFFF" />
                                             ) : (
                                                 <Check size={12} color="#CCCCCC" strokeWidth={3} />
@@ -735,7 +735,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                                 <Typography sx={stepTitleStyle}>
                                                     {step.title}
                                                 </Typography>
-                                                {step.date && (
+                                                {step.status === ApprovalStepStatus.Completed && step.date && (
                                                     <Typography sx={stepDateStyle}>
                                                         {dayjs(step.date).format("MMM DD, YYYY HH:mm")}
                                                     </Typography>

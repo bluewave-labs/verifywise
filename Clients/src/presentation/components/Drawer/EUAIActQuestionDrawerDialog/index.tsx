@@ -19,9 +19,11 @@ import {
   Divider,
   Drawer,
   IconButton,
+  SelectChangeEvent,
   Stack,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import {
@@ -53,6 +55,8 @@ import {
   EUAIACT_STATUS_OPTIONS,
 } from "./types";
 import { FileData } from "../../../../domain/types/File";
+import { Question } from "../../../../domain/types/Question";
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 import { AlertProps } from "../../../types/alert.types";
 import { getPriorityColors } from "../../../pages/Assessment/1.0AssessmentTracker/euaiact.style";
 
@@ -120,6 +124,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   projectFrameworkId,
   onSaveSuccess,
 }) => {
+  const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const { users } = useUsers();
 
@@ -130,7 +135,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [activeTab, setActiveTab] = useState("details");
-  const [fetchedQuestion, setFetchedQuestion] = useState<any>(null);
+  const [fetchedQuestion, setFetchedQuestion] = useState<Question | null>(null);
   const [editorKey, setEditorKey] = useState(0);
 
   // ========================================================================
@@ -166,7 +171,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] =
     useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<any>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // ========================================================================
@@ -296,7 +301,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         for (const topicSubTopic of response.data.subTopics || []) {
           if (topicSubTopic.id === subtopic.id) {
             const question = (topicSubTopic.questions || []).find(
-              (q: any) => q.answer_id === questionProp.answer_id
+              (q: { answer_id: number }) => q.answer_id === questionProp.answer_id
             );
             if (question) {
               foundQuestion = question;
@@ -357,7 +362,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         }
       }
     } catch (error) {
-      console.error("Error fetching question data:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching question data:", error);
+      }
       handleAlertCall({
         variant: "error",
         body: "Failed to load question data",
@@ -482,7 +489,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
       const validRisks = riskResults.filter((risk) => risk !== null);
       setLinkedRiskObjects(validRisks);
     } catch (error) {
-      console.error("Error fetching linked risks:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching linked risks:", error);
+      }
       setLinkedRiskObjects([]);
     }
   };
@@ -503,7 +512,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
     handleFieldChange("answer", cleanedAnswer || "");
   };
 
-  const handleSelectChange = (field: keyof EUAIActFormData) => (event: any) => {
+  const handleSelectChange = (field: keyof EUAIActFormData) => (event: SelectChangeEvent<string | number>) => {
     handleFieldChange(field, event.target.value.toString());
   };
 
@@ -617,7 +626,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         body: "File downloaded successfully",
       });
     } catch (error) {
-      console.error("Error downloading file:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error downloading file:", error);
+      }
       handleAlertCall({
         variant: "error",
         body: "Failed to download file. Please try again.",
@@ -656,7 +667,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         setIsRiskDetailModalOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching risk details:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching risk details:", error);
+      }
       handleAlertCall({
         variant: "error",
         body: "Failed to load risk details",
@@ -667,7 +680,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {
@@ -707,7 +720,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         for (const topicSubTopic of response.data.subTopics || []) {
           if (topicSubTopic.id === subtopic.id) {
             const question = (topicSubTopic.questions || []).find(
-              (q: any) => q.answer_id === questionProp.answer_id
+              (q: { answer_id: number }) => q.answer_id === questionProp.answer_id
             );
             if (question) {
               foundQuestion = question;
@@ -737,7 +750,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
         }
       }
     } catch (error) {
-      console.error("Error refreshing data:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error refreshing data:", error);
+      }
     }
   };
 
@@ -922,7 +937,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                 padding: "5px",
               }}
             >
-              <CloseIcon size={20} color="#667085" />
+              <CloseIcon size={20} color={theme.palette.other.icon} />
             </Button>
           </Stack>
 
@@ -953,14 +968,14 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     sx={{
                       border: "1px solid #eee",
                       padding: "12px",
-                      backgroundColor: "#f8f9fa",
+                      backgroundColor: "background.accent",
                       borderRadius: "4px",
                     }}
                   >
                     <Typography fontSize={13} sx={{ marginBottom: "8px" }}>
                       <strong>Question:</strong>
                     </Typography>
-                    <Typography fontSize={13} color="#344054">
+                    <Typography fontSize={13} color="text.secondary">
                       {displayQuestion.question}
                     </Typography>
                   </Stack>
@@ -1041,7 +1056,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                         background:
                           "linear-gradient(180deg, #E6F4EA 0%, #D4E8DB 100%)",
                         border: "1px solid #B8DCC5",
-                        color: "#138A5E",
+                        color: "primary.main",
                         fontSize: 11,
                         fontWeight: 600,
                         textTransform: "uppercase",
@@ -1067,11 +1082,11 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     isEditable={!isEditingDisabled}
                     headerSx={{
                       borderRadius: "4px 4px 0 0",
-                      borderTop: "1px solid #d0d5dd",
-                      borderColor: "#d0d5dd",
+                      borderTop: `1px solid ${theme.palette.border.dark}`,
+                      borderColor: "border.dark",
                     }}
                     bodySx={{
-                      borderColor: "#d0d5dd",
+                      borderColor: "border.dark",
                       borderRadius: "0 0 4px 4px",
                       "& .ProseMirror > p": {
                         margin: 0,
@@ -1111,7 +1126,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   Evidence files
                 </Typography>
-                <Typography variant="body2" color="#6B7280">
+                <Typography variant="body2" color="text.tertiary">
                   Upload evidence files to document compliance with this
                   question.
                 </Typography>
@@ -1143,12 +1158,12 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                         width: 155,
                         height: 25,
                         fontSize: 11,
-                        border: "1px solid #D0D5DD",
-                        backgroundColor: "white",
-                        color: "#344054",
+                        border: `1px solid ${theme.palette.border.dark}`,
+                        backgroundColor: "background.main",
+                        color: "text.secondary",
                         "&:hover": {
-                          backgroundColor: "#F9FAFB",
-                          border: "1px solid #D0D5DD",
+                          backgroundColor: "background.accent",
+                          border: `1px solid ${theme.palette.border.dark}`,
                         },
                       }}
                     >
@@ -1176,11 +1191,11 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     </Button>
 
                     <Stack direction="row" spacing={2}>
-                      <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                      <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                         {`${evidenceFiles.length} files attached`}
                       </Typography>
                       {uploadFiles.length > 0 && (
-                        <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                        <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                           {`+${uploadFiles.length} pending upload`}
                         </Typography>
                       )}
@@ -1190,7 +1205,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                         </Typography>
                       )}
                       {deletedFiles.length > 0 && (
-                        <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                        <Typography sx={{ fontSize: 11, color: "status.error.main" }}>
                           {`-${deletedFiles.length} pending delete`}
                         </Typography>
                       )}
@@ -1214,11 +1229,11 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             alignItems: "center",
                             justifyContent: "space-between",
                             padding: "10px 12px",
-                            border: "1px solid #EAECF0",
+                            border: `1px solid ${theme.palette.border.light}`,
                             borderRadius: "4px",
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "background.main",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
+                              backgroundColor: "background.accent",
                             },
                           }}
                         >
@@ -1230,7 +1245,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                               minWidth: 0,
                             }}
                           >
-                            <FileIcon size={18} color="#475467" />
+                            <FileIcon size={18} color={theme.palette.text.tertiary} />
                             <Box sx={{ minWidth: 0, flex: 1 }}>
                               <Typography
                                 sx={{
@@ -1275,9 +1290,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                                   )
                                 }
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#13715B",
+                                    color: "primary.main",
                                     backgroundColor: "rgba(19, 113, 91, 0.08)",
                                   },
                                 }}
@@ -1293,9 +1308,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                                 }
                                 disabled={isEditingDisabled}
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#D32F2F",
+                                    color: "status.error.main",
                                     backgroundColor: "rgba(211, 47, 47, 0.08)",
                                   },
                                 }}
@@ -1325,9 +1340,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                           padding: "10px 12px",
-                          border: "1px solid #FEF3C7",
+                          border: `1px solid ${theme.palette.status.warning.border}`,
                           borderRadius: "4px",
-                          backgroundColor: "#FFFBEB",
+                          backgroundColor: "status.warning.bg",
                         }}
                       >
                         <Box
@@ -1338,7 +1353,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             minWidth: 0,
                           }}
                         >
-                          <FileIcon size={18} color="#D97706" />
+                          <FileIcon size={18} color={theme.palette.status.warning.text} />
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
                               sx={{
@@ -1369,7 +1384,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                               sx={{
                                 color: "#92400E",
                                 "&:hover": {
-                                  color: "#D32F2F",
+                                  color: "status.error.main",
                                   backgroundColor: "rgba(211, 47, 47, 0.08)",
                                 },
                               }}
@@ -1461,10 +1476,10 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     sx={{
                       textAlign: "center",
                       py: 4,
-                      color: "#6B7280",
-                      border: "2px dashed #D1D5DB",
+                      color: "text.tertiary",
+                      border: `2px dashed ${theme.palette.border.dark}`,
                       borderRadius: 1,
-                      backgroundColor: "#F9FAFB",
+                      backgroundColor: "background.accent",
                     }}
                   >
                     <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1488,7 +1503,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   Linked risks
                 </Typography>
-                <Typography variant="body2" color="#6B7280">
+                <Typography variant="body2" color="text.tertiary">
                   Link risks from your risk database to track which risks are
                   addressed by this question.
                 </Typography>
@@ -1504,12 +1519,12 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                       width: 155,
                       height: 25,
                       fontSize: 11,
-                      border: "1px solid #D0D5DD",
-                      backgroundColor: "white",
-                      color: "#344054",
+                      border: `1px solid ${theme.palette.border.dark}`,
+                      backgroundColor: "background.main",
+                      color: "text.secondary",
                       "&:hover": {
-                        backgroundColor: "#F9FAFB",
-                        border: "1px solid #D0D5DD",
+                        backgroundColor: "background.accent",
+                        border: `1px solid ${theme.palette.border.dark}`,
                       },
                     }}
                   >
@@ -1517,16 +1532,16 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                   </Button>
 
                   <Stack direction="row" spacing={2}>
-                    <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                    <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                       {`${currentRisks.length || 0} risks linked`}
                     </Typography>
                     {selectedRisks.length > 0 && (
-                      <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                      <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                         {`+${selectedRisks.length} pending save`}
                       </Typography>
                     )}
                     {deletedRisks.length > 0 && (
-                      <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                      <Typography sx={{ fontSize: 11, color: "status.error.main" }}>
                         {`-${deletedRisks.length} pending delete`}
                       </Typography>
                     )}
@@ -1546,11 +1561,11 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             alignItems: "center",
                             justifyContent: "space-between",
                             padding: "10px 12px",
-                            border: "1px solid #EAECF0",
+                            border: `1px solid ${theme.palette.border.light}`,
                             borderRadius: "4px",
-                            backgroundColor: "#FFFFFF",
+                            backgroundColor: "background.main",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
+                              backgroundColor: "background.accent",
                             },
                           }}
                         >
@@ -1569,7 +1584,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                             </Typography>
                             {risk.risk_level && (
                               <Typography
-                                sx={{ fontSize: 11, color: "#6B7280" }}
+                                sx={{ fontSize: 11, color: "text.tertiary" }}
                               >
                                 Risk level: {risk.risk_level}
                               </Typography>
@@ -1582,9 +1597,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                                 size="small"
                                 onClick={() => handleViewRiskDetails(risk)}
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#13715B",
+                                    color: "primary.main",
                                     backgroundColor: "rgba(19, 113, 91, 0.08)",
                                   },
                                 }}
@@ -1605,9 +1620,9 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                                 }}
                                 disabled={isEditingDisabled}
                                 sx={{
-                                  color: "#475467",
+                                  color: "text.tertiary",
                                   "&:hover": {
-                                    color: "#D32F2F",
+                                    color: "status.error.main",
                                     backgroundColor: "rgba(211, 47, 47, 0.08)",
                                   },
                                 }}
@@ -1627,10 +1642,10 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                     sx={{
                       textAlign: "center",
                       py: 4,
-                      color: "#6B7280",
-                      border: "2px dashed #D1D5DB",
+                      color: "text.tertiary",
+                      border: `2px dashed ${theme.palette.border.dark}`,
                       borderRadius: 1,
-                      backgroundColor: "#F9FAFB",
+                      backgroundColor: "background.accent",
                     }}
                   >
                     <Typography variant="body2" sx={{ mb: 1 }}>
@@ -1694,8 +1709,8 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
               variant="contained"
               text={isLoading ? "Saving..." : "Save"}
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: "primary.main",
+                border: `1px solid ${theme.palette.primary.main}`,
                 gap: 2,
                 minWidth: "120px",
                 height: "36px",

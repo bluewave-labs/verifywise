@@ -30,5 +30,14 @@ router.put('/:id', authenticateJWT, PolicyController.updatePolicy);
 // DELETE /policies/:id - Delete policy by ID
 router.delete('/:id', authenticateJWT, PolicyController.deletePolicyById);
 
+// POST /policies/:id/review/request - Request review for a policy
+router.post('/:id/review/request', authenticateJWT, PolicyController.requestReview);
+
+// PUT /policies/:id/review/approve - Approve a policy review
+router.put('/:id/review/approve', authenticateJWT, PolicyController.approveReview);
+
+// PUT /policies/:id/review/reject - Reject a policy review (request changes)
+router.put('/:id/review/reject', authenticateJWT, PolicyController.rejectReview);
+
 
 export default router;

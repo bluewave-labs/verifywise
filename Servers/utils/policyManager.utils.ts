@@ -14,6 +14,41 @@ import {
   buildPolicyUpdateReplacements,
 } from "./automation/policy.automation.utils";
 
+export type PolicyReviewStatus = "pending_review" | "approved" | "changes_requested";
+
+export const updatePolicyReviewStatusQuery = async (
+  tenant: string,
+  policyId: number,
+  reviewStatus: PolicyReviewStatus,
+  reviewerId: number,
+  comment?: string,
+  transaction?: Transaction
+) => {
+  const queryOptions: any = {
+    replacements: {
+      reviewStatus,
+      reviewerId,
+      comment: comment || null,
+      reviewedAt: new Date(),
+      policyId,
+    },
+    type: QueryTypes.UPDATE,
+  };
+  if (transaction) {
+    queryOptions.transaction = transaction;
+  }
+
+  await sequelize.query(
+    `UPDATE "${tenant}".policy_manager
+     SET review_status = :reviewStatus,
+         review_comment = :comment,
+         reviewed_by = :reviewerId,
+         reviewed_at = :reviewedAt
+     WHERE id = :policyId`,
+    queryOptions
+  );
+};
+
 export const getAllPoliciesQuery = async (tenant: string) => {
   const result = await sequelize.query(
     `SELECT

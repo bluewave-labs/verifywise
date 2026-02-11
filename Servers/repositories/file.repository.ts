@@ -35,6 +35,8 @@ export interface FileMetadata {
   uploader_surname?: string;
 }
 
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired' | 'superseded';
+
 export interface OrganizationFileMetadata {
   id: number;
   filename: string;
@@ -43,10 +45,30 @@ export interface OrganizationFileMetadata {
   upload_date?: string;
   uploaded_by?: number;
   org_id?: number;
+  project_id?: number | null;
   model_id?: number;
   source?: string;
   uploader_name?: string;
   uploader_surname?: string;
+  // New metadata fields
+  tags?: string[];
+  review_status?: ReviewStatus;
+  version?: string;
+  expiry_date?: string;
+  last_modified_by?: number;
+  last_modifier_name?: string;
+  last_modifier_surname?: string;
+  description?: string;
+  file_group_id?: string;
+}
+
+export interface UpdateFileMetadataInput {
+  tags?: string[];
+  review_status?: ReviewStatus;
+  version?: string;
+  expiry_date?: string | null;
+  description?: string | null;
+  last_modified_by: number;
 }
 
 export interface PaginationOptions {
@@ -208,6 +230,15 @@ export async function deleteProjectFileById(
 ): Promise<boolean> {
   validateTenant(tenant);
 
+  // Clean up any virtual folder mappings for this file
+  await sequelize.query(
+    `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+
   const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :id RETURNING id`;
   const result = await sequelize.query(query, {
     replacements: { id },
@@ -285,9 +316,9 @@ export async function uploadOrganizationFile(
 
   const query = `
     INSERT INTO ${escapePgIdentifier(tenant)}.files
-      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id)
+      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id, file_group_id)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL)
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL, gen_random_uuid())
     RETURNING *`;
 
   const result = await sequelize.query(query, {
@@ -347,15 +378,43 @@ export async function deleteFileById(
 ): Promise<boolean> {
   validateTenant(tenant);
 
-  const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
+  // If no transaction provided, create one to ensure atomicity of both operations
+  const useProvidedTransaction = !!transaction;
+  const txn = transaction || (await sequelize.transaction());
 
-  const result = await sequelize.query(query, {
-    replacements: { fileId },
-    type: QueryTypes.SELECT,
-    ...(transaction && { transaction }),
-  });
+  try {
+    // Clean up any virtual folder mappings for this file
+    await sequelize.query(
+      `DELETE FROM ${escapePgIdentifier(tenant)}.file_folder_mappings WHERE file_id = :fileId`,
+      {
+        replacements: { fileId },
+        transaction: txn,
+      }
+    );
 
-  return Array.isArray(result) && result.length > 0;
+    const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
+
+    const result = await sequelize.query(query, {
+      replacements: { fileId },
+      type: QueryTypes.SELECT,
+      transaction: txn,
+    });
+
+    const deleted = Array.isArray(result) && result.length > 0;
+
+    // Only commit if we created the transaction ourselves
+    if (!useProvidedTransaction) {
+      await txn.commit();
+    }
+
+    return deleted;
+  } catch (error) {
+    // Only rollback if we created the transaction ourselves
+    if (!useProvidedTransaction) {
+      await txn.rollback();
+    }
+    throw error;
+  }
 }
 
 /**
@@ -537,6 +596,402 @@ export async function getFilesByModelId(
   });
 
   return files as OrganizationFileMetadata[];
+}
+
+// ============================================================================
+// File Metadata Operations
+// ============================================================================
+
+/**
+ * Updates file metadata (tags, status, version, expiry date, description)
+ *
+ * @param fileId - The file ID to update
+ * @param updates - The metadata fields to update
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction for atomicity
+ * @returns The updated file record or null if not found
+ */
+export async function updateFileMetadata(
+  fileId: number,
+  updates: UpdateFileMetadataInput,
+  tenant: string,
+  transaction?: Transaction
+): Promise<OrganizationFileMetadata | null> {
+  validateTenant(tenant);
+
+  const setClauses: string[] = [];
+  const replacements: Record<string, unknown> = { fileId };
+
+  // Build dynamic SET clause
+  if (updates.tags !== undefined) {
+    setClauses.push('tags = :tags::jsonb');
+    replacements.tags = JSON.stringify(updates.tags);
+  }
+  if (updates.review_status !== undefined) {
+    setClauses.push('review_status = :review_status');
+    replacements.review_status = updates.review_status;
+  }
+  if (updates.version !== undefined) {
+    setClauses.push('version = :version');
+    replacements.version = updates.version;
+  }
+  if (updates.expiry_date !== undefined) {
+    setClauses.push('expiry_date = :expiry_date');
+    replacements.expiry_date = updates.expiry_date;
+  }
+  if (updates.description !== undefined) {
+    setClauses.push('description = :description');
+    replacements.description = updates.description;
+  }
+
+  // Always update last_modified_by and updated_at
+  setClauses.push('last_modified_by = :last_modified_by');
+  setClauses.push('updated_at = NOW()');
+  replacements.last_modified_by = updates.last_modified_by;
+
+  // Since we always add last_modified_by, setClauses will never be empty
+  // But if no actual updates are needed, return current file with metadata
+  if (setClauses.length === 2) {
+    // Only last_modified_by and updated_at - return current file
+    return getFileWithMetadata(fileId, tenant);
+  }
+
+  const query = `
+    UPDATE ${escapePgIdentifier(tenant)}.files
+    SET ${setClauses.join(', ')}
+    WHERE id = :fileId
+    RETURNING *`;
+
+  const result = await sequelize.query(query, {
+    replacements,
+    type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
+  });
+
+  return (result[0] as OrganizationFileMetadata) || null;
+}
+
+/**
+ * Gets file with full metadata including modifier name
+ *
+ * @param fileId - The file ID to retrieve
+ * @param tenant - Tenant schema identifier
+ * @returns The file record with metadata or null if not found
+ */
+export async function getFileWithMetadata(
+  fileId: number,
+  tenant: string
+): Promise<OrganizationFileMetadata | null> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.project_id,
+      f.model_id,
+      f.source,
+      f.tags,
+      f.review_status,
+      f.version,
+      f.expiry_date,
+      f.last_modified_by,
+      f.description,
+      f.file_group_id,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname,
+      m.name AS last_modifier_name,
+      m.surname AS last_modifier_surname
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    LEFT JOIN public.users m ON f.last_modified_by = m.id
+    WHERE f.id = :fileId`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId },
+    type: QueryTypes.SELECT,
+  });
+
+  return (result[0] as OrganizationFileMetadata) || null;
+}
+
+/**
+ * Gets organization files with full metadata for file manager view
+ *
+ * @param orgId - Organization ID to get files for
+ * @param tenant - Tenant schema identifier
+ * @param options - Pagination options (limit and offset)
+ * @returns Object containing files array with metadata and total count
+ */
+export async function getOrganizationFilesWithMetadata(
+  orgId: number,
+  tenant: string,
+  options: PaginationOptions = {}
+): Promise<{ files: OrganizationFileMetadata[]; total: number }> {
+  validateTenant(tenant);
+
+  const { limit, offset } = options;
+
+  let query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.model_id,
+      f.source,
+      f.tags,
+      f.review_status,
+      f.version,
+      f.expiry_date,
+      f.last_modified_by,
+      f.description,
+      f.file_group_id,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname,
+      m.name AS last_modifier_name,
+      m.surname AS last_modifier_surname
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    LEFT JOIN public.users m ON f.last_modified_by = m.id
+    WHERE f.org_id = :orgId
+      AND f.project_id IS NULL
+      AND (f.source IS NULL OR f.source != 'policy_editor')
+    ORDER BY f.uploaded_time DESC`;
+
+  if (limit !== undefined) query += ` LIMIT :limit`;
+  if (offset !== undefined) query += ` OFFSET :offset`;
+
+  const files = await sequelize.query(query, {
+    replacements: { orgId, limit, offset },
+    type: QueryTypes.SELECT,
+  });
+
+  const countQuery = `
+    SELECT COUNT(*) as count
+    FROM ${escapePgIdentifier(tenant)}.files
+    WHERE org_id = :orgId
+      AND project_id IS NULL
+      AND (source IS NULL OR source != 'policy_editor')`;
+
+  const countResult = await sequelize.query(countQuery, {
+    replacements: { orgId },
+    type: QueryTypes.SELECT,
+  });
+
+  const countRow = countResult[0] as { count: string } | undefined;
+  const total = countRow ? parseInt(countRow.count, 10) : 0;
+
+  return { files: files as OrganizationFileMetadata[], total };
+}
+
+/**
+ * Gets files that need attention (due for update, pending approval, recently modified)
+ *
+ * @param orgId - Organization ID to get files for
+ * @param tenant - Tenant schema identifier
+ * @param daysUntilExpiry - Number of days before expiry to flag as "due for update"
+ * @param recentDays - Number of days to consider as "recently modified"
+ * @returns Object containing categorized file IDs
+ */
+export async function getHighlightedFiles(
+  orgId: number,
+  tenant: string,
+  daysUntilExpiry: number = 30,
+  recentDays: number = 7
+): Promise<{
+  dueForUpdate: number[];
+  pendingApproval: number[];
+  recentlyModified: number[];
+}> {
+  validateTenant(tenant);
+
+  // Validate numeric inputs to prevent SQL injection - must be positive integers within reasonable bounds
+  const safeDaysUntilExpiry = Math.max(1, Math.min(365, Math.floor(Number(daysUntilExpiry) || 30)));
+  const safeRecentDays = Math.max(1, Math.min(365, Math.floor(Number(recentDays) || 7)));
+
+  // Files due for update (expiry_date within X days or passed)
+  // Using INTERVAL with integer cast for safe parameterization
+  const dueQuery = `
+    SELECT id FROM ${escapePgIdentifier(tenant)}.files
+    WHERE org_id = :orgId
+      AND project_id IS NULL
+      AND expiry_date IS NOT NULL
+      AND expiry_date <= CURRENT_DATE + (:daysUntilExpiry || ' days')::INTERVAL
+    ORDER BY expiry_date ASC`;
+
+  const dueResult = await sequelize.query(dueQuery, {
+    replacements: { orgId, daysUntilExpiry: safeDaysUntilExpiry },
+    type: QueryTypes.SELECT,
+  });
+
+  // Files pending approval
+  const pendingQuery = `
+    SELECT id FROM ${escapePgIdentifier(tenant)}.files
+    WHERE org_id = :orgId
+      AND project_id IS NULL
+      AND review_status = 'pending_review'
+    ORDER BY uploaded_time DESC`;
+
+  const pendingResult = await sequelize.query(pendingQuery, {
+    replacements: { orgId },
+    type: QueryTypes.SELECT,
+  });
+
+  // Recently modified files
+  const recentQuery = `
+    SELECT id FROM ${escapePgIdentifier(tenant)}.files
+    WHERE org_id = :orgId
+      AND project_id IS NULL
+      AND updated_at >= CURRENT_DATE - (:recentDays || ' days')::INTERVAL
+    ORDER BY updated_at DESC`;
+
+  const recentResult = await sequelize.query(recentQuery, {
+    replacements: { orgId, recentDays: safeRecentDays },
+    type: QueryTypes.SELECT,
+  });
+
+  return {
+    dueForUpdate: (dueResult as { id: number }[]).map((r) => r.id),
+    pendingApproval: (pendingResult as { id: number }[]).map((r) => r.id),
+    recentlyModified: (recentResult as { id: number }[]).map((r) => r.id),
+  };
+}
+
+/**
+ * Gets file content for preview (limited size)
+ *
+ * @param fileId - The file ID to get content for
+ * @param tenant - Tenant schema identifier
+ * @param maxSize - Maximum size in bytes (default 5MB)
+ * @returns Object with file info and content, or null if not found or too large
+ */
+export async function getFilePreview(
+  fileId: number,
+  tenant: string,
+  maxSize: number = 5 * 1024 * 1024 // 5MB default
+): Promise<{
+  id: number;
+  filename: string;
+  mimetype: string;
+  size: number;
+  content: Buffer;
+  canPreview: boolean;
+} | null> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT
+      id,
+      filename,
+      type AS mimetype,
+      size,
+      content
+    FROM ${escapePgIdentifier(tenant)}.files
+    WHERE id = :fileId`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId },
+    type: QueryTypes.SELECT,
+  });
+
+  if (!result[0]) {
+    return null;
+  }
+
+  const file = result[0] as {
+    id: number;
+    filename: string;
+    mimetype: string;
+    size: number | null;
+    content: Buffer | null;
+  };
+
+  // Check if file has content stored
+  if (!file.content) {
+    return {
+      id: file.id,
+      filename: file.filename,
+      mimetype: file.mimetype,
+      size: file.size || 0,
+      content: Buffer.alloc(0),
+      canPreview: false,
+    };
+  }
+
+  // Check if file is too large for preview
+  const fileSize = file.size || file.content.length;
+  const canPreview = fileSize <= maxSize;
+
+  return {
+    ...file,
+    size: fileSize,
+    canPreview,
+    content: canPreview ? file.content : Buffer.alloc(0),
+  };
+}
+
+// ============================================================================
+// File Version History
+// ============================================================================
+
+/**
+ * Gets all file versions in the same file group, ordered by upload time descending
+ *
+ * @param fileGroupId - The file group UUID to query
+ * @param tenant - Tenant schema identifier
+ * @returns Array of file records in the same version group
+ */
+export async function getFileVersionHistory(
+  fileGroupId: string,
+  tenant: string
+): Promise<OrganizationFileMetadata[]> {
+  validateTenant(tenant);
+
+  // Validate UUID format
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(fileGroupId)) {
+    return [];
+  }
+
+  const query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.model_id,
+      f.source,
+      f.tags,
+      f.review_status,
+      f.version,
+      f.expiry_date,
+      f.last_modified_by,
+      f.description,
+      f.file_group_id,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    WHERE f.file_group_id = :fileGroupId
+    ORDER BY f.uploaded_time DESC`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileGroupId },
+    type: QueryTypes.SELECT,
+  });
+
+  return result as OrganizationFileMetadata[];
 }
 
 // ============================================================================

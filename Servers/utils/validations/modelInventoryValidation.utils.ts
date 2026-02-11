@@ -149,7 +149,7 @@ export const validateVersion = (value: any): ValidationResult => {
  * Validates approver field (user foreign key)
  */
 export const validateApprover = (value: any): ValidationResult => {
-  return validateForeignKey(value, "Approver", true);
+  return validateForeignKey(value, "Approver", false);
 };
 
 /**

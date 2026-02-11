@@ -60,6 +60,74 @@ export const getAllRisksQuery = async (
   let whereClause = "";
   switch (filter) {
     case "active":
+      whereClause = "WHERE r.is_deleted = false";
+      break;
+    case "deleted":
+      whereClause = "WHERE r.is_deleted = true";
+      break;
+    case "all":
+      whereClause = "";
+      break;
+  }
+
+  // OPTIMIZED: Fast query for list view - only fetches basic risk data with projects/frameworks
+  // The full relationships (subClauses, annexCategories, controls, assessments, etc.)
+  // are fetched separately via getRiskByIdQuery when viewing a single risk
+  const query = `
+    SELECT
+      r.*,
+      COALESCE(
+        JSON_AGG(DISTINCT pr.project_id) FILTER (WHERE pr.project_id IS NOT NULL),
+        '[]'
+      ) as projects,
+      COALESCE(
+        JSON_AGG(DISTINCT fr.framework_id) FILTER (WHERE fr.framework_id IS NOT NULL),
+        '[]'
+      ) as frameworks
+    FROM "${tenant}".risks r
+    LEFT JOIN "${tenant}".projects_risks pr ON r.id = pr.risk_id
+    LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
+    ${whereClause}
+    GROUP BY r.id
+    ORDER BY r.created_at DESC, r.id ASC
+  `;
+
+  const result = (await sequelize.query(query)) as [any[], number];
+  const risks = result[0];
+
+  // Parse JSON strings if needed
+  for (let risk of risks) {
+    if (typeof risk.projects === 'string') {
+      risk.projects = JSON.parse(risk.projects);
+    }
+    if (typeof risk.frameworks === 'string') {
+      risk.frameworks = JSON.parse(risk.frameworks);
+    }
+    // Initialize empty arrays for relationships (fetched on demand via getRiskByIdQuery)
+    risk.subClauses = [];
+    risk.annexCategories = [];
+    risk.controls = [];
+    risk.assessments = [];
+    risk.annexControls_27001 = [];
+    risk.subClauses_27001 = [];
+  }
+
+  return risks as IRisk[];
+};
+
+/**
+ * PRESERVED: Original complex query with all relationships
+ * This query fetches all risk data including subClauses, annexCategories, controls, assessments, etc.
+ * It's slow due to 12+ LEFT JOINs and subqueries in JOIN conditions.
+ * Use getAllRisksQuery for list views and getRiskByIdQuery for single risk with full relationships.
+ */
+export const getAllRisksQueryWithRelationships = async (
+  tenant: string,
+  filter: "active" | "deleted" | "all" = "active"
+): Promise<IRisk[]> => {
+  let whereClause = "";
+  switch (filter) {
+    case "active":
       whereClause = "WHERE is_deleted = false";
       break;
     case "deleted":

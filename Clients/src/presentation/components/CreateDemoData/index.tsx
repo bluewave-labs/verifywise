@@ -1,15 +1,15 @@
 import { Stack, Typography } from "@mui/material";
 import ConfirmationModal from "../Dialogs/ConfirmationModal";
 
-interface DemoDataProps {
+interface CreateDemoDataProps {
   handleCancelDemoData: () => void;
   handleCreateDemoData: () => void;
 }
 
-const CreateDemoData = ({
+export function CreateDemoData({
   handleCancelDemoData,
   handleCreateDemoData,
-}: DemoDataProps) => {
+}: CreateDemoDataProps) {
   return (
     <Stack
       sx={{
@@ -48,6 +48,4 @@ const CreateDemoData = ({
       />
     </Stack>
   );
-};
-
-export default CreateDemoData;
+}

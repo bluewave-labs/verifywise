@@ -19,7 +19,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, BarChart3, Settings } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -40,6 +40,7 @@ import { PluginSlot } from "../../components/PluginSlot";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
+import LifecycleConfigEditor from "./components/LifecycleConfigEditor";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
@@ -115,6 +116,7 @@ const ModelInventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewModelInventoryModalOpen, setIsNewModelInventoryModalOpen] =
     useState(false);
+  const [isLifecycleConfigOpen, setIsLifecycleConfigOpen] = useState(false);
 
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
@@ -1109,6 +1111,13 @@ const ModelInventory: React.FC = () => {
       });
     }
   };
+
+  const handleViewModelDetails = useCallback(
+    (id: string) => {
+      navigate(`/model-inventory/models/${id}`);
+    },
+    [navigate]
+  );
 
   const handleEditEvidence = async (id: number) => {
     try {
@@ -2435,6 +2444,25 @@ const ModelInventory: React.FC = () => {
                 >
                   <BarChart3 size={16} color="#344054" />
                 </IconButton>
+                {userRoleName === "Admin" && (
+                  <IconButton
+                    onClick={() => setIsLifecycleConfigOpen(true)}
+                    aria-label="Configure Lifecycle"
+                    sx={{
+                      height: "34px",
+                      width: "34px",
+                      padding: "8px",
+                      borderRadius: "4px",
+                      border: "1px solid #e5e7eb",
+                      backgroundColor: "#ffffff",
+                      "&:hover": {
+                        backgroundColor: "#f9fafb",
+                      },
+                    }}
+                  >
+                    <Settings size={16} color="#344054" />
+                  </IconButton>
+                )}
                 <div data-joyride-id="add-model-button">
                   <CustomizableButton
                     variant="contained"
@@ -2459,6 +2487,7 @@ const ModelInventory: React.FC = () => {
                   onEdit={handleEditModelInventory}
                   onDelete={handleDeleteModelInventory}
                   onCheckModelHasRisks={handleCheckModelHasRisks}
+                  onViewDetails={handleViewModelDetails}
                   deletingId={deletingId}
                   hidePagination={options?.hidePagination}
                   modelRisks={modelRisksData}
@@ -2829,6 +2858,12 @@ const ModelInventory: React.FC = () => {
         onCopyLink={handleCopyLink}
         onRefreshLink={handleRefreshLink}
         onOpenLink={handleOpenLink}
+      />
+
+      {/* Lifecycle Config Editor (Admin only) */}
+      <LifecycleConfigEditor
+        open={isLifecycleConfigOpen}
+        onClose={() => setIsLifecycleConfigOpen(false)}
       />
     </Stack>
   );

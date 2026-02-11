@@ -1955,7 +1955,7 @@ paths:
                 $ref: '#/components/schemas/ApiResponse'
 
   # Model Inventory
-  /model-inventory:
+  /modelInventory:
     get:
       summary: Get all model inventory entries
       tags: [Model Inventory]
@@ -2000,7 +2000,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
-  /model-inventory/{id}:
+  /modelInventory/{id}:
     get:
       summary: Get model inventory entry by ID
       tags: [Model Inventory]
@@ -3545,8 +3545,9 @@ components:
           type: string
           description: Model version
         approver:
-          type: string
-          description: Person who approved the model
+          type: integer
+          nullable: true
+          description: User ID of the person who approved the model (optional)
         capabilities:
           type: array
           items:

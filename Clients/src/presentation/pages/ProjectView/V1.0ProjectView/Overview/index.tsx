@@ -1,11 +1,11 @@
 import { Divider, Stack, Typography } from "@mui/material";
 import { columnStyle, rowStyle } from "./style";
-import GroupStatsCard from "../../../../components/Cards/GroupStatsCard";
+import { GroupStatsCard } from "../../../../components/Cards/GroupStatsCard";
 import { projectRiskSection } from "../style";
-import RisksCard from "../../../../components/Cards/RisksCard";
-import InfoCard from "../../../../components/Cards/InfoCard";
-import DescriptionCard from "../../../../components/Cards/DescriptionCard";
-import TeamCard from "../../../../components/Cards/TeamCard";
+import { RisksCard } from "../../../../components/Cards/RisksCard";
+import { InfoCard } from "../../../../components/Cards/InfoCard";
+import { DescriptionCard } from "../../../../components/Cards/DescriptionCard";
+import { TeamCard } from "../../../../components/Cards/TeamCard";
 import { Project } from "../../../../../domain/types/Project";
 import useProjectData from "../../../../../application/hooks/useProjectData";
 import CustomizableSkeleton from "../../../../components/Skeletons";

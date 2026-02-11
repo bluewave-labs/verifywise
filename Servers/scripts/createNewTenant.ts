@@ -406,6 +406,14 @@ export const createNewTenant = async (
       file_path character varying(500),
       org_id integer,
       model_id integer,
+      tags jsonb DEFAULT '[]'::jsonb,
+      review_status character varying(20) DEFAULT 'draft',
+      version character varying(20) DEFAULT '1.0',
+      expiry_date date,
+      last_modified_by integer,
+      updated_at timestamp with time zone DEFAULT now(),
+      description text,
+      file_group_id UUID DEFAULT gen_random_uuid(),
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
@@ -415,7 +423,12 @@ export const createNewTenant = async (
         ON UPDATE NO ACTION ON DELETE SET NULL,
       CONSTRAINT files_org_id_fkey FOREIGN KEY (org_id)
         REFERENCES public.organizations (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE
+        ON UPDATE NO ACTION ON DELETE CASCADE,
+      CONSTRAINT files_last_modified_by_fkey FOREIGN KEY (last_modified_by)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE SET NULL,
+      CONSTRAINT chk_review_status CHECK (review_status IN ('draft', 'pending_review', 'approved', 'rejected', 'expired')),
+      CONSTRAINT chk_version_format CHECK (version ~ '^[0-9]+\\.[0-9]+(\\.[0-9]+)?$')
     );`,
       { transaction }
     );
@@ -427,6 +440,86 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX IF NOT EXISTS idx_files_uploaded_time ON "${tenantHash}".files(uploaded_time DESC);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_review_status ON "${tenantHash}".files(review_status);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_expiry_date ON "${tenantHash}".files(expiry_date);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_tags ON "${tenantHash}".files USING GIN(tags);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_updated_at ON "${tenantHash}".files(updated_at DESC);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_file_group_id ON "${tenantHash}".files(file_group_id);`,
+      { transaction }
+    );
+
+    // Virtual folders table for hierarchical folder structure
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".virtual_folders (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT NULL,
+        parent_id INTEGER NULL REFERENCES "${tenantHash}".virtual_folders(id) ON DELETE CASCADE,
+        color VARCHAR(7) NULL,
+        icon VARCHAR(50) NULL,
+        is_system BOOLEAN DEFAULT FALSE,
+        created_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        CONSTRAINT unique_folder_name_per_parent UNIQUE (parent_id, name),
+        CONSTRAINT no_circular_reference CHECK (id != parent_id)
+      );`,
+      { transaction }
+    );
+
+    // File folder mappings junction table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".file_folder_mappings (
+        id SERIAL PRIMARY KEY,
+        file_id INTEGER NOT NULL,
+        folder_id INTEGER NOT NULL REFERENCES "${tenantHash}".virtual_folders(id) ON DELETE CASCADE,
+        assigned_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        CONSTRAINT unique_file_folder UNIQUE (file_id, folder_id)
+      );`,
+      { transaction }
+    );
+
+    // Indexes for virtual_folders table
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_virtual_folders_parent_id ON "${tenantHash}".virtual_folders(parent_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_virtual_folders_created_by ON "${tenantHash}".virtual_folders(created_by);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_virtual_folders_name ON "${tenantHash}".virtual_folders(name);`,
+      { transaction }
+    );
+
+    // Indexes for file_folder_mappings table
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_folder_mappings_file_id ON "${tenantHash}".file_folder_mappings(file_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_folder_mappings_folder_id ON "${tenantHash}".file_folder_mappings(folder_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_file_folder_mappings_assigned_by ON "${tenantHash}".file_folder_mappings(assigned_by);`,
       { transaction }
     );
 
@@ -925,9 +1018,14 @@ export const createNewTenant = async (
         "last_updated_by" INTEGER NOT NULL,
         "last_updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "review_status" VARCHAR(50) DEFAULT NULL,
+        "review_comment" TEXT DEFAULT NULL,
+        "reviewed_by" INTEGER DEFAULT NULL,
+        "reviewed_at" TIMESTAMP DEFAULT NULL,
         is_demo boolean NOT NULL DEFAULT false,
         FOREIGN KEY ("author_id") REFERENCES public.users(id) ON DELETE SET NULL,
-        FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
+        FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL,
+        FOREIGN KEY ("reviewed_by") REFERENCES public.users(id) ON DELETE SET NULL
       );`,
       { transaction }
     );
@@ -2456,6 +2554,221 @@ export const createNewTenant = async (
       CREATE INDEX IF NOT EXISTS idx_incident_change_history_incident_changed
       ON "${tenantHash}".incident_change_history(incident_id, changed_at DESC);
     `, { transaction });
+
+    // ── Model Lifecycle Tables ──────────────────────────────────────────
+
+    // 1. model_lifecycle_phases
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_phases (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        display_order INTEGER NOT NULL DEFAULT 0,
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_model_lifecycle_phases_display_order
+      ON "${tenantHash}".model_lifecycle_phases(display_order);
+    `, { transaction });
+
+    // 2. model_lifecycle_items
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_items (
+        id SERIAL PRIMARY KEY,
+        phase_id INTEGER NOT NULL
+          REFERENCES "${tenantHash}".model_lifecycle_phases(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        item_type VARCHAR(50) NOT NULL
+          CHECK (item_type IN ('text','textarea','documents','people','classification','checklist','approval')),
+        is_required BOOLEAN NOT NULL DEFAULT false,
+        display_order INTEGER NOT NULL DEFAULT 0,
+        config JSONB DEFAULT '{}',
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_items_phase_id ON "${tenantHash}".model_lifecycle_items(phase_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_items_phase_order ON "${tenantHash}".model_lifecycle_items(phase_id, display_order);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // 3. model_lifecycle_values
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_values (
+        id SERIAL PRIMARY KEY,
+        model_inventory_id INTEGER NOT NULL
+          REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
+        item_id INTEGER NOT NULL
+          REFERENCES "${tenantHash}".model_lifecycle_items(id) ON DELETE CASCADE,
+        value_text TEXT,
+        value_json JSONB,
+        updated_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(model_inventory_id, item_id)
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_values_model ON "${tenantHash}".model_lifecycle_values(model_inventory_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_values_item ON "${tenantHash}".model_lifecycle_values(item_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_values_model_item ON "${tenantHash}".model_lifecycle_values(model_inventory_id, item_id);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // 4. model_lifecycle_item_files (junction table)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_item_files (
+        id SERIAL PRIMARY KEY,
+        value_id INTEGER NOT NULL
+          REFERENCES "${tenantHash}".model_lifecycle_values(id) ON DELETE CASCADE,
+        file_id INTEGER NOT NULL
+          REFERENCES "${tenantHash}".files(id) ON DELETE CASCADE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE(value_id, file_id)
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_item_files_value ON "${tenantHash}".model_lifecycle_item_files(value_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_item_files_file ON "${tenantHash}".model_lifecycle_item_files(file_id);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // 5. model_lifecycle_change_history
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_change_history (
+        id SERIAL PRIMARY KEY,
+        model_lifecycle_value_id INTEGER NOT NULL,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created','updated','deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_change_history_value ON "${tenantHash}".model_lifecycle_change_history(model_lifecycle_value_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_change_history_changed_at ON "${tenantHash}".model_lifecycle_change_history(changed_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // 6. Seed default lifecycle phases and items
+    const defaultPhases = [
+      {
+        name: 'Registration & Inventory',
+        description: 'Initial model registration, ownership assignment, and classification of the AI model.',
+        display_order: 1,
+        items: [
+          { name: 'Model Registration Form', item_type: 'documents', is_required: true, display_order: 1, config: { maxFiles: 5, allowedTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] } },
+          { name: 'Unique Model Identifier', item_type: 'text', is_required: true, display_order: 2, config: { placeholder: 'Enter unique model identifier' } },
+          { name: 'Model Ownership Record', item_type: 'people', is_required: true, display_order: 3, config: { maxPeople: 10, roles: ['Owner', 'Co-Owner', 'Steward'] } },
+          { name: 'Purpose & Intended Use', item_type: 'textarea', is_required: true, display_order: 4, config: { placeholder: 'Describe the purpose and intended use of this model' } },
+          { name: 'Regulatory / Risk Classification', item_type: 'classification', is_required: true, display_order: 5, config: { levels: ['Minimal', 'Low', 'Medium', 'High', 'Critical'] } },
+          { name: 'Model Dependencies', item_type: 'textarea', is_required: false, display_order: 6, config: { placeholder: 'List any model dependencies or upstream/downstream systems' } },
+        ],
+      },
+      {
+        name: 'Design & Development',
+        description: 'Documentation of model design, data lineage, feature engineering, and development assessments.',
+        display_order: 2,
+        items: [
+          { name: 'Model Design Document', item_type: 'documents', is_required: true, display_order: 1, config: {} },
+          { name: 'Data Lineage & Quality Assessment', item_type: 'documents', is_required: true, display_order: 2, config: {} },
+          { name: 'Feature Documentation Sheet', item_type: 'documents', is_required: true, display_order: 3, config: {} },
+          { name: 'Explainability Assessment (SHAP/LIME)', item_type: 'documents', is_required: true, display_order: 4, config: {} },
+          { name: 'Bias & Fairness Assessment', item_type: 'documents', is_required: true, display_order: 5, config: {} },
+          { name: 'Security & Adversarial Robustness Review', item_type: 'documents', is_required: false, display_order: 6, config: {} },
+          { name: 'Version Control Log', item_type: 'documents', is_required: false, display_order: 7, config: {} },
+        ],
+      },
+      {
+        name: 'Validation & Testing',
+        description: 'Validation test plans, performance evaluation, bias testing, and stress testing outputs.',
+        display_order: 3,
+        items: [
+          { name: 'Validation Test Plan', item_type: 'documents', is_required: true, display_order: 1, config: {} },
+          { name: 'Performance Evaluation Results', item_type: 'documents', is_required: true, display_order: 2, config: {} },
+          { name: 'Bias Testing Results & Mitigation', item_type: 'documents', is_required: true, display_order: 3, config: {} },
+          { name: 'Explainability Validation', item_type: 'documents', is_required: true, display_order: 4, config: {} },
+          { name: 'Stress / Adversarial Test Outputs', item_type: 'documents', is_required: false, display_order: 5, config: {} },
+        ],
+      },
+      {
+        name: 'Deployment & Operational Readiness',
+        description: 'Pre-deployment checklists, rollback plans, deployment records, and governance approval.',
+        display_order: 4,
+        items: [
+          { name: 'Deployment Readiness Checklist', item_type: 'checklist', is_required: true, display_order: 1, config: { defaultItems: ['Infrastructure validated', 'Security review complete', 'Performance benchmarks met', 'Monitoring configured', 'Rollback tested'] } },
+          { name: 'Rollback & Contingency Plan', item_type: 'documents', is_required: true, display_order: 2, config: {} },
+          { name: 'Deployment Record', item_type: 'documents', is_required: true, display_order: 3, config: {} },
+          { name: 'Versioning History Log', item_type: 'textarea', is_required: false, display_order: 4, config: { placeholder: 'Provide versioning history for this deployment' } },
+          { name: 'Model Acceptance & Governance Approval', item_type: 'approval', is_required: true, display_order: 5, config: { requiredApprovers: 2 } },
+        ],
+      },
+      {
+        name: 'Monitoring & Incident Management',
+        description: 'Ongoing model monitoring, drift assessment, stability reports, and incident management.',
+        display_order: 5,
+        items: [
+          { name: 'Monitoring Plan', item_type: 'documents', is_required: true, display_order: 1, config: {} },
+          { name: 'Drift Assessment Reports', item_type: 'documents', is_required: true, display_order: 2, config: {} },
+          { name: 'Operational Stability Reports', item_type: 'documents', is_required: false, display_order: 3, config: {} },
+          { name: 'Incident Response SOP', item_type: 'documents', is_required: true, display_order: 4, config: {} },
+          { name: 'Model Incident Log', item_type: 'documents', is_required: false, display_order: 5, config: {} },
+        ],
+      },
+      {
+        name: 'Human-in-the-Loop Oversight',
+        description: 'Human oversight procedures, manual review logs, escalation protocols, and ethics review.',
+        display_order: 6,
+        items: [
+          { name: 'HITL Procedure', item_type: 'documents', is_required: true, display_order: 1, config: {} },
+          { name: 'Manual Review Logs', item_type: 'documents', is_required: false, display_order: 2, config: {} },
+          { name: 'Override / Escalation Log', item_type: 'documents', is_required: false, display_order: 3, config: {} },
+          { name: 'Ethics Review Committee Approvals', item_type: 'approval', is_required: true, display_order: 4, config: { requiredApprovers: 3 } },
+        ],
+      },
+    ];
+
+    for (const phase of defaultPhases) {
+      const [phaseResult] = await sequelize.query(`
+        INSERT INTO "${tenantHash}".model_lifecycle_phases (name, description, display_order, is_active, created_at, updated_at)
+        VALUES (:name, :description, :display_order, true, NOW(), NOW())
+        RETURNING id;
+      `, {
+        replacements: { name: phase.name, description: phase.description, display_order: phase.display_order },
+        transaction,
+      }) as [Array<{ id: number }>, unknown];
+
+      const phaseId = phaseResult[0].id;
+
+      for (const item of phase.items) {
+        await sequelize.query(`
+          INSERT INTO "${tenantHash}".model_lifecycle_items (phase_id, name, item_type, is_required, display_order, config, is_active, created_at, updated_at)
+          VALUES (:phase_id, :name, :item_type, :is_required, :display_order, :config, true, NOW(), NOW());
+        `, {
+          replacements: {
+            phase_id: phaseId,
+            name: item.name,
+            item_type: item.item_type,
+            is_required: item.is_required,
+            display_order: item.display_order,
+            config: JSON.stringify(item.config),
+          },
+          transaction,
+        });
+      }
+    }
+
+    console.log(`✅ Model Lifecycle tables created successfully for tenant: ${tenantHash}`);
 
   } catch (error) {
     throw error;

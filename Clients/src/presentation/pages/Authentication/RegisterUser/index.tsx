@@ -1,7 +1,7 @@
 import { Button, Stack, Typography, useTheme, Box } from "@mui/material";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import Check from "../../../components/Checks";
+import { Check } from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import {

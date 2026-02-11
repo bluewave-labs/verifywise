@@ -1,18 +1,18 @@
 import { Stack, Typography, Box } from "@mui/material";
-import { descCardbodyStyle, infoCardStyle, infoCardTitleStyle } from "./style";
-import React from "react";
+import { descCardbodyStyle, infoCardStyle, infoCardTitleStyle } from "../DescriptionCard/style";
+import { ReactNode } from "react";
 
 interface TeamCardProps {
   title: string;
-  members?: any[];
-  icon?: React.ReactNode;
+  members?: string[];
+  icon?: ReactNode;
 }
 
-const TeamCard = ({
+export function TeamCard({
   title,
   members = ["Mohammad Khalilzadeh", "Gorkem Cetin", "Eiei mon"],
   icon,
-}: TeamCardProps) => {
+}: TeamCardProps) {
   return (
     <Stack sx={infoCardStyle}>
       {icon && (
@@ -36,6 +36,4 @@ const TeamCard = ({
       }
     </Stack>
   );
-};
-
-export default TeamCard;
+}

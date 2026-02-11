@@ -64,10 +64,10 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
   - Support for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - Dashboard: executive view & operating view
   - Vendors & vendor risks
-  - AI project risks
-  - Tasks
-  - LLM Evals and LLM Arena
-  - Evidence center
+  - AI use cases and risks
+  - Global tasks with timeline view
+  - Complete LLM Evals and LLM Arena
+  - Evidence center with folder structure
   - AI trust center for public view
   - AI literacy training registery
   - AI Advisor, AI-powered chat interface providing governance recommendations
@@ -78,10 +78,13 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
   - Policy manager to create and manage internal company AI policies
   - Risk and control mappings for EU AI Act, ISO 42001, NIST AI RMF and ISO 27001
   - CE Marking registry
+  - Dataset registry
+  - Desktop notifications
+  - Approval workflows & approval requests
   - Detailed reports with PDF and DOCX export
   - Event logs (audits) for enterprise organizations
   - AI incident management
-  - Integrations (currently Slack and MLFlow is supported, more on the way)
+  - Plugins support with more than 15+ plugins (and counting)
   - Automations (when an entity changes, do this, or send period reports, or send webhooks)
   - Google OAuth2 and Entra ID (enterprise edition) support for authentication
 

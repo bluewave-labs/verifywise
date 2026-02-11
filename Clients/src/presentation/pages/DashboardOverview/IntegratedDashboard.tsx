@@ -31,10 +31,10 @@ import AddNewMegaDropdown from "../../components/MegaDropdown/AddNewMegaDropdown
 import MegaDropdownErrorBoundary from "../../components/MegaDropdown/MegaDropdownErrorBoundary";
 import DashboardErrorBoundary from "../../components/Dashboard/DashboardErrorBoundary";
 import ChangeOrganizationNameModal from "../../components/Modals/ChangeOrganizationName";
-import DashboardHeaderCard from "../../components/Cards/DashboardHeaderCard";
-import DashboardCard from "../../components/Cards/DashboardCard";
-import TaskRadarCard from "../../components/Cards/TaskRadarCard";
-import RiskDonutWithLegend from "../../components/Charts/RiskDonutWithLegend";
+import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
+import { DashboardCard } from "../../components/Cards/DashboardCard";
+import { TaskRadarCard } from "../../components/Cards/TaskRadarCard";
+import { RiskDonutWithLegend } from "../../components/Charts/RiskDonutWithLegend";
 import {
   TrainingCompletionCard,
   PolicyStatusCard,
@@ -42,7 +42,7 @@ import {
   EvidenceCoverageCard,
   ModelLifecycleCard,
 } from "../../components/Charts/NewMetricsCards";
-import GovernanceScoreCard from "../../components/Charts/GovernanceScoreCard";
+import { GovernanceScoreCard } from "../../components/Charts/GovernanceScoreCard";
 import UseCasesTable from "../../components/Table/UseCasesTable";
 import EmptyStateMessage from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";
@@ -182,12 +182,9 @@ const IntegratedDashboard: React.FC = () => {
     localStorage.setItem("has_seen_org_name_modal", "true");
     localStorage.removeItem("initial_org_name");
     localStorage.removeItem("initial_org_id");
+    setShowOrgNameModal(false);
   };
 
-  const handleOrgModalClose = () => {
-    setShowOrgNameModal(false);
-    handleOrgNameSuccess();
-  };
 
   // Get use cases (projects) for table
   const useCases = useMemo(() => {
@@ -349,7 +346,6 @@ const IntegratedDashboard: React.FC = () => {
       {showOrgNameModal && (
         <ChangeOrganizationNameModal
           isOpen={showOrgNameModal}
-          onClose={handleOrgModalClose}
           currentOrgName={currentOrgName}
           organizationId={organizationId}
           onSuccess={handleOrgNameSuccess}

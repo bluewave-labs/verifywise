@@ -27,6 +27,12 @@ import {
   listFiles,
   downloadFile,
   removeFile,
+  getFileMetadata,
+  updateMetadata,
+  listFilesWithMetadata,
+  getHighlighted,
+  previewFile,
+  getFileVersionHistory,
 } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
@@ -143,6 +149,28 @@ router.post(
 router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
 
 /**
+ * @route   GET /file-manager/with-metadata
+ * @desc    Get list of all files with full metadata (tags, status, version, etc.)
+ * @access  All authenticated users
+ * @query   page - Page number (optional)
+ * @query   pageSize - Items per page (optional)
+ * @returns {200} List of files with full metadata and pagination
+ * @returns {500} Server error
+ */
+router.get("/with-metadata", fileOperationsLimiter, authenticateJWT, listFilesWithMetadata);
+
+/**
+ * @route   GET /file-manager/highlighted
+ * @desc    Get highlighted files (due for update, pending approval, recently modified)
+ * @access  All authenticated users
+ * @query   daysUntilExpiry - Days before expiry to flag (default 30)
+ * @query   recentDays - Days to consider as recent (default 7)
+ * @returns {200} Categorized file IDs
+ * @returns {500} Server error
+ */
+router.get("/highlighted", fileOperationsLimiter, authenticateJWT, getHighlighted);
+
+/**
  * @route   GET /file-manager/:id
  * @desc    Download a file by ID
  * @access  All authenticated users
@@ -153,6 +181,62 @@ router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
  * @returns {500} Server error
  */
 router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
+
+/**
+ * @route   GET /file-manager/:id/metadata
+ * @desc    Get file metadata (tags, status, version, expiry, description)
+ * @access  All authenticated users
+ * @param   id - File ID
+ * @returns {200} File metadata
+ * @returns {403} Access denied
+ * @returns {404} File not found
+ * @returns {500} Server error
+ */
+router.get("/:id/metadata", fileOperationsLimiter, authenticateJWT, getFileMetadata);
+
+/**
+ * @route   GET /file-manager/:id/versions
+ * @desc    Get version history for a file (all files in the same group)
+ * @access  All authenticated users
+ * @param   id - File ID
+ * @returns {200} List of file versions
+ * @returns {404} File not found
+ * @returns {500} Server error
+ */
+router.get("/:id/versions", fileOperationsLimiter, authenticateJWT, getFileVersionHistory);
+
+/**
+ * @route   PATCH /file-manager/:id/metadata
+ * @desc    Update file metadata
+ * @access  Admin, Reviewer, Editor only
+ * @param   id - File ID
+ * @body    { tags?: string[], review_status?: string, version?: string, expiry_date?: string, description?: string }
+ * @returns {200} Updated file metadata
+ * @returns {400} Validation error
+ * @returns {403} Access denied
+ * @returns {404} File not found
+ * @returns {500} Server error
+ */
+router.patch(
+  "/:id/metadata",
+  fileOperationsLimiter,
+  authenticateJWT,
+  authorize(["Admin", "Reviewer", "Editor"]),
+  updateMetadata
+);
+
+/**
+ * @route   GET /file-manager/:id/preview
+ * @desc    Get file content for preview (limited to 5MB)
+ * @access  All authenticated users
+ * @param   id - File ID
+ * @returns {200} File content for inline display
+ * @returns {403} Access denied
+ * @returns {404} File not found
+ * @returns {413} File too large for preview
+ * @returns {500} Server error
+ */
+router.get("/:id/preview", fileOperationsLimiter, authenticateJWT, previewFile);
 
 /**
  * @route   DELETE /file-manager/:id

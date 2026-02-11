@@ -131,7 +131,7 @@ export const frameworkDetailItem: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
   gap: 0.5,
-  p: 2,
+  p: "16px",
   backgroundColor: "#f9fafb",
   borderRadius: "8px",
   border: "1px solid #eaecf0",

@@ -41,7 +41,9 @@ export type EntityType =
   | "risk"
   | "vendor_risk"
   | "policy"
-  | "incident";
+  | "incident"
+  | "file"
+  | "model_lifecycle";
 
 /**
  * Field formatter function type
@@ -593,6 +595,47 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
       interim_report: GENERIC_FORMATTERS.boolean,
       archived: GENERIC_FORMATTERS.boolean,
       categories_of_harm: GENERIC_FORMATTERS.array,
+    },
+  },
+
+  file: {
+    tableName: "file_change_history",
+    foreignKeyField: "file_id",
+    fieldsToTrack: [
+      "filename",
+      "version",
+      "review_status",
+      "tags",
+      "expiry_date",
+      "description",
+    ],
+    fieldLabels: {
+      filename: "Filename",
+      version: "Version",
+      review_status: "Review status",
+      tags: "Tags",
+      expiry_date: "Expiry date",
+      description: "Description",
+    },
+    fieldFormatters: {
+      tags: GENERIC_FORMATTERS.array,
+      expiry_date: GENERIC_FORMATTERS.date,
+    },
+  },
+
+  model_lifecycle: {
+    tableName: "model_lifecycle_change_history",
+    foreignKeyField: "model_lifecycle_value_id",
+    fieldsToTrack: [
+      "value_text",
+      "value_json",
+    ],
+    fieldLabels: {
+      value_text: "Value",
+      value_json: "Value (structured)",
+    },
+    fieldFormatters: {
+      value_json: GENERIC_FORMATTERS.text,
     },
   },
 };

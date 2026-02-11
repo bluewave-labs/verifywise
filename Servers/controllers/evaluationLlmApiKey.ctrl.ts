@@ -46,7 +46,7 @@ export const getAllKeys = async (req: Request, res: Response) => {
 };
 
 /**
- * Add a new LLM API key
+ * Add or update an LLM API key
  *
  * Request body:
  * - provider: string (openai, anthropic, google, xai, mistral, huggingface)
@@ -66,7 +66,7 @@ export const addKey = async (req: Request, res: Response) => {
       throw new ValidationException('API key is required', 'apiKey', apiKey);
     }
 
-    // Create key
+    // Create or update key
     const keyData = await createKeyQuery(
       req.tenantId!,
       provider as LLMProvider,
@@ -76,7 +76,7 @@ export const addKey = async (req: Request, res: Response) => {
 
     await logSuccess({
       eventType: 'Create',
-      description: `Added LLM API key for provider: ${provider} by user: ${req.userId}`,
+      description: `Added/updated LLM API key for provider: ${provider} by user: ${req.userId}`,
       functionName: 'addKey',
       fileName: 'evaluationLlmApiKey.ctrl.ts',
       userId: req.userId!,
@@ -86,11 +86,11 @@ export const addKey = async (req: Request, res: Response) => {
     await transaction.commit();
     return res.status(201).json({
       success: true,
-      message: 'API key added successfully',
+      message: 'API key saved successfully',
       data: keyData,
     });
   } catch (error: any) {
-    console.error('Error adding LLM API key:', error);
+    console.error('Error adding/updating LLM API key:', error);
     await transaction.rollback();
     if (error instanceof ValidationException) {
       return res.status(400).json({
@@ -102,7 +102,7 @@ export const addKey = async (req: Request, res: Response) => {
 
     return res.status(500).json({
       success: false,
-      message: 'Failed to add API key',
+      message: 'Failed to save API key',
       error: error.message,
     });
   }

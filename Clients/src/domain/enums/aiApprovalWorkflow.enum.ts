@@ -3,3 +3,8 @@ export enum ApprovalStatus {
     REJECTED = "Rejected",
     PENDING = "Pending",
 }
+
+export enum ApprovalStepStatus {
+    Completed = "completed",
+    Pending = "pending",
+}

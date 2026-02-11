@@ -79,6 +79,7 @@ const LABEL_TO_VARIANT: Record<string, ChipVariant> = {
   "in progress": "warning",
   "under review": "warning",
   draft: "default",
+  superseded: "default",
   blocked: "error",
   rejected: "error",
   restricted: "error",

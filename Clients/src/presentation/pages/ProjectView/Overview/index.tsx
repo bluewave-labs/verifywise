@@ -4,12 +4,13 @@
 
 import { Stack, Typography, useTheme } from "@mui/material";
 import ProgressBar from "../../../components/ProjectCard/ProgressBar";
-import { FC, memo, useCallback, useContext, useMemo } from "react";
+import { FC, memo, useCallback, useMemo } from "react";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useProjectStatus from "../../../../application/hooks/useProjectStatus";
+import { useAuth } from "../../../../application/hooks/useAuth";
 import getProjectData from "../../../../application/tools/getProjectData";
 
 export type RiskData = {
@@ -37,7 +38,8 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
     projectId,
   });
   const theme = useTheme();
-  const { projectStatus } = useContext(VerifyWiseContext);
+  const { userId } = useAuth();
+  const { projectStatus } = useProjectStatus({ userId });
 
   const {
     controlsProgress,

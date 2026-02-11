@@ -1,4 +1,3 @@
-import React from "react";
 import { Stack, Typography, Tooltip, Box } from "@mui/material";
 import {
   projectRisksCard,
@@ -28,14 +27,14 @@ interface StatusTileCardsProps {
   selectedKey?: string | null;
 }
 
-const StatusTileCards: React.FC<StatusTileCardsProps> = ({
+export function StatusTileCards({
   items,
   tooltipFormat,
   entityName = "item",
   cardSx,
   onCardClick,
   selectedKey,
-}) => {
+}: StatusTileCardsProps) {
   const getTooltip = (item: StatusTileItem): string => {
     if (tooltipFormat) {
       return tooltipFormat(item);
@@ -78,6 +77,4 @@ const StatusTileCards: React.FC<StatusTileCardsProps> = ({
       </Stack>
     </Box>
   );
-};
-
-export default StatusTileCards;
+}

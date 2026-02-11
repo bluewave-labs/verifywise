@@ -18,7 +18,7 @@ interface RisksCardProps {
   selectedLevel?: string | null;
 }
 
-const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps) => {
+export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCardProps) {
   const getValidRiskValue = (value: number) => (isNaN(value) ? 0 : value);
 
   const renderTrendIndicator = (trend?: RiskTrend) => {
@@ -157,6 +157,4 @@ const RisksCard = ({ risksSummary, onCardClick, selectedLevel }: RisksCardProps)
       </Stack>
     </Box>
   );
-};
-
-export default RisksCard;
+}

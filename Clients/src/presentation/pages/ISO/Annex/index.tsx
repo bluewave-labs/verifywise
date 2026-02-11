@@ -19,7 +19,7 @@ import { AlertProps } from "../../../types/alert.types";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
-import StatsCard from "../../../components/Cards/StatsCard";
+import { StatsCard } from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
 
 const ISO42001Annex = ({

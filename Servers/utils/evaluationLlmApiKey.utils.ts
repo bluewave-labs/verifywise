@@ -123,13 +123,13 @@ export const getAllKeysForOrganizationQuery = async (
 };
 
 /**
- * Create a new LLM API key entry
+ * Create or update an LLM API key entry (upsert)
  *
  * @param tenant - Tenant schema name
  * @param provider - LLM provider name
  * @param apiKey - Plain text API key (will be encrypted)
  * @param transaction - Optional transaction
- * @returns Created key data
+ * @returns Created/updated key data
  */
 export const createKeyQuery = async (
   tenant: string,
@@ -150,6 +150,9 @@ export const createKeyQuery = async (
     throw new ValidationException(formatError, 'apiKey', apiKey);
   }
 
+  // Encrypt the API key
+  const encryptedKey = encrypt(apiKey.trim());
+
   // Check if key already exists for this provider
   const existing = await sequelize.query(
     `SELECT id FROM "${tenant}".llm_evals_api_keys WHERE provider = :provider`,
@@ -159,38 +162,46 @@ export const createKeyQuery = async (
     }
   ) as [IEvaluationLlmApiKey[], number];
 
+  let result: [IEvaluationLlmApiKey[], number];
+
   if (existing[0].length > 0) {
-    throw new ValidationException(
-      `API key for provider '${provider}' already exists. Delete it first to add a new one.`,
-      'provider',
-      provider
-    );
+    // Update existing key
+    result = await sequelize.query(
+      `UPDATE "${tenant}".llm_evals_api_keys
+       SET encrypted_api_key = :encrypted_api_key, updated_at = NOW()
+       WHERE provider = :provider
+       RETURNING id, provider, encrypted_api_key, created_at, updated_at`,
+      {
+        replacements: {
+          provider,
+          encrypted_api_key: encryptedKey,
+        },
+        transaction,
+      }
+    ) as [IEvaluationLlmApiKey[], number];
+  } else {
+    // Insert new key
+    result = await sequelize.query(
+      `INSERT INTO "${tenant}".llm_evals_api_keys (provider, encrypted_api_key)
+       VALUES (:provider, :encrypted_api_key)
+       RETURNING id, provider, encrypted_api_key, created_at, updated_at`,
+      {
+        replacements: {
+          provider,
+          encrypted_api_key: encryptedKey,
+        },
+        transaction,
+      }
+    ) as [IEvaluationLlmApiKey[], number];
   }
 
-  // Encrypt the API key
-  const encryptedKey = encrypt(apiKey.trim());
-
-  // Insert new key
-  const result = await sequelize.query(
-    `INSERT INTO "${tenant}".llm_evals_api_keys (provider, encrypted_api_key)
-     VALUES (:provider, :encrypted_api_key)
-     RETURNING id, provider, encrypted_api_key, created_at, updated_at`,
-    {
-      replacements: {
-        provider,
-        encrypted_api_key: encryptedKey,
-      },
-      transaction,
-    }
-  ) as [IEvaluationLlmApiKey[], number];
-
-  const createdKey = result[0][0];
+  const savedKey = result[0][0];
 
   return {
-    provider: createdKey.provider,
+    provider: savedKey.provider,
     maskedKey: maskApiKey(apiKey.trim()),
-    createdAt: createdKey.created_at,
-    updatedAt: createdKey.updated_at,
+    createdAt: savedKey.created_at,
+    updatedAt: savedKey.updated_at,
   };
 };
 

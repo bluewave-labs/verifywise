@@ -51,6 +51,12 @@ const IconButton: React.FC<IconButtonProps> = ({
   // Policy export props
   onDownloadPDF,
   onDownloadDOCX,
+  // Virtual folder props
+  onAssignToFolder,
+  // File metadata props
+  onPreview,
+  onEditMetadata,
+  onViewHistory,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -169,11 +175,21 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   const handleDownload = async (e?: React.SyntheticEvent) => {
-    if (onDownload) {
-      await onDownload();
-    }
-    if (e) {
-      closeDropDownMenu(e);
+    try {
+      if (onDownload) {
+        await onDownload();
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to download file. Please try again.",
+        isToast: true,
+      });
+    } finally {
+      if (e) {
+        closeDropDownMenu(e);
+      }
     }
   };
 
@@ -271,7 +287,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   | "risk";
 
   const BUTTONS_BY_TYPE: Record<ButtonType, string[]> = {
-    report: ["download", "linked_policies", "remove"],
+    report: [], // Handled dynamically in getListOfButtons
     evidence: ["download", "remove"],
     resource: ["edit", "make visible", "download", "remove"],
     incident: ["edit", "view", "archive"],
@@ -280,7 +296,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     linkedobjectstype: ["remove"],
     risk: ["edit", "linked_policies", "remove"],
   };
-  
+
 
 
   const getListOfButtons = () => {
@@ -294,6 +310,16 @@ const IconButton: React.FC<IconButtonProps> = ({
 
     if (normalizedType === "vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"];
+    }
+
+    // Handle "report" type dynamically to check props at render time
+    if (normalizedType === "report") {
+      const items = ["preview", "download"];
+      if (onEditMetadata) items.push("edit_metadata");
+      if (onAssignToFolder) items.push("assign_folder");
+      if (onViewHistory) items.push("version_history");
+      items.push("linked_policies", "remove");
+      return items;
     }
 
     if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {
@@ -333,6 +359,10 @@ const IconButton: React.FC<IconButtonProps> = ({
       linked_policies: "Linked policies",
       download_pdf: "Download PDF",
       download_docx: "Download Word",
+      assign_folder: "Assign to folder",
+      preview: "Preview",
+      edit_metadata: "Edit metadata",
+      version_history: "Version history",
     };
   
     // Type-specific
@@ -416,6 +446,34 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleDownloadPDF(e);
               } else if (item === "download_docx") {
                 await handleDownloadDOCX(e);
+              } else if (item === "assign_folder") {
+                if (onAssignToFolder) {
+                  onAssignToFolder();
+                }
+                if (e) closeDropDownMenu(e);
+              } else if (item === "preview") {
+                if (e) closeDropDownMenu(e);
+                if (onPreview) {
+                  try {
+                    await onPreview();
+                  } catch (error) {
+                    console.error("Preview failed:", error);
+                  }
+                }
+              } else if (item === "edit_metadata") {
+                if (e) closeDropDownMenu(e);
+                if (onEditMetadata) {
+                  try {
+                    await onEditMetadata();
+                  } catch (error) {
+                    console.error("Edit metadata failed:", error);
+                  }
+                }
+              } else if (item === "version_history") {
+                if (onViewHistory) {
+                  onViewHistory();
+                }
+                if (e) closeDropDownMenu(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {
                 // Task hard delete action
                 if (hardDeleteWarningTitle && hardDeleteWarningMessage) {

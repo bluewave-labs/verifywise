@@ -1,22 +1,23 @@
-import React from "react";
 import { Box, Stack, Typography, LinearProgress } from "@mui/material";
-import StatusDonutChart from "./StatusDonutChart";
+import { StatusDonutChart } from "./StatusDonutChart";
 import { DASHBOARD_COLORS, TEXT_STYLES } from "../../styles/colors";
 
 const C = DASHBOARD_COLORS;
 
 // Shared legend item component
-const LegendItem: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
-  <Stack direction="row" alignItems="center" gap="8px">
-    <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
-    <Typography sx={TEXT_STYLES.legendItem}>
-      {label}: {value}
-    </Typography>
-  </Stack>
-);
+function LegendItem({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <Stack direction="row" alignItems="center" gap="8px">
+      <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+      <Typography sx={TEXT_STYLES.legendItem}>
+        {label}: {value}
+      </Typography>
+    </Stack>
+  );
+}
 
 // Shared vertical bar component
-const VerticalBar: React.FC<{
+interface VerticalBarProps {
   label: string;
   value: number;
   color: string;
@@ -24,23 +25,27 @@ const VerticalBar: React.FC<{
   barHeight: number;
   barWidth?: number;
   labelSize?: number;
-}> = ({ label, value, color, max, barHeight, barWidth = 40, labelSize = 11 }) => (
-  <Stack alignItems="center" gap={0.5}>
-    <Typography sx={TEXT_STYLES.value}>{value}</Typography>
-    <Box
-      sx={{
-        width: barWidth,
-        height: (value / max) * barHeight || 4,
-        backgroundColor: color,
-        borderRadius: "4px 4px 0 0",
-        minHeight: 4,
-      }}
-    />
-    <Typography sx={{ fontSize: labelSize, color: C.textSecondary, textAlign: "center" }}>
-      {label}
-    </Typography>
-  </Stack>
-);
+}
+
+function VerticalBar({ label, value, color, max, barHeight, barWidth = 40, labelSize = 11 }: VerticalBarProps) {
+  return (
+    <Stack alignItems="center" gap={0.5}>
+      <Typography sx={TEXT_STYLES.value}>{value}</Typography>
+      <Box
+        sx={{
+          width: barWidth,
+          height: (value / max) * barHeight || 4,
+          backgroundColor: color,
+          borderRadius: "4px 4px 0 0",
+          minHeight: 4,
+        }}
+      />
+      <Typography sx={{ fontSize: labelSize, color: C.textSecondary, textAlign: "center" }}>
+        {label}
+      </Typography>
+    </Stack>
+  );
+}
 
 // Training Completion Card - Progress bar style
 interface TrainingCompletionProps {
@@ -50,7 +55,7 @@ interface TrainingCompletionProps {
   totalPeople: number;
 }
 
-export const TrainingCompletionCard: React.FC<TrainingCompletionProps> = ({ distribution }) => {
+export function TrainingCompletionCard({ distribution }: TrainingCompletionProps) {
   const max = Math.max(distribution.completed, distribution.inProgress, distribution.planned, 1);
   const barHeight = 80;
 
@@ -82,7 +87,7 @@ interface PolicyStatusProps {
   };
 }
 
-export const PolicyStatusCard: React.FC<PolicyStatusProps> = ({ total, distribution }) => {
+export function PolicyStatusCard({ total, distribution }: PolicyStatusProps) {
   const data = [
     { label: "Published", value: distribution.published, color: C.completed },
     { label: "Approved", value: distribution.approved, color: C.approved },
@@ -111,7 +116,7 @@ interface IncidentStatusProps {
   distribution: { open: number; investigating: number; mitigated: number; closed: number };
 }
 
-export const IncidentStatusCard: React.FC<IncidentStatusProps> = ({ distribution }) => {
+export function IncidentStatusCard({ distribution }: IncidentStatusProps) {
   const max = Math.max(distribution.open, distribution.investigating, distribution.mitigated, distribution.closed, 1);
   const barHeight = 80;
 
@@ -140,13 +145,14 @@ interface EvidenceCoverageProps {
   coveragePercentage: number;
 }
 
-export const EvidenceCoverageCard: React.FC<EvidenceCoverageProps> = ({
+export function EvidenceCoverageCard({
   total,
   totalFiles,
   modelsWithEvidence,
   totalModels,
   coveragePercentage,
-}) => (
+}: EvidenceCoverageProps) {
+  return (
   <Box>
     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
       <Typography sx={TEXT_STYLES.percentage}>{coveragePercentage}%</Typography>
@@ -180,7 +186,8 @@ export const EvidenceCoverageCard: React.FC<EvidenceCoverageProps> = ({
       </Stack>
     </Stack>
   </Box>
-);
+  );
+}
 
 // Model Lifecycle Card - Donut with legend
 interface ModelLifecycleProps {
@@ -188,7 +195,7 @@ interface ModelLifecycleProps {
   distribution: { pending: number; approved: number; restricted: number; blocked: number };
 }
 
-export const ModelLifecycleCard: React.FC<ModelLifecycleProps> = ({ total, distribution }) => {
+export function ModelLifecycleCard({ total, distribution }: ModelLifecycleProps) {
   const data = [
     { label: "Approved", value: distribution.approved, color: C.completed },
     { label: "Pending", value: distribution.pending, color: C.inProgress },

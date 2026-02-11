@@ -10,6 +10,7 @@ import {
   getEntityFiles,
 } from "../controllers/file.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
+import authorize from "../middleware/accessControl.middleware";
 const multer = require("multer");
 const upload = multer({ Storage: multer.memoryStorage() });
 
@@ -24,7 +25,8 @@ router.post("/attach", authenticateJWT, attachFileToEntity);
 router.post("/attach-bulk", authenticateJWT, attachFilesToEntity);
 router.delete("/detach", authenticateJWT, detachFileFromEntity);
 
-router.get("/:id", authenticateJWT, getFileContentById);
+// File download - Admin only
+router.get("/:id", authenticateJWT, authorize(["Admin"]), getFileContentById);
 router.post("/", authenticateJWT, upload.any("files"), postFileContent);
 
 export default router;

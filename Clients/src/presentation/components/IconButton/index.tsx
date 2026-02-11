@@ -12,6 +12,7 @@ import {
   MenuItem,
   IconButton as MuiIconButton,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import { Settings } from "lucide-react";
 import { useState, type JSX } from "react";
@@ -22,6 +23,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 import { IconButtonProps } from "../../types/widget.types";
 import { AlertProps } from "../../types/alert.types";
+import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -67,6 +69,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
     useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const isAdmin = useIsAdmin();
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
 
@@ -96,7 +99,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     setAnchorEl(null);
   }
 
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [_isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async (e?: React.SyntheticEvent) => {
     setIsDeleting(true);
@@ -423,9 +426,20 @@ const IconButton: React.FC<IconButtonProps> = ({
         const isResourceAction =
           (type === "Resource" || type === "resource") &&
           item !== "make visible";
-        const isDisabled = isResourceAction && !isVisible;
+        const isResourceDisabled = isResourceAction && !isVisible;
+
+        // Disable download actions for non-admin users
+        const isDownloadAction = ["download", "download_pdf", "download_docx"].includes(item);
+        const isDownloadDisabled = isDownloadAction && !isAdmin;
+
+        const isDisabled = isResourceDisabled || isDownloadDisabled;
 
         return (
+          <Tooltip
+            key={`tooltip-${item}`}
+            title={isDownloadDisabled ? "Only admins can download files" : ""}
+            placement="left"
+          >
           <MenuItem
             key={item}
             onClick={async (e) => {
@@ -543,6 +557,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           >
             {getMenuItemText(item)}
           </MenuItem>
+          </Tooltip>
         );
       })}
     </Menu>

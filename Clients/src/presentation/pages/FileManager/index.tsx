@@ -129,6 +129,38 @@ const FileManager: React.FC = (): JSX.Element => {
   const [folderToDelete, setFolderToDelete] = useState<IFolderTreeNode | null>(null);
   const [isDeletingFolder, setIsDeletingFolder] = useState(false);
 
+  // Calculate existing sibling folder names for duplicate checking
+  const existingSiblingNames = useMemo(() => {
+    if (editingFolder) {
+      // When editing, find siblings (folders with same parent_id)
+      const findSiblings = (folders: IFolderTreeNode[], parentId: number | null): string[] => {
+        if (parentId === null) {
+          // Root level siblings
+          return folders.map(f => f.name);
+        }
+        // Find parent folder and return its children's names
+        const findInChildren = (nodes: IFolderTreeNode[]): string[] => {
+          for (const node of nodes) {
+            if (node.id === parentId) {
+              return node.children.map(c => c.name);
+            }
+            const found = findInChildren(node.children);
+            if (found.length > 0) return found;
+          }
+          return [];
+        };
+        return findInChildren(folders);
+      };
+      return findSiblings(folderTree, editingFolder.parent_id);
+    } else if (parentFolderForCreate) {
+      // Creating subfolder - siblings are the parent's children
+      return parentFolderForCreate.children.map(c => c.name);
+    } else {
+      // Creating at root level - siblings are all root folders
+      return folderTree.map(f => f.name);
+    }
+  }, [folderTree, parentFolderForCreate, editingFolder]);
+
   // Toast alert state
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
@@ -885,6 +917,7 @@ const FileManager: React.FC = (): JSX.Element => {
         parentFolder={parentFolderForCreate}
         editFolder={editingFolder}
         isSubmitting={isSubmittingFolder}
+        existingSiblingNames={existingSiblingNames}
       />
 
       {/* Assign to Folder Modal */}

@@ -17,6 +17,7 @@ import {
   CircularProgress,
   Chip,
   Divider,
+  Tooltip,
 } from "@mui/material";
 import { X, Download, Pencil, FileText, Image, FileType, FileSpreadsheet } from "lucide-react";
 import { FileMetadata, downloadFileFromManager, getFilePreview } from "../../../../../application/repository/file.repository";
@@ -26,6 +27,7 @@ import {
   isOfficeFile,
   getOfficeFileLabel,
 } from "../../../../../application/utils/officePreview.utils";
+import { useIsAdmin } from "../../../../../application/hooks/useIsAdmin";
 
 interface FilePreviewPanelProps {
   isOpen: boolean;
@@ -104,6 +106,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const isAdmin = useIsAdmin();
 
   const previewType = file ? getPreviewType(file.mimetype) : "unsupported";
 
@@ -431,18 +434,22 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               <Pencil size={18} />
             </IconButton>
           )}
-          <IconButton
-            onClick={handleDownload}
-            size="small"
-            disabled={downloading}
-            sx={{ color: "#667085" }}
-          >
-            {downloading ? (
-              <CircularProgress size={18} sx={{ color: "#667085" }} />
-            ) : (
-              <Download size={18} />
-            )}
-          </IconButton>
+          <Tooltip title={!isAdmin ? "Only admins can download files" : ""}>
+            <span>
+              <IconButton
+                onClick={handleDownload}
+                size="small"
+                disabled={downloading || !isAdmin}
+                sx={{ color: !isAdmin ? "#D0D5DD" : "#667085" }}
+              >
+                {downloading ? (
+                  <CircularProgress size={18} sx={{ color: "#667085" }} />
+                ) : (
+                  <Download size={18} />
+                )}
+              </IconButton>
+            </span>
+          </Tooltip>
           <IconButton onClick={onClose} size="small" sx={{ color: "#667085" }}>
             <X size={18} />
           </IconButton>

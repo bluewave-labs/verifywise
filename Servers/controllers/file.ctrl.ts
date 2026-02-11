@@ -590,10 +590,11 @@ export async function getEntityFiles(
   });
 
   try {
+    const entityIdStr = Array.isArray(entity_id) ? entity_id[0] : entity_id;
     const files = await getFilesWithMetadataForEntity(
       framework_type as FrameworkType,
       entity_type as EntityType,
-      parseInt(entity_id, 10),
+      parseInt(entityIdStr, 10),
       req.tenantId
     );
 

@@ -144,7 +144,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] =
     useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // ========================================================================
@@ -433,7 +433,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {

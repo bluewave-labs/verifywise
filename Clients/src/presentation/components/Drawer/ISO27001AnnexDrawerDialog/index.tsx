@@ -126,7 +126,7 @@ const VWISO27001AnnexDrawerDialog = ({
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
     useState<boolean>(false);
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
-  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const theme = useTheme();
@@ -425,7 +425,7 @@ const VWISO27001AnnexDrawerDialog = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {
@@ -528,11 +528,11 @@ const VWISO27001AnnexDrawerDialog = ({
           "response" in apiError
         ) {
           const axiosError = apiError as { response?: { status: number; data?: { message?: string } }; message?: string };
-          const errorMessage =
+          const errorMessage = String(
             axiosError.response?.data?.message ||
-            axiosError.response?.data ||
             axiosError.message ||
-            "Failed to save annex control";
+            "Failed to save annex control"
+          );
           throw new Error(errorMessage);
         }
         throw apiError;

@@ -48,6 +48,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { getFileById } from "../../../../application/repository/file.repository";
 import { getEntityById } from "../../../../application/repository/entity.repository";
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
@@ -117,7 +118,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const [linkedRiskObjects, setLinkedRiskObjects] = useState<LinkedRisk[]>([]);
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<Record<string, string | number | number[]> | null>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   const { userId, userRoleName } = useAuth();
@@ -263,7 +264,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {
@@ -314,7 +315,7 @@ const VWISO42001AnnexDrawerDialog = ({
         try {
           const response = await GetAnnexCategoriesById({
             routeUrl: `/iso-42001/annexCategory/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
-          }) as { data: AnnexCategoryISO & { evidence_links?: FileData[] } };
+          }) as { data: AnnexCategoryISO & { evidence_links?: FileData[]; guidance?: string; risks?: number[] } };
           setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values

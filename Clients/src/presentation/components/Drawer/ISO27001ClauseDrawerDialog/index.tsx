@@ -160,7 +160,7 @@ const VWISO27001ClauseDrawerDialog = ({
   const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRiskObject | null>(
     null
   );
-  const [riskFormData, setRiskFormData] = useState<RiskFormValues | null>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   // Audit status modal
@@ -496,7 +496,7 @@ const VWISO27001ClauseDrawerDialog = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {

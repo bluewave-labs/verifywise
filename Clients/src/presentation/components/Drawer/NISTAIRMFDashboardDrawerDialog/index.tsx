@@ -32,6 +32,7 @@ import { User } from "../../../../domain/types/User";
 import { FileData } from "../../../../domain/types/File";
 import { getFileById } from "../../../../application/repository/file.repository";
 import allowedRoles from "../../../../application/constants/permissions";
+import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 
 // Type for risk objects
 interface LinkedRisk {
@@ -73,7 +74,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   // Risk detail modal state
   const [isRiskDetailModalOpen, setIsRiskDetailModalOpen] = useState(false);
   const [selectedRiskForView, setSelectedRiskForView] = useState<LinkedRisk | null>(null);
-  const [riskFormData, setRiskFormData] = useState<Record<string, string> | null>(null);
+  const [riskFormData, setRiskFormData] = useState<RiskFormValues | undefined>(undefined);
   const onRiskSubmitRef = useRef<(() => void) | null>(null);
 
   const { userRoleName, userId } = useAuth();
@@ -500,7 +501,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
   const handleRiskDetailModalClose = () => {
     setIsRiskDetailModalOpen(false);
     setSelectedRiskForView(null);
-    setRiskFormData(null);
+    setRiskFormData(undefined);
   };
 
   const handleRiskUpdateSuccess = () => {

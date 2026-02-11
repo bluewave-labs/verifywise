@@ -319,7 +319,9 @@ export class PolicyController {
         ? `${requesterUser[0].name} ${requesterUser[0].surname}`
         : "User";
 
-      for (const reviewerId of reviewer_ids) {
+      for (const rid of reviewer_ids) {
+        const reviewerId = Number(rid);
+        if (isNaN(reviewerId)) continue;
         try {
           await notifyReviewRequested(
             req.tenantId!,
@@ -335,7 +337,7 @@ export class PolicyController {
             baseUrl
           );
         } catch (notifyError) {
-          console.error(`Failed to notify reviewer ${reviewerId}:`, notifyError);
+          console.error("Failed to notify reviewer %d:", reviewerId, notifyError);
         }
       }
 

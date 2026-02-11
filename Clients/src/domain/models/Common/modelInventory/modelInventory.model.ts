@@ -6,7 +6,7 @@ export class ModelInventoryModel {
   provider!: string;
   model!: string;
   version!: string;
-  approver!: string;
+  approver?: string;
   capabilities!: string;
   security_assessment!: boolean;
   status!: ModelInventoryStatus;

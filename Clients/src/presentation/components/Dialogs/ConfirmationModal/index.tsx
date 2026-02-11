@@ -1,6 +1,5 @@
 import { createPortal } from "react-dom";
 import { CustomizableButton } from "../../button/customizable-button";
-import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 import {useModalKeyHandling} from "../../../../application/hooks/useModalKeyHandling";
 
@@ -53,7 +52,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   return createPortal(
     <>
       <Stack
-        onClick={stopPropagation}
+        onClick={onCancel}
         sx={{
           position: "fixed",
           top: 0,
@@ -66,7 +65,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         }}
       />
       <Stack
-        className="confirmation-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-modal-title"
+        aria-describedby="confirmation-modal-body"
         onClick={stopPropagation}
         sx={{
           position: "fixed",
@@ -74,27 +76,40 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 1300,
-          backgroundColor: "white",
+          bgcolor: "background.main",
           cursor: "default",
+          width: 485,
+          maxWidth: "calc(100vw - 32px)",
+          borderRadius: 1,
+          p: 8,
+          boxShadow:
+            "0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08)",
+          gap: 8,
+          boxSizing: "border-box",
         }}
       >
-        <Stack className="confirmation-modal-content">
-          <Typography className="confirmation-modal-title" fontSize={TitleFontSize}>
+        <Stack sx={{ gap: 8 }}>
+          <Typography
+            id="confirmation-modal-title"
+            fontSize={TitleFontSize}
+            sx={{ color: "text.secondary", fontWeight: "bolder" }}
+          >
             {title}
           </Typography>
-          {body}
+          <Stack id="confirmation-modal-body">{body}</Stack>
         </Stack>
         <Stack
-          className="confirmation-modal-actions"
           sx={{
             display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
           }}
         >
           {cancelText && (
             <CustomizableButton
               text={cancelText}
               variant="text"
-              sx={{ color: "#344054", px: "32px", width: 120 }}
+              sx={{ color: "text.secondary", px: "32px", width: 120 }}
               onClick={onCancel}
               isDisabled={isLoading}
             />

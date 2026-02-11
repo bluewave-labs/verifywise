@@ -109,6 +109,24 @@ module.exports = {
       for (const organization of organizations) {
         const tenantHash = getTenantHash(organization.id);
 
+        // Check if policy_manager table exists before trying to drop columns
+        const [tableExists] = await queryInterface.sequelize.query(
+          `SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = :schema
+            AND table_name = 'policy_manager'
+          );`,
+          {
+            transaction,
+            replacements: { schema: tenantHash }
+          }
+        );
+
+        if (!tableExists[0].exists) {
+          console.log(`Skipping tenant ${tenantHash}: policy_manager table does not exist`);
+          continue;
+        }
+
         await queryInterface.sequelize.query(
           `ALTER TABLE "${tenantHash}".policy_manager
            DROP COLUMN IF EXISTS review_status,

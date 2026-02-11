@@ -263,8 +263,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
           bValue = (b.version || "").toLowerCase();
           break;
         case "approver":
-          aValue = (userMap.get(a.approver?.toString()) || "").toLowerCase();
-          bValue = (userMap.get(b.approver?.toString()) || "").toLowerCase();
+          aValue = (userMap.get(a.approver?.toString() ?? "") || "").toLowerCase();
+          bValue = (userMap.get(b.approver?.toString() ?? "") || "").toLowerCase();
           break;
         case "security_assessment":
           aValue = a.security_assessment ? 1 : 0;
@@ -466,7 +466,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   }}
                 >
                   <TooltipCell
-                    value={userMap.get(modelInventory.approver?.toString())}
+                    value={userMap.get(modelInventory.approver?.toString() ?? "")}
                   />
                 </TableCell>
                 {/* <TableCell sx={singleTheme.tableStyles.primary.body.cell}>

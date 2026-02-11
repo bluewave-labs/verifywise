@@ -80,7 +80,7 @@ interface NewModelInventoryFormValues {
   provider: string;
   model: string;
   version: string;
-  approver: number;
+  approver?: number;
   capabilities: string[];
   security_assessment: boolean;
   status: ModelInventoryStatus;
@@ -411,10 +411,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
     if (!values.version || !String(values.version).trim()) {
       newErrors.version = "Version is required.";
-    }
-
-    if (!values.approver || !String(values.approver).trim()) {
-      newErrors.approver = "Approver is required.";
     }
 
     if (!values.status) {
@@ -772,9 +768,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         <SelectComponent
           id="approver"
           label="Approver"
-          value={values.approver}
+          value={values.approver ?? ""}
           error={errors.approver}
-          isRequired
           sx={{ width: 220 }}
           items={userOptions}
           onChange={handleOnSelectChange("approver")}

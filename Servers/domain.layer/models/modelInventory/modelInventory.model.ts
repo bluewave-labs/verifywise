@@ -45,9 +45,9 @@ export class ModelInventoryModel
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
   })
-  approver!: string;
+  approver?: string;
 
   @Column({
     type: DataType.TEXT,
@@ -150,14 +150,6 @@ export class ModelInventoryModel
         "Version is required",
         "version",
         this.version
-      );
-    }
-
-    if (!this.approver?.trim()) {
-      throw new ValidationException(
-        "Approver is required",
-        "approver",
-        this.approver
       );
     }
 

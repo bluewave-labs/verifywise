@@ -22,7 +22,7 @@ import LifecycleProgressBar from "../components/LifecycleProgressBar";
 import Chip from "../../../components/Chip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
-import EmptyStateMessage from "../../../components/EmptyStateMessage";
+import { EmptyStateMessage } from "../../../components/EmptyStateMessage";
 
 const ModelDetailPage = () => {
   const theme = useTheme();

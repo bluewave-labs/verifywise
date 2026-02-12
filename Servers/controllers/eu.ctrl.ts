@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ControlEU } from "../domain.layer/frameworks/EU-AI-Act/controlEU.model";
 import { FileType } from "../domain.layer/models/file/file.model";
-import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { uploadFile } from "../utils/fileUpload.utils";
 import {
   getAllProjectsQuery,
   updateProjectUpdatedByIdQuery,
@@ -316,10 +316,9 @@ export async function saveControls(
       id: controlId,
     };
 
-    const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
-    for (let f of filesToDelete) {
-      await deleteFileById(f, req.tenantId!, transaction);
-    }
+    // Files to unlink (not delete) - the actual file stays in file manager
+    // This allows the same file to be used as evidence in multiple places
+    const filesToUnlink = JSON.parse(Control.delete || "[]") as number[];
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
     const subControlResp = [];
@@ -399,7 +398,7 @@ export async function saveControls(
           },
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete,
+          filesToUnlink,
           req.tenantId!,
           transaction
         );
@@ -505,11 +504,9 @@ export async function updateQuestionById(
       }
     }
 
-    // Handle file deletions
-    const filesToDelete = JSON.parse(body.delete || "[]") as number[];
-    for (let f of filesToDelete) {
-      await deleteFileById(f, req.tenantId!, transaction);
-    }
+    // Files to unlink (not delete) - the actual file stays in file manager
+    // This allows the same file to be used as evidence in multiple places
+    const filesToUnlink = JSON.parse(body.delete || "[]") as number[];
 
     // Handle file uploads
     // Normalize req.files to always be an array
@@ -609,19 +606,19 @@ export async function updateQuestionById(
       status: body.status,
       risksDelete: JSON.parse((body.risksDelete as any) || "[]") || [],
       risksMitigated: JSON.parse((body.risksMitigated as any) || "[]") || [],
-      delete: filesToDelete, // Pass deleted files to query function
+      delete: filesToUnlink, // Pass deleted files to query function
     };
 
     // Always set evidence_files if there are file operations (upload or delete)
     // This ensures the file operations are processed even if only deletions
-    if (uploadedFiles.length > 0 || filesToDelete.length > 0) {
+    if (uploadedFiles.length > 0 || filesToUnlink.length > 0) {
       updateBody.evidence_files = uploadedFiles; // Will be empty array if no uploads, but delete will still be processed
       logger.debug(
-        `📋 Setting evidence_files in updateBody: ${uploadedFiles.length} files, ${filesToDelete.length} deletions`
+        `📋 Setting evidence_files in updateBody: ${uploadedFiles.length} files, ${filesToUnlink.length} deletions`
       );
     } else {
       logger.debug(
-        `⚠️ No file operations - uploadedFiles: ${uploadedFiles.length}, filesToDelete: ${filesToDelete.length}`
+        `⚠️ No file operations - uploadedFiles: ${uploadedFiles.length}, filesToUnlink: ${filesToUnlink.length}`
       );
     }
 

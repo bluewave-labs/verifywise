@@ -154,14 +154,18 @@ const ProjectForm = ({
     }
   }, [projectToEdit, users]);
 
-  // Fetch approval workflows
+  // Fetch approval workflows filtered by entity type (use_case)
   useEffect(() => {
     const fetchWorkflows = async () => {
       try {
         const response = await getAllApprovalWorkflows();
         const workflows = response?.data || [];
+        // Filter to only show workflows for use_case entity type
+        const filteredWorkflows = workflows.filter(
+          (w: any) => w.entity_type === 'use_case'
+        );
         setApprovalWorkflows(
-          workflows.map((w: any) => ({
+          filteredWorkflows.map((w: any) => ({
             _id: w.id,
             name: w.workflow_title,
           }))

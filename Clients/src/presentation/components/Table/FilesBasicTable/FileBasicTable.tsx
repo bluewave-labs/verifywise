@@ -160,7 +160,7 @@ const SortableTableHead: React.FC<{
 };
 
 // Default visible columns (all columns)
-const ALL_COLUMN_KEYS = ["file", "project_name", "upload_date", "uploader", "source", "version", "status", "action"] as const;
+const ALL_COLUMN_KEYS = ["file", "upload_date", "uploader", "source", "version", "status", "action"] as const;
 
 const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   data,
@@ -344,22 +344,19 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   };
 
   // Create delete handler for a specific file
+  // Returns true on success, false on error (for IconButton loading state)
   const createDeleteHandler = useCallback(
-    (fileId: string) => async () => {
+    (fileId: string) => async (): Promise<boolean> => {
       try {
         await deleteFileFromManager({ id: fileId });
-        // After successful delete, refresh the list
-        if (onFileDeleted) {
-          onFileDeleted();
-        }
-        await deleteEntityById({
+        onFileDeleted?.(fileId);
+        // Unlink from policies (fire and forget)
+        deleteEntityById({
           routeUrl: `/policy-linked/evidence/${fileId}/unlink-all`,
-        });
-        
-
-      } catch (error) {
-        console.error("Failed to delete file:", error);
-        throw error; // Re-throw so IconButton can show error
+        }).catch(() => {});
+        return true;
+      } catch {
+        return false;
       }
     },
     [onFileDeleted]
@@ -415,22 +412,6 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                         <FileIcon fileName={row.fileName} />
                         {row.fileName}
                       </Box>
-                    </TableCell>
-                  )}
-                  {/* Project Name column */}
-                  {visibleColumnKeys.includes("project_name") && (
-                    <TableCell
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.cell,
-                        backgroundColor: getSortMatchForColumn(
-                          data.cols[colIndex++]?.name,
-                          sortConfig
-                        )
-                          ? "#f5f5f5"
-                          : "inherit",
-                      }}
-                    >
-                      {row.projectTitle}
                     </TableCell>
                   )}
                   {/* Upload Date column */}

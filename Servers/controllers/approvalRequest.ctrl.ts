@@ -35,6 +35,7 @@ import {
   notifyApprovalComplete,
   sendInAppNotification,
 } from "../services/inAppNotification.service";
+import { notifyRequesterStepCompleted } from "../services/notification.service";
 import { NotificationType, NotificationEntityType } from "../domain.layer/interfaces/i.notification";
 import { EMAIL_TEMPLATES } from "../constants/emailTemplates";
 
@@ -142,10 +143,10 @@ export async function createApprovalRequest(
         const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
         // Get first step approvers
-        const firstStep = workflowSteps.find((s: any) => s.step_order === 1) as any;
+        const firstStep = workflowSteps.find((s: any) => s.step_number === 1) as any;
         if (firstStep && firstStep.approvers && firstStep.approvers.length > 0) {
           for (const approver of firstStep.approvers) {
-            const approverId = typeof approver === 'object' ? (approver as any).user_id : approver;
+            const approverId = typeof approver === 'object' ? (approver as any).approver_id : approver;
             if (approverId !== userId) {
               await notifyApprovalRequested(
                 tenantId,
@@ -153,7 +154,7 @@ export async function createApprovalRequest(
                 {
                   id: request.id!,
                   name: request_name,
-                  workflowName: (workflow as any).name,
+                  workflowName: (workflow as any).workflow_title || (workflow as any).name,
                   stepNumber: 1,
                   totalSteps: workflowSteps.length,
                 },
@@ -410,8 +411,8 @@ export async function approveRequest(
               { replacements: { requestId }, type: QueryTypes.SELECT }
             );
 
-            const [workflow] = await sequelize.query<{ name: string }>(
-              `SELECT name FROM "${tenantId}".approval_workflows WHERE id = :workflowId`,
+            const [workflow] = await sequelize.query<{ workflow_title: string }>(
+              `SELECT workflow_title FROM "${tenantId}".approval_workflows WHERE id = :workflowId`,
               { replacements: { workflowId: request?.workflow_id }, type: QueryTypes.SELECT }
             );
 
@@ -427,12 +428,29 @@ export async function approveRequest(
                 {
                   id: requestId,
                   name: notificationInfo.requestName,
-                  workflowName: workflow?.name || "Approval workflow",
+                  workflowName: workflow?.workflow_title || "Approval workflow",
                   stepNumber: notificationInfo.stepNumber!,
                   totalSteps: parseInt(totalSteps?.count || "1", 10),
                 },
                 approverName,
                 baseUrl
+              );
+            }
+
+            // Also notify the requester about step completion progress
+            if (notificationInfo.requesterId && notificationInfo.completedStep) {
+              await notifyRequesterStepCompleted(
+                tenantId,
+                notificationInfo.requesterId,
+                requestId,
+                notificationInfo.requestName,
+                {
+                  completed_step: notificationInfo.completedStep,
+                  next_step: notificationInfo.stepNumber!,
+                  total_steps: parseInt(totalSteps?.count || "1", 10),
+                  approver_name: approverName,
+                  workflow_name: workflow?.workflow_title,
+                }
               );
             }
           } else if (notificationInfo.type === 'requester_approved') {
@@ -541,6 +559,14 @@ export async function rejectRequest(
           const rejector = rejectorResult[0];
           const rejectorName = rejector ? `${rejector.name} ${rejector.surname}`.trim() : "Someone";
 
+          // Get requester name
+          const requesterResult = await sequelize.query<{ name: string; surname: string }>(
+            `SELECT name, surname FROM public.users WHERE id = :requesterId`,
+            { replacements: { requesterId: notificationInfo.requesterId }, type: QueryTypes.SELECT }
+          );
+          const requester = requesterResult[0];
+          const requesterName = requester ? `${requester.name} ${requester.surname}`.trim() : "User";
+
           // Send rejection notification
           await sendInAppNotification(
             tenantId,
@@ -559,7 +585,7 @@ export async function rejectRequest(
               template: EMAIL_TEMPLATES.APPROVAL_REJECTED,
               subject: `Rejected: ${notificationInfo.requestName}`,
               variables: {
-                requester_name: "User",
+                requester_name: requesterName,
                 rejector_name: rejectorName,
                 request_name: notificationInfo.requestName,
                 rejection_reason: comments || "No reason provided",

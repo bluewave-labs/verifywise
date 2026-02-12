@@ -60,6 +60,9 @@ export interface OrganizationFileMetadata {
   last_modifier_surname?: string;
   description?: string;
   file_group_id?: string;
+  // Approval workflow support
+  approval_workflow_id?: number;
+  approval_workflow_name?: string;
 }
 
 export interface UpdateFileMetadataInput {
@@ -290,16 +293,35 @@ export async function getProjectFileMetadata(
 // ============================================================================
 
 /**
+ * Options for uploading organization-level files
+ */
+export interface UploadOrganizationFileOptions {
+  modelId?: number;
+  source?: FileSource;
+  approvalWorkflowId?: number;
+  transaction?: Transaction;
+}
+
+/**
  * Uploads an organization-level file (no project association)
  *
  * @param file - The Express multer file object
  * @param userId - ID of the user uploading the file
  * @param orgId - Organization ID for the file
  * @param tenant - Tenant schema identifier
- * @param modelId - Optional model ID to associate with
- * @param source - Optional source identifier (defaults to 'File Manager')
- * @param transaction - Optional database transaction for atomicity
+ * @param options - Optional settings including modelId, source, approvalWorkflowId, and transaction
  * @returns The created file record
+ */
+export async function uploadOrganizationFile(
+  file: Express.Multer.File,
+  userId: number,
+  orgId: number,
+  tenant: string,
+  options?: UploadOrganizationFileOptions
+): Promise<OrganizationFileMetadata>;
+
+/**
+ * @deprecated Use the options object overload instead
  */
 export async function uploadOrganizationFile(
   file: Express.Multer.File,
@@ -309,16 +331,48 @@ export async function uploadOrganizationFile(
   modelId?: number,
   source?: FileSource,
   transaction?: Transaction
+): Promise<OrganizationFileMetadata>;
+
+export async function uploadOrganizationFile(
+  file: Express.Multer.File,
+  userId: number,
+  orgId: number,
+  tenant: string,
+  modelIdOrOptions?: number | UploadOrganizationFileOptions,
+  source?: FileSource,
+  transaction?: Transaction
 ): Promise<OrganizationFileMetadata> {
   validateTenant(tenant);
 
+  // Handle both old and new signatures
+  let modelId: number | undefined;
+  let finalSource: FileSource | undefined;
+  let approvalWorkflowId: number | undefined;
+  let txn: Transaction | undefined;
+
+  if (typeof modelIdOrOptions === 'object' && modelIdOrOptions !== null) {
+    // New signature with options object
+    modelId = modelIdOrOptions.modelId;
+    finalSource = modelIdOrOptions.source;
+    approvalWorkflowId = modelIdOrOptions.approvalWorkflowId;
+    txn = modelIdOrOptions.transaction;
+  } else {
+    // Old signature for backward compatibility
+    modelId = modelIdOrOptions;
+    finalSource = source;
+    txn = transaction;
+  }
+
   const safeName = sanitizeFilenameStr(file.originalname);
+
+  // If approval workflow is selected, set status to pending_review
+  const reviewStatus = approvalWorkflowId ? 'pending_review' : 'draft';
 
   const query = `
     INSERT INTO ${escapePgIdentifier(tenant)}.files
-      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id, file_group_id)
+      (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id, file_group_id, review_status, version, approval_workflow_id)
     VALUES
-      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL, gen_random_uuid())
+      (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL, gen_random_uuid(), :review_status, '1.0', :approval_workflow_id)
     RETURNING *`;
 
   const result = await sequelize.query(query, {
@@ -331,10 +385,12 @@ export async function uploadOrganizationFile(
       model_id: modelId ?? null,
       file_path: safeName,
       content: file.buffer,
-      source: source ?? "File Manager",
+      source: finalSource ?? "File Manager",
+      review_status: reviewStatus,
+      approval_workflow_id: approvalWorkflowId ?? null,
     },
     type: QueryTypes.SELECT,
-    ...(transaction && { transaction }),
+    ...(txn && { transaction: txn }),
   });
 
   return result[0] as OrganizationFileMetadata;
@@ -392,6 +448,15 @@ export async function deleteFileById(
       }
     );
 
+    // Clean up file entity links (evidence/attachment associations)
+    await sequelize.query(
+      `DELETE FROM ${escapePgIdentifier(tenant)}.file_entity_links WHERE file_id = :fileId`,
+      {
+        replacements: { fileId },
+        transaction: txn,
+      }
+    );
+
     const query = `DELETE FROM ${escapePgIdentifier(tenant)}.files WHERE id = :fileId RETURNING id`;
 
     const result = await sequelize.query(query, {
@@ -434,6 +499,7 @@ export async function getOrganizationFiles(
 
   const { limit, offset } = options;
 
+  // Show all files regardless of approval status - UI handles display
   let query = `
     SELECT
       f.id,
@@ -445,6 +511,8 @@ export async function getOrganizationFiles(
       f.org_id,
       f.model_id,
       f.source,
+      f.review_status,
+      f.approval_workflow_id,
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM ${escapePgIdentifier(tenant)}.files f
@@ -703,6 +771,8 @@ export async function getFileWithMetadata(
       f.last_modified_by,
       f.description,
       f.file_group_id,
+      f.approval_workflow_id,
+      aw.workflow_title AS approval_workflow_name,
       u.name AS uploader_name,
       u.surname AS uploader_surname,
       m.name AS last_modifier_name,
@@ -710,6 +780,7 @@ export async function getFileWithMetadata(
     FROM ${escapePgIdentifier(tenant)}.files f
     JOIN public.users u ON f.uploaded_by = u.id
     LEFT JOIN public.users m ON f.last_modified_by = m.id
+    LEFT JOIN ${escapePgIdentifier(tenant)}.approval_workflows aw ON f.approval_workflow_id = aw.id
     WHERE f.id = :fileId`;
 
   const result = await sequelize.query(query, {
@@ -755,6 +826,8 @@ export async function getOrganizationFilesWithMetadata(
       f.last_modified_by,
       f.description,
       f.file_group_id,
+      f.approval_workflow_id,
+      aw.workflow_title AS approval_workflow_name,
       u.name AS uploader_name,
       u.surname AS uploader_surname,
       m.name AS last_modifier_name,
@@ -762,6 +835,7 @@ export async function getOrganizationFilesWithMetadata(
     FROM ${escapePgIdentifier(tenant)}.files f
     JOIN public.users u ON f.uploaded_by = u.id
     LEFT JOIN public.users m ON f.last_modified_by = m.id
+    LEFT JOIN ${escapePgIdentifier(tenant)}.approval_workflows aw ON f.approval_workflow_id = aw.id
     WHERE f.org_id = :orgId
       AND f.project_id IS NULL
       AND (f.source IS NULL OR f.source != 'policy_editor')
@@ -992,6 +1066,327 @@ export async function getFileVersionHistory(
   });
 
   return result as OrganizationFileMetadata[];
+}
+
+// ============================================================================
+// File Approval Workflow Operations
+// ============================================================================
+
+/**
+ * Updates file review status
+ *
+ * @param fileId - The file ID to update
+ * @param reviewStatus - The new review status
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction for atomicity
+ * @returns True if update was successful
+ */
+export async function updateFileReviewStatus(
+  fileId: number,
+  reviewStatus: ReviewStatus,
+  tenant: string,
+  transaction?: Transaction
+): Promise<boolean> {
+  validateTenant(tenant);
+
+  const query = `
+    UPDATE ${escapePgIdentifier(tenant)}.files
+    SET review_status = :reviewStatus, updated_at = NOW()
+    WHERE id = :fileId
+    RETURNING id`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId, reviewStatus },
+    type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
+  });
+
+  return Array.isArray(result) && result.length > 0;
+}
+
+/**
+ * Gets files pending approval for a specific workflow
+ *
+ * @param workflowId - The approval workflow ID
+ * @param tenant - Tenant schema identifier
+ * @returns Array of files pending approval for this workflow
+ */
+export async function getFilesPendingApproval(
+  workflowId: number,
+  tenant: string
+): Promise<OrganizationFileMetadata[]> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.model_id,
+      f.source,
+      f.tags,
+      f.review_status,
+      f.version,
+      f.expiry_date,
+      f.last_modified_by,
+      f.description,
+      f.file_group_id,
+      f.approval_workflow_id,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname
+    FROM ${escapePgIdentifier(tenant)}.files f
+    JOIN public.users u ON f.uploaded_by = u.id
+    WHERE f.approval_workflow_id = :workflowId
+      AND f.review_status = 'pending_review'
+    ORDER BY f.uploaded_time DESC`;
+
+  const result = await sequelize.query(query, {
+    replacements: { workflowId },
+    type: QueryTypes.SELECT,
+  });
+
+  return result as OrganizationFileMetadata[];
+}
+
+// ============================================================================
+// File Entity Links (Evidence/Attachment Linking)
+// ============================================================================
+
+export type FrameworkType = 'eu_ai_act' | 'nist_ai' | 'iso_27001' | 'iso_42001' | string;
+export type EntityType = 'assessment' | 'subcontrol' | 'subclause' | 'annex_control' | 'annex_category' | string;
+export type LinkType = 'evidence' | 'feedback' | 'attachment' | 'reference';
+
+export interface FileEntityLink {
+  id?: number;
+  file_id: number;
+  framework_type: FrameworkType;
+  entity_type: EntityType;
+  entity_id: number;
+  project_id?: number;
+  link_type?: LinkType;
+  created_by?: number;
+  created_at?: Date;
+}
+
+/**
+ * Creates a link between a file and an entity (control, assessment, subclause, etc.)
+ *
+ * @param link - The file-entity link to create
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction for atomicity
+ * @returns The created link or null if already exists (ON CONFLICT DO NOTHING)
+ */
+export async function createFileEntityLink(
+  link: Omit<FileEntityLink, 'id' | 'created_at'>,
+  tenant: string,
+  transaction?: Transaction
+): Promise<FileEntityLink | null> {
+  validateTenant(tenant);
+
+  const query = `
+    INSERT INTO ${escapePgIdentifier(tenant)}.file_entity_links
+      (file_id, framework_type, entity_type, entity_id, project_id, link_type, created_by, created_at)
+    VALUES
+      (:fileId, :frameworkType, :entityType, :entityId, :projectId, :linkType, :createdBy, NOW())
+    ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING
+    RETURNING *`;
+
+  const result = await sequelize.query(query, {
+    replacements: {
+      fileId: link.file_id,
+      frameworkType: link.framework_type,
+      entityType: link.entity_type,
+      entityId: link.entity_id,
+      projectId: link.project_id ?? null,
+      linkType: link.link_type ?? 'evidence',
+      createdBy: link.created_by ?? null,
+    },
+    type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
+  });
+
+  return (result[0] as FileEntityLink) || null;
+}
+
+/**
+ * Deletes a file-entity link
+ *
+ * @param fileId - The file ID
+ * @param frameworkType - The framework type
+ * @param entityType - The entity type
+ * @param entityId - The entity ID
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction for atomicity
+ * @returns True if link was deleted
+ */
+export async function deleteFileEntityLink(
+  fileId: number,
+  frameworkType: FrameworkType,
+  entityType: EntityType,
+  entityId: number,
+  tenant: string,
+  transaction?: Transaction
+): Promise<boolean> {
+  validateTenant(tenant);
+
+  const query = `
+    DELETE FROM ${escapePgIdentifier(tenant)}.file_entity_links
+    WHERE file_id = :fileId
+      AND framework_type = :frameworkType
+      AND entity_type = :entityType
+      AND entity_id = :entityId
+    RETURNING id`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId, frameworkType, entityType, entityId },
+    type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
+  });
+
+  return Array.isArray(result) && result.length > 0;
+}
+
+/**
+ * Gets all entity links for a specific file
+ *
+ * @param fileId - The file ID
+ * @param tenant - Tenant schema identifier
+ * @returns Array of file entity links
+ */
+export async function getFileEntityLinks(
+  fileId: number,
+  tenant: string
+): Promise<FileEntityLink[]> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT id, file_id, framework_type, entity_type, entity_id, project_id, link_type, created_by, created_at
+    FROM ${escapePgIdentifier(tenant)}.file_entity_links
+    WHERE file_id = :fileId
+    ORDER BY created_at DESC`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId },
+    type: QueryTypes.SELECT,
+  });
+
+  return result as FileEntityLink[];
+}
+
+/**
+ * Gets all files linked to a specific entity
+ *
+ * @param frameworkType - The framework type
+ * @param entityType - The entity type
+ * @param entityId - The entity ID
+ * @param tenant - Tenant schema identifier
+ * @returns Array of file IDs linked to the entity
+ */
+export async function getFilesForEntity(
+  frameworkType: FrameworkType,
+  entityType: EntityType,
+  entityId: number,
+  tenant: string
+): Promise<number[]> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT file_id
+    FROM ${escapePgIdentifier(tenant)}.file_entity_links
+    WHERE framework_type = :frameworkType
+      AND entity_type = :entityType
+      AND entity_id = :entityId
+    ORDER BY created_at DESC`;
+
+  const result = await sequelize.query(query, {
+    replacements: { frameworkType, entityType, entityId },
+    type: QueryTypes.SELECT,
+  });
+
+  return (result as { file_id: number }[]).map(r => r.file_id);
+}
+
+/**
+ * Gets files linked to an entity with full file metadata
+ *
+ * @param frameworkType - The framework type
+ * @param entityType - The entity type
+ * @param entityId - The entity ID
+ * @param tenant - Tenant schema identifier
+ * @returns Array of file metadata for linked files
+ */
+export async function getFilesWithMetadataForEntity(
+  frameworkType: FrameworkType,
+  entityType: EntityType,
+  entityId: number,
+  tenant: string
+): Promise<OrganizationFileMetadata[]> {
+  validateTenant(tenant);
+
+  const query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.size,
+      f.type AS mimetype,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      f.org_id,
+      f.project_id,
+      f.source,
+      f.tags,
+      f.review_status,
+      f.version,
+      fel.link_type,
+      u.name AS uploader_name,
+      u.surname AS uploader_surname
+    FROM ${escapePgIdentifier(tenant)}.file_entity_links fel
+    JOIN ${escapePgIdentifier(tenant)}.files f ON fel.file_id = f.id
+    JOIN public.users u ON f.uploaded_by = u.id
+    WHERE fel.framework_type = :frameworkType
+      AND fel.entity_type = :entityType
+      AND fel.entity_id = :entityId
+    ORDER BY fel.created_at DESC`;
+
+  const result = await sequelize.query(query, {
+    replacements: { frameworkType, entityType, entityId },
+    type: QueryTypes.SELECT,
+  });
+
+  return result as OrganizationFileMetadata[];
+}
+
+/**
+ * Deletes all entity links for a file (used when deleting a file)
+ *
+ * @param fileId - The file ID
+ * @param tenant - Tenant schema identifier
+ * @param transaction - Optional database transaction for atomicity
+ * @returns Number of links deleted
+ */
+export async function deleteAllFileEntityLinks(
+  fileId: number,
+  tenant: string,
+  transaction?: Transaction
+): Promise<number> {
+  validateTenant(tenant);
+
+  const query = `
+    DELETE FROM ${escapePgIdentifier(tenant)}.file_entity_links
+    WHERE file_id = :fileId
+    RETURNING id`;
+
+  const result = await sequelize.query(query, {
+    replacements: { fileId },
+    type: QueryTypes.SELECT,
+    ...(transaction && { transaction }),
+  });
+
+  return Array.isArray(result) ? result.length : 0;
 }
 
 // ============================================================================

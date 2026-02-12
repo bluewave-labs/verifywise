@@ -7,7 +7,6 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import FileSteps from "./FileSteps";
 import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
-import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import {
   getUserFilesMetaData,
@@ -20,7 +19,6 @@ import {
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import HelperIcon from "../../components/HelperIcon";
-import { Project } from "../../../domain/types/Project";
 import { FileModel } from "../../../domain/models/Common/file/file.model";
 import PageHeader from "../../components/Layout/PageHeader";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -63,6 +61,9 @@ import { FilePreviewPanel } from "./components/FilePreviewPanel";
 import { FileMetadataEditor } from "./components/FileMetadataEditor";
 import { FileVersionHistoryDrawer } from "./components/FileVersionHistoryDrawer";
 
+// Event subscription for cross-component communication
+import { onFileApprovalChanged } from "../../../application/events/fileEvents";
+
 // Constants
 const FILE_MANAGER_CONTEXT = "FileManager";
 const AUDITOR_ROLE = "Auditor";
@@ -78,16 +79,15 @@ const FileManager: React.FC = (): JSX.Element => {
     countToTrigger: 1,
   });
 
-  // Fetch projects for the dropdown options
-  const { data: projects = [], isLoading: loadingProjects } = useProjects();
 
   // Use hook for initial data load
-  const { filesData: initialFilesData, loading: initialLoading } =
+  const { filesData: initialFilesData, loading: initialLoading, error: initialError } =
     useUserFilesMetaData();
 
   // Local state to manage files
   const [filesData, setFilesData] = useState<FileModel[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+  const [filesError, setFilesError] = useState<Error | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Virtual folder hooks
@@ -129,6 +129,38 @@ const FileManager: React.FC = (): JSX.Element => {
   const [folderToDelete, setFolderToDelete] = useState<IFolderTreeNode | null>(null);
   const [isDeletingFolder, setIsDeletingFolder] = useState(false);
 
+  // Calculate existing sibling folder names for duplicate checking
+  const existingSiblingNames = useMemo(() => {
+    if (editingFolder) {
+      // When editing, find siblings (folders with same parent_id)
+      const findSiblings = (folders: IFolderTreeNode[], parentId: number | null): string[] => {
+        if (parentId === null) {
+          // Root level siblings
+          return folders.map(f => f.name);
+        }
+        // Find parent folder and return its children's names
+        const findInChildren = (nodes: IFolderTreeNode[]): string[] => {
+          for (const node of nodes) {
+            if (node.id === parentId) {
+              return node.children.map(c => c.name);
+            }
+            const found = findInChildren(node.children);
+            if (found.length > 0) return found;
+          }
+          return [];
+        };
+        return findInChildren(folders);
+      };
+      return findSiblings(folderTree, editingFolder.parent_id);
+    } else if (parentFolderForCreate) {
+      // Creating subfolder - siblings are the parent's children
+      return parentFolderForCreate.children.map(c => c.name);
+    } else {
+      // Creating at root level - siblings are all root folders
+      return folderTree.map(f => f.name);
+    }
+  }, [folderTree, parentFolderForCreate, editingFolder]);
+
   // Toast alert state
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
@@ -168,11 +200,29 @@ const FileManager: React.FC = (): JSX.Element => {
     return undefined;
   }, [alert]);
 
-  // Sync initial data from hook to local state
+  // Sync initial data from hook to local state ONLY on initial load
+  // After that, optimistic updates manage the state independently
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    setFilesData(initialFilesData);
-    setLoadingFiles(initialLoading);
-  }, [initialFilesData, initialLoading]);
+    // Only sync on initial load, not on subsequent hook updates
+    if (!hasInitialized && !initialLoading && initialFilesData.length > 0) {
+      setFilesData(initialFilesData);
+      setLoadingFiles(false);
+      setFilesError(initialError);
+      setHasInitialized(true);
+    }
+    // If still loading initially, reflect that
+    if (!hasInitialized && initialLoading) {
+      setLoadingFiles(true);
+    }
+    // Handle initial error
+    if (!hasInitialized && !initialLoading && initialError) {
+      setFilesError(initialError);
+      setLoadingFiles(false);
+      setHasInitialized(true);
+    }
+  }, [initialFilesData, initialLoading, initialError, hasInitialized]);
 
   // RBAC: Get user role for permission checks
   const { userRoleName } = useAuth();
@@ -184,15 +234,16 @@ const FileManager: React.FC = (): JSX.Element => {
   const isUploadAllowed = Boolean(userRoleName) && userRoleName !== AUDITOR_ROLE;
   const canManageFolders = Boolean(userRoleName) && MANAGE_ROLES.includes(userRoleName);
 
-  // Manual refetch function
+  // Manual refetch function - only used for initial load or explicit refresh
   const refetch = useCallback(async () => {
     try {
       setLoadingFiles(true);
+      setFilesError(null);
       const response = await getUserFilesMetaData();
       setFilesData(transformFilesData(response));
     } catch (error) {
       secureLogError("Error refetching files", FILE_MANAGER_CONTEXT);
-      setFilesData([]);
+      setFilesError(error instanceof Error ? error : new Error("Failed to load files"));
     } finally {
       setLoadingFiles(false);
     }
@@ -221,6 +272,16 @@ const FileManager: React.FC = (): JSX.Element => {
     fetchFilesWithMetadata();
   }, [fetchFilesWithMetadata]);
 
+  // Listen for file approval status changes (from approval modal)
+  useEffect(() => {
+    const unsubscribe = onFileApprovalChanged(() => {
+      // Refresh both file lists and metadata when approval status changes
+      refetch();
+      fetchFilesWithMetadata();
+    });
+    return unsubscribe;
+  }, [refetch, fetchFilesWithMetadata]);
+
   // Handle upload button click
   const handleUploadClick = useCallback(() => {
     if (!isUploadAllowed) {
@@ -230,10 +291,22 @@ const FileManager: React.FC = (): JSX.Element => {
     setIsUploadModalOpen(true);
   }, [isUploadAllowed, userRoleName]);
 
-  // Handle upload success - auto-assign to current folder if viewing one
-  const handleUploadSuccess = useCallback(async (uploadedFiles?: Array<{ id: number }>) => {
+  // Handle upload success - optimistically add files to state
+  const handleUploadSuccess = useCallback(async (uploadedFiles?: Array<{
+    id: number;
+    filename: string;
+    size: number;
+    mimetype: string;
+    upload_date: string;
+    uploaded_by: number;
+    review_status?: string;
+    approval_workflow_id?: number;
+    approval_request_id?: number;
+  }>) => {
+    if (!uploadedFiles?.length) return;
+
     // If viewing a specific folder, auto-assign uploaded files to it
-    if (typeof selectedFolder === "number" && uploadedFiles?.length) {
+    if (typeof selectedFolder === "number") {
       try {
         const fileIds = uploadedFiles.map((f) => f.id).filter(Boolean);
         if (fileIds.length > 0) {
@@ -244,19 +317,30 @@ const FileManager: React.FC = (): JSX.Element => {
       }
     }
 
-    refetch();
-    fetchFilesWithMetadata();
-    refreshFolders();
-    refreshFiles(selectedFolder);
-  }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
+    // Optimistically add uploaded files to local state
+    const newFiles = uploadedFiles.map((file) =>
+      FileModel.createNewFile({
+        id: String(file.id),
+        fileName: file.filename,
+        size: file.size,
+        uploadDate: new Date(file.upload_date),
+        uploaderName: "You", // Current user uploaded it
+        uploader: "You",
+        source: "File Manager",
+        reviewStatus: file.review_status || "draft",
+      })
+    );
 
-  // Handle file deleted
-  const handleFileDeleted = useCallback(() => {
-    refetch();
+    setFilesData((prev) => [...newFiles, ...prev]);
+
+    // Refresh metadata to get the complete file info including review_status
     fetchFilesWithMetadata();
-    refreshFolders();
-    refreshFiles(selectedFolder);
-  }, [refetch, fetchFilesWithMetadata, refreshFolders, refreshFiles, selectedFolder]);
+  }, [selectedFolder, fetchFilesWithMetadata]);
+
+  // Handle file deleted - optimistically remove from state
+  const handleFileDeleted = useCallback((fileId: string) => {
+    setFilesData((prev) => prev.filter((file) => String(file.id) !== fileId));
+  }, []);
 
   // Preview panel handlers
   const handleOpenPreview = useCallback(async (fileId: number | string) => {
@@ -439,11 +523,6 @@ const FileManager: React.FC = (): JSX.Element => {
 
   // Get active files based on selected folder, enriched with metadata
   const activeFilesData = useMemo(() => {
-    // When loading folder files, return empty to prevent flash of stale data
-    if (loadingFolderFiles && selectedFolder !== "all") {
-      return [];
-    }
-
     // Helper to enrich a FileModel with metadata
     const enrichWithMetadata = (file: FileModel): FileModel => {
       const meta = metadataMap.get(String(file.id));
@@ -528,26 +607,6 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [selectedFileForAssign, handleUpdateFileFolders, handleCloseAssignFolder, refreshFolders, refreshFiles, selectedFolder]);
 
   // FilterBy - Dynamic options generators
-  const getUniqueProjects = useCallback(() => {
-    const projectIds = new Set<string>();
-    activeFilesData.forEach((file) => {
-      if (file.projectId) {
-        projectIds.add(file.projectId.toString());
-      }
-    });
-    return Array.from(projectIds)
-      .map((projectId) => {
-        const project = projects.find(
-          (p: Project) => p.id.toString() === projectId
-        );
-        return {
-          value: projectId,
-          label: project?.project_title || `Project ${projectId}`,
-        };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [activeFilesData, projects]);
-
   const getUniqueUploaders = useCallback(() => {
     const uploaders = new Set<string>();
     activeFilesData.forEach((file) => {
@@ -568,11 +627,10 @@ const FileManager: React.FC = (): JSX.Element => {
   const fileFilterColumns: FilterColumn[] = useMemo(
     () => [
       { id: "fileName", label: "File name", type: "text" as const },
-      { id: "projectId", label: "Use case", type: "select" as const, options: getUniqueProjects() },
       { id: "uploader", label: "Uploader", type: "select" as const, options: getUniqueUploaders() },
       { id: "uploadDate", label: "Upload date", type: "date" as const },
     ],
-    [getUniqueProjects, getUniqueUploaders]
+    [getUniqueUploaders]
   );
 
   const getFileFieldValue = useCallback(
@@ -605,7 +663,6 @@ const FileManager: React.FC = (): JSX.Element => {
   const getFileGroupKey = useCallback(
     (file: FileModel, field: string): string => {
       switch (field) {
-        case "project": return file.projectTitle || "No Project";
         case "uploader": return file.uploaderName || file.uploader || "Unknown";
         default: return "Other";
       }
@@ -621,7 +678,7 @@ const FileManager: React.FC = (): JSX.Element => {
   });
 
   // Always show loading when folder files are loading (covers both folder and uncategorized views)
-  const isLoading = loadingProjects || loadingFiles || loadingFolderFiles;
+  const isLoading = loadingFiles || loadingFolderFiles;
 
   const boxStyles = useMemo(
     () => ({
@@ -732,7 +789,6 @@ const FileManager: React.FC = (): JSX.Element => {
             <FilterBy columns={fileFilterColumns} onFilterChange={handleFileFilterChange} />
             <GroupBy
               options={[
-                { id: "project", label: "Project" },
                 { id: "uploader", label: "Uploader" },
               ]}
               onGroupChange={handleGroupChange}
@@ -766,6 +822,58 @@ const FileManager: React.FC = (): JSX.Element => {
                 <Typography sx={{ color: "#667085" }}>Loading files...</Typography>
                 <CustomizableSkeleton variant="rectangular" sx={{ ...filesTablePlaceholder, marginTop: 2 }} />
               </Box>
+            ) : filesError ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "48px 24px",
+                  textAlign: "center",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    backgroundColor: "#FEE2E2",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 2,
+                  }}
+                >
+                  <Typography sx={{ fontSize: 24 }}>!</Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: "#DC2626",
+                    marginBottom: 1,
+                  }}
+                >
+                  Unable to load files
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    color: "#667085",
+                    maxWidth: 400,
+                    marginBottom: 2,
+                  }}
+                >
+                  {filesError.message}
+                </Typography>
+                <CustomizableButton
+                  variant="outlined"
+                  text="Try again"
+                  onClick={refetch}
+                  sx={{ height: "34px" }}
+                />
+              </Box>
             ) : (
               <Box sx={boxStyles}>
                 <GroupedTableView
@@ -797,6 +905,7 @@ const FileManager: React.FC = (): JSX.Element => {
           open={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
           onSuccess={handleUploadSuccess}
+          showApprovalWorkflow={true}
         />
       )}
 
@@ -808,6 +917,7 @@ const FileManager: React.FC = (): JSX.Element => {
         parentFolder={parentFolderForCreate}
         editFolder={editingFolder}
         isSubmitting={isSubmittingFolder}
+        existingSiblingNames={existingSiblingNames}
       />
 
       {/* Assign to Folder Modal */}

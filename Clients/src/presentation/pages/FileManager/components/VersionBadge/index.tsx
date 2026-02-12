@@ -31,10 +31,8 @@ const getVersionColors = (reviewStatus?: string): VersionColorConfig => {
 };
 
 export function VersionBadge({ version, reviewStatus, size = "small" }: VersionBadgeProps) {
-  if (!version) {
-    return null;
-  }
-
+  // Default to '1.0' if no version provided
+  const effectiveVersion = version || "1.0";
   const colors = getVersionColors(reviewStatus);
   const isSmall = size === "small";
 
@@ -59,7 +57,7 @@ export function VersionBadge({ version, reviewStatus, size = "small" }: VersionB
           whiteSpace: "nowrap",
         }}
       >
-        v{version}
+        v{effectiveVersion}
       </Typography>
     </Box>
   );

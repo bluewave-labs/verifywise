@@ -297,6 +297,35 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     }
   }
 
+  // Create file entity links for new uploaded files
+  for (const file of uploadedFiles) {
+    await sequelize.query(
+      `INSERT INTO "${tenant}".file_entity_links
+        (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+       VALUES (:fileId, 'nist_ai', 'subcategory', :entityId, 'evidence', NOW())
+       ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+      {
+        replacements: { fileId: parseInt(file.id), entityId: id },
+        transaction,
+      }
+    );
+  }
+
+  // Remove file entity links for deleted files
+  for (const fileIdStr of deletedFiles) {
+    const fileId = parseInt(fileIdStr);
+    if (!isNaN(fileId)) {
+      await sequelize.query(
+        `DELETE FROM "${tenant}".file_entity_links
+         WHERE file_id = :fileId AND entity_type = 'subcategory' AND entity_id = :entityId`,
+        {
+          replacements: { fileId, entityId: id },
+          transaction,
+        }
+      );
+    }
+  }
+
   return subcategoryResult;
 };
 

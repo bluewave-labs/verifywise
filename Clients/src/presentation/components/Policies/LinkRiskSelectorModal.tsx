@@ -31,7 +31,7 @@ import {
     tableRowDeletingStyle,
     tableRowHoverStyle,
 } from "../../../presentation/pages/ModelInventory/style";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import TablePaginationActions from "../TablePagination";
 import { paginationStyle } from "../Table/styles";
 import CustomizableToast from "../../components/Toast";

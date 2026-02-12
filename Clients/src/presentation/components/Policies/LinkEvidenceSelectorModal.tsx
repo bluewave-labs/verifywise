@@ -29,7 +29,7 @@ import {
     tableFooterRowStyle,
     tableRowHoverStyle,
 } from "../../../presentation/pages/ModelInventory/style";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import TablePaginationActions from "../TablePagination";
 import { paginationStyle } from "../Table/styles";
 import FileIcon from "../FileIcon";

@@ -19,7 +19,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { useAuth } from "../../../application/hooks/useAuth";
 import {
   getPaginationRowCount,

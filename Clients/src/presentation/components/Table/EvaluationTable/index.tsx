@@ -11,7 +11,7 @@ import {
 import { Suspense, lazy, useMemo, useState, useCallback, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader, { SortConfig } from "./TableHead";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: React.SVGProps<SVGSVGElement>) => (

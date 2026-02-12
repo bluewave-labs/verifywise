@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar } from "@mui/material";
 import { Copy } from "lucide-react";
-import EmptyState from "../../../components/EmptyState";
+import { EmptyState } from "../../../components/EmptyState";
 import SkeletonCard from "../../../components/SkeletonCard";
 import CodeBlock from "../components/CodeBlock";
 
 const emptyStateSnippets = {
-  basic: `import EmptyState from "../EmptyState";
+  basic: `import { EmptyState } from "../EmptyState";
 
 <EmptyState />`,
   customMessage: `<EmptyState

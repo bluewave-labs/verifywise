@@ -54,7 +54,7 @@ import {
     withdrawRequest,
 } from "../../../../application/repository/approvalRequest.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import DetailField from "./DetailField";
 import EntityDetailsSection from "./EntityDetailsSection";
 import { extractEntityDetails } from "./entityTypeConfig";

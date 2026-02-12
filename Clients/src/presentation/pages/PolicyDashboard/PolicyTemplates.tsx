@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Box, Stack, TableRow, TableCell } from "@mui/material";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
 import {
   PolicyTemplate,

@@ -16,7 +16,7 @@ import {
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import Chip from "../Chip";
 import ViewRelationshipsButton from "../ViewRelationshipsButton";
 import IconButton from "../IconButton";

@@ -6,7 +6,7 @@ import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { deletePolicy } from "../../../application/repository/policy.repository";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { SearchBox } from "../../components/Search";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";

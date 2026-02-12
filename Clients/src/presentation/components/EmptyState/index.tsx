@@ -1,5 +1,5 @@
-import React from "react";
-import { Stack, Typography, Box } from "@mui/material";
+import type { FC } from "react";
+import { Stack, Typography, Box, useTheme } from "@mui/material";
 import SkeletonCard from "../SkeletonCard";
 
 interface EmptyStateProps {
@@ -28,37 +28,37 @@ interface EmptyStateProps {
  * Displays a skeleton card stack when no data is available
  * All styling is encapsulated - no need to wrap with additional containers
  */
-const EmptyState: React.FC<EmptyStateProps> = ({
+export const EmptyState: FC<EmptyStateProps> = ({
   message = "There is currently no data in this table.",
   imageAlt = "No data available",
   showHalo = false,
   showBorder = false,
 }) => {
+  const theme = useTheme();
+
   return (
     <Stack
       alignItems="center"
       sx={{
         ...(showBorder && {
-          border: "1px solid #d0d5dd",
+          border: `1px solid ${theme.palette.border.dark}`,
           borderRadius: "4px",
-          backgroundColor: "#FFFFFF",
+          backgroundColor: theme.palette.background.main,
         }),
         pt: "75px",
         pb: 16,
       }}
-      role="img"
+      role="status"
       aria-label={imageAlt}
     >
-      <Box sx={{ mb: "20px" }}>
+      <Box sx={{ mb: 10 }}>
         <SkeletonCard showHalo={showHalo} />
       </Box>
       <Typography
-        sx={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400, paddingX: 10 }}
+        sx={{ fontSize: theme.typography.fontSize, color: theme.palette.text.accent, fontWeight: 400, paddingX: 10 }}
       >
         {message}
       </Typography>
     </Stack>
   );
 };
-
-export default EmptyState;

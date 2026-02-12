@@ -4,7 +4,7 @@ import { LineChart } from "@mui/x-charts/LineChart";
 import { getRiskTimeseries } from "../../../application/repository/riskHistory.repository";
 import { ButtonToggle } from "../button-toggle";
 import CustomizableSkeleton from "../Skeletons";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 
 interface RiskHistoryChartProps {
   parameter?: string;

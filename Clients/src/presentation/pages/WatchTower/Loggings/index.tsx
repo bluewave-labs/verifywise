@@ -9,7 +9,7 @@ import {
 import { useState, useEffect, useMemo } from "react";
 import { getAllLogs } from "../../../../application/repository/logs.repository";
 import LogsTable from "../../../components/Table/LogsTable";
-import EmptyState from "../../../components/EmptyState";
+import { EmptyState } from "../../../components/EmptyState";
 import { RefreshCw as RefreshIcon } from "lucide-react";
 import SearchBox from "../../../components/Search/SearchBox";
 import Select from "../../../components/Inputs/Select";

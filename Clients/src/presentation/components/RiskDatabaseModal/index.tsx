@@ -13,7 +13,7 @@ import {
   Tooltip,
   alpha,
 } from "@mui/material";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import StandardModal from "../Modals/StandardModal";
 import { SearchBox } from "../Search";
 import {

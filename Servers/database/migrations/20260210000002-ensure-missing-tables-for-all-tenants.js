@@ -287,16 +287,12 @@ module.exports = {
           CREATE SEQUENCE IF NOT EXISTS "${tenantHash}".incident_id_seq START 1;
         `, { transaction });
 
-        // Check if default is already set before altering
-        try {
-          await queryInterface.sequelize.query(`
-            ALTER TABLE "${tenantHash}".ai_incident_managements
-            ALTER COLUMN incident_id
-            SET DEFAULT 'INC-' || nextval('"${tenantHash}".incident_id_seq');
-          `, { transaction });
-        } catch (e) {
-          // Ignore if already set
-        }
+        // Set default for incident_id column (idempotent - can run multiple times safely)
+        await queryInterface.sequelize.query(`
+          ALTER TABLE "${tenantHash}".ai_incident_managements
+          ALTER COLUMN incident_id
+          SET DEFAULT 'INC-' || nextval('"${tenantHash}".incident_id_seq');
+        `, { transaction });
 
         await queryInterface.sequelize.query(`
           CREATE INDEX IF NOT EXISTS idx_${tenantHash}_ai_incident_severity ON "${tenantHash}".ai_incident_managements(severity);
@@ -404,16 +400,16 @@ module.exports = {
           );
         `, { transaction });
 
-        // Create trigger if it doesn't exist
-        try {
-          await queryInterface.sequelize.query(`
-            CREATE TRIGGER trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
-            BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
-            FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
-          `, { transaction });
-        } catch (e) {
-          // Trigger may already exist
-        }
+        // Drop and recreate trigger (PostgreSQL has no CREATE TRIGGER IF NOT EXISTS)
+        await queryInterface.sequelize.query(`
+          DROP TRIGGER IF EXISTS trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
+          ON "${tenantHash}".evaluation_llm_api_keys;
+        `, { transaction });
+        await queryInterface.sequelize.query(`
+          CREATE TRIGGER trg_${tenantHash}_update_evaluation_llm_api_keys_updated_at
+          BEFORE UPDATE ON "${tenantHash}".evaluation_llm_api_keys
+          FOR EACH ROW EXECUTE PROCEDURE update_evaluation_llm_api_keys_updated_at();
+        `, { transaction });
 
         console.log(`  ✅ Created evaluation_llm_api_keys table for ${tenantHash}`);
       }

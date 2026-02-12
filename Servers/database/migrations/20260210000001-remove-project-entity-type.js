@@ -7,19 +7,21 @@
  * This migration removes 'project' from all entity_type CHECK constraints.
  */
 
-const TENANTS = [
-  "9f2d1b3e4a5c6d7e8f9a0b1c2d3e4f5a",
-  "0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d",
-  "b6f8e4a2c9d1f3b5a7e0c2d4f6a8b0c2",
-  "c5d3a1b7e9f2c4d6a8b0e2f4a6c8d0e2",
-];
+const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
 module.exports = {
   async up(queryInterface) {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
-      for (const tenant of TENANTS) {
+      // Get all organizations dynamically
+      const [organizations] = await queryInterface.sequelize.query(
+        `SELECT id FROM organizations;`,
+        { transaction }
+      );
+
+      for (const org of organizations) {
+        const tenant = getTenantHash(org.id);
         // Check if schema exists
         const [schemas] = await queryInterface.sequelize.query(
           `SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${tenant}'`,
@@ -94,7 +96,15 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
-      for (const tenant of TENANTS) {
+      // Get all organizations dynamically
+      const [organizations] = await queryInterface.sequelize.query(
+        `SELECT id FROM organizations;`,
+        { transaction }
+      );
+
+      for (const org of organizations) {
+        const tenant = getTenantHash(org.id);
+
         // Check if schema exists
         const [schemas] = await queryInterface.sequelize.query(
           `SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${tenant}'`,

@@ -69,9 +69,10 @@ export async function getApprovalWorkflowsByEntityType({
 }): Promise<any[]> {
   const response = await apiServices.get(`/approval-workflows?entity_type=${entityType}`, {
     signal,
-  });
+  }) as { data?: { data?: unknown[] } | unknown[] };
   // Filter by entity type if the backend doesn't support query param
-  const workflows = response.data?.data || response.data || [];
+  const responseData = response.data as { data?: unknown[] } | unknown[] | undefined;
+  const workflows = (responseData && typeof responseData === 'object' && 'data' in responseData ? responseData.data : responseData) || [];
   return Array.isArray(workflows)
     ? workflows.filter((w: any) => w.entity_type === entityType)
     : [];

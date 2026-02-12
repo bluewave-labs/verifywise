@@ -22,7 +22,7 @@ import CustomException from "../../infrastructure/exceptions/customeException";
 const isCriticalApiError = (error: unknown): boolean => {
   if (error instanceof CustomException) {
     // Rate limit (429), server errors (5xx), or forbidden (403)
-    return error.status === 429 || error.status === 403 || (error.status && error.status >= 500);
+    return error.status === 429 || error.status === 403 || (error.status !== undefined && error.status >= 500);
   }
   return false;
 };

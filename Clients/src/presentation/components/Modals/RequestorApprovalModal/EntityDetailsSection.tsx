@@ -11,7 +11,6 @@ import DetailField from "./DetailField";
 import {
     getEntityTypeConfig,
     isEntityDeleted,
-    hasEntityData,
     EntityTypeConfig,
 } from "./entityTypeConfig";
 

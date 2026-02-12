@@ -151,7 +151,7 @@ const FileManager: React.FC = (): JSX.Element => {
         };
         return findInChildren(folders);
       };
-      return findSiblings(folderTree, editingFolder.parent_id);
+      return findSiblings(folderTree, editingFolder.parent_id ?? null);
     } else if (parentFolderForCreate) {
       // Creating subfolder - siblings are the parent's children
       return parentFolderForCreate.children.map(c => c.name);

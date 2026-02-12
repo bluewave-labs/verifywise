@@ -493,7 +493,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                       id={project.id}
                       type="use case"
                       onEdit={() => handleEditProject(project.id)}
-                      onDelete={() => handleDeleteProject(project.id)}
+                      onDelete={() => { handleDeleteProject(project.id); }}
                       onMouseEvent={() => {}}
                       warningTitle="Delete this use case?"
                       warningMessage="Note that deleting a use case will remove all data related to that use case from your system. This is permanent and non-recoverable."

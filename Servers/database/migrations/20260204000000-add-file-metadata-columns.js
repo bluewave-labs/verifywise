@@ -32,7 +32,7 @@ module.exports = {
       const { getTenantHash } = require("../../dist/tools/getTenantHash");
 
       for (const organization of organizations) {
-        const tenantHash = validateTenantHash(getTenantHash(organization.id));
+        const tenantHash = (getTenantHash(organization.id));
 
         // Check if files table exists using parameterized query
         const [tableExists] = await queryInterface.sequelize.query(

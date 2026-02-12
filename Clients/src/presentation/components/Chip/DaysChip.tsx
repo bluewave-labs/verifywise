@@ -16,12 +16,12 @@ interface DaysChipProps {
  * - Yellow/amber styling if within urgent threshold
  * - Blue styling otherwise
  */
-const DaysChip: React.FC<DaysChipProps> = ({
+export function DaysChip({
   dueDate,
   maxDays = 50,
   urgentThreshold = 3,
-}) => {
-  const dueDateObj = typeof dueDate === "string" ? new Date(dueDate) : dueDate;
+}: DaysChipProps) {
+  const dueDateObj = new Date(typeof dueDate === "string" ? dueDate : dueDate.getTime());
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   dueDateObj.setHours(0, 0, 0, 0);
@@ -44,6 +44,4 @@ const DaysChip: React.FC<DaysChipProps> = ({
       }}
     />
   );
-};
-
-export default DaysChip;
+}

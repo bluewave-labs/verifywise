@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import StandardModal from "../../Modals/StandardModal";
 import { CustomizableButton } from "../../button/customizable-button";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
@@ -18,6 +18,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../Alert";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
+import { useIsAdmin } from "../../../../application/hooks/useIsAdmin";
 import {
   IGenerateReportProps,
   ReportFormat,
@@ -48,6 +49,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   const [responseStatusCode, setResponseStatusCode] = useState<number>(200);
   const { users } = useUsers();
   const { data: projects } = useProjects();
+  const isAdmin = useIsAdmin();
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -343,6 +345,44 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
 
     return null;
   };
+
+  // Show access denied message for non-admin users
+  if (!isAdmin) {
+    return (
+      <StandardModal
+        isOpen={true}
+        onClose={onClose}
+        title="Access Restricted"
+        description=""
+        hideFooter={false}
+        maxWidth="400px"
+        customFooter={
+          <CustomizableButton
+            variant="contained"
+            text="Close"
+            onClick={onClose}
+            sx={{
+              minWidth: "80px",
+              height: "34px",
+              backgroundColor: "#13715B",
+              "&:hover": {
+                backgroundColor: "#0F5A47",
+              },
+            }}
+          />
+        }
+      >
+        <Stack spacing={2} sx={{ py: 2, textAlign: "center" }}>
+          <Typography sx={{ color: "#344054", fontSize: 14 }}>
+            Only administrators can generate and download reports.
+          </Typography>
+          <Typography sx={{ color: "#667085", fontSize: 13 }}>
+            Please contact your administrator if you need access to this feature.
+          </Typography>
+        </Stack>
+      </StandardModal>
+    );
+  }
 
   return (
     <Stack>

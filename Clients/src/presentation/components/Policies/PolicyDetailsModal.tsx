@@ -2,8 +2,7 @@ import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
-import { Plate, PlateContent, createPlateEditor } from "platejs/react";
-import { serializeHtml } from "platejs/static";
+import { Plate, PlateContent, createPlateEditor, ParagraphPlugin } from "platejs/react";
 import { AutoformatPlugin } from "@platejs/autoformat";
 import { Range, Editor, BaseRange, Transforms, Path } from "slate";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
@@ -63,7 +62,7 @@ import Select from "../Inputs/Select";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
 import { CustomizableButton } from "../button/customizable-button";
-import HistorySidebar from "../Common/HistorySidebar";
+import { HistorySidebar } from "../Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import {
   createPolicy,
@@ -266,6 +265,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     () =>
       createPlateEditor({
         plugins: [
+          ParagraphPlugin,
           BoldPlugin,
           ItalicPlugin,
           UnderlinePlugin,
@@ -599,103 +599,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     return normalized;
   };
 
-  // Convert Plate's serialized HTML output to standard semantic HTML for storage
-  // This ensures proper paragraph formatting when content is displayed outside the editor
-  const normalizeSerializedHtml = (html: string): string => {
-    let normalized = html;
-
-    // Remove nested span wrappers that Plate adds (data-slate-node="text", data-slate-leaf, data-slate-string)
-    // Keep the innermost text content and formatting tags like <strong>, <em>, etc.
-    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
-    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>/gi, '');
-    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
-
-    // Remove orphaned closing </span> tags (from the spans we opened above)
-    // Count and remove only the extra ones
-    const spanOpenCount = (normalized.match(/<span[^>]*>/gi) || []).length;
-    let spanCloseCount = (normalized.match(/<\/span>/gi) || []).length;
-    while (spanCloseCount > spanOpenCount) {
-      normalized = normalized.replace(/<\/span>/, '');
-      spanCloseCount--;
-    }
-
-    // Convert element divs to proper semantic HTML based on block-id patterns
-    // Headings: data-block-id starting with "heading-" or "title-"
-    normalized = normalized.replace(/<div[^>]*data-block-id="(?:title|heading)-[^"]*"[^>]*>/gi, '<h2>');
-
-    // Paragraphs: data-block-id starting with "paragraph-" or "summary-"
-    normalized = normalized.replace(/<div[^>]*data-block-id="(?:paragraph|summary)-[^"]*"[^>]*>/gi, '<p>');
-
-    // List containers: data-block-id starting with "bullets-" or "numbered-"
-    normalized = normalized.replace(/<div[^>]*data-block-id="bullets-[^"]*"[^>]*>/gi, '<ul>');
-    normalized = normalized.replace(/<div[^>]*data-block-id="numbered-[^"]*"[^>]*>/gi, '<ol>');
-
-    // List items: data-block-id starting with "li-"
-    normalized = normalized.replace(/<div[^>]*data-block-id="li-[^"]*"[^>]*>/gi, '<li>');
-
-    // Any remaining element divs become paragraphs (generic content blocks)
-    normalized = normalized.replace(/<div[^>]*data-slate-node="element"[^>]*>/gi, '<p>');
-
-    // Now convert closing </div> tags to match the opening tags we converted
-    // Parse through and match them properly
-    const tokens = normalized.split(/(<[^>]+>)/);
-    const tagStack: string[] = [];
-    const result: string[] = [];
-
-    for (const token of tokens) {
-      if (token.startsWith('<') && !token.startsWith('</') && !token.endsWith('/>')) {
-        // Opening tag
-        const tagMatch = token.match(/^<(\w+)/);
-        if (tagMatch) {
-          tagStack.push(tagMatch[1]);
-        }
-        result.push(token);
-      } else if (token.startsWith('</')) {
-        // Closing tag
-        const tagMatch = token.match(/^<\/(\w+)/);
-        if (tagMatch) {
-          const closingTag = tagMatch[1].toLowerCase();
-          if (closingTag === 'div' && tagStack.length > 0) {
-            // Replace </div> with the appropriate closing tag
-            const openTag = tagStack.pop()!.toLowerCase();
-            if (['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'blockquote'].includes(openTag)) {
-              result.push(`</${openTag}>`);
-            } else {
-              result.push(token);
-            }
-          } else {
-            if (tagStack.length > 0) tagStack.pop();
-            result.push(token);
-          }
-        } else {
-          result.push(token);
-        }
-      } else {
-        result.push(token);
-      }
-    }
-
-    normalized = result.join('');
-
-    // Clean up any remaining data-* attributes
-    normalized = normalized.replace(/\s*data-[a-z-]+="[^"]*"/gi, '');
-
-    // Clean up style attributes with just position:relative
-    normalized = normalized.replace(/\s*style="position:\s*relative;?\s*"/gi, '');
-
-    // Clean up empty attributes
-    normalized = normalized.replace(/\s*style=""\s*/gi, ' ');
-    normalized = normalized.replace(/\s*class=""\s*/gi, ' ');
-
-    // Clean up multiple spaces
-    normalized = normalized.replace(/\s+/g, ' ');
-
-    // Trim whitespace around tags
-    normalized = normalized.replace(/>\s+</g, '><');
-
-    return normalized;
-  };
-
   useEffect(() => {
     if ((policy || template) && editor) {
       const api = editor.api.html;
@@ -754,6 +657,10 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     "alt",
                     "src",
                     "data-src",
+                    "data-slate-type",
+                    "data-slate-node",
+                    "data-slate-id",
+                    "data-block-id",
                     "class",
                     "id",
                     "style",
@@ -964,62 +871,71 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     return html;
   };
 
-  // Custom HTML serializer that handles images and tables without hooks
+  // Custom HTML serializer that directly generates semantic HTML from editor nodes
+  // This bypasses Plate's serializeHtml which outputs generic divs
   const serializeToHtml = async (): Promise<string> => {
-    // Get HTML from serializeHtml but replace image/table placeholders
-    // First, temporarily remove special nodes and track their positions
-    const editorValue = JSON.parse(JSON.stringify(editor.children));
+    const editorValue = editor.children;
 
-    // Process nodes recursively to replace images and tables with placeholder markers
+    // Serialize text marks (bold, italic, etc.)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const imageMap = new Map<string, any>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tableMap = new Map<string, any>();
-    let imageIndex = 0;
-    let tableIndex = 0;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const processNode = (node: any): any => {
-      if (node.type === "image") {
-        const placeholder = `__IMAGE_PLACEHOLDER_${imageIndex}__`;
-        imageMap.set(placeholder, node);
-        imageIndex++;
-        return { type: "p", children: [{ text: placeholder }] };
-      }
-      if (node.type === "table") {
-        const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
-        tableMap.set(placeholder, node);
-        tableIndex++;
-        return { type: "p", children: [{ text: placeholder }] };
-      }
-      if (node.children) {
-        return { ...node, children: node.children.map(processNode) };
-      }
-      return node;
+    const serializeText = (node: any): string => {
+      if (node.text === undefined) return '';
+      let text = node.text;
+      // Escape HTML entities
+      text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (node.bold) text = `<strong>${text}</strong>`;
+      if (node.italic) text = `<em>${text}</em>`;
+      if (node.underline) text = `<u>${text}</u>`;
+      if (node.strikethrough) text = `<s>${text}</s>`;
+      if (node.highlight) text = `<mark>${text}</mark>`;
+      return text;
     };
 
-    const processedValue = editorValue.map(processNode);
+    // Map node types to HTML tags
+    const tagMap: Record<string, string> = {
+      'h1': 'h1', 'heading-one': 'h1',
+      'h2': 'h2', 'heading-two': 'h2',
+      'h3': 'h3', 'heading-three': 'h3',
+      'blockquote': 'blockquote',
+      'ul': 'ul', 'bulleted_list': 'ul', 'bulleted-list': 'ul',
+      'ol': 'ol', 'numbered_list': 'ol', 'numbered-list': 'ol',
+      'li': 'li', 'list_item': 'li', 'list-item': 'li',
+      'tr': 'tr', 'td': 'td', 'th': 'th',
+      'p': 'p',
+    };
 
-    // Create a temporary editor clone for serialization to avoid modifying the actual editor
-    // This prevents placeholders from appearing in the UI
-    const tempEditor = createPlateEditor({
-      plugins: editor.pluginList,
-      value: processedValue,
-    });
+    // Serialize a single node to HTML
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const serializeNode = (node: any): string => {
+      if (node.text !== undefined) return serializeText(node);
 
-    let html = await serializeHtml(tempEditor);
+      const childrenHtml = node.children
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? node.children.map((child: any) => serializeNode(child)).join('')
+        : '';
 
-    // Replace placeholders with actual HTML
-    imageMap.forEach((imageNode, placeholder) => {
-      html = html.replace(placeholder, serializeImageToHtml(imageNode));
-    });
-    tableMap.forEach((tableNode, placeholder) => {
-      html = html.replace(placeholder, serializeTableToHtml(tableNode));
-    });
+      const type = node.type || 'p';
 
-    // Normalize Slate's div-based output to proper semantic HTML with <p> tags
-    // This ensures proper paragraph formatting when displayed outside the editor
-    html = normalizeSerializedHtml(html);
+      // Special cases that need custom handling
+      if (type === 'lic' || type === 'list_item_content' || type === 'list-item-content') {
+        return childrenHtml;
+      }
+      if (type === 'a' || type === 'link') {
+        const href = node.url || node.href || '#';
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer">${childrenHtml}</a>`;
+      }
+      if (type === 'image') return serializeImageToHtml(node);
+      if (type === 'table') return serializeTableToHtml(node);
+
+      // Standard tag mapping
+      const tag = tagMap[type] || 'p';
+      const align = node.align ? ` style="text-align: ${node.align};"` : '';
+      return `<${tag}${align}>${childrenHtml}</${tag}>`;
+    };
+
+    // Serialize all top-level nodes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const html = editorValue.map((node: any) => serializeNode(node)).join('');
 
     return html;
   };

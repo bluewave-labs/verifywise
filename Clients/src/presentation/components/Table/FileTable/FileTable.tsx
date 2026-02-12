@@ -5,7 +5,7 @@ import {
   ArrowUp as AscendingIcon,
   ArrowDown as DescendingIcon,
 } from "lucide-react";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
 import { IFileTableProps } from "../../../types/interfaces/i.table";
 
@@ -19,6 +19,8 @@ const FileTable: React.FC<IFileTableProps> = ({
   onAssignToFolder,
   onPreview,
   onEditMetadata,
+  onViewHistory,
+  visibleColumnKeys,
 }) => {
   const [sortField, setSortField] = useState<keyof FileModel | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -84,6 +86,8 @@ const FileTable: React.FC<IFileTableProps> = ({
         uploadDate: file.getFormattedUploadDate(),
         uploader: file.uploaderName || file.uploader,
         source: file.source,
+        version: file.version,
+        reviewStatus: file.reviewStatus,
       })),
     [sortedFiles]
   );
@@ -104,6 +108,8 @@ const FileTable: React.FC<IFileTableProps> = ({
       onAssignToFolder={onAssignToFolder}
       onPreview={onPreview}
       onEditMetadata={onEditMetadata}
+      onViewHistory={onViewHistory}
+      visibleColumnKeys={visibleColumnKeys}
     />
   );
 };

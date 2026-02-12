@@ -46,8 +46,9 @@ export const createLLMKeyQuery = async (
   tenant: string,
   transaction: Transaction,
 ) => {
+  // Exclude 'key' from RETURNING to prevent exposing API key in response
   const result = (await sequelize.query(
-    `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING *;`,
+    `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING id, name, url, model, created_at;`,
     {
       replacements: {
         key: data.key,
@@ -79,7 +80,8 @@ export const updateLLMKeyByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE "${tenant}".llm_keys SET ${setClause} WHERE id = :id RETURNING *;`;
+  // Exclude 'key' from RETURNING to prevent exposing API key in response
+  const query = `UPDATE "${tenant}".llm_keys SET ${setClause} WHERE id = :id RETURNING id, name, url, model, created_at;`;
 
   updateData.id = id;
 

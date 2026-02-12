@@ -13,7 +13,7 @@ import React, { useState } from 'react';
 import { IconButton } from '@mui/material';
 import { GitBranch } from 'lucide-react';
 import VWTooltip from '../VWTooltip';
-import EntityGraphModal, { FocusEntityType } from '../EntityGraphModal';
+import { EntityGraphModal, FocusEntityType } from "../EntityGraphModal";
 
 interface ViewRelationshipsButtonProps {
   entityId: string | number;

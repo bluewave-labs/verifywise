@@ -21,8 +21,8 @@ import {
     ChevronsUpDown,
 } from "lucide-react";
 import CustomIconButton from "../../components/IconButton";
-
-import EmptyState from "../../components/EmptyState";
+import { FileIcon } from "../../components/FileIcon";
+import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 
 import {
@@ -220,7 +220,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                 id: linked.id, // policy_linked_objects row id
                 object_id: linked.object_id,
                 type: type,
-    
+
                 // ---- NAME ----
                 name:
                     type === "risk"
@@ -228,6 +228,9 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                         : type === "evidence"
                         ? source?.fileName || "-"
                         : "-",
+
+                // ---- FILE NAME (for FileIcon) ----
+                fileName: type === "evidence" ? source?.fileName || "" : "",
     
                 // ---- CREATED BY ----
                 created_by:
@@ -276,6 +279,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
       id: any;
       type: any;
       name: any;
+      fileName: string;
       created_by: string;
       due_date: any;
     };
@@ -358,15 +362,17 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                                 }}
                             >
                                 
-                                <TableCell
-                                >
-                                    <TooltipCell value={row.name} />
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                        {row.fileName && <FileIcon fileName={row.fileName} />}
+                                        <TooltipCell value={row.name} />
+                                    </Box>
                                 </TableCell>
-                                
-                                <TableCell>{row.type}</TableCell>
-                                <TableCell>{row.created_by}</TableCell>
+
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{row.type}</TableCell>
+                                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{row.created_by}</TableCell>
                                 {type === "risk" && (
-                                        <TableCell>
+                                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                                             {row.due_date !== "-"
                                                 ? new Date(row.due_date).toLocaleDateString("en-GB")
                                                 : "-"}
@@ -375,6 +381,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
 
                                 <TableCell
                                     sx={{
+                                        ...singleTheme.tableStyles.primary.body.cell,
                                         position: "sticky",
                                         right: 0,
                                         background:

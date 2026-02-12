@@ -41,6 +41,7 @@ export const EMAIL_TEMPLATES = {
 
   // Approval workflow templates
   APPROVAL_REQUESTED: "approval-requested.mjml",
+  APPROVAL_STEP_COMPLETED: "approval-step-completed.mjml",
   APPROVAL_COMPLETE: "approval-complete.mjml",
   APPROVAL_REJECTED: "approval-rejected.mjml",
 

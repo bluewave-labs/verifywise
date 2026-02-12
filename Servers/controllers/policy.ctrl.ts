@@ -7,8 +7,10 @@ import {
   getAllPoliciesQuery,
   getPolicyByIdQuery,
   updatePolicyByIdQuery,
+  updatePolicyReviewStatusQuery,
 } from "../utils/policyManager.utils";
 import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 import {
   recordPolicyCreation,
   trackPolicyChanges,
@@ -19,6 +21,12 @@ import {
   generatePolicyDOCX,
   generateFilename,
 } from "../services/policies/policyExporter";
+import {
+  notifyReviewRequested,
+  notifyReviewApproved,
+  notifyReviewRejected,
+} from "../services/inAppNotification.service";
+import { NotificationEntityType } from "../domain.layer/interfaces/i.notification";
 
 export class PolicyController {
   // Get all policies
@@ -260,6 +268,227 @@ export class PolicyController {
       return res.send(docxBuffer);
     } catch (error) {
       console.error("Error exporting policy as DOCX:", error);
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Request review for a policy
+  static async requestReview(req: Request, res: Response) {
+    const transaction = await sequelize.transaction();
+    try {
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+      if (isNaN(policyId)) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
+      }
+
+      const userId = req.userId!;
+      const { reviewer_ids, message } = req.body;
+
+      if (!reviewer_ids || !Array.isArray(reviewer_ids) || reviewer_ids.length === 0) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]("reviewer_ids is required"));
+      }
+
+      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      if (!policyResult || policyResult.length === 0) {
+        await transaction.rollback();
+        return res.status(404).json(STATUS_CODE[404](null));
+      }
+      const policy = policyResult[0] as any;
+
+      // Update review status to pending_review
+      await updatePolicyReviewStatusQuery(
+        req.tenantId!,
+        policyId,
+        "pending_review",
+        userId,
+        message,
+        transaction
+      );
+
+      await transaction.commit();
+
+      // Send notifications to each reviewer
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const requesterUser = await sequelize.query(
+        `SELECT name, surname FROM public.users WHERE id = :userId`,
+        { replacements: { userId }, type: QueryTypes.SELECT }
+      ) as { name: string; surname: string }[];
+      const requesterName = requesterUser[0]
+        ? `${requesterUser[0].name} ${requesterUser[0].surname}`
+        : "User";
+
+      for (const rid of reviewer_ids) {
+        const reviewerId = Number(rid);
+        if (isNaN(reviewerId)) continue;
+        try {
+          await notifyReviewRequested(
+            req.tenantId!,
+            reviewerId,
+            {
+              type: NotificationEntityType.POLICY,
+              id: policyId,
+              name: policy.title,
+              projectName: "",
+            },
+            requesterName,
+            message || "Please review this policy.",
+            baseUrl
+          );
+        } catch (notifyError) {
+          console.error("Failed to notify reviewer %d:", reviewerId, notifyError);
+        }
+      }
+
+      const updatedPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
+    } catch (error) {
+      await transaction.rollback();
+      console.error("Error requesting policy review:", error);
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Approve a policy review
+  static async approveReview(req: Request, res: Response) {
+    const transaction = await sequelize.transaction();
+    try {
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+      if (isNaN(policyId)) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
+      }
+
+      const reviewerId = req.userId!;
+      const { comment } = req.body;
+
+      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      if (!policyResult || policyResult.length === 0) {
+        await transaction.rollback();
+        return res.status(404).json(STATUS_CODE[404](null));
+      }
+      const policy = policyResult[0] as any;
+
+      // Update review status to approved
+      await updatePolicyReviewStatusQuery(
+        req.tenantId!,
+        policyId,
+        "approved",
+        reviewerId,
+        comment,
+        transaction
+      );
+
+      await transaction.commit();
+
+      // Notify the policy author
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const reviewerUser = await sequelize.query(
+        `SELECT name, surname FROM public.users WHERE id = :reviewerId`,
+        { replacements: { reviewerId }, type: QueryTypes.SELECT }
+      ) as { name: string; surname: string }[];
+      const reviewerName = reviewerUser[0]
+        ? `${reviewerUser[0].name} ${reviewerUser[0].surname}`
+        : "Reviewer";
+
+      try {
+        await notifyReviewApproved(
+          req.tenantId!,
+          policy.author_id,
+          {
+            type: NotificationEntityType.POLICY,
+            id: policyId,
+            name: policy.title,
+            projectName: "",
+          },
+          reviewerName,
+          comment || "Looks good!",
+          baseUrl
+        );
+      } catch (notifyError) {
+        console.error("Failed to send review approved notification:", notifyError);
+      }
+
+      const updatedPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
+    } catch (error) {
+      await transaction.rollback();
+      console.error("Error approving policy review:", error);
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Reject a policy review (request changes)
+  static async rejectReview(req: Request, res: Response) {
+    const transaction = await sequelize.transaction();
+    try {
+      const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+      if (isNaN(policyId)) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
+      }
+
+      const reviewerId = req.userId!;
+      const { comment } = req.body;
+
+      if (!comment) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]("comment is required when requesting changes"));
+      }
+
+      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      if (!policyResult || policyResult.length === 0) {
+        await transaction.rollback();
+        return res.status(404).json(STATUS_CODE[404](null));
+      }
+      const policy = policyResult[0] as any;
+
+      // Update review status to changes_requested
+      await updatePolicyReviewStatusQuery(
+        req.tenantId!,
+        policyId,
+        "changes_requested",
+        reviewerId,
+        comment,
+        transaction
+      );
+
+      await transaction.commit();
+
+      // Notify the policy author
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const reviewerUser = await sequelize.query(
+        `SELECT name, surname FROM public.users WHERE id = :reviewerId`,
+        { replacements: { reviewerId }, type: QueryTypes.SELECT }
+      ) as { name: string; surname: string }[];
+      const reviewerName = reviewerUser[0]
+        ? `${reviewerUser[0].name} ${reviewerUser[0].surname}`
+        : "Reviewer";
+
+      try {
+        await notifyReviewRejected(
+          req.tenantId!,
+          policy.author_id,
+          {
+            type: NotificationEntityType.POLICY,
+            id: policyId,
+            name: policy.title,
+            projectName: "",
+          },
+          reviewerName,
+          comment,
+          baseUrl
+        );
+      } catch (notifyError) {
+        console.error("Failed to send review rejected notification:", notifyError);
+      }
+
+      const updatedPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
+    } catch (error) {
+      await transaction.rollback();
+      console.error("Error rejecting policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

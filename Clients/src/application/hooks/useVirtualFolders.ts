@@ -106,8 +106,11 @@ export function useVirtualFolders(): UseVirtualFoldersReturn {
     setSelectedFolder(folder);
 
     if (typeof folder === "number") {
+      // Keep old breadcrumb visible while loading new one to prevent flash
+      setLoadingBreadcrumb(true);
       loadBreadcrumb(folder);
     } else {
+      // Only clear breadcrumb when going to "all" or "uncategorized"
       setBreadcrumb([]);
     }
   }, [loadBreadcrumb]);

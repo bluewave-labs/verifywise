@@ -15,6 +15,9 @@ export interface NotificationInfo {
   requesterId?: number;
   requestName: string;
   stepNumber?: number;
+  // Additional fields for step completion notifications to requester
+  completedStep?: number;
+  totalSteps?: number;
 }
 
 /**
@@ -173,10 +176,11 @@ export const getApprovalRequestByIdQuery = async (
   tenantId: string,
   transaction: Transaction | null = null
 ): Promise<any | null> => {
-  // Get approval request with project/use-case details and workflow info
+  // Get approval request with project/use-case/file details and workflow info
   const [requestData] = await sequelize.query(
     `SELECT
       ar.*,
+      -- Project/use-case fields
       p.project_title,
       p.uc_id,
       p.description as project_description,
@@ -191,13 +195,24 @@ export const getApprovalRequestByIdQuery = async (
       owner_user.name as owner_name,
       owner_user.surname as owner_surname,
       owner_user.email as owner_email,
+      -- File fields
+      f.filename as file_name,
+      f.size as file_size,
+      f.type as file_type,
+      f.review_status as file_review_status,
+      f.uploaded_time as file_uploaded_time,
+      file_uploader.name as file_uploader_name,
+      file_uploader.surname as file_uploader_surname,
+      -- Common fields
       requester_user.name as requester_name,
       requester_user.surname as requester_surname,
       requester_user.email as requester_email,
       aw.workflow_title as workflow_name
      FROM "${tenantId}".approval_requests ar
      LEFT JOIN "${tenantId}".projects p ON ar.entity_id = p.id AND ar.entity_type = 'use_case'
+     LEFT JOIN "${tenantId}".files f ON ar.entity_id = f.id AND ar.entity_type = 'file'
      LEFT JOIN public.users owner_user ON p.owner = owner_user.id
+     LEFT JOIN public.users file_uploader ON f.uploaded_by = file_uploader.id
      LEFT JOIN public.users requester_user ON ar.requested_by = requester_user.id
      LEFT JOIN "${tenantId}".approval_workflows aw ON ar.workflow_id = aw.id
      WHERE ar.id = :requestId`,
@@ -387,6 +402,23 @@ export const processApprovalQuery = async (
       }
     );
 
+    // ===== FILE STATUS UPDATE AFTER REJECTION =====
+    const entityId = (request as any).entity_id;
+    const entityType = (request as any).entity_type;
+
+    if (entityType === "file" && entityId) {
+      // Update file review_status to 'rejected'
+      await sequelize.query(
+        `UPDATE "${tenantId}".files
+         SET review_status = 'rejected', updated_at = NOW()
+         WHERE id = :entityId`,
+        {
+          replacements: { entityId },
+          transaction,
+        }
+      );
+    }
+
     // Return notification info for requester rejection
     return {
       type: 'requester_rejected',
@@ -438,13 +470,16 @@ export const processApprovalQuery = async (
         }
       );
 
-      // Return notification info for next step approvers
+      // Return notification info for next step approvers AND requester progress update
       return {
         type: 'step_approvers',
         tenantId,
         requestId,
+        requesterId: (request as any).requested_by,
         stepNumber: currentStep + 1,
         requestName: (request as any).request_name,
+        completedStep: currentStep,
+        totalSteps: stepCount,
       };
     } else {
       // All steps completed - mark as approved
@@ -556,6 +591,20 @@ export const processApprovalQuery = async (
             }
           );
         }
+      }
+
+      // ===== FILE STATUS UPDATE AFTER APPROVAL =====
+      if (entityType === "file" && entityId) {
+        // Update file review_status to 'approved'
+        await sequelize.query(
+          `UPDATE "${tenantId}".files
+           SET review_status = 'approved', updated_at = NOW()
+           WHERE id = :entityId`,
+          {
+            replacements: { entityId },
+            transaction,
+          }
+        );
       }
 
       // Return notification info after all processing is done
@@ -694,4 +743,99 @@ export const getApprovalStatusQuery = async (
   }
 
   return null;
+};
+
+/**
+ * Reject an approval request when the associated entity is deleted
+ * This is used when a file with a pending approval is deleted
+ */
+export const rejectApprovalRequestOnEntityDelete = async (
+  approvalRequestId: number,
+  tenantId: string,
+  reason: string = "The associated entity has been deleted."
+): Promise<NotificationInfo | null> => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Get the approval request
+    const [request] = await sequelize.query(
+      `SELECT id, request_name, requested_by, status
+       FROM "${tenantId}".approval_requests
+       WHERE id = :requestId`,
+      {
+        replacements: { requestId: approvalRequestId },
+        type: "SELECT",
+        transaction,
+      }
+    ) as any[];
+
+    if (!request || request.status !== ApprovalRequestStatus.PENDING) {
+      await transaction.rollback();
+      return null; // Request doesn't exist or is not pending
+    }
+
+    // Update request status to Rejected
+    await sequelize.query(
+      `UPDATE "${tenantId}".approval_requests
+       SET status = :status, updated_at = NOW()
+       WHERE id = :requestId`,
+      {
+        replacements: {
+          status: ApprovalRequestStatus.REJECTED,
+          requestId: approvalRequestId,
+        },
+        transaction,
+      }
+    );
+
+    // Update all pending steps to Rejected
+    await sequelize.query(
+      `UPDATE "${tenantId}".approval_request_steps
+       SET status = :status, date_completed = NOW()
+       WHERE request_id = :requestId AND status = :pendingStatus`,
+      {
+        replacements: {
+          status: ApprovalStepStatus.REJECTED,
+          requestId: approvalRequestId,
+          pendingStatus: ApprovalStepStatus.PENDING,
+        },
+        transaction,
+      }
+    );
+
+    // Update all pending step approvals with the rejection reason
+    await sequelize.query(
+      `UPDATE "${tenantId}".approval_request_step_approvals
+       SET status = :status, comments = :reason, date_responded = NOW()
+       WHERE request_step_id IN (
+         SELECT id FROM "${tenantId}".approval_request_steps WHERE request_id = :requestId
+       ) AND status = :pendingStatus`,
+      {
+        replacements: {
+          status: ApprovalResult.REJECTED,
+          reason,
+          requestId: approvalRequestId,
+          pendingStatus: ApprovalResult.PENDING,
+        },
+        transaction,
+      }
+    );
+
+    await transaction.commit();
+
+    console.log(`📋 Approval request ${approvalRequestId} rejected: ${reason}`);
+
+    // Return notification info to notify the requester
+    return {
+      type: 'requester_rejected',
+      tenantId,
+      requestId: approvalRequestId,
+      requesterId: request.requested_by,
+      requestName: request.request_name,
+    };
+  } catch (error) {
+    await transaction.rollback();
+    console.error(`Failed to reject approval request ${approvalRequestId}:`, error);
+    throw error;
+  }
 };

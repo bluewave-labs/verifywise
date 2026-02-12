@@ -30,6 +30,7 @@ import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
+import ModelDetailPage from "../../presentation/pages/ModelInventory/ModelDetailPage";
 import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
@@ -39,6 +40,7 @@ import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
+import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import AIDetectionPage from "../../presentation/pages/AIDetection";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
@@ -54,6 +56,8 @@ export const createRoutes = (
 ) => [
   // ReactFlow Demo - Development only (must be before dashboard route)
   ...(isDev ? [<Route key="reactflow-demo" path="/reactflow-demo" element={<ReactFlowDemo />} />] : []),
+  // Wizard Showcase - Development only
+  ...(isDev ? [<Route key="wizard-showcase" path="/wizard-showcase" element={<WizardShowcase />} />] : []),
   <Route
     key="dashboard"
     path="/"
@@ -97,6 +101,7 @@ export const createRoutes = (
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/model-inventory/datasets" element={<ModelInventory />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
+    <Route path="/model-inventory/models/:id" element={<ModelDetailPage />} />
     {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}
     <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />

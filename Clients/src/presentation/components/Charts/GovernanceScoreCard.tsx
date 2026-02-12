@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { DASHBOARD_COLORS, TEXT_STYLES } from "../../styles/colors";
 
@@ -23,7 +22,7 @@ const getScoreColor = (score: number): string => {
 };
 
 // Circular progress component for the main score (includes label)
-const ScoreGauge: React.FC<{ score: number; size?: number }> = ({ score, size = 100 }) => {
+function ScoreGauge({ score, size = 100 }: { score: number; size?: number }) {
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -46,22 +45,30 @@ const ScoreGauge: React.FC<{ score: number; size?: number }> = ({ score, size = 
   );
 };
 
-export const GovernanceScoreCard: React.FC<GovernanceScoreProps> = ({ score, modules }) => {
+export function GovernanceScoreCard({ score, modules }: GovernanceScoreProps) {
   return (
     <Stack direction="row" alignItems="center" justifyContent="space-between">
       <ScoreGauge score={score} size={100} />
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+      <Stack spacing={2} sx={{ minWidth: 160 }}>
         {modules.map((module) => {
           const scoreColor = getScoreColor(module.score);
           return (
-            <Typography key={module.name} sx={{ fontSize: 12, color: C.textSecondary }}>
-              {module.name} <span style={{ fontWeight: 600, color: scoreColor }}>{module.score}%</span>
+            <Typography
+              key={module.name}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                fontSize: 12,
+                color: C.textSecondary,
+              }}
+            >
+              <span>{module.name}</span>
+              <span style={{ fontWeight: 600, color: scoreColor }}>{module.score}%</span>
             </Typography>
           );
         })}
-      </Box>
+      </Stack>
     </Stack>
   );
-};
-
-export default GovernanceScoreCard;
+}

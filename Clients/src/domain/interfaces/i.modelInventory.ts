@@ -8,7 +8,7 @@ export interface IModelInventory {
   provider: string;
   model: string;
   version?: string;
-  approver: number;
+  approver?: number;
   capabilities: string[];
   security_assessment: boolean;
   status: ModelInventoryStatus;
@@ -69,6 +69,7 @@ export interface ModelInventoryTableProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string, deleteRisks?: boolean) => void;
   onCheckModelHasRisks?: (id: string) => Promise<boolean>;
+  onViewDetails?: (id: string) => void;
   paginated?: boolean;
   deletingId?: string | null;
   hidePagination?: boolean;

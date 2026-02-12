@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Typography, Stack, Box } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { getModelInventoryTimeseries } from "../../../application/repository/modelInventoryHistory.repository";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { ButtonToggle } from "../button-toggle";
 import CustomizableSkeleton from "../Skeletons";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 
 interface ModelInventoryHistoryChartProps {
   parameter?: string;
@@ -29,10 +29,10 @@ const TIMEFRAME_OPTIONS = [
   { value: "1year", label: "1 Year" },
 ];
 
-const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
+export function ModelInventoryHistoryChart({
   parameter = "status",
   height = 400,
-}) => {
+}: ModelInventoryHistoryChartProps) {
   const storageKey = "analytics_timeframe_model";
 
   // Initialize timeframe from localStorage or default
@@ -46,18 +46,14 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeseriesData, setTimeseriesData] = useState<any[]>([]);
+  const [timeseriesData, setTimeseriesData] = useState<{ timestamp: string; data: Record<string, number> }[]>([]);
 
   // Persist timeframe to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(storageKey, timeframe);
   }, [timeframe]);
 
-  useEffect(() => {
-    fetchTimeseriesData();
-  }, [timeframe, parameter]);
-
-  const fetchTimeseriesData = async () => {
+  const fetchTimeseriesData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -65,13 +61,18 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
       if (response?.data?.data) {
         setTimeseriesData(response.data.data.data);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching timeseries data:", err);
-      setError(err?.response?.data?.message || "Failed to load chart data");
+      const message = err instanceof Error ? err.message : "Failed to load chart data";
+      setError(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [parameter, timeframe]);
+
+  useEffect(() => {
+    fetchTimeseriesData();
+  }, [fetchTimeseriesData]);
 
   const handleTimeframeChange = (newTimeframe: string) => {
     setTimeframe(newTimeframe);
@@ -245,6 +246,4 @@ const ModelInventoryHistoryChart: React.FC<ModelInventoryHistoryChartProps> = ({
       </Stack>
     </Stack>
   );
-};
-
-export default ModelInventoryHistoryChart;
+}

@@ -14,16 +14,25 @@ import {
   ListItem,
   ListItemText,
   useTheme,
+  Collapse,
 } from "@mui/material";
-import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
+import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon, Info } from "lucide-react";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
+import { getApprovalWorkflowsByEntityType } from "../../../../application/repository/approvalWorkflow.repository";
 import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB, validateFile } from "../../../../application/constants/fileManager";
 import { formatBytes } from "../../../../application/tools/fileUtil";
 import { getFileErrorMessage } from "../../../../application/utils/fileErrorHandler.utils";
 import { secureLogError } from "../../../../application/utils/secureLogger.utils"; // SECURITY: No PII
+import SelectComponent from "../../Inputs/Select";
 
 // Constants (DRY + Maintainability)
 const UPLOAD_CONTEXT = 'FileManagerUpload';
+
+interface ApprovalWorkflow {
+  id: number;
+  workflow_title: string;
+  entity_type: string;
+}
 
 interface FileManagerUploadModalProps {
   open: boolean;
@@ -40,6 +49,8 @@ interface FileManagerUploadModalProps {
   title?: string;
   /** Whether to allow multiple file selection (default: true) */
   multiple?: boolean;
+  /** Whether to show the approval workflow selector (default: false) */
+  showApprovalWorkflow?: boolean;
 }
 
 type UploadStatus = "pending" | "uploading" | "success" | "error";
@@ -62,6 +73,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   acceptedMimeTypes,
   title = "Upload Files",
   multiple = true,
+  showApprovalWorkflow = false,
 }) => {
   const theme = useTheme();
   const [fileList, setFileList] = useState<UploadedFileInfo[]>([]);
@@ -69,6 +81,11 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Approval workflow state
+  const [approvalWorkflows, setApprovalWorkflows] = useState<ApprovalWorkflow[]>([]);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | ''>('');
+  const [loadingWorkflows, setLoadingWorkflows] = useState(false);
 
   //Store timeout IDs to prevent race conditions and memory leaks
   const removeSuccessTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -88,6 +105,31 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
       }
     };
   }, []);
+
+  // Fetch approval workflows for files when modal opens
+  useEffect(() => {
+    if (open && showApprovalWorkflow) {
+      setLoadingWorkflows(true);
+      getApprovalWorkflowsByEntityType({ entityType: 'file' })
+        .then((workflows) => {
+          setApprovalWorkflows(workflows);
+        })
+        .catch(() => {
+          secureLogError('Failed to load approval workflows', UPLOAD_CONTEXT);
+          setApprovalWorkflows([]);
+        })
+        .finally(() => {
+          setLoadingWorkflows(false);
+        });
+    }
+  }, [open, showApprovalWorkflow]);
+
+  // Reset selected workflow when modal closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedWorkflowId('');
+    }
+  }, [open]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -169,7 +211,11 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
 
 
         // Upload the file and validate response
-        const response = await uploadFileToManager({ file: fileList[i].file, model_id: fileList[i].model_id });
+        const response = await uploadFileToManager({
+          file: fileList[i].file,
+          model_id: fileList[i].model_id,
+          approval_workflow_id: selectedWorkflowId ? selectedWorkflowId : undefined,
+        });
 
         uploadedFiles.push(response.data);
 
@@ -398,6 +444,71 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
               style={{ display: "none" }}
             />
           </Box>
+
+          {/* Approval Workflow Selector */}
+          <Collapse in={showApprovalWorkflow}>
+            {loadingWorkflows ? (
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>
+                Loading approval workflows...
+              </Typography>
+            ) : approvalWorkflows.length > 0 ? (
+              <Stack spacing={1}>
+                <SelectComponent
+                  id="approval-workflow-select"
+                  label="Approval Workflow (Optional)"
+                  placeholder="No approval required"
+                  value={selectedWorkflowId}
+                  items={[
+                    { _id: '', name: 'No approval required' },
+                    ...approvalWorkflows.map((workflow) => ({
+                      _id: workflow.id,
+                      name: workflow.workflow_title,
+                    })),
+                  ]}
+                  onChange={(e: any) => setSelectedWorkflowId(e.target.value as number | '')}
+                  disabled={isUploading}
+                  sx={{ width: "100%" }}
+                />
+                {selectedWorkflowId && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      fontSize: 12,
+                      color: theme.palette.text.secondary,
+                      backgroundColor: theme.palette.background.accent,
+                      padding: "8px 12px",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <Info size={14} color={theme.palette.primary.main} />
+                    <span>Files will be marked as "Pending Review" until approved</span>
+                  </Box>
+                )}
+              </Stack>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 1.5,
+                  fontSize: 13,
+                  color: theme.palette.text.secondary,
+                  backgroundColor: theme.palette.background.fill,
+                  padding: "12px 16px",
+                  borderRadius: "4px",
+                  border: `1px solid ${theme.palette.border.light}`,
+                }}
+              >
+                <Info size={16} color={theme.palette.text.tertiary} style={{ marginTop: 2, flexShrink: 0 }} />
+                <span>
+                  No file approval workflows configured. Create one in{" "}
+                  <strong>Settings → Approval Workflows</strong> with "File / Evidence" entity type.
+                </span>
+              </Box>
+            )}
+          </Collapse>
 
           {/* File List */}
           {fileList.length > 0 && (

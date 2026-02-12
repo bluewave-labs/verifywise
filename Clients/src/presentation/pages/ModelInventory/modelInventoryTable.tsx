@@ -25,7 +25,7 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { ModelInventoryTableProps } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
@@ -134,6 +134,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   onEdit,
   onDelete,
   onCheckModelHasRisks,
+  onViewDetails,
   paginated = true,
   deletingId,
   hidePagination = false,
@@ -262,8 +263,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
           bValue = (b.version || "").toLowerCase();
           break;
         case "approver":
-          aValue = (userMap.get(a.approver?.toString()) || "").toLowerCase();
-          bValue = (userMap.get(b.approver?.toString()) || "").toLowerCase();
+          aValue = (userMap.get(a.approver?.toString() ?? "") || "").toLowerCase();
+          bValue = (userMap.get(b.approver?.toString() ?? "") || "").toLowerCase();
           break;
         case "security_assessment":
           aValue = a.security_assessment ? 1 : 0;
@@ -423,7 +424,11 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit?.(modelInventory.id?.toString() || "");
+                  if (onViewDetails) {
+                    onViewDetails(modelInventory.id?.toString() || "");
+                  } else {
+                    onEdit?.(modelInventory.id?.toString() || "");
+                  }
                 }}
               >
                 <TableCell
@@ -461,7 +466,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   }}
                 >
                   <TooltipCell
-                    value={userMap.get(modelInventory.approver?.toString())}
+                    value={userMap.get(modelInventory.approver?.toString() ?? "")}
                   />
                 </TableCell>
                 {/* <TableCell sx={singleTheme.tableStyles.primary.body.cell}>

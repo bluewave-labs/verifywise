@@ -17,7 +17,9 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
-import FileIcon from "../../FileIcon";
+import { FileIcon } from "../../FileIcon";
+import VersionBadge from "../../../pages/FileManager/components/VersionBadge";
+import StatusBadge from "../../../pages/FileManager/components/StatusBadge";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
@@ -62,7 +64,9 @@ const getSortMatchForColumn = (
     ((sortKey.includes("uploader") || sortKey.includes("user")) &&
       (colName.includes("uploader") || colName.includes("user"))) ||
     ((sortKey.includes("source") || sortKey.includes("type")) &&
-      (colName.includes("source") || colName.includes("type")))
+      (colName.includes("source") || colName.includes("type"))) ||
+    (sortKey.includes("version") && colName.includes("version")) ||
+    (sortKey.includes("status") && colName.includes("status"))
   );
 };
 
@@ -155,6 +159,9 @@ const SortableTableHead: React.FC<{
   );
 };
 
+// Default visible columns (all columns)
+const ALL_COLUMN_KEYS = ["file", "upload_date", "uploader", "source", "version", "status", "action"] as const;
+
 const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   data,
   bodyData,
@@ -165,6 +172,8 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   onAssignToFolder,
   onPreview,
   onEditMetadata,
+  onViewHistory,
+  visibleColumnKeys = ALL_COLUMN_KEYS as unknown as string[],
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -257,6 +266,12 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
       } else if (sortKey.includes("source") || sortKey.includes("type")) {
         aValue = a.source?.toLowerCase() || "";
         bValue = b.source?.toLowerCase() || "";
+      } else if (sortKey.includes("version")) {
+        aValue = (a as any).version?.toLowerCase() || "";
+        bValue = (b as any).version?.toLowerCase() || "";
+      } else if (sortKey.includes("status")) {
+        aValue = (a as any).reviewStatus?.toLowerCase() || "";
+        bValue = (b as any).reviewStatus?.toLowerCase() || "";
       } else {
         // Try to handle unknown columns by checking if they're properties of the row
         if (sortKey && sortKey in a && sortKey in b) {
@@ -329,22 +344,19 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   };
 
   // Create delete handler for a specific file
+  // Returns true on success, false on error (for IconButton loading state)
   const createDeleteHandler = useCallback(
-    (fileId: string) => async () => {
+    (fileId: string) => async (): Promise<boolean> => {
       try {
         await deleteFileFromManager({ id: fileId });
-        // After successful delete, refresh the list
-        if (onFileDeleted) {
-          onFileDeleted();
-        }
-        await deleteEntityById({
+        onFileDeleted?.(fileId);
+        // Unlink from policies (fire and forget)
+        deleteEntityById({
           routeUrl: `/policy-linked/evidence/${fileId}/unlink-all`,
-        });
-        
-
-      } catch (error) {
-        console.error("Failed to delete file:", error);
-        throw error; // Re-throw so IconButton can show error
+        }).catch(() => {});
+        return true;
+      } catch {
+        return false;
       }
     },
     [onFileDeleted]
@@ -365,136 +377,177 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
             onSort={handleSort}
           />
           <TableBody>
-            {paginatedRows.map((row) => (
-              <TableRow
-                key={`${row.id}-${row.fileName}`}
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.row,
-                  height: "36px",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
-                }}
-              >
-                <TableCell
+            {paginatedRows.map((row) => {
+              // Track column index for sort highlighting (only visible columns)
+              let colIndex = 0;
+              return (
+                <TableRow
+                  key={`${row.id}-${row.fileName}`}
                   sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[0]?.name,
-                      sortConfig
-                    )
-                      ? "#e8e8e8"
-                      : "#fafafa",
+                    ...singleTheme.tableStyles.primary.body.row,
+                    height: "36px",
+                    "&:hover": { backgroundColor: "#f5f5f5" },
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <FileIcon fileName={row.fileName} />
-                    {row.fileName}
-                  </Box>
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[1]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  {row.projectTitle}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[2]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  {row.getFormattedUploadDate()}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[3]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  {row.uploaderName || row.uploader}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[4]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "flex-end",
-                      gap: "4px",
-                      textDecoration: "underline",
-                      "& svg": { visibility: "hidden" },
-                      "&:hover": {
-                        cursor: "pointer",
-                        "& svg": { visibility: "visible" },
-                      },
-                    }}
-                    onClick={(event) => handleRowClick(row, event)}
-                  >
-                    {row.source}
-                  </Box>
-                </TableCell>
-                {/* Add any additional cells here */}
-                <TableCell
-                  sx={{
-                    ...singleTheme.tableStyles.primary.body.cell,
-                    minWidth: "50px",
-                    backgroundColor: getSortMatchForColumn(
-                      data.cols[data.cols.length - 1]?.name,
-                      sortConfig
-                    )
-                      ? "#f5f5f5"
-                      : "inherit",
-                  }}
-                >
-                  <IconButton
-                    id={Number(row.id)}
-                    type="report"
-                    onEdit={() => {}}
-                    onDownload={() =>
-                      handleDownload(row.id, row.fileName)
-                    }
-                    onDelete={createDeleteHandler(row.id)}
-                    openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
-                    onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(Number(row.id)) : undefined}
-                    onPreview={onPreview ? () => onPreview(row.id) : undefined}
-                    onEditMetadata={onEditMetadata ? () => onEditMetadata(row.id) : undefined}
-                    warningTitle="Delete this file?"
-                    warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
-                    onMouseEvent={() => {}}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+                  {/* File column */}
+                  {visibleColumnKeys.includes("file") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#e8e8e8"
+                          : "#fafafa",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <FileIcon fileName={row.fileName} />
+                        {row.fileName}
+                      </Box>
+                    </TableCell>
+                  )}
+                  {/* Upload Date column */}
+                  {visibleColumnKeys.includes("upload_date") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      {row.getFormattedUploadDate()}
+                    </TableCell>
+                  )}
+                  {/* Uploader column */}
+                  {visibleColumnKeys.includes("uploader") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      {row.uploaderName || row.uploader}
+                    </TableCell>
+                  )}
+                  {/* Source column */}
+                  {visibleColumnKeys.includes("source") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: "4px",
+                          textDecoration: "underline",
+                          "& svg": { visibility: "hidden" },
+                          "&:hover": {
+                            cursor: "pointer",
+                            "& svg": { visibility: "visible" },
+                          },
+                        }}
+                        onClick={(event) => handleRowClick(row, event)}
+                      >
+                        {row.source}
+                      </Box>
+                    </TableCell>
+                  )}
+                  {/* Version column */}
+                  {visibleColumnKeys.includes("version") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <VersionBadge
+                        version={(row as any).version}
+                        reviewStatus={(row as any).reviewStatus}
+                      />
+                    </TableCell>
+                  )}
+                  {/* Status column */}
+                  {visibleColumnKeys.includes("status") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[colIndex++]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <StatusBadge status={(row as any).reviewStatus} />
+                    </TableCell>
+                  )}
+                  {/* Action column */}
+                  {visibleColumnKeys.includes("action") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        minWidth: "50px",
+                        backgroundColor: getSortMatchForColumn(
+                          data.cols[data.cols.length - 1]?.name,
+                          sortConfig
+                        )
+                          ? "#f5f5f5"
+                          : "inherit",
+                      }}
+                    >
+                      <IconButton
+                        id={Number(row.id)}
+                        type="report"
+                        onEdit={() => {}}
+                        onDownload={() =>
+                          handleDownload(row.id, row.fileName)
+                        }
+                        onDelete={createDeleteHandler(row.id)}
+                        openLinkedPolicies={() => handleViewLinkedPolicies(Number(row.id!))}
+                        onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(Number(row.id)) : undefined}
+                        onPreview={onPreview ? () => onPreview(row.id) : undefined}
+                        onEditMetadata={onEditMetadata ? () => onEditMetadata(row.id) : undefined}
+                        onViewHistory={onViewHistory ? () => onViewHistory(row.id) : undefined}
+                        warningTitle="Delete this file?"
+                        warningMessage="When you delete this file, it will be permanently removed from the system. This action cannot be undone."
+                        onMouseEvent={() => {}}
+                      />
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
           {paginated && (
             <TableFooter>

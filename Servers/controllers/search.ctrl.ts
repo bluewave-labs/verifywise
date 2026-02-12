@@ -42,9 +42,10 @@ export async function search(req: Request, res: Response): Promise<any> {
     const rawLimit = parseInt(req.query.limit as string, 10) || SEARCH_CONSTANTS.DEFAULT_LIMIT;
     const limit = Math.min(Math.max(1, rawLimit), SEARCH_CONSTANTS.MAX_LIMIT);
     const offset = Math.max(0, parseInt(req.query.offset as string, 10) || 0);
+    const reviewStatus = (req.query.reviewStatus as string) || undefined;
 
-    // Validate minimum query length
-    if (query.trim().length < SEARCH_CONSTANTS.MIN_QUERY_LENGTH) {
+    // Validate minimum query length (skip if a reviewStatus filter is active)
+    if (query.trim().length < SEARCH_CONSTANTS.MIN_QUERY_LENGTH && !reviewStatus) {
       return res.status(200).json(
         STATUS_CODE[200]({
           results: {},
@@ -63,6 +64,7 @@ export async function search(req: Request, res: Response): Promise<any> {
       userId,
       limit,
       offset,
+      reviewStatus,
     });
 
     const totalCount = getTotalResultCount(results);

@@ -90,8 +90,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         display: 'flex',
         alignItems: 'flex-start',
         gap: 1.5,
-        px: 2,
-        py: 1.5,
+        pl: '24px',
+        pr: 2,
+        py: '8px',
         cursor: notification.action_url ? 'pointer' : 'default',
         backgroundColor: isRead ? 'transparent' : 'rgba(19, 113, 91, 0.04)',
         borderLeft: isRead ? '3px solid transparent' : `3px solid ${color}`,
@@ -101,18 +102,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         },
       }}
     >
-      {/* Unread indicator */}
-      <Box
-        sx={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          backgroundColor: isRead ? 'transparent' : color,
-          mt: 0.75,
-          flexShrink: 0,
-        }}
-      />
-
       {/* Content */}
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
@@ -176,8 +165,11 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
     notifications,
     unreadCount,
     isLoading,
+    isLoadingMore,
+    hasMore,
     markAsRead,
     markAllAsRead,
+    loadMore,
     isConnected,
   } = useNotifications();
 
@@ -215,6 +207,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
       window.open(url, '_blank');
     }
   }, [navigate, handleClose]);
+
+  const handleLoadMore = useCallback(async () => {
+    try {
+      await loadMore();
+    } catch (error) {
+      console.error('Failed to load more notifications:', error);
+    }
+  }, [loadMore]);
 
   const open = Boolean(anchorEl);
 
@@ -289,44 +289,16 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
           },
         }}
       >
-        {/* Header */}
+        {/* Header - minimal with just action buttons */}
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            px: 2,
-            py: 1.5,
-            borderBottom: '1px solid #e5e7eb',
+            justifyContent: 'flex-end',
+            px: 1,
+            py: 0.5,
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                color: 'text.primary',
-              }}
-            >
-              Notifications
-            </Typography>
-            {unreadCount > 0 && (
-              <Box
-                sx={{
-                  backgroundColor: '#EF4444',
-                  color: 'white',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  px: 1,
-                  py: 0.25,
-                  borderRadius: '10px',
-                }}
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Box>
-            )}
-          </Stack>
-
           <Stack direction="row" spacing={0.5}>
             {unreadCount > 0 && (
               <VWTooltip header="Mark all as read" content="Mark all notifications as read" placement="bottom">
@@ -396,11 +368,12 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                py: 6,
+                pt: 6,
+                pb: '32px',
                 px: 2,
               }}
             >
-              <Bell size={32} color="#D1D5DB" />
+              <Bell size={24} strokeWidth={1.5} color="#D1D5DB" />
               <Typography
                 sx={{
                   fontSize: '14px',
@@ -423,16 +396,66 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
               </Typography>
             </Box>
           ) : (
-            <Stack divider={<Divider sx={{ borderColor: '#f3f4f6' }} />}>
-              {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id || `${notification.type}-${notification.created_at}`}
-                  notification={notification}
-                  onMarkAsRead={handleMarkAsRead}
-                  onNavigate={handleNavigate}
-                />
-              ))}
-            </Stack>
+            <>
+              <Stack divider={<Divider sx={{ borderColor: '#f3f4f6' }} />}>
+                {notifications.map((notification) => (
+                  <NotificationItem
+                    key={notification.id || `${notification.type}-${notification.created_at}`}
+                    notification={notification}
+                    onMarkAsRead={handleMarkAsRead}
+                    onNavigate={handleNavigate}
+                  />
+                ))}
+              </Stack>
+
+              {/* Load more button */}
+              {hasMore && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    py: '8px',
+                    borderTop: '1px solid #f3f4f6',
+                  }}
+                >
+                  <Box
+                    component="button"
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1,
+                      px: 3,
+                      py: 1,
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      color: '#13715B',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #d0d5dd',
+                      borderRadius: '4px',
+                      cursor: isLoadingMore ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.15s ease',
+                      opacity: isLoadingMore ? 0.6 : 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(19, 113, 91, 0.04)',
+                        borderColor: '#13715B',
+                      },
+                    }}
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <CircularProgress size={14} sx={{ color: '#13715B' }} />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load more'
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </>
           )}
         </Box>
 

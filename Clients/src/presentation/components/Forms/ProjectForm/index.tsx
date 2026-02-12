@@ -73,7 +73,7 @@ const getStatusIdFromName = (statusName: string | undefined): number => {
   return statusItem?._id || 1;
 };
 
-const ProjectForm = ({
+export const ProjectForm = ({
   sx,
   onClose,
   defaultFrameworkType,
@@ -154,14 +154,18 @@ const ProjectForm = ({
     }
   }, [projectToEdit, users]);
 
-  // Fetch approval workflows
+  // Fetch approval workflows filtered by entity type (use_case)
   useEffect(() => {
     const fetchWorkflows = async () => {
       try {
         const response = await getAllApprovalWorkflows();
         const workflows = response?.data || [];
+        // Filter to only show workflows for use_case entity type
+        const filteredWorkflows = workflows.filter(
+          (w: any) => w.entity_type === 'use_case'
+        );
         setApprovalWorkflows(
-          workflows.map((w: any) => ({
+          filteredWorkflows.map((w: any) => ({
             _id: w.id,
             name: w.workflow_title,
           }))
@@ -462,14 +466,14 @@ const ProjectForm = ({
 
   const renderForm = () => (
     <Stack
-      component="form"
+      {...(!useStandardModal && { component: "form" })}
       onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
       }}
       sx={{
         width: useStandardModal ? "100%" : "fit-content",
-        backgroundColor: useStandardModal ? "transparent" : "#FCFCFD",
+        backgroundColor: useStandardModal ? "transparent" : theme.palette.background.alt,
         padding: useStandardModal ? 0 : 10,
         borderRadius: "4px",
         gap: useStandardModal ? 6 : 8,
@@ -510,14 +514,14 @@ const ProjectForm = ({
         >
           <Stack className="vwproject-form-header-text">
             <Typography
-              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+              sx={{ fontSize: 16, color: theme.palette.text.secondary, fontWeight: "bold" }}
             >
               {projectToEdit
                 ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
                 : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
               }
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#344054" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
               {projectToEdit
                 ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
                 : values.framework_type === FrameworkTypeEnum.ProjectBased
@@ -527,7 +531,7 @@ const ProjectForm = ({
           </Stack>
           <ClearIcon
             size={20}
-            style={{ color: "#98A2B3", cursor: "pointer" }}
+            style={{ color: theme.palette.text.accent, cursor: "pointer" }}
             onClick={onClose}
           />
         </Stack>
@@ -702,7 +706,7 @@ const ProjectForm = ({
                       <Typography
                         sx={{
                           fontSize: "11px",
-                          color: "rgb(157, 157, 157)",
+                          color: theme.palette.text.accent,
                           position: "absolute",
                           right: "9px",
                         }}
@@ -858,7 +862,7 @@ const ProjectForm = ({
                   {frameworkRequired && (
                     <Typography
                       variant="caption"
-                      sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                      sx={{ mt: 4, color: theme.palette.status.error.text, fontWeight: 300 }}
                     >
                       {errors.frameworks}
                     </Typography>
@@ -974,7 +978,7 @@ const ProjectForm = ({
               {frameworkRequired && (
                 <Typography
                   variant="caption"
-                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                  sx={{ mt: 4, color: theme.palette.status.error.text, fontWeight: 300 }}
                 >
                   {errors.frameworks}
                 </Typography>
@@ -1061,4 +1065,3 @@ const ProjectForm = ({
   return renderForm();
 };
 
-export default ProjectForm;

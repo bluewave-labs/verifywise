@@ -27,10 +27,17 @@ import {
   getFileWithMetadata,
   getHighlightedFiles,
   getFilePreview,
+  getFileVersionHistory as getFileVersionHistoryRepo,
   FileSource,
   UpdateFileMetadataInput,
   ReviewStatus,
+  UploadOrganizationFileOptions,
 } from "../repositories/file.repository";
+import { sequelize } from "../database/db";
+import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
+import { ApprovalRequestStatus } from "../domain.layer/enums/approval-workflow.enum";
+import { createApprovalRequestQuery, rejectApprovalRequestOnEntityDelete } from "../utils/approvalRequest.utils";
+import { notifyStepApprovers, notifyRequesterRejected } from "../services/notification.service";
 import {
   validateFileUpload,
   formatFileSize,
@@ -42,6 +49,10 @@ import {
 } from "../utils/logger/logHelper";
 import { getUserProjects } from "../utils/user.utils";
 import { getProjectByIdQuery } from "../utils/project.utils";
+import {
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+} from "../utils/changeHistory.base.utils";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -220,6 +231,13 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       if (!isNaN(parsed)) modelId = parsed;
     }
 
+    // Parse approval_workflow_id from request body
+    let approvalWorkflowId: number | undefined;
+    if (req.body.approval_workflow_id != null && req.body.approval_workflow_id !== "") {
+      const parsed = Number(req.body.approval_workflow_id);
+      if (!isNaN(parsed)) approvalWorkflowId = parsed;
+    }
+
     // Parse source from request body (e.g., "policy_editor", "File Manager", etc.)
     const source: FileSource = (req.body.source as FileSource) || "File Manager";
 
@@ -259,36 +277,143 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       return res.status(400).json(STATUS_CODE[400](validation.error));
     }
 
-    // Upload file to files table with org_id and project_id = NULL
-    const uploadedFile = await uploadOrganizationFile(
-      file,
-      userId,
-      orgId,
-      tenant,
-      modelId,
-      source
-    );
+    // If approval workflow is specified, validate it exists and is for files
+    if (approvalWorkflowId) {
+      const [workflow] = await sequelize.query(
+        `SELECT id, workflow_title, entity_type FROM "${tenant}".approval_workflows WHERE id = :workflowId`,
+        {
+          replacements: { workflowId: approvalWorkflowId },
+          type: "SELECT" as any,
+        }
+      ) as any[];
 
-    await logSuccess({
-      eventType: "Create",
-      description: `File uploaded successfully: ${uploadedFile.filename}`,
-      functionName: "uploadFile",
-      fileName: "fileManager.ctrl.ts",
-      userId: req.userId!,
-      tenantId: req.tenantId!,
-    });
+      if (!workflow) {
+        return res.status(400).json(STATUS_CODE[400]("Invalid approval workflow ID"));
+      }
 
-    return res.status(201).json(
-      STATUS_CODE[201]({
-        id: uploadedFile.id,
-        filename: uploadedFile.filename,
-        size: uploadedFile.size,
-        mimetype: uploadedFile.mimetype,
-        upload_date: uploadedFile.upload_date,
-        uploaded_by: uploadedFile.uploaded_by,
-        modelId: uploadedFile.model_id,
-      })
-    );
+      if (workflow.entity_type !== "file") {
+        return res.status(400).json(STATUS_CODE[400]("Selected workflow is not configured for files"));
+      }
+    }
+
+    // Start transaction for file upload and approval request creation
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Upload file to files table with org_id and project_id = NULL
+      const uploadOptions: UploadOrganizationFileOptions = {
+        modelId,
+        source,
+        approvalWorkflowId,
+        transaction,
+      };
+
+      const uploadedFile = await uploadOrganizationFile(
+        file,
+        userId,
+        orgId,
+        tenant,
+        uploadOptions
+      );
+
+      // If approval workflow is specified, create an approval request
+      let approvalRequestId: number | undefined;
+      if (approvalWorkflowId && uploadedFile.id) {
+        // Get workflow steps with approvers
+        const workflowStepsResult = await sequelize.query(
+          `SELECT aws.*,
+            COALESCE(
+              json_agg(
+                json_build_object('approver_id', asa.approver_id)
+              ) FILTER (WHERE asa.approver_id IS NOT NULL),
+              '[]'
+            ) as approvers
+           FROM "${tenant}".approval_workflow_steps aws
+           LEFT JOIN "${tenant}".approval_step_approvers asa ON aws.id = asa.workflow_step_id
+           WHERE aws.workflow_id = :workflowId
+           GROUP BY aws.id
+           ORDER BY aws.step_number ASC`,
+          {
+            replacements: { workflowId: approvalWorkflowId },
+            type: "SELECT" as const,
+            transaction,
+          }
+        );
+        const workflowSteps = workflowStepsResult as unknown as ApprovalWorkflowStepModel[];
+
+        if (workflowSteps.length > 0) {
+          // Create the approval request
+          const approvalRequest = await createApprovalRequestQuery(
+            {
+              request_name: `File Approval: ${uploadedFile.filename}`,
+              workflow_id: approvalWorkflowId,
+              entity_id: uploadedFile.id,
+              entity_type: "file",
+              entity_data: {
+                filename: uploadedFile.filename,
+                size: uploadedFile.size,
+                mimetype: uploadedFile.mimetype,
+              },
+              status: ApprovalRequestStatus.PENDING,
+              requested_by: userId,
+            },
+            workflowSteps,
+            tenant,
+            transaction
+          );
+
+          approvalRequestId = (approvalRequest as any).id;
+
+          // Update file with approval_request_id
+          await sequelize.query(
+            `UPDATE "${tenant}".files SET approval_request_id = :approvalRequestId WHERE id = :fileId`,
+            {
+              replacements: { approvalRequestId, fileId: uploadedFile.id },
+              transaction,
+            }
+          );
+        }
+      }
+
+      await transaction.commit();
+
+      // Send notifications to first step approvers after commit
+      if (approvalRequestId) {
+        try {
+          await notifyStepApprovers(tenant, approvalRequestId, 1, `File Approval: ${uploadedFile.filename}`);
+        } catch (notifyError) {
+          console.error("Failed to send approval notifications:", notifyError);
+          // Don't fail the request if notifications fail
+        }
+      }
+
+      await logSuccess({
+        eventType: "Create",
+        description: `File uploaded successfully: ${uploadedFile.filename}${approvalWorkflowId ? " (pending approval)" : ""}`,
+        functionName: "uploadFile",
+        fileName: "fileManager.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
+
+      return res.status(201).json(
+        STATUS_CODE[201]({
+          id: uploadedFile.id,
+          filename: uploadedFile.filename,
+          size: uploadedFile.size,
+          mimetype: uploadedFile.mimetype,
+          upload_date: uploadedFile.upload_date,
+          uploaded_by: uploadedFile.uploaded_by,
+          modelId: uploadedFile.model_id,
+          review_status: approvalWorkflowId ? "pending_review" : "draft",
+          approval_workflow_id: approvalWorkflowId,
+          approval_request_id: approvalRequestId,
+        })
+      );
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   } catch (error) {
     await logFailure({
       eventType: "Error",
@@ -364,11 +489,13 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
           filename: file.filename,
           size: file.size,
           formattedSize: formatFileSize(file.size ?? 0),
-          mimetype: file.mimetype, // optional
+          mimetype: file.mimetype,
           upload_date: file.upload_date,
           uploaded_by: file.uploaded_by,
           uploader_name: file.uploader_name,
           uploader_surname: file.uploader_surname,
+          review_status: file.review_status,
+          approval_workflow_id: file.approval_workflow_id,
         })),
         pagination: {
           total,
@@ -525,17 +652,17 @@ export const downloadFile = async (
     // Set headers for file download (unified files table uses 'type' for mimetype)
     res.setHeader("Content-Type", file.type || "application/octet-stream");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    const safeFilename = file.filename
+      .replace(/["\r\n]/g, '')
+      .replace(/[^\x20-\x7E]/g, '_');
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${file.filename}"`
+      `attachment; filename="${safeFilename}"`
     );
 
     // Set Content-Length
-    const contentLength = file.size || (file.content ? file.content.length : 0);
+    const contentLength = file.content ? file.content.length : 0;
     res.setHeader("Content-Length", contentLength);
-
-    // Send file content from database
-    res.send(file.content);
 
     await logSuccess({
       eventType: "Read",
@@ -545,6 +672,9 @@ export const downloadFile = async (
       userId: req.userId!,
       tenantId: req.tenantId!,
     });
+
+    // Send file content from database (after logging to avoid async interference)
+    res.end(file.content);
   } catch (error) {
     await logFailure({
       eventType: "Error",
@@ -675,6 +805,35 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
           tenantId: req.tenantId!,
         });
         return res.status(403).json(STATUS_CODE[403]("Access denied"));
+      }
+    }
+
+    // If file has a pending approval request, reject it first
+    if (file.approval_request_id) {
+      try {
+        const rejectionReason = `File deleted: The file "${file.filename}" associated with this request has been deleted.`;
+        const notificationInfo = await rejectApprovalRequestOnEntityDelete(
+          file.approval_request_id,
+          tenant,
+          rejectionReason
+        );
+
+        // Notify the requester that their request was rejected
+        if (notificationInfo && notificationInfo.requesterId) {
+          await notifyRequesterRejected(
+            tenant,
+            notificationInfo.requesterId,
+            notificationInfo.requestId,
+            notificationInfo.requestName,
+            {
+              rejector_name: "System",
+              rejection_reason: rejectionReason,
+            }
+          );
+        }
+      } catch (approvalError) {
+        console.error(`Failed to reject approval request for file ${fileId}:`, approvalError);
+        // Continue with file deletion even if approval rejection fails
       }
     }
 
@@ -895,7 +1054,7 @@ export const updateMetadata = async (
     const { tags, review_status, version, expiry_date, description } = req.body;
 
     // Validate review_status if provided
-    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired'];
+    const validStatuses: ReviewStatus[] = ['draft', 'pending_review', 'approved', 'rejected', 'expired', 'superseded'];
     if (review_status && !validStatuses.includes(review_status)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid review status"));
     }
@@ -947,10 +1106,36 @@ export const updateMetadata = async (
     if (expiry_date !== undefined) updates.expiry_date = expiry_date;
     if (description !== undefined) updates.description = description;
 
+    // Fetch current metadata state before update (for change tracking)
+    const beforeState = await getFileWithMetadata(fileId, tenant);
+
     const updatedFile = await updateFileMetadata(fileId, updates, tenant);
 
     if (!updatedFile) {
       return res.status(404).json(STATUS_CODE[404]("File not found after update"));
+    }
+
+    // Record changes in file change history
+    try {
+      if (beforeState) {
+        const changes = await trackEntityChanges(
+          "file",
+          beforeState,
+          updatedFile
+        );
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            "file",
+            fileId,
+            userId,
+            tenant,
+            changes
+          );
+        }
+      }
+    } catch (historyError) {
+      // Don't fail the update if history recording fails
+      console.error("Failed to record file change history:", historyError);
     }
 
     await logSuccess({
@@ -1264,6 +1449,82 @@ export const previewFile = async (
       eventType: "Error",
       description: "Failed to get file preview",
       functionName: "previewFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Get file version history (all files in the same file group)
+ *
+ * GET /file-manager/:id/versions
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} List of file versions in the same group
+ */
+export const getFileVersionHistory = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const fileId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+
+  if (!Number.isSafeInteger(fileId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return;
+
+  const { tenant } = auth;
+
+  logProcessing({
+    description: `Getting version history for file ID ${fileId}`,
+    functionName: "getFileVersionHistory",
+    fileName: "fileManager.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    // Get the file to extract file_group_id
+    const file = await getFileWithMetadata(fileId, tenant);
+
+    if (!file) {
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
+    }
+
+    if (!file.file_group_id) {
+      // No group ID means no version history — return just this file
+      return res.status(200).json(STATUS_CODE[200]({ versions: [file] }));
+    }
+
+    const versions = await getFileVersionHistoryRepo(file.file_group_id, tenant);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved ${versions.length} versions for file group: ${file.file_group_id}`,
+      functionName: "getFileVersionHistory",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200]({ versions }));
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to get file version history",
+      functionName: "getFileVersionHistory",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
       userId: req.userId!,

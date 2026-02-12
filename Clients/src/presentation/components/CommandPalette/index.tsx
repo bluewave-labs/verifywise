@@ -23,6 +23,7 @@ import {
   CornerDownLeft,
   ChevronRight,
   FlaskConical,
+  Filter,
   LucideIcon
 } from 'lucide-react'
 import { useAuth } from '../../../application/hooks/useAuth'
@@ -61,7 +62,8 @@ const ENTITY_ICONS: Record<string, LucideIcon> = {
 }
 
 // Welcome banner component
-const WiseSearchWelcomeBanner: React.FC<{ onDismiss: () => void }> = ({ onDismiss }) => (
+function WiseSearchWelcomeBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
   <Box
     sx={{
       background: 'linear-gradient(135deg, #1a1a1f 0%, #252530 100%)',
@@ -158,9 +160,10 @@ const WiseSearchWelcomeBanner: React.FC<{ onDismiss: () => void }> = ({ onDismis
       </Box>
     </Box>
   </Box>
-)
+  );
+}
 
-const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
+export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
@@ -191,6 +194,19 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     localStorage.setItem(WISE_SEARCH_WELCOME_DISMISSED_KEY, 'true')
   }, [])
 
+  // Cycling hint text for the search input
+  const SEARCH_HINTS = useMemo(() => [
+    'Search for everything, everywhere...',
+    'Search vendors, policies, tasks...',
+    'Search review dates to find files by expiry...',
+    'Find risks, incidents, training records...',
+    'Search file names, tags, descriptions...',
+    'Search model inventories, evidence hub...',
+  ], [])
+
+  const [currentHintIndex, setCurrentHintIndex] = useState(0)
+  const [hintVisible, setHintVisible] = useState(true)
+
   // Wise Search integration
   const {
     query: search,
@@ -201,8 +217,63 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     recentSearches,
     addToRecent,
     removeFromRecent,
-    isSearchMode
+    isSearchMode,
+    reviewStatus,
+    setReviewStatus,
   } = useWiseSearch()
+
+    // Cycle through hints every 3.5 seconds when input is empty and palette is open
+    useEffect(() => {
+      if (!open || search) return
+  
+      const interval = setInterval(() => {
+        setHintVisible(false) // Start fade out
+        setTimeout(() => {
+          setCurrentHintIndex((prev) => (prev + 1) % SEARCH_HINTS.length)
+          setHintVisible(true) // Fade in new hint
+        }, 300) // Wait for fade-out to complete
+      }, 3500)
+  
+      return () => clearInterval(interval)
+    }, [open, search, SEARCH_HINTS])
+  
+    // Reset hint index when palette opens
+    useEffect(() => {
+      if (open) {
+        setCurrentHintIndex(0)
+        setHintVisible(true)
+      }
+    }, [open])
+
+  // Review Status filter options (values match file manager DB values)
+  const REVIEW_STATUS_OPTIONS = [
+    { value: '', label: 'All statuses' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'pending_review', label: 'Pending review' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'expired', label: 'Expired' },
+    { value: 'superseded', label: 'Superseded' },
+  ]
+
+  // Whether the filter dropdown is open
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
+  const filterDropdownRef = React.useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setFilterDropdownOpen(false)
+      }
+    }
+    if (filterDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [filterDropdownOpen])
 
   // Create command context
   const commandContext: CommandContext = useMemo(() => ({
@@ -324,13 +395,15 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     }
   }, [onOpenChange])
 
-  // Reset search when closing
+  // Reset search and filters when closing
   const handleOpenChange = useCallback((newOpen: boolean) => {
     if (!newOpen) {
       setSearch('')
+      setReviewStatus('')
+      setFilterDropdownOpen(false)
     }
     onOpenChange(newOpen)
-  }, [onOpenChange, setSearch])
+  }, [onOpenChange, setSearch, setReviewStatus])
 
   if (!open) return null
 
@@ -357,17 +430,28 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
           Use arrow keys to navigate, Enter to select, and Escape to close.
         </div>
 
-        <Command.Input
-          value={search}
-          onValueChange={setSearch}
-          placeholder="Search for everything, everywhere..."
-          className="command-input"
-          aria-label="Search commands"
-          aria-describedby="command-palette-help"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-        />
+        <div className="command-input-wrapper">
+          <Command.Input
+            value={search}
+            onValueChange={setSearch}
+            placeholder=""
+            className="command-input"
+            aria-label="Search commands"
+            aria-describedby="command-palette-help"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
+          />
+          {/* Cycling hint text overlay - visible only when input is empty */}
+          {!search && (
+            <span
+              className={`command-input-hint ${hintVisible ? 'hint-visible' : 'hint-hidden'}`}
+              aria-hidden="true"
+            >
+              {SEARCH_HINTS[currentHintIndex]}
+            </span>
+          )}
+        </div>
 
         <div id="command-palette-help" className="sr-only">
           {isSearchMode
@@ -375,6 +459,157 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
             : `${commands.length} commands available. Type to filter commands.`
           }
         </div>
+
+        {/* Review Status Filter Bar */}
+        <Box className="command-filter-bar" sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          padding: '6px 12px',
+          borderTop: '1px solid',
+          borderTopColor: 'var(--filter-border, #e5e5e5)',
+          borderBottom: '1px solid',
+          borderBottomColor: 'var(--filter-border, #e5e5e5)',
+          background: 'var(--filter-bg, #fafafa)',
+          minHeight: '36px',
+        }}>
+          <Filter size={14} color="#999" />
+          <Typography sx={{ fontSize: '12px', color: '#999', whiteSpace: 'nowrap', userSelect: 'none' }}>
+            Review Status:
+          </Typography>
+          <Box ref={filterDropdownRef} sx={{ position: 'relative' }}>
+            <Box
+              component="button"
+              onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+              className="command-filter-trigger"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                background: reviewStatus ? 'rgba(19, 113, 91, 0.1)' : 'transparent',
+                border: '1px solid',
+                borderColor: reviewStatus ? 'rgba(19, 113, 91, 0.3)' : 'rgba(0,0,0,0.12)',
+                borderRadius: '4px',
+                padding: '3px 8px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                color: reviewStatus ? '#13715B' : '#666',
+                fontWeight: reviewStatus ? 500 : 400,
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+                '&:hover': {
+                  borderColor: reviewStatus ? 'rgba(19, 113, 91, 0.5)' : 'rgba(0,0,0,0.25)',
+                  background: reviewStatus ? 'rgba(19, 113, 91, 0.15)' : 'rgba(0,0,0,0.04)',
+                },
+              }}
+              aria-label="Filter by review status"
+              aria-expanded={filterDropdownOpen}
+              aria-haspopup="listbox"
+            >
+              {REVIEW_STATUS_OPTIONS.find(o => o.value === reviewStatus)?.label || 'All statuses'}
+              <ChevronRight
+                size={12}
+                style={{
+                  transform: filterDropdownOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.15s ease',
+                }}
+              />
+            </Box>
+
+            {/* Dropdown menu */}
+            {filterDropdownOpen && (
+              <Box
+                className="command-filter-dropdown"
+                role="listbox"
+                aria-label="Review status options"
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '4px',
+                  background: 'var(--dropdown-bg, #ffffff)',
+                  border: '1px solid var(--filter-border, #e5e5e5)',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  zIndex: 10,
+                  minWidth: '180px',
+                  overflow: 'hidden',
+                  animation: 'commandDialogFadeIn 0.1s ease-out',
+                }}
+              >
+                {REVIEW_STATUS_OPTIONS.map((option) => (
+                  <Box
+                    key={option.value}
+                    component="button"
+                    role="option"
+                    aria-selected={reviewStatus === option.value}
+                    onClick={() => {
+                      setReviewStatus(option.value)
+                      setFilterDropdownOpen(false)
+                    }}
+                    className="command-filter-option"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: 'none',
+                      background: reviewStatus === option.value
+                        ? 'rgba(19, 113, 91, 0.08)'
+                        : 'transparent',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      color: reviewStatus === option.value ? '#13715B' : '#666',
+                      fontWeight: reviewStatus === option.value ? 500 : 400,
+                      textAlign: 'left',
+                      transition: 'all 0.1s ease',
+                      '&:hover': {
+                        background: reviewStatus === option.value
+                          ? 'rgba(19, 113, 91, 0.12)'
+                          : 'rgba(0,0,0,0.04)',
+                      },
+                      '&:not(:last-child)': {
+                        borderBottom: '1px solid',
+                        borderBottomColor: 'var(--filter-border, #f0f0f0)',
+                      },
+                    }}
+                  >
+                    {option.label}
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
+
+          {/* Clear filter button - only shown when a filter is active */}
+          {reviewStatus && (
+            <Box
+              component="button"
+              onClick={() => {
+                setReviewStatus('')
+                setFilterDropdownOpen(false)
+              }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'none',
+                border: 'none',
+                padding: '2px',
+                cursor: 'pointer',
+                borderRadius: '3px',
+                color: '#999',
+                '&:hover': {
+                  background: 'rgba(0,0,0,0.06)',
+                  color: '#666',
+                },
+              }}
+              aria-label="Clear review status filter"
+            >
+              <X size={14} />
+            </Box>
+          )}
+        </Box>
 
         <Command.List className="command-list">
           {/* Welcome Banner - shown only for first-time users */}
@@ -396,10 +631,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                 <Search size={24} color="#999" />
                 <Typography color="text.secondary">
-                  No results found for "{search}"
+                  {search
+                    ? `No results found for "${search}"${reviewStatus ? ` with status "${REVIEW_STATUS_OPTIONS.find(o => o.value === reviewStatus)?.label}"` : ''}`
+                    : `No files found with status "${REVIEW_STATUS_OPTIONS.find(o => o.value === reviewStatus)?.label}"`
+                  }
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Try different keywords or check spelling
+                  {search ? 'Try different keywords or check spelling' : 'Try a different status or add a search term'}
                 </Typography>
               </Box>
             </Command.Empty>
@@ -411,6 +649,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
               <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="caption" sx={{ color: '#999', fontWeight: 400 }}>
                   {actualTotalCount} result{actualTotalCount !== 1 ? 's' : ''} found
+                  {reviewStatus && (
+                    <Typography component="span" variant="caption" sx={{ color: '#13715B', fontWeight: 500, ml: 0.5 }}>
+                      &middot; Filtered by: {REVIEW_STATUS_OPTIONS.find(o => o.value === reviewStatus)?.label}
+                    </Typography>
+                  )}
                 </Typography>
               </Box>
 
@@ -647,4 +890,3 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
   )
 }
 
-export default CommandPalette

@@ -1,5 +1,5 @@
 import React from "react";
-import StatusTileCards, { StatusTileItem } from "../../components/Cards/StatusTileCards";
+import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { ModelRiskLevel } from "../../../domain/interfaces/i.modelRisk";
 import { ModelRiskSummaryProps } from "../../../domain/interfaces/i.modelInventory";
 

@@ -82,6 +82,9 @@ export interface NotificationSummary {
   recent_notifications: Notification[];
 }
 
+/** Number of notifications to fetch per page */
+const PAGE_SIZE = 10;
+
 interface UseNotificationsOptions {
   /** Enable notifications (default: true) */
   enabled?: boolean;
@@ -106,14 +109,22 @@ interface UseNotificationsReturn {
   notifications: Notification[];
   /** Number of unread notifications */
   unreadCount: number;
+  /** Total number of notifications */
+  totalCount: number;
   /** Loading state for initial fetch */
   isLoading: boolean;
+  /** Loading state for load more */
+  isLoadingMore: boolean;
+  /** Whether there are more notifications to load */
+  hasMore: boolean;
   /** Mark a notification as read */
   markAsRead: (notificationId: number) => Promise<void>;
   /** Mark all notifications as read */
   markAllAsRead: () => Promise<void>;
   /** Refresh notifications from server */
   refresh: () => Promise<void>;
+  /** Load more notifications */
+  loadMore: () => Promise<void>;
 }
 
 /**
@@ -153,7 +164,9 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
   // State for stored notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
   const authToken = useSelector((state: RootState) => state.auth.authToken);
@@ -173,12 +186,44 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
       const summary: NotificationSummary = response.data.data;
       setNotifications(summary.recent_notifications);
       setUnreadCount(summary.unread_count);
+      setTotalCount(summary.total_count);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     } finally {
       setIsLoading(false);
     }
   }, [authToken]);
+
+  /**
+   * Load more notifications (pagination)
+   */
+  const loadMore = useCallback(async () => {
+    if (!authToken || isLoadingMore) return;
+
+    const currentOffset = notifications.length;
+
+    // Don't load if we already have all notifications
+    if (currentOffset >= totalCount) return;
+
+    setIsLoadingMore(true);
+    try {
+      const response = await apiServices.get<{ data: Notification[] }>(
+        `/notifications?limit=${PAGE_SIZE}&offset=${currentOffset}`
+      );
+      const moreNotifications: Notification[] = response.data.data;
+
+      // Append to existing notifications, avoiding duplicates
+      setNotifications(prev => {
+        const existingIds = new Set(prev.map(n => n.id));
+        const newNotifications = moreNotifications.filter(n => !existingIds.has(n.id));
+        return [...prev, ...newNotifications];
+      });
+    } catch (error) {
+      console.error("Failed to load more notifications:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [authToken, isLoadingMore, notifications.length, totalCount]);
 
   /**
    * Mark a notification as read
@@ -246,12 +291,13 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
       setNotifications(prev => {
         // Prevent duplicates
         if (prev.some(n => n.id === notification.id)) return prev;
-        // Add to beginning and keep only last 10
-        return [notification, ...prev].slice(0, 10);
+        // Add to beginning (no limit since we support pagination now)
+        return [notification, ...prev];
       });
       if (!notification.is_read) {
         setUnreadCount(prev => prev + 1);
       }
+      setTotalCount(prev => prev + 1);
     }
 
     // Map notification types to alert variants
@@ -442,6 +488,31 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
     };
   }, [connect, disconnect]);
 
+  // Reconnect when tab becomes visible or network comes back online
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !isConnected && !isManuallyDisconnectedRef.current) {
+        // Tab became visible and we're not connected - reconnect
+        connect();
+      }
+    };
+
+    const handleOnline = () => {
+      if (!isConnected && !isManuallyDisconnectedRef.current) {
+        // Network came back - reconnect
+        connect();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [connect, isConnected]);
+
   // Fetch stored notifications on mount
   useEffect(() => {
     if (fetchOnMount && authToken) {
@@ -449,15 +520,22 @@ export const useNotifications = (options: UseNotificationsOptions = {}): UseNoti
     }
   }, [fetchOnMount, authToken, fetchNotifications]);
 
+  // Calculate if there are more notifications to load
+  const hasMore = notifications.length < totalCount;
+
   return {
     isConnected,
     reconnect,
     disconnect,
     notifications,
     unreadCount,
+    totalCount,
     isLoading,
+    isLoadingMore,
+    hasMore,
     markAsRead,
     markAllAsRead,
     refresh,
+    loadMore,
   };
 };

@@ -29,6 +29,7 @@ import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
 import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
 import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
+import modelLifecycleRoutes from "./routes/modelLifecycle.route";
 import datasetRoutes from "./routes/dataset.route";
 import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
@@ -62,6 +63,7 @@ import policyChangeHistoryRoutes from "./routes/policyChangeHistory.route";
 import incidentChangeHistoryRoutes from "./routes/incidentChangeHistory.route";
 import useCaseChangeHistoryRoutes from "./routes/useCaseChangeHistory.route";
 import projectRiskChangeHistoryRoutes from "./routes/projectRiskChangeHistory.route";
+import fileChangeHistoryRoutes from "./routes/fileChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
@@ -171,6 +173,7 @@ try {
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
+  app.use("/api/model-lifecycle", modelLifecycleRoutes);
   app.use(
     "/api/model-inventory-change-history",
     modelInventoryChangeHistoryRoutes
@@ -214,6 +217,7 @@ try {
   app.use("/api/incident-change-history", incidentChangeHistoryRoutes);
   app.use("/api/use-case-change-history", useCaseChangeHistoryRoutes);
   app.use("/api/risk-change-history", projectRiskChangeHistoryRoutes);
+  app.use("/api/file-change-history", fileChangeHistoryRoutes);
   app.use("/api/approval-workflows", approvalWorkflowRoutes);
   app.use("/api/approval-requests", approvalRequestRoutes);
   app.use("/api/ai-detection", aiDetectionRoutes);

@@ -88,7 +88,7 @@ export const createNewTrainingRegistarQuery = async (
     }
   }
   // Return the created TrainingRegistar instance
-  return Array.isArray(result);
+  return createdTrainingRegistar;
 };
 
 /**

@@ -24,7 +24,7 @@ import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdow
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
-import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
+import { TabFilterBar } from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO42001Clause = ({
   project: _project,

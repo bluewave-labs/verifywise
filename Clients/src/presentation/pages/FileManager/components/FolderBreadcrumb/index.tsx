@@ -110,14 +110,25 @@ export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
       {/* Folder path breadcrumb */}
       {typeof selectedFolder === "number" && (
         <>
-          {loading ? (
+          {breadcrumb.length === 0 && loading ? (
+            // Only show loading if we don't have any breadcrumb yet
             <>
               <ChevronRightIcon size={14} color="#D0D5DD" />
-              <Typography sx={{ fontSize: 13, color: "#98A2B3" }}>
-                Loading...
-              </Typography>
+              <Box
+                sx={{
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  backgroundColor: "#F3F4F6",
+                  minWidth: "80px",
+                }}
+              >
+                <Typography sx={{ fontSize: 13, color: "#98A2B3" }}>
+                  Loading...
+                </Typography>
+              </Box>
             </>
           ) : (
+            // Show breadcrumb (keep showing old one while loading new)
             breadcrumb.map((folder, index) => {
               const isLast = index === breadcrumb.length - 1;
 

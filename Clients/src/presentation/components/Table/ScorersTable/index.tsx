@@ -16,7 +16,7 @@ import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import ScorersTableHead from "./ScorersTableHead";
 import ScorersTableBody from "./ScorersTableBody";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import {
   getPaginationRowCount,
   setPaginationRowCount,

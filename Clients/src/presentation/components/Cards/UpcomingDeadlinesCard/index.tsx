@@ -1,15 +1,14 @@
-import React from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { Calendar, AlertTriangle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import EmptyStateMessage from "../../EmptyStateMessage";
+import { EmptyStateMessage } from "../../EmptyStateMessage";
 import Chip from "../../Chip";
 import VWTooltip from "../../VWTooltip";
 import { DASHBOARD_COLORS } from "../../../styles/colors";
 import { UpcomingDeadlinesCardProps } from "../../../pages/Tasks/types";
 import { getDaysUntilDue, getCountdownInfo } from "../../../pages/Tasks/utils";
 
-const UpcomingDeadlinesCard: React.FC<UpcomingDeadlinesCardProps> = ({ tasks }) => {
+export function UpcomingDeadlinesCard({ tasks }: UpcomingDeadlinesCardProps) {
   const navigate = useNavigate();
 
   if (!tasks || tasks.length === 0) {
@@ -108,6 +107,4 @@ const UpcomingDeadlinesCard: React.FC<UpcomingDeadlinesCardProps> = ({ tasks }) 
       })}
     </Stack>
   );
-};
-
-export default UpcomingDeadlinesCard;
+}

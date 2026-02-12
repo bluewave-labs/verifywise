@@ -29,7 +29,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { ChevronDown, ChevronUp, History as HistoryIcon } from "lucide-react";
-import HistorySidebar from "../../Common/HistorySidebar";
+import { HistorySidebar } from "../../Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../../application/hooks/useEntityChangeHistory";
 import { useQueryClient } from "@tanstack/react-query";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -42,7 +42,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import StandardModal from "../StandardModal";
-import EnhancedTooltip from "../../EnhancedTooltip";
+import { EnhancedTooltip } from "../../EnhancedTooltip";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,

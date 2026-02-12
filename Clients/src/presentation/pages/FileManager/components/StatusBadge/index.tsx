@@ -52,17 +52,21 @@ const STATUS_CONFIGS: Record<ReviewStatus, StatusConfig> = {
     color: "#B54708",
     borderColor: "#FEDF89",
   },
+  superseded: {
+    label: "Superseded",
+    backgroundColor: "#F2F4F7",
+    color: "#667085",
+    borderColor: "#D0D5DD",
+  },
 };
 
 /**
  * StatusBadge component for displaying file review status
  */
 export function StatusBadge({ status, size = "small" }: StatusBadgeProps) {
-  if (!status) {
-    return null;
-  }
-
-  const config = STATUS_CONFIGS[status] || STATUS_CONFIGS.draft;
+  // Default to 'draft' if no status provided
+  const effectiveStatus = status || "draft";
+  const config = STATUS_CONFIGS[effectiveStatus] || STATUS_CONFIGS.draft;
   const isSmall = size === "small";
 
   return (

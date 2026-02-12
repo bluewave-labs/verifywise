@@ -283,7 +283,7 @@ const VWProjectRisksTableBody = ({
                         id={row.id!}
                         type="risk"
                         onMouseEvent={(e) => handleEditRisk(row, e)}
-                        onDelete={() => handleDeleteRisk(row.id!)}
+                        onDelete={() => { handleDeleteRisk(row.id!); }}
                         onEdit={() => handleEditRisk(row)}
                         openLinkedPolicies={() => handleViewLinkedPolicies(row.id!)}
                         warningTitle="Delete this project risk?"

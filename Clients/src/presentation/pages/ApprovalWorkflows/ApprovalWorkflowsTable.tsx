@@ -46,7 +46,7 @@ import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWor
 import TablePaginationActions from "../../components/TablePagination";
 import { entities } from "./arrays";
 import { TABLE_COLUMNS } from "./arrays";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 

@@ -10,13 +10,14 @@
  * Routes:
  * - POST   /file-manager       - Upload file (Admin, Reviewer, Editor only)
  * - GET    /file-manager       - List all files (All authenticated users)
- * - GET    /file-manager/:id   - Download file (All authenticated users)
+ * - GET    /file-manager/:id   - Download file (Admin only)
  * - DELETE /file-manager/:id   - Delete file (Admin, Reviewer, Editor only)
  *
  * Access Control:
  * - All routes require JWT authentication
  * - Upload/Delete restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
- * - List and Download available to all authenticated users
+ * - Download restricted to Admin only
+ * - Preview and List available to all authenticated users
  *
  * @module routes/fileManager
  */
@@ -32,6 +33,7 @@ import {
   listFilesWithMetadata,
   getHighlighted,
   previewFile,
+  getFileVersionHistory,
 } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
@@ -172,14 +174,14 @@ router.get("/highlighted", fileOperationsLimiter, authenticateJWT, getHighlighte
 /**
  * @route   GET /file-manager/:id
  * @desc    Download a file by ID
- * @access  All authenticated users
+ * @access  Admin only
  * @param   id - File ID
  * @returns {200} File content with download headers
- * @returns {403} Access denied (file from different organization)
+ * @returns {403} Access denied (unauthorized role or file from different organization)
  * @returns {404} File not found
  * @returns {500} Server error
  */
-router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
+router.get("/:id", fileOperationsLimiter, authenticateJWT, authorize(["Admin"]), downloadFile);
 
 /**
  * @route   GET /file-manager/:id/metadata
@@ -192,6 +194,17 @@ router.get("/:id", fileOperationsLimiter, authenticateJWT, downloadFile);
  * @returns {500} Server error
  */
 router.get("/:id/metadata", fileOperationsLimiter, authenticateJWT, getFileMetadata);
+
+/**
+ * @route   GET /file-manager/:id/versions
+ * @desc    Get version history for a file (all files in the same group)
+ * @access  All authenticated users
+ * @param   id - File ID
+ * @returns {200} List of file versions
+ * @returns {404} File not found
+ * @returns {500} Server error
+ */
+router.get("/:id/versions", fileOperationsLimiter, authenticateJWT, getFileVersionHistory);
 
 /**
  * @route   PATCH /file-manager/:id/metadata

@@ -54,6 +54,8 @@ export interface SearchParams {
   limit?: number;
   offset?: number;
   signal?: AbortSignal;
+  /** Optional review status filter (e.g. "draft", "pending_review", "approved", "rejected", "expired", "superseded") */
+  reviewStatus?: string;
 }
 
 /**
@@ -63,12 +65,19 @@ export interface SearchParams {
  * @returns Promise resolving to grouped search results
  */
 export async function wiseSearch(params: SearchParams): Promise<SearchResponse> {
+  const queryParams: Record<string, string | number> = {
+    q: params.q,
+    limit: params.limit || 20,
+    offset: params.offset || 0,
+  };
+
+  // Only include reviewStatus if explicitly set
+  if (params.reviewStatus) {
+    queryParams.reviewStatus = params.reviewStatus;
+  }
+
   const response = await CustomAxios.get<SearchResponse>("/search", {
-    params: {
-      q: params.q,
-      limit: params.limit || 20,
-      offset: params.offset || 0,
-    },
+    params: queryParams,
     signal: params.signal,
   });
 

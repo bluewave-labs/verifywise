@@ -263,20 +263,21 @@ export async function updateIncidentById(req: Request, res: Response) {
     existingIncident
   );
   if (validationErrors.length > 0) {
+    const errorDetails = validationErrors.map((err: ValidationError) => ({
+      field: err.field,
+      message: err.message,
+      code: err.code,
+    }));
     logStructured(
       "error",
-      `Incident update validation failed for ID ${incidentId}`,
+      `Incident update validation failed for ID ${incidentId}: ${JSON.stringify(errorDetails)}`,
       "updateIncidentById",
       "incidentManagement.controller.ts"
     );
     return res.status(400).json({
       status: "error",
       message: "Incident update validation failed",
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code,
-      })),
+      errors: errorDetails,
     });
   }
 

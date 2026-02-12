@@ -15,6 +15,9 @@ export class FileModel {
   metaId?: number;
   isEvidence?: boolean;
   is_demo?: boolean;
+  version?: string;
+  reviewStatus?: string;
+  fileGroupId?: string;
 
   constructor(data: FileModel) {
     this.id = data.id;
@@ -33,6 +36,9 @@ export class FileModel {
     this.metaId = data.metaId;
     this.isEvidence = data.isEvidence;
     this.is_demo = data.is_demo;
+    this.version = data.version;
+    this.reviewStatus = data.reviewStatus;
+    this.fileGroupId = data.fileGroupId;
   }
 
   static createNewFile(data: Partial<FileModel>): FileModel {
@@ -63,6 +69,9 @@ export class FileModel {
       metaId: apiData.metaId,
       isEvidence: apiData.isEvidence,
       is_demo: apiData.is_demo,
+      version: apiData.version,
+      reviewStatus: apiData.reviewStatus,
+      fileGroupId: apiData.fileGroupId,
     } as FileModel);
   }
 

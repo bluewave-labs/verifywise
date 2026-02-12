@@ -15,7 +15,7 @@ import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { BreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { CATEGORIES } from "./categories";
 import {
   categorySidebar,
@@ -264,7 +264,7 @@ const Plugins: React.FC = () => {
       />
 
       <TabContext value={activeTab}>
-        <Box sx={{ borderBottom: 1, borderColor: "#d0d5dd" }}>
+        <Box>
           <TabBar
             tabs={[
               { label: "Marketplace", value: "marketplace", icon: "Store" },

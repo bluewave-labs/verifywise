@@ -92,6 +92,14 @@ import { ApprovalStepApproversModel } from "../domain.layer/models/approvalWorkf
 import { ApprovalWorkflowModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflow.model";
 import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
 import { DatasetModel } from "../domain.layer/models/dataset/dataset.model";
+import { ShadowAiConnectorModel } from "../domain.layer/models/shadowAi/shadowAiConnector.model";
+import { ShadowAiEventModel } from "../domain.layer/models/shadowAi/shadowAiEvent.model";
+import { ShadowAiInventoryModel } from "../domain.layer/models/shadowAi/shadowAiInventory.model";
+import { ShadowAiPolicyModel } from "../domain.layer/models/shadowAi/shadowAiPolicy.model";
+import { ShadowAiViolationModel } from "../domain.layer/models/shadowAi/shadowAiViolation.model";
+import { ShadowAiExceptionModel } from "../domain.layer/models/shadowAi/shadowAiException.model";
+import { ShadowAiReviewModel } from "../domain.layer/models/shadowAi/shadowAiReview.model";
+import { ShadowAiEvidenceExportModel } from "../domain.layer/models/shadowAi/shadowAiEvidenceExport.model";
 
 dotenv.config();
 
@@ -193,6 +201,14 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ApprovalWorkflowModel,
     ApprovalWorkflowStepModel,
     DatasetModel,
+    ShadowAiConnectorModel,
+    ShadowAiEventModel,
+    ShadowAiInventoryModel,
+    ShadowAiPolicyModel,
+    ShadowAiViolationModel,
+    ShadowAiExceptionModel,
+    ShadowAiReviewModel,
+    ShadowAiEvidenceExportModel,
   ],
 }) as Sequelize;
 

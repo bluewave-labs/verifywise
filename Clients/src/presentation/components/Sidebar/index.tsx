@@ -14,6 +14,7 @@ import {
   FolderTree,
   Layers,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -182,6 +183,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         //   icon: <Workflow size={16} strokeWidth={1.5} />,
         //   path: "/approval-workflows",
         // },
+        {
+          id: "shadow-ai",
+          label: "Shadow AI",
+          icon: <Eye size={16} strokeWidth={1.5} />,
+          path: "/shadow-ai",
+        },
       ],
     },
   ];

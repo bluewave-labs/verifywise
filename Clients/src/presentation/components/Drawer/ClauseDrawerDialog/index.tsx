@@ -327,11 +327,11 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
     // Merge and deduplicate by file ID
     const fileMap = new Map<string, FileData>();
     normalizedLinks.forEach((file) => {
-      if (file.id) fileMap.set(file.id, file);
+      if (file.id) fileMap.set(String(file.id), file);
     });
     linkedFiles.forEach((file) => {
-      if (file.id && !fileMap.has(file.id)) {
-        fileMap.set(file.id, file);
+      if (file.id && !fileMap.has(String(file.id))) {
+        fileMap.set(String(file.id), file);
       }
     });
 
@@ -592,7 +592,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
         // Attach pending files after successful save
         if (pendingAttachFiles.length > 0 && subclause?.id) {
           try {
-            const fileIds = pendingAttachFiles.map((f) => parseInt(f.id));
+            const fileIds = pendingAttachFiles.map((f) => typeof f.id === 'number' ? f.id : parseInt(String(f.id)));
             await attachFilesToEntity({
               file_ids: fileIds,
               framework_type: "iso_42001",
@@ -1577,7 +1577,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
         open={showFilePicker}
         onClose={() => setShowFilePicker(false)}
         onSelect={handleAttachExistingFiles}
-        excludeFileIds={[...evidenceFiles.map((f) => f.id), ...pendingAttachFiles.map((f) => f.id)]}
+        excludeFileIds={[...evidenceFiles.map((f) => String(f.id)), ...pendingAttachFiles.map((f) => String(f.id))]}
         multiSelect={true}
         title="Attach Existing Files as Evidence"
       />

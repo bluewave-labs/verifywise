@@ -103,7 +103,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
                   id={row.id}
                   type="report"
                   onMouseEvent={() => handleEditRisk()}
-                  onDelete={() => handleRemoveReport(row.id)}
+                  onDelete={() => { handleRemoveReport(row.id); }}
                   onEdit={() => {}}
                   onDownload={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"

@@ -114,7 +114,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         .then((workflows) => {
           setApprovalWorkflows(workflows);
         })
-        .catch((error) => {
+        .catch(() => {
           secureLogError('Failed to load approval workflows', UPLOAD_CONTEXT);
           setApprovalWorkflows([]);
         })

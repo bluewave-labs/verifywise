@@ -73,7 +73,7 @@ import {
 } from "../../../../application/repository/entity.repository";
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import allowedRoles from "../../../../application/constants/permissions";
-import FilePickerModal from "../../FilePickerModal";
+import { FilePickerModal } from "../../FilePickerModal";
 
 // Constants
 export const inputStyles = {

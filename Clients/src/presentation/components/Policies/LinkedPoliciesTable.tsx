@@ -21,7 +21,7 @@ import {
     ChevronsUpDown,
 } from "lucide-react";
 import CustomIconButton from "../../components/IconButton";
-import FileIcon from "../../components/FileIcon";
+import { FileIcon } from "../../components/FileIcon";
 import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 

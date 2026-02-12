@@ -29,7 +29,7 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import VerifyWiseLogo from "../../assets/imgs/verifywise-logo.svg";
 import SidebarFooter from "./SidebarFooter";
-import FlyingHearts from "../FlyingHearts";
+import { FlyingHearts } from "../FlyingHearts";
 
 declare const __APP_VERSION__: string;
 

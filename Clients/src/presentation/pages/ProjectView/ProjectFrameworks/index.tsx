@@ -25,7 +25,7 @@ import {
   tabListStyle,
 } from "./styles";
 import allowedRoles from "../../../../application/constants/permissions";
-import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
+import { TabFilterBar } from "../../../components/FrameworkFilter/TabFilterBar";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";

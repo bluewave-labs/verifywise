@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Box } from '@mui/material';
-import { keyframes } from '@mui/system';
+import type { FC } from "react";
+import { useEffect, useState } from "react";
+import { Box } from "@mui/material";
+import { keyframes } from "@mui/system";
 
 // Keyframe animation for hearts flying from bottom to top
 const flyUp = keyframes`
@@ -37,25 +38,25 @@ interface Heart {
 }
 
 const colors = [
-  '#FF1493', // Deep Pink
-  '#FF69B4', // Hot Pink
-  '#9D4EDD', // Purple
-  '#06FFA5', // Mint Green
-  '#FFD60A', // Yellow
-  '#FF006E', // Pink
-  '#FB5607', // Orange
-  '#3A86FF', // Blue
-  '#8338EC', // Purple
-  '#FFBE0B', // Gold
-  '#FF006E', // Magenta
-  '#06FFA5', // Cyan
+  "#FF1493", // Deep Pink
+  "#FF69B4", // Hot Pink
+  "#9D4EDD", // Purple
+  "#06FFA5", // Mint Green
+  "#FFD60A", // Yellow
+  "#FF006E", // Pink
+  "#FB5607", // Orange
+  "#3A86FF", // Blue
+  "#8338EC", // Purple
+  "#FFBE0B", // Gold
+  "#FF006E", // Magenta
+  "#06FFA5", // Cyan
 ];
 
 interface FlyingHeartsProps {
   onComplete?: () => void;
 }
 
-const FlyingHearts: React.FC<FlyingHeartsProps> = ({ onComplete }) => {
+export const FlyingHearts: FC<FlyingHeartsProps> = ({ onComplete }) => {
   const [hearts] = useState<Heart[]>(() => {
     // Generate 30 hearts with random properties only once on mount
     const generatedHearts: Heart[] = [];
@@ -86,31 +87,31 @@ const FlyingHearts: React.FC<FlyingHeartsProps> = ({ onComplete }) => {
   return (
     <Box
       sx={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
-        pointerEvents: 'none',
+        width: "100vw",
+        height: "100vh",
+        pointerEvents: "none",
         zIndex: 9999,
-        overflow: 'hidden',
+        overflow: "hidden",
       }}
     >
       {hearts.map((heart) => (
         <Box
           key={heart.id}
           sx={{
-            position: 'absolute',
+            position: "absolute",
             left: `${heart.left}%`,
-            bottom: '-100px',
+            bottom: "-100px",
             width: `${heart.size}px`,
             height: `${heart.size}px`,
             animation: `${flyUp} ${heart.duration}s ease-out forwards`,
             animationDelay: `${heart.delay}s`,
-            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-            '& svg': {
-              width: '100%',
-              height: '100%',
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+            "& svg": {
+              width: "100%",
+              height: "100%",
             }
           }}
         >
@@ -122,5 +123,3 @@ const FlyingHearts: React.FC<FlyingHeartsProps> = ({ onComplete }) => {
     </Box>
   );
 };
-
-export default FlyingHearts;

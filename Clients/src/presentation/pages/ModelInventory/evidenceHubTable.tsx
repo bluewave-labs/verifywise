@@ -23,7 +23,7 @@ import utc from "dayjs/plugin/utc";
 import { User } from "../../../domain/types/User";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { EmptyState } from "../../components/EmptyState";
-import FileIcon from "../../components/FileIcon";
+import { FileIcon } from "../../components/FileIcon";
 import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import {
   loadingContainerStyle,

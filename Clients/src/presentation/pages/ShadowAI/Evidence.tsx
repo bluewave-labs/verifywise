@@ -22,7 +22,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Add, Download } from "@mui/icons-material";
+import { Plus, Download } from "lucide-react";
 import { useEvidenceExports, useCreateEvidenceExport } from "../../../application/hooks/useShadowAi";
 import type { IShadowAiEvidenceExport } from "../../../domain/interfaces/i.shadowAi";
 
@@ -63,7 +63,7 @@ const Evidence: React.FC = () => {
         <Typography variant="body2" sx={{ color: "text.secondary", fontSize: 13 }}>
           Generate time-bounded evidence packages for audits and regulatory requests
         </Typography>
-        <Button variant="contained" size="small" startIcon={<Add />} onClick={handleOpenDialog} sx={{ fontSize: 13, textTransform: "none" }}>
+        <Button variant="contained" size="small" startIcon={<Plus size={16} />} onClick={handleOpenDialog} sx={{ fontSize: 13, textTransform: "none" }}>
           Generate Export
         </Button>
       </Box>
@@ -97,7 +97,7 @@ const Evidence: React.FC = () => {
                       {exp.generated_at ? new Date(exp.generated_at).toLocaleString() : "-"}
                     </TableCell>
                     <TableCell>
-                      <Button size="small" variant="text" startIcon={<Download fontSize="small" />} sx={{ fontSize: 11, textTransform: "none" }}>
+                      <Button size="small" variant="text" startIcon={<Download size={14} />} sx={{ fontSize: 11, textTransform: "none" }}>
                         Download
                       </Button>
                     </TableCell>

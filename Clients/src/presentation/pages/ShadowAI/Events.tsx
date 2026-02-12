@@ -20,7 +20,7 @@ import {
   IconButton,
   Collapse,
 } from "@mui/material";
-import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEvents } from "../../../application/hooks/useShadowAi";
 import type { IShadowAiEvent, RiskLevel } from "../../../domain/interfaces/i.shadowAi";
 
@@ -38,7 +38,7 @@ const EventRow: React.FC<{ event: IShadowAiEvent }> = ({ event }) => {
     <>
       <TableRow hover sx={{ cursor: "pointer" }} onClick={() => setOpen(!open)}>
         <TableCell sx={{ width: 30, p: 0.5 }}>
-          <IconButton size="small">{open ? <KeyboardArrowUp fontSize="small" /> : <KeyboardArrowDown fontSize="small" />}</IconButton>
+          <IconButton size="small">{open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</IconButton>
         </TableCell>
         <TableCell sx={{ fontSize: 13 }}>{new Date(event.timestamp).toLocaleString()}</TableCell>
         <TableCell sx={{ fontSize: 13 }}>{event.ai_tool_name}</TableCell>

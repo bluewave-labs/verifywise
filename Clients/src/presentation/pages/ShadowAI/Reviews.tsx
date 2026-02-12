@@ -22,7 +22,7 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Plus } from "lucide-react";
 import { useReviews, useCreateReview, useUpdateReview } from "../../../application/hooks/useShadowAi";
 import type { IShadowAiReview, ReviewStatus } from "../../../domain/interfaces/i.shadowAi";
 
@@ -95,7 +95,7 @@ const Reviews: React.FC = () => {
             </Select>
           </FormControl>
         </Box>
-        <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setDialogOpen(true)} sx={{ fontSize: 13, textTransform: "none" }}>
+        <Button variant="contained" size="small" startIcon={<Plus size={16} />} onClick={() => setDialogOpen(true)} sx={{ fontSize: 13, textTransform: "none" }}>
           Create Review
         </Button>
       </Box>

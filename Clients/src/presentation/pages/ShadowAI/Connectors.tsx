@@ -19,7 +19,7 @@ import {
   MenuItem,
   IconButton,
 } from "@mui/material";
-import { Add, Delete, Refresh, PlayArrow, CheckCircle, Error as ErrorIcon, Pause } from "@mui/icons-material";
+import { Plus, Trash2, RefreshCw, Play, CheckCircle, AlertCircle, PauseCircle } from "lucide-react";
 import {
   useConnectors,
   useCreateConnector,
@@ -30,9 +30,9 @@ import {
 import type { IShadowAiConnector, ConnectorType } from "../../../domain/interfaces/i.shadowAi";
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
-  active: <CheckCircle fontSize="small" sx={{ color: "success.main" }} />,
-  paused: <Pause fontSize="small" sx={{ color: "text.secondary" }} />,
-  error: <ErrorIcon fontSize="small" sx={{ color: "error.main" }} />,
+  active: <CheckCircle size={16} color="#2e7d32" />,
+  paused: <PauseCircle size={16} color="#757575" />,
+  error: <AlertCircle size={16} color="#d32f2f" />,
   configuring: <CircularProgress size={16} />,
 };
 
@@ -78,7 +78,7 @@ const Connectors: React.FC = () => {
         <Typography variant="body2" sx={{ color: "text.secondary", fontSize: 13 }}>
           Configure data source connections to ingest AI usage events from your security stack
         </Typography>
-        <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setDialogOpen(true)} sx={{ fontSize: 13, textTransform: "none" }}>
+        <Button variant="contained" size="small" startIcon={<Plus size={16} />} onClick={() => setDialogOpen(true)} sx={{ fontSize: 13, textTransform: "none" }}>
           Add Connector
         </Button>
       </Box>
@@ -100,7 +100,7 @@ const Connectors: React.FC = () => {
                       <Chip label={c.type} size="small" variant="outlined" sx={{ fontSize: 11, height: 20 }} />
                     </Box>
                     <IconButton size="small" color="error" onClick={() => deleteConnector.mutate(c.id)}>
-                      <Delete fontSize="small" />
+                      <Trash2 size={16} />
                     </IconButton>
                   </Box>
 
@@ -140,7 +140,7 @@ const Connectors: React.FC = () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      startIcon={<CheckCircle fontSize="small" />}
+                      startIcon={<CheckCircle size={14} />}
                       onClick={() => handleTest(c.id)}
                       sx={{ fontSize: 11, textTransform: "none", flex: 1 }}
                     >
@@ -149,7 +149,7 @@ const Connectors: React.FC = () => {
                     <Button
                       size="small"
                       variant="outlined"
-                      startIcon={<Refresh fontSize="small" />}
+                      startIcon={<RefreshCw size={14} />}
                       onClick={() => syncConnector.mutate(c.id)}
                       sx={{ fontSize: 11, textTransform: "none", flex: 1 }}
                     >

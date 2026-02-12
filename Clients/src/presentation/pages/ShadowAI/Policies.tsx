@@ -25,7 +25,7 @@ import {
   FormControlLabel,
   IconButton,
 } from "@mui/material";
-import { Add, Delete, Edit } from "@mui/icons-material";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import {
   usePolicies,
   useCreatePolicy,
@@ -116,7 +116,7 @@ const Policies: React.FC = () => {
         <Typography variant="body2" sx={{ color: "text.secondary", fontSize: 13 }}>
           Define AI usage policies to automatically detect violations
         </Typography>
-        <Button variant="contained" size="small" startIcon={<Add />} onClick={() => handleOpen()} sx={{ fontSize: 13, textTransform: "none" }}>
+        <Button variant="contained" size="small" startIcon={<Plus size={16} />} onClick={() => handleOpen()} sx={{ fontSize: 13, textTransform: "none" }}>
           Create Policy
         </Button>
       </Box>
@@ -164,9 +164,9 @@ const Policies: React.FC = () => {
                     <TableCell align="right" sx={{ fontSize: 13 }}>{p.violation_count || 0}</TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 0.5 }}>
-                        <IconButton size="small" onClick={() => handleOpen(p)}><Edit fontSize="small" /></IconButton>
+                        <IconButton size="small" onClick={() => handleOpen(p)}><Pencil size={16} /></IconButton>
                         <IconButton size="small" color="error" onClick={() => deletePolicy.mutate(p.id)}>
-                          <Delete fontSize="small" />
+                          <Trash2 size={16} />
                         </IconButton>
                       </Box>
                     </TableCell>
@@ -266,7 +266,7 @@ const Policies: React.FC = () => {
                   sx={{ flex: 1 }}
                 />
                 <IconButton size="small" onClick={() => removeRule(idx)} disabled={form.rules.rules.length <= 1}>
-                  <Delete fontSize="small" />
+                  <Trash2 size={16} />
                 </IconButton>
               </Box>
             ))}

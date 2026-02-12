@@ -43,7 +43,7 @@ import {
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import StandardModal from "../../Modals/StandardModal";
 import allowedRoles from "../../../../application/constants/permissions";
-import FilePickerModal from "../../FilePickerModal";
+import { FilePickerModal } from "../../FilePickerModal";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 import { ISO27001GetSubClauseById } from "../../../../application/repository/subClause_iso.repository";

@@ -13,7 +13,7 @@ import {
   Box,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import TablePaginationActions from "../../TablePagination";
 const ReportTableBody = lazy(() => import("./TableBody"));

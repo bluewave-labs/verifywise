@@ -9,7 +9,7 @@ import React, { useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TableHeader from "../TableHead";
 import { TITLE_OF_COLUMNS } from "../../LinkedRisks/constants";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 
 import LinkedRisksTableBody from "./TableBody";
 

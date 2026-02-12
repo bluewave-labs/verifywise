@@ -79,22 +79,17 @@ export function useFolderFiles(
     try {
       setLoading(true);
       setError(null);
-      // Clear files immediately to prevent flash of old content
-      setFiles([]);
 
       let filesData: IFileWithFolders[];
 
       if (folder === "all") {
-        // Fetch all files from file manager
         const rawFiles = await getUserFilesMetaData();
         const transformedFiles = transformFilesData(rawFiles);
         filesData = transformToFileWithFolders(transformedFiles);
         setAllFiles(filesData);
       } else if (folder === "uncategorized") {
-        // Fetch files not in any folder
         filesData = await getUncategorizedFiles();
       } else {
-        // Fetch files in specific folder
         filesData = await getFilesInFolder(folder);
       }
 
@@ -102,7 +97,6 @@ export function useFolderFiles(
     } catch (err) {
       console.error("Error fetching files:", err);
       setError("Failed to load files");
-      setFiles([]);
     } finally {
       setLoading(false);
     }
@@ -198,10 +192,7 @@ export function useFolderFiles(
   }, []);
 
   // Load files when selected folder changes
-  // Set loading immediately when folder changes to prevent flash
   useEffect(() => {
-    setLoading(true);
-    setFiles([]);
     refreshFiles(selectedFolder);
   }, [selectedFolder]); // Don't include refreshFiles to avoid double-calls
 

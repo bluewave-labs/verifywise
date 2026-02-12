@@ -22,7 +22,7 @@ import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import {
   DatasetTableProps,
 } from "../../../domain/interfaces/i.dataset";

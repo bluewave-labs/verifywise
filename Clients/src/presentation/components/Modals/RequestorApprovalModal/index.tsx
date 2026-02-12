@@ -3,10 +3,6 @@ import {
     ChevronRight,
     User,
     Calendar,
-    FileText,
-    Briefcase,
-    Target,
-    PackageOpen,
 } from "lucide-react";
 
 import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, Button } from "@mui/material";
@@ -58,8 +54,11 @@ import {
     withdrawRequest,
 } from "../../../../application/repository/approvalRequest.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import DetailField from "./DetailField";
+import EntityDetailsSection from "./EntityDetailsSection";
+import { extractEntityDetails } from "./entityTypeConfig";
+import { dispatchFileApprovalChanged } from "../../../../application/events/fileEvents";
 
 
 const getWorkflowChipProps = (value: string) => {
@@ -198,6 +197,11 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             const response = await getApprovalRequestById({ id: approvedRequestId });
             const requestStatus = response?.data?.status?.toLowerCase();
 
+            // If this was a file approval, dispatch event to refresh file lists
+            if (requestDetails?.entityType === 'file') {
+                dispatchFileApprovalChanged({ status: 'approved' });
+            }
+
             if (requestStatus === 'approved') {
                 onClose();
             }
@@ -225,6 +229,11 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 type: "info",
                 message: "Request rejected successfully!",
             });
+
+            // If this was a file rejection, dispatch event to refresh file lists
+            if (requestDetails?.entityType === 'file') {
+                dispatchFileApprovalChanged({ status: 'rejected' });
+            }
 
             fetchRequestsData();
             setComment("");
@@ -320,39 +329,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             const requestData = response?.data;
 
             if (requestData) {
-                // Build requester name
-                const requesterName = requestData.requester_name && requestData.requester_surname
-                    ? `${requestData.requester_name} ${requestData.requester_surname}`
-                    : requestData.requester_name || requestData.requester_surname;
-
-                // Build owner name
-                const ownerName = requestData.owner_name && requestData.owner_surname
-                    ? `${requestData.owner_name} ${requestData.owner_surname}`
-                    : requestData.owner_name || requestData.owner_surname;
-
-                // Store request details with use-case information
-                const details = {
-                    // Basic info
-                    entityName: requestData.project_title,
-                    entityId: requestData.uc_id,
-                    requester: requesterName,
-                    requesterEmail: requestData.requester_email,
-                    dateCreated: requestData.created_at,
-                    workflowName: requestData.workflow_name,
-
-                    // Use-case details
-                    projectDescription: requestData.project_description,
-                    owner: ownerName,
-                    ownerEmail: requestData.owner_email,
-                    projectStatus: requestData.project_status,
-                    goal: requestData.goal,
-                    targetIndustry: requestData.target_industry,
-                    aiRiskClassification: requestData.ai_risk_classification,
-                    typeOfHighRiskRole: requestData.type_of_high_risk_role,
-                    startDate: requestData.start_date,
-                    geography: requestData.geography,
-                };
-
+                // Extract entity details using the modular configuration
+                const details = extractEntityDetails(requestData);
                 setRequestDetails(details);
 
                 if (requestData.steps) {
@@ -378,7 +356,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
     };
 
     const renderCustomFooter = () => {
-        if (!selectedItem && !isProcessing) {
+        // Hide footer when there's no data or no selected item
+        if (hasNoData || (!selectedItem && !isProcessing)) {
             return null;
         }
 
@@ -505,7 +484,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
             onClose={onClose}
             maxWidth="1000px"
             title="Approval requests"
-            description="Review and manage approval requests for use cases"
+            description="Review and manage approval requests"
             customFooter={renderCustomFooter()}
             expandedHeight={true}
         >
@@ -698,6 +677,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                     {/* Request metadata */}
                     {requestDetails && (
                         <>
+                            {/* Request Information */}
                             <Stack spacing={8} sx={{
                                 backgroundColor: "#F9FAFB",
                                 border: "1px solid #E5E7EB",
@@ -707,20 +687,6 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
                                     Request Information
                                 </Typography>
-                                {requestDetails.entityName && (
-                                    <DetailField
-                                        icon={<FileText size={14} />}
-                                        label="Use case"
-                                        value={requestDetails.entityName}
-                                    />
-                                )}
-                                {requestDetails.entityId && (
-                                    <DetailField
-                                        icon={<FileText size={14} />}
-                                        label="Use case ID"
-                                        value={requestDetails.entityId}
-                                    />
-                                )}
                                 {requestDetails.requester && (
                                     <DetailField
                                         icon={<User size={14} />}
@@ -737,94 +703,8 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                                 )}
                             </Stack>
 
-                            {/* Use-case details */}
-                            <Stack spacing={8} sx={{
-                                backgroundColor: "#F9FAFB",
-                                border: "1px solid #E5E7EB",
-                                borderRadius: "8px",
-                                padding: "16px",
-                            }}>
-                                <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
-                                    Use Case Details
-                                </Typography>
-                                {!requestDetails.entityName ? (
-                                    <Typography fontSize={13} color="#C62828" fontStyle="italic" sx={{
-                                        backgroundColor: "#FDECEA",
-                                        padding: "12px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #F5C6CB"
-                                    }}>
-                                        The use-case associated with this request has been deleted.
-                                    </Typography>
-                                ) : (
-                                    <>
-                                        {requestDetails.owner && (
-                                            <DetailField
-                                                icon={<User size={14} />}
-                                                label="Owner"
-                                                value={requestDetails.owner}
-                                            />
-                                        )}
-                                        {requestDetails.projectStatus && (
-                                            <DetailField
-                                                icon={<FileText size={14} />}
-                                                label="Status"
-                                                value={requestDetails.projectStatus}
-                                            />
-                                        )}
-                                        {requestDetails.aiRiskClassification && (
-                                            <DetailField
-                                                icon={<Briefcase size={14} />}
-                                                label="AI Risk Classification"
-                                                value={requestDetails.aiRiskClassification}
-                                            />
-                                        )}
-                                        {requestDetails.typeOfHighRiskRole && (
-                                            <DetailField
-                                                icon={<PackageOpen size={14} />}
-                                                label="High Risk Role"
-                                                value={requestDetails.typeOfHighRiskRole}
-                                            />
-                                        )}
-                                        {requestDetails.goal && (
-                                            <DetailField
-                                                icon={<Target size={14} />}
-                                                label="Goal"
-                                                value={requestDetails.goal}
-                                                withWrap
-                                            />
-                                        )}
-                                        {requestDetails.targetIndustry && (
-                                            <DetailField
-                                                icon={<Briefcase size={14} />}
-                                                label="Target Industry"
-                                                value={requestDetails.targetIndustry}
-                                            />
-                                        )}
-                                        {requestDetails.startDate && (
-                                            <DetailField
-                                                icon={<Calendar size={14} />}
-                                                label="Start Date"
-                                                value={dayjs(requestDetails.startDate).format("YYYY-MM-DD")}
-                                            />
-                                        )}
-                                        {requestDetails.projectDescription && (
-                                            <DetailField
-                                                icon={<FileText size={14} />}
-                                                label="Description"
-                                                value={requestDetails.projectDescription}
-                                                withWrap
-                                            />
-                                        )}
-                                        {!requestDetails.owner && !requestDetails.projectStatus && !requestDetails.goal &&
-                                         !requestDetails.targetIndustry && !requestDetails.aiRiskClassification && !requestDetails.projectDescription && (
-                                            <Typography fontSize={13} color="#6B7280" fontStyle="italic">
-                                                No additional use case details available
-                                            </Typography>
-                                        )}
-                                    </>
-                                )}
-                            </Stack>
+                            {/* Entity-specific details - rendered by modular component */}
+                            <EntityDetailsSection details={requestDetails} />
                         </>
                     )}
 

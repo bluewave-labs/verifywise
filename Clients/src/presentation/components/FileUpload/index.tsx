@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import "./drop-file-input.css";
 import { FileProps, FileUploadProps } from "./types";
@@ -15,10 +16,11 @@ import {
   Typography,
   IconButton,
   Button,
+  useTheme,
 } from "@mui/material";
 import { Upload as UploadIcon, Trash2 as DeleteIconGrey } from "lucide-react";
 
-const FileUploadComponent = ({
+export const FileUploadComponent = ({
   onClose,
   onHeightChange,
   topicId = 0,
@@ -26,6 +28,7 @@ const FileUploadComponent = ({
   setAssessmentsValue,
   allowedFileTypes,
 }: FileUploadProps) => {
+  const theme = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const [fileList, setFileList] = useState<FileProps[]>(
@@ -54,7 +57,7 @@ const FileUploadComponent = ({
     }
   }, [fileList.length, onHeightChange]);
 
-  const onFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileDrop = (e: ChangeEvent<HTMLInputElement>) => {
     const newFile: File | undefined = e.target.files?.[0];
 
     if (!newFile) {
@@ -134,7 +137,7 @@ const FileUploadComponent = ({
             onDrop={onDrop}
           >
             <div className="drop-file-input__label">
-              <UploadIcon size={24} style={{ marginBottom: 16, color: "#6B7280" }} />
+              <UploadIcon size={24} style={{ marginBottom: 16, color: theme.palette.other.icon }} />
               <Typography variant="body2">
                 <span style={{ color: "#3b82f6" }}>Click to upload</span> or
                 drag and drop
@@ -183,4 +186,3 @@ const FileUploadComponent = ({
   );
 };
 
-export default FileUploadComponent;

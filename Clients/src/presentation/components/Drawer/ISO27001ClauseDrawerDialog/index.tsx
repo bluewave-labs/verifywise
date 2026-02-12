@@ -40,9 +40,10 @@ import {
   updateEntityById,
   getEntityById,
 } from "../../../../application/repository/entity.repository";
-import { getFileById } from "../../../../application/repository/file.repository";
+import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import StandardModal from "../../Modals/StandardModal";
 import allowedRoles from "../../../../application/constants/permissions";
+import { FilePickerModal } from "../../FilePickerModal";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 import { ISO27001GetSubClauseById } from "../../../../application/repository/subClause_iso.repository";
@@ -143,7 +144,9 @@ const VWISO27001ClauseDrawerDialog = ({
 
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
+  const [pendingAttachFiles, setPendingAttachFiles] = useState<FileData[]>([]);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
+  const [showFilePicker, setShowFilePicker] = useState(false);
 
   // ========================================================================
   // STATE - RISKS
@@ -278,11 +281,12 @@ const VWISO27001ClauseDrawerDialog = ({
           setDate(null);
         }
 
-        if (subClauseData.evidence_links) {
-          setEvidenceFiles(subClauseData.evidence_links);
-        } else {
-          setEvidenceFiles([]);
-        }
+        // Load evidence files from both sources
+        const allEvidenceFiles = await loadEvidenceFiles(
+          subClauseData.evidence_links,
+          subClauseData.id
+        );
+        setEvidenceFiles(allEvidenceFiles);
       }
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
@@ -330,6 +334,67 @@ const VWISO27001ClauseDrawerDialog = ({
       }
       setLinkedRiskObjects([]);
     }
+  };
+
+  /**
+   * Load evidence files from both sources:
+   * 1. evidence_links from entity response (legacy)
+   * 2. file_entity_links table (new framework-agnostic approach)
+   * Merges and deduplicates by file ID
+   */
+  const loadEvidenceFiles = async (evidenceLinks: FileData[] | null | undefined, subclauseId: number) => {
+    // Normalize evidence_links files
+    const normalizedLinks: FileData[] = Array.isArray(evidenceLinks)
+      ? evidenceLinks.map((file: any) => ({
+          id: file.id?.toString() || "",
+          fileName: file.fileName || file.filename || file.file_name || "",
+          size: file.size || 0,
+          type: file.type || "",
+          uploadDate: file.uploadDate || file.upload_date || new Date().toISOString(),
+          uploader: file.uploader || "Unknown",
+          source: file.source || "File Manager",
+        }))
+      : [];
+
+    // Fetch linked files from file_entity_links table
+    let linkedFiles: FileData[] = [];
+    if (subclauseId) {
+      try {
+        const response = await getEntityFiles(
+          "iso_27001",
+          "subclause",
+          subclauseId
+        );
+        if (response && Array.isArray(response)) {
+          linkedFiles = response.map((file: any) => ({
+            id: file.id?.toString() || file.file_id?.toString() || "",
+            fileName: file.filename || file.fileName || file.file_name || "",
+            size: file.size || 0,
+            type: file.mimetype || file.type || "",
+            uploadDate: file.upload_date || file.uploadDate || new Date().toISOString(),
+            uploader: file.uploader_name
+              ? `${file.uploader_name} ${file.uploader_surname || ""}`.trim()
+              : file.uploader || "Unknown",
+            source: file.source || "File Manager",
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching linked files:", error);
+      }
+    }
+
+    // Merge and deduplicate by file ID
+    const fileMap = new Map<string, FileData>();
+    normalizedLinks.forEach((file) => {
+      if (file.id) fileMap.set(file.id, file);
+    });
+    linkedFiles.forEach((file) => {
+      if (file.id && !fileMap.has(file.id)) {
+        fileMap.set(file.id, file);
+      }
+    });
+
+    return Array.from(fileMap.values());
   };
 
   // ========================================================================
@@ -392,6 +457,25 @@ const VWISO27001ClauseDrawerDialog = ({
     handleAlert({
       variant: "info",
       body: `${files.length} file(s) added. Save to apply changes.`,
+    });
+  };
+
+  const handleAttachExistingFiles = (selectedFiles: FileData[]) => {
+    if (selectedFiles.length === 0) return;
+
+    // Add to pending attach queue (will be attached on Save)
+    setPendingAttachFiles((prev) => [...prev, ...selectedFiles]);
+    handleAlert({
+      variant: "info",
+      body: `${selectedFiles.length} file(s) added to attach queue. Save to apply changes.`,
+    });
+  };
+
+  const handleRemovePendingAttach = (fileId: string) => {
+    setPendingAttachFiles((prev) => prev.filter((f) => f.id !== fileId));
+    handleAlert({
+      variant: "info",
+      body: "File removed from attach queue.",
     });
   };
 
@@ -527,10 +611,12 @@ const VWISO27001ClauseDrawerDialog = ({
         const subClauseData = response.data;
         const updatedRiskIds = subClauseData.risks || [];
 
-        // Update evidence files
-        if (subClauseData.evidence_links) {
-          setEvidenceFiles(subClauseData.evidence_links);
-        }
+        // Update evidence files from both sources
+        const allEvidenceFiles = await loadEvidenceFiles(
+          subClauseData.evidence_links,
+          subClauseData.id
+        );
+        setEvidenceFiles(allEvidenceFiles);
 
         // Update formData with the latest risks from backend
         setFormData((prev) => ({
@@ -560,6 +646,7 @@ const VWISO27001ClauseDrawerDialog = ({
 
   const resetPendingState = () => {
     setUploadFiles([]);
+    setPendingAttachFiles([]);
     setDeletedFilesIds([]);
     setSelectedRisks([]);
     setDeletedRisks([]);
@@ -619,6 +706,23 @@ const VWISO27001ClauseDrawerDialog = ({
       });
 
       if (response.status === 200) {
+        // Attach pending files after successful save
+        if (pendingAttachFiles.length > 0 && subClause?.id) {
+          try {
+            const fileIds = pendingAttachFiles.map((f) => parseInt(f.id));
+            await attachFilesToEntity({
+              file_ids: fileIds,
+              framework_type: "iso_27001",
+              entity_type: "subclause",
+              entity_id: subClause.id,
+              project_id: project_id,
+              link_type: "evidence",
+            });
+          } catch (attachError) {
+            console.error("Failed to attach files:", attachError);
+          }
+        }
+
         handleAlert({
           variant: "success",
           body: "Clause updated successfully",
@@ -991,31 +1095,56 @@ const VWISO27001ClauseDrawerDialog = ({
                     }}
                   />
                   <Stack spacing={2}>
-                    <Button
-                      variant="contained"
-                      onClick={() =>
-                        document.getElementById("evidence-file-input")?.click()
-                      }
-                      disabled={isEditingDisabled}
-                      sx={{
-                        borderRadius: 2,
-                        minWidth: 155,
-                        height: 25,
-                        fontSize: 11,
-                        border: `1px solid ${theme.palette.border.dark}`,
-                        backgroundColor: "background.main",
-                        color: "text.secondary",
-                        "&:hover": {
-                          backgroundColor: "background.accent",
-                          border: `1px solid ${theme.palette.border.dark}`,
-                        },
-                      }}
-                      disableRipple={
-                        theme.components?.MuiButton?.defaultProps?.disableRipple
-                      }
-                    >
-                      Add evidence files
-                    </Button>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="contained"
+                        onClick={() =>
+                          document.getElementById("evidence-file-input")?.click()
+                        }
+                        disabled={isEditingDisabled}
+                        sx={{
+                          borderRadius: 2,
+                          minWidth: 155,
+                          height: 25,
+                          fontSize: 11,
+                          border: "1px solid #D0D5DD",
+                          backgroundColor: "white",
+                          color: "#344054",
+                          "&:hover": {
+                            backgroundColor: "#F9FAFB",
+                            border: "1px solid #D0D5DD",
+                          },
+                        }}
+                        disableRipple={
+                          theme.components?.MuiButton?.defaultProps?.disableRipple
+                        }
+                      >
+                        Upload new files
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => setShowFilePicker(true)}
+                        disabled={isEditingDisabled}
+                        sx={{
+                          borderRadius: 2,
+                          minWidth: 165,
+                          height: 25,
+                          fontSize: 11,
+                          border: "1px solid #4C7BF4",
+                          backgroundColor: "#4C7BF4",
+                          color: "white",
+                          "&:hover": {
+                            backgroundColor: "#3D62C3",
+                            border: "1px solid #3D62C3",
+                          },
+                        }}
+                        disableRipple={
+                          theme.components?.MuiButton?.defaultProps?.disableRipple
+                        }
+                      >
+                        Attach existing files
+                      </Button>
+                    </Stack>
 
                     <Stack direction="row" spacing={2}>
                       <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
@@ -1024,6 +1153,11 @@ const VWISO27001ClauseDrawerDialog = ({
                       {uploadFiles.length > 0 && (
                         <Typography sx={{ fontSize: 11, color: "primary.main" }}>
                           {`+${uploadFiles.length} pending upload`}
+                        </Typography>
+                      )}
+                      {pendingAttachFiles.length > 0 && (
+                        <Typography sx={{ fontSize: 11, color: "#4C7BF4" }}>
+                          {`+${pendingAttachFiles.length} pending attach`}
                         </Typography>
                       )}
                       {deletedFilesIds.length > 0 && (
@@ -1083,13 +1217,13 @@ const VWISO27001ClauseDrawerDialog = ({
                               >
                                 {file.fileName}
                               </Typography>
-                              {file.size && (
-                                <Typography
-                                  sx={{ fontSize: 11, color: "text.tertiary" }}
-                                >
-                                  {((file.size || 0) / 1024).toFixed(1)} KB
-                                </Typography>
-                              )}
+                              <Typography
+                                sx={{ fontSize: 11, color: "#6B7280" }}
+                              >
+                                {file.size ? `${((file.size || 0) / 1024).toFixed(1)} KB` : ""}
+                                {file.size && file.source ? " • " : ""}
+                                {file.source ? `Source: ${file.source}` : ""}
+                              </Typography>
                             </Box>
                           </Box>
                           <Box sx={{ display: "flex", gap: 0.5 }}>
@@ -1211,8 +1345,73 @@ const VWISO27001ClauseDrawerDialog = ({
                   </Stack>
                 )}
 
+                {/* Pending Attach Files */}
+                {pendingAttachFiles.length > 0 && (
+                  <Stack spacing={1}>
+                    <Typography
+                      sx={{ fontSize: 12, fontWeight: 600, color: "#4C7BF4" }}
+                    >
+                      Pending attach
+                    </Typography>
+                    {pendingAttachFiles.map((file) => (
+                      <Box
+                        key={file.id}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px 12px",
+                          border: "1px solid #DBEAFE",
+                          borderRadius: "4px",
+                          backgroundColor: "#EFF6FF",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1.5,
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          <FileIcon size={18} color="#4C7BF4" />
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: "#1E40AF",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {file.fileName}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Tooltip title="Remove from queue">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemovePendingAttach(file.id)}
+                            sx={{
+                              color: "#4C7BF4",
+                              "&:hover": {
+                                color: "#D32F2F",
+                                backgroundColor: "rgba(211, 47, 47, 0.08)",
+                              },
+                            }}
+                          >
+                            <DeleteIcon size={16} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+
                 {/* Empty State */}
-                {evidenceFiles.length === 0 && uploadFiles.length === 0 && (
+                {evidenceFiles.length === 0 && uploadFiles.length === 0 && pendingAttachFiles.length === 0 && (
                   <Box
                     sx={{
                       textAlign: "center",
@@ -1505,6 +1704,16 @@ const VWISO27001ClauseDrawerDialog = ({
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
+
+      {/* File Picker Modal for attaching existing files */}
+      <FilePickerModal
+        open={showFilePicker}
+        onClose={() => setShowFilePicker(false)}
+        onSelect={handleAttachExistingFiles}
+        excludeFileIds={[...evidenceFiles.map((f) => f.id), ...pendingAttachFiles.map((f) => f.id)]}
+        multiSelect={true}
+        title="Attach Existing Files as Evidence"
+      />
     </>
   );
 };

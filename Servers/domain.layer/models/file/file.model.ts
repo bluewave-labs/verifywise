@@ -31,7 +31,7 @@ export type FileSource =
   | "policy_editor"
   | "Post-Market Monitoring report";
 
-export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired' | 'superseded';
 
 export interface File {
   filename: string;
@@ -51,6 +51,9 @@ export interface File {
   expiry_date?: Date;
   last_modified_by?: number;
   description?: string;
+  // Approval workflow support
+  approval_workflow_id?: number;
+  approval_request_id?: number;
 }
 
 export interface FileType {
@@ -72,6 +75,8 @@ export interface FileType {
   expiry_date?: Date;
   last_modified_by?: number;
   description?: string;
+  // Approval workflow support
+  approval_workflow_id?: number;
 }
 
 export interface FileList extends FileType {
@@ -227,6 +232,18 @@ export class FileModel extends Model<File> {
     allowNull: true,
   })
   description?: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  approval_workflow_id?: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  approval_request_id?: number;
 
   @Column({
     type: DataType.DATE,

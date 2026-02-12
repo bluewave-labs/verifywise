@@ -907,16 +907,16 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                 >
                                   {file.fileName}
                                 </Typography>
-                                {file.size && (
-                                  <Typography
-                                    sx={{
-                                      fontSize: 11,
-                                      color: "text.tertiary",
-                                    }}
-                                  >
-                                    {(file.size / 1024).toFixed(1)} KB
-                                  </Typography>
-                                )}
+                                <Typography
+                                  sx={{
+                                    fontSize: 11,
+                                    color: "#6B7280",
+                                  }}
+                                >
+                                  {file.size ? `${(file.size / 1024).toFixed(1)} KB` : ""}
+                                  {file.size && file.source ? " • " : ""}
+                                  {file.source ? `Source: ${file.source}` : ""}
+                                </Typography>
                               </Box>
                             </Box>
                             <Box sx={{ display: "flex", gap: 0.5 }}>

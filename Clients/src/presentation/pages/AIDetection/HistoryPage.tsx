@@ -28,7 +28,7 @@ import Chip from "../../components/Chip";
 import Alert from "../../components/Alert";
 import { Trash2, ChevronsUpDown, Clock, ChevronUp, ChevronDown } from "lucide-react";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
 import PageHeader from "../../components/Layout/PageHeader";

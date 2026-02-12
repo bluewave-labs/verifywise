@@ -120,7 +120,7 @@ export interface IFileBasicTableProps {
   bodyData: FileModel[];
   paginated?: boolean;
   table: string;
-  onFileDeleted?: () => void | Promise<void>;
+  onFileDeleted?: (fileId: string) => void | Promise<void>;
   hidePagination?: boolean;
   onAssignToFolder?: (fileId: number) => void;
   onPreview?: (fileId: number | string) => void | Promise<void>;
@@ -133,7 +133,7 @@ export interface IFileBasicTableProps {
 export interface IFileTableProps {
   cols: any[];
   files: FileModel[];
-  onFileDeleted?: () => void | Promise<void>;
+  onFileDeleted?: (fileId: string) => void | Promise<void>;
   hidePagination?: boolean;
   onAssignToFolder?: (fileId: number) => void;
   onPreview?: (fileId: number | string) => void | Promise<void>;

@@ -12,7 +12,7 @@ import Activity from "./Activity";
 import PostMarketMonitoring from "./PostMarketMonitoring";
 import PageTour from "../../components/PageTour";
 import ProjectViewSteps from "./ProjectViewSteps";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";

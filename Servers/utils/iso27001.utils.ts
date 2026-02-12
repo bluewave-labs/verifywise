@@ -881,6 +881,32 @@ export const updateSubClauseQuery = async (
   const subClauseResult = result[0][0];
   (subClauseResult as any).risks = [];
 
+  // Create file entity links for new uploaded files
+  for (const file of uploadedFiles) {
+    await sequelize.query(
+      `INSERT INTO "${tenant}".file_entity_links
+        (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+       VALUES (:fileId, 'iso_27001', 'subclause', :entityId, 'evidence', NOW())
+       ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+      {
+        replacements: { fileId: parseInt(file.id), entityId: id },
+        transaction,
+      }
+    );
+  }
+
+  // Remove file entity links for deleted files
+  for (const fileId of deletedFiles) {
+    await sequelize.query(
+      `DELETE FROM "${tenant}".file_entity_links
+       WHERE file_id = :fileId AND entity_type = 'subclause' AND entity_id = :entityId`,
+      {
+        replacements: { fileId, entityId: id },
+        transaction,
+      }
+    );
+  }
+
   // update the risks
   const risksDeletedRaw = JSON.parse(subClause.risksDelete || "[]");
   const risksMitigatedRaw = JSON.parse(subClause.risksMitigated || "[]");
@@ -1045,6 +1071,32 @@ export const updateAnnexControlQuery = async (
   })) as [ISO27001AnnexControlModel[], number];
   const annexControlResult = result[0][0];
   (annexControlResult as any).risks = [];
+
+  // Create file entity links for new uploaded files
+  for (const file of uploadedFiles) {
+    await sequelize.query(
+      `INSERT INTO "${tenant}".file_entity_links
+        (file_id, framework_type, entity_type, entity_id, link_type, created_at)
+       VALUES (:fileId, 'iso_27001', 'annex_control', :entityId, 'evidence', NOW())
+       ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+      {
+        replacements: { fileId: parseInt(file.id), entityId: id },
+        transaction,
+      }
+    );
+  }
+
+  // Remove file entity links for deleted files
+  for (const fileId of deletedFiles) {
+    await sequelize.query(
+      `DELETE FROM "${tenant}".file_entity_links
+       WHERE file_id = :fileId AND entity_type = 'annex_control' AND entity_id = :entityId`,
+      {
+        replacements: { fileId, entityId: id },
+        transaction,
+      }
+    );
+  }
 
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".annexcontrols_iso27001__risks WHERE annexcontrol_id = :id`,

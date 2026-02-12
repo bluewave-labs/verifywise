@@ -1,21 +1,32 @@
-import React, { useState, useRef } from "react";
-import { Box, Typography, Popover, IconButton } from "@mui/material";
+import type { FC, ReactNode, MouseEvent, KeyboardEvent } from "react";
+import { useState, useRef } from "react";
+import { Box, Typography, Popover, IconButton, useTheme } from "@mui/material";
+import { X } from "lucide-react";
 
 interface EnhancedTooltipProps {
-  children: React.ReactNode;
+  /** The element that triggers the tooltip on hover */
+  children: ReactNode;
+  /** Tooltip heading text */
   title: string;
-  content: React.ReactNode;
+  /** Rich content displayed in the tooltip body */
+  content: ReactNode;
 }
 
-const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
+/**
+ * Dark glassmorphic tooltip with rich content support.
+ * Opens on hover, closes on mouse leave or explicit close button click.
+ * Supports keyboard activation via Enter/Space on the trigger element.
+ */
+export const EnhancedTooltip: FC<EnhancedTooltipProps> = ({
   children,
   title,
   content,
 }) => {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleOpen = (event: MouseEvent<HTMLElement>) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -23,8 +34,11 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
-    // Don't auto-close - user must click the close button or leave the popover
+  const handleKeyOpen = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setAnchorEl(event.currentTarget);
+    }
   };
 
   const handlePopoverEnter = () => {
@@ -38,7 +52,7 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
     setAnchorEl(null);
   };
 
-  const handleCloseClick = (event: React.MouseEvent) => {
+  const handleCloseClick = (event: MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
     setAnchorEl(null);
@@ -48,7 +62,10 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
     <>
       <Box
         onMouseEnter={handleOpen}
-        onMouseLeave={handleClose}
+        onKeyDown={handleKeyOpen}
+        tabIndex={0}
+        role="button"
+        aria-haspopup="true"
         sx={{ display: "inline-block" }}
       >
         {children}
@@ -85,7 +102,7 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
         <Box
           sx={{
             background: "linear-gradient(135deg, #1f1f23 0%, #252530 100%)",
-            padding: "24px",
+            p: 12,
             position: "relative",
             overflow: "hidden",
           }}
@@ -93,39 +110,26 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
           <IconButton
             onClick={handleCloseClick}
             size="small"
+            aria-label="Close tooltip"
             sx={{
               position: "absolute",
               top: 8,
               right: 8,
               color: "rgba(255, 255, 255, 0.6)",
               "&:hover": {
-                color: "#ffffff",
+                color: theme.palette.common.white,
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
             }}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 4L4 12M4 4L12 12"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <X size={16} />
           </IconButton>
           <Typography
             variant="h6"
             sx={{
               fontWeight: 600,
               fontSize: "15px",
-              color: "#ffffff",
+              color: theme.palette.common.white,
               letterSpacing: "-0.02em",
               mb: 2,
               pr: 3,
@@ -143,13 +147,14 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
           <Box
             sx={{
               color: "rgba(255, 255, 255, 0.85)",
-              fontSize: "13px",
+              fontSize: theme.typography.fontSize,
               lineHeight: 1.6,
             }}
           >
             {content}
           </Box>
           <Box
+            aria-hidden="true"
             sx={{
               position: "absolute",
               bottom: -30,
@@ -167,5 +172,3 @@ const EnhancedTooltip: React.FC<EnhancedTooltipProps> = ({
     </>
   );
 };
-
-export default EnhancedTooltip;

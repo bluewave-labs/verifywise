@@ -317,7 +317,7 @@ const MyForm = ({ onSuccess }: { onSuccess: () => void }) => {
       icon: <Layout size={18} />,
       code: `import { Box, Table, TableBody, TableCell, TableHead, TableRow, IconButton } from "@mui/material";
 import { Edit, Trash2 } from "lucide-react";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 
 interface TableItem {
   id: string;

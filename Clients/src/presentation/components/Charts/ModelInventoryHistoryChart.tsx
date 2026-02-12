@@ -5,7 +5,7 @@ import { getModelInventoryTimeseries } from "../../../application/repository/mod
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { ButtonToggle } from "../button-toggle";
 import CustomizableSkeleton from "../Skeletons";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 
 interface ModelInventoryHistoryChartProps {
   parameter?: string;

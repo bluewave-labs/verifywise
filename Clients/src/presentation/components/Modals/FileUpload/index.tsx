@@ -6,7 +6,7 @@ import {
 import { FileUploadProps } from "../../FileUpload/types";
 import { X as CloseGreyIcon } from "lucide-react";
 import { IconButton } from "@mui/material";
-import FileUploadComponent from "../../FileUpload";
+import { FileUploadComponent } from "../../FileUpload";
 
 interface FileUploadModalProps {
   uploadProps: FileUploadProps;

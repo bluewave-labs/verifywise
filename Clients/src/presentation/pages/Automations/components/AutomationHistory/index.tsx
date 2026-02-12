@@ -19,7 +19,7 @@ import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Ti
 import Chip from '../../../../components/Chip';
 import { getAutomationHistory, getAutomationStats, type AutomationExecutionLog } from '../../../../../application/repository/automations.repository';
 import TablePaginationActions from '../../../../components/TablePagination';
-import EmptyState from '../../../../components/EmptyState';
+import { EmptyState } from '../../../../components/EmptyState';
 import singleTheme from '../../../../themes/v1SingleTheme';
 import { ChevronsUpDown } from 'lucide-react';
 

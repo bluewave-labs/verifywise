@@ -17,7 +17,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
-import FileIcon from "../../FileIcon";
+import { FileIcon } from "../../FileIcon";
 import VersionBadge from "../../../pages/FileManager/components/VersionBadge";
 import StatusBadge from "../../../pages/FileManager/components/StatusBadge";
 import { handleDownload } from "../../../../application/tools/fileDownload";

@@ -16,7 +16,7 @@ import { ChevronRight } from "lucide-react";
 import { LifecyclePhase } from "../../../../../domain/interfaces/i.modelLifecycle";
 import LifecycleItemField from "../LifecycleItemField";
 import Chip from "../../../../components/Chip";
-import EmptyStateMessage from "../../../../components/EmptyStateMessage";
+import { EmptyStateMessage } from "../../../../components/EmptyStateMessage";
 
 interface LifecyclePhasePanelProps {
   phase: LifecyclePhase;

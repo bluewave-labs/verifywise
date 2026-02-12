@@ -25,7 +25,7 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { ModelInventoryTableProps } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";

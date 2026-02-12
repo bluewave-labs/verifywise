@@ -1,23 +1,19 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Stack, Typography } from "@mui/material";
-import { vwhomeBody, vwhomeHeading } from "./style";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
-import ProjectForm from "../../../components/Forms/ProjectForm";
+import { ProjectForm } from "../../../components/Forms/ProjectForm";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-import HelperIcon from "../../../components/HelperIcon";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
-import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
-import TipBox from "../../../components/TipBox";
+import PageHeaderExtended from "../../../components/Layout/PageHeaderExtended";
 
 const Home = () => {
   const location = useLocation();
@@ -88,27 +84,12 @@ const Home = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-      {/* Use Cases Header */}
-      <Stack spacing={2}>
-        <Stack sx={vwhomeBody}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>Use cases</Typography>
-            <HelperIcon
-              articlePath="reporting/dashboard-analytics"
-              size="small"
-            />
-          </Stack>
-        </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Use case is a real-world scenario describing how an AI system is
-          applied within an organization to achieve a defined purpose or
-          outcome.
-        </Typography>
-        <TipBox entityName="overview" />
-      </Stack>
-
+    <PageHeaderExtended
+      title="Use cases"
+      description="Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome."
+      helpArticlePath="reporting/dashboard-analytics"
+      tipBoxEntity="overview"
+    >
       {/* Projects List */}
       <ProjectList
         projects={projects}
@@ -161,7 +142,7 @@ const Home = () => {
         }}
         tourKey="home-tour"
       />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

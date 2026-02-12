@@ -13,7 +13,7 @@ import {
   TableFooter,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import singleTheme from "../../themes/v1SingleTheme";
 import IconButton from "../../components/IconButton";
 import TablePaginationActions from "../../components/TablePagination";

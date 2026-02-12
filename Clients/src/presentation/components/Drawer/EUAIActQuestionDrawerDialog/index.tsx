@@ -69,7 +69,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import { getAssessmentTopicById } from "../../../../application/repository/assesment.repository";
 import allowedRoles from "../../../../application/constants/permissions";
-import FilePickerModal from "../../FilePickerModal";
+import { FilePickerModal } from "../../FilePickerModal";
 
 // Type for risk objects
 interface LinkedRisk {

@@ -27,7 +27,7 @@ import {
     tableRowHoverStyle,
 } from "../../../../../src/presentation/pages/ModelInventory/style";
 import CustomIconButton from "../../../components/IconButton";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import TablePaginationActions from "../../TablePagination";
 import { paginationStyle } from "../styles";
 import { useUserMap } from "../../../../../src/presentation/hooks/userMap";

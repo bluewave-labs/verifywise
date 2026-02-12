@@ -11,7 +11,7 @@ import TableHeader from "../TableHead";
 import { useState } from "react";
 import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import { ProjectRiskMitigationTableBody } from "./ProjectRiskMitigationTableBody";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 
 const TITLE_OF_COLUMNS = ["Component", "Type", ""];
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Divider, Snackbar, Tooltip } from "@mui/material";
 import { Copy, Info, HelpCircle } from "lucide-react";
-import EnhancedTooltip from "../../../components/EnhancedTooltip";
+import { EnhancedTooltip } from "../../../components/EnhancedTooltip";
 import CodeBlock from "../components/CodeBlock";
 
 const tooltipSnippets = {

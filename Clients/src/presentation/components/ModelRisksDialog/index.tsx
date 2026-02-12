@@ -24,7 +24,7 @@ import {
   paginationSelect,
   paginationStyle,
 } from "../Table/styles";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import TablePaginationActions from "../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import { IModelRisk, IModelRiskFormData } from "../../../domain/interfaces/i.modelRisk";

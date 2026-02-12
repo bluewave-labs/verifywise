@@ -1,4 +1,4 @@
-import React from "react";
+import type { FC, CSSProperties } from "react";
 import { Box } from "@mui/material";
 
 // Import file type icons
@@ -83,13 +83,13 @@ export const getFileIconSrc = (fileName: string): string => {
 interface FileIconProps {
   fileName: string;
   size?: number;
-  sx?: React.CSSProperties;
+  sx?: CSSProperties;
 }
 
 /**
  * FileIcon component displays an icon based on the file extension
  */
-const FileIcon: React.FC<FileIconProps> = ({ fileName, size = 24, sx }) => {
+export const FileIcon: FC<FileIconProps> = ({ fileName, size = 24, sx }) => {
   const iconSrc = getFileIconSrc(fileName);
 
   return (
@@ -106,5 +106,3 @@ const FileIcon: React.FC<FileIconProps> = ({ fileName, size = 24, sx }) => {
     />
   );
 };
-
-export default FileIcon;

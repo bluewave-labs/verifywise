@@ -42,7 +42,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import StandardModal from "../StandardModal";
-import EnhancedTooltip from "../../EnhancedTooltip";
+import { EnhancedTooltip } from "../../EnhancedTooltip";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,

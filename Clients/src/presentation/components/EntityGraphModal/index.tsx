@@ -5,7 +5,8 @@
  * explore relationships without leaving their current context.
  */
 
-import React, { useEffect } from 'react';
+import { useEffect, useState } from "react";
+import type { FC } from "react";
 import {
   Modal,
   Box,
@@ -13,15 +14,28 @@ import {
   Typography,
   Stack,
   CircularProgress,
-} from '@mui/material';
-import { X } from 'lucide-react';
-import { EntityGraphFocusProvider, useEntityGraphFocus } from '../../contexts/EntityGraphFocusContext';
+  useTheme,
+} from "@mui/material";
+import { X } from "lucide-react";
+import { EntityGraphFocusProvider, useEntityGraphFocus } from "../../contexts/EntityGraphFocusContext";
 // Import ReactFlow CSS at modal level to ensure it's available in the portal
-import '@xyflow/react/dist/style.css';
+import "@xyflow/react/dist/style.css";
 // Import EntityGraph directly (not lazy) to avoid portal/context issues
-import EntityGraph from '../../pages/EntityGraph';
+import EntityGraph from "../../pages/EntityGraph";
 
-export type FocusEntityType = 'model' | 'risk' | 'vendor' | 'useCase' | 'evidence' | 'framework';
+export type FocusEntityType = "model" | "risk" | "vendor" | "useCase" | "evidence" | "framework";
+
+const ENTITY_TYPE_LABELS: Record<FocusEntityType, string> = {
+  model: "Model",
+  risk: "Risk",
+  vendor: "Vendor",
+  useCase: "Use case",
+  evidence: "Evidence",
+  framework: "Framework",
+};
+
+const getEntityTypeLabel = (type: FocusEntityType): string =>
+  ENTITY_TYPE_LABELS[type] || type;
 
 interface EntityGraphModalProps {
   open: boolean;
@@ -32,15 +46,16 @@ interface EntityGraphModalProps {
 }
 
 // Inner component that uses the focus context
-const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
+const EntityGraphModalInner: FC<EntityGraphModalProps> = ({
   open,
   onClose,
   focusEntityId,
   focusEntityType,
   focusEntityLabel,
 }) => {
+  const theme = useTheme();
   const { setFocusEntity, clearFocus } = useEntityGraphFocus();
-  const [isMounted, setIsMounted] = React.useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Delay rendering until modal is fully open to prevent NaN viewport issues
   useEffect(() => {
@@ -63,24 +78,11 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
     } else {
       clearFocus();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, focusEntityId, focusEntityType, focusEntityLabel]);
+  }, [open, focusEntityId, focusEntityType, focusEntityLabel, setFocusEntity, clearFocus]);
 
   const handleClose = () => {
     clearFocus();
     onClose();
-  };
-
-  const getEntityTypeLabel = (type: FocusEntityType): string => {
-    const labels: Record<FocusEntityType, string> = {
-      model: 'Model',
-      risk: 'Risk',
-      vendor: 'Vendor',
-      useCase: 'Use case',
-      evidence: 'Evidence',
-      framework: 'Framework',
-    };
-    return labels[type] || type;
   };
 
   if (!open) return null;
@@ -91,24 +93,24 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
       onClose={handleClose}
       aria-labelledby="entity-graph-modal"
       sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <Box
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
         sx={{
-          width: '95vw',
-          height: '90vh',
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          outline: 'none',
+          width: "95vw",
+          height: "90vh",
+          backgroundColor: theme.palette.background.main,
+          borderRadius: "8px",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          outline: "none",
         }}
       >
         {/* Header */}
@@ -119,29 +121,32 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
           sx={{
             px: 3,
             py: 2,
-            borderBottom: '1px solid #e5e7eb',
-            backgroundColor: '#f9fafb',
+            borderBottom: `1px solid ${theme.palette.border.light}`,
+            backgroundColor: theme.palette.background.accent,
             flexShrink: 0,
           }}
         >
           <Stack direction="row" alignItems="center" gap={1.5}>
             <Typography
+              id="entity-graph-modal"
               variant="h6"
               sx={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: '#101828',
+                color: theme.palette.text.primary,
               }}
             >
               Entity relationships
             </Typography>
             {focusEntityLabel && (
               <>
-                <Typography sx={{ color: '#667085', fontSize: 14 }}>•</Typography>
+                <Typography sx={{ color: theme.palette.other.icon, fontSize: 14 }}>
+                  &bull;
+                </Typography>
                 <Typography
                   sx={{
                     fontSize: 14,
-                    color: '#344054',
+                    color: theme.palette.text.secondary,
                     fontWeight: 500,
                   }}
                 >
@@ -155,10 +160,11 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
             <IconButton
               onClick={handleClose}
               size="small"
+              aria-label="Close entity graph modal"
               sx={{
-                color: '#667085',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6',
+                color: theme.palette.other.icon,
+                "&:hover": {
+                  backgroundColor: theme.palette.background.fill,
                 },
               }}
             >
@@ -171,8 +177,8 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
         <Box
           sx={{
             flex: 1,
-            position: 'relative',
-            overflow: 'hidden',
+            position: "relative",
+            overflow: "hidden",
             minHeight: 400,
           }}
         >
@@ -181,15 +187,17 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
           ) : (
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
                 gap: 2,
               }}
             >
               <CircularProgress size={24} />
-              <Typography sx={{ color: '#667085' }}>Loading graph...</Typography>
+              <Typography sx={{ color: theme.palette.other.icon }}>
+                Loading graph...
+              </Typography>
             </Box>
           )}
         </Box>
@@ -199,12 +207,10 @@ const EntityGraphModalInner: React.FC<EntityGraphModalProps> = ({
 };
 
 // Wrapper that provides the focus context
-const EntityGraphModal: React.FC<EntityGraphModalProps> = (props) => {
+export const EntityGraphModal: FC<EntityGraphModalProps> = (props) => {
   return (
     <EntityGraphFocusProvider>
       <EntityGraphModalInner {...props} />
     </EntityGraphFocusProvider>
   );
 };
-
-export default EntityGraphModal;

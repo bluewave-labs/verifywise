@@ -24,7 +24,7 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
-import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
+import { TabFilterBar } from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO27001Annex = ({
   project,

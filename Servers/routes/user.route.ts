@@ -54,6 +54,7 @@ import {
 import resetPasswordMiddleware from "../middleware/resetPassword.middleware";
 import authenticateJWT from "../middleware/auth.middleware";
 import registerJWT from "../middleware/register.middleware";
+import { selfOnly } from "../middleware/selfOnly.middleware";
 
 /**
  * GET /users
@@ -160,7 +161,7 @@ router.post("/reset-password", authLimiter, resetPasswordMiddleware, resetPasswo
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.patch("/chng-pass/:id", authLimiter, authenticateJWT, ChangePassword);
+router.patch("/chng-pass/:id", authLimiter, authenticateJWT, selfOnly, ChangePassword);
 
 /**
  * PATCH /users/:id

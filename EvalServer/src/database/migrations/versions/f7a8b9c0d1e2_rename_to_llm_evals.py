@@ -32,7 +32,7 @@ TABLE_RENAMES = [
     ('llm_eval_models', 'llm_evals_models'),
     ('llm_eval_scorers', 'llm_evals_scorers'),
     ('llm_eval_datasets', 'llm_evals_datasets'),
-    ('llm_eval_projects', 'llm_evals_projects'),
+    ('l', 'llm_evals_projects'),
     ('llm_eval_org_members', 'llm_evals_org_members'),
     ('llm_eval_organizations', 'llm_evals_organizations'),
 ]

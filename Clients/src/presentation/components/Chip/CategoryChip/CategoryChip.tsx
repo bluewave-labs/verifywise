@@ -1,13 +1,12 @@
 import { Stack } from "@mui/material";
-import React from "react";
 import Chip from "../../Chip";
-import { CategoryStyles } from "./styles";
+import { useCategoryStyles } from "./styles";
 
-const CategoryChip: React.FC<{ categories: string[] }> = ({ categories }) => {
+export function CategoryChip({ categories }: { categories: string[] }) {
     if (!categories || categories.length === 0) return null;
 
     return (
-        <Stack direction="row" sx={CategoryStyles().stackStyle}>
+        <Stack direction="row" sx={useCategoryStyles().stackStyle}>
             {categories.slice(0, 2).map((category) => (
                 <Chip
                     key={category}
@@ -25,5 +24,3 @@ const CategoryChip: React.FC<{ categories: string[] }> = ({ categories }) => {
         </Stack>
     );
 }
-
-export default CategoryChip;

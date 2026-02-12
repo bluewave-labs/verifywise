@@ -495,6 +495,53 @@ export const notifyPolicyDueSoon = async (
   );
 };
 
+/**
+ * Notify training assigned
+ */
+export const notifyTrainingAssigned = async (
+  tenantId: string,
+  userId: number,
+  training: {
+    id: number;
+    name: string;
+    description?: string;
+    duration?: string;
+    dueDate?: string;
+  },
+  assignerName: string,
+  baseUrl: string
+): Promise<void> => {
+  const user = await getUserById(userId);
+
+  await sendInAppNotification(
+    tenantId,
+    {
+      user_id: userId,
+      type: NotificationType.TRAINING_ASSIGNED,
+      title: "Training assigned",
+      message: `${assignerName} assigned you to training: ${training.name}`,
+      entity_type: NotificationEntityType.TRAINING,
+      entity_id: training.id,
+      entity_name: training.name,
+      action_url: `${baseUrl}/training/${training.id}`,
+    },
+    true,
+    {
+      template: EMAIL_TEMPLATES.TRAINING_ASSIGNED,
+      subject: `Training assigned: ${training.name}`,
+      variables: {
+        trainee_name: user ? `${user.name}` : "User",
+        assigner_name: assignerName,
+        training_name: training.name,
+        training_description: training.description || "No description provided",
+        training_duration: training.duration || "Not specified",
+        training_due_date: training.dueDate || "No due date",
+        training_url: `${baseUrl}/training/${training.id}`,
+      },
+    }
+  );
+};
+
 // Helper functions
 async function getUserById(userId: number): Promise<{ name: string; surname: string; email: string } | null> {
   const result = await sequelize.query<{ name: string; surname: string; email: string }>(

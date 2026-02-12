@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,11 @@ interface TaskRadarCardProps {
   upcoming: number;
 }
 
-const TaskRadarCard: React.FC<TaskRadarCardProps> = ({
+export function TaskRadarCard({
   overdue,
   due,
   upcoming,
-}) => {
+}: TaskRadarCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const max = Math.max(overdue, due, upcoming, 1);
@@ -99,6 +99,4 @@ const TaskRadarCard: React.FC<TaskRadarCardProps> = ({
       </Stack>
     </Stack>
   );
-};
-
-export default TaskRadarCard;
+}

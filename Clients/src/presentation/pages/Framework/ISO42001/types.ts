@@ -122,6 +122,7 @@ export interface FileData {
   data?: Blob;
   uploadDate?: string;
   uploader?: string;
+  source?: string;
 }
 
 /**

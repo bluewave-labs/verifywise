@@ -1,4 +1,3 @@
-import { FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import { useEvalsSidebarContextSafe } from "../../../application/contexts/EvalsSidebar.context";
@@ -6,7 +5,6 @@ import { useAIDetectionSidebarContextSafe } from "../../../application/contexts/
 import Sidebar from "../Sidebar";
 import EvalsSidebar from "../../pages/EvalsDashboard/EvalsSidebar";
 import AIDetectionSidebar from "../../pages/AIDetection/AIDetectionSidebar";
-import GatewaySidebar from "./GatewaySidebar";
 
 interface ContextSidebarProps {
   activeModule: AppModule;
@@ -25,9 +23,8 @@ interface ContextSidebarProps {
  * - 'main': Renders the main VerifyWise sidebar
  * - 'evals': Renders EvalsSidebar (state provided via EvalsSidebarContext)
  * - 'ai-detection': Renders AIDetectionSidebar
- * - 'gateway': Renders the Gateway sidebar placeholder
  */
-const ContextSidebar: FC<ContextSidebarProps> = ({
+export function ContextSidebar({
   activeModule,
   onOpenCreateDemoData,
   onOpenDeleteDemoData,
@@ -35,7 +32,7 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
   showDemoDataButton = true,
   hasDemoData,
   isAdmin = false,
-}) => {
+}: ContextSidebarProps) {
   const evalsSidebarContext = useEvalsSidebarContextSafe();
   const aiDetectionSidebarContext = useAIDetectionSidebarContextSafe();
   const location = useLocation();
@@ -121,8 +118,6 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         />
       );
     }
-    case "gateway":
-      return <GatewaySidebar />;
     default:
       return (
         <Sidebar
@@ -135,6 +130,4 @@ const ContextSidebar: FC<ContextSidebarProps> = ({
         />
       );
   }
-};
-
-export default ContextSidebar;
+}

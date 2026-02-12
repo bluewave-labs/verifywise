@@ -1,8 +1,8 @@
 import React, { useState, useEffect, memo } from "react";
 import { Drawer, Box, Typography, Stack, IconButton, useTheme } from "@mui/material";
 import { X as CloseIcon } from "lucide-react";
-import ModelInventoryHistoryChart from "../Charts/ModelInventoryHistoryChart";
-import RiskHistoryChart from "../Charts/RiskHistoryChart";
+import { ModelInventoryHistoryChart } from "../Charts/ModelInventoryHistoryChart";
+import { RiskHistoryChart } from "../Charts/RiskHistoryChart";
 import { ButtonToggle } from "../button-toggle";
 
 interface ParameterOption {

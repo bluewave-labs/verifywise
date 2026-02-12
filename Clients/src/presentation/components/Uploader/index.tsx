@@ -14,7 +14,9 @@ import {
   Fade,
   Modal,
   Button,
+  Tooltip,
 } from "@mui/material";
+import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
 import {
   Upload as UploadIcon,
   Trash2 as DeleteIcon,
@@ -153,6 +155,7 @@ const Uploader: React.FC<UploaderProps> = ({
   customUploadHandler,
 }) => {
   const theme = useTheme();
+  const isAdmin = useIsAdmin();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragAreaRef = useRef<HTMLDivElement>(null);
 
@@ -783,20 +786,25 @@ const Uploader: React.FC<UploaderProps> = ({
                                 </IconButton>
                               )}
                               {file.status === 'completed' && (
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDownloadFile(file)}
-                                  title="Download"
-                                  sx={{
-                                    color: theme.palette.text.secondary,
-                                    '&:hover': {
-                                      backgroundColor: `${singleTheme.buttons.primary.contained.backgroundColor}10`,
-                                      color: singleTheme.buttons.primary.contained.backgroundColor,
-                                    },
-                                  }}
-                                >
-                                  <DownloadIcon size={18} />
-                                </IconButton>
+                                <Tooltip title={!isAdmin ? "Only admins can download files" : ""}>
+                                  <span>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleDownloadFile(file)}
+                                      disabled={!isAdmin}
+                                      title="Download"
+                                      sx={{
+                                        color: !isAdmin ? theme.palette.action.disabled : theme.palette.text.secondary,
+                                        '&:hover': {
+                                          backgroundColor: isAdmin ? `${singleTheme.buttons.primary.contained.backgroundColor}10` : 'transparent',
+                                          color: isAdmin ? singleTheme.buttons.primary.contained.backgroundColor : theme.palette.action.disabled,
+                                        },
+                                      }}
+                                    >
+                                      <DownloadIcon size={18} />
+                                    </IconButton>
+                                  </span>
+                                </Tooltip>
                               )}
                               <IconButton
                                 size="small"

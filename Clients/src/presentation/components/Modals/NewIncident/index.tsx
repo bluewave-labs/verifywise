@@ -32,7 +32,7 @@ import {
     IncidentType,
     HarmCategory,
 } from "../../../../domain/enums/aiIncidentManagement.enum";
-import HistorySidebar from "../../Common/HistorySidebar";
+import { HistorySidebar } from "../../Common/HistorySidebar";
 
 // To
 import Field from "../../Inputs/Field";

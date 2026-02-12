@@ -41,7 +41,7 @@ export type {
  */
 export interface IconButtonProps {
   id: string | number;
-  onDelete: () => void;
+  onDelete: () => Promise<boolean> | boolean | void;
   onEdit: () => void;
   warningTitle?: string;
   warningMessage?: string | React.ReactNode;
@@ -69,8 +69,9 @@ export interface IconButtonProps {
   // Virtual folder props
   onAssignToFolder?: () => void;
   // File metadata props
-  onPreview?: () => void;
-  onEditMetadata?: () => void;
+  onPreview?: () => void | Promise<void>;
+  onEditMetadata?: () => void | Promise<void>;
+  onViewHistory?: () => void;
 }
 
 /**

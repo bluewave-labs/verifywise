@@ -44,6 +44,9 @@ export const transformFileData = (file: any): FileModel => {
     isEvidence: file.is_evidence ?? false,
     type: file.mimetype || file.type,
     size: file.size,
+    version: file.version,
+    reviewStatus: file.review_status,
+    fileGroupId: file.file_group_id,
   });
 };
 

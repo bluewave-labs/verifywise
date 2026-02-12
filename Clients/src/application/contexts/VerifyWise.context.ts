@@ -1,5 +1,4 @@
 import React, { createContext } from "react";
-import { defaultProjectStatus, ProjectStatus } from "../../domain/types/projectStatus.types";
 import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
 import { User } from "../../domain/types/User";
@@ -15,9 +14,6 @@ interface VerifyWiseContextProps {
   inputValues: InputValues;
   setInputValues: (values: InputValues | React.SetStateAction<InputValues>) => void;
   token: string | null;
-  projectStatus: ProjectStatus;
-  loadingProjectStatus: string | boolean;
-  errorFetchingProjectStatus: string | boolean;
   currentProjectId: string | null;
   setCurrentProjectId: (id: string) => void;
   userId: number | null;
@@ -53,9 +49,6 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   inputValues: {},
   setInputValues: () => {},
   token: null,
-  projectStatus: defaultProjectStatus,
-  loadingProjectStatus: false,
-  errorFetchingProjectStatus: false,
   currentProjectId: "",
   setCurrentProjectId: () => {},
   userId: null,

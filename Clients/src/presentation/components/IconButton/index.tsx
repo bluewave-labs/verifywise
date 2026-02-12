@@ -12,6 +12,7 @@ import {
   MenuItem,
   IconButton as MuiIconButton,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import { Settings } from "lucide-react";
 import { useState, type JSX } from "react";
@@ -22,6 +23,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 import { IconButtonProps } from "../../types/widget.types";
 import { AlertProps } from "../../types/alert.types";
+import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
 
 const IconButton: React.FC<IconButtonProps> = ({
   id,
@@ -56,6 +58,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   // File metadata props
   onPreview,
   onEditMetadata,
+  onViewHistory,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -66,6 +69,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
     useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const isAdmin = useIsAdmin();
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
 
@@ -95,12 +99,25 @@ const IconButton: React.FC<IconButtonProps> = ({
     setAnchorEl(null);
   }
 
-  const handleDelete = (e?: React.SyntheticEvent) => {
-    onDelete();
+  const [_isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async (e?: React.SyntheticEvent) => {
+    setIsDeleting(true);
     setIsOpenRemoveModal(false);
 
     if (e) {
       closeDropDownMenu(e);
+    }
+
+    try {
+      const result = await onDelete();
+      if (result === false) {
+        setAlert({ variant: "error", body: "Failed to delete. Please try again.", isToast: true });
+      }
+    } catch {
+      setAlert({ variant: "error", body: "Failed to delete. Please try again.", isToast: true });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -117,13 +134,12 @@ const IconButton: React.FC<IconButtonProps> = ({
         console.error("Error checking for risks:", error);
         onDeleteWithRisks(false);
       }
+      setIsOpenRemoveModal(false);
+      if (e) {
+        closeDropDownMenu(e);
+      }
     } else {
-      onDelete();
-    }
-
-    setIsOpenRemoveModal(false);
-    if (e) {
-      closeDropDownMenu(e);
+      await handleDelete(e);
     }
   };
 
@@ -174,11 +190,21 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   const handleDownload = async (e?: React.SyntheticEvent) => {
-    if (onDownload) {
-      await onDownload();
-    }
-    if (e) {
-      closeDropDownMenu(e);
+    try {
+      if (onDownload) {
+        await onDownload();
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      setAlert({
+        variant: "error",
+        body: "Failed to download file. Please try again.",
+        isToast: true,
+      });
+    } finally {
+      if (e) {
+        closeDropDownMenu(e);
+      }
     }
   };
 
@@ -276,13 +302,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   | "risk";
 
   const BUTTONS_BY_TYPE: Record<ButtonType, string[]> = {
-    report: (() => {
-      const items = ["preview", "download"];
-      if (onEditMetadata) items.push("edit_metadata");
-      if (onAssignToFolder) items.push("assign_folder");
-      items.push("linked_policies", "remove");
-      return items;
-    })(),
+    report: [], // Handled dynamically in getListOfButtons
     evidence: ["download", "remove"],
     resource: ["edit", "make visible", "download", "remove"],
     incident: ["edit", "view", "archive"],
@@ -291,7 +311,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     linkedobjectstype: ["remove"],
     risk: ["edit", "linked_policies", "remove"],
   };
-  
+
 
 
   const getListOfButtons = () => {
@@ -305,6 +325,16 @@ const IconButton: React.FC<IconButtonProps> = ({
 
     if (normalizedType === "vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"];
+    }
+
+    // Handle "report" type dynamically to check props at render time
+    if (normalizedType === "report") {
+      const items = ["preview", "download"];
+      if (onEditMetadata) items.push("edit_metadata");
+      if (onAssignToFolder) items.push("assign_folder");
+      if (onViewHistory) items.push("version_history");
+      items.push("linked_policies", "remove");
+      return items;
     }
 
     if (normalizedType && normalizedType in BUTTONS_BY_TYPE) {
@@ -347,6 +377,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       assign_folder: "Assign to folder",
       preview: "Preview",
       edit_metadata: "Edit metadata",
+      version_history: "Version history",
     };
   
     // Type-specific
@@ -395,9 +426,20 @@ const IconButton: React.FC<IconButtonProps> = ({
         const isResourceAction =
           (type === "Resource" || type === "resource") &&
           item !== "make visible";
-        const isDisabled = isResourceAction && !isVisible;
+        const isResourceDisabled = isResourceAction && !isVisible;
+
+        // Disable download actions for non-admin users
+        const isDownloadAction = ["download", "download_pdf", "download_docx"].includes(item);
+        const isDownloadDisabled = isDownloadAction && !isAdmin;
+
+        const isDisabled = isResourceDisabled || isDownloadDisabled;
 
         return (
+          <Tooltip
+            key={`tooltip-${item}`}
+            title={isDownloadDisabled ? "Only admins can download files" : ""}
+            placement="left"
+          >
           <MenuItem
             key={item}
             onClick={async (e) => {
@@ -436,13 +478,26 @@ const IconButton: React.FC<IconButtonProps> = ({
                 }
                 if (e) closeDropDownMenu(e);
               } else if (item === "preview") {
-                if (onPreview) {
-                  onPreview();
-                }
                 if (e) closeDropDownMenu(e);
+                if (onPreview) {
+                  try {
+                    await onPreview();
+                  } catch (error) {
+                    console.error("Preview failed:", error);
+                  }
+                }
               } else if (item === "edit_metadata") {
+                if (e) closeDropDownMenu(e);
                 if (onEditMetadata) {
-                  onEditMetadata();
+                  try {
+                    await onEditMetadata();
+                  } catch (error) {
+                    console.error("Edit metadata failed:", error);
+                  }
+                }
+              } else if (item === "version_history") {
+                if (onViewHistory) {
+                  onViewHistory();
                 }
                 if (e) closeDropDownMenu(e);
               } else if (item === "delete" && (type === "Task" || type === "task")) {
@@ -459,8 +514,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
                 } else {
-                  onDelete();
-                  if (e) closeDropDownMenu(e);
+                  handleDelete(e);
                 }
               } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
@@ -470,8 +524,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                   if (checkForRisks && onDeleteWithRisks) {
                     handleDeleteWithRiskCheck(e);
                   } else {
-                    onDelete();
-                    if (e) closeDropDownMenu(e);
+                    handleDelete(e);
                   }
                 }
               }
@@ -504,6 +557,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           >
             {getMenuItemText(item)}
           </MenuItem>
+          </Tooltip>
         );
       })}
     </Menu>

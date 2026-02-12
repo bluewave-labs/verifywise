@@ -45,6 +45,7 @@ const ApprovalWorkflows: React.FC = () => {
             type: 'select' as const,
             options: [
                 { value: '1', label: 'Use case' },
+                { value: '2', label: 'File / Evidence' },
             ],
         },
         {
@@ -170,18 +171,29 @@ const ApprovalWorkflows: React.FC = () => {
         setIsNewWorkflowModalOpen(true);
     }
 
+    // Map entity ID to entity_type string
+    const getEntityType = (entityId: number): string => {
+        switch (entityId) {
+            case 1: return "use_case";
+            case 2: return "file";
+            default: return "use_case";
+        }
+    };
+
     const handleWorkflowSuccess = async (formData: {
         workflow_title: string;
         entity: number;
         steps: ApprovalWorkflowStepModel[];
     }) => {
         try {
+            const entityType = getEntityType(formData.entity);
+
             if (selectWorkflow) {
                 await updateApprovalWorkflow({
                     id: selectWorkflow.id!,
                     body: {
                         workflow_title: formData.workflow_title,
-                        entity_type: formData.entity === 1 ? "use_case" : "project",
+                        entity_type: entityType,
                         steps: formData.steps.map(step => ({
                             step_name: step.step_name,
                             description: step.description,
@@ -199,7 +211,7 @@ const ApprovalWorkflows: React.FC = () => {
                 await createApprovalWorkflow({
                     body: {
                         workflow_title: formData.workflow_title,
-                        entity_type: formData.entity === 1 ? "use_case" : "project",
+                        entity_type: entityType,
                         steps: formData.steps.map(step => ({
                             step_name: step.step_name,
                             description: step.description,

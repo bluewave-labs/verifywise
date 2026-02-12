@@ -16,7 +16,7 @@ import {
   subHeadingStyle,
   topicsListStyle,
 } from "./index.style";
-import StatsCard from "../../../components/Cards/StatsCard";
+import { StatsCard } from "../../../components/Cards/StatsCard";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import AccordionView from "./AccordionView";
 import EUAIActQuestionDrawerDialog from "../../../components/Drawer/EUAIActQuestionDrawerDialog";

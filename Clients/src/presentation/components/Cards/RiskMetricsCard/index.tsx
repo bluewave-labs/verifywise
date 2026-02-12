@@ -1,6 +1,7 @@
 import { Typography, Box, Grid } from "@mui/material";
 import type { GridProps } from "@mui/material";
 import { Gauge as SpeedGreenIcon } from "lucide-react";
+
 import { RiskMetrics } from "../../../../domain/interfaces/i.riskSummary";
 
 interface RiskMetricsCardProps {
@@ -12,7 +13,26 @@ interface RiskMetricsCardProps {
   };
 }
 
-const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
+const metricBoxStyle = {
+  p: 2,
+  backgroundColor: "#FFFFFF",
+  border: "1px solid #E5E7EB",
+  borderRadius: 2,
+  textAlign: "center",
+  height: "100%",
+  minHeight: "140px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+};
+
+const gridItemProps = {
+  item: true,
+  xs: 3,
+  sm: 3,
+} as GridProps & { item: boolean; xs: number; sm: number };
+
+export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
   const getVelocityColor = (velocity: number): string => {
     if (velocity > 0) return "#EF4444"; // Red - increasing risks
     if (velocity < 0) return "#10B981"; // Green - decreasing risks
@@ -25,32 +45,13 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
     return "→";
   };
 
-  const metricBoxStyle = {
-    p: 2,
-    backgroundColor: "#FFFFFF",
-    border: "1px solid #E5E7EB",
-    borderRadius: 2,
-    textAlign: "center",
-    height: "100%",
-    minHeight: "140px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-  };
-
-  const gridItemProps = {
-    item: true,
-    xs: 3,
-    sm: 3,
-  } as GridProps & { item: boolean; xs: number; sm: number };
-
   return (
     <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-      <Typography 
-        variant="h6" 
-        sx={{ 
-          fontSize: 16, 
-          fontWeight: 600, 
+      <Typography
+        variant="h6"
+        sx={{
+          fontSize: 16,
+          fontWeight: 600,
           marginBottom: 2,
           color: "#111827",
           display: "flex",
@@ -66,10 +67,10 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
         {/* Risk Velocity */}
         <Grid {...gridItemProps} sx={{ height: "100%" }}>
           <Box sx={metricBoxStyle}>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: "#6B7280", 
+            <Typography
+              variant="caption"
+              sx={{
+                color: "#6B7280",
                 fontWeight: 500,
                 mb: 1,
                 fontSize: 11,
@@ -79,10 +80,10 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
             >
               Risk Velocity
             </Typography>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontWeight: 700, 
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
                 color: getVelocityColor(metrics.riskVelocity),
                 fontSize: 18,
                 display: "flex",
@@ -99,10 +100,10 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
         {/* Mitigation Progress */}
         <Grid {...gridItemProps} sx={{ height: "100%" }}>
           <Box sx={metricBoxStyle}>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: "#6B7280", 
+            <Typography
+              variant="caption"
+              sx={{
+                color: "#6B7280",
                 fontWeight: 500,
                 mb: 1,
                 fontSize: 11,
@@ -112,12 +113,12 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
             >
               Mitigation Progress
             </Typography>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontWeight: 700, 
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
                 color: "#111827",
-                fontSize: 18 
+                fontSize: 18
               }}
             >
               {metrics.mitigationProgress}%
@@ -129,10 +130,10 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
         {velocity && (
           <Grid {...gridItemProps} sx={{ height: "100%" }}>
             <Box sx={metricBoxStyle}>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: "#6B7280", 
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "#6B7280",
                   fontWeight: 500,
                   mb: 1,
                   fontSize: 11,
@@ -142,12 +143,12 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
               >
                 New This Week
               </Typography>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 700, 
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
                   color: "#111827",
-                  fontSize: 18 
+                  fontSize: 18
                 }}
               >
                 {velocity.newRisksThisWeek}
@@ -160,10 +161,10 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
         {velocity && (
           <Grid {...gridItemProps} sx={{ height: "100%" }}>
             <Box sx={metricBoxStyle}>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: "#6B7280", 
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "#6B7280",
                   fontWeight: 500,
                   mb: 1,
                   fontSize: 11,
@@ -173,12 +174,12 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
               >
                 Resolved This Week
               </Typography>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 700, 
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
                   color: "#111827",
-                  fontSize: 18 
+                  fontSize: 18
                 }}
               >
                 {velocity.resolvedRisksThisWeek}
@@ -189,6 +190,4 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
       </Grid>
     </Box>
   );
-};
-
-export default RiskMetricsCard;
+}

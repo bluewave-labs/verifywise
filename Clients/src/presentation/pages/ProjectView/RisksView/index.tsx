@@ -23,7 +23,7 @@ import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
-import RisksCard from "../../../components/Cards/RisksCard";
+import { RisksCard } from "../../../components/Cards/RisksCard";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 

@@ -22,6 +22,8 @@ interface CreateFolderModalProps {
   parentFolder?: IFolderTreeNode | null;
   editFolder?: IFolderTreeNode | null;
   isSubmitting?: boolean;
+  /** Existing folder names at the same level (for duplicate check) */
+  existingSiblingNames?: string[];
 }
 
 /**
@@ -34,6 +36,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   parentFolder,
   editFolder,
   isSubmitting,
+  existingSiblingNames = [],
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -41,6 +44,19 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const isEdit = !!editFolder;
+
+  // Check if folder name already exists (case-insensitive)
+  const isDuplicateName = (() => {
+    const trimmedName = name.trim().toLowerCase();
+    if (!trimmedName) return false;
+
+    // When editing, exclude the current folder's name from the check
+    const namesToCheck = isEdit
+      ? existingSiblingNames.filter(n => n.toLowerCase() !== editFolder.name.toLowerCase())
+      : existingSiblingNames;
+
+    return namesToCheck.some(n => n.toLowerCase() === trimmedName);
+  })();
 
   // Reset form when modal opens/closes or edit folder changes
   useEffect(() => {
@@ -70,6 +86,11 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
       return;
     }
 
+    if (isDuplicateName) {
+      setError("A folder with this name already exists");
+      return;
+    }
+
     setError(null);
 
     const input: IVirtualFolderInput = {
@@ -81,6 +102,12 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
 
     await onSubmit(input);
   };
+
+  // Determine the error message to display
+  const displayError = error || (isDuplicateName ? "A folder with this name already exists in this location" : null);
+
+  // Disable submit if there's an error or duplicate name
+  const isSubmitDisabled = isSubmitting || !name.trim() || isDuplicateName;
 
   const getTitle = () => {
     if (isEdit) return "Edit folder";
@@ -102,7 +129,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
       description={getDescription()}
       onSubmit={handleSubmit}
       submitButtonText={isEdit ? "Save changes" : "Create folder"}
-      isSubmitting={isSubmitting}
+      isSubmitting={isSubmitDisabled}
       maxWidth="500px"
     >
       <Stack spacing={3}>
@@ -126,8 +153,8 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
             placeholder="Enter folder name"
             fullWidth
             size="small"
-            error={!!error}
-            helperText={error}
+            error={!!displayError}
+            helperText={displayError}
             autoFocus
             sx={{
               "& .MuiOutlinedInput-root": {

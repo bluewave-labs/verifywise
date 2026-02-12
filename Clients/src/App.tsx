@@ -8,7 +8,6 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store";
-import useProjectStatus from "./application/hooks/useProjectStatus";
 import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
@@ -22,7 +21,7 @@ import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
 import { DeploymentManager } from "./application/utils/deploymentHelpers";
-import CommandPalette from "./presentation/components/CommandPalette";
+import { CommandPalette } from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
@@ -161,12 +160,6 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  const userIdForProject = userId ?? 1;
-  const {
-    projectStatus,
-    loading: loadingProjectStatus,
-    error: errorFetchingProjectStatus,
-  } = useProjectStatus({ userId: userIdForProject });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
   const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
@@ -198,9 +191,6 @@ function App() {
       inputValues,
       setInputValues,
       token,
-      projectStatus,
-      loadingProjectStatus,
-      errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
       userId,
@@ -225,9 +215,6 @@ function App() {
       inputValues,
       setInputValues,
       token,
-      projectStatus,
-      loadingProjectStatus,
-      errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
       userId,

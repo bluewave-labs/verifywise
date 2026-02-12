@@ -22,23 +22,12 @@ import {
   logProcessing,
   logSuccess,
 } from "../utils/logger/logHelper";
-import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
+import { uploadFile } from "../utils/fileUpload.utils";
 import { UploadedFile, RequestWithFile } from "../utils/question.utils";
-import { Transaction } from "sequelize";
 import { getUserProjects } from "../utils/user.utils";
 
-// helper function to delete files
-async function deleteFiles(
-  filesToDelete: number[],
-  tenant: string,
-  transaction: Transaction
-): Promise<void> {
-  await Promise.all(
-    filesToDelete.map(async (fileId) => {
-      await deleteFileById(fileId, tenant, transaction);
-    })
-  );
-}
+// Note: Files are only unlinked from evidence_links, not deleted from file manager
+// This allows the same file to be used as evidence in multiple places
 
 export async function getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle(
   req: Request,
@@ -227,14 +216,12 @@ export async function updateNISTAIRMFSubcategoryById(
     }
 
     // Parse deleted files if present - convert to numbers for database deletion
-    const filesToDelete = subcategory.delete
+    // Files to unlink (not delete) - the actual file stays in file manager
+    const filesToUnlink = subcategory.delete
       ? ((JSON.parse(subcategory.delete || "[]") as (string | number)[])
         .map((id) => (typeof id === "string" ? parseInt(id, 10) : id))
         .filter((id) => !isNaN(id)) as number[])
       : [];
-
-    // Delete files from database (ISO pattern)
-    await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
     // Get user's project ID for file uploads
     let userProjectId = 1; // Default fallback
@@ -289,7 +276,7 @@ export async function updateNISTAIRMFSubcategoryById(
     }
 
     // Convert file IDs to strings for evidence_links filtering (evidence_links stores IDs as strings)
-    const filesToDeleteAsStrings = filesToDelete.map((id) => id.toString());
+    const filesToUnlinkAsStrings = filesToUnlink.map((id) => id.toString());
 
     const updatedSubcategory = await updateNISTAIRMFSubcategoryByIdQuery(
       subcategoryId,
@@ -299,7 +286,7 @@ export async function updateNISTAIRMFSubcategoryById(
         risksMitigated: subcategory.risksMitigated,
       },
       uploadedFiles,
-      filesToDeleteAsStrings,
+      filesToUnlinkAsStrings,
       req.tenantId!,
       transaction
     );

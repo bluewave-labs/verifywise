@@ -17,7 +17,7 @@ import {
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";

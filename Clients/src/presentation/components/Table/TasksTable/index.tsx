@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { CustomSelect } from "../../CustomSelect";

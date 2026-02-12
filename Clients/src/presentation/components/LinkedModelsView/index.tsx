@@ -15,7 +15,7 @@ import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import CustomizableSkeleton from "../Skeletons";
 import singleTheme from "../../themes/v1SingleTheme";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import { VWLink } from "../Link";
 import InfoBox from "../InfoBox";
 

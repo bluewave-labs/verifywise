@@ -1,5 +1,5 @@
 import { NoProjectBox } from "../../pages/Home/styles";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 
 interface NoProjectProps {
   message: string;

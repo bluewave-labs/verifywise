@@ -15,7 +15,7 @@ import {
 import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";

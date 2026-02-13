@@ -405,7 +405,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         <Typography variant="body2" sx={{ flex: 1, fontSize: "13px" }}>
                           {item.name}
                         </Typography>
-                        <Chip label={item.item_type} size="small" variant="info" />
+                        <Chip label={item.item_type} size="small" variant="info" sx={{ mr: "4px" }} />
                         <FormControlLabel
                           control={
                             <Toggle
@@ -417,7 +417,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                             />
                           }
                           label={<Typography variant="caption">Req</Typography>}
-                          sx={{ mr: 0 }}
+                          sx={{ ml: "4px", mr: 0 }}
                         />
                         <IconButton
                           size="small"
@@ -477,6 +477,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                             />
                           }
                           label={<Typography variant="caption">Req</Typography>}
+                          sx={{ ml: "4px" }}
                         />
                         <CustomizableButton
                           variant="contained"

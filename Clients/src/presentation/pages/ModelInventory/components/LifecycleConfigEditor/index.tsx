@@ -397,7 +397,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         direction="row"
                         alignItems="center"
                         sx={{
-                          gap: "10px",
+                          gap: "12px",
                           py: "10px",
                           borderBottom: `1px solid ${theme.palette.border.light}`,
                         }}
@@ -405,50 +405,62 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         <Typography variant="body2" sx={{ flex: 1, fontSize: "13px" }}>
                           {item.name}
                         </Typography>
-                        <Chip label={item.item_type} size="small" variant="info" sx={{ mr: "4px" }} />
-                        <FormControlLabel
-                          control={
-                            <Toggle
-                              size="small"
-                              checked={item.is_required}
-                              onChange={(e) =>
-                                handleToggleItemRequired(item.id, e.target.checked)
-                              }
-                            />
-                          }
-                          label={<Typography variant="caption">Req</Typography>}
-                          sx={{ ml: "4px", mr: 0 }}
-                        />
-                        <IconButton
-                          size="small"
-                          disabled={itemIdx === 0}
-                          onClick={() =>
-                            handleMoveItem(phase.id, phase.items ?? [], item.id, "up")
-                          }
-                          aria-label="Move item up"
-                          sx={{ opacity: itemIdx === 0 ? 0.4 : 1 }}
+                        <Stack direction="row" alignItems="center" sx={{ gap: "10px" }}>
+                          <Chip label={item.item_type} size="small" variant="info" />
+                          <FormControlLabel
+                            control={
+                              <Toggle
+                                size="small"
+                                checked={item.is_required}
+                                onChange={(e) =>
+                                  handleToggleItemRequired(item.id, e.target.checked)
+                                }
+                              />
+                            }
+                            label={<Typography variant="caption">Req</Typography>}
+                            sx={{ mr: 0 }}
+                          />
+                        </Stack>
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          sx={{
+                            gap: "2px",
+                            pl: "8px",
+                            borderLeft: `1px solid ${theme.palette.border.light}`,
+                          }}
                         >
-                          <ArrowUp size={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          disabled={itemIdx === (phase.items?.length ?? 0) - 1}
-                          onClick={() =>
-                            handleMoveItem(phase.id, phase.items ?? [], item.id, "down")
-                          }
-                          aria-label="Move item down"
-                          sx={{ opacity: itemIdx === (phase.items?.length ?? 0) - 1 ? 0.4 : 1 }}
-                        >
-                          <ArrowDown size={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => setDeleteItemId(item.id)}
-                          sx={{ color: theme.palette.status.error.text }}
-                          aria-label="Delete item"
-                        >
-                          <Trash2 size={16} />
-                        </IconButton>
+                          <IconButton
+                            size="small"
+                            disabled={itemIdx === 0}
+                            onClick={() =>
+                              handleMoveItem(phase.id, phase.items ?? [], item.id, "up")
+                            }
+                            aria-label="Move item up"
+                            sx={{ opacity: itemIdx === 0 ? 0.4 : 1 }}
+                          >
+                            <ArrowUp size={16} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            disabled={itemIdx === (phase.items?.length ?? 0) - 1}
+                            onClick={() =>
+                              handleMoveItem(phase.id, phase.items ?? [], item.id, "down")
+                            }
+                            aria-label="Move item down"
+                            sx={{ opacity: itemIdx === (phase.items?.length ?? 0) - 1 ? 0.4 : 1 }}
+                          >
+                            <ArrowDown size={16} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => setDeleteItemId(item.id)}
+                            sx={{ color: theme.palette.status.error.text }}
+                            aria-label="Delete item"
+                          >
+                            <Trash2 size={16} />
+                          </IconButton>
+                        </Stack>
                       </Stack>
                     ))}
 

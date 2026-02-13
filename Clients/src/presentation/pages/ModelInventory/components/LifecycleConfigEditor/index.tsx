@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
   FormControlLabel,
   Box,
   CircularProgress,
@@ -45,6 +44,7 @@ import {
 } from "../../../../../application/repository/modelLifecycle.repository";
 import { logEngine } from "../../../../../application/tools/log.engine";
 import Field from "../../../../components/Inputs/Field";
+import Toggle from "../../../../components/Inputs/Toggle";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 import ConfirmationModal from "../../../../components/Dialogs/ConfirmationModal";
@@ -334,7 +334,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                   </Typography>
                   <FormControlLabel
                     control={
-                      <Switch
+                      <Toggle
                         size="small"
                         checked={phase.is_active}
                         onChange={(e) => {
@@ -404,7 +404,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         <Chip label={item.item_type} size="small" variant="info" />
                         <FormControlLabel
                           control={
-                            <Switch
+                            <Toggle
                               size="small"
                               checked={item.is_required}
                               onChange={(e) =>
@@ -471,7 +471,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         </Select>
                         <FormControlLabel
                           control={
-                            <Switch
+                            <Toggle
                               size="small"
                               checked={newItemRequired}
                               onChange={(e) => setNewItemRequired(e.target.checked)}

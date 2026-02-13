@@ -48,11 +48,11 @@ interface LifecycleItemFieldProps {
   onValueChanged?: () => void;
 }
 
-const LifecycleItemField = ({
+function LifecycleItemField({
   modelId,
   item,
   onValueChanged,
-}: LifecycleItemFieldProps) => {
+}: LifecycleItemFieldProps) {
   const value = item.value;
 
   switch (item.item_type) {
@@ -128,7 +128,7 @@ const LifecycleItemField = ({
         </Typography>
       );
   }
-};
+}
 
 // ============================================================================
 // Text / Textarea renderer
@@ -142,13 +142,13 @@ interface TextFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const TextFieldRenderer = ({
+function TextFieldRenderer({
   modelId,
   item,
   value,
   multiline,
   onValueChanged,
-}: TextFieldRendererProps) => {
+}: TextFieldRendererProps) {
   const theme = useTheme();
   const config = item.config as TextItemConfig | TextareaItemConfig;
   const [text, setText] = useState(value?.value_text ?? "");
@@ -196,7 +196,7 @@ const TextFieldRenderer = ({
       />
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Documents renderer
@@ -209,12 +209,12 @@ interface DocumentsFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const DocumentsFieldRenderer = ({
+function DocumentsFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: DocumentsFieldRendererProps) => {
+}: DocumentsFieldRendererProps) {
   const theme = useTheme();
   const files = value?.files ?? [];
   const [uploading, setUploading] = useState(false);
@@ -314,7 +314,7 @@ const DocumentsFieldRenderer = ({
       </Box>
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // People renderer
@@ -327,12 +327,12 @@ interface PeopleFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const PeopleFieldRenderer = ({
+function PeopleFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: PeopleFieldRendererProps) => {
+}: PeopleFieldRendererProps) {
   const theme = useTheme();
   const { users } = useUsers();
   const currentPeople: PeopleValue[] = Array.isArray(value?.value_json)
@@ -402,7 +402,7 @@ const PeopleFieldRenderer = ({
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Classification renderer
@@ -415,12 +415,12 @@ interface ClassificationFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const ClassificationFieldRenderer = ({
+function ClassificationFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: ClassificationFieldRendererProps) => {
+}: ClassificationFieldRendererProps) {
   const config = item.config as ClassificationItemConfig;
   const levels = config?.levels ?? [];
   const currentValue = (value?.value_json as ClassificationValue)?.level ?? "";
@@ -477,7 +477,7 @@ const ClassificationFieldRenderer = ({
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Checklist renderer
@@ -490,12 +490,12 @@ interface ChecklistFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const ChecklistFieldRenderer = ({
+function ChecklistFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: ChecklistFieldRendererProps) => {
+}: ChecklistFieldRendererProps) {
   const theme = useTheme();
   const config = item.config as ChecklistItemConfig;
   const defaultItems: ChecklistValue[] = (config?.defaultItems ?? []).map(
@@ -615,7 +615,7 @@ const ChecklistFieldRenderer = ({
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Approval renderer
@@ -628,12 +628,12 @@ interface ApprovalFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const ApprovalFieldRenderer = ({
+function ApprovalFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: ApprovalFieldRendererProps) => {
+}: ApprovalFieldRendererProps) {
   const theme = useTheme();
   const { users } = useUsers();
   const currentApprovals: ApprovalValue[] = Array.isArray(value?.value_json)
@@ -756,6 +756,6 @@ const ApprovalFieldRenderer = ({
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 export default LifecycleItemField;

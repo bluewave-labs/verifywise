@@ -17,10 +17,10 @@ interface LifecycleProgressBarProps {
   onPhaseClick?: (phaseId: number) => void;
 }
 
-const LifecycleProgressBar = ({
+function LifecycleProgressBar({
   progress,
   onPhaseClick,
-}: LifecycleProgressBarProps) => {
+}: LifecycleProgressBarProps) {
   const theme = useTheme();
 
   if (!progress || progress.phases.length === 0) {
@@ -117,6 +117,6 @@ const LifecycleProgressBar = ({
       </Stack>
     </Stack>
   );
-};
+}
 
 export default LifecycleProgressBar;

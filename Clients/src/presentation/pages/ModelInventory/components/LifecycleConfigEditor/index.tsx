@@ -65,7 +65,7 @@ const ITEM_TYPES: { value: LifecycleItemType; label: string }[] = [
   { value: "approval", label: "Approval" },
 ];
 
-const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) => {
+function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
   const theme = useTheme();
   const { phases, loading, refresh, setPhases } = useLifecycleConfig(true);
   const [saving, setSaving] = useState(false);
@@ -615,6 +615,6 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       />
     </Dialog>
   );
-};
+}
 
 export default LifecycleConfigEditor;

@@ -24,7 +24,7 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import { EmptyStateMessage } from "../../../components/EmptyStateMessage";
 
-const ModelDetailPage = () => {
+function ModelDetailPage() {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -243,6 +243,6 @@ const ModelDetailPage = () => {
       )}
     </Stack>
   );
-};
+}
 
 export default ModelDetailPage;

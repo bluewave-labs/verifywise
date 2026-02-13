@@ -26,13 +26,13 @@ interface LifecyclePhasePanelProps {
   onValueChanged?: () => void;
 }
 
-const LifecyclePhasePanel = ({
+function LifecyclePhasePanel({
   phase,
   modelId,
   expanded,
   onToggle,
   onValueChanged,
-}: LifecyclePhasePanelProps) => {
+}: LifecyclePhasePanelProps) {
   const theme = useTheme();
 
   const items = phase.items ?? [];
@@ -176,6 +176,6 @@ const LifecyclePhasePanel = ({
       </AccordionDetails>
     </Accordion>
   );
-};
+}
 
 export default LifecyclePhasePanel;

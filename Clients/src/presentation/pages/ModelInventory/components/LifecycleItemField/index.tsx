@@ -261,7 +261,7 @@ function DocumentsFieldRenderer({
                 p: "8px",
                 borderRadius: "4px",
                 border: `1px solid ${theme.palette.border.light}`,
-                backgroundColor: "#f9fafb",
+                backgroundColor: theme.palette.background.accent,
               }}
             >
               <FileText size={16} color={theme.palette.text.tertiary} />
@@ -277,7 +277,7 @@ function DocumentsFieldRenderer({
       )}
       <Box
         sx={{
-          border: "1px dashed #d0d5dd",
+          border: `1px dashed ${theme.palette.border.dark}`,
           borderRadius: "4px",
           p: "16px",
           textAlign: "center",

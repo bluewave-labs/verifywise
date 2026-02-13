@@ -39,7 +39,7 @@ function LifecycleProgressBar({
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
           variant="body2"
-          sx={{ fontWeight: 600, color: "#1F2937", fontSize: "14px" }}
+          sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "14px" }}
         >
           Lifecycle Progress
         </Typography>

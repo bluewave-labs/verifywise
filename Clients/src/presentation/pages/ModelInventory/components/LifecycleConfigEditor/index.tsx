@@ -90,14 +90,14 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
   // Expanded phases
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
 
-  const toggleExpanded = (phaseId: number) => {
+  const toggleExpanded = useCallback((phaseId: number) => {
     setExpandedPhases((prev) => {
       const next = new Set(prev);
       if (next.has(phaseId)) next.delete(phaseId);
       else next.add(phaseId);
       return next;
     });
-  };
+  }, []);
 
   // ============================================================================
   // Phase operations
@@ -280,11 +280,11 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
       maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { maxHeight: "85vh", background: "#FCFCFD" },
+        sx: { maxHeight: "85vh", background: theme.palette.background.alt },
       }}
     >
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography sx={{ fontWeight: 600, fontSize: "16px", color: "#1c2130" }}>
+        <Typography sx={{ fontWeight: 600, fontSize: "16px", color: theme.palette.text.primary }}>
           Configure Model Lifecycle
         </Typography>
         <IconButton onClick={onClose} size="small" aria-label="Close">
@@ -304,7 +304,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
               <Box
                 key={phase.id}
                 sx={{
-                  border: "1px solid #eaecf0",
+                  border: `1px solid ${theme.palette.border.light}`,
                   borderRadius: "4px",
                   overflow: "hidden",
                   opacity: phase.is_active ? 1 : 0.6,

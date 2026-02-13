@@ -71,6 +71,11 @@ function parsePageLimit(value: string | undefined, defaultVal: number, max: numb
   return Math.min(parsed, max);
 }
 
+const VALID_PARSER_TYPES = [
+  "zscaler", "netskope", "squid", "generic_kv",
+  "cef", "elff", "cloudflare_json", "fortigate",
+];
+
 // ─── Insights ───────────────────────────────────────────────────────────
 
 export async function getInsightsSummary(req: Request, res: Response) {
@@ -629,9 +634,8 @@ export async function createSyslogConfig(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Missing required fields: source_identifier, parser_type"));
     }
 
-    const validParsers = ["zscaler", "netskope", "squid", "generic_kv"];
-    if (!validParsers.includes(parser_type)) {
-      return res.status(400).json(STATUS_CODE[400](`Invalid parser_type. Must be one of: ${validParsers.join(", ")}`));
+    if (!VALID_PARSER_TYPES.includes(parser_type)) {
+      return res.status(400).json(STATUS_CODE[400](`Invalid parser_type. Must be one of: ${VALID_PARSER_TYPES.join(", ")}`));
     }
 
     const config = await createSyslogConfigQuery(tenantId, {
@@ -668,9 +672,8 @@ export async function updateSyslogConfig(req: Request, res: Response) {
     const { source_identifier, parser_type, is_active } = req.body;
 
     if (parser_type) {
-      const validParsers = ["zscaler", "netskope", "squid", "generic_kv"];
-      if (!validParsers.includes(parser_type)) {
-        return res.status(400).json(STATUS_CODE[400](`Invalid parser_type. Must be one of: ${validParsers.join(", ")}`));
+      if (!VALID_PARSER_TYPES.includes(parser_type)) {
+        return res.status(400).json(STATUS_CODE[400](`Invalid parser_type. Must be one of: ${VALID_PARSER_TYPES.join(", ")}`));
       }
     }
 

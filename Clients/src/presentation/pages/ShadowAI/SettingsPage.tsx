@@ -500,6 +500,10 @@ function SyslogConfigSection() {
     netskope: "Netskope",
     squid: "Squid proxy",
     generic_kv: "Generic key-value",
+    cef: "CEF (Common Event Format)",
+    elff: "W3C ELFF (Cisco WSA / ProxySG)",
+    cloudflare_json: "Cloudflare Gateway JSON",
+    fortigate: "FortiGate / Sophos / SonicWall",
   };
 
   return (
@@ -749,16 +753,79 @@ const SYSLOG_EXAMPLES: { label: string; format: string; example: string }[] = [
     format: "generic_kv",
     example: "suser=alice@company.com dhost=chat.openai.com requestMethod=POST act=allowed",
   },
+  {
+    label: "CEF (Common Event Format)",
+    format: "cef",
+    example: "CEF:0|Palo Alto Networks|PAN-OS|11.0|URL|url-filtering|3|suser=alice@company.com dhost=chat.openai.com request=https://chat.openai.com/v1/chat requestMethod=POST act=allow rt=1707489120000",
+  },
+  {
+    label: "W3C ELFF (Cisco WSA / Broadcom ProxySG)",
+    format: "elff",
+    example: "2026-02-09 14:32:00 200 10.0.0.1 200 TCP_MISS 1024 POST https chat.openai.com /v1/chat - alice@company.com DIRECT chat.openai.com application/json Mozilla/5.0 - OBSERVED AI/ML",
+  },
+  {
+    label: "Cloudflare Gateway (JSON)",
+    format: "cloudflare_json",
+    example: `{"Email":"alice@company.com","Host":"chat.openai.com","URL":"https://chat.openai.com/v1/chat","HTTPMethod":"POST","Action":"allow","Datetime":"2026-02-09T14:32:00Z","DownloadedBytes":1024}`,
+  },
+  {
+    label: "FortiGate / Sophos / SonicWall (key=value)",
+    format: "fortigate",
+    example: 'date=2026-02-09 time=14:32:00 type=utm subtype=webfilter user=alice@company.com hostname=chat.openai.com url="https://chat.openai.com/v1/chat" method=POST action=passthrough',
+  },
 ];
 
 const FIELD_MAPPING = [
-  { normalized: "user_email", zscaler: "user", netskope: "user", squid: "field 8", generic: "suser" },
-  { normalized: "destination", zscaler: "dst", netskope: "url (host)", squid: "url (host)", generic: "dhost" },
-  { normalized: "uri_path", zscaler: "uri (path)", netskope: "url (path)", squid: "url (path)", generic: "—" },
-  { normalized: "http_method", zscaler: "method", netskope: "method", squid: "field 6", generic: "requestMethod" },
-  { normalized: "action", zscaler: "action", netskope: "activity", squid: "—", generic: "act" },
-  { normalized: "timestamp", zscaler: "syslog header", netskope: "timestamp", squid: "field 1 (epoch)", generic: "syslog header" },
-  { normalized: "department", zscaler: "department", netskope: "department", squid: "—", generic: "—" },
+  { normalized: "user_email", zscaler: "user", netskope: "user", squid: "field 8", generic: "suser", cef: "suser", elff: "cs-username", cloudflare: "Email", fortigate: "user" },
+  { normalized: "destination", zscaler: "dst", netskope: "url (host)", squid: "url (host)", generic: "dhost", cef: "dhost / request", elff: "cs-host", cloudflare: "Host / URL", fortigate: "hostname" },
+  { normalized: "uri_path", zscaler: "uri (path)", netskope: "url (path)", squid: "url (path)", generic: "—", cef: "request (path)", elff: "cs-uri-path", cloudflare: "URL (path)", fortigate: "url (path)" },
+  { normalized: "http_method", zscaler: "method", netskope: "method", squid: "field 6", generic: "requestMethod", cef: "requestMethod", elff: "cs-method", cloudflare: "HTTPMethod", fortigate: "method" },
+  { normalized: "action", zscaler: "action", netskope: "activity", squid: "—", generic: "act", cef: "act", elff: "s-action", cloudflare: "Action", fortigate: "action" },
+  { normalized: "timestamp", zscaler: "syslog header", netskope: "timestamp", squid: "field 1 (epoch)", generic: "syslog header", cef: "rt", elff: "date + time", cloudflare: "Datetime", fortigate: "date + time" },
+  { normalized: "department", zscaler: "department", netskope: "department", squid: "—", generic: "—", cef: "cs* (labeled)", elff: "—", cloudflare: "Department", fortigate: "group" },
+];
+
+const DEVICE_COVERAGE = [
+  {
+    parser: "Zscaler",
+    devices: "Zscaler Internet Access (ZIA)",
+    format: "key=value",
+  },
+  {
+    parser: "Netskope",
+    devices: "Netskope Cloud Security (CASB/SWG)",
+    format: "JSON-in-syslog",
+  },
+  {
+    parser: "Squid proxy",
+    devices: "Squid HTTP proxy",
+    format: "Space-delimited access log",
+  },
+  {
+    parser: "CEF",
+    devices: "Palo Alto PAN-OS, Check Point, Forcepoint Web Security, Trend Micro Vision One, Microsoft Defender for Cloud Apps, Sophos (CEF mode), SonicWall (ArcSight mode)",
+    format: "CEF:0|...|key=value",
+  },
+  {
+    parser: "W3C ELFF",
+    devices: "Cisco Secure Web Appliance (IronPort WSA), Broadcom Symantec ProxySG / Edge SWG, Barracuda Web Security Gateway",
+    format: "Space-delimited with #Fields header",
+  },
+  {
+    parser: "Cloudflare Gateway JSON",
+    devices: "Cloudflare Gateway (HTTP + DNS), iboss Cloud Web Gateway, Cato Networks SASE, Menlo Security, Akamai SIA",
+    format: "JSON-in-syslog (PascalCase)",
+  },
+  {
+    parser: "FortiGate / Sophos / SonicWall",
+    devices: "Fortinet FortiGate, Sophos Firewall, SonicWall, WatchGuard Firebox",
+    format: "key=value (vendor-specific fields)",
+  },
+  {
+    parser: "Generic key-value",
+    devices: "Any device outputting key=value pairs with CEF-standard field names (suser, dhost, requestMethod, act)",
+    format: "key=value (CEF extension fields)",
+  },
 ];
 
 const codeBoxSx = {
@@ -866,7 +933,7 @@ function DataFormatsSection() {
         <Table size="small">
           <TableHead>
             <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-              {["Normalized field", "Zscaler", "Netskope", "Squid", "Generic KV"].map(
+              {["Normalized field", "Zscaler", "Netskope", "Squid", "Generic KV", "CEF", "ELFF", "Cloudflare", "FortiGate"].map(
                 (h) => (
                   <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>
                     {h}
@@ -892,6 +959,55 @@ function DataFormatsSection() {
                 </TableCell>
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
                   {row.generic}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.cef}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.elff}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.cloudflare}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace" }}>
+                  {row.fortigate}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      {/* Device coverage */}
+      <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 2 }}>
+        Device coverage
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+        Each parser supports one or more network security products. Select the
+        parser that matches your device when adding a syslog source.
+      </Typography>
+
+      <TableContainer sx={{ ...singleTheme.tableStyles.primary.frame, overflowX: "auto" }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+              {["Parser", "Supported devices", "Log format"].map((h) => (
+                <TableCell key={h} sx={singleTheme.tableStyles.primary.header.cell}>
+                  {h}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {DEVICE_COVERAGE.map((row) => (
+              <TableRow key={row.parser} sx={singleTheme.tableStyles.primary.body.row}>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontWeight: 500, whiteSpace: "nowrap" }}>
+                  {row.parser}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: 12 }}>
+                  {row.devices}
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontFamily: "monospace", fontSize: 12, whiteSpace: "nowrap" }}>
+                  {row.format}
                 </TableCell>
               </TableRow>
             ))}

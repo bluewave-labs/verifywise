@@ -151,7 +151,7 @@ export interface IShadowAiApiKey {
 export interface IShadowAiSyslogConfig {
   id?: number;
   source_identifier: string;
-  parser_type: "zscaler" | "netskope" | "squid" | "generic_kv";
+  parser_type: "zscaler" | "netskope" | "squid" | "generic_kv" | "cef" | "elff" | "cloudflare_json" | "fortigate";
   is_active: boolean;
   created_at?: Date;
 }

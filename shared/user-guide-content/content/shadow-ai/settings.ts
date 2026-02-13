@@ -87,6 +87,10 @@ export const settingsContent: ArticleContent = {
         { parser: 'Netskope', description: 'Parses Netskope Cloud Security log format' },
         { parser: 'Squid proxy', description: 'Parses Squid HTTP proxy access logs' },
         { parser: 'Generic key-value', description: 'Parses generic key=value formatted logs (default)' },
+        { parser: 'CEF (Common Event Format)', description: 'Parses CEF syslog from Palo Alto PAN-OS, Check Point, Forcepoint, Trend Micro, Microsoft Defender for Cloud Apps, Sophos (CEF mode), SonicWall (ArcSight mode)' },
+        { parser: 'W3C ELFF', description: 'Parses W3C Extended Log File Format from Cisco Secure Web Appliance (IronPort WSA), Broadcom Symantec ProxySG / Edge SWG, Barracuda Web Security Gateway' },
+        { parser: 'Cloudflare Gateway JSON', description: 'Parses JSON-in-syslog from Cloudflare Gateway (HTTP + DNS), iboss, Cato Networks, Menlo Security, Akamai SIA' },
+        { parser: 'FortiGate / Sophos / SonicWall', description: 'Parses key=value logs from Fortinet FortiGate, Sophos Firewall, SonicWall, and WatchGuard Firebox with vendor-specific field names' },
       ],
     },
     {
@@ -224,6 +228,73 @@ export const settingsContent: ArticleContent = {
       type: 'code',
       language: 'text',
       code: 'suser=alice@company.com dhost=chat.openai.com requestMethod=POST act=allowed',
+    },
+    {
+      type: 'heading',
+      id: 'syslog-cef',
+      level: 3,
+      text: 'CEF (Common Event Format)',
+    },
+    {
+      type: 'paragraph',
+      text: 'Used by Palo Alto PAN-OS, Check Point, Forcepoint, Trend Micro, Microsoft Defender for Cloud Apps, Sophos (CEF mode), and SonicWall (ArcSight mode).',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: 'CEF:0|Palo Alto Networks|PAN-OS|11.0|URL|url-filtering|3|suser=alice@company.com dhost=chat.openai.com request=https://chat.openai.com/v1/chat requestMethod=POST act=allow rt=1707489120000',
+    },
+    {
+      type: 'heading',
+      id: 'syslog-elff',
+      level: 3,
+      text: 'W3C ELFF (Cisco WSA / Broadcom ProxySG)',
+    },
+    {
+      type: 'paragraph',
+      text: 'Used by Cisco Secure Web Appliance (IronPort WSA), Broadcom Symantec ProxySG / Edge SWG, and Barracuda Web Security Gateway.',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: '2026-02-09 14:32:00 200 10.0.0.1 200 TCP_MISS 1024 POST https chat.openai.com /v1/chat - alice@company.com DIRECT chat.openai.com application/json',
+    },
+    {
+      type: 'heading',
+      id: 'syslog-cloudflare',
+      level: 3,
+      text: 'Cloudflare Gateway (JSON)',
+    },
+    {
+      type: 'paragraph',
+      text: 'Used by Cloudflare Gateway (HTTP + DNS), iboss, Cato Networks, Menlo Security, and Akamai SIA.',
+    },
+    {
+      type: 'code',
+      language: 'json',
+      code: `{
+  "Email": "alice@company.com",
+  "Host": "chat.openai.com",
+  "URL": "https://chat.openai.com/v1/chat",
+  "HTTPMethod": "POST",
+  "Action": "allow",
+  "Datetime": "2026-02-09T14:32:00Z"
+}`,
+    },
+    {
+      type: 'heading',
+      id: 'syslog-fortigate',
+      level: 3,
+      text: 'FortiGate / Sophos / SonicWall',
+    },
+    {
+      type: 'paragraph',
+      text: 'Used by Fortinet FortiGate, Sophos Firewall, SonicWall, and WatchGuard Firebox.',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: 'date=2026-02-09 time=14:32:00 type=utm subtype=webfilter user=alice@company.com hostname=chat.openai.com url="https://chat.openai.com/v1/chat" method=POST action=passthrough',
     },
 
     // Field mapping table

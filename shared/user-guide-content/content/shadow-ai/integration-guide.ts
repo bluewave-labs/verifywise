@@ -194,7 +194,7 @@ export const integrationGuideContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Syslog integration is ideal for network proxies and firewalls that natively support syslog forwarding (Zscaler Internet Access, Netskope, Squid proxy). The VerifyWise server runs a TCP syslog listener that receives log lines, parses them using the configured parser, and feeds them into the same event pipeline as the REST API.',
+      text: 'Syslog integration is ideal for network proxies and firewalls that natively support syslog forwarding. VerifyWise supports 8 parser types covering 20+ security products including Zscaler, Netskope, Palo Alto, FortiGate, Check Point, Cloudflare Gateway, Cisco WSA, and Broadcom ProxySG. The VerifyWise server runs a TCP syslog listener that receives log lines, parses them using the configured parser, and feeds them into the same event pipeline as the REST API.',
     },
 
     {
@@ -224,7 +224,7 @@ export const integrationGuideContent: ArticleContent = {
         { text: 'Navigate to Shadow AI → Settings' },
         { text: 'In the "Syslog sources" section, click "Add source"' },
         { text: 'Enter the **source identifier** — this must be the IP address of the machine that will send syslog messages (e.g., `10.0.1.50`). The syslog listener matches incoming connections by source IP.' },
-        { text: 'Select the **parser type** that matches your data source (Zscaler, Netskope, Squid proxy, or Generic key-value)' },
+        { text: 'Select the **parser type** that matches your data source (Zscaler, Netskope, Squid, CEF, W3C ELFF, Cloudflare Gateway JSON, FortiGate/Sophos/SonicWall, or Generic key-value)' },
         { text: 'Click "Add"' },
       ],
     },
@@ -332,6 +332,161 @@ export const integrationGuideContent: ArticleContent = {
       variant: 'info',
       title: 'Authentication required',
       text: 'The Squid parser expects the 8th space-delimited field to be the user email. If your Squid proxy does not use authentication, this field may be a dash (`-`) and events will fail to parse.',
+    },
+
+    // Palo Alto PAN-OS
+    {
+      type: 'heading',
+      id: 'config-paloalto',
+      level: 3,
+      text: 'Palo Alto PAN-OS',
+    },
+    {
+      type: 'ordered-list',
+      items: [
+        { text: 'In Panorama or the firewall GUI, navigate to Device → Server Profiles → Syslog' },
+        { text: 'Create a new Syslog Server Profile pointing to your VerifyWise server IP and port (default 5514), protocol TCP' },
+        { text: 'Under Objects → Log Forwarding, create a profile that forwards URL Filtering logs to the syslog profile' },
+        { text: 'In the syslog profile, set the format to CEF. Enable URL Filtering log type with these fields: suser, dhost, request, requestMethod, act, rt' },
+        { text: 'Apply the log forwarding profile to your security policies' },
+        { text: 'In VerifyWise, add the syslog source with parser type "CEF (Common Event Format)"' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Expected log line format:',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: 'CEF:0|Palo Alto Networks|PAN-OS|11.0|URL|url-filtering|3|suser=alice@company.com dhost=chat.openai.com request=https://chat.openai.com/v1/chat requestMethod=POST act=allow rt=1707489120000',
+    },
+
+    // FortiGate
+    {
+      type: 'heading',
+      id: 'config-fortigate',
+      level: 3,
+      text: 'Fortinet FortiGate',
+    },
+    {
+      type: 'ordered-list',
+      items: [
+        { text: 'In FortiOS, navigate to Log & Report → Log Settings' },
+        { text: 'Enable "Send logs to syslog" and enter your VerifyWise server IP and port (default 5514), protocol TCP (Reliable)' },
+        { text: 'Under Log & Report → Log Filters, ensure UTM → Web Filter logs are enabled' },
+        { text: 'Verify that web filter profiles include "Log all URLs" or at minimum "Log rated URLs"' },
+        { text: 'In VerifyWise, add the syslog source with parser type "FortiGate / Sophos / SonicWall"' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Expected log line format (key=value):',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: 'date=2026-02-09 time=14:32:00 type=utm subtype=webfilter user=alice@company.com hostname=chat.openai.com url="https://chat.openai.com/v1/chat" method=POST action=passthrough',
+    },
+
+    // Cloudflare Gateway
+    {
+      type: 'heading',
+      id: 'config-cloudflare',
+      level: 3,
+      text: 'Cloudflare Gateway',
+    },
+    {
+      type: 'ordered-list',
+      items: [
+        { text: 'In Cloudflare Zero Trust dashboard, navigate to Logs → Logpush' },
+        { text: 'Create a new Logpush job for the "Gateway HTTP" dataset' },
+        { text: 'Configure the destination as a syslog endpoint (your VerifyWise server IP and port, TCP) or pipe through an intermediate forwarder' },
+        { text: 'Select the fields: Email, Host, URL, HTTPMethod, Action, Datetime, DownloadedBytes, UploadedBytes' },
+        { text: 'In VerifyWise, add the syslog source with parser type "Cloudflare Gateway JSON"' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Expected log line format (JSON):',
+    },
+    {
+      type: 'code',
+      language: 'json',
+      code: '{"Email":"alice@company.com","Host":"chat.openai.com","URL":"https://chat.openai.com/v1/chat","HTTPMethod":"POST","Action":"allow","Datetime":"2026-02-09T14:32:00Z"}',
+    },
+    {
+      type: 'callout',
+      variant: 'info',
+      title: 'Cloudflare Logpush delivery',
+      text: 'Cloudflare Logpush natively outputs to S3, R2, and other storage destinations. To forward to a syslog endpoint, use a log forwarder like Fluent Bit or rsyslog to read from the Logpush destination and forward as syslog over TCP.',
+    },
+
+    // Cisco WSA
+    {
+      type: 'heading',
+      id: 'config-cisco-wsa',
+      level: 3,
+      text: 'Cisco Secure Web Appliance (IronPort WSA)',
+    },
+    {
+      type: 'ordered-list',
+      items: [
+        { text: 'In the WSA admin interface, navigate to Security Services → Access Logs' },
+        { text: 'Under Log Subscriptions, create a new subscription with retrieval method "Syslog Push"' },
+        { text: 'Set the syslog server to your VerifyWise server IP and port (default 5514), protocol TCP' },
+        { text: 'For the log format, select W3C or ensure the default ELFF format is used' },
+        { text: 'In VerifyWise, add the syslog source with parser type "W3C ELFF (Cisco WSA / ProxySG)"' },
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: 'Expected log line format (W3C ELFF, space-delimited):',
+    },
+    {
+      type: 'code',
+      language: 'text',
+      code: '2026-02-09 14:32:00 200 10.0.0.1 200 TCP_MISS 1024 POST https chat.openai.com /v1/chat - alice@company.com DIRECT chat.openai.com application/json',
+    },
+
+    // Check Point
+    {
+      type: 'heading',
+      id: 'config-checkpoint',
+      level: 3,
+      text: 'Check Point',
+    },
+    {
+      type: 'ordered-list',
+      items: [
+        { text: 'On the Check Point Management Server, configure Log Exporter to send logs in CEF format' },
+        { text: 'Set the target syslog server to your VerifyWise server IP and port (default 5514), protocol TCP' },
+        { text: 'Filter to include URL Filtering and Application Control blade logs' },
+        { text: 'In VerifyWise, add the syslog source with parser type "CEF (Common Event Format)"' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'warning',
+      title: 'Management server only',
+      text: 'Check Point URL Filtering and Application Control logs can only be exported from the Management Server, not directly from the gateway. Configure Log Exporter on the management server.',
+    },
+
+    // Broadcom ProxySG
+    {
+      type: 'heading',
+      id: 'config-proxysg',
+      level: 3,
+      text: 'Broadcom Symantec ProxySG / Edge SWG',
+    },
+    {
+      type: 'ordered-list',
+      items: [
+        { text: 'In the ProxySG Management Console, navigate to Access Logging → Logs → main' },
+        { text: 'Set the upload client to "Syslog" and enter your VerifyWise server IP and port (default 5514)' },
+        { text: 'Select "w3c-recommended" or the default ELFF format' },
+        { text: 'In VerifyWise, add the syslog source with parser type "W3C ELFF (Cisco WSA / ProxySG)"' },
+      ],
     },
 
     // Generic

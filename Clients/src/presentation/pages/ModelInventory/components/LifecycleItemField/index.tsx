@@ -7,7 +7,6 @@ import {
   Stack,
   Typography,
   Box,
-  Checkbox,
   FormControlLabel,
   RadioGroup,
   Radio,
@@ -36,6 +35,7 @@ import {
 import { uploadFileToManager } from "../../../../../application/repository/file.repository";
 import useUsers from "../../../../../application/hooks/useUsers";
 import Field from "../../../../components/Inputs/Field";
+import SharedCheckbox from "../../../../components/Inputs/Checkbox";
 import SharedSelect from "../../../../components/Inputs/Select";
 import CustomizableMultiSelect from "../../../../components/Inputs/Select/Multi";
 import Chip from "../../../../components/Chip";
@@ -529,30 +529,26 @@ function ChecklistFieldRenderer({
     <Stack sx={{ gap: "8px" }}>
       {items.map((it, index) => (
         <Stack key={index} direction="row" alignItems="center" sx={{ gap: "8px" }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={it.checked}
-                onChange={() => toggleItem(index)}
-                size="small"
-              />
-            }
-            label={
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: "13px",
-                  textDecoration: it.checked ? "line-through" : "none",
-                  color: it.checked
-                    ? theme.palette.text.tertiary
-                    : theme.palette.text.primary,
-                }}
-              >
-                {it.label}
-              </Typography>
-            }
-            sx={{ flex: 1 }}
+          <SharedCheckbox
+            id={`checklist-${item.id}-${index}`}
+            isChecked={it.checked}
+            value={String(index)}
+            onChange={() => toggleItem(index)}
+            size="small"
           />
+          <Typography
+            variant="body2"
+            sx={{
+              flex: 1,
+              fontSize: "13px",
+              textDecoration: it.checked ? "line-through" : "none",
+              color: it.checked
+                ? theme.palette.text.tertiary
+                : theme.palette.text.primary,
+            }}
+          >
+            {it.label}
+          </Typography>
           <IconButton size="small" onClick={() => removeItem(index)} aria-label="Remove item">
             <X size={14} />
           </IconButton>

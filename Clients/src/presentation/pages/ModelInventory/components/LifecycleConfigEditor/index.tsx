@@ -298,7 +298,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
             <CircularProgress />
           </Stack>
         ) : (
-          <Stack sx={{ gap: "12px" }}>
+          <Stack sx={{ gap: "16px" }}>
             {/* Existing phases */}
             {phases.map((phase, phaseIdx) => (
               <Box
@@ -315,9 +315,9 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                   direction="row"
                   alignItems="center"
                   sx={{
-                    gap: "8px",
+                    gap: "10px",
                     px: "16px",
-                    py: "10px",
+                    py: "12px",
                     backgroundColor: theme.palette.background.accent,
                     cursor: "pointer",
                     userSelect: "none",
@@ -390,15 +390,15 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
 
                 {/* Phase items (expanded) */}
                 {expandedPhases.has(phase.id) && (
-                  <Stack spacing={0} sx={{ px: "16px", py: "12px" }}>
+                  <Stack spacing={0} sx={{ px: "16px", py: "16px" }}>
                     {(phase.items ?? []).map((item, itemIdx) => (
                       <Stack
                         key={item.id}
                         direction="row"
                         alignItems="center"
                         sx={{
-                          gap: "8px",
-                          py: "8px",
+                          gap: "10px",
+                          py: "10px",
                           borderBottom: `1px solid ${theme.palette.border.light}`,
                         }}
                       >
@@ -454,7 +454,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
 
                     {/* Add item form */}
                     {addingItemForPhase === phase.id ? (
-                      <Stack direction="row" sx={{ gap: "8px", pt: "12px" }} alignItems="center">
+                      <Stack direction="row" sx={{ gap: "10px", pt: "16px" }} alignItems="center">
                         <Field
                           placeholder="Item name"
                           value={newItemName}
@@ -504,7 +504,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         startIcon={<Plus size={16} />}
                         onClick={() => setAddingItemForPhase(phase.id)}
                         ariaLabel="Add item"
-                        sx={{ alignSelf: "flex-start", mt: "12px", textTransform: "none" }}
+                        sx={{ alignSelf: "flex-start", mt: "16px", textTransform: "none" }}
                       >
                         Add item
                       </CustomizableButton>
@@ -522,10 +522,10 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                 p: "16px",
               }}
             >
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: "8px" }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: "12px" }}>
                 Add new phase
               </Typography>
-              <Stack sx={{ gap: "8px" }}>
+              <Stack sx={{ gap: "12px" }}>
                 <Field
                   placeholder="Phase name"
                   value={newPhaseName}
@@ -554,7 +554,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
         )}
       </DialogContent>
 
-      <DialogActions>
+      <DialogActions sx={{ px: "16px", py: "12px" }}>
         <CustomizableButton variant="text" onClick={onClose}>
           Close
         </CustomizableButton>

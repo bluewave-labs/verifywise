@@ -257,8 +257,8 @@ function DocumentsFieldRenderer({
               direction="row"
               alignItems="center"
               sx={{
-                gap: "8px",
-                p: "8px",
+                gap: "10px",
+                p: "10px 12px",
                 borderRadius: "4px",
                 border: `1px solid ${theme.palette.border.light}`,
                 backgroundColor: theme.palette.background.accent,
@@ -279,7 +279,7 @@ function DocumentsFieldRenderer({
         sx={{
           border: `1px dashed ${theme.palette.border.dark}`,
           borderRadius: "4px",
-          p: "16px",
+          p: "20px 16px",
           textAlign: "center",
           cursor: "pointer",
           "&:hover": { backgroundColor: theme.palette.background.accent },
@@ -502,9 +502,9 @@ function ChecklistFieldRenderer({
   );
 
   return (
-    <Stack sx={{ gap: "8px" }}>
+    <Stack sx={{ gap: "10px" }}>
       {items.map((it, index) => (
-        <Stack key={index} direction="row" alignItems="center" sx={{ gap: "8px" }}>
+        <Stack key={index} direction="row" alignItems="center" sx={{ gap: "10px" }}>
           <SharedCheckbox
             id={`checklist-${item.id}-${index}`}
             isChecked={it.checked}
@@ -530,7 +530,7 @@ function ChecklistFieldRenderer({
           </IconButton>
         </Stack>
       ))}
-      <Stack direction="row" sx={{ gap: "8px" }}>
+      <Stack direction="row" sx={{ gap: "10px" }}>
         <Field
           placeholder="Add checklist item..."
           value={newItemText}
@@ -628,8 +628,8 @@ function ApprovalFieldRenderer({
             direction="row"
             alignItems="center"
             sx={{
-              gap: "8px",
-              p: "12px",
+              gap: "10px",
+              p: "12px 16px",
               borderRadius: "4px",
               border: `1px solid ${theme.palette.border.light}`,
             }}

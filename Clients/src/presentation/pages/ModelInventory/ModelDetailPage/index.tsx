@@ -100,7 +100,7 @@ function ModelDetailPage() {
 
   if (modelLoading) {
     return (
-      <Stack alignItems="center" justifyContent="center" sx={{ py: 8 }}>
+      <Stack alignItems="center" justifyContent="center" sx={{ py: "64px" }}>
         <CircularProgress />
       </Stack>
     );
@@ -108,7 +108,7 @@ function ModelDetailPage() {
 
   if (!model) {
     return (
-      <Stack alignItems="center" justifyContent="center" sx={{ py: 8 }} spacing={2}>
+      <Stack alignItems="center" justifyContent="center" sx={{ py: "64px", gap: "16px" }}>
         <EmptyStateMessage message="Model not found" />
         <CustomizableButton
           variant="outlined"
@@ -132,11 +132,11 @@ function ModelDetailPage() {
         sx={{
           border: `1px solid ${theme.palette.border.light}`,
           borderRadius: "4px",
-          p: "16px",
+          p: "20px",
           background: theme.palette.background.main,
         }}
       >
-        <Stack spacing={2}>
+        <Stack sx={{ gap: "16px" }}>
           <CustomizableButton
             variant="text"
             startIcon={<ArrowLeft size={16} />}
@@ -156,10 +156,10 @@ function ModelDetailPage() {
             alignItems="center"
             justifyContent="space-between"
             flexWrap="wrap"
-            spacing={2}
+            sx={{ gap: "16px" }}
           >
-            <Stack spacing={0.5}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Stack sx={{ gap: "6px" }}>
+              <Stack direction="row" alignItems="center" sx={{ gap: "12px" }}>
                 <Typography
                   sx={{
                     fontWeight: 600,
@@ -171,7 +171,7 @@ function ModelDetailPage() {
                 </Typography>
                 <Chip label={model.status} />
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" sx={{ gap: "16px" }}>
                 {model.provider && (
                   <Typography
                     sx={{
@@ -201,7 +201,7 @@ function ModelDetailPage() {
       {/* Progress bar */}
       <Box
         sx={{
-          p: "16px",
+          p: "20px",
           borderRadius: "4px",
           border: `1px solid ${theme.palette.border.light}`,
           backgroundColor: theme.palette.background.main,

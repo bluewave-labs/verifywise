@@ -52,7 +52,7 @@ function LifecycleProgressBar({
       </Stack>
 
       {/* Segmented progress bar */}
-      <Stack direction="row" sx={{ gap: "4px", width: "100%" }}>
+      <Stack direction="row" sx={{ gap: "6px", width: "100%" }}>
         {progress.phases.map((phase) => {
           const pct = phase.total_items > 0
             ? (phase.filled_items / phase.total_items) * 100
@@ -94,7 +94,7 @@ function LifecycleProgressBar({
       </Stack>
 
       {/* Phase labels */}
-      <Stack direction="row" sx={{ gap: "4px", width: "100%" }}>
+      <Stack direction="row" sx={{ gap: "6px", width: "100%" }}>
         {progress.phases.map((phase) => (
           <Typography
             key={phase.phase_id}

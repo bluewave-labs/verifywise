@@ -11,7 +11,7 @@ from seeds.load import load_obligations_yaml
 from seeds.export import export_obligations_jsonl
 from io_utils.manifest import write_manifest
 from io_utils.checksums import sha256_file
-from io_utils.jsonl import write_jsonl, read_jsonl
+from io_utils.jsonl import write_jsonl, read_jsonl, append_jsonl
 from reports.seed_report import build_seed_report
 from reports.render_report import build_render_report
 from reports.perturb_report import build_perturb_report
@@ -29,8 +29,16 @@ from reports.validate_report import build_validate_report
 from seeds.index import ObligationIndex
 from validate.enrich import enrich_with_obligations
 
+from infer.runner import run_inference, run_inference_resumable, InferConfig
+from infer.load_models import load_models_config
+from infer.paths import model_output_path
+from infer.stats import compute_model_stats
+from infer.manifest import write_infer_manifest
+from llm.mock import MockChatClient
+from llm.openrouter import OpenRouterChatClient
 
-import json
+from infer.resume import load_completed_pairs
+from reports.infer_report import build_infer_report
 
 
 console = Console()
@@ -296,6 +304,134 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         console.print(f"- wrote: {manifest_path}")
         return 0
 
+    if args.stage == "infer":
+        scenarios_in = final_dir / "scenarios.jsonl"
+        infer_report_path = final_dir / "infer_report.json"
+        infer_manifest_path = final_dir / "infer_manifest.json"
+
+        if not scenarios_in.exists():
+            console.print(f"[red]Missing input:[/red] {scenarios_in}")
+            return 2
+
+        scenarios = list(read_jsonl(scenarios_in))
+
+        if args.limit is not None:
+            scenarios = scenarios[:args.limit]
+            console.print(f"[yellow]Limiting to {len(scenarios)} scenario(s)[/yellow]")
+
+        if args.models_config:
+            cfg_file = Path(args.models_config)
+            models_cfg = load_models_config(cfg_file)
+
+            per_model_stats = []
+            outputs = []
+
+            for spec in models_cfg.models:
+                if spec.provider != "openrouter":
+                    console.print(f"[yellow]Skipping unsupported provider in v0.1:[/yellow] {spec.provider}")
+                    continue
+
+                out_path = model_output_path(final_dir, spec.model_id)
+                fail_path = out_path.with_suffix(out_path.suffix + ".failures.jsonl")
+
+                skip = set()
+                if args.resume:
+                    skip = load_completed_pairs(out_path)
+
+                client = OpenRouterChatClient(model_id=spec.model_id)
+                successes, failures = run_inference_resumable(
+                    scenarios=scenarios,
+                    client=client,
+                    cfg=InferConfig(
+                        model_id=spec.model_id,
+                        provider=spec.provider,
+                        temperature=float(args.temperature),
+                        max_tokens=int(args.max_tokens),
+                        retry_max_attempts=int(args.retry_max_attempts),
+                    ),
+                    skip_pairs=skip,
+                )
+
+                if args.resume:
+                    append_jsonl(out_path, successes)
+                    append_jsonl(fail_path, failures)
+                else:
+                    write_jsonl(out_path, successes)
+                    write_jsonl(fail_path, failures)
+
+                stats = compute_model_stats(out_path, fail_path)
+                stats["model_id"] = spec.model_id
+                per_model_stats.append(stats)
+
+                outputs.append({
+                    "model_id": spec.model_id,
+                    "success_path": str(out_path),
+                    "success_sha256": sha256_file(out_path) if out_path.exists() else None,
+                    "failure_path": str(fail_path),
+                    "failure_sha256": sha256_file(fail_path) if fail_path.exists() else None,
+                })
+
+                console.print(f"[green]Done:[/green] {spec.model_id} -> {out_path}")
+                console.print(f"[yellow]- skipped: {len(skip)}[/yellow]")
+                console.print(f"[green]- successes: {len(successes)}[/green]")
+                console.print(f"[red]- failures: {len(failures)}[/red]")
+
+            models_list = [{"model_id": s.model_id, "provider": s.provider} for s in models_cfg.models]
+            report = build_infer_report(
+                models=models_list,
+                per_model_stats=per_model_stats,
+                total_scenarios=len(scenarios),
+            )
+            report["generated_at"] = datetime.now(timezone.utc).isoformat()
+            report["dataset_version"] = args.dataset_version
+            infer_report_path.parent.mkdir(parents=True, exist_ok=True)
+            infer_report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+            write_infer_manifest(
+                out_path=infer_manifest_path,
+                dataset_version=args.dataset_version,
+                scenarios_path=scenarios_in,
+                models_config_path=cfg_file,
+                temperature=float(args.temperature),
+                max_tokens=int(args.max_tokens),
+                retry_max_attempts=int(args.retry_max_attempts),
+                resume=bool(args.resume),
+                outputs=outputs,
+            )
+
+            console.print(f"- wrote: {infer_report_path}")
+            console.print(f"- wrote: {infer_manifest_path}")
+
+            return 0
+
+        if args.provider == "openrouter":
+            client = OpenRouterChatClient(model_id=args.model_id)
+        else:
+            client = MockChatClient(model_id=args.model_id, provider=args.provider)
+
+        cfg = InferConfig(
+            model_id=args.model_id,
+            provider=args.provider,
+            temperature=float(args.temperature),
+            max_tokens=int(args.max_tokens),
+        )
+
+        responses = run_inference(
+            scenarios=scenarios,
+            client=client,
+            cfg=cfg,
+        )
+
+        out_path = final_dir / "candidate_responses.jsonl"
+        write_jsonl(out_path, responses)
+
+        console.print("[bold green]Inference complete.[/bold green]")
+        console.print(f"- provider: {args.provider}")
+        console.print(f"- model_id: {args.model_id}")
+        console.print(f"- scenarios_in: {len(scenarios)}")
+        console.print(f"- responses_out: {len(responses)}")
+        console.print(f"- wrote: {out_path}")
+        return 0
 
 
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")
@@ -307,13 +443,21 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     gen = sub.add_parser("generate", help="Generate artifacts for the scenario pipeline")
-    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate"], required=True)
+    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate", "infer"], required=True)
     gen.add_argument("--seed", default="42")
     gen.add_argument("--per-obligation", default="2")
     gen.add_argument("--mutations", default="configs/mutations.yaml")
     gen.add_argument("--k-per-base", default="3")
     gen.add_argument("--coverage", choices=["random", "per_family"], default="random")
     gen.add_argument("--inject-constraints-into-prompt", action="store_true")
+    gen.add_argument("--model-id", default="mock-model")
+    gen.add_argument("--provider", default="mock")
+    gen.add_argument("--temperature", default="0.2")
+    gen.add_argument("--max-tokens", default="500")
+    gen.add_argument("--limit", type=int, default=None, help="Max number of scenarios to run inference on")
+    gen.add_argument("--resume", action="store_true")
+    gen.add_argument("--retry-max-attempts", default="5")
+    gen.add_argument("--models-config", default=None)
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")
     gen.add_argument("--out-dir", default="datasets")

@@ -42,6 +42,7 @@ import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
 import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import AIDetectionPage from "../../presentation/pages/AIDetection";
+import ShadowAIPage from "../../presentation/pages/ShadowAI";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 
@@ -114,6 +115,15 @@ export const createRoutes = (
     <Route path="/ai-detection/settings" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
+    <Route path="/shadow-ai" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/user-activity" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/user-activity/users" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/user-activity/departments" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/tools" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/tools/:toolId" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/rules" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/rules/alerts" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/settings" element={<ShadowAIPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
   </Route>,

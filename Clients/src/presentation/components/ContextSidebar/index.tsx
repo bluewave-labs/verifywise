@@ -2,9 +2,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AppModule } from "../../../application/redux/ui/uiSlice";
 import { useEvalsSidebarContextSafe } from "../../../application/contexts/EvalsSidebar.context";
 import { useAIDetectionSidebarContextSafe } from "../../../application/contexts/AIDetectionSidebar.context";
+import { useShadowAISidebarContextSafe } from "../../../application/contexts/ShadowAISidebar.context";
 import Sidebar from "../Sidebar";
 import EvalsSidebar from "../../pages/EvalsDashboard/EvalsSidebar";
 import AIDetectionSidebar from "../../pages/AIDetection/AIDetectionSidebar";
+import ShadowAISidebar from "../../pages/ShadowAI/ShadowAISidebar";
 
 interface ContextSidebarProps {
   activeModule: AppModule;
@@ -35,6 +37,7 @@ export function ContextSidebar({
 }: ContextSidebarProps) {
   const evalsSidebarContext = useEvalsSidebarContextSafe();
   const aiDetectionSidebarContext = useAIDetectionSidebarContextSafe();
+  const shadowAiSidebarContext = useShadowAISidebarContextSafe();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -115,6 +118,38 @@ export function ContextSidebar({
           historyCount={aiDetectionSidebarContext?.historyCount ?? 0}
           recentScans={aiDetectionSidebarContext?.recentScans ?? []}
           onScanClick={(scanId) => navigate(`/ai-detection/scans/${scanId}`)}
+        />
+      );
+    }
+    case "shadow-ai": {
+      const shadowAiTab = location.pathname.includes("/shadow-ai/user-activity")
+        ? "users"
+        : location.pathname.includes("/shadow-ai/tools")
+          ? "tools"
+          : location.pathname.includes("/shadow-ai/rules")
+            ? "rules"
+            : location.pathname.includes("/shadow-ai/settings")
+              ? "settings"
+              : "insights";
+
+      const handleShadowAiTabChange = (newTab: string) => {
+        if (newTab === "insights") {
+          navigate("/shadow-ai");
+        } else if (newTab === "users") {
+          navigate("/shadow-ai/user-activity/users");
+        } else {
+          navigate(`/shadow-ai/${newTab}`);
+        }
+      };
+
+      return (
+        <ShadowAISidebar
+          activeTab={shadowAiTab}
+          onTabChange={handleShadowAiTabChange}
+          toolsCount={shadowAiSidebarContext?.toolsCount ?? 0}
+          alertsCount={shadowAiSidebarContext?.alertsCount ?? 0}
+          recentTools={shadowAiSidebarContext?.recentTools ?? []}
+          onToolClick={shadowAiSidebarContext?.onToolClick}
         />
       );
     }

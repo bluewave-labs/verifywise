@@ -126,3 +126,43 @@ export const PROVIDER_ICONS: Record<string, React.ComponentType<React.SVGProps<S
   Vllm: VllmIcon,
   Voyage: VoyageIcon,
 };
+
+/**
+ * Maps vendor names (as used in the tool registry / Shadow AI) to PROVIDER_ICONS keys.
+ * Use this mapping anywhere you need to resolve a vendor string to an icon component.
+ */
+export const VENDOR_ICON_MAP: Record<string, string> = {
+  // Direct matches (vendor name === icon key)
+  "OpenAI": "OpenAI",
+  "Anthropic": "Anthropic",
+  "Google": "Google",
+  "Microsoft": "Microsoft",
+  "DeepSeek": "DeepSeek",
+  "Cohere": "Cohere",
+  "Groq": "Groq",
+  "OpenRouter": "OpenRouter",
+  "Replicate": "Replicate",
+  "ElevenLabs": "ElevenLabs",
+  "Vercel": "Vercel",
+  "Meta": "Meta",
+  "Nvidia": "Nvidia",
+  "Ollama": "Ollama",
+  "Anyscale": "Anyscale",
+  "Baseten": "Baseten",
+  "Cerebras": "Cerebras",
+  "SambaNova": "SambaNova",
+  // Vendor name differs from icon key
+  "Mistral AI": "Mistral",
+  "Perplexity AI": "Perplexity",
+  "Together AI": "Together",
+  "Fireworks AI": "Fireworks",
+  "Hugging Face": "HuggingFace",
+  "Stability AI": "Stability",
+  "AI21 Labs": "Ai21",
+  "Amazon": "Aws",
+  "GitHub/Microsoft": "Microsoft",
+  "xAI": "Groq",
+  "LeptonAI": "LeptonAI",
+  "Jina": "Jina",
+  "AssemblyAI": "AssemblyAI",
+};

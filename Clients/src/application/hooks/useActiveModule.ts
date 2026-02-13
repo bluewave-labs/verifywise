@@ -28,6 +28,9 @@ export function useActiveModule() {
     if (pathname.startsWith("/ai-detection")) {
       return "ai-detection";
     }
+    if (pathname.startsWith("/shadow-ai")) {
+      return "shadow-ai";
+    }
     return "main";
   }, []);
 
@@ -56,6 +59,9 @@ export function useActiveModule() {
         case "ai-detection":
           navigate("/ai-detection");
           break;
+        case "shadow-ai":
+          navigate("/shadow-ai");
+          break;
         case "main":
         default:
           navigate("/");
@@ -68,7 +74,7 @@ export function useActiveModule() {
   // Initialize from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as AppModule | null;
-    if (stored && ["main", "evals", "ai-detection"].includes(stored)) {
+    if (stored && ["main", "evals", "ai-detection", "shadow-ai"].includes(stored)) {
       // Only set if URL doesn't already indicate a different module
       const urlModule = getModuleFromPath(location.pathname);
       if (urlModule === "main" && stored !== "main") {

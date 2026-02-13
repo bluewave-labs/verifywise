@@ -10,7 +10,8 @@ export type IconName =
   | 'GraduationCap'
   | 'BarChart3'
   | 'FlaskConical'
-  | 'ScanSearch';
+  | 'ScanSearch'
+  | 'EyeOff';
 
 export interface Article {
   id: string;
@@ -340,6 +341,51 @@ export const collections: Collection[] = [
         title: 'API access',
         description: 'Create and manage API keys for programmatic access.',
         keywords: ['api', 'access', 'keys', 'token', 'developer', 'integration', 'programmatic'],
+      },
+    ],
+  },
+  {
+    id: 'shadow-ai',
+    title: 'Shadow AI',
+    description: 'Detect and manage unauthorized AI tool usage across your organization through network traffic analysis.',
+    icon: 'EyeOff',
+    articleCount: 6,
+    articles: [
+      {
+        id: 'insights',
+        title: 'Insights dashboard',
+        description: 'View summary metrics, risk rankings, and usage trends for detected AI tools.',
+        keywords: ['shadow', 'ai', 'insights', 'dashboard', 'metrics', 'risk', 'trends'],
+      },
+      {
+        id: 'ai-tools',
+        title: 'AI tools',
+        description: 'View, classify, and manage all AI tools detected in your network traffic.',
+        keywords: ['shadow', 'ai', 'tools', 'detect', 'status', 'governance', 'risk score'],
+      },
+      {
+        id: 'user-activity',
+        title: 'User activity',
+        description: 'Monitor individual and department-level AI tool usage.',
+        keywords: ['shadow', 'user', 'activity', 'department', 'prompts', 'usage'],
+      },
+      {
+        id: 'rules',
+        title: 'Alert rules',
+        description: 'Configure automated alerts for Shadow AI events and review alert history.',
+        keywords: ['shadow', 'rules', 'alert', 'trigger', 'notification', 'threshold'],
+      },
+      {
+        id: 'settings',
+        title: 'Shadow AI settings',
+        description: 'Manage API keys, syslog sources, rate limiting, data retention, and risk score calculation.',
+        keywords: ['shadow', 'settings', 'api key', 'syslog', 'retention', 'rate limit', 'risk score'],
+      },
+      {
+        id: 'integration-guide',
+        title: 'Integration guide',
+        description: 'Step-by-step instructions for connecting your network proxy, SIEM, or custom integration to Shadow AI.',
+        keywords: ['shadow', 'integration', 'setup', 'syslog', 'zscaler', 'netskope', 'squid', 'api', 'proxy', 'troubleshooting'],
       },
     ],
   },

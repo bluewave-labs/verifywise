@@ -81,6 +81,9 @@ export class STATUS_CODE {
   static 422 = (data: any) => {
     return { message: "Unprocessable Entity", data };
   };
+  static 429 = (data: any) => {
+    return { message: "Too Many Requests", data };
+  };
 
   // 5XX server errors
   static 500 = (error: any) => {

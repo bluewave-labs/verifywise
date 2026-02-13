@@ -125,6 +125,14 @@ const LABEL_TO_VARIANT: Record<string, ChipVariant> = {
   // Training status
   planned: "info",
 
+  // Shadow AI statuses
+  detected: "info",
+  "under review": "warning",
+  governed: "success",
+  inactive: "default",
+  revoked: "error",
+  dismissed: "default",
+
   // AI risk classification (EU AI Act)
   prohibited: "critical",
   "limited risk": "warning",

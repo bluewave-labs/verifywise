@@ -7,7 +7,6 @@ import { useState, useCallback } from "react";
 import {
   Stack,
   Typography,
-  TextField,
   Select,
   MenuItem,
   IconButton,
@@ -44,8 +43,8 @@ import {
   deleteItem,
   reorderItems,
 } from "../../../../../application/repository/modelLifecycle.repository";
-import { getInputStyles } from "../../../../utils/inputStyles";
 import { logEngine } from "../../../../../application/tools/log.engine";
+import Field from "../../../../components/Inputs/Field";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 import ConfirmationModal from "../../../../components/Dialogs/ConfirmationModal";
@@ -452,21 +451,12 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                     {/* Add item form */}
                     {addingItemForPhase === phase.id ? (
                       <Stack direction="row" sx={{ gap: "8px", pt: "12px" }} alignItems="center">
-                        <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
-                          <TextField
-                            size="small"
-                            placeholder="Item name"
-                            value={newItemName}
-                            onChange={(e) => setNewItemName(e.target.value)}
-                            fullWidth
-                            sx={{
-                              "& .MuiInputBase-root": {
-                                height: "34px",
-                                fontSize: "13px",
-                              },
-                            }}
-                          />
-                        </Stack>
+                        <Field
+                          placeholder="Item name"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                          sx={{ flex: 1 }}
+                        />
                         <Select
                           size="small"
                           value={newItemType}
@@ -537,37 +527,18 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                 Add new phase
               </Typography>
               <Stack sx={{ gap: "8px" }}>
-                <Stack sx={getInputStyles(theme)}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    placeholder="Phase name"
-                    value={newPhaseName}
-                    onChange={(e) => setNewPhaseName(e.target.value)}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        height: "34px",
-                        fontSize: "13px",
-                      },
-                    }}
-                  />
-                </Stack>
-                <Stack sx={getInputStyles(theme)}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="Description (optional)"
-                    value={newPhaseDesc}
-                    onChange={(e) => setNewPhaseDesc(e.target.value)}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        fontSize: "13px",
-                      },
-                    }}
-                  />
-                </Stack>
+                <Field
+                  placeholder="Phase name"
+                  value={newPhaseName}
+                  onChange={(e) => setNewPhaseName(e.target.value)}
+                />
+                <Field
+                  type="description"
+                  placeholder="Description (optional)"
+                  value={newPhaseDesc}
+                  onChange={(e) => setNewPhaseDesc(e.target.value)}
+                  rows={2}
+                />
                 <CustomizableButton
                   variant="contained"
                   size="small"

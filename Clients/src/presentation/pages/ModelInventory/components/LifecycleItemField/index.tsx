@@ -5,7 +5,6 @@
 import { useState, useCallback, useRef } from "react";
 import {
   Stack,
-  TextField,
   Typography,
   Box,
   Checkbox,
@@ -38,7 +37,8 @@ import {
 } from "../../../../../application/repository/modelLifecycle.repository";
 import { uploadFileToManager } from "../../../../../application/repository/file.repository";
 import useUsers from "../../../../../application/hooks/useUsers";
-import { getInputStyles, getSelectStyles } from "../../../../utils/inputStyles";
+import { getSelectStyles } from "../../../../utils/inputStyles";
+import Field from "../../../../components/Inputs/Field";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 
@@ -149,7 +149,6 @@ function TextFieldRenderer({
   multiline,
   onValueChanged,
 }: TextFieldRendererProps) {
-  const theme = useTheme();
   const config = item.config as TextItemConfig | TextareaItemConfig;
   const [text, setText] = useState(value?.value_text ?? "");
   const [saving, setSaving] = useState(false);
@@ -169,32 +168,29 @@ function TextFieldRenderer({
     }
   }, [text, modelId, item.id, onValueChanged]);
 
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (config?.maxLength && val.length > config.maxLength) return;
+      setText(val);
+    },
+    [config?.maxLength]
+  );
+
   return (
-    <Stack sx={getInputStyles(theme)}>
-      <TextField
-        fullWidth
-        size="small"
-        multiline={multiline}
-        minRows={multiline ? 3 : undefined}
-        maxRows={multiline ? 8 : undefined}
-        placeholder={config?.placeholder || `Enter ${item.name.toLowerCase()}`}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={handleBlur}
-        inputProps={{ maxLength: config?.maxLength }}
-        InputProps={{
-          endAdornment: saving ? (
-            <CircularProgress size={14} />
-          ) : undefined,
-        }}
-        sx={{
-          "& .MuiInputBase-root": {
-            height: multiline ? "auto" : "34px",
-            fontSize: "13px",
-          },
-        }}
-      />
-    </Stack>
+    <Field
+      type={multiline ? "description" : "text"}
+      placeholder={config?.placeholder || `Enter ${item.name.toLowerCase()}`}
+      value={text}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      rows={multiline ? 3 : undefined}
+      InputProps={{
+        endAdornment: saving ? (
+          <CircularProgress size={14} />
+        ) : undefined,
+      }}
+    />
   );
 }
 
@@ -587,22 +583,13 @@ function ChecklistFieldRenderer({
         </Stack>
       ))}
       <Stack direction="row" sx={{ gap: "8px" }}>
-        <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
-          <TextField
-            size="small"
-            fullWidth
-            placeholder="Add checklist item..."
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addItem()}
-            sx={{
-              "& .MuiInputBase-root": {
-                height: "34px",
-                fontSize: "13px",
-              },
-            }}
-          />
-        </Stack>
+        <Field
+          placeholder="Add checklist item..."
+          value={newItemText}
+          onChange={(e) => setNewItemText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addItem()}
+          sx={{ flex: 1 }}
+        />
         <CustomizableButton
           variant="outlined"
           size="small"

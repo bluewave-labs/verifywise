@@ -41,7 +41,7 @@ import {
   ShadowAiToolStatus,
 } from "../../../domain/interfaces/i.shadowAi";
 import singleTheme from "../../themes/v1SingleTheme";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";

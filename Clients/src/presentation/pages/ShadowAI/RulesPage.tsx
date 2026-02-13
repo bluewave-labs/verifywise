@@ -47,7 +47,7 @@ import {
   IShadowAiAlertHistory,
   ShadowAiTriggerType,
 } from "../../../domain/interfaces/i.shadowAi";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
@@ -149,6 +149,7 @@ export default function RulesPage() {
       const timer = setTimeout(() => setToast(null), 3000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [toast]);
 
   useEffect(() => {
@@ -589,6 +590,7 @@ export default function RulesPage() {
           resetForm();
         }}
         title="Create alert rule"
+        description=""
         submitButtonText="Create"
         onSubmit={handleCreate}
         isSubmitting={creating}
@@ -734,6 +736,7 @@ export default function RulesPage() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title={`Delete "${deleteTarget?.name}"?`}
+        description=""
         submitButtonText="Delete"
         onSubmit={handleDelete}
         submitButtonColor="#DC2626"

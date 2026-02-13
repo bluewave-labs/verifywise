@@ -47,6 +47,7 @@ import {
 import { getInputStyles } from "../../../../utils/inputStyles";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
+import ConfirmationModal from "../../../../components/Dialogs/ConfirmationModal";
 
 interface LifecycleConfigEditorProps {
   open: boolean;
@@ -77,6 +78,10 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
   const [newItemName, setNewItemName] = useState("");
   const [newItemType, setNewItemType] = useState<LifecycleItemType>("text");
   const [newItemRequired, setNewItemRequired] = useState(false);
+
+  // Confirmation modal state
+  const [deletePhaseId, setDeletePhaseId] = useState<number | null>(null);
+  const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
 
   // Expanded phases
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
@@ -109,21 +114,19 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
     }
   }, [newPhaseName, newPhaseDesc, refresh]);
 
-  const handleDeletePhase = useCallback(
-    async (phaseId: number) => {
-      if (!window.confirm("Delete this phase and all its items? This cannot be undone.")) return;
-      setSaving(true);
-      try {
-        await deletePhase(phaseId);
-        refresh();
-      } catch (err) {
-        console.error("Failed to delete phase:", err);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [refresh]
-  );
+  const confirmDeletePhase = useCallback(async () => {
+    if (deletePhaseId === null) return;
+    setSaving(true);
+    try {
+      await deletePhase(deletePhaseId);
+      refresh();
+    } catch (err) {
+      console.error("Failed to delete phase:", err);
+    } finally {
+      setSaving(false);
+      setDeletePhaseId(null);
+    }
+  }, [deletePhaseId, refresh]);
 
   const handleMovePhase = useCallback(
     async (phaseId: number, direction: "up" | "down") => {
@@ -197,21 +200,19 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
     [newItemName, newItemType, newItemRequired, refresh]
   );
 
-  const handleDeleteItem = useCallback(
-    async (itemId: number) => {
-      if (!window.confirm("Delete this item? This cannot be undone.")) return;
-      setSaving(true);
-      try {
-        await deleteItem(itemId);
-        refresh();
-      } catch (err) {
-        console.error("Failed to delete item:", err);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [refresh]
-  );
+  const confirmDeleteItem = useCallback(async () => {
+    if (deleteItemId === null) return;
+    setSaving(true);
+    try {
+      await deleteItem(deleteItemId);
+      refresh();
+    } catch (err) {
+      console.error("Failed to delete item:", err);
+    } finally {
+      setSaving(false);
+      setDeleteItemId(null);
+    }
+  }, [deleteItemId, refresh]);
 
   const handleToggleItemRequired = useCallback(
     async (itemId: number, isRequired: boolean) => {
@@ -374,7 +375,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeletePhase(phase.id);
+                      setDeletePhaseId(phase.id);
                     }}
                     sx={{ color: theme.palette.status.error.text }}
                     aria-label="Delete phase"
@@ -438,7 +439,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                         </IconButton>
                         <IconButton
                           size="small"
-                          onClick={() => handleDeleteItem(item.id)}
+                          onClick={() => setDeleteItemId(item.id)}
                           sx={{ color: theme.palette.status.error.text }}
                           aria-label="Delete item"
                         >
@@ -587,6 +588,30 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
           Close
         </CustomizableButton>
       </DialogActions>
+      <ConfirmationModal
+        isOpen={deletePhaseId !== null}
+        title="Delete phase"
+        body="Delete this phase and all its items? This cannot be undone."
+        cancelText="Cancel"
+        proceedText="Delete"
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+        onCancel={() => setDeletePhaseId(null)}
+        onProceed={confirmDeletePhase}
+        isLoading={saving}
+      />
+      <ConfirmationModal
+        isOpen={deleteItemId !== null}
+        title="Delete item"
+        body="Delete this item? This cannot be undone."
+        cancelText="Cancel"
+        proceedText="Delete"
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+        onCancel={() => setDeleteItemId(null)}
+        onProceed={confirmDeleteItem}
+        isLoading={saving}
+      />
     </Dialog>
   );
 };

@@ -45,6 +45,7 @@ import {
   reorderItems,
 } from "../../../../../application/repository/modelLifecycle.repository";
 import { getInputStyles } from "../../../../utils/inputStyles";
+import { logEngine } from "../../../../../application/tools/log.engine";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 import ConfirmationModal from "../../../../components/Dialogs/ConfirmationModal";
@@ -108,7 +109,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       setNewPhaseDesc("");
       refresh();
     } catch (err) {
-      console.error("Failed to create phase:", err);
+      logEngine({ type: "error", message: "Failed to create phase" });
     } finally {
       setSaving(false);
     }
@@ -121,7 +122,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       await deletePhase(deletePhaseId);
       refresh();
     } catch (err) {
-      console.error("Failed to delete phase:", err);
+      logEngine({ type: "error", message: "Failed to delete phase" });
     } finally {
       setSaving(false);
       setDeletePhaseId(null);
@@ -144,7 +145,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         await reorderPhases(orderedIds);
         refresh();
       } catch (err) {
-        console.error("Failed to reorder phases:", err);
+        logEngine({ type: "error", message: "Failed to reorder phases" });
       } finally {
         setSaving(false);
       }
@@ -162,7 +163,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       try {
         await updatePhase(phaseId, { is_active: isActive });
       } catch (err) {
-        console.error("Failed to toggle phase:", err);
+        logEngine({ type: "error", message: "Failed to toggle phase" });
         // Revert on failure
         setPhases((prev) =>
           prev.map((p) => (p.id === phaseId ? { ...p, is_active: !isActive } : p))
@@ -192,7 +193,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         setAddingItemForPhase(null);
         refresh();
       } catch (err) {
-        console.error("Failed to create item:", err);
+        logEngine({ type: "error", message: "Failed to create item" });
       } finally {
         setSaving(false);
       }
@@ -207,7 +208,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       await deleteItem(deleteItemId);
       refresh();
     } catch (err) {
-      console.error("Failed to delete item:", err);
+      logEngine({ type: "error", message: "Failed to delete item" });
     } finally {
       setSaving(false);
       setDeleteItemId(null);
@@ -228,7 +229,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       try {
         await updateItem(itemId, { is_required: isRequired });
       } catch (err) {
-        console.error("Failed to toggle item required:", err);
+        logEngine({ type: "error", message: "Failed to toggle item required" });
         // Revert on failure
         setPhases((prev) =>
           prev.map((p) => ({
@@ -259,7 +260,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         await reorderItems(phaseId, orderedIds);
         refresh();
       } catch (err) {
-        console.error("Failed to reorder items:", err);
+        logEngine({ type: "error", message: "Failed to reorder items" });
       } finally {
         setSaving(false);
       }

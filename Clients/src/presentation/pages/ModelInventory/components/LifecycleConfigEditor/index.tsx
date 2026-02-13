@@ -397,7 +397,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         direction="row"
                         alignItems="center"
                         sx={{
-                          gap: "12px",
+                          gap: "16px",
                           py: "10px",
                           borderBottom: `1px solid ${theme.palette.border.light}`,
                         }}
@@ -405,7 +405,7 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                         <Typography variant="body2" sx={{ flex: 1, fontSize: "13px" }}>
                           {item.name}
                         </Typography>
-                        <Stack direction="row" alignItems="center" sx={{ gap: "10px" }}>
+                        <Stack direction="row" alignItems="center" sx={{ gap: "16px" }}>
                           <Chip label={item.item_type} size="small" variant="info" />
                           <FormControlLabel
                             control={
@@ -425,8 +425,8 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                           direction="row"
                           alignItems="center"
                           sx={{
-                            gap: "2px",
-                            pl: "8px",
+                            gap: "6px",
+                            pl: "12px",
                             borderLeft: `1px solid ${theme.palette.border.light}`,
                           }}
                         >

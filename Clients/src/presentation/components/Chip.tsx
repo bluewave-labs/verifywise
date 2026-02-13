@@ -127,7 +127,6 @@ const LABEL_TO_VARIANT: Record<string, ChipVariant> = {
 
   // Shadow AI statuses
   detected: "info",
-  "under review": "warning",
   governed: "success",
   inactive: "default",
   revoked: "error",

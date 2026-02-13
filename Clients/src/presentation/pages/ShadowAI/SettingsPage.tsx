@@ -357,6 +357,7 @@ function ApiKeysSection() {
           setNewKeyLabel("");
         }}
         title="Create API key"
+        description=""
         submitButtonText="Create"
         onSubmit={handleCreate}
         isSubmitting={creating}
@@ -375,6 +376,7 @@ function ApiKeysSection() {
         isOpen={!!revokeTarget}
         onClose={() => setRevokeTarget(null)}
         title={`Revoke "${revokeTarget?.label || revokeTarget?.key_prefix}"?`}
+        description=""
         submitButtonText="Revoke"
         onSubmit={handleRevoke}
         submitButtonColor="#DC2626"
@@ -391,6 +393,7 @@ function ApiKeysSection() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title={`Delete "${deleteTarget?.label || deleteTarget?.key_prefix}"?`}
+        description=""
         submitButtonText="Delete"
         onSubmit={handleDelete}
         submitButtonColor="#DC2626"
@@ -621,6 +624,7 @@ function SyslogConfigSection() {
           setFormParser("generic_kv");
         }}
         title="Add syslog source"
+        description=""
         submitButtonText="Add"
         onSubmit={handleCreate}
         isSubmitting={creating}
@@ -653,6 +657,7 @@ function SyslogConfigSection() {
         isOpen={!!editTarget}
         onClose={() => setEditTarget(null)}
         title="Edit syslog source"
+        description=""
         submitButtonText="Save"
         onSubmit={handleEdit}
         isSubmitting={editing}
@@ -685,6 +690,7 @@ function SyslogConfigSection() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title={`Remove "${deleteTarget?.source_identifier}"?`}
+        description=""
         submitButtonText="Remove"
         onSubmit={handleDelete}
         submitButtonColor="#DC2626"
@@ -968,7 +974,7 @@ function RateLimitSection({
           <CustomizableButton
             text={saving ? "Saving..." : "Save"}
             variant="contained"
-            disabled={!hasChanged || saving}
+            isDisabled={!hasChanged || saving}
             sx={{
               backgroundColor: "#13715B",
               "&:hover": { backgroundColor: "#0F5A47" },
@@ -1105,7 +1111,7 @@ function DataRetentionSection({
           <CustomizableButton
             text={saving ? "Saving..." : "Save retention settings"}
             variant="contained"
-            disabled={!hasChanged || saving}
+            isDisabled={!hasChanged || saving}
             sx={{
               backgroundColor: "#13715B",
               "&:hover": { backgroundColor: "#0F5A47" },

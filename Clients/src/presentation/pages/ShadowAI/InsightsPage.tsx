@@ -241,7 +241,7 @@ export default function InsightsPage() {
                       </Pie>
                       <Tooltip
                         contentStyle={{ fontSize: 12, borderRadius: 4 }}
-                        formatter={(value: number, name: string) => [value, name]}
+                        formatter={(value: number | undefined, name: string | undefined) => [value, name]}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -308,7 +308,7 @@ export default function InsightsPage() {
                         border: "1px solid #e5e7eb",
                         boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                       }}
-                      formatter={(value: number) => [value.toLocaleString(), "Events"]}
+                      formatter={(value: number | undefined) => [value != null ? value.toLocaleString() : value, "Events"]}
                       cursor={{ fill: "rgba(19, 113, 91, 0.04)" }}
                     />
                     <Bar
@@ -366,7 +366,7 @@ export default function InsightsPage() {
                       border: "1px solid #e5e7eb",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                     }}
-                    formatter={(value: number) => [value.toLocaleString(), "Users"]}
+                    formatter={(value: number | undefined) => [value != null ? value.toLocaleString() : value, "Users"]}
                     cursor={{ fill: "rgba(19, 113, 91, 0.04)" }}
                   />
                   <Bar

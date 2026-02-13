@@ -11,8 +11,6 @@ import {
   FormControlLabel,
   RadioGroup,
   Radio,
-  Select,
-  MenuItem,
   IconButton,
   CircularProgress,
   useTheme,
@@ -37,8 +35,9 @@ import {
 } from "../../../../../application/repository/modelLifecycle.repository";
 import { uploadFileToManager } from "../../../../../application/repository/file.repository";
 import useUsers from "../../../../../application/hooks/useUsers";
-import { getSelectStyles } from "../../../../utils/inputStyles";
 import Field from "../../../../components/Inputs/Field";
+import SharedSelect from "../../../../components/Inputs/Select";
+import CustomizableMultiSelect from "../../../../components/Inputs/Select/Multi";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 
@@ -329,7 +328,6 @@ function PeopleFieldRenderer({
   value,
   onValueChanged,
 }: PeopleFieldRendererProps) {
-  const theme = useTheme();
   const { users } = useUsers();
   const currentPeople: PeopleValue[] = Array.isArray(value?.value_json)
     ? (value.value_json as PeopleValue[])
@@ -338,6 +336,8 @@ function PeopleFieldRenderer({
     currentPeople.map((p) => p.userId)
   );
   const [saving, setSaving] = useState(false);
+
+  const userItems = users.map((u) => ({ _id: u.id, name: u.name, surname: u.surname }));
 
   const handleChange = useCallback(
     async (userIds: number[]) => {
@@ -358,43 +358,19 @@ function PeopleFieldRenderer({
 
   return (
     <Stack sx={{ gap: "8px" }}>
-      <Select
-        multiple
-        size="small"
-        fullWidth
+      <CustomizableMultiSelect
+        label=""
         value={selectedUserIds}
+        items={userItems}
+        getOptionValue={(u) => u._id}
         onChange={(e) => {
           const val = e.target.value;
-          handleChange(typeof val === "string" ? [] : val as number[]);
+          handleChange(
+            typeof val === "string" ? [] : (val as number[])
+          );
         }}
-        sx={{
-          ...getSelectStyles(theme),
-          "& .MuiInputBase-root": { minHeight: "34px" },
-        }}
-        renderValue={(selected) => (
-          <Stack direction="row" sx={{ gap: "4px", flexWrap: "wrap" }}>
-            {(selected as number[]).map((id) => {
-              const user = users.find((u) => u.id === id);
-              return (
-                <Chip
-                  key={id}
-                  label={user ? `${user.name} ${user.surname}` : `User #${id}`}
-                  size="small"
-                />
-              );
-            })}
-          </Stack>
-        )}
-      >
-        {users.map((user) => (
-          <MenuItem key={user.id} value={user.id}>
-            <Checkbox checked={selectedUserIds.includes(user.id)} size="small" />
-            <Typography variant="body2">
-              {user.name} {user.surname}
-            </Typography>
-          </MenuItem>
-        ))}
-      </Select>
+        placeholder="Select people..."
+      />
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
@@ -713,33 +689,18 @@ function ApprovalFieldRenderer({
           </Stack>
         );
       })}
-      <Select
-        size="small"
-        fullWidth
+      <SharedSelect
+        id="add-approver"
+        placeholder="Add approver..."
         value=""
-        displayEmpty
+        items={users
+          .filter((u) => !approvals.find((a) => a.userId === u.id))
+          .map((u) => ({ _id: u.id, name: u.name, surname: u.surname }))}
         onChange={(e) => {
           const userId = Number(e.target.value);
           if (userId) addApprover(userId);
         }}
-        sx={{
-          ...getSelectStyles(theme),
-          "& .MuiInputBase-root": { height: "34px" },
-        }}
-        renderValue={() => (
-          <Typography variant="body2" color="text.secondary">
-            Add approver...
-          </Typography>
-        )}
-      >
-        {users
-          .filter((u) => !approvals.find((a) => a.userId === u.id))
-          .map((user) => (
-            <MenuItem key={user.id} value={user.id}>
-              {user.name} {user.surname}
-            </MenuItem>
-          ))}
-      </Select>
+      />
       {saving && <CircularProgress size={14} />}
     </Stack>
   );

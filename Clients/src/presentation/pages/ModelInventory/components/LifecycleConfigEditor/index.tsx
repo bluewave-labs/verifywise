@@ -7,8 +7,6 @@ import { useState, useCallback } from "react";
 import {
   Stack,
   Typography,
-  Select,
-  MenuItem,
   IconButton,
   Dialog,
   DialogTitle,
@@ -45,6 +43,7 @@ import {
 import { logEngine } from "../../../../../application/tools/log.engine";
 import Field from "../../../../components/Inputs/Field";
 import Toggle from "../../../../components/Inputs/Toggle";
+import SharedSelect from "../../../../components/Inputs/Select";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 import ConfirmationModal from "../../../../components/Dialogs/ConfirmationModal";
@@ -63,6 +62,11 @@ const ITEM_TYPES: { value: LifecycleItemType; label: string }[] = [
   { value: "checklist", label: "Checklist" },
   { value: "approval", label: "Approval" },
 ];
+
+const ITEM_TYPE_SELECT_ITEMS = ITEM_TYPES.map((t) => ({
+  _id: t.value,
+  name: t.label,
+}));
 
 function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
   const theme = useTheme();
@@ -457,18 +461,13 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                           onChange={(e) => setNewItemName(e.target.value)}
                           sx={{ flex: 1 }}
                         />
-                        <Select
-                          size="small"
+                        <SharedSelect
+                          id="new-item-type"
                           value={newItemType}
+                          items={ITEM_TYPE_SELECT_ITEMS}
                           onChange={(e) => setNewItemType(e.target.value as LifecycleItemType)}
                           sx={{ minWidth: 120 }}
-                        >
-                          {ITEM_TYPES.map((t) => (
-                            <MenuItem key={t.value} value={t.value}>
-                              {t.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                        />
                         <FormControlLabel
                           control={
                             <Toggle

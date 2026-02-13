@@ -10,12 +10,13 @@
  * @component
  */
 
-import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
-import { Box, Stack, Typography, Grid, Chip, CircularProgress, Alert } from "@mui/material";
-import { Upload, FileSpreadsheet, CheckCircle } from "lucide-react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { Box, Stack, Typography, Grid, Chip, CircularProgress, Alert, useTheme } from "@mui/material";
+import { Upload, FileSpreadsheet } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
+import Checkbox from "../../components/Inputs/Checkbox";
 import {
   listBiasAuditPresets,
   getBiasAuditPreset,
@@ -48,6 +49,7 @@ function PresetCard({
   selected: boolean;
   onClick: () => void;
 }) {
+  const theme = useTheme();
   const modeColors: Record<string, { bg: string; color: string }> = {
     quantitative_audit: { bg: "#ECFDF5", color: "#065F46" },
     impact_assessment: { bg: "#EFF6FF", color: "#1E40AF" },
@@ -70,18 +72,18 @@ function PresetCard({
     <Box
       onClick={onClick}
       sx={{
-        border: selected ? "2px solid #13715B" : "1px solid #d0d5dd",
+        border: selected ? `2px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
         borderRadius: "4px",
         p: 2,
         cursor: "pointer",
-        backgroundColor: selected ? "#F0FDF9" : "#fff",
-        "&:hover": { borderColor: "#13715B" },
+        backgroundColor: selected ? "#F0FDF9" : theme.palette.background.paper,
+        "&:hover": { borderColor: theme.palette.primary.main },
         transition: "border-color 0.15s",
       }}
     >
       <Stack spacing={1}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
             {preset.name}
           </Typography>
           <Chip
@@ -95,13 +97,13 @@ function PresetCard({
             }}
           />
         </Stack>
-        <Typography sx={{ fontSize: 11, color: "#667085" }}>
+        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
           {preset.jurisdiction}
         </Typography>
         <Typography
           sx={{
             fontSize: 12,
-            color: "#475467",
+            color: theme.palette.text.secondary,
             lineHeight: 1.4,
             display: "-webkit-box",
             WebkitLineClamp: 2,
@@ -367,7 +369,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
 
       {loadingPresets ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress size={32} sx={{ color: "#13715B" }} />
+          <CircularProgress size={32} sx={{ color: "primary.main" }} />
         </Box>
       ) : (
         <Grid container spacing={2}>
@@ -385,7 +387,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
 
       {loadingPreset && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-          <CircularProgress size={24} sx={{ color: "#13715B" }} />
+          <CircularProgress size={24} sx={{ color: "primary.main" }} />
         </Box>
       )}
     </Stack>
@@ -556,20 +558,16 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
               overflow: "auto",
             }}
           >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "12px",
-              }}
-            >
-              <thead>
-                <tr style={{ backgroundColor: "#F9FAFB" }}>
+            <Box component="table" sx={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <Box component="thead">
+                <Box component="tr" sx={{ backgroundColor: "#F9FAFB" }}>
                   {csvHeaders.map((header, idx) => (
-                    <th
+                    <Box
+                      component="th"
                       key={idx}
-                      style={{
-                        padding: "8px 12px",
+                      sx={{
+                        py: 1,
+                        px: 1.5,
                         textAlign: "left",
                         fontWeight: 600,
                         color: "#344054",
@@ -577,36 +575,32 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
                       }}
                     >
                       {header}
-                    </th>
+                    </Box>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </Box>
+              </Box>
+              <Box component="tbody">
                 {csvPreview.map((row, rowIdx) => (
-                  <tr
+                  <Box
+                    component="tr"
                     key={rowIdx}
-                    style={{
-                      borderBottom:
-                        rowIdx < csvPreview.length - 1
-                          ? "1px solid #EAECF0"
-                          : "none",
+                    sx={{
+                      borderBottom: rowIdx < csvPreview.length - 1 ? "1px solid #EAECF0" : "none",
                     }}
                   >
                     {row.map((cell, cellIdx) => (
-                      <td
+                      <Box
+                        component="td"
                         key={cellIdx}
-                        style={{
-                          padding: "8px 12px",
-                          color: "#475467",
-                        }}
+                        sx={{ py: 1, px: 1.5, color: "#475467" }}
                       >
                         {cell}
-                      </td>
+                      </Box>
                     ))}
-                  </tr>
+                  </Box>
                 ))}
-              </tbody>
-            </table>
+              </Box>
+            </Box>
           </Box>
         </Box>
       )}
@@ -702,18 +696,14 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           />
         </Stack>
         {fullPreset?.intersectional && (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <input
-              type="checkbox"
-              checked={intersectionalEnabled}
-              onChange={(e) => setIntersectionalEnabled(e.target.checked)}
-              style={{ cursor: "pointer" }}
-            />
-            <Typography sx={{ fontSize: 13, color: "#475467" }}>
-              Enable intersectional analysis (
-              {fullPreset.intersectional.cross.join(" × ")})
-            </Typography>
-          </Stack>
+          <Checkbox
+            id="intersectional-analysis"
+            label={`Enable intersectional analysis (${fullPreset.intersectional.cross.join(" × ")})`}
+            isChecked={intersectionalEnabled}
+            value="intersectional"
+            onChange={(e) => setIntersectionalEnabled(e.target.checked)}
+            size="small"
+          />
         )}
       </Stack>
     </Stack>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Stack, Typography, Chip, CircularProgress } from "@mui/material";
-import { ArrowLeft, CheckCircle, XCircle, RefreshCw, Clock } from "lucide-react";
+import { Box, Stack, Typography, Chip, CircularProgress, useTheme } from "@mui/material";
+import { ArrowLeft, XCircle } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
+import { getStatusChip, getModeChip } from "./biasAuditHelpers";
 import {
   getBiasAuditResults,
   getBiasAuditStatus,
@@ -15,103 +16,95 @@ interface BiasAuditDetailProps {
   onBack: () => void;
 }
 
-// Helper: SummaryCard component
 function SummaryCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  const theme = useTheme();
   return (
-    <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: 2, flex: 1, backgroundColor: "#fff" }}>
-      <Typography sx={{ fontSize: 11, color: "#667085", mb: 0.5 }}>{label}</Typography>
-      <Typography sx={{ fontSize: 18, fontWeight: 600, color: highlight ? "#B42318" : "#111827" }}>{value}</Typography>
+    <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, flex: 1, backgroundColor: theme.palette.background.paper }}>
+      <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mb: 0.5 }}>{label}</Typography>
+      <Typography sx={{ fontSize: 18, fontWeight: 600, color: highlight ? "#B42318" : theme.palette.text.primary }}>{value}</Typography>
     </Box>
   );
 }
 
-// Helper: ResultsTable component
 function ResultsTable({ table, threshold }: { table: CategoryTableResult; threshold: number }) {
+  const theme = useTheme();
+  const headerCellSx = {
+    fontSize: 12,
+    fontWeight: 600,
+    color: theme.palette.text.secondary,
+    textAlign: "right" as const,
+    py: 1,
+    px: 2,
+  };
+
   return (
-    <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", mb: 3, overflow: "hidden" }}>
-      <Box sx={{ px: 2, py: 1.5, backgroundColor: "#F9FAFB", borderBottom: "1px solid #d0d5dd" }}>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>{table.title}</Typography>
+    <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", mb: 3, overflow: "hidden" }}>
+      <Box sx={{ px: 2, py: 1.5, backgroundColor: "#F9FAFB", borderBottom: `1px solid ${theme.palette.border.dark}` }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>{table.title}</Typography>
         {table.highest_group && (
-          <Typography sx={{ fontSize: 11, color: "#667085" }}>
+          <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
             Highest rate: {table.highest_group} ({((table.highest_rate || 0) * 100).toFixed(1)}%)
           </Typography>
         )}
       </Box>
 
-      {/* Table header */}
-      <Stack direction="row" sx={{ borderBottom: "1px solid #e5e7eb", py: 1, px: 2, backgroundColor: "#fff" }}>
-        <Typography sx={{ width: "25%", fontSize: 12, fontWeight: 600, color: "#475467" }}>Group</Typography>
-        <Typography sx={{ width: "15%", fontSize: 12, fontWeight: 600, color: "#475467", textAlign: "right" }}>Applicants</Typography>
-        <Typography sx={{ width: "15%", fontSize: 12, fontWeight: 600, color: "#475467", textAlign: "right" }}>Selected</Typography>
-        <Typography sx={{ width: "15%", fontSize: 12, fontWeight: 600, color: "#475467", textAlign: "right" }}>Selection rate</Typography>
-        <Typography sx={{ width: "15%", fontSize: 12, fontWeight: 600, color: "#475467", textAlign: "right" }}>Impact ratio</Typography>
-        <Typography sx={{ width: "15%", fontSize: 12, fontWeight: 600, color: "#475467", textAlign: "right" }}>Status</Typography>
-      </Stack>
-
-      {/* Table rows */}
-      {table.rows.map((row, idx) => (
-        <Stack
-          key={idx}
-          direction="row"
-          alignItems="center"
-          sx={{
-            borderBottom: idx < table.rows.length - 1 ? "1px solid #f2f4f7" : "none",
-            py: 1.25,
-            px: 2,
-            backgroundColor: row.flagged ? "#FEF2F2" : "#fff",
-          }}
-        >
-          <Typography sx={{ width: "25%", fontSize: 13, color: "#111827" }}>{row.category_name}</Typography>
-          <Typography sx={{ width: "15%", fontSize: 13, color: "#475467", textAlign: "right" }}>{row.applicant_count.toLocaleString()}</Typography>
-          <Typography sx={{ width: "15%", fontSize: 13, color: "#475467", textAlign: "right" }}>{row.selected_count.toLocaleString()}</Typography>
-          <Typography sx={{ width: "15%", fontSize: 13, color: "#475467", textAlign: "right" }}>{(row.selection_rate * 100).toFixed(1)}%</Typography>
-          <Typography sx={{ width: "15%", fontSize: 13, textAlign: "right", color: row.excluded ? "#98a2b3" : row.flagged ? "#B42318" : "#475467", fontWeight: row.flagged ? 600 : 400 }}>
-            {row.excluded ? "Excluded (<2%)" : row.impact_ratio != null ? row.impact_ratio.toFixed(3) : "—"}
-          </Typography>
-          <Box sx={{ width: "15%", display: "flex", justifyContent: "flex-end" }}>
-            {row.excluded ? (
-              <Chip label="N/A" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3F4F6", color: "#6B7280" }} />
-            ) : row.flagged ? (
-              <Chip label="Flag" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#FEE2E2", color: "#991B1B" }} />
-            ) : (
-              <Chip label="Pass" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#ECFDF5", color: "#065F46" }} />
-            )}
+      <Box component="table" sx={{ width: "100%", borderCollapse: "collapse" }}>
+        <Box component="thead">
+          <Box component="tr" sx={{ borderBottom: `1px solid ${theme.palette.border.light}` }}>
+            <Box component="th" sx={{ ...headerCellSx, textAlign: "left", width: "25%" }}>Group</Box>
+            <Box component="th" sx={{ ...headerCellSx, width: "15%" }}>Applicants</Box>
+            <Box component="th" sx={{ ...headerCellSx, width: "15%" }}>Selected</Box>
+            <Box component="th" sx={{ ...headerCellSx, width: "15%" }}>Selection rate</Box>
+            <Box component="th" sx={{ ...headerCellSx, width: "15%" }}>Impact ratio</Box>
+            <Box component="th" sx={{ ...headerCellSx, width: "15%" }}>Status</Box>
           </Box>
-        </Stack>
-      ))}
+        </Box>
+        <Box component="tbody">
+          {table.rows.map((row, idx) => (
+            <Box
+              component="tr"
+              key={idx}
+              sx={{
+                borderBottom: idx < table.rows.length - 1 ? `1px solid ${theme.palette.border.light}` : "none",
+                backgroundColor: row.flagged ? "#FEF2F2" : theme.palette.background.paper,
+              }}
+            >
+              <Box component="td" sx={{ py: 1.25, px: 2 }}>
+                <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>{row.category_name}</Typography>
+              </Box>
+              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+                <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{row.applicant_count.toLocaleString()}</Typography>
+              </Box>
+              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+                <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{row.selected_count.toLocaleString()}</Typography>
+              </Box>
+              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+                <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{(row.selection_rate * 100).toFixed(1)}%</Typography>
+              </Box>
+              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+                <Typography sx={{ fontSize: 13, color: row.excluded ? "#98a2b3" : row.flagged ? "#B42318" : theme.palette.text.secondary, fontWeight: row.flagged ? 600 : 400 }}>
+                  {row.excluded ? "Excluded (<2%)" : row.impact_ratio != null ? row.impact_ratio.toFixed(3) : "—"}
+                </Typography>
+              </Box>
+              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+                {row.excluded ? (
+                  <Chip label="N/A" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3F4F6", color: "#6B7280" }} />
+                ) : row.flagged ? (
+                  <Chip label="Flag" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#FEE2E2", color: "#991B1B" }} />
+                ) : (
+                  <Chip label="Pass" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#ECFDF5", color: "#065F46" }} />
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
     </Box>
   );
 }
 
-// Helper: getModeChip
-function getModeChip(mode: string) {
-  const labels: Record<string, string> = {
-    quantitative_audit: "Quantitative",
-    impact_assessment: "Assessment",
-    compliance_checklist: "Checklist",
-    framework_assessment: "Framework",
-    custom: "Custom",
-  };
-  return <Chip label={labels[mode] || mode} size="small" variant="outlined" sx={{ fontSize: 11, height: 22, borderColor: "#d0d5dd" }} />;
-}
-
-// Helper: getStatusChip
-function getStatusChip(status: string) {
-  switch (status) {
-    case "completed":
-      return <Chip label="Completed" size="small" icon={<CheckCircle size={12} />} sx={{ backgroundColor: "#ECFDF5", color: "#065F46", fontSize: 11, height: 22 }} />;
-    case "running":
-      return <Chip label="Running" size="small" icon={<RefreshCw size={12} />} sx={{ backgroundColor: "#EFF6FF", color: "#1E40AF", fontSize: 11, height: 22 }} />;
-    case "pending":
-      return <Chip label="Pending" size="small" icon={<Clock size={12} />} sx={{ backgroundColor: "#F9FAFB", color: "#374151", fontSize: 11, height: 22 }} />;
-    case "failed":
-      return <Chip label="Failed" size="small" icon={<XCircle size={12} />} sx={{ backgroundColor: "#FEF2F2", color: "#991B1B", fontSize: 11, height: 22 }} />;
-    default:
-      return <Chip label={status} size="small" sx={{ fontSize: 11, height: 22 }} />;
-  }
-}
-
 export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProps) {
+  const theme = useTheme();
   const [audit, setAudit] = useState<BiasAuditDetailResponse | null>(null);
   const [status, setStatus] = useState<string>("pending");
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +120,6 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       setLoading(false);
     } catch (err: any) {
       if (err?.response?.status === 202) {
-        // Still running
         const statusData = await getBiasAuditStatus(auditId);
         setStatus(statusData.status);
         setLoading(false);
@@ -208,20 +200,20 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       <Stack direction="row" alignItems="center" spacing={2} mb={3}>
         <Box
           onClick={onBack}
-          sx={{ cursor: "pointer", display: "flex", alignItems: "center", p: 0.5, borderRadius: "4px", "&:hover": { backgroundColor: "#f2f4f7" } }}
+          sx={{ cursor: "pointer", display: "flex", alignItems: "center", p: 0.5, borderRadius: "4px", "&:hover": { backgroundColor: theme.palette.action.hover } }}
         >
-          <ArrowLeft size={18} color="#475467" strokeWidth={1.5} />
+          <ArrowLeft size={18} color={theme.palette.text.secondary} strokeWidth={1.5} />
         </Box>
         <Stack spacing={0.5} flex={1}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}>
               {audit?.presetName || "Bias audit"}
             </Typography>
             {audit?.mode && getModeChip(audit.mode)}
             {getStatusChip(status)}
           </Stack>
           {audit?.createdAt && (
-            <Typography sx={{ fontSize: 12, color: "#667085" }}>
+            <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
               Created {new Date(audit.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
             </Typography>
           )}
@@ -232,7 +224,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
               variant="outlined"
               text="Download JSON"
               onClick={handleDownload}
-              sx={{ height: 34, fontSize: 13, border: "1px solid #d0d5dd", color: "#344054" }}
+              sx={{ height: 34, fontSize: 13, border: `1px solid ${theme.palette.border.dark}`, color: theme.palette.text.primary }}
             />
           )}
           <CustomizableButton
@@ -240,7 +232,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
             text={isDeleting ? "Deleting..." : "Delete"}
             onClick={handleDelete}
             disabled={isDeleting}
-            sx={{ height: 34, fontSize: 13, border: "1px solid #d0d5dd", color: "#B42318", "&:hover": { backgroundColor: "#FEF3F2", border: "1px solid #FCA5A5" } }}
+            sx={{ height: 34, fontSize: 13, border: `1px solid ${theme.palette.border.dark}`, color: "#B42318", "&:hover": { backgroundColor: "#FEF3F2", border: "1px solid #FCA5A5" } }}
           />
         </Stack>
       </Stack>
@@ -248,8 +240,8 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       {/* Loading/pending/running state */}
       {(loading || status === "pending" || status === "running") && (
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
-          <CircularProgress size={32} sx={{ color: "#13715B" }} />
-          <Typography sx={{ fontSize: 14, color: "#475467" }}>
+          <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
+          <Typography sx={{ fontSize: 14, color: theme.palette.text.secondary }}>
             {status === "running" ? "Audit is running..." : "Waiting to start..."}
           </Typography>
         </Box>
@@ -283,8 +275,8 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
           </Stack>
 
           {/* Summary text */}
-          <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: 2, mb: 3, backgroundColor: "#F9FAFB" }}>
-            <Typography sx={{ fontSize: 13, color: "#475467", lineHeight: 1.6 }}>{audit.results.summary}</Typography>
+          <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, mb: 3, backgroundColor: "#F9FAFB" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, lineHeight: 1.6 }}>{audit.results.summary}</Typography>
           </Box>
 
           {/* Results tables */}

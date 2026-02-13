@@ -66,62 +66,81 @@ PROVIDER_CONFIG = {
         "env_var": "HF_API_KEY",
         "base_url": "https://api-inference.huggingface.co/v1",
     },
+    "self-hosted": {
+        "env_var": None,
+        "base_url": None,
+    },
 }
 
-def get_provider_from_config(judge_model_config: Any) -> str:
+def get_provider_from_config(judge_model_config: Any) -> Tuple[str, Optional[str], Optional[str]]:
     """
-    Get the provider from the judge model configuration.
-    
+    Get the provider, endpoint URL, and API key from the judge model configuration.
+
     The user explicitly selects both provider and model in the UI,
     so we use the provider from the config directly.
-    
+
     Args:
         judge_model_config: The judgeModel config - can be dict or string
-        
+
     Returns:
-        Provider name (lowercase)
+        Tuple of (provider, endpoint_url, api_key)
     """
     if isinstance(judge_model_config, dict):
-        # New format: { name, provider, params }
-        provider = judge_model_config.get("provider")
-        if provider:
-            return provider.lower()
-    
-    # Default to OpenAI if no provider specified
-    return "openai"
+        provider = (judge_model_config.get("provider") or "openai").lower()
+        endpoint_url = judge_model_config.get("endpointUrl")
+        api_key = judge_model_config.get("apiKey")
+        return provider, endpoint_url, api_key
+
+    return "openai", None, None
 
 
-def get_provider_client(provider: str) -> Tuple[Any, str]:
+def get_provider_client(
+    provider: str,
+    endpoint_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> Tuple[Any, str]:
     """
     Get the appropriate API client and key for a provider.
-    
+
     Args:
-        provider: Provider name (e.g., "openai", "mistral")
-        
+        provider: Provider name (e.g., "openai", "mistral", "self-hosted")
+        endpoint_url: Optional base URL override (required for self-hosted)
+        api_key: Optional API key override from config
+
     Returns:
         Tuple of (OpenAI client, api_key)
-        
+
     Raises:
         RuntimeError: If API key is not set for the provider
     """
     if OpenAI is None:
         raise RuntimeError("OpenAI package not installed")
-    
+
+    if provider == "self-hosted":
+        if not endpoint_url:
+            raise RuntimeError("Self-hosted provider requires 'endpointUrl' in judgeModel config")
+        # Ensure the base URL ends with /v1 for OpenAI-compatible APIs (e.g. Ollama)
+        base = endpoint_url.rstrip("/")
+        if not base.endswith("/v1"):
+            base += "/v1"
+        resolved_key = api_key or "not-needed"
+        client = OpenAI(api_key=resolved_key, base_url=base)
+        return client, resolved_key
+
     config = PROVIDER_CONFIG.get(provider, PROVIDER_CONFIG["openai"])
     env_var = config["env_var"]
     base_url = config["base_url"]
-    
-    api_key = os.getenv(env_var)
-    if not api_key:
+
+    resolved_key = api_key or os.getenv(env_var)
+    if not resolved_key:
         raise RuntimeError(f"{env_var} environment variable not set")
-    
-    # Create OpenAI client with appropriate base_url
+
     if base_url:
-        client = OpenAI(api_key=api_key, base_url=base_url)
+        client = OpenAI(api_key=resolved_key, base_url=base_url)
     else:
-        client = OpenAI(api_key=api_key)
-    
-    return client, api_key
+        client = OpenAI(api_key=resolved_key)
+
+    return client, resolved_key
 
 
 def render_template(template: str, values: Dict[str, str]) -> str:
@@ -155,23 +174,55 @@ def render_messages(
     return rendered
 
 
-def extract_label(raw_text: str) -> str:
+def extract_label(raw_text: str, choice_scores: Optional[List[Dict[str, Any]]] = None) -> str:
     """
-    Extract the label from the judge model's response.
-    
+    Extract the label from the judge model's response using the configured choice labels.
+
+    Strategy:
+    1. If choice labels are provided, search for them in the response
+       (first line first, then full text).
+    2. Fall back to extracting the first alphabetic word.
+
     Handles responses like:
     - "PASS" or "FAIL"
     - "PASS: The summary is good..."
     - "**PASS**"
+    - "The answer is correct. PASS"
+    - "<think>reasoning</think>\nPASS"
     """
     if not raw_text:
         return "UNKNOWN"
-    
-    # Take the first line, first word
-    first_line = raw_text.strip().splitlines()[0]
+
+    cleaned = raw_text.strip()
+
+    # Strip <think>...</think> blocks (e.g. deepseek-r1 chain-of-thought)
+    cleaned = re.sub(r"<think>[\s\S]*?</think>", "", cleaned).strip()
+
+    if not cleaned:
+        return "UNKNOWN"
+
+    # If we know the valid choice labels, search for them explicitly
+    if choice_scores:
+        known_labels = [cs.get("label", "").upper() for cs in choice_scores if cs.get("label", "").strip()]
+        if known_labels:
+            # Sort longest-first to match "NOT_PASS" before "PASS"
+            known_labels.sort(key=len, reverse=True)
+            pattern = "|".join(re.escape(lbl) for lbl in known_labels)
+
+            # Search the first non-empty line first
+            first_line = cleaned.splitlines()[0].strip() if cleaned.splitlines() else ""
+            m = re.search(pattern, first_line.upper())
+            if m:
+                return m.group(0)
+
+            # Search the entire (cleaned) response
+            m = re.search(pattern, cleaned.upper())
+            if m:
+                return m.group(0)
+
+    # Fallback: first alphabetic word from the (cleaned) first line
+    first_line = cleaned.splitlines()[0] if cleaned.splitlines() else ""
     first_token = first_line.split()[0] if first_line.split() else ""
-    
-    # Clean up and normalize
     label = "".join(ch for ch in first_token.upper() if ch.isalpha())
     return label or "UNKNOWN"
 
@@ -233,7 +284,7 @@ async def run_custom_scorer(
         raise ValueError(f"Scorer {scorer_name} has no judge model configured")
     
     # Get the provider from config (user explicitly selects provider + model)
-    provider = get_provider_from_config(judge_model_config)
+    provider, endpoint_url, config_api_key = get_provider_from_config(judge_model_config)
     print(f"   🔍 Using provider: {provider} for model: {model_name}")
     
     # Get temperature and max_tokens from params, with defaults
@@ -259,7 +310,7 @@ async def run_custom_scorer(
     
     # Get the appropriate client for this provider
     try:
-        client, api_key = get_provider_client(provider)
+        client, api_key = get_provider_client(provider, endpoint_url=endpoint_url, api_key=config_api_key)
         print(f"   ✅ Using {provider.upper()} API client")
     except RuntimeError as e:
         return ScorerResult(
@@ -283,7 +334,7 @@ async def run_custom_scorer(
         usage = response.usage
         
         # Extract label and map to score
-        label = extract_label(raw_response)
+        label = extract_label(raw_response, choice_scores)
         score = label_to_score(label, choice_scores)
         passed = score >= threshold if threshold is not None else True
         

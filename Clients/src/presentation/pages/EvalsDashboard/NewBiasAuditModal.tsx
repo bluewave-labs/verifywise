@@ -11,7 +11,8 @@
  */
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
-import { Box, Stack, Typography, Grid, Chip, CircularProgress, Alert, useTheme } from "@mui/material";
+import { Box, Stack, Typography, CircularProgress, Alert, useTheme } from "@mui/material";
+import Chip from "../../components/Chip";
 import { Upload, FileSpreadsheet } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
@@ -72,9 +73,9 @@ function PresetCard({
     <Box
       onClick={onClick}
       sx={{
-        border: selected ? `2px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
+        border: `1px solid ${selected ? theme.palette.primary.main : theme.palette.border.dark}`,
         borderRadius: "4px",
-        p: 2,
+        p: "8px",
         cursor: "pointer",
         backgroundColor: selected ? "#F0FDF9" : theme.palette.background.paper,
         "&:hover": { borderColor: theme.palette.primary.main },
@@ -89,17 +90,11 @@ function PresetCard({
           <Chip
             label={modeLabels[preset.mode] || preset.mode}
             size="small"
-            sx={{
-              fontSize: 10,
-              height: 20,
-              backgroundColor: mc.bg,
-              color: mc.color,
-            }}
+            uppercase={false}
+            backgroundColor={mc.bg}
+            textColor={mc.color}
           />
         </Stack>
-        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-          {preset.jurisdiction}
-        </Typography>
         <Typography
           sx={{
             fontSize: 12,
@@ -372,24 +367,24 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           <CircularProgress size={32} sx={{ color: "primary.main" }} />
         </Box>
       ) : (
-        <Grid container spacing={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "8px",
+          }}
+        >
           {presets.map((preset) => (
-            <Grid item xs={12} sm={6} md={4} key={preset.id}>
-              <PresetCard
-                preset={preset}
-                selected={selectedPresetId === preset.id}
-                onClick={() => handlePresetSelect(preset.id)}
-              />
-            </Grid>
+            <PresetCard
+              key={preset.id}
+              preset={preset}
+              selected={selectedPresetId === preset.id}
+              onClick={() => handlePresetSelect(preset.id)}
+            />
           ))}
-        </Grid>
-      )}
-
-      {loadingPreset && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-          <CircularProgress size={24} sx={{ color: "primary.main" }} />
         </Box>
       )}
+
     </Stack>
   );
 

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Stack, Typography, Chip, CircularProgress, useTheme } from "@mui/material";
-import { ArrowLeft, XCircle } from "lucide-react";
+import { Box, Stack, Typography, Card, CardContent, CircularProgress, useTheme } from "@mui/material";
+import Chip from "../../components/Chip";
+import { ArrowLeft, XCircle, Users, UserCheck, Percent, AlertTriangle, HelpCircle, LucideIcon } from "lucide-react";
+import { cardStyles } from "../../themes";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getStatusChip, getModeChip } from "./biasAuditHelpers";
 import {
@@ -16,13 +18,86 @@ interface BiasAuditDetailProps {
   onBack: () => void;
 }
 
-function SummaryCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function StatCard({ title, value, Icon, highlight }: { title: string; value: string; Icon: LucideIcon; highlight?: boolean }) {
   const theme = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, flex: 1, backgroundColor: theme.palette.background.paper }}>
-      <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, mb: 0.5 }}>{label}</Typography>
-      <Typography sx={{ fontSize: 18, fontWeight: 600, color: highlight ? "#B42318" : theme.palette.text.primary }}>{value}</Typography>
-    </Box>
+    <Card
+      elevation={0}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      sx={{
+        ...(cardStyles.base(theme) as Record<string, unknown>),
+        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
+        border: "1px solid #E5E7EB",
+        height: "100%",
+        minHeight: "80px",
+        position: "relative",
+        transition: "all 0.2s ease",
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+        borderRadius: "8px",
+        overflow: "hidden",
+        "&:hover": {
+          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
+          borderColor: "#D1D5DB",
+        },
+      }}
+    >
+      <CardContent
+        sx={{
+          p: "14px 16px",
+          position: "relative",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          overflow: "hidden",
+          "&:last-child": { pb: "14px" },
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-20px",
+            right: "-20px",
+            opacity: isHovered ? 0.06 : 0.03,
+            transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
+            zIndex: 0,
+            pointerEvents: "none",
+            transition: "opacity 0.2s ease, transform 0.3s ease",
+          }}
+        >
+          <Icon size={64} />
+        </Box>
+        <Box sx={{ position: "relative", zIndex: 1 }}>
+          <Typography
+            sx={{
+              color: "#6B7280",
+              fontSize: "11px",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              mb: 0.5,
+            }}
+          >
+            {title}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "20px",
+              fontWeight: 600,
+              color: highlight ? "#B42318" : "#111827",
+              lineHeight: 1.3,
+            }}
+          >
+            {value}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -38,7 +113,7 @@ function ResultsTable({ table, threshold }: { table: CategoryTableResult; thresh
   };
 
   return (
-    <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", mb: 3, overflow: "hidden" }}>
+    <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", mb: "16px", overflow: "hidden" }}>
       <Box sx={{ px: 2, py: 1.5, backgroundColor: "#F9FAFB", borderBottom: `1px solid ${theme.palette.border.dark}` }}>
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>{table.title}</Typography>
         {table.highest_group && (
@@ -88,11 +163,11 @@ function ResultsTable({ table, threshold }: { table: CategoryTableResult; thresh
               </Box>
               <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
                 {row.excluded ? (
-                  <Chip label="N/A" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3F4F6", color: "#6B7280" }} />
+                  <Chip label="N/A" size="small" uppercase={false} backgroundColor="#F3F4F6" textColor="#6B7280" />
                 ) : row.flagged ? (
-                  <Chip label="Flag" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#FEE2E2", color: "#991B1B" }} />
+                  <Chip label="Flag" size="small" uppercase={false} backgroundColor="#FEE2E2" textColor="#991B1B" />
                 ) : (
-                  <Chip label="Pass" size="small" sx={{ fontSize: 10, height: 20, backgroundColor: "#ECFDF5", color: "#065F46" }} />
+                  <Chip label="Pass" size="small" uppercase={false} variant="success" />
                 )}
               </Box>
             </Box>
@@ -264,18 +339,18 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       {status === "completed" && audit?.results && (
         <>
           {/* Summary cards */}
-          <Stack direction="row" spacing={2} mb={3}>
-            <SummaryCard label="Total applicants" value={audit.results.total_applicants.toLocaleString()} />
-            <SummaryCard label="Total selected" value={audit.results.total_selected.toLocaleString()} />
-            <SummaryCard label="Selection rate" value={`${(audit.results.overall_selection_rate * 100).toFixed(1)}%`} />
-            <SummaryCard label="Flags" value={audit.results.flags_count.toString()} highlight={audit.results.flags_count > 0} />
+          <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${audit.results.unknown_count > 0 ? 5 : 4}, 1fr)`, gap: "16px", mb: "16px" }}>
+            <StatCard title="Total applicants" value={audit.results.total_applicants.toLocaleString()} Icon={Users} />
+            <StatCard title="Total selected" value={audit.results.total_selected.toLocaleString()} Icon={UserCheck} />
+            <StatCard title="Selection rate" value={`${(audit.results.overall_selection_rate * 100).toFixed(1)}%`} Icon={Percent} />
+            <StatCard title="Flags" value={audit.results.flags_count.toString()} Icon={AlertTriangle} highlight={audit.results.flags_count > 0} />
             {audit.results.unknown_count > 0 && (
-              <SummaryCard label="Unknown" value={audit.results.unknown_count.toLocaleString()} />
+              <StatCard title="Unknown" value={audit.results.unknown_count.toLocaleString()} Icon={HelpCircle} />
             )}
-          </Stack>
+          </Box>
 
           {/* Summary text */}
-          <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, mb: 3, backgroundColor: "#F9FAFB" }}>
+          <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, mb: "16px", backgroundColor: "#F9FAFB" }}>
             <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, lineHeight: 1.6 }}>{audit.results.summary}</Typography>
           </Box>
 

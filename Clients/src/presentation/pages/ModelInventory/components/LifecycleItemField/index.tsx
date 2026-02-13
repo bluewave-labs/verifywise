@@ -7,9 +7,6 @@ import {
   Stack,
   Typography,
   Box,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
   IconButton,
   CircularProgress,
   useTheme,
@@ -36,6 +33,7 @@ import { uploadFileToManager } from "../../../../../application/repository/file.
 import useUsers from "../../../../../application/hooks/useUsers";
 import Field from "../../../../components/Inputs/Field";
 import SharedCheckbox from "../../../../components/Inputs/Checkbox";
+import RadioGroupComponent from "../../../../components/RadioGroup";
 import SharedSelect from "../../../../components/Inputs/Select";
 import CustomizableMultiSelect from "../../../../components/Inputs/Select/Multi";
 import Chip from "../../../../components/Chip";
@@ -419,33 +417,11 @@ function ClassificationFieldRenderer({
 
   return (
     <Stack sx={{ gap: "8px" }}>
-      <RadioGroup
-        value={selected}
+      <RadioGroupComponent
+        values={levels}
+        defaultValue={selected}
         onChange={(e) => handleChange(e.target.value)}
-      >
-        <Stack sx={{ gap: "8px" }}>
-          {levels.map((level) => (
-            <FormControlLabel
-              key={level}
-              value={level}
-              control={
-                <Radio
-                  size="small"
-                  sx={{
-                    color: "#d0d5dd",
-                    "&.Mui-checked": { color: "#13715B" },
-                  }}
-                />
-              }
-              label={
-                <Typography variant="body2" sx={{ fontSize: "13px" }}>
-                  {level}
-                </Typography>
-              }
-            />
-          ))}
-        </Stack>
-      </RadioGroup>
+      />
       {saving && <CircularProgress size={14} />}
     </Stack>
   );

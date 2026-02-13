@@ -10,8 +10,8 @@
  * @component
  */
 
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
-import { Box, Stack, Typography, Grid, Chip, CircularProgress } from "@mui/material";
+import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
+import { Box, Stack, Typography, Grid, Chip, CircularProgress, Alert } from "@mui/material";
 import { Upload, FileSpreadsheet, CheckCircle } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
@@ -152,6 +152,8 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const presetRequestIdRef = useRef(0);
 
   // Load presets on modal open
   useEffect(() => {
@@ -165,21 +167,26 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       .finally(() => setLoadingPresets(false));
   }, [isOpen]);
 
-  // Handle preset selection
+  // Handle preset selection (request ID prevents race conditions on rapid clicks)
   const handlePresetSelect = async (presetId: string) => {
     setSelectedPresetId(presetId);
     setLoadingPreset(true);
+    const requestId = ++presetRequestIdRef.current;
     try {
       const preset = await getBiasAuditPreset(presetId);
+      if (requestId !== presetRequestIdRef.current) return;
       setFullPreset(preset);
-      // Auto-fill from preset
       setThreshold(preset.threshold ?? 0.8);
       setSmallSampleExclusion(preset.small_sample_exclusion ?? null);
       setIntersectionalEnabled(preset.intersectional?.required ?? false);
     } catch (err) {
+      if (requestId !== presetRequestIdRef.current) return;
       console.error("Failed to load preset:", err);
+      setSelectedPresetId(null);
     } finally {
-      setLoadingPreset(false);
+      if (requestId === presetRequestIdRef.current) {
+        setLoadingPreset(false);
+      }
     }
   };
 
@@ -187,26 +194,45 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file size (50 MB limit, matching backend)
+    if (file.size > 50 * 1024 * 1024) {
+      setSubmitError("File too large. Maximum size is 50 MB.");
+      return;
+    }
+
     setCsvFile(file);
 
     const reader = new FileReader();
+    reader.onerror = () => {
+      console.error("Failed to read CSV file");
+      setCsvFile(null);
+      setSubmitError("Failed to read file. Please try again.");
+    };
     reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const lines = text.split("\n").filter((l) => l.trim());
-      if (lines.length === 0) return;
+      try {
+        const text = event.target?.result as string;
+        if (!text) return;
+        const lines = text.split("\n").filter((l) => l.trim());
+        if (lines.length === 0) return;
 
-      const headers = lines[0]
-        .split(",")
-        .map((h) => h.trim().replace(/^"|"$/g, ""));
-      setCsvHeaders(headers);
+        const headers = lines[0]
+          .split(",")
+          .map((h) => h.trim().replace(/^"|"$/g, ""));
+        setCsvHeaders(headers);
 
-      const preview: string[][] = [];
-      for (let i = 1; i < Math.min(lines.length, 6); i++) {
-        preview.push(
-          lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""))
-        );
+        const preview: string[][] = [];
+        for (let i = 1; i < Math.min(lines.length, 6); i++) {
+          preview.push(
+            lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""))
+          );
+        }
+        setCsvPreview(preview);
+      } catch (err) {
+        console.error("Failed to parse CSV:", err);
+        setCsvFile(null);
+        setSubmitError("Failed to parse CSV file.");
       }
-      setCsvPreview(preview);
     };
     reader.readAsText(file);
   };
@@ -220,6 +246,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const handleSubmit = async () => {
     if (!csvFile || !fullPreset) return;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const config: CreateBiasAuditConfig = {
         presetId: fullPreset.id,
@@ -246,8 +273,9 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       const result = await runBiasAudit(csvFile, config);
       onAuditCreated(result.auditId);
       handleClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to create bias audit:", err);
+      setSubmitError(err?.response?.data?.detail || "Failed to create audit. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -270,6 +298,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     setThreshold(0.8);
     setSmallSampleExclusion(null);
     setIntersectionalEnabled(false);
+    setSubmitError(null);
     onClose();
   };
 
@@ -283,7 +312,11 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       case 2: {
         if (!csvFile || !outcomeColumn) return false;
         const categoryKeys = Object.keys(fullPreset?.categories || {});
-        return categoryKeys.every((key) => !!columnMapping[key]);
+        if (!categoryKeys.every((key) => !!columnMapping[key])) return false;
+        // Outcome column must not be used as a category column
+        const mappedValues = Object.values(columnMapping);
+        if (mappedValues.includes(outcomeColumn)) return false;
+        return true;
       }
       case 3:
         return true;
@@ -579,6 +612,12 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           Review your configuration and adjust audit settings before running
         </Typography>
       </Box>
+
+      {submitError && (
+        <Alert severity="error" onClose={() => setSubmitError(null)} sx={{ fontSize: 13 }}>
+          {submitError}
+        </Alert>
+      )}
 
       {/* Summary */}
       <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: 2 }}>

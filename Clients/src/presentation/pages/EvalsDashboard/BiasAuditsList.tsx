@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { Box, Stack, Typography, Chip, IconButton, CircularProgress } from "@mui/material";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Box, Stack, Typography, Chip, IconButton, CircularProgress, Alert } from "@mui/material";
 import { Plus, Trash2, Eye, RefreshCw, AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
@@ -96,16 +96,21 @@ function formatDate(dateStr: string | null) {
 export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListProps) {
   const [audits, setAudits] = useState<BiasAuditSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [auditToDelete, setAuditToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchAudits = useCallback(async () => {
     try {
       const data = await listBiasAudits({ org_id: orgId });
       setAudits(data);
+      setError(null);
     } catch (err) {
       console.error("Failed to load bias audits:", err);
+      setError("Failed to load bias audits");
     } finally {
       setLoading(false);
     }
@@ -115,28 +120,45 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     fetchAudits();
   }, [fetchAudits]);
 
-  // Polling for running/pending audits
+  // Polling for running/pending audits (ref-based to avoid interval churn)
   useEffect(() => {
     const hasRunning = audits.some((a) => a.status === "running" || a.status === "pending");
-    if (!hasRunning) return;
-    const interval = setInterval(fetchAudits, 5000);
-    return () => clearInterval(interval);
+
+    if (hasRunning && !pollingRef.current) {
+      pollingRef.current = setInterval(fetchAudits, 5000);
+    } else if (!hasRunning && pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
   }, [audits, fetchAudits]);
 
   const handleDelete = async () => {
-    if (!auditToDelete) return;
+    if (!auditToDelete || deleting) return;
+    setDeleting(true);
     try {
       await deleteBiasAudit(auditToDelete);
       setAudits((prev) => prev.filter((a) => a.id !== auditToDelete));
     } catch (err) {
       console.error("Failed to delete audit:", err);
+      setError("Failed to delete audit. Please try again.");
     } finally {
       setAuditToDelete(null);
+      setDeleting(false);
     }
   };
 
-  const filteredAudits = audits.filter((a) =>
-    a.presetName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAudits = useMemo(
+    () => audits.filter((a) =>
+      a.presetName.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [audits, searchQuery]
   );
 
   return (
@@ -161,6 +183,12 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
       <Box sx={{ mb: 2, maxWidth: 320 }}>
         <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Search audits..." />
       </Box>
+
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2, fontSize: 13 }}>
+          {error}
+        </Alert>
+      )}
 
       {/* Content */}
       <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", backgroundColor: "#fff" }}>

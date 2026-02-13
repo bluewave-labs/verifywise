@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Box, Stack, Typography, Chip, CircularProgress } from "@mui/material";
 import { ArrowLeft, CheckCircle, XCircle, RefreshCw, Clock } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -116,6 +116,8 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
   const [status, setStatus] = useState<string>("pending");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchResults = useCallback(async () => {
     try {
@@ -144,31 +146,55 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
     fetchResults();
   }, [fetchResults]);
 
-  // Polling while pending/running
+  // Polling while pending/running (ref-based to avoid interval churn)
   useEffect(() => {
-    if (status !== "pending" && status !== "running") return;
-    const interval = setInterval(fetchResults, 3000);
-    return () => clearInterval(interval);
+    const shouldPoll = status === "pending" || status === "running";
+
+    if (shouldPoll && !pollingRef.current) {
+      pollingRef.current = setInterval(fetchResults, 3000);
+    } else if (!shouldPoll && pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
   }, [status, fetchResults]);
 
   const handleDownload = () => {
     if (!audit?.results) return;
-    const json = JSON.stringify(audit.results, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `bias-audit-${auditId}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const json = JSON.stringify(audit.results, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bias-audit-${auditId}.json`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      console.error("Failed to download results:", err);
+    }
   };
 
   const handleDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
     try {
       await deleteBiasAudit(auditId);
       onBack();
     } catch (err) {
       console.error("Failed to delete audit:", err);
+      setError("Failed to delete audit. Please try again.");
+      setIsDeleting(false);
     }
   };
 
@@ -207,8 +233,9 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
           )}
           <CustomizableButton
             variant="outlined"
-            text="Delete"
+            text={isDeleting ? "Deleting..." : "Delete"}
             onClick={handleDelete}
+            disabled={isDeleting}
             sx={{ height: 34, fontSize: 13, border: "1px solid #d0d5dd", color: "#B42318", "&:hover": { backgroundColor: "#FEF3F2", border: "1px solid #FCA5A5" } }}
           />
         </Stack>

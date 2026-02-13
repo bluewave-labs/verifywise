@@ -10,6 +10,16 @@ import io
 from typing import Dict, List, Tuple
 
 
+def _decode_csv(csv_bytes: bytes) -> str:
+    """Decode CSV bytes with fallback encodings."""
+    for encoding in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+        try:
+            return csv_bytes.decode(encoding)
+        except (UnicodeDecodeError, ValueError):
+            continue
+    raise ValueError("Unable to decode CSV file. Please ensure it is UTF-8 encoded.")
+
+
 def parse_csv_dataset(
     csv_bytes: bytes,
     column_mapping: Dict[str, str],
@@ -31,7 +41,7 @@ def parse_csv_dataset(
         - unknown_count: Number of rows with missing demographic data in any
           mapped category.
     """
-    text = csv_bytes.decode("utf-8-sig")  # handle BOM
+    text = _decode_csv(csv_bytes)
     reader = csv.DictReader(io.StringIO(text))
 
     records: List[Dict[str, str]] = []

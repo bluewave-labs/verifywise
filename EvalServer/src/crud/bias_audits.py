@@ -5,10 +5,19 @@ Tenant-isolated raw SQL with text() following the pattern from deepeval_scorers.
 """
 
 from typing import List, Dict, Any, Optional
+import re
 import json
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
+
+_TENANT_HASH_RE = re.compile(r"^[a-zA-Z0-9]{10}$")
+
+
+def _validate_tenant(tenant: str) -> None:
+    """Validate tenant hash format to prevent SQL injection."""
+    if not _TENANT_HASH_RE.match(tenant):
+        raise ValueError(f"Invalid tenant hash format: {tenant}")
 
 
 async def create_bias_audit(
@@ -25,6 +34,7 @@ async def create_bias_audit(
     created_by: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Create a new bias audit record."""
+    _validate_tenant(tenant)
     result = await db.execute(
         text(
             f'''
@@ -59,6 +69,7 @@ async def get_bias_audit(
     audit_id: str,
 ) -> Optional[Dict[str, Any]]:
     """Get a single bias audit by ID."""
+    _validate_tenant(tenant)
     result = await db.execute(
         text(
             f'''
@@ -86,6 +97,7 @@ async def update_bias_audit_status(
     error: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Update audit status, results, and/or error."""
+    _validate_tenant(tenant)
     updates = ["status = :status", "updated_at = CURRENT_TIMESTAMP"]
     params: Dict[str, Any] = {"id": audit_id, "status": status}
 
@@ -125,6 +137,7 @@ async def list_bias_audits(
     project_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """List bias audits with optional filtering."""
+    _validate_tenant(tenant)
     where_clauses = []
     params: Dict[str, Any] = {}
 
@@ -159,6 +172,7 @@ async def delete_bias_audit(
     audit_id: str,
 ) -> bool:
     """Delete a bias audit and its result rows (CASCADE)."""
+    _validate_tenant(tenant)
     result = await db.execute(
         text(
             f'''
@@ -180,6 +194,7 @@ async def create_bias_audit_result_rows(
     rows: List[Dict[str, Any]],
 ) -> int:
     """Bulk insert per-group result rows for an audit."""
+    _validate_tenant(tenant)
     inserted = 0
     for row_data in rows:
         await db.execute(
@@ -215,6 +230,7 @@ async def get_bias_audit_result_rows(
     audit_id: str,
 ) -> List[Dict[str, Any]]:
     """Get all per-group result rows for an audit."""
+    _validate_tenant(tenant)
     result = await db.execute(
         text(
             f'''

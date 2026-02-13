@@ -6,11 +6,17 @@ status polling, and result retrieval.
 """
 
 import json
+import logging
 import traceback
+import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional
 from fastapi import HTTPException, BackgroundTasks, UploadFile
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
+
+MAX_CSV_SIZE = 50 * 1024 * 1024  # 50 MB
 
 from database.db import get_db
 from crud.bias_audits import (
@@ -75,14 +81,16 @@ async def create_bias_audit_controller(
     preset_name = preset["name"] if preset else config_data.get("presetName", "Custom")
     mode = preset["mode"] if preset else config_data.get("mode", "quantitative_audit")
 
-    # Generate audit ID
+    # Generate audit ID (uuid suffix prevents same-second collisions)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    audit_id = f"bias_audit_{tenant}_{timestamp}"
+    audit_id = f"bias_audit_{tenant}_{timestamp}_{uuid.uuid4().hex[:8]}"
 
-    # Read CSV bytes
-    csv_bytes = await dataset.read()
+    # Read CSV bytes with size limit
+    csv_bytes = await dataset.read(MAX_CSV_SIZE + 1)
     if not csv_bytes:
         raise HTTPException(status_code=400, detail="Empty dataset file")
+    if len(csv_bytes) > MAX_CSV_SIZE:
+        raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {MAX_CSV_SIZE // (1024 * 1024)} MB")
 
     # Resolve org_id
     effective_org_id = org_id or config_data.get("orgId", "")
@@ -142,7 +150,7 @@ async def run_bias_audit_task(
             await update_bias_audit_status(tenant, db, audit_id, status="running")
             await db.commit()
 
-        print(f"[BiasAudit] Starting audit {audit_id}")
+        logger.info(f"[BiasAudit] Starting audit {audit_id}")
 
         from engines.bias_audit.models import BiasAuditConfig, CategoryConfig, IntersectionalConfig
         from engines.bias_audit.dataset_parser import parse_csv_dataset
@@ -190,7 +198,7 @@ async def run_bias_audit_task(
         if not records:
             raise ValueError("No valid records found in dataset after parsing. Check column mapping and data.")
 
-        print(f"[BiasAudit] Parsed {len(records)} records, {unknown_count} unknown")
+        logger.info(f"[BiasAudit] Parsed {len(records)} records, {unknown_count} unknown")
 
         # Run computation
         result = compute_bias_audit(
@@ -199,7 +207,7 @@ async def run_bias_audit_task(
             unknown_count=unknown_count,
         )
 
-        print(f"[BiasAudit] Computation complete: {result.flags_count} flags")
+        logger.info(f"[BiasAudit] Computation complete: {result.flags_count} flags")
 
         # Store results
         results_dict = result.model_dump()
@@ -222,11 +230,11 @@ async def run_bias_audit_task(
             )
             await db.commit()
 
-        print(f"[BiasAudit] Audit {audit_id} completed successfully")
+        logger.info(f"[BiasAudit] Audit {audit_id} completed successfully")
 
     except Exception as e:
-        print(f"[BiasAudit] Audit {audit_id} failed: {e}")
-        traceback.print_exc()
+        logger.error(f"[BiasAudit] Audit {audit_id} failed: {e}")
+        logger.error(traceback.format_exc())
 
         try:
             async with get_db() as db:
@@ -236,8 +244,8 @@ async def run_bias_audit_task(
                     error=str(e),
                 )
                 await db.commit()
-        except Exception:
-            pass
+        except Exception as cleanup_err:
+            logger.error(f"[BiasAudit] Failed to mark audit {audit_id} as failed: {cleanup_err}")
 
 
 async def get_bias_audit_status_controller(

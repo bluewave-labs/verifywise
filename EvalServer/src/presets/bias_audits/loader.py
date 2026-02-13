@@ -5,8 +5,11 @@ Reads and caches law/framework preset JSON files from the bias_audits directory.
 """
 
 import json
+import logging
 from pathlib import Path
 from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 _PRESETS_DIR = Path(__file__).parent
 _cache: Dict[str, dict] = {}
@@ -23,7 +26,8 @@ def _load_all() -> Dict[str, dict]:
                 preset = json.load(f)
             preset_id = preset.get("id", path.stem)
             _cache[preset_id] = preset
-        except (json.JSONDecodeError, KeyError):
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error(f"Failed to load preset {path.name}: {e}")
             continue
     return _cache
 

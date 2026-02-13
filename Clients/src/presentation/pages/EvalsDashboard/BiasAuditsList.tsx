@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Box, Stack, Typography, Chip, IconButton, CircularProgress, Alert } from "@mui/material";
-import { Plus, Trash2, Eye, RefreshCw, AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Trash2, Eye, RefreshCw, AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
@@ -120,6 +120,16 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     fetchAudits();
   }, [fetchAudits]);
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, []);
+
   // Polling for running/pending audits (ref-based to avoid interval churn)
   useEffect(() => {
     const hasRunning = audits.some((a) => a.status === "running" || a.status === "pending");
@@ -130,13 +140,6 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
   }, [audits, fetchAudits]);
 
   const handleDelete = async () => {

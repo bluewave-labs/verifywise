@@ -5,13 +5,17 @@ Tenant-isolated raw SQL with text() following the pattern from deepeval_scorers.
 """
 
 from typing import List, Dict, Any, Optional
+import logging
 import re
 import json
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 _TENANT_HASH_RE = re.compile(r"^[a-zA-Z0-9]{10}$")
+_ALLOWED_STATUSES = {"pending", "running", "completed", "failed"}
 
 
 def _validate_tenant(tenant: str) -> None:
@@ -98,6 +102,8 @@ async def update_bias_audit_status(
 ) -> Optional[Dict[str, Any]]:
     """Update audit status, results, and/or error."""
     _validate_tenant(tenant)
+    if status not in _ALLOWED_STATUSES:
+        raise ValueError(f"Invalid status: {status}. Must be one of {_ALLOWED_STATUSES}")
     updates = ["status = :status", "updated_at = CURRENT_TIMESTAMP"]
     params: Dict[str, Any] = {"id": audit_id, "status": status}
 
@@ -262,6 +268,19 @@ async def get_bias_audit_result_rows(
     ]
 
 
+def _safe_json_load(value: Any, default: Any = None) -> Any:
+    """Safely load JSON, returning default on failure."""
+    if isinstance(value, (dict, list)):
+        return value
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning(f"Failed to parse JSON value in bias audit row")
+        return default
+
+
 def _row_to_dict(row) -> Dict[str, Any]:
     """Convert a database row to a camelCase dict for API responses."""
     return {
@@ -272,8 +291,8 @@ def _row_to_dict(row) -> Dict[str, Any]:
         "presetName": row["preset_name"],
         "mode": row["mode"],
         "status": row["status"],
-        "config": row["config"] if isinstance(row["config"], dict) else (json.loads(row["config"]) if row["config"] else {}),
-        "results": row["results"] if isinstance(row["results"], dict) else (json.loads(row["results"]) if row["results"] else None),
+        "config": _safe_json_load(row["config"], {}),
+        "results": _safe_json_load(row["results"]),
         "error": row["error"],
         "createdAt": row["created_at"].isoformat() if row["created_at"] else None,
         "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,

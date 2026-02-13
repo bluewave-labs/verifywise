@@ -98,7 +98,7 @@ def parse_csv_headers(csv_bytes: bytes) -> List[str]:
     Returns:
         List of column header names.
     """
-    text = csv_bytes.decode("utf-8-sig")
+    text = _decode_csv(csv_bytes)
     reader = csv.DictReader(io.StringIO(text))
     if reader.fieldnames is None:
         return []

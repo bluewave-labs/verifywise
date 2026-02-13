@@ -57,6 +57,10 @@ def upgrade() -> None:
             ON "{schema_name}".llm_evals_bias_audits(status);
         '''))
         op.execute(sa.text(f'''
+            CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_project_id
+            ON "{schema_name}".llm_evals_bias_audits(project_id);
+        '''))
+        op.execute(sa.text(f'''
             CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_created_at
             ON "{schema_name}".llm_evals_bias_audits(created_at DESC);
         '''))

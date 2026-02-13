@@ -153,16 +153,19 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [presetsError, setPresetsError] = useState<string | null>(null);
   const presetRequestIdRef = useRef(0);
 
   // Load presets on modal open
   useEffect(() => {
     if (!isOpen) return;
     setLoadingPresets(true);
+    setPresetsError(null);
     listBiasAuditPresets()
       .then(setPresets)
       .catch((err) => {
         console.error("Failed to load presets:", err);
+        setPresetsError("Failed to load compliance frameworks. Please try again.");
       })
       .finally(() => setLoadingPresets(false));
   }, [isOpen]);
@@ -299,6 +302,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     setSmallSampleExclusion(null);
     setIntersectionalEnabled(false);
     setSubmitError(null);
+    setPresetsError(null);
     onClose();
   };
 
@@ -313,8 +317,10 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         if (!csvFile || !outcomeColumn) return false;
         const categoryKeys = Object.keys(fullPreset?.categories || {});
         if (!categoryKeys.every((key) => !!columnMapping[key])) return false;
-        // Outcome column must not be used as a category column
         const mappedValues = Object.values(columnMapping);
+        // Prevent duplicate column mappings (same CSV column mapped to multiple categories)
+        if (new Set(mappedValues).size !== mappedValues.length) return false;
+        // Outcome column must not be used as a category column
         if (mappedValues.includes(outcomeColumn)) return false;
         return true;
       }
@@ -352,6 +358,12 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           Choose the regulatory framework that applies to your bias audit
         </Typography>
       </Box>
+
+      {presetsError && (
+        <Alert severity="error" sx={{ mb: 2, fontSize: 13 }}>
+          {presetsError}
+        </Alert>
+      )}
 
       {loadingPresets ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>

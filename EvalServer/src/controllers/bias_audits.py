@@ -92,6 +92,17 @@ async def create_bias_audit_controller(
     if len(csv_bytes) > MAX_CSV_SIZE:
         raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {MAX_CSV_SIZE // (1024 * 1024)} MB")
 
+    # Validate CSV is parseable before creating DB record
+    from engines.bias_audit.dataset_parser import parse_csv_headers
+    try:
+        headers = parse_csv_headers(csv_bytes)
+        if not headers:
+            raise ValueError("CSV has no column headers")
+    except ValueError:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid CSV file: {e}")
+
     # Resolve org_id
     effective_org_id = org_id or config_data.get("orgId", "")
     if not effective_org_id:
@@ -359,9 +370,15 @@ async def get_csv_headers_controller(
     """Parse CSV headers for column mapping UI."""
     from engines.bias_audit.dataset_parser import parse_csv_headers
 
-    csv_bytes = await dataset.read()
+    csv_bytes = await dataset.read(MAX_CSV_SIZE + 1)
     if not csv_bytes:
         raise HTTPException(status_code=400, detail="Empty dataset file")
+    if len(csv_bytes) > MAX_CSV_SIZE:
+        raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {MAX_CSV_SIZE // (1024 * 1024)} MB")
 
-    headers = parse_csv_headers(csv_bytes)
+    try:
+        headers = parse_csv_headers(csv_bytes)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse CSV headers: {e}")
+
     return JSONResponse(status_code=200, content={"headers": headers})

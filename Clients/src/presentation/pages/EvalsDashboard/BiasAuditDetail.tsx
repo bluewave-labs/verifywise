@@ -146,9 +146,20 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
     fetchResults();
   }, [fetchResults]);
 
-  // Polling while pending/running (ref-based to avoid interval churn)
+  // Cleanup polling on unmount
   useEffect(() => {
-    const shouldPoll = status === "pending" || status === "running";
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, []);
+
+  // Polling while pending/running (ref-based to avoid interval churn)
+  // Stop polling on error to prevent infinite retry loops
+  useEffect(() => {
+    const shouldPoll = (status === "pending" || status === "running") && !error;
 
     if (shouldPoll && !pollingRef.current) {
       pollingRef.current = setInterval(fetchResults, 3000);
@@ -156,14 +167,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
-  }, [status, fetchResults]);
+  }, [status, error, fetchResults]);
 
   const handleDownload = () => {
     if (!audit?.results) return;

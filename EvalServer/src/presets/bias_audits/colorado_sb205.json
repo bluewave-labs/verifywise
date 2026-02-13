@@ -1,0 +1,86 @@
+{
+  "id": "colorado_sb205",
+  "name": "Colorado SB 24-205",
+  "jurisdiction": "Colorado",
+  "effective_date": "2026-02-01",
+  "mode": "impact_assessment",
+  "description": "Colorado AI Act requiring developers and deployers of high-risk AI systems to complete impact assessments addressing algorithmic discrimination across protected classes, with alignment to the NIST AI Risk Management Framework.",
+  "categories": {
+    "race": {
+      "label": "Race",
+      "groups": []
+    },
+    "color": {
+      "label": "Color",
+      "groups": []
+    },
+    "religion": {
+      "label": "Religion",
+      "groups": []
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": []
+    },
+    "sexual_orientation": {
+      "label": "Sexual Orientation",
+      "groups": []
+    },
+    "gender_identity": {
+      "label": "Gender Identity",
+      "groups": []
+    },
+    "national_origin": {
+      "label": "National Origin",
+      "groups": []
+    },
+    "ancestry": {
+      "label": "Ancestry",
+      "groups": []
+    },
+    "disability": {
+      "label": "Disability",
+      "groups": []
+    },
+    "age": {
+      "label": "Age",
+      "groups": []
+    },
+    "creed": {
+      "label": "Creed",
+      "groups": []
+    },
+    "marital_status": {
+      "label": "Marital Status",
+      "groups": []
+    },
+    "pregnancy": {
+      "label": "Pregnancy",
+      "groups": []
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "threshold": null,
+  "required_metadata": [
+    "audit_date",
+    "system_description",
+    "risk_analysis",
+    "data_categories",
+    "performance_metrics",
+    "mitigation_measures",
+    "nist_ai_rmf_alignment"
+  ],
+  "results_format": {
+    "sections": [
+      { "type": "assessment", "title": "Risk analysis" },
+      { "type": "assessment", "title": "Data categories and sources" },
+      { "type": "assessment", "title": "Performance metrics by protected class" },
+      { "type": "assessment", "title": "Mitigation measures" },
+      { "type": "assessment", "title": "NIST AI RMF alignment" }
+    ]
+  }
+}

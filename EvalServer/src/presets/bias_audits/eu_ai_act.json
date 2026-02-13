@@ -1,0 +1,58 @@
+{
+  "id": "eu_ai_act",
+  "name": "EU AI Act Article 9",
+  "jurisdiction": "European Union",
+  "effective_date": "2024-08-01",
+  "mode": "impact_assessment",
+  "description": "EU Artificial Intelligence Act risk management requirements for high-risk AI systems. Mandates bias testing, residual risk assessment, human oversight measures, and continuous monitoring across protected characteristics.",
+  "categories": {
+    "racial_ethnic_origin": {
+      "label": "Racial/Ethnic Origin",
+      "groups": []
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": []
+    },
+    "religion_belief": {
+      "label": "Religion/Belief",
+      "groups": []
+    },
+    "disability": {
+      "label": "Disability",
+      "groups": []
+    },
+    "age": {
+      "label": "Age",
+      "groups": []
+    },
+    "sexual_orientation": {
+      "label": "Sexual Orientation",
+      "groups": []
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "threshold": null,
+  "required_metadata": [
+    "audit_date",
+    "system_description",
+    "risk_management_measures",
+    "bias_testing_results",
+    "residual_risk_assessment",
+    "human_oversight_measures",
+    "continuous_monitoring_plan"
+  ],
+  "results_format": {
+    "sections": [
+      { "type": "assessment", "title": "Risk management measures" },
+      { "type": "assessment", "title": "Bias testing results" },
+      { "type": "assessment", "title": "Residual risk assessment" },
+      { "type": "assessment", "title": "Human oversight measures" },
+      { "type": "assessment", "title": "Continuous monitoring plan" }
+    ]
+  }
+}

@@ -4,7 +4,7 @@
   "jurisdiction": "United Kingdom",
   "effective_date": "2018-05-25",
   "mode": "compliance_checklist",
-  "description": "UK General Data Protection Regulation combined with the Equality Act 2010. Requires Data Protection Impact Assessments for automated decision-making and assessment of impact across protected characteristics.",
+  "description": "UK GDPR combined with the Equality Act 2010. Requires Data Protection Impact Assessments for automated decision-making and impact assessment across protected characteristics.",
   "categories": {
     "age": {
       "label": "Age",
@@ -62,8 +62,14 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "checklist", "title": "Compliance checklist" },
-      { "type": "assessment", "title": "Recommended EEOC-style adverse impact analysis" }
+      {
+        "type": "checklist",
+        "title": "Compliance checklist"
+      },
+      {
+        "type": "assessment",
+        "title": "Recommended EEOC-style adverse impact analysis"
+      }
     ]
   }
 }

@@ -4,7 +4,7 @@
   "jurisdiction": "International",
   "effective_date": "2023-12-18",
   "mode": "framework_assessment",
-  "description": "ISO/IEC 42001:2023 AI Management System standard. Provides requirements for establishing, implementing, maintaining, and continually improving an AI management system, including risk assessment, impact analysis, and continuous improvement.",
+  "description": "ISO/IEC 42001:2023 AI Management System standard. Provides requirements for establishing and improving an AI management system, including risk assessment and impact analysis.",
   "categories": {},
   "sections": [
     {
@@ -39,9 +39,21 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "framework", "section_id": "risk_assessment", "title": "Risk assessment records" },
-      { "type": "framework", "section_id": "impact_analysis", "title": "Adverse impact analysis" },
-      { "type": "framework", "section_id": "continuous_improvement", "title": "Continuous monitoring evidence" }
+      {
+        "type": "framework",
+        "section_id": "risk_assessment",
+        "title": "Risk assessment records"
+      },
+      {
+        "type": "framework",
+        "section_id": "impact_analysis",
+        "title": "Adverse impact analysis"
+      },
+      {
+        "type": "framework",
+        "section_id": "continuous_improvement",
+        "title": "Continuous monitoring evidence"
+      }
     ]
   }
 }

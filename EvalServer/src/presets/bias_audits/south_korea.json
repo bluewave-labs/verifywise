@@ -4,7 +4,7 @@
   "jurisdiction": "South Korea",
   "effective_date": "2025-01-09",
   "mode": "impact_assessment",
-  "description": "South Korea AI Basic Act requirements for high-impact AI systems. Mandates fundamental rights assessments, human-in-the-loop safeguards, and transparency requirements across protected demographic categories.",
+  "description": "South Korea AI Basic Act for high-impact AI systems. Mandates fundamental rights assessments, human-in-the-loop safeguards, and transparency across protected categories.",
   "categories": {
     "gender": {
       "label": "Gender",
@@ -46,9 +46,18 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "assessment", "title": "Fundamental rights assessment" },
-      { "type": "assessment", "title": "Human-in-the-loop safeguards" },
-      { "type": "assessment", "title": "Transparency requirements" }
+      {
+        "type": "assessment",
+        "title": "Fundamental rights assessment"
+      },
+      {
+        "type": "assessment",
+        "title": "Human-in-the-loop safeguards"
+      },
+      {
+        "type": "assessment",
+        "title": "Transparency requirements"
+      }
     ]
   }
 }

@@ -4,7 +4,7 @@
   "jurisdiction": "New Jersey",
   "effective_date": "2024-04-01",
   "mode": "compliance_checklist",
-  "description": "New Jersey regulations on automated decision-making in employment. Requires documentation of AI use, disparate impact assessment, validation records, and consideration of alternative selection procedures.",
+  "description": "New Jersey regulations on automated decision-making in employment. Requires AI use documentation, disparate impact assessment, and validation of selection procedures.",
   "categories": {
     "race": {
       "label": "Race",
@@ -60,7 +60,7 @@
     "cross": []
   },
   "metrics": [],
-  "recommended_threshold": 0.80,
+  "recommended_threshold": 0.8,
   "checklist_items": [
     "Document AI use in employment decisions",
     "Assess disparate impact liability",
@@ -74,8 +74,14 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "checklist", "title": "Compliance checklist" },
-      { "type": "assessment", "title": "Recommended EEOC-style adverse impact analysis" }
+      {
+        "type": "checklist",
+        "title": "Compliance checklist"
+      },
+      {
+        "type": "assessment",
+        "title": "Recommended EEOC-style adverse impact analysis"
+      }
     ]
   }
 }

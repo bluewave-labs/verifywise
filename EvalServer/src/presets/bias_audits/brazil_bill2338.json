@@ -4,7 +4,7 @@
   "jurisdiction": "Brazil",
   "effective_date": "2024-12-10",
   "mode": "compliance_checklist",
-  "description": "Brazil AI regulatory framework requiring algorithmic impact assessments, bias detection in training data, inclusive development practices, and comprehensive impact assessment records for high-risk AI systems.",
+  "description": "Brazil AI regulatory framework requiring algorithmic impact assessments, bias detection in training data, inclusive development practices, and impact records for high-risk AI systems.",
   "categories": {
     "race": {
       "label": "Race",
@@ -74,8 +74,14 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "checklist", "title": "Compliance checklist" },
-      { "type": "assessment", "title": "Recommended EEOC-style adverse impact analysis" }
+      {
+        "type": "checklist",
+        "title": "Compliance checklist"
+      },
+      {
+        "type": "assessment",
+        "title": "Recommended EEOC-style adverse impact analysis"
+      }
     ]
   }
 }

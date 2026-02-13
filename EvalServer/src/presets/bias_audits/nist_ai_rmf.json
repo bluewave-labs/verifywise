@@ -4,7 +4,7 @@
   "jurisdiction": "United States (Voluntary Framework)",
   "effective_date": "2023-01-26",
   "mode": "framework_assessment",
-  "description": "NIST AI Risk Management Framework (AI RMF 1.0) providing a structured approach to managing AI risks. Organized into four core functions: Govern, Map, Measure, and Manage, with user-defined categories for bias assessment.",
+  "description": "NIST AI Risk Management Framework (AI RMF 1.0) for managing AI risks. Organized into four core functions: Govern, Map, Measure, and Manage, with bias assessment categories.",
   "categories": {},
   "sections": [
     {
@@ -44,10 +44,26 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "framework", "section_id": "govern", "title": "Govern documentation" },
-      { "type": "framework", "section_id": "map", "title": "Risk identification" },
-      { "type": "framework", "section_id": "measure", "title": "Quantitative metrics" },
-      { "type": "framework", "section_id": "manage", "title": "Mitigation tracking" }
+      {
+        "type": "framework",
+        "section_id": "govern",
+        "title": "Govern documentation"
+      },
+      {
+        "type": "framework",
+        "section_id": "map",
+        "title": "Risk identification"
+      },
+      {
+        "type": "framework",
+        "section_id": "measure",
+        "title": "Quantitative metrics"
+      },
+      {
+        "type": "framework",
+        "section_id": "manage",
+        "title": "Mitigation tracking"
+      }
     ]
   }
 }

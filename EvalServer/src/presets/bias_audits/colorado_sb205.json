@@ -4,7 +4,7 @@
   "jurisdiction": "Colorado",
   "effective_date": "2026-02-01",
   "mode": "impact_assessment",
-  "description": "Colorado AI Act requiring developers and deployers of high-risk AI systems to complete impact assessments addressing algorithmic discrimination across protected classes, with alignment to the NIST AI Risk Management Framework.",
+  "description": "Colorado AI Act requiring developers and deployers of high-risk AI systems to complete impact assessments addressing algorithmic discrimination, aligned with NIST AI RMF.",
   "categories": {
     "race": {
       "label": "Race",
@@ -76,11 +76,26 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "assessment", "title": "Risk analysis" },
-      { "type": "assessment", "title": "Data categories and sources" },
-      { "type": "assessment", "title": "Performance metrics by protected class" },
-      { "type": "assessment", "title": "Mitigation measures" },
-      { "type": "assessment", "title": "NIST AI RMF alignment" }
+      {
+        "type": "assessment",
+        "title": "Risk analysis"
+      },
+      {
+        "type": "assessment",
+        "title": "Data categories and sources"
+      },
+      {
+        "type": "assessment",
+        "title": "Performance metrics by protected class"
+      },
+      {
+        "type": "assessment",
+        "title": "Mitigation measures"
+      },
+      {
+        "type": "assessment",
+        "title": "NIST AI RMF alignment"
+      }
     ]
   }
 }

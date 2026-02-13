@@ -4,7 +4,7 @@
   "jurisdiction": "California",
   "effective_date": "1959-09-18",
   "mode": "quantitative_audit",
-  "description": "California Fair Employment and Housing Act. Prohibits employment discrimination across 14+ protected categories. Requires adverse impact analysis using the four-fifths rule with extended record retention requirements.",
+  "description": "California Fair Employment and Housing Act. Prohibits employment discrimination across 14+ protected categories with adverse impact analysis using the four-fifths rule.",
   "categories": {
     "race": {
       "label": "Race",
@@ -28,7 +28,10 @@
     },
     "sex": {
       "label": "Sex",
-      "groups": ["Male", "Female"]
+      "groups": [
+        "Male",
+        "Female"
+      ]
     },
     "gender_identity": {
       "label": "Gender Identity",
@@ -75,8 +78,11 @@
     "required": false,
     "cross": []
   },
-  "metrics": ["selection_rate", "impact_ratio"],
-  "threshold": 0.80,
+  "metrics": [
+    "selection_rate",
+    "impact_ratio"
+  ],
+  "threshold": 0.8,
   "required_metadata": [
     "audit_date",
     "selection_procedure_description",
@@ -87,8 +93,16 @@
   "retention_period": "4 years",
   "results_format": {
     "tables": [
-      { "type": "category", "category_key": "race", "title": "Impact ratios by race" },
-      { "type": "category", "category_key": "sex", "title": "Impact ratios by sex" }
+      {
+        "type": "category",
+        "category_key": "race",
+        "title": "Impact ratios by race"
+      },
+      {
+        "type": "category",
+        "category_key": "sex",
+        "title": "Impact ratios by sex"
+      }
     ]
   }
 }

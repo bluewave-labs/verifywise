@@ -13,11 +13,14 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Box, Stack, Typography, CircularProgress, Alert, useTheme } from "@mui/material";
 import Chip from "../../components/Chip";
-import { Upload, FileSpreadsheet } from "lucide-react";
+import { Upload, FileSpreadsheet, Info } from "lucide-react";
+import VWTooltip from "../../components/VWTooltip";
+import VWAlert from "../../components/Alert";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import Checkbox from "../../components/Inputs/Checkbox";
+import DatePicker from "../../components/Inputs/Datepicker";
 import {
   listBiasAuditPresets,
   getBiasAuditPreset,
@@ -101,7 +104,7 @@ function PresetCard({
             color: theme.palette.text.secondary,
             lineHeight: 1.4,
             display: "-webkit-box",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 3,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
@@ -129,7 +132,15 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const [loadingPresets, setLoadingPresets] = useState(true);
   const [loadingPreset, setLoadingPreset] = useState(false);
 
-  // Step 2: AEDT metadata
+  // Context-aware labels based on selected preset
+  const systemLabel = (() => {
+    if (!selectedPresetId) return { step: "AI system", heading: "AI system information", description: "Provide details about the AI system being audited", field: "System name", reviewLabel: "System name" };
+    if (selectedPresetId === "nyc_ll144") return { step: "AEDT", heading: "AEDT information", description: "Provide details about the automated employment decision tool being audited", field: "AEDT name", reviewLabel: "AEDT name" };
+    if (["eeoc_guidelines", "california_feha", "illinois_hb3773", "new_jersey", "singapore_wfa", "texas_traiga"].includes(selectedPresetId)) return { step: "AI tool", heading: "AI hiring tool information", description: "Provide details about the AI-assisted hiring tool being audited", field: "Tool name", reviewLabel: "Tool name" };
+    return { step: "AI system", heading: "AI system information", description: "Provide details about the AI system being audited", field: "System name", reviewLabel: "System name" };
+  })();
+
+  // Step 2: system metadata
   const [aedtName, setAedtName] = useState("");
   const [aedtDescription, setAedtDescription] = useState("");
   const [distributionDate, setDistributionDate] = useState("");
@@ -151,6 +162,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [presetsError, setPresetsError] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{ show: boolean; variant: "success" | "error" | "info"; title: string; body: string } | null>(null);
   const presetRequestIdRef = useRef(0);
 
   // Load presets on modal open
@@ -159,7 +171,11 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     setLoadingPresets(true);
     setPresetsError(null);
     listBiasAuditPresets()
-      .then(setPresets)
+      .then((data) => {
+        const custom = data.filter((p) => p.id === "custom");
+        const rest = data.filter((p) => p.id !== "custom");
+        setPresets([...custom, ...rest]);
+      })
       .catch((err) => {
         console.error("Failed to load presets:", err);
         setPresetsError("Failed to load compliance frameworks. Please try again.");
@@ -271,6 +287,14 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         },
       };
       const result = await runBiasAudit(csvFile, config);
+      const rowCount = csvPreview.length > 0 ? `${csvHeaders.length} columns` : "";
+      setAlert({
+        show: true,
+        variant: "success",
+        title: "Bias audit started",
+        body: `Your ${fullPreset.name} audit is now processing${rowCount ? ` (${rowCount})` : ""}. This typically takes 5–15 seconds. Results will appear automatically when ready.`,
+      });
+      setTimeout(() => setAlert(null), 6000);
       onAuditCreated(result.auditId);
       handleClose();
     } catch (err: any) {
@@ -370,7 +394,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(2, 1fr)",
             gap: "8px",
           }}
         >
@@ -388,21 +412,21 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     </Stack>
   );
 
-  // Step 2: AEDT metadata
+  // Step 2: System metadata
   const renderStep2 = () => (
     <Stack spacing={3}>
       <Box>
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
-          Model / AEDT information
+          {systemLabel.heading}
         </Typography>
         <Typography sx={{ fontSize: 13, color: "#667085", mb: 3 }}>
-          Provide details about the Automated Employment Decision Tool being audited
+          {systemLabel.description}
         </Typography>
       </Box>
 
       <Field
         id="aedt-name"
-        label="AEDT name"
+        label={systemLabel.field}
         placeholder="Enter the name of your decision tool"
         value={aedtName}
         onChange={(e) => setAedtName(e.target.value)}
@@ -420,19 +444,17 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         isOptional
       />
 
-      <Field
-        id="distribution-date"
+      <DatePicker
         label="Distribution date"
-        placeholder="YYYY-MM-DD"
-        value={distributionDate}
-        onChange={(e) => setDistributionDate(e.target.value)}
+        date={distributionDate || null}
+        handleDateChange={(value) => setDistributionDate(value ? value.format("YYYY-MM-DD") : "")}
         isOptional
       />
 
       <Field
         id="data-source-description"
         label="Data source description"
-        placeholder="Describe where this data comes from"
+        placeholder="e.g., Historical hiring records from Jan–Dec 2025, sourced from the company's ATS (applicant tracking system)"
         value={dataSourceDescription}
         onChange={(e) => setDataSourceDescription(e.target.value)}
         type="description"
@@ -499,7 +521,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
 
       {/* Column mapping */}
       {csvFile && csvHeaders.length > 0 && (
-        <Stack spacing={2} mt={3}>
+        <Stack spacing="8px" mt={3}>
           <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
             Column mapping
           </Typography>
@@ -621,9 +643,9 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       )}
 
       {/* Summary */}
-      <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: 2 }}>
+      <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: "8px" }}>
         <Typography
-          sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1.5 }}
+          sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}
         >
           Summary
         </Typography>
@@ -638,7 +660,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           </Stack>
           <Stack direction="row" justifyContent="space-between">
             <Typography sx={{ fontSize: 13, color: "#667085" }}>
-              AEDT name
+              {systemLabel.reviewLabel}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#111827" }}>
               {aedtName}
@@ -667,28 +689,52 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           Audit settings
         </Typography>
         <Stack direction="row" spacing={2}>
-          <Field
-            id="threshold"
-            label="Threshold (4/5ths rule)"
-            type="number"
-            value={threshold?.toString() || ""}
-            onChange={(e) =>
-              setThreshold(e.target.value ? parseFloat(e.target.value) : null)
-            }
-            sx={{ flex: 1 }}
-          />
-          <Field
-            id="small-sample-exclusion"
-            label="Small sample exclusion %"
-            type="number"
-            value={smallSampleExclusion?.toString() || ""}
-            onChange={(e) =>
-              setSmallSampleExclusion(
-                e.target.value ? parseFloat(e.target.value) : null
-              )
-            }
-            sx={{ flex: 1 }}
-          />
+          <Stack sx={{ flex: 1 }} spacing={0.5}>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#344054" }}>Threshold (4/5ths rule)</Typography>
+              <VWTooltip
+                content="Groups with an impact ratio below this threshold are flagged for adverse impact. The standard 4/5ths rule uses 0.80, meaning a group's selection rate must be at least 80% of the highest group's rate."
+                placement="top"
+                maxWidth={300}
+              >
+                <Box sx={{ display: "flex", cursor: "help" }}>
+                  <Info size={14} strokeWidth={1.5} color="#98a2b3" />
+                </Box>
+              </VWTooltip>
+            </Stack>
+            <Field
+              id="threshold"
+              type="number"
+              value={threshold?.toString() || ""}
+              onChange={(e) =>
+                setThreshold(e.target.value ? parseFloat(e.target.value) : null)
+              }
+            />
+          </Stack>
+          <Stack sx={{ flex: 1 }} spacing={0.5}>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#344054" }}>Small sample exclusion %</Typography>
+              <VWTooltip
+                content="Groups representing less than this percentage of total applicants are excluded from impact ratio calculations. This prevents statistically unreliable results from very small groups. Default is 2%."
+                placement="top"
+                maxWidth={300}
+              >
+                <Box sx={{ display: "flex", cursor: "help" }}>
+                  <Info size={14} strokeWidth={1.5} color="#98a2b3" />
+                </Box>
+              </VWTooltip>
+            </Stack>
+            <Field
+              id="small-sample-exclusion"
+              type="number"
+              value={smallSampleExclusion?.toString() || ""}
+              onChange={(e) =>
+                setSmallSampleExclusion(
+                  e.target.value ? parseFloat(e.target.value) : null
+                )
+              }
+            />
+          </Stack>
         </Stack>
         {fullPreset?.intersectional && (
           <Checkbox
@@ -705,13 +751,14 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   );
 
   return (
+    <>
     <StepperModal
       isOpen={isOpen}
       onClose={handleClose}
       title="New bias audit"
       steps={[
         "Compliance framework",
-        "Model / AEDT",
+        systemLabel.step,
         "Demographic data",
         "Review & run",
       ]}
@@ -726,6 +773,17 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     >
       {renderStepContent()}
     </StepperModal>
+
+    {alert?.show && (
+      <VWAlert
+        variant={alert.variant}
+        title={alert.title}
+        body={alert.body}
+        isToast
+        onClick={() => setAlert(null)}
+      />
+    )}
+    </>
   );
 };
 

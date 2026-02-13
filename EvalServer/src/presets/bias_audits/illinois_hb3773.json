@@ -4,7 +4,7 @@
   "jurisdiction": "Illinois",
   "effective_date": "2026-01-01",
   "mode": "compliance_checklist",
-  "description": "Illinois AI Video Interview Act and employment discrimination provisions. Requires applicant notice, consent collection, data retention documentation, and evidence of non-discrimination in AI-assisted hiring.",
+  "description": "Illinois AI Video Interview Act and employment discrimination provisions. Requires applicant notice, consent, data retention, and evidence of non-discrimination in AI hiring.",
   "categories": {
     "race": {
       "label": "Race",
@@ -60,7 +60,7 @@
     "cross": []
   },
   "metrics": [],
-  "recommended_threshold": 0.80,
+  "recommended_threshold": 0.8,
   "checklist_items": [
     "Provide notice to applicants about AI use",
     "Document consent collection process",
@@ -74,8 +74,14 @@
   ],
   "results_format": {
     "sections": [
-      { "type": "checklist", "title": "Compliance checklist" },
-      { "type": "assessment", "title": "Recommended EEOC-style adverse impact analysis" }
+      {
+        "type": "checklist",
+        "title": "Compliance checklist"
+      },
+      {
+        "type": "assessment",
+        "title": "Recommended EEOC-style adverse impact analysis"
+      }
     ]
   }
 }

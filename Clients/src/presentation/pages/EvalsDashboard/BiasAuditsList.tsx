@@ -1,5 +1,19 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Box, Stack, Typography, IconButton, CircularProgress, Alert, useTheme } from "@mui/material";
+import {
+  Stack,
+  Typography,
+  IconButton,
+  CircularProgress,
+  Alert,
+  useTheme,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableContainer,
+  Box,
+} from "@mui/material";
 import { Trash2, Eye } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
@@ -105,6 +119,16 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     fontSize: 12,
     fontWeight: 600,
     color: theme.palette.text.secondary,
+    py: 1,
+    px: 2,
+    borderBottom: `1px solid ${theme.palette.border.dark}`,
+  };
+
+  const bodyCellSx = {
+    fontSize: 13,
+    py: 1.5,
+    px: 2,
+    borderBottom: `1px solid ${theme.palette.border.light}`,
   };
 
   return (
@@ -147,81 +171,71 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
           showBorder
         />
       ) : (
-        <Box
-          component="table"
+        <TableContainer
           sx={{
-            width: "100%",
-            borderCollapse: "collapse",
             border: `1px solid ${theme.palette.border.dark}`,
             borderRadius: "4px",
-            overflow: "hidden",
             backgroundColor: theme.palette.background.paper,
           }}
         >
-          <Box component="thead">
-            <Box
-              component="tr"
-              sx={{ borderBottom: `1px solid ${theme.palette.border.dark}` }}
-            >
-              <Box component="th" sx={{ ...headerCellSx, width: "25%", textAlign: "left", py: 1, px: 2 }}>Framework</Box>
-              <Box component="th" sx={{ ...headerCellSx, width: "15%", textAlign: "left", py: 1, px: 2 }}>Mode</Box>
-              <Box component="th" sx={{ ...headerCellSx, width: "15%", textAlign: "left", py: 1, px: 2 }}>Status</Box>
-              <Box component="th" sx={{ ...headerCellSx, width: "15%", textAlign: "left", py: 1, px: 2 }}>Result</Box>
-              <Box component="th" sx={{ ...headerCellSx, width: "20%", textAlign: "left", py: 1, px: 2 }}>Date</Box>
-              <Box component="th" sx={{ ...headerCellSx, width: "10%", textAlign: "left", py: 1, px: 2 }}>Actions</Box>
-            </Box>
-          </Box>
-          <Box component="tbody">
-            {filteredAudits.map((audit) => (
-              <Box
-                component="tr"
-                key={audit.id}
-                onClick={() => onViewAudit(audit.id)}
-                sx={{
-                  borderBottom: `1px solid ${theme.palette.border.light}`,
-                  cursor: "pointer",
-                  "&:hover": { backgroundColor: theme.palette.action.hover },
-                }}
-              >
-                <Box component="td" sx={{ py: 1.5, px: 2 }}>
-                  <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>{audit.presetName}</Typography>
-                </Box>
-                <Box component="td" sx={{ py: 1.5, px: 2 }}>{getModeChip(audit.mode)}</Box>
-                <Box component="td" sx={{ py: 1.5, px: 2 }}>{getStatusChip(audit.status)}</Box>
-                <Box component="td" sx={{ py: 1.5, px: 2 }}>{getResultSummary(audit)}</Box>
-                <Box component="td" sx={{ py: 1.5, px: 2 }}>
-                  <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
-                    {formatDate(audit.createdAt)}
-                  </Typography>
-                </Box>
-                <Box component="td" sx={{ py: 1.5, px: 2 }}>
-                  <Stack direction="row" spacing={0.5}>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewAudit(audit.id);
-                      }}
-                      sx={{ padding: 0.5 }}
-                    >
-                      <Eye size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAuditToDelete(audit.id);
-                      }}
-                      sx={{ padding: 0.5 }}
-                    >
-                      <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
-                    </IconButton>
-                  </Stack>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ ...headerCellSx, width: "25%" }}>Framework</TableCell>
+                <TableCell sx={{ ...headerCellSx, width: "15%" }}>Mode</TableCell>
+                <TableCell sx={{ ...headerCellSx, width: "15%" }}>Status</TableCell>
+                <TableCell sx={{ ...headerCellSx, width: "15%" }}>Result</TableCell>
+                <TableCell sx={{ ...headerCellSx, width: "20%" }}>Date</TableCell>
+                <TableCell sx={{ ...headerCellSx, width: "10%" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredAudits.map((audit) => (
+                <TableRow
+                  key={audit.id}
+                  onClick={() => onViewAudit(audit.id)}
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: theme.palette.action.hover },
+                    "&:last-child td": { borderBottom: 0 },
+                  }}
+                >
+                  <TableCell sx={bodyCellSx}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
+                      {audit.presetName}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={bodyCellSx}>{getModeChip(audit.mode)}</TableCell>
+                  <TableCell sx={bodyCellSx}>{getStatusChip(audit.status)}</TableCell>
+                  <TableCell sx={bodyCellSx}>{getResultSummary(audit)}</TableCell>
+                  <TableCell sx={bodyCellSx}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                      {formatDate(audit.createdAt)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={bodyCellSx} onClick={(e) => e.stopPropagation()}>
+                    <Stack direction="row" spacing={0.5}>
+                      <IconButton
+                        size="small"
+                        onClick={() => onViewAudit(audit.id)}
+                        sx={{ padding: 0.5 }}
+                      >
+                        <Eye size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => setAuditToDelete(audit.id)}
+                        sx={{ padding: 0.5 }}
+                      >
+                        <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                      </IconButton>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {/* New Bias Audit Modal */}

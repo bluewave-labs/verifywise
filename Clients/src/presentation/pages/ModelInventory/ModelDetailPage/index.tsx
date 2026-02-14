@@ -11,8 +11,9 @@ import {
   CircularProgress,
   Box,
   useTheme,
+  Alert as MuiAlert,
 } from "@mui/material";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { useModelLifecycle } from "../../../../application/hooks/useModelLifecycle";
@@ -23,6 +24,7 @@ import Chip from "../../../components/Chip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import { EmptyStateMessage } from "../../../components/EmptyStateMessage";
+import { useFeatureSettings } from "../../../../application/hooks/useFeatureSettings";
 
 function ModelDetailPage() {
   const theme = useTheme();
@@ -33,9 +35,12 @@ function ModelDetailPage() {
   const [model, setModel] = useState<IModelInventory | null>(null);
   const [modelLoading, setModelLoading] = useState(true);
 
+  const { featureSettings } = useFeatureSettings();
+  const isLifecycleEnabled = featureSettings?.lifecycle_enabled ?? true;
+
   const { phases, loading: lifecycleLoading, refresh: refreshLifecycle } =
-    useModelLifecycle(modelId);
-  const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId);
+    useModelLifecycle(modelId, isLifecycleEnabled);
+  const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId, isLifecycleEnabled);
 
   const phaseRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
@@ -198,48 +203,63 @@ function ModelDetailPage() {
         </Stack>
       </Box>
 
-      {/* Progress bar */}
-      <Box
-        sx={{
-          p: "20px",
-          borderRadius: "4px",
-          border: `1px solid ${theme.palette.border.light}`,
-          backgroundColor: theme.palette.background.main,
-        }}
-      >
-        <LifecycleProgressBar
-          progress={progress}
-          onPhaseClick={handlePhaseClick}
-        />
-      </Box>
+      {isLifecycleEnabled ? (
+        <>
+          {/* Progress bar */}
+          <Box
+            sx={{
+              p: "20px",
+              borderRadius: "4px",
+              border: `1px solid ${theme.palette.border.light}`,
+              backgroundColor: theme.palette.background.main,
+            }}
+          >
+            <LifecycleProgressBar
+              progress={progress}
+              onPhaseClick={handlePhaseClick}
+            />
+          </Box>
 
-      {/* Lifecycle phases */}
-      {lifecycleLoading && phases.length === 0 ? (
-        <Stack alignItems="center" sx={{ py: 4 }}>
-          <CircularProgress size={24} />
-        </Stack>
-      ) : (
-        <Stack spacing={0}>
-          {phases.map((phase) => (
-            <Box
-              key={phase.id}
-              ref={(el: HTMLDivElement | null) => {
-                phaseRefs.current[phase.id] = el;
-              }}
-            >
-              <LifecyclePhasePanel
-                phase={phase}
-                modelId={modelId!}
-                expanded={expandedPhases.has(phase.id)}
-                onToggle={() => togglePhase(phase.id)}
-                onValueChanged={handleValueChanged}
-              />
-            </Box>
-          ))}
-          {phases.length === 0 && (
-            <EmptyStateMessage message="No lifecycle phases configured. Contact an administrator to set up the model lifecycle." />
+          {/* Lifecycle phases */}
+          {lifecycleLoading && phases.length === 0 ? (
+            <Stack alignItems="center" sx={{ py: 4 }}>
+              <CircularProgress size={24} />
+            </Stack>
+          ) : (
+            <Stack spacing={0}>
+              {phases.map((phase) => (
+                <Box
+                  key={phase.id}
+                  ref={(el: HTMLDivElement | null) => {
+                    phaseRefs.current[phase.id] = el;
+                  }}
+                >
+                  <LifecyclePhasePanel
+                    phase={phase}
+                    modelId={modelId!}
+                    expanded={expandedPhases.has(phase.id)}
+                    onToggle={() => togglePhase(phase.id)}
+                    onValueChanged={handleValueChanged}
+                  />
+                </Box>
+              ))}
+              {phases.length === 0 && (
+                <EmptyStateMessage message="No lifecycle phases configured. Contact an administrator to set up the model lifecycle." />
+              )}
+            </Stack>
           )}
-        </Stack>
+        </>
+      ) : (
+        <MuiAlert
+          severity="info"
+          icon={<Info size={20} />}
+          sx={{
+            borderRadius: "4px",
+            border: `1px solid ${theme.palette.border.light}`,
+          }}
+        >
+          The Model Lifecycle feature is currently disabled. Contact your administrator or go to Settings &gt; Features to enable it.
+        </MuiAlert>
       )}
     </Stack>
   );

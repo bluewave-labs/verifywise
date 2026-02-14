@@ -3,7 +3,7 @@
  * Route: /model-inventory/models/:id
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Stack,
@@ -18,8 +18,7 @@ import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory"
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { useModelLifecycle } from "../../../../application/hooks/useModelLifecycle";
 import { useLifecycleProgress } from "../../../../application/hooks/useModelLifecycle";
-import LifecyclePhasePanel from "../components/LifecyclePhasePanel";
-import LifecycleProgressBar from "../components/LifecycleProgressBar";
+import LifecycleStepperLayout from "../components/LifecycleStepperLayout";
 import Chip from "../../../components/Chip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
@@ -41,28 +40,6 @@ function ModelDetailPage() {
   const { phases, loading: lifecycleLoading, refresh: refreshLifecycle } =
     useModelLifecycle(modelId, isLifecycleEnabled);
   const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId, isLifecycleEnabled);
-
-  const phaseRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
-
-  // Auto-expand first phase on initial load
-  useEffect(() => {
-    if (phases.length > 0 && expandedPhases.size === 0) {
-      setExpandedPhases(new Set([phases[0].id]));
-    }
-  }, [phases]);
-
-  const togglePhase = useCallback((phaseId: number) => {
-    setExpandedPhases((prev) => {
-      const next = new Set(prev);
-      if (next.has(phaseId)) {
-        next.delete(phaseId);
-      } else {
-        next.add(phaseId);
-      }
-      return next;
-    });
-  }, []);
 
   // Fetch model data
   useEffect(() => {
@@ -95,13 +72,6 @@ function ModelDetailPage() {
     refreshLifecycle();
     refreshProgress();
   }, [refreshLifecycle, refreshProgress]);
-
-  const handlePhaseClick = useCallback((phaseId: number) => {
-    const el = phaseRefs.current[phaseId];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, []);
 
   if (modelLoading) {
     return (
@@ -204,51 +174,13 @@ function ModelDetailPage() {
       </Box>
 
       {isLifecycleEnabled ? (
-        <>
-          {/* Progress bar */}
-          <Box
-            sx={{
-              p: "20px",
-              borderRadius: "4px",
-              border: `1px solid ${theme.palette.border.light}`,
-              backgroundColor: theme.palette.background.main,
-            }}
-          >
-            <LifecycleProgressBar
-              progress={progress}
-              onPhaseClick={handlePhaseClick}
-            />
-          </Box>
-
-          {/* Lifecycle phases */}
-          {lifecycleLoading && phases.length === 0 ? (
-            <Stack alignItems="center" sx={{ py: 4 }}>
-              <CircularProgress size={24} />
-            </Stack>
-          ) : (
-            <Stack spacing={0}>
-              {phases.map((phase) => (
-                <Box
-                  key={phase.id}
-                  ref={(el: HTMLDivElement | null) => {
-                    phaseRefs.current[phase.id] = el;
-                  }}
-                >
-                  <LifecyclePhasePanel
-                    phase={phase}
-                    modelId={modelId!}
-                    expanded={expandedPhases.has(phase.id)}
-                    onToggle={() => togglePhase(phase.id)}
-                    onValueChanged={handleValueChanged}
-                  />
-                </Box>
-              ))}
-              {phases.length === 0 && (
-                <EmptyStateMessage message="No lifecycle phases configured. Contact an administrator to set up the model lifecycle." />
-              )}
-            </Stack>
-          )}
-        </>
+        <LifecycleStepperLayout
+          phases={phases}
+          progress={progress}
+          modelId={modelId!}
+          loading={lifecycleLoading}
+          onValueChanged={handleValueChanged}
+        />
       ) : (
         <MuiAlert
           severity="info"

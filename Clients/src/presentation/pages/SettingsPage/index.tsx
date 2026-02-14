@@ -9,6 +9,7 @@ import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import Organization from "./Organization";
 import Preferences from "./Preferences/index";
+import Features from "./Features/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
@@ -27,6 +28,7 @@ const BUILT_IN_TABS = [
   "preferences",
   "team",
   "organization",
+  "features",
   "apikeys",
 ];
 
@@ -37,6 +39,7 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
+  const isFeaturesDisabled = !allowedRoles.features?.manage?.includes(userRoleName);
 
   // Get plugin tabs dynamically from the plugin registry
   const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();
@@ -160,6 +163,12 @@ export default function ProfilePage() {
               icon: "Settings",
             },
             {
+              label: "Features",
+              value: "features",
+              icon: "Zap",
+              disabled: isFeaturesDisabled,
+            },
+            {
               label: "API Keys",
               value: "apikeys",
               icon: "Key",
@@ -194,6 +203,10 @@ export default function ProfilePage() {
 
         <TabPanel value="organization">
           <Organization />
+        </TabPanel>
+
+        <TabPanel value="features">
+          <Features />
         </TabPanel>
 
         <TabPanel value="apikeys">

@@ -3326,6 +3326,23 @@ export const createNewTenant = async (
       ON CONFLICT (id) DO NOTHING;
     `, { transaction });
 
+    // 11. feature_settings
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".feature_settings (
+        id SERIAL PRIMARY KEY,
+        lifecycle_enabled BOOLEAN NOT NULL DEFAULT true,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        updated_by INTEGER NULL REFERENCES public.users(id)
+      );
+    `, { transaction });
+
+    // Insert default feature settings row
+    await sequelize.query(`
+      INSERT INTO "${tenantHash}".feature_settings (id)
+      VALUES (1)
+      ON CONFLICT (id) DO NOTHING;
+    `, { transaction });
+
     // Composite indexes for common query patterns
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_dept_ts ON "${tenantHash}".shadow_ai_events(department, event_timestamp DESC);`, { transaction });
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_user_ts ON "${tenantHash}".shadow_ai_events(user_email, event_timestamp DESC);`, { transaction });

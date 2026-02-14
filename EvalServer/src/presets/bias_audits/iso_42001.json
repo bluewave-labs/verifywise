@@ -1,0 +1,59 @@
+{
+  "id": "iso_42001",
+  "name": "ISO/IEC 42001:2023",
+  "jurisdiction": "International",
+  "effective_date": "2023-12-18",
+  "mode": "framework_assessment",
+  "description": "ISO/IEC 42001:2023 AI Management System standard. Provides requirements for establishing and improving an AI management system, including risk assessment and impact analysis.",
+  "categories": {},
+  "sections": [
+    {
+      "id": "risk_assessment",
+      "title": "Risk Assessment",
+      "description": "Systematic identification, analysis, and evaluation of AI-related risks including bias and discrimination."
+    },
+    {
+      "id": "impact_analysis",
+      "title": "Impact Analysis",
+      "description": "Assessment of potential adverse impacts of AI systems on individuals, groups, and society."
+    },
+    {
+      "id": "continuous_improvement",
+      "title": "Continuous Improvement",
+      "description": "Ongoing monitoring, measurement, and improvement of the AI management system and its controls."
+    }
+  ],
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "threshold": null,
+  "required_metadata": [
+    "audit_date",
+    "system_description",
+    "management_system_documentation",
+    "risk_assessment_records",
+    "adverse_impact_analysis",
+    "continuous_monitoring_evidence"
+  ],
+  "results_format": {
+    "sections": [
+      {
+        "type": "framework",
+        "section_id": "risk_assessment",
+        "title": "Risk assessment records"
+      },
+      {
+        "type": "framework",
+        "section_id": "impact_analysis",
+        "title": "Adverse impact analysis"
+      },
+      {
+        "type": "framework",
+        "section_id": "continuous_improvement",
+        "title": "Continuous monitoring evidence"
+      }
+    ]
+  }
+}

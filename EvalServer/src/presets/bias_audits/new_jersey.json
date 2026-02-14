@@ -1,0 +1,87 @@
+{
+  "id": "new_jersey",
+  "name": "New Jersey N.J.A.C. 13:16",
+  "jurisdiction": "New Jersey",
+  "effective_date": "2024-04-01",
+  "mode": "compliance_checklist",
+  "description": "New Jersey regulations on automated decision-making in employment. Requires AI use documentation, disparate impact assessment, and validation of selection procedures.",
+  "categories": {
+    "race": {
+      "label": "Race",
+      "groups": []
+    },
+    "creed": {
+      "label": "Creed",
+      "groups": []
+    },
+    "color": {
+      "label": "Color",
+      "groups": []
+    },
+    "national_origin": {
+      "label": "National Origin",
+      "groups": []
+    },
+    "ancestry": {
+      "label": "Ancestry",
+      "groups": []
+    },
+    "age": {
+      "label": "Age",
+      "groups": []
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": []
+    },
+    "disability": {
+      "label": "Disability",
+      "groups": []
+    },
+    "marital_status": {
+      "label": "Marital Status",
+      "groups": []
+    },
+    "sexual_orientation": {
+      "label": "Sexual Orientation",
+      "groups": []
+    },
+    "gender_identity": {
+      "label": "Gender Identity",
+      "groups": []
+    },
+    "pregnancy": {
+      "label": "Pregnancy",
+      "groups": []
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "recommended_threshold": 0.8,
+  "checklist_items": [
+    "Document AI use in employment decisions",
+    "Assess disparate impact liability",
+    "Maintain records of AI tool validation",
+    "Document alternative selection procedures considered"
+  ],
+  "required_metadata": [
+    "audit_date",
+    "system_description",
+    "compliance_officer"
+  ],
+  "results_format": {
+    "sections": [
+      {
+        "type": "checklist",
+        "title": "Compliance checklist"
+      },
+      {
+        "type": "assessment",
+        "title": "Recommended EEOC-style adverse impact analysis"
+      }
+    ]
+  }
+}

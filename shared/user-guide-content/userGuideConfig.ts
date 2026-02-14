@@ -133,7 +133,7 @@ export const collections: Collection[] = [
     title: 'LLM Evals',
     description: 'Evaluate and benchmark your LLM applications for quality, safety, and performance.',
     icon: 'FlaskConical',
-    articleCount: 4,
+    articleCount: 5,
     articles: [
       {
         id: 'llm-evals-overview',
@@ -158,6 +158,12 @@ export const collections: Collection[] = [
         title: 'Configuring scorers',
         description: 'Set up evaluation metrics and scoring thresholds.',
         keywords: ['scorer', 'metric', 'threshold', 'judge', 'llm', 'bias', 'toxicity', 'hallucination', 'conversational', 'turn relevancy', 'knowledge retention', 'coherence', 'task completion'],
+      },
+      {
+        id: 'bias-audits',
+        title: 'Running bias audits',
+        description: 'Run demographic bias audits against compliance frameworks like NYC LL144 and EEOC.',
+        keywords: ['bias', 'audit', 'fairness', 'discrimination', 'impact ratio', 'selection rate', 'demographic', 'compliance', 'nyc', 'll144', 'eeoc', 'four-fifths', 'adverse impact', 'intersectional'],
       },
     ],
   },
@@ -461,6 +467,12 @@ export const fastFinds: FastFind[] = [
     title: 'Conducting a risk assessment',
     collectionId: 'risk-management',
     articleId: 'risk-assessment',
+  },
+  {
+    id: 'ff-7',
+    title: 'Running a bias audit for NYC LL144',
+    collectionId: 'llm-evals',
+    articleId: 'bias-audits',
   },
 ];
 

@@ -1,0 +1,59 @@
+{
+  "id": "texas_traiga",
+  "name": "Texas TRAIGA",
+  "jurisdiction": "Texas",
+  "effective_date": "2025-09-01",
+  "mode": "compliance_checklist",
+  "description": "Texas Responsible AI Governance Act. Focuses on risk management, disclosure, and record retention for AI systems used in employment. Addresses intentional discrimination rather than disparate impact.",
+  "categories": {
+    "race": {
+      "label": "Race",
+      "groups": []
+    },
+    "color": {
+      "label": "Color",
+      "groups": []
+    },
+    "disability": {
+      "label": "Disability",
+      "groups": []
+    },
+    "religion": {
+      "label": "Religion",
+      "groups": []
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": []
+    },
+    "national_origin": {
+      "label": "National Origin",
+      "groups": []
+    },
+    "age": {
+      "label": "Age",
+      "groups": []
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "recommended_threshold": null,
+  "checklist_items": [
+    "Maintain risk management policy",
+    "Document AI disclosure to applicants",
+    "Maintain record retention documentation"
+  ],
+  "required_metadata": [
+    "audit_date",
+    "system_description",
+    "compliance_officer"
+  ],
+  "results_format": {
+    "sections": [
+      { "type": "checklist", "title": "Compliance checklist" }
+    ]
+  }
+}

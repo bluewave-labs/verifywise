@@ -18,6 +18,7 @@ import { Trash2, Eye, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-reac
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
 import { EmptyState } from "../../components/EmptyState";
+import HelperIcon from "../../components/HelperIcon";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewBiasAuditModal from "./NewBiasAuditModal";
 import { getStatusChip, getModeChip, formatDate } from "./biasAuditHelpers";
@@ -190,7 +191,10 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
       {/* Header */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Stack spacing={0.5}>
-          <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}>Bias audits</Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}>Bias audits</Typography>
+            <HelperIcon articlePath="llm-evals/bias-audits" />
+          </Box>
           <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
             Run compliance-aware bias audits against demographic datasets
           </Typography>

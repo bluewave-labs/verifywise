@@ -278,7 +278,9 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         threshold,
         smallSampleExclusion: smallSampleExclusion,
         outcomeColumn,
-        columnMapping,
+        columnMapping: Object.fromEntries(
+          Object.entries(columnMapping).filter(([, v]) => v)
+        ),
         metadata: {
           aedt_name: aedtName,
           description: aedtDescription,
@@ -336,9 +338,12 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         return aedtName.trim().length > 0;
       case 2: {
         if (!csvFile || !outcomeColumn) return false;
-        const categoryKeys = Object.keys(fullPreset?.categories || {});
-        if (!categoryKeys.every((key) => !!columnMapping[key])) return false;
-        const mappedValues = Object.values(columnMapping);
+        // Only require mapping for categories with defined groups (non-empty)
+        const requiredKeys = Object.entries(fullPreset?.categories || {})
+          .filter(([, cat]) => cat.groups && cat.groups.length > 0)
+          .map(([key]) => key);
+        if (!requiredKeys.every((key) => !!columnMapping[key])) return false;
+        const mappedValues = Object.values(columnMapping).filter(Boolean);
         // Prevent duplicate column mappings (same CSV column mapped to multiple categories)
         if (new Set(mappedValues).size !== mappedValues.length) return false;
         // Outcome column must not be used as a category column
@@ -465,14 +470,48 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   );
 
   // Step 3: Demographic data upload and mapping
-  const renderStep3 = () => (
+  const renderStep3 = () => {
+    const categories = Object.values(fullPreset?.categories || {});
+    const requiredCategories = categories.filter((c) => c.groups && c.groups.length > 0);
+    const categoryNames = requiredCategories.map((c) => c.label);
+    const exampleGroups = requiredCategories.length > 0
+      ? requiredCategories[0].groups.slice(0, 2).join(", ") + (requiredCategories[0].groups.length > 2 ? ", ..." : "")
+      : "";
+
+    return (
     <Stack spacing={3}>
       <Box>
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
-          Upload demographic data
+          Upload applicant data
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#667085", mb: 3 }}>
-          Upload a CSV file containing demographic information and outcomes
+        <Typography sx={{ fontSize: 13, color: "#667085", mb: 2 }}>
+          Upload a CSV file where each row represents one applicant. The file must include demographic columns and a binary outcome column.
+        </Typography>
+      </Box>
+
+      {/* Data requirements */}
+      <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: "12px", backgroundColor: "#F9FAFB" }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
+          Required columns
+        </Typography>
+        <Stack spacing={0.75}>
+          {categoryNames.map((name) => (
+            <Stack key={name} direction="row" spacing={1} alignItems="center">
+              <Box sx={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "#13715B", flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 12, color: "#475467" }}>
+                <strong>{name}</strong> — demographic group for each applicant{name === categoryNames[0] && exampleGroups ? ` (e.g., ${exampleGroups})` : ""}
+              </Typography>
+            </Stack>
+          ))}
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "#13715B", flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 12, color: "#475467" }}>
+              <strong>Outcome</strong> — binary result column (1/yes/selected = selected, 0/no = not selected)
+            </Typography>
+          </Stack>
+        </Stack>
+        <Typography sx={{ fontSize: 11, color: "#98a2b3", mt: 1.5 }}>
+          Column names don't need to match exactly — you'll map them in the next section after uploading.
         </Typography>
       </Box>
 
@@ -526,23 +565,35 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
             Column mapping
           </Typography>
 
-          {Object.entries(fullPreset?.categories || {}).map(([key, cat]) => (
-            <Stack key={key} direction="row" alignItems="center" spacing={2}>
-              <Typography sx={{ fontSize: 13, color: "#475467", minWidth: 140 }}>
-                {cat.label}
-              </Typography>
-              <Select
-                id={`mapping-${key}`}
-                value={columnMapping[key] || ""}
-                onChange={(e) =>
-                  handleColumnMappingChange(key, String(e.target.value))
-                }
-                items={csvHeaders.map((h) => ({ _id: h, name: h }))}
-                placeholder={`Select column for ${cat.label}`}
-                sx={{ flex: 1 }}
-              />
-            </Stack>
-          ))}
+          {Object.entries(fullPreset?.categories || {})
+            .sort(([, a], [, b]) => {
+              // Show categories with groups first (required), then optional ones
+              const aRequired = a.groups && a.groups.length > 0;
+              const bRequired = b.groups && b.groups.length > 0;
+              if (aRequired && !bRequired) return -1;
+              if (!aRequired && bRequired) return 1;
+              return 0;
+            })
+            .map(([key, cat]) => {
+              const isOptional = !cat.groups || cat.groups.length === 0;
+              return (
+                <Stack key={key} direction="row" alignItems="center" spacing={2}>
+                  <Typography sx={{ fontSize: 13, color: isOptional ? "#98a2b3" : "#475467", minWidth: 140 }}>
+                    {cat.label}{isOptional ? " (optional)" : ""}
+                  </Typography>
+                  <Select
+                    id={`mapping-${key}`}
+                    value={columnMapping[key] || ""}
+                    onChange={(e) =>
+                      handleColumnMappingChange(key, String(e.target.value))
+                    }
+                    items={csvHeaders.map((h) => ({ _id: h, name: h }))}
+                    placeholder={isOptional ? "Not available" : `Select column for ${cat.label}`}
+                    sx={{ flex: 1 }}
+                  />
+                </Stack>
+              );
+            })}
 
           <Stack direction="row" alignItems="center" spacing={2}>
             <Typography sx={{ fontSize: 13, color: "#475467", minWidth: 140 }}>
@@ -623,6 +674,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       )}
     </Stack>
   );
+  };
 
   // Step 4: Review & run
   const renderStep4 = () => (

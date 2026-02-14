@@ -5,6 +5,7 @@ import { ArrowLeft, XCircle, Users, UserCheck, Percent, AlertTriangle, HelpCircl
 import { cardStyles } from "../../themes";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getStatusChip, getModeChip } from "./biasAuditHelpers";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import {
   getBiasAuditResults,
   getBiasAuditStatus,
@@ -185,6 +186,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchResults = useCallback(async () => {
@@ -305,7 +307,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
           <CustomizableButton
             variant="outlined"
             text={isDeleting ? "Deleting..." : "Delete"}
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={isDeleting}
             sx={{ height: 34, fontSize: 13, border: `1px solid ${theme.palette.border.dark}`, color: "#B42318", "&:hover": { backgroundColor: "#FEF3F2", border: "1px solid #FCA5A5" } }}
           />
@@ -359,6 +361,20 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
             <ResultsTable key={index} table={table} threshold={audit.config?.threshold ?? 0.80} />
           ))}
         </>
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          isOpen={showDeleteConfirm}
+          title="Delete bias audit"
+          body="Are you sure you want to delete this bias audit? This action cannot be undone."
+          proceedText="Delete"
+          cancelText="Cancel"
+          onProceed={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+          proceedButtonVariant="contained"
+          proceedButtonColor="error"
+        />
       )}
     </Box>
   );

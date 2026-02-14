@@ -53,9 +53,11 @@ def parse_csv_dataset(
 
     header_map: Dict[str, str] = {h.strip().lower(): h.strip() for h in reader.fieldnames}
 
-    # Resolve column mapping to actual CSV header names
+    # Resolve column mapping to actual CSV header names (skip empty mappings)
     resolved_mapping: Dict[str, str] = {}
     for category_key, csv_col in column_mapping.items():
+        if not csv_col or not csv_col.strip():
+            continue
         csv_col_lower = csv_col.strip().lower()
         if csv_col_lower in header_map:
             resolved_mapping[category_key] = header_map[csv_col_lower]

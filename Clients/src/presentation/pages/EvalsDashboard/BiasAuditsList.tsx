@@ -14,13 +14,14 @@ import {
   TableContainer,
   Box,
 } from "@mui/material";
-import { Trash2, Eye } from "lucide-react";
+import { Trash2, Eye, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
 import { EmptyState } from "../../components/EmptyState";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewBiasAuditModal from "./NewBiasAuditModal";
 import { getStatusChip, getModeChip, formatDate } from "./biasAuditHelpers";
+import singleTheme from "../../themes/v1SingleTheme";
 import {
   listBiasAudits,
   deleteBiasAudit,
@@ -31,6 +32,20 @@ interface BiasAuditsListProps {
   orgId: string;
   onViewAudit: (auditId: string) => void;
 }
+
+type SortDirection = "asc" | "desc" | null;
+type SortConfig = { key: string; direction: SortDirection };
+
+const SORTING_KEY = "verifywise_bias_audits_sorting";
+
+const columns = [
+  { id: "framework", label: "FRAMEWORK", sortable: true, width: "25%" },
+  { id: "mode", label: "MODE", sortable: true, width: "15%" },
+  { id: "status", label: "STATUS", sortable: true, width: "15%" },
+  { id: "result", label: "RESULT", sortable: true, width: "15%" },
+  { id: "date", label: "DATE", sortable: true, width: "20%" },
+  { id: "action", label: "ACTION", sortable: false, width: "60px" },
+];
 
 function getResultSummary(audit: BiasAuditSummary) {
   if (audit.status !== "completed" || !audit.results) return "—";
@@ -43,6 +58,24 @@ function getResultSummary(audit: BiasAuditSummary) {
   );
 }
 
+function getSortValue(audit: BiasAuditSummary, key: string): string | number {
+  switch (key) {
+    case "framework":
+      return audit.presetName.toLowerCase();
+    case "mode":
+      return audit.mode.toLowerCase();
+    case "status":
+      return audit.status.toLowerCase();
+    case "result":
+      if (audit.status !== "completed" || !audit.results) return -1;
+      return audit.results.flags_count;
+    case "date":
+      return audit.createdAt ? new Date(audit.createdAt).getTime() : 0;
+    default:
+      return 0;
+  }
+}
+
 export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListProps) {
   const theme = useTheme();
   const [audits, setAudits] = useState<BiasAuditSummary[]>([]);
@@ -53,6 +86,31 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   const [auditToDelete, setAuditToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = localStorage.getItem(SORTING_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.key && parsed.direction) return parsed;
+      } catch { /* use default */ }
+    }
+    return { key: "date", direction: "desc" };
+  });
+
+  useEffect(() => {
+    localStorage.setItem(SORTING_KEY, JSON.stringify(sortConfig));
+  }, [sortConfig]);
+
+  const handleSort = useCallback((columnId: string) => {
+    setSortConfig((prev) => {
+      if (prev.key === columnId) {
+        if (prev.direction === "asc") return { key: columnId, direction: "desc" };
+        if (prev.direction === "desc") return { key: "", direction: null };
+      }
+      return { key: columnId, direction: "asc" };
+    });
+  }, []);
 
   const fetchAudits = useCallback(async () => {
     try {
@@ -71,7 +129,6 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     fetchAudits();
   }, [fetchAudits]);
 
-  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
       if (pollingRef.current) {
@@ -81,10 +138,8 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     };
   }, []);
 
-  // Polling for running/pending audits (ref-based to avoid interval churn)
   useEffect(() => {
     const hasRunning = audits.some((a) => a.status === "running" || a.status === "pending");
-
     if (hasRunning && !pollingRef.current) {
       pollingRef.current = setInterval(fetchAudits, 5000);
     } else if (!hasRunning && pollingRef.current) {
@@ -108,28 +163,24 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     }
   };
 
-  const filteredAudits = useMemo(
-    () => audits.filter((a) =>
+  const sortedAudits = useMemo(() => {
+    const filtered = audits.filter((a) =>
       a.presetName.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-    [audits, searchQuery]
-  );
+    );
+    if (!sortConfig.key || !sortConfig.direction) return filtered;
 
-  const headerCellSx = {
-    fontSize: 12,
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    py: 1,
-    px: 2,
-    borderBottom: `1px solid ${theme.palette.border.dark}`,
-  };
-
-  const bodyCellSx = {
-    fontSize: 13,
-    py: 1.5,
-    px: 2,
-    borderBottom: `1px solid ${theme.palette.border.light}`,
-  };
+    return [...filtered].sort((a, b) => {
+      const aVal = getSortValue(a, sortConfig.key);
+      const bVal = getSortValue(b, sortConfig.key);
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        const cmp = aVal.localeCompare(bVal);
+        return sortConfig.direction === "asc" ? cmp : -cmp;
+      }
+      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [audits, searchQuery, sortConfig]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -165,55 +216,82 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
         <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
           <CircularProgress size={24} sx={{ color: theme.palette.primary.main }} />
         </Box>
-      ) : filteredAudits.length === 0 ? (
+      ) : sortedAudits.length === 0 ? (
         <EmptyState
           message="No bias audits yet. Create your first bias audit to get started."
           showBorder
         />
       ) : (
-        <TableContainer
-          sx={{
-            border: `1px solid ${theme.palette.border.dark}`,
-            borderRadius: "4px",
-            backgroundColor: theme.palette.background.paper,
-          }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ ...headerCellSx, width: "25%" }}>Framework</TableCell>
-                <TableCell sx={{ ...headerCellSx, width: "15%" }}>Mode</TableCell>
-                <TableCell sx={{ ...headerCellSx, width: "15%" }}>Status</TableCell>
-                <TableCell sx={{ ...headerCellSx, width: "15%" }}>Result</TableCell>
-                <TableCell sx={{ ...headerCellSx, width: "20%" }}>Date</TableCell>
-                <TableCell sx={{ ...headerCellSx, width: "10%" }}>Actions</TableCell>
+        <TableContainer sx={{ overflowX: "auto" }}>
+          <Table sx={singleTheme.tableStyles.primary.frame}>
+            <TableHead
+              sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}
+            >
+              <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                {columns.map((col) => {
+                  const isActive = sortConfig.key === col.id;
+                  return (
+                    <TableCell
+                      key={col.id}
+                      sx={{
+                        ...singleTheme.tableStyles.primary.header.cell,
+                        width: col.width,
+                        ...(col.id === "action" && { minWidth: "60px", maxWidth: "60px" }),
+                        ...(col.sortable && {
+                          cursor: "pointer",
+                          userSelect: "none",
+                          "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
+                        }),
+                      }}
+                      onClick={() => col.sortable && handleSort(col.id)}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: theme.spacing(2) }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: "13px",
+                            color: isActive ? "primary.main" : "inherit",
+                          }}
+                        >
+                          {col.label}
+                        </Typography>
+                        {col.sortable && (
+                          <Box sx={{ display: "flex", alignItems: "center", color: isActive ? "primary.main" : "#9CA3AF" }}>
+                            {isActive && sortConfig.direction === "asc" && <ChevronUp size={14} />}
+                            {isActive && sortConfig.direction === "desc" && <ChevronDown size={14} />}
+                            {!isActive && <ChevronsUpDown size={14} />}
+                          </Box>
+                        )}
+                      </Box>
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredAudits.map((audit) => (
+              {sortedAudits.map((audit) => (
                 <TableRow
                   key={audit.id}
                   onClick={() => onViewAudit(audit.id)}
                   sx={{
-                    cursor: "pointer",
-                    "&:hover": { backgroundColor: theme.palette.action.hover },
-                    "&:last-child td": { borderBottom: 0 },
+                    ...singleTheme.tableStyles.primary.body.row,
                   }}
                 >
-                  <TableCell sx={bodyCellSx}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
                       {audit.presetName}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={bodyCellSx}>{getModeChip(audit.mode)}</TableCell>
-                  <TableCell sx={bodyCellSx}>{getStatusChip(audit.status)}</TableCell>
-                  <TableCell sx={bodyCellSx}>{getResultSummary(audit)}</TableCell>
-                  <TableCell sx={bodyCellSx}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{getModeChip(audit.mode)}</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{getStatusChip(audit.status)}</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{getResultSummary(audit)}</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                     <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
                       {formatDate(audit.createdAt)}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={bodyCellSx} onClick={(e) => e.stopPropagation()}>
+                  <TableCell sx={singleTheme.tableStyles.primary.body.cell} onClick={(e) => e.stopPropagation()}>
                     <Stack direction="row" spacing={0.5}>
                       <IconButton
                         size="small"

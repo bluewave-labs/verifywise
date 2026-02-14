@@ -168,9 +168,14 @@ async def run_bias_audit_task(
         from engines.bias_audit.engine import compute_bias_audit
 
         # Build config from preset + overrides
+        # Only include categories that have a column mapping (user mapped them to CSV columns)
         categories_raw = config_data.get("categories") or (preset.get("categories") if preset else {})
+        column_mapping = config_data.get("columnMapping", {})
         categories = {}
         for key, val in categories_raw.items():
+            # Skip categories not mapped to a CSV column
+            if key not in column_mapping or not column_mapping[key]:
+                continue
             if isinstance(val, dict):
                 categories[key] = CategoryConfig(
                     label=val.get("label", key),
@@ -180,10 +185,17 @@ async def run_bias_audit_task(
                 categories[key] = CategoryConfig(label=key, groups=[])
 
         intersectional_raw = config_data.get("intersectional") or (preset.get("intersectional") if preset else {})
+        # Only enable intersectional if all cross keys are mapped
+        cross_keys = intersectional_raw.get("cross", [])
+        cross_keys_mapped = [k for k in cross_keys if k in categories]
         intersectional = IntersectionalConfig(
-            required=intersectional_raw.get("required", False),
-            cross=intersectional_raw.get("cross", []),
+            required=intersectional_raw.get("required", False) and len(cross_keys_mapped) >= 2,
+            cross=cross_keys_mapped,
         )
+
+        # Filter column_mapping to only include categories that were actually mapped
+        raw_column_mapping = config_data.get("columnMapping", {})
+        filtered_column_mapping = {k: v for k, v in raw_column_mapping.items() if v}
 
         audit_config = BiasAuditConfig(
             preset_id=config_data.get("presetId", "custom"),
@@ -195,16 +207,23 @@ async def run_bias_audit_task(
             threshold=config_data.get("threshold") if "threshold" in config_data else (preset.get("threshold") if preset else 0.80),
             small_sample_exclusion=config_data.get("smallSampleExclusion") if "smallSampleExclusion" in config_data else (preset.get("small_sample_exclusion") if preset else None),
             outcome_column=config_data.get("outcomeColumn", "selected"),
-            column_mapping=config_data.get("columnMapping", {}),
+            column_mapping=filtered_column_mapping,
             metadata=config_data.get("metadata", {}),
         )
 
         # Parse CSV
+        logger.info(f"[BiasAudit] column_mapping={audit_config.column_mapping}")
+        logger.info(f"[BiasAudit] outcome_column={audit_config.outcome_column}")
+        logger.info(f"[BiasAudit] CSV bytes length={len(csv_bytes)}")
+        logger.info(f"[BiasAudit] CSV first 200 bytes: {csv_bytes[:200]}")
+
         records, unknown_count = parse_csv_dataset(
             csv_bytes=csv_bytes,
             column_mapping=audit_config.column_mapping,
             outcome_column=audit_config.outcome_column,
         )
+
+        logger.info(f"[BiasAudit] parse_csv_dataset returned {len(records)} records, {unknown_count} unknown")
 
         if not records:
             raise ValueError("No valid records found in dataset after parsing. Check column mapping and data.")

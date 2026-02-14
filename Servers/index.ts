@@ -75,6 +75,7 @@ import complianceRoutes from "./routes/compliance.route";
 import virtualFolderRoutes, { filesFolderRouter } from "./routes/virtualFolder.route";
 import shadowAiRoutes from "./routes/shadowAi.route";
 import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
+import featureSettingsRoutes from "./routes/featureSettings.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -230,6 +231,7 @@ try {
   app.use("/api/files", filesFolderRouter); // Additional file-folder routes
   app.use("/api/shadow-ai", shadowAiRoutes);
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
+  app.use("/api/feature-settings", featureSettingsRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

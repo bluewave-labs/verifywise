@@ -125,7 +125,8 @@ async def create_bias_audit_controller(
             )
             await db.commit()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create audit: {e}")
+        logger.error(f"[BiasAudit] Failed to create audit for tenant {tenant}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create audit. Please try again.")
 
     # Launch background task
     background_tasks.add_task(
@@ -357,7 +358,8 @@ async def list_bias_audits_controller(
         error_str = str(e).lower()
         if "does not exist" in error_str or "relation" in error_str:
             return JSONResponse(status_code=200, content={"audits": []})
-        raise HTTPException(status_code=500, detail=f"Failed to list audits: {e}")
+        logger.error(f"[BiasAudit] Failed to list audits for tenant {tenant}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list audits. Please try again.")
 
 
 async def delete_bias_audit_controller(
@@ -380,7 +382,8 @@ async def delete_bias_audit_controller(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete audit: {e}")
+        logger.error(f"[BiasAudit] Failed to delete audit {audit_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete audit. Please try again.")
 
 
 async def get_csv_headers_controller(

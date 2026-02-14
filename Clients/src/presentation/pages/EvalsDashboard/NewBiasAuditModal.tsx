@@ -30,6 +30,49 @@ import {
   type CreateBiasAuditConfig,
 } from "../../../application/repository/deepEval.repository";
 
+/** Parse a single CSV row handling quoted fields (RFC 4180). */
+function parseCSVRow(line: string): string[] {
+  const result: string[] = [];
+  let i = 0;
+  while (i <= line.length) {
+    if (i === line.length) { result.push(""); break; }
+    if (line[i] === '"') {
+      let value = "";
+      i++; // skip opening quote
+      while (i < line.length) {
+        if (line[i] === '"') {
+          if (i + 1 < line.length && line[i + 1] === '"') {
+            value += '"';
+            i += 2;
+          } else {
+            i++; // skip closing quote
+            break;
+          }
+        } else {
+          value += line[i];
+          i++;
+        }
+      }
+      result.push(value.trim());
+      if (i < line.length && line[i] === ',') i++; // skip delimiter
+    } else {
+      const next = line.indexOf(',', i);
+      if (next === -1) {
+        result.push(line.substring(i).trim());
+        break;
+      }
+      result.push(line.substring(i, next).trim());
+      i = next + 1;
+    }
+  }
+  return result;
+}
+
+/** Escape HTML entities to prevent XSS in rendered text. */
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 interface NewBiasAuditModalProps {
   /** Controls modal visibility */
   isOpen: boolean;
@@ -228,20 +271,22 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
-        if (!text) return;
+        if (!text) {
+          setCsvFile(null);
+          return;
+        }
         const lines = text.split("\n").filter((l) => l.trim());
-        if (lines.length === 0) return;
+        if (lines.length === 0) {
+          setCsvFile(null);
+          return;
+        }
 
-        const headers = lines[0]
-          .split(",")
-          .map((h) => h.trim().replace(/^"|"$/g, ""));
+        const headers = parseCSVRow(lines[0]);
         setCsvHeaders(headers);
 
         const preview: string[][] = [];
         for (let i = 1; i < Math.min(lines.length, 6); i++) {
-          preview.push(
-            lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""))
-          );
+          preview.push(parseCSVRow(lines[i]));
         }
         setCsvPreview(preview);
       } catch (err) {
@@ -660,9 +705,9 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
                       <Box
                         component="td"
                         key={cellIdx}
-                        sx={{ py: 1, px: 1.5, color: "#475467" }}
+                        sx={{ py: 1, px: 1.5, color: "#475467", fontSize: 12, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                       >
-                        {cell}
+                        {escapeHtml(cell)}
                       </Box>
                     ))}
                   </Box>
@@ -758,9 +803,10 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
               id="threshold"
               type="number"
               value={threshold?.toString() || ""}
-              onChange={(e) =>
-                setThreshold(e.target.value ? parseFloat(e.target.value) : null)
-              }
+              onChange={(e) => {
+                const val = e.target.value ? parseFloat(e.target.value) : null;
+                setThreshold(val !== null ? Math.min(1, Math.max(0, val)) : null);
+              }}
             />
           </Stack>
           <Stack sx={{ flex: 1 }} spacing={0.5}>
@@ -780,11 +826,10 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
               id="small-sample-exclusion"
               type="number"
               value={smallSampleExclusion?.toString() || ""}
-              onChange={(e) =>
-                setSmallSampleExclusion(
-                  e.target.value ? parseFloat(e.target.value) : null
-                )
-              }
+              onChange={(e) => {
+                const val = e.target.value ? parseFloat(e.target.value) : null;
+                setSmallSampleExclusion(val !== null ? Math.min(100, Math.max(0, val)) : null);
+              }}
             />
           </Stack>
         </Stack>

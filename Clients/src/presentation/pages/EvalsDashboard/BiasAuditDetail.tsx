@@ -188,6 +188,8 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const networkRetryCount = useRef(0);
+  const MAX_NETWORK_RETRIES = 3;
 
   const fetchResults = useCallback(async () => {
     try {
@@ -195,15 +197,25 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       setAudit(data);
       setStatus(data.status);
       setLoading(false);
+      networkRetryCount.current = 0;
     } catch (err: any) {
       if (err?.response?.status === 202) {
         const statusData = await getBiasAuditStatus(auditId);
         setStatus(statusData.status);
         setLoading(false);
+        networkRetryCount.current = 0;
       } else if (err?.response?.status === 500) {
         setError(err.response?.data?.detail || "Audit failed");
         setStatus("failed");
         setLoading(false);
+      } else if (!err?.response) {
+        // Network error (no response) — retry silently up to MAX_NETWORK_RETRIES
+        networkRetryCount.current += 1;
+        if (networkRetryCount.current >= MAX_NETWORK_RETRIES) {
+          setError("Network error. Please check your connection and try again.");
+          setLoading(false);
+        }
+        // Otherwise let polling retry on next interval
       } else {
         setError("Failed to load audit results");
         setLoading(false);
@@ -249,10 +261,8 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
       a.download = `bias-audit-${auditId}.json`;
       document.body.appendChild(a);
       a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 100);
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Failed to download results:", err);
     }

@@ -7,7 +7,13 @@ then produces structured records for the computation engine.
 
 import csv
 import io
+import logging
 from typing import Dict, List, Tuple
+
+logger = logging.getLogger(__name__)
+
+VALID_TRUE = {"1", "true", "yes", "selected", "hired", "promoted"}
+VALID_FALSE = {"0", "false", "no", "rejected", "declined", "not selected"}
 
 
 def _decode_csv(csv_bytes: bytes) -> str:
@@ -46,6 +52,7 @@ def parse_csv_dataset(
 
     records: List[Dict[str, str]] = []
     unknown_count = 0
+    unknown_outcome_count = 0
 
     # Normalize header names for case-insensitive matching
     if reader.fieldnames is None:
@@ -77,14 +84,26 @@ def parse_csv_dataset(
                 has_missing = True
             record[category_key] = value
 
-        # Parse outcome
+        # Parse outcome — log unrecognized values to help users debug data issues
         outcome_raw = (row.get(resolved_outcome) or "").strip().lower()
-        record["selected"] = outcome_raw in ("1", "true", "yes", "selected", "hired", "promoted")
+        if outcome_raw in VALID_TRUE:
+            record["selected"] = True
+        elif outcome_raw in VALID_FALSE or outcome_raw == "":
+            record["selected"] = False
+        else:
+            record["selected"] = False
+            unknown_outcome_count += 1
 
         if has_missing:
             unknown_count += 1
         else:
             records.append(record)
+
+    if unknown_outcome_count > 0:
+        logger.warning(
+            f"[BiasAudit] {unknown_outcome_count} rows had unrecognized outcome values "
+            f"(not in {VALID_TRUE | VALID_FALSE}), treated as not selected"
+        )
 
     return records, unknown_count
 

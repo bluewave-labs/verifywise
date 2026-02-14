@@ -85,6 +85,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   const [modalOpen, setModalOpen] = useState(false);
   const [auditToDelete, setAuditToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const deletingRef = useRef(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
@@ -149,7 +150,8 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   }, [audits, fetchAudits]);
 
   const handleDelete = async () => {
-    if (!auditToDelete || deleting) return;
+    if (!auditToDelete || deletingRef.current) return;
+    deletingRef.current = true;
     setDeleting(true);
     try {
       await deleteBiasAudit(auditToDelete);
@@ -160,6 +162,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
     } finally {
       setAuditToDelete(null);
       setDeleting(false);
+      deletingRef.current = false;
     }
   };
 

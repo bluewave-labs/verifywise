@@ -24,6 +24,8 @@ import {
   ArrowDown,
   ChevronRight,
   X,
+  Pencil,
+  Check,
 } from "lucide-react";
 import {
   LifecycleItem,
@@ -86,6 +88,10 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
   // Confirmation modal state
   const [deletePhaseId, setDeletePhaseId] = useState<number | null>(null);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
+
+  // Inline phase name editing
+  const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
+  const [editingPhaseName, setEditingPhaseName] = useState("");
 
   // Expanded phases
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
@@ -154,6 +160,35 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
       }
     },
     [phases, refresh]
+  );
+
+  const handleRenamePhaseSave = useCallback(
+    async (phaseId: number, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed) {
+        setEditingPhaseId(null);
+        return;
+      }
+      const oldName = phases.find((p) => p.id === phaseId)?.name ?? "";
+      if (trimmed === oldName) {
+        setEditingPhaseId(null);
+        return;
+      }
+      // Optimistic update
+      setPhases((prev) =>
+        prev.map((p) => (p.id === phaseId ? { ...p, name: trimmed } : p))
+      );
+      setEditingPhaseId(null);
+      try {
+        await updatePhase(phaseId, { name: trimmed });
+      } catch {
+        logEngine({ type: "error", message: "Failed to rename phase" });
+        setPhases((prev) =>
+          prev.map((p) => (p.id === phaseId ? { ...p, name: oldName } : p))
+        );
+      }
+    },
+    [phases, setPhases]
   );
 
   const handleTogglePhaseActive = useCallback(
@@ -333,9 +368,72 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                       flexShrink: 0,
                     }}
                   />
-                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, fontSize: "13px" }}>
-                    {phase.name}
-                  </Typography>
+                  {editingPhaseId === phase.id ? (
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      sx={{ flex: 1, gap: "6px", mr: "8px" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Field
+                        value={editingPhaseName}
+                        onChange={(e) => setEditingPhaseName(e.target.value)}
+                        onBlur={() => handleRenamePhaseSave(phase.id, editingPhaseName)}
+                        onKeyDown={(e: React.KeyboardEvent) => {
+                          if (e.key === "Enter") {
+                            handleRenamePhaseSave(phase.id, editingPhaseName);
+                          } else if (e.key === "Escape") {
+                            setEditingPhaseId(null);
+                          }
+                        }}
+                        autoFocus
+                        sx={{ flex: 1, "& input": { fontSize: "13px", fontWeight: 600, py: "2px" } }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRenamePhaseSave(phase.id, editingPhaseName)}
+                        aria-label="Save phase name"
+                        sx={{ color: theme.palette.text.secondary, p: "2px" }}
+                      >
+                        <Check size={16} />
+                      </IconButton>
+                    </Stack>
+                  ) : (
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      sx={{
+                        flex: 1,
+                        gap: "6px",
+                        "&:hover .phase-edit-icon": { opacity: 1 },
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, fontSize: "13px", cursor: "text" }}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          setEditingPhaseId(phase.id);
+                          setEditingPhaseName(phase.name);
+                        }}
+                      >
+                        {phase.name}
+                      </Typography>
+                      <IconButton
+                        className="phase-edit-icon"
+                        size="small"
+                        sx={{ opacity: 0, transition: "opacity 0.2s", p: "2px" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingPhaseId(phase.id);
+                          setEditingPhaseName(phase.name);
+                        }}
+                        aria-label="Edit phase name"
+                      >
+                        <Pencil size={14} />
+                      </IconButton>
+                    </Stack>
+                  )}
                   <FormControlLabel
                     control={
                       <Toggle

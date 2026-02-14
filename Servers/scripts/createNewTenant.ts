@@ -2317,6 +2317,65 @@ export const createNewTenant = async (
       ),
     ]);
 
+    // 9. llm_evals_bias_audits table (for demographic bias audits)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_bias_audits (
+        id VARCHAR(255) PRIMARY KEY,
+        org_id VARCHAR(255) NOT NULL,
+        project_id VARCHAR(255),
+        preset_id VARCHAR(100) NOT NULL,
+        preset_name VARCHAR(255) NOT NULL,
+        mode VARCHAR(50) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        config JSONB NOT NULL,
+        results JSONB,
+        error TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP WITH TIME ZONE,
+        created_by VARCHAR(255)
+      );
+    `, { transaction });
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_org_id ON "${tenantHash}".llm_evals_bias_audits(org_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_status ON "${tenantHash}".llm_evals_bias_audits(status);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_project_id ON "${tenantHash}".llm_evals_bias_audits(project_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_created_at ON "${tenantHash}".llm_evals_bias_audits(created_at DESC);`,
+        { transaction }
+      ),
+    ]);
+
+    // 10. llm_evals_bias_audit_results table (per-group breakdown rows)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_bias_audit_results (
+        id SERIAL PRIMARY KEY,
+        audit_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_bias_audits(id) ON DELETE CASCADE,
+        category_type VARCHAR(100) NOT NULL,
+        category_name VARCHAR(255) NOT NULL,
+        applicant_count INTEGER NOT NULL,
+        selected_count INTEGER NOT NULL,
+        selection_rate DOUBLE PRECISION NOT NULL,
+        impact_ratio DOUBLE PRECISION,
+        excluded BOOLEAN DEFAULT FALSE,
+        flagged BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audit_results_audit_id ON "${tenantHash}".llm_evals_bias_audit_results(audit_id);`,
+      { transaction }
+    );
+
     console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
 
     // Create change history table

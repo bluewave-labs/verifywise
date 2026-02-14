@@ -36,6 +36,7 @@ import { llmEvalsOverviewContent } from './llm-evals/llm-evals-overview';
 import { runningExperimentsContent } from './llm-evals/running-experiments';
 import { managingDatasetsContent } from './llm-evals/managing-datasets';
 import { configuringScorersContent } from './llm-evals/configuring-scorers';
+import { biasAuditsContent } from './llm-evals/bias-audits';
 import { scanningContent } from './ai-detection/scanning';
 import { historyContent } from './ai-detection/history';
 
@@ -89,6 +90,7 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'llm-evals/running-experiments': runningExperimentsContent,
   'llm-evals/managing-datasets': managingDatasetsContent,
   'llm-evals/configuring-scorers': configuringScorersContent,
+  'llm-evals/bias-audits': biasAuditsContent,
   // AI Detection
   'ai-detection/scanning': scanningContent,
   'ai-detection/history': historyContent,

@@ -34,6 +34,7 @@ import {
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { useFeatureSettings } from "../../../application/hooks/useFeatureSettings";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { PluginSlot } from "../../components/PluginSlot";
@@ -151,6 +152,7 @@ const ModelInventory: React.FC = () => {
   const [flashDatasetRowId, setFlashDatasetRowId] = useState<number | string | null>(null);
 
   const { userRoleName } = useAuth();
+  const { featureSettings } = useFeatureSettings();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
@@ -2444,7 +2446,7 @@ const ModelInventory: React.FC = () => {
                 >
                   <BarChart3 size={16} color="#344054" />
                 </IconButton>
-                {userRoleName === "Admin" && (
+                {userRoleName === "Admin" && featureSettings?.lifecycle_enabled && (
                   <IconButton
                     onClick={() => setIsLifecycleConfigOpen(true)}
                     aria-label="Configure Lifecycle"

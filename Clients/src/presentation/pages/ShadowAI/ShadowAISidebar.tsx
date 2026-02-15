@@ -57,9 +57,9 @@ export default function ShadowAISidebar({
       count: alertsCount,
     },
     {
-      id: "reporting",
-      label: "Reporting",
-      value: "reporting",
+      id: "reports",
+      label: "Reports",
+      value: "reports",
       icon: <FileBarChart2 size={16} strokeWidth={1.5} />,
     },
     {

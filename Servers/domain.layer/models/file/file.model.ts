@@ -178,6 +178,7 @@ export class FileModel extends Model<File> {
       "Policy manager report",
       "File Manager",
       "policy_editor",
+      "Shadow AI report",
     ),
   })
   source!: FileSource;

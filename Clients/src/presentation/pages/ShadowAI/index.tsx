@@ -21,7 +21,7 @@ import SettingsPage from "./SettingsPage";
 import ReportingPage from "./ReportingPage";
 import ShadowAIOnboarding from "../../components/Modals/ShadowAIOnboarding";
 
-type ActiveTab = "insights" | "users" | "tools" | "rules" | "reporting" | "settings";
+type ActiveTab = "insights" | "users" | "tools" | "rules" | "reports" | "settings";
 
 export default function ShadowAIPage() {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export default function ShadowAIPage() {
     if (location.pathname.includes("/shadow-ai/user-activity")) return "users";
     if (location.pathname.includes("/shadow-ai/tools")) return "tools";
     if (location.pathname.includes("/shadow-ai/rules")) return "rules"; // includes /rules/alerts
-    if (location.pathname.includes("/shadow-ai/reporting")) return "reporting";
+    if (location.pathname.includes("/shadow-ai/reports")) return "reports";
     if (location.pathname.includes("/shadow-ai/settings")) return "settings";
     return "insights";
   };
@@ -113,10 +113,10 @@ export default function ShadowAIPage() {
           baseItem,
           { label: "Rules", icon: <ShieldAlert size={14} strokeWidth={1.5} /> },
         ];
-      case "reporting":
+      case "reports":
         return [
           baseItem,
-          { label: "Reporting", icon: <FileBarChart2 size={14} strokeWidth={1.5} /> },
+          { label: "Reports", icon: <FileBarChart2 size={14} strokeWidth={1.5} /> },
         ];
       case "settings":
         return [
@@ -138,7 +138,7 @@ export default function ShadowAIPage() {
         return <AIToolsPage />;
       case "rules":
         return <RulesPage />;
-      case "reporting":
+      case "reports":
         return <ReportingPage />;
       case "settings":
         return <SettingsPage />;

@@ -863,6 +863,11 @@ export async function getReports(req: Request, res: Response) {
   logProcessing({ description: "fetching Shadow AI reports", functionName: fn, fileName: FILE_NAME, userId, tenantId });
 
   try {
+    // Validate tenant schema identifier
+    if (!/^[a-zA-Z0-9]{10}$/.test(tenantId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
+    }
+
     // Query files table filtered by source = "Shadow AI report"
     const [rows] = await sequelize.query(
       `SELECT f.id, f.filename, f.type, f.source, f.uploaded_time,
@@ -908,7 +913,7 @@ export async function deleteReport(req: Request, res: Response) {
         return res.status(200).json(STATUS_CODE[200](deleted));
       }
       await transaction.rollback();
-      return res.status(204).json(STATUS_CODE[204](deleted));
+      return res.status(500).json(STATUS_CODE[500]("Failed to delete report"));
     } catch (innerError) {
       await transaction.rollback();
       throw innerError;

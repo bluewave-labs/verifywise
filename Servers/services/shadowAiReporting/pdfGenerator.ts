@@ -41,6 +41,16 @@ async function getBrowser(): Promise<Browser> {
 }
 
 /**
+ * Close the browser singleton for cleanup.
+ */
+export async function closeBrowser(): Promise<void> {
+  if (browserInstance) {
+    await browserInstance.close();
+    browserInstance = null;
+  }
+}
+
+/**
  * Generate Shadow AI PDF report
  */
 export async function generateShadowAIPDF(

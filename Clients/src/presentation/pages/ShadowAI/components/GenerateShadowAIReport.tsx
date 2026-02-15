@@ -7,7 +7,7 @@
  * Page 3: Generation status with auto-download
  */
 
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   Stack,
   Box,
@@ -160,6 +160,15 @@ export default function GenerateShadowAIReport({
     body: string;
   } | null>(null);
   const clearTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (clearTimerRef.current) {
+        clearTimeout(clearTimerRef.current);
+      }
+    };
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Selection helpers
@@ -526,7 +535,7 @@ export default function GenerateShadowAIReport({
                     onClick={() => handleSectionToggle(section.id)}
                   >
                     <Checkbox
-                      checked={selection[section.id] ?? true}
+                      checked={selection[section.id] === true}
                       onChange={() => handleSectionToggle(section.id)}
                       sx={checkboxSx}
                       size="small"

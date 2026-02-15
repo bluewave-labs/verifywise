@@ -282,6 +282,16 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Frequent alerts may indicate rules need fine-tuning, while no alerts might mean thresholds are too high. Check alert history regularly and adjust trigger conditions to maintain an effective monitoring balance.",
     },
   ],
+  "shadow-ai-reports": [
+    {
+      header: "Generate reports to share Shadow AI findings with stakeholders.",
+      content: "Select which sections to include, choose your time period, and export as PDF or DOCX. Reports cover tool inventory, risk analysis, usage trends, department breakdowns, and compliance posture.",
+    },
+    {
+      header: "Use filters and grouping to organize your report history.",
+      content: "Filter reports by name, format, or generator. Group by format or author to quickly find what you need. Previously generated reports can be re-downloaded or deleted from the table.",
+    },
+  ],
   "shadow-ai-settings": [
     {
       header: "API keys authenticate your network monitoring infrastructure.",

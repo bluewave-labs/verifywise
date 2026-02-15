@@ -161,6 +161,9 @@ export class ShadowAIReportDataCollector {
   private periodDays: number;
 
   constructor(tenantId: string, _userId: number, period: string = "30d") {
+    if (!/^[a-zA-Z0-9]{10}$/.test(tenantId)) {
+      throw new Error("Invalid tenant ID format");
+    }
     this.tenantId = tenantId;
     this.periodDays = parsePeriodToDays(period);
   }

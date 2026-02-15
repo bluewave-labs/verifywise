@@ -393,3 +393,60 @@ export const getLatestSyncStatusQuery = async (
   );
   return (results as SyncLogEntry[])[0] || null;
 };
+
+// ─── Audit Log ────────────────────────────────────────────────────
+
+export interface AuditLogEntry {
+  id?: number;
+  agent_primitive_id: number;
+  action: string;
+  field_changed?: string;
+  old_value?: string;
+  new_value?: string;
+  performed_by?: number;
+  created_at?: string;
+}
+
+export const createAuditLogQuery = async (
+  data: {
+    agent_primitive_id: number;
+    action: string;
+    field_changed?: string | null;
+    old_value?: string | null;
+    new_value?: string | null;
+    performed_by?: number;
+  },
+  tenant: string
+): Promise<AuditLogEntry> => {
+  const [results] = await sequelize.query(
+    `INSERT INTO "${tenant}".agent_audit_log
+     (agent_primitive_id, action, field_changed, old_value, new_value, performed_by, created_at)
+     VALUES (:agent_primitive_id, :action, :field_changed, :old_value, :new_value, :performed_by, NOW())
+     RETURNING *`,
+    {
+      replacements: {
+        agent_primitive_id: data.agent_primitive_id,
+        action: data.action,
+        field_changed: data.field_changed || null,
+        old_value: data.old_value || null,
+        new_value: data.new_value || null,
+        performed_by: data.performed_by || null,
+      },
+    }
+  );
+  return (results as AuditLogEntry[])[0];
+};
+
+export const getAuditLogsForAgentQuery = async (
+  agentId: number,
+  tenant: string
+): Promise<AuditLogEntry[]> => {
+  const results = await sequelize.query(
+    `SELECT * FROM "${tenant}".agent_audit_log
+     WHERE agent_primitive_id = :agentId
+     ORDER BY created_at DESC
+     LIMIT 100`,
+    { replacements: { agentId }, type: QueryTypes.SELECT }
+  );
+  return results as AuditLogEntry[];
+};

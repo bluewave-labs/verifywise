@@ -15,39 +15,71 @@ import { sequelize } from "../../database/db";
 import logger from "../../utils/logger/fileLogger";
 
 /**
- * Permission category mapping: maps raw permission strings to normalized categories.
+ * Permission category mapping: maps raw permission segments to normalized categories.
+ * Categories follow the v1 spec: ai:invoke, ai:manage, data:read, data:write,
+ * identity:read, identity:manage, code:read, code:write, comms:read, comms:write.
  */
 const PERMISSION_CATEGORY_MAP: Record<string, string> = {
-  // Read-level
-  "read": "data_read",
-  "read:all": "data_read",
-  "list": "data_read",
-  "get": "data_read",
-  "view": "data_read",
-  // Write-level
-  "write": "data_write",
-  "write:all": "data_write",
-  "create": "data_write",
-  "update": "data_write",
-  "put": "data_write",
-  "patch": "data_write",
-  // Delete-level
-  "delete": "data_delete",
-  "delete:all": "data_delete",
-  "remove": "data_delete",
-  // Admin-level
-  "admin": "admin",
-  "manage": "admin",
-  "admin:all": "admin",
-  // Execute-level
-  "execute": "code_execute",
-  "run": "code_execute",
-  "invoke": "code_execute",
-  // Network
-  "network": "network_access",
-  "internet": "network_access",
-  "api": "network_access",
-  "http": "network_access",
+  // AI-level
+  "invokemodel": "ai:invoke",
+  "invoke": "ai:invoke",
+  "infer": "ai:invoke",
+  "predict": "ai:invoke",
+  "generate": "ai:invoke",
+  "bedrock": "ai:invoke",
+  "sagemaker": "ai:invoke",
+  "cognitiveservices": "ai:invoke",
+  "machinelearningservices": "ai:invoke",
+  "aiservices": "ai:invoke",
+  "createmodel": "ai:manage",
+  "deletemodel": "ai:manage",
+  "updatemodel": "ai:manage",
+  "createagent": "ai:manage",
+  "deleteagent": "ai:manage",
+  "createendpoint": "ai:manage",
+  // Data-level
+  "read": "data:read",
+  "list": "data:read",
+  "get": "data:read",
+  "view": "data:read",
+  "describe": "data:read",
+  "select": "data:read",
+  "write": "data:write",
+  "create": "data:write",
+  "update": "data:write",
+  "put": "data:write",
+  "patch": "data:write",
+  "delete": "data:write",
+  "remove": "data:write",
+  "insert": "data:write",
+  // Identity-level
+  "users": "identity:read",
+  "members": "identity:read",
+  "profiles": "identity:read",
+  "directory": "identity:read",
+  "admin": "identity:manage",
+  "manage": "identity:manage",
+  "permissions": "identity:manage",
+  "roles": "identity:manage",
+  // Code-level
+  "repos": "code:read",
+  "contents": "code:read",
+  "code": "code:read",
+  "actions": "code:write",
+  "workflows": "code:write",
+  "deploy": "code:write",
+  "push": "code:write",
+  "execute": "code:write",
+  "run": "code:write",
+  // Communications-level
+  "channels": "comms:read",
+  "messages": "comms:read",
+  "chat": "comms:read",
+  "conversations": "comms:read",
+  "send": "comms:write",
+  "post": "comms:write",
+  "notify": "comms:write",
+  "email": "comms:write",
 };
 
 function categorizePermissions(permissions: string[]): string[] {
@@ -55,20 +87,39 @@ function categorizePermissions(permissions: string[]): string[] {
   for (const perm of permissions) {
     const normalized = perm.toLowerCase().trim();
     let matched = false;
-    // Check for exact match first
-    if (PERMISSION_CATEGORY_MAP[normalized]) {
-      categories.add(PERMISSION_CATEGORY_MAP[normalized]);
+
+    // Check for exact match first (handles compound keys like "invokemodel")
+    const compacted = normalized.replace(/[^a-z]/g, "");
+    if (PERMISSION_CATEGORY_MAP[compacted]) {
+      categories.add(PERMISSION_CATEGORY_MAP[compacted]);
       continue;
     }
-    // Check colon-delimited segments (e.g., "files:read" → check "files", "read")
-    const segments = normalized.split(/[:.]/);
+
+    // Split on colons, dots, underscores, hyphens, and camelCase boundaries
+    // e.g., "bedrock:InvokeModel" → ["bedrock", "invoke", "model"]
+    const segments = normalized
+      .split(/[:._\-/]/)
+      .flatMap((s) => s.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().split(/\s+/))
+      .filter(Boolean);
+
     for (const segment of segments) {
       if (PERMISSION_CATEGORY_MAP[segment]) {
         categories.add(PERMISSION_CATEGORY_MAP[segment]);
         matched = true;
       }
     }
-    // If no segment matched, mark as "other"
+
+    // Also try joining adjacent segments (e.g., ["invoke", "model"] → "invokemodel")
+    if (!matched) {
+      for (let i = 0; i < segments.length - 1; i++) {
+        const compound = segments[i] + segments[i + 1];
+        if (PERMISSION_CATEGORY_MAP[compound]) {
+          categories.add(PERMISSION_CATEGORY_MAP[compound]);
+          matched = true;
+        }
+      }
+    }
+
     if (!matched) {
       categories.add("other");
     }
@@ -127,7 +178,28 @@ export async function runAgentDiscoverySyncForTenant(
         };
 
         const response = await PluginService.forwardToPlugin(pluginKey, context);
-        const primitives = response.data || [];
+        const rawPrimitives = response.data || [];
+
+        // Validate plugin output — skip records missing required fields
+        const primitives = rawPrimitives.filter((p: any) => {
+          if (!p.external_id || typeof p.external_id !== "string") {
+            logger.warn(`[AgentDiscoverySync] ${pluginKey}: skipping primitive with missing/invalid external_id`);
+            return false;
+          }
+          if (!p.display_name || typeof p.display_name !== "string") {
+            logger.warn(`[AgentDiscoverySync] ${pluginKey}: skipping primitive "${p.external_id}" with missing/invalid display_name`);
+            return false;
+          }
+          if (p.permissions && !Array.isArray(p.permissions)) {
+            logger.warn(`[AgentDiscoverySync] ${pluginKey}: skipping primitive "${p.external_id}" — permissions must be an array`);
+            return false;
+          }
+          return true;
+        });
+
+        if (primitives.length < rawPrimitives.length) {
+          logger.warn(`[AgentDiscoverySync] ${pluginKey}: ${rawPrimitives.length - primitives.length} of ${rawPrimitives.length} primitives failed validation`);
+        }
 
         // Normalize permissions into categories
         const normalizedPrimitives = primitives.map((p: any) => ({

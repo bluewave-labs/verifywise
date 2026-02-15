@@ -12,6 +12,7 @@ import {
   reviewAgentPrimitive,
   linkModelToAgent,
   unlinkModelFromAgent,
+  getAgentAuditLogs,
   deleteAgentPrimitiveById,
 } from "../controllers/agentDiscovery.ctrl";
 
@@ -32,6 +33,9 @@ router.post("/sync", authenticateJWT, triggerSync);
 router.patch("/:id/review", authenticateJWT, reviewAgentPrimitive);
 router.patch("/:id/link-model", authenticateJWT, linkModelToAgent);
 router.patch("/:id/unlink-model", authenticateJWT, unlinkModelFromAgent);
+
+// Audit logs
+router.get("/:id/audit-logs", authenticateJWT, getAgentAuditLogs);
 
 // Delete
 router.delete("/:id", authenticateJWT, deleteAgentPrimitiveById);

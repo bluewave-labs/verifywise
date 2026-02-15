@@ -8,7 +8,9 @@ import {
   IconButton,
   Chip,
   useTheme,
+  Tab,
 } from "@mui/material";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 import { X, Link as LinkIcon, Unlink } from "lucide-react";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
@@ -31,6 +33,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
   const theme = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [permissionsTab, setPermissionsTab] = useState("categories");
 
   if (!agent) return null;
 
@@ -126,49 +129,60 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
             <DetailRow label="Entry type" value="Manually added" />
           )}
 
-          {/* Permissions */}
+          {/* Permissions with toggle */}
           <Box>
             <Typography fontSize={12} fontWeight={600} color="text.secondary" mb={1}>
-              Raw permissions
+              Permissions
             </Typography>
-            <Stack direction="row" flexWrap="wrap" gap={0.5}>
-              {(agent.permissions || []).length > 0 ? (
-                agent.permissions.map((perm: any, idx: number) => (
-                  <Chip
-                    key={idx}
-                    label={typeof perm === "string" ? perm : JSON.stringify(perm)}
-                    size="small"
-                    sx={{ fontSize: 11, height: 22 }}
-                  />
-                ))
-              ) : (
-                <Typography fontSize={13} color="text.secondary">
-                  None
-                </Typography>
-              )}
-            </Stack>
-          </Box>
-
-          <Box>
-            <Typography fontSize={12} fontWeight={600} color="text.secondary" mb={1}>
-              Permission categories
-            </Typography>
-            <Stack direction="row" flexWrap="wrap" gap={0.5}>
-              {(agent.permission_categories || []).length > 0 ? (
-                agent.permission_categories.map((cat) => (
-                  <Chip
-                    key={cat}
-                    label={cat.replace(/_/g, " ")}
-                    size="small"
-                    sx={{ fontSize: 11, height: 22 }}
-                  />
-                ))
-              ) : (
-                <Typography fontSize={13} color="text.secondary">
-                  None
-                </Typography>
-              )}
-            </Stack>
+            <TabContext value={permissionsTab}>
+              <TabList
+                onChange={(_, v) => setPermissionsTab(v)}
+                sx={{
+                  minHeight: 28,
+                  "& .MuiTab-root": { minHeight: 28, fontSize: 12, py: 0, textTransform: "none" },
+                  "& .MuiTabs-indicator": { backgroundColor: "#13715B" },
+                }}
+              >
+                <Tab label="Categories" value="categories" />
+                <Tab label="Raw" value="raw" />
+              </TabList>
+              <TabPanel value="categories" sx={{ p: "8px 0 0 0" }}>
+                <Stack direction="row" flexWrap="wrap" gap={0.5}>
+                  {(agent.permission_categories || []).length > 0 ? (
+                    agent.permission_categories.map((cat) => (
+                      <Chip
+                        key={cat}
+                        label={cat}
+                        size="small"
+                        sx={{ fontSize: 11, height: 22 }}
+                      />
+                    ))
+                  ) : (
+                    <Typography fontSize={13} color="text.secondary">
+                      None
+                    </Typography>
+                  )}
+                </Stack>
+              </TabPanel>
+              <TabPanel value="raw" sx={{ p: "8px 0 0 0" }}>
+                <Stack direction="row" flexWrap="wrap" gap={0.5}>
+                  {(agent.permissions || []).length > 0 ? (
+                    agent.permissions.map((perm: any, idx: number) => (
+                      <Chip
+                        key={idx}
+                        label={typeof perm === "string" ? perm : JSON.stringify(perm)}
+                        size="small"
+                        sx={{ fontSize: 11, height: 22 }}
+                      />
+                    ))
+                  ) : (
+                    <Typography fontSize={13} color="text.secondary">
+                      None
+                    </Typography>
+                  )}
+                </Stack>
+              </TabPanel>
+            </TabContext>
           </Box>
 
           {/* Model link */}

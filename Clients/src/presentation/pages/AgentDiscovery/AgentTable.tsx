@@ -154,7 +154,7 @@ const AgentTable: React.FC<AgentTableProps> = ({
                     {(agent.permission_categories || []).slice(0, 3).map((cat) => (
                       <Chip
                         key={cat}
-                        label={cat.replace(/_/g, " ")}
+                        label={cat}
                         size="small"
                         sx={permissionChip}
                       />

@@ -10,6 +10,8 @@ import {
   getAgentStatsQuery,
   getSyncLogsQuery,
   getLatestSyncStatusQuery,
+  createAuditLogQuery,
+  getAuditLogsForAgentQuery,
 } from "../utils/agentDiscovery.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { logStructured } from "../utils/logger/fileLogger";
@@ -191,10 +193,21 @@ export async function reviewAgentPrimitive(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("review_status must be 'confirmed', 'rejected', or 'unreviewed'"));
     }
 
-    const primitive = await updateReviewStatusQuery(id, review_status, req.userId!, req.tenantId!);
-    if (!primitive) {
+    const existing = await getAgentPrimitiveByIdQuery(id, req.tenantId!);
+    if (!existing) {
       return res.status(404).json(STATUS_CODE[404]("Agent primitive not found"));
     }
+
+    const primitive = await updateReviewStatusQuery(id, review_status, req.userId!, req.tenantId!);
+
+    await createAuditLogQuery({
+      agent_primitive_id: id,
+      action: "review_status_changed",
+      field_changed: "review_status",
+      old_value: existing.review_status,
+      new_value: review_status,
+      performed_by: req.userId!,
+    }, req.tenantId!);
 
     logStructured("successful", `agent primitive reviewed as ${review_status}`, functionName, fileName);
     return res.status(200).json(STATUS_CODE[200](primitive));
@@ -222,10 +235,21 @@ export async function linkModelToAgent(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("model_id is required"));
     }
 
-    const primitive = await linkModelQuery(id, model_id, req.tenantId!);
-    if (!primitive) {
+    const existing = await getAgentPrimitiveByIdQuery(id, req.tenantId!);
+    if (!existing) {
       return res.status(404).json(STATUS_CODE[404]("Agent primitive not found"));
     }
+
+    const primitive = await linkModelQuery(id, model_id, req.tenantId!);
+
+    await createAuditLogQuery({
+      agent_primitive_id: id,
+      action: "model_linked",
+      field_changed: "linked_model_inventory_id",
+      old_value: existing.linked_model_inventory_id?.toString() || null,
+      new_value: model_id.toString(),
+      performed_by: req.userId!,
+    }, req.tenantId!);
 
     logStructured("successful", "model linked to agent", functionName, fileName);
     return res.status(200).json(STATUS_CODE[200](primitive));
@@ -248,15 +272,48 @@ export async function unlinkModelFromAgent(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Invalid agent primitive ID"));
     }
 
-    const primitive = await unlinkModelQuery(id, req.tenantId!);
-    if (!primitive) {
+    const existing = await getAgentPrimitiveByIdQuery(id, req.tenantId!);
+    if (!existing) {
       return res.status(404).json(STATUS_CODE[404]("Agent primitive not found"));
     }
+
+    const primitive = await unlinkModelQuery(id, req.tenantId!);
+
+    await createAuditLogQuery({
+      agent_primitive_id: id,
+      action: "model_unlinked",
+      field_changed: "linked_model_inventory_id",
+      old_value: existing.linked_model_inventory_id?.toString() || null,
+      new_value: null,
+      performed_by: req.userId!,
+    }, req.tenantId!);
 
     logStructured("successful", "model unlinked from agent", functionName, fileName);
     return res.status(200).json(STATUS_CODE[200](primitive));
   } catch (error) {
     logStructured("error", "failed to unlink model from agent", functionName, fileName);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get audit logs for an agent primitive
+ */
+export async function getAgentAuditLogs(req: Request, res: Response) {
+  const functionName = "getAgentAuditLogs";
+  logStructured("processing", "fetching agent audit logs", functionName, fileName);
+
+  try {
+    const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid agent primitive ID"));
+    }
+
+    const logs = await getAuditLogsForAgentQuery(id, req.tenantId!);
+    logStructured("successful", `found ${logs.length} audit logs`, functionName, fileName);
+    return res.status(200).json(STATUS_CODE[200](logs));
+  } catch (error) {
+    logStructured("error", "failed to retrieve agent audit logs", functionName, fileName);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

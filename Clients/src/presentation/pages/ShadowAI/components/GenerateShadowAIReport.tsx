@@ -15,10 +15,9 @@ import {
   Checkbox,
   Collapse,
   useTheme,
-  ToggleButtonGroup,
-  ToggleButton,
 } from "@mui/material";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { ButtonToggle } from "../../../components/button-toggle";
 import StandardModal from "../../../components/Modals/StandardModal";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
@@ -592,33 +591,14 @@ export default function GenerateShadowAIReport({
         <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#344054" }}>
           Format
         </Typography>
-        <ToggleButtonGroup
+        <ButtonToggle
+          options={[
+            { label: "PDF", value: "pdf" },
+            { label: "DOCX", value: "docx" },
+          ]}
           value={format}
-          exclusive
-          onChange={(_, val) => { if (val) setFormat(val); }}
-          size="small"
-          sx={{
-            "& .MuiToggleButton-root": {
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 500,
-              height: 34,
-              px: 3,
-              border: "1px solid #D0D5DD",
-              color: "#344054",
-              "&.Mui-selected": {
-                backgroundColor: "#13715B",
-                color: "#fff",
-                borderColor: "#13715B",
-                "&:hover": { backgroundColor: "#0F5A47" },
-              },
-              "&:hover": { backgroundColor: "#F9FAFB" },
-            },
-          }}
-        >
-          <ToggleButton value="pdf">PDF</ToggleButton>
-          <ToggleButton value="docx">DOCX</ToggleButton>
-        </ToggleButtonGroup>
+          onChange={(val) => setFormat(val as "pdf" | "docx")}
+        />
       </Stack>
     </Stack>
   );

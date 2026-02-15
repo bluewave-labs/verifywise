@@ -71,12 +71,14 @@ const PolicyDashboard: React.FC = () => {
                 value: "policies",
                 icon: "Shield",
                 count: policies.length,
+                tooltip: "Your organization's active policies",
               },
               {
                 label: "Policy Templates",
                 value: "templates",
                 icon: "ShieldHalf",
                 count: policyTemplates.length,
+                tooltip: "Pre-built templates to create new policies from",
               },
             ]}
             activeTab={activeTab}

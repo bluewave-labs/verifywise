@@ -144,15 +144,47 @@ const TabBar: React.FC<TabBarProps> = ({
             />
           ) : undefined;
 
-          const tabElement = (
+          const tooltipText = tab.tooltip || (tab.disabled ? disabledTabTooltip : "");
+          const labelContent = createTabLabelWithCount({
+            label: tab.label,
+            icon: iconElement,
+            count: tab.count,
+            isLoading: tab.isLoading,
+          });
+
+          // Wrap label content in Tooltip so Tab remains a direct child of TabList
+          const label = tooltipText ? (
+            <Tooltip
+              title={tooltipText}
+              arrow
+              placement="top"
+              enterDelay={400}
+              leaveDelay={0}
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    maxWidth: "280px",
+                    fontSize: "12px !important",
+                    padding: "6px 10px !important",
+                    lineHeight: "1.3 !important",
+                    margin: "4px !important",
+                  },
+                },
+                arrow: {
+                  sx: {
+                    fontSize: "12px",
+                  },
+                },
+              }}
+            >
+              <span>{labelContent}</span>
+            </Tooltip>
+          ) : labelContent;
+
+          return (
             <Tab
               key={tab.value}
-              label={createTabLabelWithCount({
-                label: tab.label,
-                icon: iconElement,
-                count: tab.count,
-                isLoading: tab.isLoading,
-              })}
+              label={label}
               value={tab.value}
               sx={getTabStyle(!!tab.disabled)}
               disableRipple={disableRipple}
@@ -164,41 +196,6 @@ const TabBar: React.FC<TabBarProps> = ({
               }}
             />
           );
-
-          // Show tooltip on hover: custom tooltip text, or disabled fallback
-          const tooltipText = tab.tooltip || (tab.disabled ? disabledTabTooltip : "");
-          if (tooltipText) {
-            return (
-              <Tooltip
-                key={tab.value}
-                title={tooltipText}
-                arrow
-                placement="top"
-                enterDelay={400}
-                leaveDelay={0}
-                slotProps={{
-                  tooltip: {
-                    sx: {
-                      maxWidth: "280px",
-                      fontSize: "12px !important",
-                      padding: "6px 10px !important",
-                      lineHeight: "1.3 !important",
-                      margin: "4px !important",
-                    },
-                  },
-                  arrow: {
-                    sx: {
-                      fontSize: "12px",
-                    },
-                  },
-                }}
-              >
-                <span>{tabElement}</span>
-              </Tooltip>
-            );
-          }
-
-          return tabElement;
         })}
       </TabList>
     </Box>

@@ -267,18 +267,20 @@ const Plugins: React.FC = () => {
         <Box>
           <TabBar
             tabs={[
-              { label: "Marketplace", value: "marketplace", icon: "Store" },
+              { label: "Marketplace", value: "marketplace", icon: "Store", tooltip: "Browse and install available plugins" },
               {
                 label: "My plugins",
                 value: "my-plugins",
                 icon: "Package",
                 count: installedPlugins.length,
+                tooltip: "Plugins currently installed in your organization",
               },
               {
                 label: "Frameworks",
                 value: "frameworks",
                 icon: "FileCode",
                 count: frameworkPlugins.length,
+                tooltip: "Compliance framework plugins and extensions",
               },
             ]}
             activeTab={activeTab}

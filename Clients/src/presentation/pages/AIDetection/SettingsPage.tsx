@@ -179,6 +179,7 @@ export default function SettingsPage() {
             {
               label: "GitHub integration",
               value: "github",
+              tooltip: "Connect a GitHub token to scan private repositories",
             },
           ]}
           activeTab={activeTab}

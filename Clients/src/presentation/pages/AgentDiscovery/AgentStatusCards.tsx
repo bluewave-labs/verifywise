@@ -1,5 +1,6 @@
 import React from "react";
-import { Stack, Typography, Tooltip, Box } from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
+import VWTooltip from "../../components/VWTooltip";
 import {
   statusCardsContainer,
   statusCardTile,
@@ -32,10 +33,9 @@ const AgentStatusCards: React.FC<AgentStatusCardsProps> = ({ stats }) => {
     <Box sx={{ width: "100%" }}>
       <Stack sx={statusCardsContainer} direction="row">
         {cards.map((card) => (
-          <Tooltip
+          <VWTooltip
             key={card.key}
-            title={`${card.count} ${card.label} agent${card.count !== 1 ? "s" : ""}`}
-            arrow
+            content={`${card.count} ${card.label} agent${card.count !== 1 ? "s" : ""}`}
             placement="top"
           >
             <Stack
@@ -47,7 +47,7 @@ const AgentStatusCards: React.FC<AgentStatusCardsProps> = ({ stats }) => {
               <Typography sx={statusCardKey}>{card.label}</Typography>
               <Typography sx={statusCardValue}>{card.count}</Typography>
             </Stack>
-          </Tooltip>
+          </VWTooltip>
         ))}
       </Stack>
     </Box>

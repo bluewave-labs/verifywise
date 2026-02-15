@@ -186,8 +186,8 @@ const AgentDiscovery: React.FC = () => {
       {/* Controls row */}
       <Stack direction="row" sx={agentFilterRow} alignItems="center" flexWrap="wrap">
         <SearchBox
-          searchValue={searchTerm}
-          onSearchChange={(e) => setSearchTerm(e.target.value)}
+          value={searchTerm}
+          onChange={setSearchTerm}
           placeholder="Search agents..."
         />
         <SelectComponent

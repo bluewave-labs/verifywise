@@ -53,7 +53,7 @@ function LifecycleSidebar({
         width: 280,
         minWidth: 280,
         borderRight: `1px solid ${theme.palette.border.light}`,
-        backgroundColor: "#FCFCFD",
+        backgroundColor: theme.palette.background.alt,
       }}
     >
       {/* Overall progress summary */}
@@ -99,7 +99,7 @@ function LifecycleSidebar({
                 gap: "12px",
                 cursor: "pointer",
                 borderLeft: isActive
-                  ? "3px solid #13715B"
+                  ? `3px solid ${theme.palette.primary.main}`
                   : "3px solid transparent",
                 backgroundColor: isActive
                   ? "rgba(19,113,91,0.06)"
@@ -123,9 +123,9 @@ function LifecycleSidebar({
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: isComplete
-                    ? "#13715B"
+                    ? theme.palette.primary.main
                     : isActive
-                    ? "#13715B"
+                    ? theme.palette.primary.main
                     : theme.palette.background.fill,
                   color: isComplete || isActive ? "#fff" : theme.palette.text.tertiary,
                   fontSize: "11px",

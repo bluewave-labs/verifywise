@@ -4,7 +4,7 @@
 
 .control-category-accordion {
   margin-top: 9px;
-  border: 1px solid #eaecf0;
+  border: 1px solid var(--vw-border-light);
   width: 100%;
   margin-left: 1.5px;
   border-radius: 4px;
@@ -23,7 +23,7 @@
 .control-category-accordion,
 .control-category-accordion-summary {
   font-size: 13px;
-  background-color: #fafafa;
+  background-color: var(--vw-bg-accent);
   flex-direction: row-reverse;
 }
 

@@ -679,12 +679,12 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                         <>
                             {/* Request Information */}
                             <Stack spacing={8} sx={{
-                                backgroundColor: "#F9FAFB",
-                                border: "1px solid #E5E7EB",
+                                backgroundColor: theme.palette.background.accent,
+                                border: `1px solid ${theme.palette.border.input}`,
                                 borderRadius: "8px",
                                 padding: "16px",
                             }}>
-                                <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
+                                <Typography fontWeight={600} fontSize={14} color={theme.palette.text.dark} mb={2}>
                                     Request Information
                                 </Typography>
                                 {requestDetails.requester && (

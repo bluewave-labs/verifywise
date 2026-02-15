@@ -4,6 +4,7 @@ import {
   Chip,
   Stack,
   Divider,
+  useTheme,
 } from "@mui/material";
 import { Check, FileText } from "lucide-react";
 
@@ -74,6 +75,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
   maxHeight = "300px",
   compact = false,
 }) => {
+  const theme = useTheme();
   // Group templates by turn type
   const multiTurn = templates.filter((t) => t.type === "multi-turn");
   const singleTurn = templates.filter((t) => t.type === "single-turn" || !t.type);
@@ -89,14 +91,14 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
         sx={{
           p: compact ? 1 : 1.5,
           border: "1px solid",
-          borderColor: isSelected ? "#13715B" : "#E5E7EB",
+          borderColor: isSelected ? theme.palette.primary.main : theme.palette.border.input,
           borderRadius: "8px",
           cursor: "pointer",
-          backgroundColor: isSelected ? "#F0FDF4" : "#FFFFFF",
+          backgroundColor: isSelected ? "#F0FDF4" : theme.palette.background.main,
           transition: "all 0.15s ease",
           "&:hover": {
-            borderColor: "#13715B",
-            backgroundColor: isSelected ? "#F0FDF4" : "#F9FAFB",
+            borderColor: theme.palette.primary.main,
+            backgroundColor: isSelected ? "#F0FDF4" : theme.palette.background.accent,
           },
         }}
       >
@@ -106,21 +108,21 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
               width: compact ? 28 : 32,
               height: compact ? 28 : 32,
               borderRadius: "6px",
-              backgroundColor: isSelected ? "#13715B" : "#F3F4F6",
+              backgroundColor: isSelected ? theme.palette.primary.main : theme.palette.background.subtle,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
             }}
           >
-            <FileText size={compact ? 14 : 16} color={isSelected ? "#FFFFFF" : "#6B7280"} />
+            <FileText size={compact ? 14 : 16} color={isSelected ? theme.palette.background.main : "#6B7280"} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               sx={{
                 fontSize: compact ? "12px" : "13px",
                 fontWeight: 500,
-                color: "#374151",
+                color: theme.palette.text.dark,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -132,7 +134,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
               <Typography
                 sx={{
                   fontSize: "11px",
-                  color: "#9CA3AF",
+                  color: theme.palette.text.muted,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -155,7 +157,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
               }}
             />
             {template.test_count && (
-              <Typography sx={{ fontSize: compact ? "10px" : "11px", color: "#9CA3AF" }}>
+              <Typography sx={{ fontSize: compact ? "10px" : "11px", color: theme.palette.text.muted }}>
                 {template.test_count}
               </Typography>
             )}
@@ -171,7 +173,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
                 "& .MuiChip-label": { px: 0.75 },
               }}
             />
-            {isSelected && <Check size={14} color="#13715B" />}
+            {isSelected && <Check size={14} color={theme.palette.primary.main} />}
           </Stack>
         </Stack>
       </Box>

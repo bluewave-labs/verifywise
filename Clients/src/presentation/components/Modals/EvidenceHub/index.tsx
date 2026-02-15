@@ -398,7 +398,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
             variant="caption"
             sx={{
               mt: 1,
-              color: "#f04438",
+              color: theme.palette.status.error.text,
               fontWeight: 300,
               fontSize: 11,
             }}
@@ -435,7 +435,7 @@ const NewEvidenceHub: FC<NewEvidenceHubProps> = ({
                     size="small"
                     sx={{
                       padding: "4px",
-                      bgcolor: "#f5f5f5",
+                      bgcolor: theme.palette.background.hover,
                       "&:hover": { bgcolor: "#e0e0e0" },
                     }}
                   >

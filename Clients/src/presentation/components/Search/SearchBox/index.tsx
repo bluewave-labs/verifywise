@@ -44,7 +44,7 @@ const SearchBox: React.FC<ISearchBoxProps> = ({
 
   return (
     <Box sx={searchBoxStyle}>
-      <Search size={16} style={{ color: "#6b7280", marginRight: "8px" }} />
+      <Search size={16} style={{ color: theme.palette.text.muted, marginRight: "8px" }} />
       <InputBase
         placeholder={placeholder}
         value={value}

@@ -144,7 +144,7 @@ const SortableTableHead: React.FC<{
                     display: "flex",
                     alignItems: "center",
                     color:
-                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                      sortConfig.key === column.id ? "primary.main" : theme.palette.text.muted,
                   }}
                 >
                   {sortConfig.key === column.id &&

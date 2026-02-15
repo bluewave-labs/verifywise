@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import DetailField from "./DetailField";
 import {
     getEntityTypeConfig,
@@ -19,13 +19,14 @@ interface EntityDetailsSectionProps {
 }
 
 const EntityDetailsSection: React.FC<EntityDetailsSectionProps> = ({ details }) => {
+    const theme = useTheme();
     const entityType = details?.entityType;
     const config: EntityTypeConfig = getEntityTypeConfig(entityType);
 
     // Container styles
     const containerStyles = {
-        backgroundColor: "#F9FAFB",
-        border: "1px solid #E5E7EB",
+        backgroundColor: theme.palette.background.accent,
+        border: `1px solid ${theme.palette.border.input}`,
         borderRadius: "8px",
         padding: "16px",
     };
@@ -42,7 +43,7 @@ const EntityDetailsSection: React.FC<EntityDetailsSectionProps> = ({ details }) 
     if (isEntityDeleted(details)) {
         return (
             <Stack spacing={8} sx={containerStyles}>
-                <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
+                <Typography fontWeight={600} fontSize={14} color={theme.palette.text.dark} mb={2}>
                     {config.title}
                 </Typography>
                 <Typography fontSize={13} color="#C62828" fontStyle="italic" sx={deletedMessageStyles}>
@@ -57,7 +58,7 @@ const EntityDetailsSection: React.FC<EntityDetailsSectionProps> = ({ details }) 
 
     return (
         <Stack spacing={8} sx={containerStyles}>
-            <Typography fontWeight={600} fontSize={14} color="#374151" mb={2}>
+            <Typography fontWeight={600} fontSize={14} color={theme.palette.text.dark} mb={2}>
                 {config.title}
             </Typography>
             {fieldsWithValues.length > 0 ? (

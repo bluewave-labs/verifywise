@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, MenuItem, ListItemText, IconButton } from '@mui/material';
+import { Menu, MenuItem, ListItemText, IconButton, useTheme } from '@mui/material';
 import { MoreVertical, ChevronRight } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF, printTable } from '../../../application/utils/tableExport';
 import pdfIcon from '../../assets/icons/pdf_icon.svg';
@@ -27,6 +27,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
   title,
   disabled: disabledProp = false,
 }) => {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -106,7 +107,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             fontSize: '13px',
             padding: '8px 12px',
             '&:hover': {
-              backgroundColor: '#f9fafb !important',
+              backgroundColor: `${theme.palette.background.accent} !important`,
             }
           }}
         >
@@ -129,9 +130,9 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: exportAnchorEl ? '#f9fafb' : 'transparent',
+            backgroundColor: exportAnchorEl ? theme.palette.background.accent : 'transparent',
             '&:hover': {
-              backgroundColor: '#f9fafb !important',
+              backgroundColor: `${theme.palette.background.accent} !important`,
             }
           }}
         >
@@ -171,7 +172,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             gap: '12px',
             alignItems: 'center',
             '&:hover': {
-              backgroundColor: '#f9fafb',
+              backgroundColor: theme.palette.background.accent,
             }
           }}
         >
@@ -191,7 +192,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             gap: '12px',
             alignItems: 'center',
             '&:hover': {
-              backgroundColor: '#f9fafb',
+              backgroundColor: theme.palette.background.accent,
             }
           }}
         >
@@ -211,7 +212,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
             gap: '12px',
             alignItems: 'center',
             '&:hover': {
-              backgroundColor: '#f9fafb',
+              backgroundColor: theme.palette.background.accent,
             }
           }}
         >

@@ -849,7 +849,7 @@ const VWISO27001ClauseDrawerDialog = ({
                 {displayData?.requirement_summary && (
                   <Stack
                     sx={{
-                      border: "1px solid #eee",
+                      border: `1px solid ${theme.palette.border.input}`,
                       padding: "12px",
                       backgroundColor: "background.accent",
                       borderRadius: "4px",
@@ -1107,12 +1107,12 @@ const VWISO27001ClauseDrawerDialog = ({
                           minWidth: 155,
                           height: 25,
                           fontSize: 11,
-                          border: "1px solid #D0D5DD",
-                          backgroundColor: "white",
-                          color: "#344054",
+                          border: `1px solid ${theme.palette.border.dark}`,
+                          backgroundColor: theme.palette.background.main,
+                          color: theme.palette.text.secondary,
                           "&:hover": {
-                            backgroundColor: "#F9FAFB",
-                            border: "1px solid #D0D5DD",
+                            backgroundColor: theme.palette.background.accent,
+                            border: `1px solid ${theme.palette.border.dark}`,
                           },
                         }}
                         disableRipple={
@@ -1209,7 +1209,7 @@ const VWISO27001ClauseDrawerDialog = ({
                                 sx={{
                                   fontSize: 13,
                                   fontWeight: 500,
-                                  color: "#1F2937",
+                                  color: theme.palette.text.primary,
                                   overflow: "hidden",
                                   textOverflow: "ellipsis",
                                   whiteSpace: "nowrap",
@@ -1425,7 +1425,7 @@ const VWISO27001ClauseDrawerDialog = ({
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       No evidence files uploaded yet
                     </Typography>
-                    <Typography variant="caption" color="#9CA3AF">
+                    <Typography variant="caption" color={theme.palette.text.muted}>
                       Click "Add evidence files" to upload documentation for
                       this requirement
                     </Typography>
@@ -1514,7 +1514,7 @@ const VWISO27001ClauseDrawerDialog = ({
                               sx={{
                                 fontSize: 13,
                                 fontWeight: 500,
-                                color: "#1F2937",
+                                color: theme.palette.text.primary,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",

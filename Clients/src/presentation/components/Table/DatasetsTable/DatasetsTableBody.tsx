@@ -9,6 +9,7 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -35,6 +36,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
   onDelete,
   onDownload,
 }) => {
+  const theme = useTheme();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<DatasetRow | null>(null);
 
@@ -105,7 +107,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 ...singleTheme.tableStyles.primary.body.row,
                 cursor: onRowClick ? "pointer" : "default",
                 "&:hover": {
-                  backgroundColor: "#F9FAFB",
+                  backgroundColor: theme.palette.background.accent,
                 },
               }}
             >
@@ -153,7 +155,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                     }}
                   />
                 ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
+                  <Typography sx={{ fontSize: "13px", color: theme.palette.text.muted }}>-</Typography>
                 )}
               </TableCell>
 
@@ -187,7 +189,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                     }}
                   />
                 ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
+                  <Typography sx={{ fontSize: "13px", color: theme.palette.text.muted }}>-</Typography>
                 )}
               </TableCell>
 
@@ -200,7 +202,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 }}
               >
                 {metadata?.loading ? (
-                  <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                  <CircularProgress size={14} sx={{ color: theme.palette.text.muted }} />
                 ) : metadata?.promptCount === 0 ? (
                   <Chip
                     label="Empty"
@@ -215,7 +217,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                     }}
                   />
                 ) : (
-                  <Typography sx={{ fontSize: "13px", color: "#374151" }}>
+                  <Typography sx={{ fontSize: "13px", color: theme.palette.text.dark }}>
                     {metadata?.promptCount ?? "-"}
                   </Typography>
                 )}
@@ -230,7 +232,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 }}
               >
                 {metadata?.loading ? (
-                  <CircularProgress size={14} sx={{ color: "#9CA3AF" }} />
+                  <CircularProgress size={14} sx={{ color: theme.palette.text.muted }} />
                 ) : (
                   <Chip
                     label={metadata?.avgDifficulty ?? "Medium"}
@@ -288,10 +290,10 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   size="small"
                   onClick={(e) => handleMenuOpen(e, dataset)}
                   sx={{
-                    color: "#667085",
+                    color: theme.palette.other.icon,
                     padding: "6px",
                     "&:hover": {
-                      backgroundColor: "#F3F4F6",
+                      backgroundColor: theme.palette.background.subtle,
                     },
                   }}
                 >

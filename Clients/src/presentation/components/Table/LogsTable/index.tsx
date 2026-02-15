@@ -316,7 +316,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     display: "flex",
                     alignItems: "center",
                     color:
-                      sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                      sortConfig.key === column.label ? "primary.main" : theme.palette.text.muted,
                   }}
                 >
                   {sortConfig.key === column.label &&
@@ -347,7 +347,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                 key={`${log.id}-${index}`}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  "&:hover": { backgroundColor: "#f5f5f5" },
+                  "&:hover": { backgroundColor: theme.palette.background.hover },
                 }}
               >
                 <TableCell
@@ -376,7 +376,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     backgroundColor:
                       sortConfig.key &&
                       sortConfig.key.toLowerCase().includes("timestamp")
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -390,7 +390,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     backgroundColor:
                       sortConfig.key &&
                       sortConfig.key.toLowerCase().includes("state")
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -404,7 +404,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     backgroundColor:
                       sortConfig.key &&
                       sortConfig.key.toLowerCase().includes("description")
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -421,7 +421,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     backgroundColor:
                       sortConfig.key &&
                       sortConfig.key.toLowerCase().includes("function")
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -438,7 +438,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     backgroundColor:
                       sortConfig.key &&
                       sortConfig.key.toLowerCase().includes("file")
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -468,7 +468,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
         alignItems="center"
         justifyContent="center"
         sx={{
-          border: "1px solid #d0d5dd",
+          border: `1px solid ${theme.palette.border.dark}`,
           borderRadius: "4px",
           padding: theme.spacing(15, 5),
           minHeight: 200,
@@ -485,7 +485,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
         alignItems="center"
         justifyContent="center"
         sx={{
-          border: "1px solid #d0d5dd",
+          border: `1px solid ${theme.palette.border.dark}`,
           borderRadius: "4px",
           padding: theme.spacing(15, 5),
           paddingBottom: theme.spacing(20),
@@ -494,7 +494,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
         }}
       >
         <img src={Placeholder} alt="Placeholder" />
-        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+        <Typography sx={{ fontSize: "13px", color: theme.palette.text.tertiary }}>
           There are currently no logs available.
         </Typography>
       </Stack>

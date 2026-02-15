@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Stack, Popover, Box, Typography } from '@mui/material';
+import { Button, Stack, Popover, Box, Typography, useTheme } from '@mui/material';
 import { X, Rows3 } from 'lucide-react';
 import Select from '../Inputs/Select';
 import { ButtonToggle } from '../button-toggle';
@@ -102,6 +102,7 @@ export const GroupBy: React.FC<GroupByProps> = ({
   defaultGroupBy,
   defaultSortOrder = 'asc',
 }) => {
+  const theme = useTheme();
   const [selectedGroup, setSelectedGroup] = useState<string>(defaultGroupBy || '');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(defaultSortOrder);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -190,8 +191,8 @@ export const GroupBy: React.FC<GroupByProps> = ({
           fontWeight: 500,
           padding: '6px 12px',
           textTransform: 'none',
-          color: '#374151',
-          borderColor: '#d0d5dd',
+          color: theme.palette.text.dark,
+          borderColor: theme.palette.border.dark,
           height: '34px',
           minWidth: selectedGroup ? '110px' : '80px',
           backgroundColor: open ? '#f0fdf4' : 'transparent',

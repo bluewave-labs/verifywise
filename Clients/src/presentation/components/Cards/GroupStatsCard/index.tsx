@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import { GroupStatsCardFrame, GroupStatsCardRate } from "./style";
@@ -8,6 +8,7 @@ import { GroupStatsCardFrame, GroupStatsCardRate } from "./style";
 import { GroupStatsCardProps } from "../../../types/interfaces/i.groupStatsCard";
 
 export function GroupStatsCard({ title, completed, total }: GroupStatsCardProps) {
+  const theme = useTheme();
   const stats = useMemo(() => {
     return title.map((t, index) => {
       const completedNum = Number(completed[index]);
@@ -30,7 +31,7 @@ export function GroupStatsCard({ title, completed, total }: GroupStatsCardProps)
   }, [title, completed, total]);
 
   return (
-    <Stack sx={GroupStatsCardFrame}>
+    <Stack sx={GroupStatsCardFrame(theme)}>
       <Stack
         sx={{
           width: "100%",
@@ -45,7 +46,7 @@ export function GroupStatsCard({ title, completed, total }: GroupStatsCardProps)
             <ProgressBar progress={stat.progress} />
             <Typography
               sx={{
-                color: "#8594AC",
+                color: theme.palette.text.accent,
                 fontSize: 13,
               }}
             >
@@ -56,7 +57,7 @@ export function GroupStatsCard({ title, completed, total }: GroupStatsCardProps)
       </Stack>
       <Stack sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {stats.map((stat) => (
-          <Typography key={stat.title} sx={GroupStatsCardRate}>
+          <Typography key={stat.title} sx={GroupStatsCardRate(theme)}>
             {`${stat.percentage}%`}
           </Typography>
         ))}

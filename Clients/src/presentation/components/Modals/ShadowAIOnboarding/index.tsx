@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import OnboardingWizard from "../OnboardingWizard";
 import { Eye } from "lucide-react";
 
@@ -15,16 +15,19 @@ const STORAGE_KEY = "vw:shadow-ai-onboarding-dismissed";
 const StepContent: React.FC<{ title: string; detail: string }> = ({
   title,
   detail,
-}) => (
-  <Stack spacing={2.5}>
-    <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#1c2130" }}>
-      {title}
-    </Typography>
-    <Typography sx={{ fontSize: 13, color: "#475467", lineHeight: 1.7 }}>
-      {detail}
-    </Typography>
-  </Stack>
-);
+}) => {
+  const theme = useTheme();
+  return (
+    <Stack spacing={2.5}>
+      <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}>
+        {title}
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, lineHeight: 1.7 }}>
+        {detail}
+      </Typography>
+    </Stack>
+  );
+};
 
 const STEPS = [
   {

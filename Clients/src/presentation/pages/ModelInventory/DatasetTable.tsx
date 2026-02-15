@@ -367,7 +367,7 @@ const DatasetTable: React.FC<DatasetTableProps> = ({
             <TableRow
               sx={{
                 ...tableFooterRowStyle(theme),
-                borderTop: "1px solid #d0d5dd",
+                borderTop: `1px solid ${theme.palette.border.dark}`,
               }}
             >
               <TableCell

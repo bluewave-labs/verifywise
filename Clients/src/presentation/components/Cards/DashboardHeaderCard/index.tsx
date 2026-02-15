@@ -1,6 +1,6 @@
 import { useState, ReactNode } from "react";
 
-import { Stack, Typography, Box } from "@mui/material";
+import { Stack, Typography, Box, useTheme } from "@mui/material";
 import { ArrowRight as RightArrow } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,6 +14,7 @@ interface HeaderCardProps {
 
 export function DashboardHeaderCard({ title, count, disableNavigation = false, icon, navigateTo }: HeaderCardProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
   const getNavigationPath = (cardTitle: string): string | null => {
@@ -44,9 +45,9 @@ export function DashboardHeaderCard({ title, count, disableNavigation = false, i
   return (
     <Stack
       sx={{
-        border: "1px solid #d0d5dd",
+        border: `1px solid ${theme.palette.border.dark}`,
         borderRadius: 2,
-        background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+        background: `linear-gradient(135deg, ${theme.palette.background.main} 0%, ${theme.palette.background.subtle} 100%)`,
         width: "100%",
         padding: "8px 36px 14px 14px",
         cursor: isClickable ? "pointer" : "default",
@@ -55,8 +56,8 @@ export function DashboardHeaderCard({ title, count, disableNavigation = false, i
         transition: "all 0.2s ease",
         "&:hover": isClickable
           ? {
-            background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
-            borderColor: "#d0d5dd",
+            background: `linear-gradient(135deg, ${theme.palette.background.accent} 0%, ${theme.palette.background.hover} 100%)`,
+            borderColor: theme.palette.border.dark,
           }
           : {},
       }}
@@ -67,7 +68,7 @@ export function DashboardHeaderCard({ title, count, disableNavigation = false, i
       <Typography
         sx={{
           fontSize: 13,
-          color: "#8594AC",
+          color: theme.palette.text.accent,
           pb: "2px",
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -83,7 +84,7 @@ export function DashboardHeaderCard({ title, count, disableNavigation = false, i
           minHeight: 32,
           fontWeight: 600,
           fontSize: 15,
-          color: "#1f2937",
+          color: theme.palette.text.primary,
           wordBreak: "break-word",
         }}
       >
@@ -96,7 +97,7 @@ export function DashboardHeaderCard({ title, count, disableNavigation = false, i
             position: "absolute",
             top: 10,
             right: 10,
-            color: "#A9B3C5",
+            color: theme.palette.text.accent,
           }}
         >
           {icon}

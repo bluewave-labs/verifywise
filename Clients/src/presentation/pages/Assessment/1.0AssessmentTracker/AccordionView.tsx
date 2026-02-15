@@ -11,6 +11,7 @@ import {
   Popover,
   MenuItem,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { ArrowRight as RightArrowBlack, ChevronDown } from "lucide-react";
 import { Subtopic } from "../../../../domain/types/Subtopic";
@@ -132,6 +133,7 @@ const AccordionView = ({
   onExpandedChange: _onExpandedChange,
   onFlashingChange,
 }: AccordionViewProps) => {
+  const theme = useTheme();
   const { userId } = useAuth();
   // Track multiple expanded accordions - default to all expanded
   const [expandedSet, setExpandedSet] = useState<Set<number>>(() => {
@@ -302,7 +304,7 @@ const AccordionView = ({
                 sx={{
                   ...styles.accordionSummary,
                   borderBottom:
-                    expandedSet.has(subtopic.id ?? 0) ? "1px solid #d0d5dd" : "none",
+                    expandedSet.has(subtopic.id ?? 0) ? `1px solid ${theme.palette.border.dark}` : "none",
                 }}
               >
                 {/* Arrow Icon */}
@@ -333,7 +335,7 @@ const AccordionView = ({
                           height: "20px",
                           fontSize: "12px",
                           backgroundColor: "#f0f0f0",
-                          color: "#344054",
+                          color: theme.palette.text.secondary,
                         }}
                       />
                     </Box>

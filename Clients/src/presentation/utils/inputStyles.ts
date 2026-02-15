@@ -56,7 +56,7 @@ export const getInputStyles = (theme: Theme, options: InputStylesOptions = {}) =
 
   // Color definitions
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#5FA896';
+  const hoverBorder = hoverBorderColor || `${theme.palette.primary.light || '#5FA896'}`;
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`; // 10% opacity
   const errorBorder = theme.palette.status?.error?.border || theme.palette.error.main;
@@ -97,10 +97,10 @@ export const getInputStyles = (theme: Theme, options: InputStylesOptions = {}) =
 
     // Disabled state
     '& .MuiOutlinedInput-root.Mui-disabled': {
-      backgroundColor: theme.palette.grey?.[50] || '#F9FAFB',
+      backgroundColor: theme.palette.grey?.[50] || `${theme.palette.background.accent}`,
       cursor: 'not-allowed',
       '& fieldset': {
-        borderColor: theme.palette.grey?.[300] || '#E5E7EB',
+        borderColor: theme.palette.grey?.[300] || `${theme.palette.border.input}`,
       },
     },
   };
@@ -121,7 +121,7 @@ export const getSelectStyles = (theme: Theme, options: InputStylesOptions = {}) 
   } = options;
 
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#5FA896';
+  const hoverBorder = hoverBorderColor || `${theme.palette.primary.light || '#5FA896'}`;
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
   const errorBorder = theme.palette.status?.error?.border || theme.palette.error.main;
@@ -159,10 +159,10 @@ export const getSelectStyles = (theme: Theme, options: InputStylesOptions = {}) 
 
     // Disabled state
     '&.Mui-disabled': {
-      backgroundColor: theme.palette.grey?.[50] || '#F9FAFB',
+      backgroundColor: theme.palette.grey?.[50] || `${theme.palette.background.accent}`,
       cursor: 'not-allowed',
       '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.grey?.[300] || '#E5E7EB',
+        borderColor: theme.palette.grey?.[300] || `${theme.palette.border.input}`,
       },
     },
   };
@@ -191,7 +191,7 @@ export const getAutocompleteStyles = (theme: Theme, options: InputStylesOptions 
   } = options;
 
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#5FA896';
+  const hoverBorder = hoverBorderColor || `${theme.palette.primary.light || '#5FA896'}`;
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
   const errorBorder = theme.palette.status?.error?.border || theme.palette.error.main;
@@ -230,9 +230,9 @@ export const getAutocompleteStyles = (theme: Theme, options: InputStylesOptions 
 
       // Disabled state
       '&.Mui-disabled': {
-        backgroundColor: theme.palette.grey?.[50] || '#F9FAFB',
+        backgroundColor: theme.palette.grey?.[50] || `${theme.palette.background.accent}`,
         '& fieldset': {
-          borderColor: theme.palette.grey?.[300] || '#E5E7EB',
+          borderColor: theme.palette.grey?.[300] || `${theme.palette.border.input}`,
         },
       },
     },
@@ -253,7 +253,7 @@ export const getSearchBoxStyles = (theme: Theme, options: InputStylesOptions = {
   } = options;
 
   const defaultBorderColor = theme.palette.border.dark;
-  const hoverBorder = hoverBorderColor || '#5FA896';
+  const hoverBorder = hoverBorderColor || `${theme.palette.primary.light || '#5FA896'}`;
   const focusBorder = focusBorderColor || theme.palette.primary.main;
   const focusRing = focusRingColor || `${theme.palette.primary.main}1A`;
 

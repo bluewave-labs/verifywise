@@ -103,7 +103,7 @@ const TableHeader = ({ columns, sortConfig, onSort }: TableHeaderProps) => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      color: sortConfig?.key === sortKey ? "primary.main" : "#9CA3AF",
+                      color: sortConfig?.key === sortKey ? "primary.main" : theme.palette.text.muted,
                     }}
                   >
                     {sortConfig?.key === sortKey && sortConfig?.direction === "asc" && (

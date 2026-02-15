@@ -589,12 +589,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           "& .MuiAutocomplete-option": {
             fontSize: 13,
             fontWeight: 400,
-            color: "#1c2130",
+            color: theme.palette.text.primary,
             paddingLeft: "9px",
             paddingRight: "9px",
           },
           "& .MuiAutocomplete-option.Mui-focused": {
-            background: "#f9fafb",
+            background: theme.palette.background.accent,
           },
         },
         "& .MuiAutocomplete-noOptions": {
@@ -866,7 +866,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
             variant="caption"
             sx={{
               mt: 1,
-              color: "#f04438",
+              color: theme.palette.status.error.text,
               fontWeight: 300,
               fontSize: 11,
             }}
@@ -942,7 +942,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
             variant="caption"
             sx={{
               mt: 1,
-              color: "#f04438",
+              color: theme.palette.status.error.text,
               fontWeight: 300,
               fontSize: 11,
             }}
@@ -1018,7 +1018,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
             variant="caption"
             sx={{
               mt: 1,
-              color: "#f04438",
+              color: theme.palette.status.error.text,
               fontWeight: 300,
               fontSize: 11,
             }}
@@ -1136,7 +1136,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           variant="caption"
           sx={{
             mt: 1,
-            color: "#f04438",
+            color: theme.palette.status.error.text,
             fontWeight: 300,
             fontSize: 11,
           }}
@@ -1243,8 +1243,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
             variant="contained"
             text="Download"
             sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              backgroundColor: theme.palette.primary.main,
+              border: `1px solid ${theme.palette.primary.main}`,
             }}
             startIcon={<DownloadIcon size={16} />}
             onClick={() => handleDownloadEvidence(evidenceData)}
@@ -1286,7 +1286,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
               onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
               size="small"
               sx={{
-                color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                color: isHistorySidebarOpen ? theme.palette.primary.main : theme.palette.text.muted,
                 padding: "4px",
                 borderRadius: "4px",
                 backgroundColor: isHistorySidebarOpen

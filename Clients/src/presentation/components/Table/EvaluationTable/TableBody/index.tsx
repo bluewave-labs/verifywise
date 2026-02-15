@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TableBody, TableRow, TableCell, IconButton, Typography, Popover, Stack, Box, keyframes } from "@mui/material";
+import { TableBody, TableRow, TableCell, IconButton, Typography, Popover, Stack, Box, keyframes, useTheme } from "@mui/material";
 import { MoreVertical, RotateCcw, Download, Copy, Trash2, Loader2 } from "lucide-react";
 
 // Pulse animation for running text
@@ -28,6 +28,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   onDownload,
   onCopy,
 }) => {
+  const theme = useTheme();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<IEvaluationRow | null>(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -96,7 +97,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               ...singleTheme.tableStyles.primary.body.row,
               cursor: "pointer",
               "&:hover": {
-                backgroundColor: "#F9FAFB",
+                backgroundColor: theme.palette.background.accent,
               },
             }}
           >
@@ -233,10 +234,10 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   size="small"
                   onClick={(e) => handleMenuOpen(e, row)}
                   sx={{
-                    color: "#667085",
+                    color: theme.palette.other.icon,
                     padding: "6px",
                     "&:hover": {
-                      backgroundColor: "#F3F4F6",
+                      backgroundColor: theme.palette.background.subtle,
                     },
                   }}
                 >
@@ -260,7 +261,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
           "& .MuiPopover-paper": {
             minWidth: 140,
             borderRadius: "4px",
-            border: "1px solid #d0d5dd",
+            border: `1px solid ${theme.palette.border.dark}`,
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             overflow: "hidden",
             mt: 0.5,
@@ -279,14 +280,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: theme.palette.text.dark,
+                borderColor: theme.palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
                   backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
                 },
               }}
             >
@@ -302,14 +303,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: theme.palette.text.dark,
+                borderColor: theme.palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
                   backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
                 },
               }}
             >
@@ -325,14 +326,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: theme.palette.text.dark,
+                borderColor: theme.palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
                   backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
                 },
               }}
             >
@@ -349,7 +350,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 fontSize: "13px",
                 fontWeight: 500,
                 color: "#DC2626",
-                borderColor: "#d0d5dd",
+                borderColor: theme.palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {

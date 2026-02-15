@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { Stack, Typography, Box, IconButton, Tooltip } from "@mui/material";
+import { Stack, Typography, Box, IconButton, Tooltip, useTheme } from "@mui/material";
 
 import { infoCardbodyStyle, infoCardStyle, infoCardTitleStyle } from "./style";
 
@@ -23,15 +23,16 @@ export function InfoCard({
   onActionClick,
   isActionActive = false
 }: InfoCardProps) {
+  const theme = useTheme();
   return (
-    <Stack sx={infoCardStyle}>
+    <Stack sx={infoCardStyle(theme)}>
       {icon && !actionIcon && (
         <Box
           sx={{
             position: "absolute",
             top: 8,
             right: 8,
-            color: "#8594AC",
+            color: theme.palette.text.accent,
             opacity: 0.7,
           }}
         >
@@ -47,7 +48,7 @@ export function InfoCard({
               position: "absolute",
               top: 4,
               right: 4,
-              color: isActionActive ? "#13715B" : "#98A2B3",
+              color: isActionActive ? theme.palette.primary.main : theme.palette.text.muted,
               padding: "4px",
               borderRadius: "4px",
               backgroundColor: isActionActive ? "#E6F4F1" : "transparent",
@@ -60,8 +61,8 @@ export function InfoCard({
           </IconButton>
         </Tooltip>
       )}
-      <Typography sx={infoCardTitleStyle}>{title}</Typography>
-      <Typography sx={infoCardbodyStyle}>{body}</Typography>
+      <Typography sx={infoCardTitleStyle(theme)}>{title}</Typography>
+      <Typography sx={infoCardbodyStyle(theme)}>{body}</Typography>
     </Stack>
   );
 }

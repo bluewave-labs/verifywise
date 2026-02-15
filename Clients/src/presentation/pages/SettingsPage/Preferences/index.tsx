@@ -13,10 +13,19 @@ import {
 } from "../../../../application/repository/userPreferences.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import Select from "../../../components/Inputs/Select";
+import useThemeMode from "../../../../application/hooks/useThemeMode";
+import { ThemeMode } from "../../../../application/contexts/Theme.context";
+
+const THEME_OPTIONS: { _id: ThemeMode; name: string }[] = [
+  { _id: "light", name: "Light" },
+  { _id: "dark", name: "Dark" },
+  { _id: "system", name: "System (follows OS)" },
+];
 
 const Preferences: React.FC = () => {
   const theme = useTheme();
   const { userId } = useAuth();
+  const { themeMode, setThemeMode } = useThemeMode();
   const { userPreferences, isDefault, loading, refreshUserPreferences } =
     useUserPreferences();
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
@@ -137,7 +146,15 @@ const Preferences: React.FC = () => {
       {/* Show CustomizableToast when showToast is true */}
       {!loading && (
         <Box sx={{ width: "100%", maxWidth: 600 }}>
-          <Stack sx={{ marginTop: theme.spacing(20) }}>
+          <Stack sx={{ marginTop: theme.spacing(20) }} spacing={theme.spacing(10)}>
+            <Select
+              id="theme-mode-input"
+              label="Theme"
+              placeholder="Select a theme"
+              value={themeMode}
+              onChange={(e) => setThemeMode(e.target.value as ThemeMode)}
+              items={THEME_OPTIONS}
+            />
             <Select
               id="risk-classification-input"
               label="Date format"

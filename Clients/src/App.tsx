@@ -1,8 +1,10 @@
 import { Routes } from "react-router-dom";
 import "./App.css";
 import { ThemeProvider } from "@emotion/react";
-import light from "./presentation/themes/light";
+import { light, dark } from "./presentation/themes";
 import { CssBaseline } from "@mui/material";
+import { ThemeContextProvider } from "./application/contexts/Theme.context";
+import useThemeMode from "./application/hooks/useThemeMode";
 import { VerifyWiseContext } from "./application/contexts/VerifyWise.context";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { Provider } from "react-redux";
@@ -69,6 +71,7 @@ const UserGuideSidebarContainer = () => {
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const { resolvedTheme } = useThemeMode();
   const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
 
   // For aiTrustCentre routes, don't apply theme (like /public route)
@@ -81,9 +84,10 @@ const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) =>
     );
   }
 
-  // For other routes, apply light theme
+  const activeTheme = resolvedTheme === "dark" ? dark : light;
+
   return (
-    <ThemeProvider theme={light}>
+    <ThemeProvider theme={activeTheme}>
       <CssBaseline />
       {children}
     </ThemeProvider>
@@ -240,6 +244,7 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
+            <ThemeContextProvider>
             <PluginRegistryProvider>
               <PluginLoader />
               <UserGuideSidebarProvider>
@@ -276,6 +281,7 @@ function App() {
               </ConditionalThemeWrapper>
               </UserGuideSidebarProvider>
             </PluginRegistryProvider>
+            </ThemeContextProvider>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

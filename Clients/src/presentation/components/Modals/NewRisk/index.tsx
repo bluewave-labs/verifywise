@@ -582,7 +582,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
                 size="small"
                 sx={{
-                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  color: isHistorySidebarOpen ? theme.palette.primary.main : theme.palette.text.muted,
                   padding: "4px",
                   borderRadius: "4px",
                   backgroundColor: isHistorySidebarOpen

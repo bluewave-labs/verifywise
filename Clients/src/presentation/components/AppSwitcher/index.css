@@ -6,8 +6,8 @@
   --app-switcher-icon-color: rgba(255, 255, 255, 0.6);
   --app-switcher-icon-hover-color: rgba(255, 255, 255, 0.9);
   --app-switcher-icon-hover-bg: rgba(255, 255, 255, 0.1);
-  --app-switcher-active-bg: #13715B;
-  --app-switcher-active-color: #ffffff;
+  --app-switcher-active-bg: var(--vw-primary);
+  --app-switcher-active-color: var(--vw-bg-main);
   --app-switcher-disabled-opacity: 0.4;
 }
 

@@ -419,12 +419,12 @@ const CreateTask: FC<ICreateTaskProps> = ({
                       "& .MuiAutocomplete-listbox": {
                         "& .MuiAutocomplete-option": {
                           fontSize: "13px",
-                          color: "#1c2130",
+                          color: theme.palette.text.primary,
                           paddingLeft: "9px",
                           paddingRight: "9px",
                         },
                         "& .MuiAutocomplete-option.Mui-focused": {
-                          background: "#f9fafb",
+                          background: theme.palette.background.accent,
                         },
                       },
                       "& .MuiAutocomplete-noOptions": {

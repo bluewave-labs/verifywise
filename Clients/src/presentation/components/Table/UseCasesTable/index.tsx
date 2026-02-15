@@ -9,6 +9,7 @@ import {
   Stack,
   Typography,
   LinearProgress,
+  useTheme,
 } from "@mui/material";
 import Chip from "../../Chip";
 
@@ -43,22 +44,24 @@ const defaultFormatDate = (dateString: string): string => {
   return date.toLocaleDateString();
 };
 
-const headerCellStyle = {
-  fontSize: 12,
-  fontWeight: 600,
-  color: "#667085",
-  borderBottom: "1px solid #E5E7EB",
-};
-
-const bodyCellStyle = {
-  borderBottom: "1px solid #F3F4F6",
-};
-
 const UseCasesTable: React.FC<UseCasesTableProps> = ({
   data,
   onRowClick,
   formatDate = defaultFormatDate,
 }) => {
+  const theme = useTheme();
+
+  const headerCellStyle = {
+    fontSize: 12,
+    fontWeight: 600,
+    color: theme.palette.other.icon,
+    borderBottom: `1px solid ${theme.palette.border.input}`,
+  };
+
+  const bodyCellStyle = {
+    borderBottom: `1px solid ${theme.palette.background.subtle}`,
+  };
+
   return (
     <TableContainer>
       <Table size="small">
@@ -75,7 +78,7 @@ const UseCasesTable: React.FC<UseCasesTableProps> = ({
             <TableRow
               key={useCase.id}
               sx={{
-                "&:hover": { backgroundColor: "#F9FAFB" },
+                "&:hover": { backgroundColor: theme.palette.background.accent },
                 cursor: onRowClick ? "pointer" : "default",
               }}
               onClick={(e) => {
@@ -83,7 +86,7 @@ const UseCasesTable: React.FC<UseCasesTableProps> = ({
                 onRowClick?.(useCase.id);
               }}
             >
-              <TableCell sx={{ fontSize: 13, color: "#1F2937", ...bodyCellStyle }}>
+              <TableCell sx={{ fontSize: 13, color: theme.palette.text.primary, ...bodyCellStyle }}>
                 {useCase.name}
               </TableCell>
               <TableCell sx={bodyCellStyle}>
@@ -95,14 +98,14 @@ const UseCasesTable: React.FC<UseCasesTableProps> = ({
                       width: 60,
                       height: 4,
                       borderRadius: 2,
-                      backgroundColor: "#E5E7EB",
+                      backgroundColor: theme.palette.border.input,
                       "& .MuiLinearProgress-bar": {
-                        backgroundColor: "#13715B",
+                        backgroundColor: theme.palette.primary.main,
                         borderRadius: 2,
                       },
                     }}
                   />
-                  <Typography sx={{ fontSize: 12, color: "#667085" }}>
+                  <Typography sx={{ fontSize: 12, color: theme.palette.other.icon }}>
                     {useCase.progress}%
                   </Typography>
                 </Stack>
@@ -110,7 +113,7 @@ const UseCasesTable: React.FC<UseCasesTableProps> = ({
               <TableCell sx={bodyCellStyle}>
                 <Chip label={useCase.status} uppercase={false} />
               </TableCell>
-              <TableCell sx={{ fontSize: 12, color: "#9CA3AF", ...bodyCellStyle }}>
+              <TableCell sx={{ fontSize: 12, color: theme.palette.text.muted, ...bodyCellStyle }}>
                 {formatDate(useCase.updated)}
               </TableCell>
             </TableRow>

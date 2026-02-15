@@ -283,13 +283,13 @@ export default function UserActivityPage() {
                 </Table>
               </TableContainer>
             ) : (
-              <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.text.muted }}>
                 No tool usage recorded
               </Typography>
             )}
           </Stack>
         ) : (
-          <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+          <Typography sx={{ fontSize: 13, color: theme.palette.text.muted }}>
             User not found
           </Typography>
         )}
@@ -361,7 +361,7 @@ export default function UserActivityPage() {
                     <Typography
                       sx={{
                         fontSize: 13,
-                        color: "#13715B",
+                        color: theme.palette.primary.main,
                       }}
                     >
                       {u.user_email}

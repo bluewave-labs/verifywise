@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Box, keyframes } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useTipManager } from "../../../application/hooks/useTipManager";
 import InfoBox from "../InfoBox";
 
@@ -35,6 +36,7 @@ const fadeOut = keyframes`
  * The next tip appears on the user's next visit to the entity page.
  */
 const TipBox = ({ entityName }: TipBoxProps) => {
+  const theme = useTheme();
   const { currentTip, dismissTip, currentTipNumber, totalTips } = useTipManager(entityName);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -71,7 +73,7 @@ const TipBox = ({ entityName }: TipBoxProps) => {
             position: "absolute",
             top: -8,
             right: 16,
-            backgroundColor: "#F5F5F5",
+            backgroundColor: theme.palette.background.hover,
             border: "1px solid #E5E5E5",
             borderRadius: "4px",
             padding: "2px 8px",

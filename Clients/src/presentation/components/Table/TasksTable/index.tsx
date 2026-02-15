@@ -127,7 +127,7 @@ const SortableTableHeader: React.FC<{
                     display: "flex",
                     alignItems: "center",
                     color:
-                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                      sortConfig.key === column.id ? "primary.main" : theme.palette.text.muted,
                   }}
                 >
                   {sortConfig.key === column.id &&
@@ -484,14 +484,14 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                                 width: 28,
                                 height: 28,
                                 borderRadius: "50%",
-                                backgroundColor: "#f3f4f6",
+                                backgroundColor: theme.palette.background.subtle,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 fontSize: 11,
                                 fontWeight: 500,
-                                color: "#374151",
-                                border: "2px solid #fff",
+                                color: theme.palette.text.dark,
+                                border: `2px solid ${theme.palette.background.main}`,
                               }}
                             >
                               {initials}
@@ -504,14 +504,14 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                               width: 28,
                               height: 28,
                               borderRadius: "50%",
-                              backgroundColor: "#e5e7eb",
+                              backgroundColor: theme.palette.border.input,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               fontSize: 10,
                               fontWeight: 500,
                               color: "#6b7280",
-                              border: "2px solid #fff",
+                              border: `2px solid ${theme.palette.background.main}`,
                             }}
                           >
                             +{task.assignees.length - 3}

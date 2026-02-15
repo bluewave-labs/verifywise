@@ -12,6 +12,7 @@ import {
   Chip,
   Button,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useMemo, useState } from "react";
@@ -80,6 +81,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
   showPagination = true,
   compact = false,
 }) => {
+  const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(() =>
     getPaginationRowCount("templates", 10)
@@ -185,7 +187,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
         >
           {label}
         </Typography>
-        <Box sx={{ color: sortConfig.key === sortKey ? "primary.main" : "#9CA3AF", display: "flex", alignItems: "center" }}>
+        <Box sx={{ color: sortConfig.key === sortKey ? "primary.main" : theme.palette.text.muted, display: "flex", alignItems: "center" }}>
           {sortConfig.key === sortKey && sortConfig.direction === "asc" && <ChevronUp size={14} />}
           {sortConfig.key === sortKey && sortConfig.direction === "desc" && <ChevronDown size={14} />}
           {sortConfig.key !== sortKey && <ChevronsUpDown size={14} />}
@@ -215,7 +217,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
           {loading ? (
             <TableRow>
               <TableCell colSpan={6} sx={{ textAlign: "center", py: 4 }}>
-                <CircularProgress size={24} sx={{ color: "#13715B" }} />
+                <CircularProgress size={24} sx={{ color: theme.palette.primary.main }} />
               </TableCell>
             </TableRow>
           ) : paginatedRows.length === 0 ? (
@@ -236,7 +238,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.row,
                     cursor: onRowClick ? "pointer" : "default",
-                    "&:hover": { backgroundColor: "#f5f5f5" },
+                    "&:hover": { backgroundColor: theme.palette.background.hover },
                   }}
                 >
                   <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, maxWidth: "400px" }}>
@@ -247,7 +249,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                       <Typography
                         sx={{
                           fontSize: "11px",
-                          color: "#9CA3AF",
+                          color: theme.palette.text.muted,
                           mt: 0.25,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -274,7 +276,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                         }}
                       />
                     ) : (
-                      <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
+                      <Typography sx={{ fontSize: "13px", color: theme.palette.text.muted }}>-</Typography>
                     )}
                   </TableCell>
                   <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
@@ -323,11 +325,11 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                         textTransform: "none",
                         fontSize: compact ? "11px" : "12px",
                         height: compact ? "24px" : "28px",
-                        borderColor: "#d0d5dd",
-                        color: "#344054",
+                        borderColor: theme.palette.border.dark,
+                        color: theme.palette.text.secondary,
                         "&:hover": {
-                          borderColor: "#13715B",
-                          color: "#13715B",
+                          borderColor: theme.palette.primary.main,
+                          color: theme.palette.primary.main,
                         },
                       }}
                     >

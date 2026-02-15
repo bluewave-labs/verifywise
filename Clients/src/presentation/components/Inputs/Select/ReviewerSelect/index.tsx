@@ -104,13 +104,13 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
                 transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                   },
                 },
               },

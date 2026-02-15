@@ -1,5 +1,5 @@
 import React from "react";
-import { TableBody, TableCell, TableRow } from "@mui/material";
+import { TableBody, TableCell, TableRow, useTheme } from "@mui/material";
 import IconButton from "../../../IconButton";
 import { displayFormattedDate } from "../../../../tools/isoDateToString";
 import singleTheme from "../../../../themes/v1SingleTheme";
@@ -14,6 +14,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
   rowsPerPage,
   sortConfig,
 }) => {
+  const theme = useTheme();
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const handleRemoveReport = async (reportId: number) => {
@@ -60,7 +61,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
               <TableCell
                 sx={{
                   ...cellStyle,
-                  backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("source") ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("source") ? theme.palette.background.hover : "inherit",
                 }}
               >
                 {row.source ? formatSource(row.source) : "-"}
@@ -68,7 +69,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
               <TableCell
                 sx={{
                   ...cellStyle,
-                  backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("project") ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("project") ? theme.palette.background.hover : "inherit",
                 }}
               >
                 {row.project_title ? row.project_title : "-"}
@@ -76,7 +77,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
               <TableCell
                 sx={{
                   ...cellStyle,
-                  backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("date") || sortConfig.key.toLowerCase().includes("upload") || sortConfig.key.toLowerCase().includes("time")) ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("date") || sortConfig.key.toLowerCase().includes("upload") || sortConfig.key.toLowerCase().includes("time")) ? theme.palette.background.hover : "inherit",
                 }}
               >
                 {row.uploaded_time
@@ -86,7 +87,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
               <TableCell
                 sx={{
                   ...cellStyle,
-                  backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("uploader") ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("uploader") ? theme.palette.background.hover : "inherit",
                 }}
               >
                 {row.uploader_name ? row.uploader_name : "-"}{" "}
@@ -96,7 +97,7 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   ...styles.setting,
-                  backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("action") || sortConfig.key.toLowerCase().includes("setting")) ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("action") || sortConfig.key.toLowerCase().includes("setting")) ? theme.palette.background.hover : "inherit",
                 }}
               >
                 <IconButton

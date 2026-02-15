@@ -601,12 +601,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   "& .MuiAutocomplete-listbox": {
                     "& .MuiAutocomplete-option": {
                       fontSize: "13px",
-                      color: "#1c2130",
+                      color: theme.palette.text.primary,
                       paddingLeft: "9px",
                       paddingRight: "9px",
                     },
                     "& .MuiAutocomplete-option.Mui-focused": {
-                      background: "#f9fafb",
+                      background: theme.palette.background.accent,
                     },
                   },
                   "& .MuiAutocomplete-noOptions": {
@@ -622,7 +622,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             <Typography
               color="error"
               variant="caption"
-              sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+              sx={{ mt: 0.5, ml: 1, color: theme.palette.status.error.text, opacity: 0.8 }}
             >
               {errors.projectIds}
             </Typography>
@@ -990,7 +990,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
                 size="small"
                 sx={{
-                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                  color: isHistorySidebarOpen ? theme.palette.primary.main : theme.palette.text.muted,
                   padding: "4px",
                   borderRadius: "4px",
                   backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",

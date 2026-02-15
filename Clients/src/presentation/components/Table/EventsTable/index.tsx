@@ -258,7 +258,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.label ? "primary.main" : "#9CA3AF",
+                    color: sortConfig.key === column.label ? "primary.main" : theme.palette.text.muted,
                   }}
                 >
                   {sortConfig.key === column.label && sortConfig.direction === "asc" && (
@@ -291,7 +291,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                 key={event.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  "&:hover": { backgroundColor: "#f5f5f5", cursor: "pointer" },
+                  "&:hover": { backgroundColor: theme.palette.background.hover, cursor: "pointer" },
                 }}
               >
                 <TableCell
@@ -309,7 +309,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("event") || sortConfig.key.toLowerCase().includes("type")) ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("event") || sortConfig.key.toLowerCase().includes("type")) ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   <EventTypeBadge eventType={event.event_type} />
@@ -319,7 +319,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "auto",
                     whiteSpace: "normal",
-                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("description") ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("description") ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   {event.description}
@@ -329,7 +329,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("user") ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key && sortConfig.key.toLowerCase().includes("user") ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   {(() => {
@@ -346,7 +346,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
                     ...singleTheme.tableStyles.primary.body.cell,
                     width: "fit-content",
                     whiteSpace: "nowrap",
-                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("timestamp") || sortConfig.key.toLowerCase().includes("time")) ? "#f5f5f5" : "inherit",
+                    backgroundColor: sortConfig.key && (sortConfig.key.toLowerCase().includes("timestamp") || sortConfig.key.toLowerCase().includes("time")) ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   {event.timestamp ? formatDateTime(event.timestamp) : "N/A"}
@@ -401,7 +401,7 @@ const EventsTable: React.FC<IEventsTableProps> = ({
         }}
       >
         <img src={Placeholder} alt="Placeholder" />
-        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+        <Typography sx={{ fontSize: "13px", color: theme.palette.text.tertiary }}>
           There is currently no data in this table.
         </Typography>
       </Stack>

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Box, SxProps, Theme } from "@mui/material";
+import { Box, SxProps, Theme, useTheme } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import TabList from "@mui/lab/TabList";
 import { createTabLabelWithCount } from "../../utils/tabUtils";
@@ -73,6 +73,11 @@ const TabBar: React.FC<TabBarProps> = ({
   dataJoyrideId,
   disabledTabTooltip = "This tab is currently unavailable",
 }) => {
+  const theme = useTheme();
+  // Resolve indicator color: use theme primary if default was passed, otherwise use custom color
+  const resolvedIndicatorColor = indicatorColor === DEFAULT_INDICATOR_COLOR
+    ? theme.palette.primary.main
+    : indicatorColor;
   // Memoize styles to prevent unnecessary recalculations
   const standardTabStyle = useMemo<SxProps<Theme>>(() => ({
     textTransform: "none",
@@ -83,10 +88,10 @@ const TabBar: React.FC<TabBarProps> = ({
     minHeight: "20px",
     minWidth: "auto",
     "&.Mui-selected": {
-      color: indicatorColor,
+      color: resolvedIndicatorColor,
     },
     ...tabSx,
-  }), [indicatorColor, tabSx]);
+  }), [resolvedIndicatorColor, tabSx]);
 
   const getTabStyle = (isDisabled: boolean): SxProps<Theme> => ({
     ...standardTabStyle,
@@ -127,10 +132,10 @@ const TabBar: React.FC<TabBarProps> = ({
   };
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: "#d0d5dd" }}>
+    <Box sx={{ borderBottom: 1, borderColor: theme.palette.border?.dark || "#d0d5dd" }}>
       <TabList
         onChange={handleChange}
-        TabIndicatorProps={{ style: { backgroundColor: indicatorColor } }}
+        TabIndicatorProps={{ style: { backgroundColor: resolvedIndicatorColor } }}
         sx={standardTabListStyle}
         data-joyride-id={dataJoyrideId}
       >

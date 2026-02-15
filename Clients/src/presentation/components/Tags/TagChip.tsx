@@ -1,5 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 export interface TagChipProps {
   tag: string;
@@ -53,7 +54,13 @@ const getTagStyle = (tag: string) => {
 };
 
 const TagChip: React.FC<TagChipProps> = ({ tag }) => {
-  const style = getTagStyle(tag);
+  const theme = useTheme();
+  const rawStyle = getTagStyle(tag);
+  // Override default (unmatched) tag style with theme-aware values
+  const isDefault = rawStyle.bg === "#F5F5F5" && rawStyle.color === "#616161";
+  const style = isDefault
+    ? { bg: theme.palette.background.hover, color: theme.palette.text.tertiary || "#616161" }
+    : rawStyle;
 
   return (
     <Box

@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 
-import { Card, CardContent, Stack, Typography } from "@mui/material";
+import { Card, CardContent, Stack, Typography, useTheme } from "@mui/material";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -20,22 +20,23 @@ export function DashboardCard({
   navigateTo,
 }: DashboardCardProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Card
       elevation={0}
       sx={{
-        border: "1px solid #d0d5dd",
+        border: `1px solid ${theme.palette.border.dark}`,
         borderRadius: "4px",
         height: "100%",
-        background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+        background: `linear-gradient(135deg, ${theme.palette.background.main} 0%, ${theme.palette.background.subtle} 100%)`,
         cursor: navigateTo ? "pointer" : "default",
         transition: "all 0.2s ease",
         "&:hover": navigateTo
           ? {
-              background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
-              borderColor: "#98A2B3",
+              background: `linear-gradient(135deg, ${theme.palette.background.accent} 0%, ${theme.palette.background.hover} 100%)`,
+              borderColor: theme.palette.text.muted,
             }
           : {},
       }}
@@ -50,7 +51,7 @@ export function DashboardCard({
           alignItems="center"
           mb="16px"
         >
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1F2937", flex: actionPosition === "center" ? 1 : undefined }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, flex: actionPosition === "center" ? 1 : undefined }}>
             {title}
           </Typography>
           {actionPosition === "center" && action && (
@@ -66,7 +67,7 @@ export function DashboardCard({
                 style={{
                   opacity: isHovered ? 1 : 0.3,
                   transition: "opacity 0.2s ease",
-                  color: "#667085",
+                  color: theme.palette.other.icon,
                 }}
               />
             )}

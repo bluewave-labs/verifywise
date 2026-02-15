@@ -107,7 +107,7 @@ const SortableTableHead: React.FC<{
                     display: "flex",
                     alignItems: "center",
                     color:
-                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                      sortConfig.key === column.id ? "primary.main" : theme.palette.text.muted,
                   }}
                 >
                   {sortConfig.key === column.id &&
@@ -418,7 +418,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
-                      sortConfig.key === "vendor_name" ? "#f5f5f5" : "inherit",
+                      sortConfig.key === "vendor_name" ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   {
@@ -437,7 +437,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     textOverflow: "ellipsis",
                     backgroundColor:
                       sortConfig.key === "project_titles"
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -530,7 +530,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
-                      sortConfig.key === "action_owner" ? "#f5f5f5" : "inherit",
+                      sortConfig.key === "action_owner" ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   {
@@ -545,7 +545,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     ...getCellStyle(row),
                     backgroundColor:
                       sortConfig.key === "risk_severity"
-                        ? "#f5f5f5"
+                        ? theme.palette.background.hover
                         : "inherit",
                   }}
                 >
@@ -555,7 +555,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
-                      sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
+                      sortConfig.key === "risk_level" ? theme.palette.background.hover : "inherit",
                   }}
                 >
                   <VWLink

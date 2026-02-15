@@ -349,7 +349,7 @@ export default function RulesPage() {
             text="Create rule"
             variant="contained"
             sx={{
-              backgroundColor: "#13715B",
+              backgroundColor: theme.palette.primary.main,
               "&:hover": { backgroundColor: "#0F5A47" },
               height: 34,
               fontSize: 13,
@@ -380,7 +380,7 @@ export default function RulesPage() {
                 elevation={0}
                 sx={{
                   p: "16px",
-                  border: "1px solid #d0d5dd",
+                  border: `1px solid ${theme.palette.border.dark}`,
                   borderRadius: "4px",
                   opacity: rule.is_active ? 1 : 0.6,
                   transition: "opacity 0.2s ease",
@@ -421,7 +421,7 @@ export default function RulesPage() {
                     </Stack>
                   </Stack>
                   {rule.description && (
-                    <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.muted, lineHeight: 1.5 }}>
                       {rule.description}
                     </Typography>
                   )}
@@ -597,7 +597,7 @@ export default function RulesPage() {
         maxWidth="480px"
       >
         <Stack gap="16px">
-          <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+          <Typography sx={{ fontSize: 13, color: theme.palette.text.muted, lineHeight: 1.5 }}>
             Create a rule to receive alerts when specific Shadow AI activity is detected. Choose a trigger type and the system will notify you when the condition is met.
           </Typography>
           <Field
@@ -646,7 +646,7 @@ export default function RulesPage() {
               />
               <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: "#F9FAFB", borderRadius: "4px", border: "1px solid #E5E7EB" }}>
                 <Info size={14} strokeWidth={1.5} color="#6B7280" style={{ marginTop: 2, flexShrink: 0 }} />
-                <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+                <Typography sx={{ fontSize: 12, color: theme.palette.text.muted, lineHeight: 1.5 }}>
                   Risk score (0–100) is calculated nightly using a weighted formula: approval status (40%), data &amp; compliance policies (25%), usage volume (15%), and department sensitivity (20%). Unapproved tools with weak compliance posture in sensitive departments score highest.
                 </Typography>
               </Stack>
@@ -667,7 +667,7 @@ export default function RulesPage() {
               />
               <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: "#F9FAFB", borderRadius: "4px", border: "1px solid #E5E7EB" }}>
                 <Info size={14} strokeWidth={1.5} color="#6B7280" style={{ marginTop: 2, flexShrink: 0 }} />
-                <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+                <Typography sx={{ fontSize: 12, color: theme.palette.text.muted, lineHeight: 1.5 }}>
                   This is the cumulative number of network events (API calls, page visits) recorded for a single AI tool across all users. For example, a threshold of 100 means the alert fires once a tool has been accessed 100 times total.
                 </Typography>
               </Stack>

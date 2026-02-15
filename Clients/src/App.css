@@ -1,3 +1,65 @@
+/* Theme CSS custom properties */
+:root {
+  --scrollbar-thumb: #D0D5DD;
+  --scrollbar-thumb-hover: #98A2B3;
+  --scrollbar-color: #D0D5DD;
+  --link-color: #3182ce;
+  --link-hover-color: #2c5aa0;
+  --vw-text-primary: #1c2130;
+  --vw-text-secondary: #344054;
+  --vw-text-tertiary: #475467;
+  --vw-text-muted: #9CA3AF;
+  --vw-text-heading: #111827;
+  --vw-bg-main: #FFFFFF;
+  --vw-bg-fill: #F4F4F4;
+  --vw-bg-accent: #f9fafb;
+  --vw-bg-hover: #F5F5F5;
+  --vw-bg-subtle: #F3F4F6;
+  --vw-border-light: #eaecf0;
+  --vw-border-dark: #d0d5dd;
+  --vw-border-medium: #D1D5DB;
+  --vw-border-input: #E5E7EB;
+  --vw-icon: #667085;
+  --vw-primary: #13715B;
+  --vw-primary-hover: #0f604d;
+  --vw-divider: #d0d5dd;
+  --vw-gradient-table: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+[data-theme="dark"] {
+  --scrollbar-thumb: #3a3d45;
+  --scrollbar-thumb-hover: #4a4d55;
+  --scrollbar-color: #3a3d45;
+  --link-color: #63b3ed;
+  --link-hover-color: #90cdf4;
+  --vw-text-primary: #e6e8eb;
+  --vw-text-secondary: #b0b4bb;
+  --vw-text-tertiary: #8b909a;
+  --vw-text-muted: #6b7280;
+  --vw-text-heading: #f3f4f6;
+  --vw-bg-main: #0f1117;
+  --vw-bg-fill: #21242b;
+  --vw-bg-accent: #181b22;
+  --vw-bg-hover: #1a1d23;
+  --vw-bg-subtle: #181b22;
+  --vw-border-light: #2a2d35;
+  --vw-border-dark: #3a3d45;
+  --vw-border-medium: #4a4d55;
+  --vw-border-input: #3a3d45;
+  --vw-icon: #8b909a;
+  --vw-primary: #1a9e7e;
+  --vw-primary-hover: #17876b;
+  --vw-divider: #2a2d35;
+  --vw-gradient-table: linear-gradient(180deg, #181b22 0%, #1a1d24 100%);
+}
+
+/* Smooth theme transition */
+[data-theme-transitioning] *,
+[data-theme-transitioning] *::before,
+[data-theme-transitioning] *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
 /* Global thin scrollbar styles */
 ::-webkit-scrollbar {
   width: 6px;
@@ -9,18 +71,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #D0D5DD;
+  background-color: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #98A2B3;
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 /* Firefox support */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #D0D5DD transparent;
+  scrollbar-color: var(--scrollbar-color) transparent;
 }
 
 body {
@@ -80,7 +142,7 @@ div.react-joyride > * {
 .slate-link,
 [data-slate-node="element"][data-slate-type="link"],
 a[data-slate-node="element"] {
-  color: #3182ce !important;
+  color: var(--link-color) !important;
   text-decoration: underline !important;
   cursor: pointer !important;
 }
@@ -88,6 +150,6 @@ a[data-slate-node="element"] {
 .slate-link:hover,
 [data-slate-node="element"][data-slate-type="link"]:hover,
 a[data-slate-node="element"]:hover {
-  color: #2c5aa0 !important;
+  color: var(--link-hover-color) !important;
   text-decoration: underline !important;
 }

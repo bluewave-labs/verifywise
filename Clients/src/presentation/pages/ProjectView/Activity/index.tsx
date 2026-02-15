@@ -239,7 +239,7 @@ const Activity: React.FC<ActivityProps> = ({ entityType, entityId }) => {
           padding: "16px",
           backgroundColor: theme.palette.background.main,
           borderRadius: "8px",
-          border: `1px solid #d0d5dd`,
+          border: `1px solid ${theme.palette.border.dark}`,
           "&:last-child": {
             marginBottom: 0,
           },

@@ -52,13 +52,13 @@
 
 /* Regular day hover - light gray background */
 .MuiPickersDay-root:hover {
-  background-color: #f5f5f5 !important;
+  background-color: var(--vw-bg-hover) !important;
 }
 
 /* Selected day should keep green background on hover */
 .MuiPickersDay-root.Mui-selected:hover {
-  background-color: #13715B !important;
-  color: #FFFFFF !important;
+  background-color: var(--vw-primary) !important;
+  color: var(--vw-bg-main) !important;
 }
 
 .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-edgeEnd.MuiPickersArrowSwitcher-previousIconButton{

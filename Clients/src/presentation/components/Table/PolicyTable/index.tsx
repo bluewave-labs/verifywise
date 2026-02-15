@@ -233,7 +233,7 @@ const CustomizablePolicyTable = ({
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      color: sortConfig.key === col.name ? "primary.main" : "#9CA3AF",
+                      color: sortConfig.key === col.name ? "primary.main" : theme.palette.text.muted,
                     }}
                   >
                     {sortConfig.key === col.name && sortConfig.direction === "asc" && (
@@ -306,7 +306,7 @@ const CustomizablePolicyTable = ({
             minHeight: 200,
           }}
         >
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+          <Typography sx={{ fontSize: "13px", color: theme.palette.text.tertiary }}>
             There is currently no data in this table.
           </Typography>
         </Stack>

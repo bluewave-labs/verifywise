@@ -1157,8 +1157,8 @@ const Vendors = () => {
                         variant="contained"
                         text="Add new vendor"
                         sx={{
-                          backgroundColor: "#13715B",
-                          border: "1px solid #13715B",
+                          backgroundColor: theme.palette.primary.main,
+                          border: `1px solid ${theme.palette.primary.main}`,
                           gap: 2,
                         }}
                         icon={<AddCircleOutlineIcon size={16} />}
@@ -1239,8 +1239,8 @@ const Vendors = () => {
                         variant="contained"
                         text="Add new risk"
                         sx={{
-                          backgroundColor: "#13715B",
-                          border: "1px solid #13715B",
+                          backgroundColor: theme.palette.primary.main,
+                          border: `1px solid ${theme.palette.primary.main}`,
                           gap: 2,
                         }}
                         icon={<AddCircleOutlineIcon size={16} />}

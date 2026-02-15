@@ -1,4 +1,4 @@
-import { Stack, Typography, Tooltip, Box } from "@mui/material";
+import { Stack, Typography, Tooltip, Box, useTheme } from "@mui/material";
 import {
   projectRisksCard,
   projectRisksTileCard,
@@ -35,6 +35,7 @@ export function StatusTileCards({
   onCardClick,
   selectedKey,
 }: StatusTileCardsProps) {
+  const theme = useTheme();
   const getTooltip = (item: StatusTileItem): string => {
     if (tooltipFormat) {
       return tooltipFormat(item);
@@ -60,9 +61,9 @@ export function StatusTileCards({
             <Stack
               className="vw-status-tile"
               sx={{
-                ...projectRisksTileCard,
+                ...projectRisksTileCard(theme),
                 color: item.color,
-                border: selectedKey === item.key ? `1px solid ${item.color}` : "1px solid #d0d5dd",
+                border: selectedKey === item.key ? `1px solid ${item.color}` : `1px solid ${theme.palette.border.dark}`,
                 cursor: onCardClick ? "pointer" : "default",
                 background: selectedKey === item.key ? "rgba(146, 247, 224, 0.08)" : undefined,
                 ...cardSx,

@@ -17,6 +17,7 @@ import {
   Skeleton,
   Tooltip,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   Search,
   Github,
@@ -66,6 +67,7 @@ interface StatCardProps {
 }
 
 function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
+  const theme = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -74,7 +76,7 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
       onMouseLeave={() => setIsHovered(false)}
       sx={{
         background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #E5E7EB",
+        border: `1px solid ${theme.palette.border.input}`,
         borderRadius: "8px",
         p: "16px",
         display: "flex",
@@ -85,8 +87,8 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
         transition: "all 0.2s ease",
         boxSizing: "border-box",
         "&:hover": {
-          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-          borderColor: "#D1D5DB",
+          background: `linear-gradient(135deg, ${theme.palette.background.accent} 0%, #F1F5F9 100%)`,
+          borderColor: theme.palette.border.medium,
         },
       }}
     >
@@ -111,7 +113,7 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
         <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: 0.5 }}>
           <Typography
             sx={{
-              color: "#6B7280",
+              color: theme.palette.text.muted,
               fontSize: "11px",
               fontWeight: 500,
               textTransform: "uppercase",
@@ -123,7 +125,7 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
           {tooltip && (
             <Tooltip title={tooltip} arrow placement="top">
               <Box sx={{ display: "flex", alignItems: "center", cursor: "help", ml: "2px" }}>
-                <Info size={14} color="#9CA3AF" />
+                <Info size={14} color={theme.palette.text.muted} />
               </Box>
             </Tooltip>
           )}
@@ -142,7 +144,7 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
           <Typography
             sx={{
               fontSize: "10px",
-              color: "#9CA3AF",
+              color: theme.palette.text.muted,
               mt: 0.25,
               fontWeight: 400,
             }}
@@ -156,6 +158,7 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
 }
 
 export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProps) {
+  const theme = useTheme();
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [progress, setProgress] = useState<ScanStatusResponse | null>(null);
@@ -445,8 +448,8 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {!isCheckingActive && scanState === "idle" && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #d0d5dd",
+            backgroundColor: theme.palette.background.main,
+            border: `1px solid ${theme.palette.border.dark}`,
             borderRadius: "4px",
             p: "16px",
           }}
@@ -456,7 +459,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography sx={{ fontSize: "13px", fontWeight: 600, mb: 0.5 }}>
                 Repository URL
               </Typography>
-              <Typography sx={{ fontSize: "13px", color: "#667085", mb: "8px" }}>
+              <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon, mb: "8px" }}>
                 Configure a GitHub token in Settings to scan private repositories.{" "}
                 Try these examples:{" "}
                 {[
@@ -469,7 +472,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                     <span
                       onClick={() => setRepositoryUrl(repo)}
                       style={{
-                        color: "#13715B",
+                        color: theme.palette.primary.main,
                         cursor: "pointer",
                         textDecoration: "underline",
                       }}
@@ -532,8 +535,8 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {scanState === "scanning" && progress && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #d0d5dd",
+            backgroundColor: theme.palette.background.main,
+            border: `1px solid ${theme.palette.border.dark}`,
             borderRadius: "4px",
             p: "8px",
           }}
@@ -546,7 +549,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                     progress.total_files ? `/${progress.total_files}` : ""
                   })`}
             </Typography>
-            <CircularProgress size={16} sx={{ color: "#13715B" }} />
+            <CircularProgress size={16} sx={{ color: theme.palette.primary.main }} />
           </Box>
 
           <LinearProgress
@@ -557,23 +560,23 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               borderRadius: 4,
               backgroundColor: "#e4e7ec",
               "& .MuiLinearProgress-bar": {
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 borderRadius: 4,
               },
             }}
           />
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-            <Typography variant="caption" sx={{ color: "#667085" }}>
+            <Typography variant="caption" sx={{ color: theme.palette.other.icon }}>
               {progress.current_file || "Processing..."}
             </Typography>
-            <Typography variant="caption" sx={{ color: "#667085" }}>
+            <Typography variant="caption" sx={{ color: theme.palette.other.icon }}>
               {progress.progress}%
             </Typography>
           </Box>
 
           {progress.findings_count > 0 && (
-            <Typography variant="body2" sx={{ mt: 2, color: "#13715B" }}>
+            <Typography variant="body2" sx={{ mt: 2, color: theme.palette.primary.main }}>
               Found {progress.findings_count} AI/ML {progress.findings_count === 1 ? "library" : "libraries"} so far
             </Typography>
           )}
@@ -593,8 +596,8 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {scanState === "completed" && result && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #d0d5dd",
+            backgroundColor: theme.palette.background.main,
+            border: `1px solid ${theme.palette.border.dark}`,
             borderRadius: "4px",
             p: "8px",
           }}
@@ -605,7 +608,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 Scan completed
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 {result.scan.repository_owner}/{result.scan.repository_name}
               </Typography>
             </Box>
@@ -623,7 +626,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             <Box
               sx={{
                 p: 2,
-                backgroundColor: "#f9fafb",
+                backgroundColor: theme.palette.background.accent,
                 borderRadius: "4px",
                 textAlign: "center",
               }}
@@ -631,14 +634,14 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography variant="h4" sx={{ fontWeight: 600, color: "#101828" }}>
                 {result.summary.total}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 Total findings
               </Typography>
             </Box>
             <Box
               sx={{
                 p: 2,
-                backgroundColor: "#f9fafb",
+                backgroundColor: theme.palette.background.accent,
                 borderRadius: "4px",
                 textAlign: "center",
               }}
@@ -646,14 +649,14 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography variant="h4" sx={{ fontWeight: 600, color: "#d92d20" }}>
                 {result.summary.by_confidence.high}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 High confidence
               </Typography>
             </Box>
             <Box
               sx={{
                 p: 2,
-                backgroundColor: "#f9fafb",
+                backgroundColor: theme.palette.background.accent,
                 borderRadius: "4px",
                 textAlign: "center",
               }}
@@ -661,7 +664,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography variant="h4" sx={{ fontWeight: 600, color: "#101828" }}>
                 {result.scan.files_scanned}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 Files scanned
               </Typography>
             </Box>
@@ -688,7 +691,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {scanState === "failed" && (
         <Box
           sx={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.palette.background.main,
             border: "1px solid #fecdca",
             borderRadius: "4px",
             p: 3,
@@ -700,7 +703,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography variant="body1" sx={{ fontWeight: 500, color: "#b42318" }}>
                 Scan failed
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 {error || "An error occurred during the scan"}
               </Typography>
             </Box>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Button, Stack, Popover, Box, Typography } from '@mui/material';
+import { Button, Stack, Popover, Box, Typography, useTheme } from '@mui/material';
 import { X, Filter, Plus } from 'lucide-react';
 import Select from '../Inputs/Select';
 import Field from '../Inputs/Field';
@@ -391,6 +391,7 @@ export const FilterBy: React.FC<FilterByProps> = ({
   defaultConditions,
   defaultLogic = 'and',
 }) => {
+  const theme = useTheme();
   // Create initial condition
   const createInitialCondition = useCallback((): FilterCondition => {
     const firstColumn = columns[0];
@@ -503,8 +504,8 @@ export const FilterBy: React.FC<FilterByProps> = ({
           fontWeight: 500,
           padding: '6px 12px',
           textTransform: 'none',
-          color: '#374151',
-          borderColor: '#d0d5dd',
+          color: theme.palette.text.dark,
+          borderColor: theme.palette.border.dark,
           height: '34px',
           minWidth: activeFilterCount > 0 ? '100px' : '80px',
           backgroundColor: open ? '#eff6ff' : 'transparent',
@@ -566,7 +567,7 @@ export const FilterBy: React.FC<FilterByProps> = ({
           {/* Add filter link - aligned with the first dropdown (after WHERE/AND/OR) */}
           {canAddMore && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: '4px', ml: `calc(${LOGIC_CONTROL_WIDTH} + 12px)` }}>
-              <Plus size={14} color="#13715B" />
+              <Plus size={14} color={theme.palette.primary.main} />
               <VWLink onClick={handleAddFilter} showUnderline={false}>
                 Add filter
               </VWLink>
@@ -583,7 +584,7 @@ export const FilterBy: React.FC<FilterByProps> = ({
               mt: '12px',
               mx: '-16px',
               mb: '-16px',
-              backgroundColor: '#f9fafb',
+              backgroundColor: theme.palette.background.accent,
               borderTop: '1px solid #e5e7eb',
               borderRadius: '0 0 4px 4px',
             }}
@@ -598,7 +599,7 @@ export const FilterBy: React.FC<FilterByProps> = ({
                 letterSpacing: '0.5px',
                 cursor: 'pointer',
                 '&:hover': {
-                  color: '#374151',
+                  color: theme.palette.text.dark,
                 },
               }}
             >

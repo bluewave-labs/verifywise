@@ -607,7 +607,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                   <Stack padding="15px 20px" gap="15px">
                     <Stack
                       sx={{
-                        border: `1px solid #eee`,
+                        border: `1px solid ${theme.palette.border.input}`,
                         padding: "10px",
                         backgroundColor: "background.accent",
                         borderRadius: "4px",
@@ -899,7 +899,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                   sx={{
                                     fontSize: 13,
                                     fontWeight: 500,
-                                    color: "#1F2937",
+                                    color: theme.palette.text.primary,
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
@@ -1061,7 +1061,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                         <Typography variant="body2" sx={{ mb: 1 }}>
                           No evidence files uploaded yet
                         </Typography>
-                        <Typography variant="caption" color="#9CA3AF">
+                        <Typography variant="caption" color={theme.palette.text.muted}>
                           Click "Add evidence files" to upload documentation for
                           this subcategory
                         </Typography>
@@ -1165,7 +1165,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                                   sx={{
                                     fontSize: 13,
                                     fontWeight: 500,
-                                    color: "#1F2937",
+                                    color: theme.palette.text.primary,
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
@@ -1247,7 +1247,7 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
                           <Typography variant="body2" sx={{ mb: 1 }}>
                             No risks linked yet
                           </Typography>
-                          <Typography variant="caption" color="#9CA3AF">
+                          <Typography variant="caption" color={theme.palette.text.muted}>
                             Click "Add/remove risks" to link risks from your
                             risk database
                           </Typography>

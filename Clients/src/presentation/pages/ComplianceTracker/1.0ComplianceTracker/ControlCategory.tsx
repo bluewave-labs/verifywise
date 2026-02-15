@@ -11,6 +11,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
@@ -44,6 +45,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   approverFilter,
   dueDateFilter
 }) => {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState<number | false>(false);
   const [filteredControlsCount, setFilteredControlsCount] = useState<number | null>(null);
 
@@ -64,7 +66,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
         onChange={handleAccordionChange(controlCategory.id ?? 0)}
         sx={{
           marginTop: "9px",
-          border: "1px solid #eaecf0",
+          border: `1px solid ${theme.palette.border.light}`,
           width: "100%",
           marginLeft: "1.5px",
           borderRadius: "4px",

@@ -6,7 +6,7 @@
 }
 
 .collection-card:hover {
-  border-color: #13715B;
+  border-color: var(--vw-primary);
   box-shadow: 0px 4px 24px -4px rgba(16, 24, 40, 0.08);
 }
 
@@ -16,7 +16,7 @@
 }
 
 .fast-find-item:hover {
-  background-color: #f9fafb;
+  background-color: var(--vw-bg-accent);
 }
 
 .fast-find-item .arrow-icon {
@@ -24,7 +24,7 @@
 }
 
 .fast-find-item:hover .arrow-icon {
-  color: #13715B;
+  color: var(--vw-primary);
 }
 
 /* Search input focus */
@@ -33,5 +33,5 @@
 }
 
 .search-input::placeholder {
-  color: #667085;
+  color: var(--vw-icon);
 }

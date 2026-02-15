@@ -125,7 +125,7 @@ export const modalMixins = {
     color: theme.palette.text.tertiary,
     "&:hover": { 
       color: theme.palette.text.primary, 
-      backgroundColor: theme.palette.action?.hover || "#e3f5e6"
+      backgroundColor: theme.palette.action?.hover || "transparent"
     },
     padding: theme.spacing(0.5),
   }),

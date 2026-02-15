@@ -22,7 +22,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Modal, Stack, Typography } from "@mui/material";
+import { Box, Modal, Stack, Typography, useTheme } from "@mui/material";
 import { LucideIcon, Shield, Check, X } from "lucide-react";
 import { CustomizableButton } from "../../button/customizable-button";
 
@@ -82,6 +82,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   width = 620,
   storageKey,
 }) => {
+  const theme = useTheme();
   const [step, setStep] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const isLast = step === steps.length - 1;
@@ -317,7 +318,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         </Box>
 
         {/* ── Light body — renders step content (any ReactNode) ── */}
-        <Box sx={{ bgcolor: "#FFFFFF", padding: "32px" }}>
+        <Box sx={{ bgcolor: theme.palette.background.main, padding: "32px" }}>
           {steps[step]?.content}
         </Box>
 
@@ -339,11 +340,11 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
               minWidth: "70px",
               height: 34,
               fontSize: 13,
-              border: "1px solid #D0D5DD",
-              color: "#344054",
+              border: `1px solid ${theme.palette.border.dark}`,
+              color: theme.palette.text.secondary,
               "&:hover": {
-                bgcolor: "#F9FAFB",
-                border: "1px solid #D0D5DD",
+                bgcolor: theme.palette.background.accent,
+                border: `1px solid ${theme.palette.border.dark}`,
               },
             }}
           />
@@ -355,9 +356,9 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
               minWidth: "70px",
               height: 34,
               fontSize: 13,
-              bgcolor: "#13715B",
+              bgcolor: theme.palette.primary.main,
               "&:hover": {
-                bgcolor: "#0F5A47",
+                bgcolor: theme.palette.primary.dark,
               },
             }}
           />

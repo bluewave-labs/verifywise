@@ -27,7 +27,7 @@
  */
 
 import React from "react";
-import { Modal, Stack, Box, Typography, Step, Stepper, StepLabel } from "@mui/material";
+import { Modal, Stack, Box, Typography, Step, Stepper, StepLabel, useTheme } from "@mui/material";
 import { X as CloseIcon } from "lucide-react";
 import { CustomizableButton } from "../../button/customizable-button";
 
@@ -91,6 +91,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
   maxWidth = "1000px",
   headerBadge,
 }) => {
+  const theme = useTheme();
   const isLastStep = activeStep === steps.length - 1;
   const isFirstStep = activeStep === 0;
 
@@ -121,7 +122,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
           width: "fit-content",
           minWidth: "600px",
           maxWidth: maxWidth,
-          backgroundColor: "#FFFFFF",
+          backgroundColor: theme.palette.background.main,
           borderRadius: "8px",
           overflow: "hidden",
           "&:focus": {
@@ -151,7 +152,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
                   sx={{
                     fontSize: 15,
                     fontWeight: 600,
-                    color: "#101828",
+                    color: theme.palette.text.primary,
                     lineHeight: "28px",
                   }}
                 >
@@ -163,7 +164,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
                 sx={{
                   fontSize: 13,
                   fontWeight: 400,
-                  color: "#475467",
+                  color: theme.palette.text.tertiary,
                   lineHeight: "20px",
                 }}
               >
@@ -187,7 +188,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
               }}
               sx={{
                 cursor: "pointer",
-                color: "#98A2B3",
+                color: theme.palette.text.muted,
                 display: "flex",
                 alignItems: "center",
                 padding: "4px",
@@ -211,7 +212,7 @@ const StepperModal: React.FC<StepperModalProps> = ({
             maxHeight: "calc(90vh - 180px)",
             border: "1px solid #E0E4E9",
             borderRadius: "16px",
-            backgroundColor: "#FFFFFF",
+            backgroundColor: theme.palette.background.main,
             zIndex: 1,
             position: "relative",
           }}
@@ -228,10 +229,10 @@ const StepperModal: React.FC<StepperModalProps> = ({
                         fontWeight: activeStep === index ? 600 : 400,
                       },
                       "& .MuiStepIcon-root": {
-                        color: activeStep >= index ? "#13715B" : "#E0E4E9",
+                        color: activeStep >= index ? theme.palette.primary.main : "#E0E4E9",
                       },
                       "& .MuiStepIcon-text": {
-                        fill: "#FFFFFF",
+                        fill: theme.palette.background.main,
                         fontSize: "12px",
                       },
                     }}
@@ -268,11 +269,11 @@ const StepperModal: React.FC<StepperModalProps> = ({
               minWidth: "70px",
               height: "32px",
               fontSize: "13px",
-              border: "1px solid #D0D5DD",
-              color: "#344054",
+              border: `1px solid ${theme.palette.border.dark}`,
+              color: theme.palette.text.secondary,
               "&:hover": {
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #D0D5DD",
+                backgroundColor: theme.palette.background.accent,
+                border: `1px solid ${theme.palette.border.dark}`,
               },
             }}
           />
@@ -286,12 +287,12 @@ const StepperModal: React.FC<StepperModalProps> = ({
                 sx={{
                   minWidth: "70px",
                   height: "32px",
-                  border: "1px solid #D0D5DD",
-                  color: "#344054",
+                  border: `1px solid ${theme.palette.border.dark}`,
+                  color: theme.palette.text.secondary,
                   fontSize: "13px",
                   "&:hover": {
-                    backgroundColor: "#F9FAFB",
-                    border: "1px solid #D0D5DD",
+                    backgroundColor: theme.palette.background.accent,
+                    border: `1px solid ${theme.palette.border.dark}`,
                   },
                 }}
               />
@@ -307,13 +308,13 @@ const StepperModal: React.FC<StepperModalProps> = ({
                 minWidth: "70px",
                 height: "32px",
                 fontSize: "13px",
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 "&:hover:not(.Mui-disabled)": {
-                  backgroundColor: "#0F5A47",
+                  backgroundColor: theme.palette.primary.dark,
                 },
                 "&.Mui-disabled": {
-                  backgroundColor: "#E5E7EB",
-                  color: "#9CA3AF",
+                  backgroundColor: theme.palette.border.input,
+                  color: theme.palette.text.muted,
                   cursor: "not-allowed",
                 },
               }}

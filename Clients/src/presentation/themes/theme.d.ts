@@ -12,10 +12,24 @@ import type {
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 declare module "@mui/material/styles" {
+  interface ChartPalette {
+    blue: string;
+    amber: string;
+    purple: string;
+    emerald: string;
+    red: string;
+    darkRed: string;
+    darkEmerald: string;
+    orange: string;
+    indigo: string;
+    slate: string;
+  }
   interface Palette {
     border: {
       light: string;
       dark: string;
+      medium: string;
+      input: string;
     };
     background: TypeBackground;
     text: TypeText;
@@ -27,11 +41,14 @@ declare module "@mui/material/styles" {
       grid: string;
     };
     unresolved: PaletteColor;
+    chart: ChartPalette;
   }
   interface PaletteOptions {
     border?: {
       light: string;
       dark: string;
+      medium?: string;
+      input?: string;
     };
     background?: TypeBackground;
     text?: TypeText;
@@ -43,6 +60,7 @@ declare module "@mui/material/styles" {
       grid?: string;
     };
     unresolved?: PaletteColorOptions;
+    chart?: ChartPalette;
   }
   interface TypeBackground {
     main: string;
@@ -50,13 +68,17 @@ declare module "@mui/material/styles" {
     modal: string;
     fill: string;
     accent: string;
-    modal: string;
+    hover: string;
+    subtle: string;
   }
   interface TypeText {
     primary: string;
     secondary: string;
     tertiary: string;
     accent: string;
+    muted: string;
+    dark: string;
+    heading: string;
   }
   interface PaletteColor {
     text?: string;
@@ -79,12 +101,14 @@ declare module "@mui/material/styles" {
     success: PaletteColor;
     error: PaletteColor;
     warning: PaletteColor;
+    inactive: PaletteColor;
   }
   interface StatusPaletteOptions {
     info?: PaletteColorOptions;
     success?: PaletteColorOptions;
     error?: PaletteColorOptions;
     warning?: PaletteColorOptions;
+    inactive?: PaletteColorOptions;
   }
   interface Shape {
     borderRadius: number | string;

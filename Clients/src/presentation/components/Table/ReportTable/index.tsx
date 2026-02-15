@@ -103,7 +103,7 @@ const SortableTableHead: React.FC<{
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      color: sortConfig.key === column ? "primary.main" : "#9CA3AF",
+                      color: sortConfig.key === column ? "primary.main" : theme.palette.text.muted,
                     }}
                   >
                     {sortConfig.key === column && sortConfig.direction === "asc" && (

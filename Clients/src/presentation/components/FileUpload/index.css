@@ -2,27 +2,27 @@
 .file-upload-container {
   width: 384px;
   height: 338px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--vw-border-medium);
   border-radius: 8px;
   padding: 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  background-color: #f9fafb;
+  background-color: var(--vw-bg-accent);
 }
 
 /* Styling for the drag-and-drop area */
 .file-upload-drag-drop {
   width: 320px;
   height: 190px;
-  border: 1px dashed #d1d5db;
+  border: 1px dashed var(--vw-border-medium);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: var(--vw-bg-main);
 }
 
 /* Styling for the small upload icon */

@@ -1,4 +1,4 @@
-import { Stack, Typography, Tooltip, Box } from "@mui/material";
+import { Stack, Typography, Tooltip, Box, useTheme } from "@mui/material";
 import { TrendingUp as TrendingUpRedIcon, TrendingDown as TrendingDownGreenIcon, Minus as TrendingFlatGreyIcon } from "lucide-react";
 import {
   projectRisksCard,
@@ -19,14 +19,15 @@ interface RisksCardProps {
 }
 
 export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCardProps) {
+  const theme = useTheme();
   const getValidRiskValue = (value: number) => (isNaN(value) ? 0 : value);
 
   const renderTrendIndicator = (trend?: RiskTrend) => {
     if (!trend || trend.direction === 'stable') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingFlatGreyIcon size={16} style={trendIconStable} />
-          <span style={{ color: "#6B7280" }}>
+          <TrendingFlatGreyIcon size={16} style={trendIconStable(theme)} />
+          <span style={{ color: theme.palette.text.muted }}>
             {trend?.change === 0 ? "0" : "—"}
           </span>
         </Typography>
@@ -36,8 +37,8 @@ export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCar
     if (trend.direction === 'up') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingUpRedIcon size={16} style={trendIconUp} />
-          <span style={{ color: "#EF4444" }}>
+          <TrendingUpRedIcon size={16} style={trendIconUp(theme)} />
+          <span style={{ color: theme.palette.status?.error?.text || "#EF4444" }}>
             +{trend.change}
           </span>
         </Typography>
@@ -46,8 +47,8 @@ export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCar
 
     return (
       <Typography sx={trendIndicator}>
-        <TrendingDownGreenIcon size={16} style={trendIconDown} />
-        <span style={{ color: "#10B981" }}>
+        <TrendingDownGreenIcon size={16} style={trendIconDown(theme)} />
+        <span style={{ color: theme.palette.status?.success?.main || "#10B981" }}>
           -{Math.abs(trend.change)}
         </span>
       </Typography>
@@ -138,10 +139,10 @@ export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCar
                 className="vw-project-risks-tile"
                 onClick={() => handleCardClick(level.label)}
                 sx={{
-                  ...projectRisksTileCard,
+                  ...projectRisksTileCard(theme),
                   color: level.color,
                   cursor: isClickable ? 'pointer' : 'default',
-                  border: isSelected ? `1px solid ${level.color}` : '1px solid #d0d5dd',
+                  border: isSelected ? `1px solid ${level.color}` : `1px solid ${theme.palette.border.dark}`,
                   background: isSelected ? 'rgba(146, 247, 224, 0.08)' : undefined,
                 }}
               >

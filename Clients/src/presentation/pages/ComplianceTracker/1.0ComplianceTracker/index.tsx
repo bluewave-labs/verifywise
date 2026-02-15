@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { StatsCard } from "../../../components/Cards/StatsCard";
@@ -27,6 +28,7 @@ const ComplianceTracker = ({
   approverFilter?: string;
   dueDateFilter?: string;
 }) => {
+  const theme = useTheme();
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework?.filter(
     (p) => p.framework_id === 1
@@ -149,7 +151,7 @@ const ComplianceTracker = ({
             completed={complianceData.allDonesubControls}
             total={complianceData.allsubControls}
             title="Subcontrols"
-            progressbarColor="#13715B"
+            progressbarColor={theme.palette.primary.main}
           />
         </Stack>
       )}

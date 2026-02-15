@@ -39,8 +39,8 @@
 }
 
 .tour-primary-button {
-  background: linear-gradient(135deg, #13715B 0%, #16C784 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--vw-primary) 0%, #16C784 100%);
+  color: var(--vw-bg-main);
   font-size: 13px;
   padding: 6px 16px;
   font-weight: 500;

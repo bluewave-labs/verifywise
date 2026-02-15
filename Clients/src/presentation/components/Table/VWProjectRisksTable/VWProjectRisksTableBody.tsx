@@ -175,7 +175,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "risk_owner"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -189,7 +189,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "severity"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -205,7 +205,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "mitigation_status"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -221,7 +221,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "risk_level_autocalculated"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -237,7 +237,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "deadline"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -249,7 +249,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "controls_mapping"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -268,7 +268,7 @@ const VWProjectRisksTableBody = ({
                     backgroundColor: flashRow === row.id
                       ? singleTheme.flashColors.background
                       : sortConfig.key === "actions"
-                      ? "#f5f5f5"
+                      ? theme.palette.background.hover
                       : "",
                   }}
                 >
@@ -289,10 +289,10 @@ const VWProjectRisksTableBody = ({
                         warningTitle="Delete this project risk?"
                         warningMessage={
                           <Stack gap={2}>
-                            <Typography fontSize={13} color="#344054">
+                            <Typography fontSize={13} color={theme.palette.text.secondary}>
                               Are you sure you want to delete this project risk?
                             </Typography>
-                            <Typography fontSize={13} color="#344054">
+                            <Typography fontSize={13} color={theme.palette.text.secondary}>
                               This action is non-recoverable.
                             </Typography>
                           </Stack>

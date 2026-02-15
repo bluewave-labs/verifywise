@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { smallStatsCardHeader, smallStatsCardStyle } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 
@@ -13,13 +13,14 @@ export function SmallStatsCard({
   rate = 60,
   progress = "90/100",
 }: SmallStatsCardProps) {
+  const theme = useTheme();
   return (
-    <Stack className="small-stats-card" sx={smallStatsCardStyle}>
+    <Stack className="small-stats-card" sx={smallStatsCardStyle(theme)}>
       <Stack className="small-stats-card-header" sx={smallStatsCardHeader}>
-        <Typography sx={{ fontSize: 13, color: "#8594AC" }}>
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.accent }}>
           {attributeTitle} completion rate
         </Typography>
-        <Typography sx={{ fontSize: 16, color: "#2D3748", fontWeight: 700 }}>
+        <Typography sx={{ fontSize: 16, color: theme.palette.text.primary, fontWeight: 700 }}>
           {Math.floor(rate * 100)}%
         </Typography>
       </Stack>

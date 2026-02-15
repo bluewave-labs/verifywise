@@ -1,5 +1,7 @@
-export const DatePickerStyle = {
-  backgroundColor: "#FFFFFF",
+import { Theme } from "@mui/material";
+
+export const getDatePickerStyle = (theme: Theme) => ({
+  backgroundColor: theme.palette.background.main,
   ".MuiIconButton-root:hover": { backgroundColor: "unset" },
   "& svg": { display: "none" },
   // Icon button positioning (MUI v8 uses MuiInputAdornment-root)
@@ -23,7 +25,7 @@ export const DatePickerStyle = {
   },
   // MUI v8 DatePicker uses sectionsContainer for the date display
   "& .MuiPickersOutlinedInput-root": {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.palette.background.main,
     borderRadius: "4px",
     paddingLeft: "40px !important",
   },
@@ -42,25 +44,25 @@ export const DatePickerStyle = {
     pointerEvents: "none",
   },
   "& .MuiOutlinedInput-root": {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.palette.background.main,
     borderRadius: "4px",
   },
   // Hover state for MUI v8 DatePicker
   "& .MuiPickersOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#5FA896 !important",
+    borderColor: `${theme.palette.primary.light} !important`,
   },
   "& .MuiPickersOutlinedInput-root:hover fieldset": {
-    borderColor: "#5FA896 !important",
+    borderColor: `${theme.palette.primary.light} !important`,
   },
   // Focus state with green border for MUI v8 DatePicker
   "& .MuiPickersOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#13715B !important",
+    borderColor: `${theme.palette.primary.main} !important`,
     borderWidth: "2px",
     boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
   },
   "& .MuiPickersOutlinedInput-root.Mui-focused fieldset": {
-    borderColor: "#13715B !important",
+    borderColor: `${theme.palette.primary.main} !important`,
     borderWidth: "2px",
     boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
   },
-};
+});

@@ -2273,13 +2273,13 @@ const ModelInventory: React.FC = () => {
               sx={{
                 width: 160,
                 fontSize: 13,
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: theme.palette.primary.main,
+                border: `1px solid ${theme.palette.primary.main}`,
                 boxShadow: "none",
                 borderRadius: "4px",
                 "&:hover": {
                   boxShadow: "none",
-                  backgroundColor: "#0f5a48",
+                  backgroundColor: theme.palette.primary.dark,
                 },
               }}
             >
@@ -2441,14 +2441,14 @@ const ModelInventory: React.FC = () => {
                     width: "34px",
                     padding: "8px",
                     borderRadius: "4px",
-                    border: "1px solid #e5e7eb",
-                    backgroundColor: "#ffffff",
+                    border: `1px solid ${theme.palette.border.input}`,
+                    backgroundColor: theme.palette.background.main,
                     "&:hover": {
-                      backgroundColor: "#f9fafb",
+                      backgroundColor: theme.palette.background.accent,
                     },
                   }}
                 >
-                  <BarChart3 size={16} color="#344054" />
+                  <BarChart3 size={16} color={theme.palette.text.secondary} />
                 </IconButton>
                 {userRoleName === "Admin" && featureSettings?.lifecycle_enabled && (
                   <IconButton
@@ -2459,14 +2459,14 @@ const ModelInventory: React.FC = () => {
                       width: "34px",
                       padding: "8px",
                       borderRadius: "4px",
-                      border: "1px solid #e5e7eb",
-                      backgroundColor: "#ffffff",
+                      border: `1px solid ${theme.palette.border.input}`,
+                      backgroundColor: theme.palette.background.main,
                       "&:hover": {
-                        backgroundColor: "#f9fafb",
+                        backgroundColor: theme.palette.background.accent,
                       },
                     }}
                   >
-                    <Settings size={16} color="#344054" />
+                    <Settings size={16} color={theme.palette.text.secondary} />
                   </IconButton>
                 )}
                 <div data-joyride-id="add-model-button">

@@ -321,7 +321,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
               >
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "risk_name" ? "#e8e8e8" : "#fafafa",
+                  backgroundColor: sortConfig.key === "risk_name" ? "#e8e8e8" : theme.palette.background.subtle,
                 }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}
@@ -329,19 +329,19 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                 </TableCell>
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "model_name" ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig.key === "model_name" ? theme.palette.background.hover : "inherit",
                 }}>
                   {getModelName(row.model_id)}
                 </TableCell>
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "risk_level" ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig.key === "risk_level" ? theme.palette.background.hover : "inherit",
                 }}>
                   <Chip label={row.risk_level} />
                 </TableCell>
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig.key === "status" ? theme.palette.background.hover : "inherit",
                 }}>
                   <Box
                     sx={{
@@ -356,10 +356,10 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                         height: 8,
                         borderRadius: "50%",
                         backgroundColor:
-                          row.status === "Open" ? "#f04438" :
+                          row.status === "Open" ? theme.palette.status.error.text :
                           row.status === "In Progress" ? "#f79009" :
                           row.status === "Resolved" ? "#12b76a" :
-                          "#6b7280", // Accepted
+                          theme.palette.text.muted, // Accepted
                       }}
                     />
                     <Typography sx={{ fontSize: 13 }}>
@@ -369,13 +369,13 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                 </TableCell>
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "owner" ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig.key === "owner" ? theme.palette.background.hover : "inherit",
                 }}>
                   {getOwnerName(row.owner)}
                 </TableCell>
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "target_date" ? "#f5f5f5" : "inherit",
+                  backgroundColor: sortConfig.key === "target_date" ? theme.palette.background.hover : "inherit",
                 }}>
                   {formatDate(row.target_date)}
                 </TableCell>
@@ -421,7 +421,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
         alignItems="center"
         justifyContent="center"
         sx={{
-          border: "1px solid #EEEEEE",
+          border: `1px solid ${theme.palette.border.input}`,
           borderRadius: "4px",
           padding: theme.spacing(15, 5),
           paddingBottom: theme.spacing(20),
@@ -429,7 +429,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
           minHeight: 200,
         }}
       >
-        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+        <Typography sx={{ fontSize: "13px", color: theme.palette.text.tertiary }}>
           Loading model risks...
         </Typography>
       </Stack>

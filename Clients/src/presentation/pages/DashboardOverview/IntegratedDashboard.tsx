@@ -485,7 +485,7 @@ const IntegratedDashboard: React.FC = () => {
                             sx={{
                               fontSize: 13,
                               fontWeight: 500,
-                              color: "#667085",
+                              color: theme.palette.other.icon,
                               minWidth: 55,
                               textAlign: "center",
                             }}
@@ -1086,7 +1086,7 @@ const IntegratedDashboard: React.FC = () => {
                             sx={{
                               fontSize: 13,
                               fontWeight: 500,
-                              color: "#667085",
+                              color: theme.palette.other.icon,
                               minWidth: 55,
                               textAlign: "center",
                             }}

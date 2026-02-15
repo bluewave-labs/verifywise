@@ -675,7 +675,7 @@ const VWISO42001AnnexDrawerDialog = ({
               <Stack
                 className="vw-iso-42001-annex-drawer-dialog-content-annex-guidance"
                 sx={{
-                  border: `1px solid #eee`,
+                  border: `1px solid ${theme.palette.border.input}`,
                   padding: "10px",
                   backgroundColor: "background.accent",
                   borderRadius: "4px",

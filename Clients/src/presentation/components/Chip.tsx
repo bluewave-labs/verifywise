@@ -1,5 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   IChipProps,
   ChipVariant,
@@ -240,7 +241,30 @@ const Chip: React.FC<IChipProps> = ({
   backgroundColor,
   textColor,
 }) => {
-  const colors = getChipColors(label, variant, backgroundColor, textColor);
+  const theme = useTheme();
+
+  // Override default variant colors with theme-aware values at render time
+  const themedDefaultColors: ChipColorConfig = {
+    backgroundColor: theme.palette.background.subtle,
+    textColor: theme.palette.status?.inactive?.text || theme.palette.text.muted,
+  };
+
+  const colors = variant === "default" && !backgroundColor && !textColor
+    ? (() => {
+        const derivedVariant = getVariantFromLabel(label);
+        if (derivedVariant && derivedVariant !== "default") {
+          return getChipColors(label, variant, backgroundColor, textColor);
+        }
+        return themedDefaultColors;
+      })()
+    : (() => {
+        const result = getChipColors(label, variant, backgroundColor, textColor);
+        // If the result matches the static default, use themed default instead
+        if (result.backgroundColor === "#F3F4F6" && result.textColor === "#6B7280") {
+          return themedDefaultColors;
+        }
+        return result;
+      })();
   const height = SIZE_HEIGHT[size];
 
   // Create gradient colors (very slightly darker at bottom)

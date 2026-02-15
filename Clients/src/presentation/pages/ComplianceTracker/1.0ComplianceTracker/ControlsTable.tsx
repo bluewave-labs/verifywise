@@ -14,6 +14,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Dispatch, useCallback, useEffect, useState } from "react";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
@@ -60,6 +61,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   dueDateFilter,
   setFilteredControlsCount
 }) => {
+  const theme = useTheme();
   const { users } = useUsers();
   const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
@@ -356,7 +358,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
                             sx={{
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: "#E5E7EB",
+                              backgroundColor: theme.palette.border.input,
                               "& .MuiLinearProgress-bar": {
                                 backgroundColor:
                                   getProgressColor(completionPercentage),

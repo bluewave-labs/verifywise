@@ -5,13 +5,13 @@
 }
 
 .header-icon-button:hover {
-  background-color: #f4f4f4 !important;
-  color: #13715B !important;
+  background-color: var(--vw-bg-fill) !important;
+  color: var(--vw-primary) !important;
 }
 
 .header-icon-button.active {
-  background-color: #f9fafb;
-  color: #13715B;
+  background-color: var(--vw-bg-accent);
+  color: var(--vw-primary);
 }
 
 .breadcrumb-dropdown-trigger {
@@ -19,7 +19,7 @@
 }
 
 .breadcrumb-dropdown-trigger:hover {
-  background-color: #f4f4f4;
+  background-color: var(--vw-bg-fill);
 }
 
 .breadcrumb-item {
@@ -27,14 +27,14 @@
 }
 
 .breadcrumb-item:hover {
-  background-color: #f4f4f4;
+  background-color: var(--vw-bg-fill);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #13715B;
+  border-color: var(--vw-primary);
 }
 
 .search-input::placeholder {
-  color: #667085;
+  color: var(--vw-icon);
 }

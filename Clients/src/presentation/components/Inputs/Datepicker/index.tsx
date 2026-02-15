@@ -5,7 +5,7 @@ import { DatePicker as MuiDatePicker } from "@mui/x-date-pickers/DatePicker";
 import "./index.css";
 import dayjs from "dayjs";
 import { DatePickerProps } from "../../../types/widget.types";
-import { DatePickerStyle } from "./style";
+import { getDatePickerStyle } from "./style";
 import { getDatePickerStyles } from "../../../utils/inputStyles";
 
 const DatePicker = ({
@@ -81,7 +81,7 @@ const DatePicker = ({
         <MuiDatePicker
           className="mui-date-picker"
           sx={{
-            ...DatePickerStyle,
+            ...getDatePickerStyle(theme),
             ...getDatePickerStyles(theme, { hasError: !!error }),
             '& .MuiInputBase-root': {
               cursor: 'pointer',

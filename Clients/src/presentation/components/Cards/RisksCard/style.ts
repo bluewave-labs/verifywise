@@ -1,3 +1,5 @@
+import { Theme } from "@mui/material";
+
 export const projectRisksCard = {
   minWidth: "fit-content",
   width: { xs: "100%", sm: "fit-content" },
@@ -8,7 +10,7 @@ export const projectRisksCard = {
   overflow: "auto",
 };
 
-export const projectRisksTileCard = {
+export const projectRisksTileCard = (theme: Theme) => ({
   paddingY: { xs: "10px", sm: "15px" },
   paddingX: { xs: "15px", sm: "30px" },
   textAlign: "center" as const,
@@ -17,11 +19,11 @@ export const projectRisksTileCard = {
   position: "relative" as const,
   minWidth: { xs: "120px", sm: "140px" },
   width: { xs: "120px", sm: "140px" },
-  background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-  border: "1px solid #E5E7EB",
+  background: `linear-gradient(135deg, ${theme.palette.background.main} 0%, ${theme.palette.background.subtle} 100%)`,
+  border: `1px solid ${theme.palette.border.input}`,
   borderRadius: 2,
   transition: "all 0.2s ease",
-};
+});
 
 export const projectRisksTileCardKey = {
   fontSize: 13,
@@ -43,31 +45,31 @@ export const trendIndicator = {
   marginTop: 1,
 };
 
-export const trendIconUp = {
-  color: "#EF4444", // Red for increasing risks
+export const trendIconUp = (theme: Theme) => ({
+  color: theme.palette.status?.error?.text || "#EF4444",
   fontSize: 14,
-};
+});
 
-export const trendIconDown = {
-  color: "#10B981", // Green for decreasing risks
+export const trendIconDown = (theme: Theme) => ({
+  color: theme.palette.status?.success?.main || "#10B981",
   fontSize: 14,
-};
+});
 
-export const trendIconStable = {
-  color: "#6B7280", // Gray for stable risks
+export const trendIconStable = (theme: Theme) => ({
+  color: theme.palette.text.muted,
   fontSize: 14,
-};
+});
 
-export const riskMetricsContainer = {
+export const riskMetricsContainer = (theme: Theme) => ({
   display: "flex",
   flexDirection: "column",
   gap: 2,
   padding: "16px 24px",
-  backgroundColor: "#F9FAFB",
-  border: `1px solid #E5E7EB`,
+  backgroundColor: theme.palette.background.accent,
+  border: `1px solid ${theme.palette.border.input}`,
   borderRadius: 2,
   minWidth: "200px",
-};
+});
 
 export const riskMetricItem = {
   display: "flex",
@@ -76,12 +78,12 @@ export const riskMetricItem = {
   fontSize: 14,
 };
 
-export const riskMetricLabel = {
-  color: "#6B7280",
+export const riskMetricLabel = (theme: Theme) => ({
+  color: theme.palette.text.muted,
   fontWeight: 500,
-};
+});
 
-export const riskMetricValue = {
+export const riskMetricValue = (theme: Theme) => ({
   fontWeight: 600,
-  color: "#111827",
-};
+  color: theme.palette.text.primary,
+});

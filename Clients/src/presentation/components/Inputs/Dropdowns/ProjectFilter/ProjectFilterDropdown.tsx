@@ -1,6 +1,6 @@
 import React from "react";
 import { Select, MenuItem, FormControl, useTheme } from "@mui/material";
-import { dropdownStyles, inputStyles } from "./style";
+import { getDropdownStyles, inputStyles } from "./style";
 import { ProjectFilterDropdownProps } from "../../../../types/interfaces/i.dropdown";
 import { ChevronDown } from "lucide-react";
 
@@ -26,7 +26,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
           IconComponent={GreyDownArrowIcon}
           sx={{
             ...inputStyles,
-            ...dropdownStyles,
+            ...getDropdownStyles(theme),
             ...sx,
             "& svg path": {
               fill: theme.palette.other.icon,

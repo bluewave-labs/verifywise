@@ -4,10 +4,12 @@
  */
 
 export { default as light } from './light';
+export { default as dark } from './dark';
 export { default as singleTheme } from './v1SingleTheme';
 
-export { alertStyles } from './alerts';
-export { tableStyles } from './tables';
+export { alertStyles, getAlertStyles } from './alerts';
+export { tableStyles, getTableStyles } from './tables';
+export { getSingleTheme } from './v1SingleTheme';
 
 export * from './mixins';
 export * from './components';
@@ -15,3 +17,4 @@ export * from './components';
 // Re-export theme types for convenience
 export type { Theme } from '@mui/material/styles';
 export type { SxProps } from '@mui/material';
+export type { ChartPalette } from '@mui/material/styles';

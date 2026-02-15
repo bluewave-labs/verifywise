@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 
-import { Stack, Typography, Tooltip, Link } from "@mui/material";
+import { Stack, Typography, Tooltip, Link, useTheme } from "@mui/material";
 import { ArrowUpRight as WhiteUpRightArrowIcon, Eye as EyeIcon, ExternalLink } from "lucide-react";
 
 import { CustomizableButton } from "../../button/customizable-button";
@@ -28,20 +28,20 @@ import {
 
 function ProjectCardSkeleton() {
   return (
-    <Stack className="project-card" sx={projectCardStyle}>
+    <Stack className="project-card" sx={projectCardStyle(theme)}>
       <Stack className="project-card-header" sx={{ gap: 2 }}>
-        <Typography className="project-card-title" sx={projectCardTitleStyle}>
+        <Typography className="project-card-title" sx={projectCardTitleStyle(theme)}>
           Loading...
         </Typography>
       </Stack>
       <Stack className="project-card-stats" sx={{ gap: 5 }}>
         <Stack className="project-progress" sx={{ gap: 1 }}>
           <ProgressBar progress="0/0" />
-          <Typography sx={progressStyle}>Loading...</Typography>
+          <Typography sx={progressStyle(theme)}>Loading...</Typography>
         </Stack>
         <Stack className="project-progress" sx={{ gap: 1 }}>
           <ProgressBar progress="0/0" />
-          <Typography sx={progressStyle}>Loading...</Typography>
+          <Typography sx={progressStyle(theme)}>Loading...</Typography>
         </Stack>
       </Stack>
     </Stack>
@@ -154,6 +154,7 @@ import { displayFormattedDate } from "../../../tools/isoDateToString";
 
 export const ProjectCard = React.memo(function ProjectCard({ project, isLoading = false }: ProjectCardProps) {
   const navigate = useNavigateSearch();
+  const theme = useTheme();
   const { users } = useUsers();
 
   // Memoize framework IDs
@@ -207,21 +208,21 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
       {/* Header */}
       <Stack className="project-card-header" sx={{ gap: 2 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-          <Typography className="project-card-title" sx={projectCardTitleStyle}>
+          <Typography className="project-card-title" sx={projectCardTitleStyle(theme)}>
             {project.uc_id ? `${project.uc_id}: ` : ''}{project.project_title}
           </Typography>
           <Stack direction="row" spacing={8} sx={{ ml: 2 }}>
             <Stack className="project-card-spec-tile" alignItems="flex-end">
-              <Typography sx={projectCardSpecKeyStyle}>Project owner</Typography>
-              <Typography sx={projectCardSpecValueStyle}>
+              <Typography sx={projectCardSpecKeyStyle(theme)}>Project owner</Typography>
+              <Typography sx={projectCardSpecValueStyle(theme)}>
                 {ownerUser
                   ? `${ownerUser.name} ${ownerUser.surname}`
                   : "Unknown User"}
               </Typography>
             </Stack>
             <Stack className="project-card-spec-tile" alignItems="flex-end">
-              <Typography sx={projectCardSpecKeyStyle}>Last updated</Typography>
-              <Typography sx={projectCardSpecValueStyle}>
+              <Typography sx={projectCardSpecKeyStyle(theme)}>Last updated</Typography>
+              <Typography sx={projectCardSpecValueStyle(theme)}>
                 {displayFormattedDate(project.last_updated.toString())}
               </Typography>
             </Stack>
@@ -264,7 +265,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                 }/${complianceProgressData?.allsubControls ?? 0}`}
               />
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <Typography sx={progressStyle}>
+                <Typography sx={progressStyle(theme)}>
                   {`Subcontrols: ${
                     complianceProgressData?.allDonesubControls ?? 0
                   } out of ${complianceProgressData?.allsubControls ?? 0}`}
@@ -302,7 +303,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                 }/${assessmentProgressData?.totalQuestions ?? 0}`}
               />
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <Typography sx={progressStyle}>
+                <Typography sx={progressStyle(theme)}>
                   {`Assessments: ${
                     assessmentProgressData?.answeredQuestions ?? 0
                   } out of ${assessmentProgressData?.totalQuestions ?? 0}`}
@@ -341,7 +342,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                   clausesProgressData?.totalSubclauses ?? 0
                 }`}
               />
-              <Typography sx={progressStyle}>
+              <Typography sx={progressStyle(theme)}>
                 {`Clauses: ${
                   clausesProgressData?.doneSubclauses ?? 0
                 } out of ${clausesProgressData?.totalSubclauses ?? 0}`}
@@ -353,7 +354,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                   annexesProgressData?.totalAnnexcategories ?? 0
                 }`}
               />
-              <Typography sx={progressStyle}>
+              <Typography sx={progressStyle(theme)}>
                 {`Annexes: ${
                   annexesProgressData?.doneAnnexcategories ?? 0
                 } out of ${annexesProgressData?.totalAnnexcategories ?? 0}`}
@@ -372,7 +373,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                   }/${complianceProgressData?.allsubControls ?? 0}`}
                 />
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Typography sx={progressStyle}>
+                  <Typography sx={progressStyle(theme)}>
                     {`Subcontrols: ${
                       complianceProgressData?.allDonesubControls ?? 0
                     } out of ${complianceProgressData?.allsubControls ?? 0}`}
@@ -410,7 +411,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                   }/${assessmentProgressData?.totalQuestions ?? 0}`}
                 />
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <Typography sx={progressStyle}>
+                  <Typography sx={progressStyle(theme)}>
                     {`Assessments: ${
                       assessmentProgressData?.answeredQuestions ?? 0
                     } out of ${assessmentProgressData?.totalQuestions ?? 0}`}
@@ -451,7 +452,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                     clausesProgressData?.totalSubclauses ?? 0
                   }`}
                 />
-                <Typography sx={progressStyle}>
+                <Typography sx={progressStyle(theme)}>
                   {`Clauses: ${
                     clausesProgressData?.doneSubclauses ?? 0
                   } out of ${clausesProgressData?.totalSubclauses ?? 0}`}
@@ -463,7 +464,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
                     annexesProgressData?.doneAnnexcategories ?? 0
                   }/${annexesProgressData?.totalAnnexcategories ?? 0}`}
                 />
-                <Typography sx={progressStyle}>
+                <Typography sx={progressStyle(theme)}>
                   {`Annexes: ${
                     annexesProgressData?.doneAnnexcategories ?? 0
                   } out of ${annexesProgressData?.totalAnnexcategories ?? 0}`}
@@ -489,8 +490,8 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
               })
             }
             sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              backgroundColor: theme.palette.primary.main,
+              border: `1px solid ${theme.palette.primary.main}`,
               mb: 0,
               mt: 0,
             }}

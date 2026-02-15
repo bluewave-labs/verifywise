@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { Subtopic } from "../../../../domain/types/Subtopic";
 import QuestionFrame from "../../../components/VWQuestion";
 import { Question } from "../../../../domain/types/Question";
@@ -18,6 +18,7 @@ const Questions = ({
   currentProjectId,
   questionsData,
 }: QuestionsProps) => {
+  const theme = useTheme();
   const [searchParams] = useSearchParams();
   const questionId = searchParams.get("questionId");
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<
@@ -96,7 +97,7 @@ const Questions = ({
 
   return (
     <Stack mb={15}>
-      <Typography sx={{ fontSize: 16, color: "#344054" }}>
+      <Typography sx={{ fontSize: 16, color: theme.palette.text.secondary }}>
         {subtopic.title}
       </Typography>
       {questionsData

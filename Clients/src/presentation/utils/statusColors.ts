@@ -1,55 +1,67 @@
 import { IStatusData } from "../types/interfaces/i.chart";
 
+// Chart/data category colors — same in light and dark themes.
+// These are intentionally NOT theme-switched since they encode data categories.
+const CHART_BLUE = "#3B82F6";
+const CHART_AMBER = "#F59E0B";
+const CHART_PURPLE = "#8B5CF6";
+const CHART_EMERALD = "#10B981";
+const CHART_RED = "#EF4444";
+const CHART_DARK_RED = "#DC2626";
+const CHART_DARK_EMERALD = "#059669";
+const CHART_SLATE = "#6B7280";
+const CHART_MUTED = "#9CA3AF";
+
 // Color schemes for different entity statuses
 export const statusColorSchemes = {
   // Model statuses (4 different states)
   models: {
-    development: "#3B82F6", // Blue
-    training: "#F59E0B", // Amber
-    validation: "#8B5CF6", // Purple
-    production: "#10B981", // Emerald
+    development: CHART_BLUE,
+    training: CHART_AMBER,
+    validation: CHART_PURPLE,
+    production: CHART_EMERALD,
   },
 
   // Vendor statuses
   vendors: {
-    "in review": "#F59E0B", // Amber
-    reviewed: "#10B981", // Emerald
-    "requires follow up": "#EF4444", // Red
-    active: "#10B981", // Emerald
-    inactive: "#6B7280", // Gray
+    "in review": CHART_AMBER,
+    reviewed: CHART_EMERALD,
+    "requires follow up": CHART_RED,
+    active: CHART_EMERALD,
+    inactive: CHART_SLATE,
   },
 
   // Policy statuses
   policies: {
-    draft: "#6B7280", // Gray
-    "in review": "#F59E0B", // Amber
-    approved: "#10B981", // Emerald
-    published: "#3B82F6", // Blue
-    archived: "#9CA3AF", // Light Gray
+    draft: CHART_SLATE,
+    "in review": CHART_AMBER,
+    approved: CHART_EMERALD,
+    published: CHART_BLUE,
+    archived: CHART_MUTED,
   },
 
   // Training statuses
   trainings: {
-    planned: "#6B7280", // Gray
-    "in progress": "#F59E0B", // Amber
-    completed: "#10B981", // Emerald
+    planned: CHART_SLATE,
+    "in progress": CHART_AMBER,
+    completed: CHART_EMERALD,
   },
 
   // Vendor risk levels
   vendorRisks: {
-    "very high": "#DC2626", // Dark Red
-    high: "#EF4444", // Red
-    medium: "#F59E0B", // Amber
-    low: "#10B981", // Emerald
-    "very low": "#059669", // Dark Emerald
+    "very high": CHART_DARK_RED,
+    high: CHART_RED,
+    medium: CHART_AMBER,
+    low: CHART_EMERALD,
+    "very low": CHART_DARK_EMERALD,
   },
 
   // Incident statuses
   incidents: {
-    open: "#EF4444", // Red
-    "in progress": "#F59E0B", // Amber
-    resolved: "#10B981", // Emerald
-    closed: "#6B7280", // Gray
+    open: CHART_RED,
+    "in progress": CHART_AMBER,
+    resolved: CHART_EMERALD,
+    closed: CHART_SLATE,
   },
 };
 
@@ -60,7 +72,7 @@ export const getStatusColor = (
 ): string => {
   const scheme = statusColorSchemes[entityType];
   const normalizedStatus = status.toLowerCase().trim();
-  return scheme[normalizedStatus as keyof typeof scheme] || "#6B7280"; // Default gray
+  return scheme[normalizedStatus as keyof typeof scheme] || CHART_SLATE; // Default gray
 };
 
 // Helper function to create StatusData array from status counts

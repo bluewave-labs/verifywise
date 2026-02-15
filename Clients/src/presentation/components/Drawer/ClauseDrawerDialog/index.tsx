@@ -764,7 +764,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
                 {subclause?.summary && (
                   <Stack
                     sx={{
-                      border: "1px solid #eee",
+                      border: `1px solid ${theme.palette.border.input}`,
                       padding: "12px",
                       backgroundColor: "background.accent",
                       borderRadius: "4px",
@@ -1085,7 +1085,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
                               sx={{
                                 fontSize: 13,
                                 fontWeight: 500,
-                                color: "#1F2937",
+                                color: theme.palette.text.primary,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -1305,7 +1305,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       No evidence files uploaded yet
                     </Typography>
-                    <Typography variant="caption" color="#9CA3AF">
+                    <Typography variant="caption" color={theme.palette.text.muted}>
                       Click "Add evidence files" to upload documentation for
                       this requirement
                     </Typography>
@@ -1390,7 +1390,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
                               sx={{
                                 fontSize: 13,
                                 fontWeight: 500,
-                                color: "#1F2937",
+                                color: theme.palette.text.primary,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -1467,7 +1467,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
                     <Typography variant="body2" sx={{ mb: 1 }}>
                       No risks linked yet
                     </Typography>
-                    <Typography variant="caption" color="#9CA3AF">
+                    <Typography variant="caption" color={theme.palette.text.muted}>
                       Click "Add/remove risks" to link risks from your risk
                       database
                     </Typography>

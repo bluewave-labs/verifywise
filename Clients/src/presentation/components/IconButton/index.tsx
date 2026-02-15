@@ -546,10 +546,10 @@ const IconButton: React.FC<IconButtonProps> = ({
                 }
                 // Restore uses primary/success color
                 if (item === "restore") {
-                  return { color: "#13715B" }; // primary color
+                  return { color: theme.palette.primary.main }; // primary color
                 }
                 if (item === "link_objects" || item === "linked_policies") {
-                  return { color: "#13715B" }; // primary color
+                  return { color: theme.palette.primary.main }; // primary color
                 }
                 return {};
               })(),
@@ -604,7 +604,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           title={warningTitle}
           body={
             typeof warningMessage === "string" ? (
-              <Typography fontSize={13} color="#344054">
+              <Typography fontSize={13} color={theme.palette.text.secondary}>
                 {warningMessage}
               </Typography>
             ) : (
@@ -636,7 +636,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           title={hardDeleteWarningTitle}
           body={
             typeof hardDeleteWarningMessage === "string" ? (
-              <Typography fontSize={13} color="#344054">
+              <Typography fontSize={13} color={theme.palette.text.secondary}>
                 {hardDeleteWarningMessage}
               </Typography>
             ) : (

@@ -1,18 +1,20 @@
-export const projectCardStyle = {
-  border: "1px solid #d0d5dd",
+import { Theme } from "@mui/material";
+
+export const projectCardStyle = (theme: Theme) => ({
+  border: `1px solid ${theme.palette.border.dark}`,
   borderRadius: "4px",
   padding: "16px",
   minWidth: 300,
   width: "100%",
   maxWidth: "100&",
-  background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-};
+  background: `linear-gradient(135deg, ${theme.palette.background.main} 0%, ${theme.palette.background.accent} 100%)`,
+});
 
-export const projectCardTitleStyle = {
+export const projectCardTitleStyle = (theme: Theme) => ({
   fontSize: 13,
-  color: "#2D3748",
+  color: theme.palette.text.primary,
   fontWeight: 600,
-};
+});
 
 export const frameworkLogo = {
   width: 20,
@@ -20,11 +22,11 @@ export const frameworkLogo = {
   borderRadius: "50%",
 };
 
-export const progressStyle = {
-  color: "#8594AC",
+export const progressStyle = (theme: Theme) => ({
+  color: theme.palette.text.accent,
   fontSize: 11,
   fontWeight: 400,
-};
+});
 
 export const projectCardSpecsStyle = {
   display: "flex",
@@ -33,12 +35,12 @@ export const projectCardSpecsStyle = {
   alignItems: "center",
 };
 
-export const projectCardSpecKeyStyle = { fontSize: 11, color: "#8594AC" };
+export const projectCardSpecKeyStyle = (theme: Theme) => ({ fontSize: 11, color: theme.palette.text.accent });
 
-export const projectCardSpecValueStyle = { fontSize: 13, color: "#344054" };
+export const projectCardSpecValueStyle = (theme: Theme) => ({ fontSize: 13, color: theme.palette.text.secondary });
 
-export const viewProjectButtonStyle = {
-  backgroundColor: "#13715B",
+export const viewProjectButtonStyle = (theme: Theme) => ({
+  backgroundColor: theme.palette.primary.main,
   color: "#fff",
   fontSize: 13,
   fontWeight: 600,
@@ -46,10 +48,10 @@ export const viewProjectButtonStyle = {
   mt: 1,
   height: 34,
   "&:hover": {
-    backgroundColor: "#0e5c47",
+    backgroundColor: theme.palette.primary.dark,
   },
   border: "none",
-};
+});
 
 export const euAiActChipStyle = {
   backgroundColor: '#014576',

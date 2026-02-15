@@ -9,6 +9,7 @@ import {
   IconButton,
   Tooltip,
   Divider,
+  useTheme,
 } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import {
@@ -113,6 +114,7 @@ const NewControlPane = ({
   onComplianceUpdate?: () => void;
   projectId: number;
 }) => {
+  const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const { users } = useUsers();
 
@@ -1052,7 +1054,7 @@ const NewControlPane = ({
             margin: 0,
             borderRadius: 0,
             overflowX: "hidden",
-            backgroundColor: "#FCFCFD",
+            backgroundColor: theme.palette.background.alt,
             height: "100vh",
             display: "flex",
             flexDirection: "column",
@@ -1063,7 +1065,7 @@ const NewControlPane = ({
         <Box
           sx={{
             padding: "16px 20px",
-            borderBottom: "1px solid #eaecf0",
+            borderBottom: `1px solid ${theme.palette.border.light}`,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
@@ -1075,7 +1077,7 @@ const NewControlPane = ({
               sx={{
                 fontSize: "16px",
                 fontWeight: 600,
-                color: "#1c2130",
+                color: theme.palette.text.primary,
                 mb: controlData.description ? 1.5 : 0,
               }}
             >
@@ -1085,7 +1087,7 @@ const NewControlPane = ({
             {controlData.description && (
               <Stack
                 sx={{
-                  border: "1px solid #eee",
+                  border: `1px solid ${theme.palette.border.input}`,
                   padding: "12px",
                   backgroundColor: "#f8f9fa",
                   borderRadius: "4px",
@@ -1105,7 +1107,7 @@ const NewControlPane = ({
             sx={{
               minWidth: "auto",
               padding: 0,
-              color: "#475467",
+              color: theme.palette.text.tertiary,
             }}
           >
             <CloseIcon size={20} />
@@ -1128,7 +1130,7 @@ const NewControlPane = ({
                   backgroundColor: "transparent",
                 },
                 "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: "#D0D5DD",
+                  backgroundColor: theme.palette.border.dark,
                   borderRadius: "3px",
                   "&:hover": {
                     backgroundColor: "#98A2B3",
@@ -1166,7 +1168,7 @@ const NewControlPane = ({
                   sx={{
                     fontSize: "16px",
                     fontWeight: 600,
-                    color: "#1c2130",
+                    color: theme.palette.text.primary,
                     mb: currentSubcontrol.description ? 1.5 : 0,
                   }}
                 >
@@ -1177,7 +1179,7 @@ const NewControlPane = ({
                 {currentSubcontrol.description && (
                   <Stack
                     sx={{
-                      border: "1px solid #eee",
+                      border: `1px solid ${theme.palette.border.input}`,
                       padding: "12px",
                       backgroundColor: "#f8f9fa",
                       borderRadius: "4px",
@@ -1408,7 +1410,7 @@ const NewControlPane = ({
                         sx={{
                           fontSize: "14px",
                           fontWeight: 600,
-                          color: "#1F2937",
+                          color: theme.palette.text.primary,
                           mb: 1,
                         }}
                       >
@@ -1438,13 +1440,13 @@ const NewControlPane = ({
                             width: 155,
                             height: 25,
                             fontSize: 11,
-                            border: "1px solid #D0D5DD",
-                            backgroundColor: "white",
-                            color: "#344054",
+                            border: `1px solid ${theme.palette.border.dark}`,
+                            backgroundColor: theme.palette.background.main,
+                            color: theme.palette.text.secondary,
                             textTransform: "none",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
-                              border: "1px solid #D0D5DD",
+                              backgroundColor: theme.palette.background.accent,
+                              border: `1px solid ${theme.palette.border.dark}`,
                             },
                           }}
                         >
@@ -1459,13 +1461,13 @@ const NewControlPane = ({
                             width: 155,
                             height: 25,
                             fontSize: 11,
-                            border: "1px solid #D0D5DD",
-                            backgroundColor: "white",
-                            color: "#344054",
+                            border: `1px solid ${theme.palette.border.dark}`,
+                            backgroundColor: theme.palette.background.main,
+                            color: theme.palette.text.secondary,
                             textTransform: "none",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
-                              border: "1px solid #D0D5DD",
+                              backgroundColor: theme.palette.background.accent,
+                              border: `1px solid ${theme.palette.border.dark}`,
                             },
                           }}
                         >
@@ -1487,13 +1489,13 @@ const NewControlPane = ({
                         currentFormData.deletedEvidenceFileIds.length > 0) && (
                         <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
                           {currentFormData.evidence_files.length > 0 && (
-                            <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                            <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
                               {currentFormData.evidence_files.length} files
                               attached
                             </Typography>
                           )}
                           {currentFormData.uploadEvidenceFiles.length > 0 && (
-                            <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                            <Typography sx={{ fontSize: 11, color: theme.palette.primary.main }}>
                               +{currentFormData.uploadEvidenceFiles.length}{" "}
                               pending upload
                             </Typography>
@@ -1525,11 +1527,11 @@ const NewControlPane = ({
                                 alignItems: "center",
                                 justifyContent: "space-between",
                                 padding: "10px 12px",
-                                border: "1px solid #EAECF0",
+                                border: `1px solid ${theme.palette.border.light}`,
                                 borderRadius: "4px",
-                                backgroundColor: "#FFFFFF",
+                                backgroundColor: theme.palette.background.main,
                                 "&:hover": {
-                                  backgroundColor: "#F9FAFB",
+                                  backgroundColor: theme.palette.background.accent,
                                 },
                               }}
                             >
@@ -1542,13 +1544,13 @@ const NewControlPane = ({
                                   minWidth: 0,
                                 }}
                               >
-                                <FileIcon size={18} color="#475467" />
+                                <FileIcon size={18} color={theme.palette.text.tertiary} />
                                 <Box sx={{ minWidth: 0, flex: 1 }}>
                                   <Typography
                                     sx={{
                                       fontSize: 13,
                                       fontWeight: 500,
-                                      color: "#1F2937",
+                                      color: theme.palette.text.primary,
                                       overflow: "hidden",
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
@@ -1780,9 +1782,9 @@ const NewControlPane = ({
                               py: 4,
                               mt: 2,
                               color: "#6B7280",
-                              border: "2px dashed #D1D5DB",
+                              border: `2px dashed ${theme.palette.border.medium}`,
                               borderRadius: 1,
-                              backgroundColor: "#F9FAFB",
+                              backgroundColor: theme.palette.background.accent,
                             }}
                           >
                             <Typography sx={{ fontSize: 13 }}>
@@ -1799,7 +1801,7 @@ const NewControlPane = ({
                         sx={{
                           fontSize: "14px",
                           fontWeight: 600,
-                          color: "#1F2937",
+                          color: theme.palette.text.primary,
                           mb: 1,
                         }}
                       >
@@ -1829,13 +1831,13 @@ const NewControlPane = ({
                             width: 155,
                             height: 25,
                             fontSize: 11,
-                            border: "1px solid #D0D5DD",
-                            backgroundColor: "white",
-                            color: "#344054",
+                            border: `1px solid ${theme.palette.border.dark}`,
+                            backgroundColor: theme.palette.background.main,
+                            color: theme.palette.text.secondary,
                             textTransform: "none",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
-                              border: "1px solid #D0D5DD",
+                              backgroundColor: theme.palette.background.accent,
+                              border: `1px solid ${theme.palette.border.dark}`,
                             },
                           }}
                         >
@@ -1850,13 +1852,13 @@ const NewControlPane = ({
                             width: 155,
                             height: 25,
                             fontSize: 11,
-                            border: "1px solid #D0D5DD",
-                            backgroundColor: "white",
-                            color: "#344054",
+                            border: `1px solid ${theme.palette.border.dark}`,
+                            backgroundColor: theme.palette.background.main,
+                            color: theme.palette.text.secondary,
                             textTransform: "none",
                             "&:hover": {
-                              backgroundColor: "#F9FAFB",
-                              border: "1px solid #D0D5DD",
+                              backgroundColor: theme.palette.background.accent,
+                              border: `1px solid ${theme.palette.border.dark}`,
                             },
                           }}
                         >
@@ -1879,13 +1881,13 @@ const NewControlPane = ({
                         currentFormData.deletedFeedbackFileIds.length > 0) && (
                         <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
                           {currentFormData.feedback_files.length > 0 && (
-                            <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                            <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
                               {currentFormData.feedback_files.length} files
                               attached
                             </Typography>
                           )}
                           {currentFormData.uploadFeedbackFiles.length > 0 && (
-                            <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                            <Typography sx={{ fontSize: 11, color: theme.palette.primary.main }}>
                               +{currentFormData.uploadFeedbackFiles.length}{" "}
                               pending upload
                             </Typography>
@@ -1917,11 +1919,11 @@ const NewControlPane = ({
                                 alignItems: "center",
                                 justifyContent: "space-between",
                                 padding: "10px 12px",
-                                border: "1px solid #EAECF0",
+                                border: `1px solid ${theme.palette.border.light}`,
                                 borderRadius: "4px",
-                                backgroundColor: "#FFFFFF",
+                                backgroundColor: theme.palette.background.main,
                                 "&:hover": {
-                                  backgroundColor: "#F9FAFB",
+                                  backgroundColor: theme.palette.background.accent,
                                 },
                               }}
                             >
@@ -1934,13 +1936,13 @@ const NewControlPane = ({
                                   minWidth: 0,
                                 }}
                               >
-                                <FileIcon size={18} color="#475467" />
+                                <FileIcon size={18} color={theme.palette.text.tertiary} />
                                 <Box sx={{ minWidth: 0, flex: 1 }}>
                                   <Typography
                                     sx={{
                                       fontSize: 13,
                                       fontWeight: 500,
-                                      color: "#1F2937",
+                                      color: theme.palette.text.primary,
                                       overflow: "hidden",
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
@@ -2172,9 +2174,9 @@ const NewControlPane = ({
                               py: 4,
                               mt: 2,
                               color: "#6B7280",
-                              border: "2px dashed #D1D5DB",
+                              border: `2px dashed ${theme.palette.border.medium}`,
                               borderRadius: 1,
-                              backgroundColor: "#F9FAFB",
+                              backgroundColor: theme.palette.background.accent,
                             }}
                           >
                             <Typography sx={{ fontSize: 13 }}>
@@ -2206,13 +2208,13 @@ const NewControlPane = ({
                           width: 155,
                           height: 25,
                           fontSize: 11,
-                          border: "1px solid #D0D5DD",
-                          backgroundColor: "white",
-                          color: "#344054",
+                          border: `1px solid ${theme.palette.border.dark}`,
+                          backgroundColor: theme.palette.background.main,
+                          color: theme.palette.text.secondary,
                           textTransform: "none",
                           "&:hover": {
-                            backgroundColor: "#F9FAFB",
-                            border: "1px solid #D0D5DD",
+                            backgroundColor: theme.palette.background.accent,
+                            border: `1px solid ${theme.palette.border.dark}`,
                           },
                         }}
                         onClick={() => setShowLinkedRisksPopup(true)}
@@ -2222,7 +2224,7 @@ const NewControlPane = ({
                       </Button>
 
                       <Stack direction="row" spacing={2}>
-                        <Typography sx={{ fontSize: 11, color: "#344054" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
                           {`${
                             currentFormData.linkedRiskObjects.filter(
                               (r) =>
@@ -2231,7 +2233,7 @@ const NewControlPane = ({
                           } risks linked`}
                         </Typography>
                         {currentFormData.selectedRisks.length > 0 && (
-                          <Typography sx={{ fontSize: 11, color: "#13715B" }}>
+                          <Typography sx={{ fontSize: 11, color: theme.palette.primary.main }}>
                             {`+${currentFormData.selectedRisks.length} pending save`}
                           </Typography>
                         )}
@@ -2260,11 +2262,11 @@ const NewControlPane = ({
                                 alignItems: "center",
                                 justifyContent: "space-between",
                                 padding: "10px 12px",
-                                border: "1px solid #EAECF0",
+                                border: `1px solid ${theme.palette.border.light}`,
                                 borderRadius: "4px",
-                                backgroundColor: "#FFFFFF",
+                                backgroundColor: theme.palette.background.main,
                                 "&:hover": {
-                                  backgroundColor: "#F9FAFB",
+                                  backgroundColor: theme.palette.background.accent,
                                 },
                               }}
                             >
@@ -2273,7 +2275,7 @@ const NewControlPane = ({
                                   sx={{
                                     fontSize: 13,
                                     fontWeight: 500,
-                                    color: "#1F2937",
+                                    color: theme.palette.text.primary,
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
@@ -2296,9 +2298,9 @@ const NewControlPane = ({
                                     size="small"
                                     onClick={() => handleViewRiskDetail(risk)}
                                     sx={{
-                                      color: "#475467",
+                                      color: theme.palette.text.tertiary,
                                       "&:hover": {
-                                        color: "#13715B",
+                                        color: theme.palette.primary.main,
                                         backgroundColor:
                                           "rgba(19, 113, 91, 0.08)",
                                       },
@@ -2314,7 +2316,7 @@ const NewControlPane = ({
                                     onClick={() => handleUnlinkRisk(risk.id)}
                                     disabled={isEditingDisabled}
                                     sx={{
-                                      color: "#475467",
+                                      color: theme.palette.text.tertiary,
                                       "&:hover": {
                                         color: "#D32F2F",
                                         backgroundColor:
@@ -2341,15 +2343,15 @@ const NewControlPane = ({
                             textAlign: "center",
                             py: 4,
                             color: "#6B7280",
-                            border: "2px dashed #D1D5DB",
+                            border: `2px dashed ${theme.palette.border.medium}`,
                             borderRadius: 1,
-                            backgroundColor: "#F9FAFB",
+                            backgroundColor: theme.palette.background.accent,
                           }}
                         >
                           <Typography variant="body2" sx={{ mb: 1 }}>
                             No risks linked yet
                           </Typography>
-                          <Typography variant="caption" color="#9CA3AF">
+                          <Typography variant="caption" color={theme.palette.text.muted}>
                             Click "Add/remove risks" to link risks from your
                             risk database
                           </Typography>
@@ -2421,7 +2423,7 @@ const NewControlPane = ({
         <Box
           sx={{
             padding: "16px 20px",
-            borderTop: "1px solid #eaecf0",
+            borderTop: `1px solid ${theme.palette.border.light}`,
             display: "flex",
             justifyContent: "flex-end",
           }}

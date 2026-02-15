@@ -146,7 +146,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
     <Box>
       {label && (
         <Typography
-          sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 0.75 }}
+          sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 0.75 }}
         >
           {label}
         </Typography>
@@ -167,7 +167,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
           cursor: "pointer",
           transition: "border-color 150ms ease-in-out",
           "&:hover": {
-            borderColor: "#5FA896",
+            borderColor: theme.palette.primary.light,
           },
         }}
       >
@@ -178,8 +178,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
               fontSize: 13,
               color:
                 selectedModel || (isOpenRouter && model)
-                  ? "#111827"
-                  : "#9ca3af",
+                  ? theme.palette.text.primary
+                  : theme.palette.text.muted,
             }}
           >
             {isOpenRouter && model
@@ -189,7 +189,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
         </Stack>
         <ChevronDown
           size={16}
-          color="#6b7280"
+          color={theme.palette.text.muted}
           style={{
             transform: open ? "rotate(180deg)" : "none",
             transition: "transform 0.2s",
@@ -237,7 +237,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Search size={16} color="#9ca3af" />
+                      <Search size={16} color={theme.palette.text.muted} />
                     </InputAdornment>
                   ),
                 }}
@@ -245,9 +245,9 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                   "& .MuiOutlinedInput-root": {
                     fontSize: 13,
                     borderRadius: theme.shape.borderRadius,
-                    backgroundColor: "#f9fafb",
+                    backgroundColor: theme.palette.background.accent,
                     "& fieldset": { borderColor: theme.palette.border.dark },
-                    "&:hover fieldset": { borderColor: "#5FA896" },
+                    "&:hover fieldset": { borderColor: theme.palette.primary.light },
                     "&.Mui-focused fieldset": {
                       borderColor: theme.palette.primary.main,
                     },
@@ -290,7 +290,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                           "&:hover": {
                             backgroundColor: isSelected
                               ? theme.palette.background.accent
-                              : "#f9fafb",
+                              : theme.palette.background.accent,
                           },
                         }}
                       >
@@ -308,7 +308,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                                 fontWeight: isSelected ? 600 : 400,
                                 color: isSelected
                                   ? theme.palette.primary.main
-                                  : "#374151",
+                                  : theme.palette.text.dark,
                                 lineHeight: 1.2,
                               }}
                             >
@@ -330,7 +330,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                         {isSelected ? (
                           <Check size={14} color={theme.palette.primary.main} />
                         ) : (
-                          <ChevronRight size={14} color="#9ca3af" />
+                          <ChevronRight size={14} color={theme.palette.text.muted} />
                         )}
                       </Box>
                     );
@@ -414,14 +414,14 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                         sx={{
                           fontSize: 14,
                           fontWeight: 600,
-                          color: "#111827",
+                          color: theme.palette.text.primary,
                           mb: 0.5,
                         }}
                       >
                         API key required
                       </Typography>
                       <Typography
-                        sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}
+                        sx={{ fontSize: 12, color: theme.palette.text.muted, mb: 2 }}
                       >
                         Add an API key for{" "}
                         {PROVIDERS[provider]?.displayName || provider} to use
@@ -442,11 +442,11 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                           borderRadius: theme.shape.borderRadius,
                           cursor: "pointer",
                           backgroundColor: theme.palette.primary.main,
-                          color: "#fff",
+                          color: theme.palette.background.main,
                           fontSize: 13,
                           fontWeight: 500,
                           "&:hover": {
-                            backgroundColor: "#0f5f4c",
+                            backgroundColor: theme.palette.primary.dark,
                           },
                         }}
                       >
@@ -462,14 +462,14 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                       sx={{
                         fontSize: 12,
                         fontWeight: 600,
-                        color: "#374151",
+                        color: theme.palette.text.dark,
                         mb: 1,
                       }}
                     >
                       Enter model name
                     </Typography>
                     <Typography
-                      sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}
+                      sx={{ fontSize: 11, color: theme.palette.text.muted, mb: 1.5 }}
                     >
                       OpenRouter supports any model. Enter the model ID (e.g.,
                       anthropic/claude-3-opus)
@@ -514,14 +514,14 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                         cursor: customModel.trim() ? "pointer" : "not-allowed",
                         backgroundColor: customModel.trim()
                           ? theme.palette.primary.main
-                          : "#e5e7eb",
-                        color: customModel.trim() ? "#fff" : "#9ca3af",
+                          : theme.palette.border.input,
+                        color: customModel.trim() ? theme.palette.background.main : theme.palette.text.muted,
                         fontSize: 12,
                         fontWeight: 500,
                         "&:hover": {
                           backgroundColor: customModel.trim()
-                            ? "#0f5f4c"
-                            : "#e5e7eb",
+                            ? theme.palette.primary.dark
+                            : theme.palette.border.input,
                         },
                       }}
                     >
@@ -534,7 +534,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                       sx={{
                         fontSize: 11,
                         fontWeight: 600,
-                        color: "#9ca3af",
+                        color: theme.palette.text.muted,
                         mt: 2,
                         mb: 1,
                         textTransform: "uppercase",
@@ -572,7 +572,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                             backgroundColor:
                               model === m.id
                                 ? theme.palette.background.accent
-                                : "#f9fafb",
+                                : theme.palette.background.accent,
                           },
                         }}
                       >
@@ -583,12 +583,12 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                             color:
                               model === m.id
                                 ? theme.palette.primary.main
-                                : "#374151",
+                                : theme.palette.text.dark,
                           }}
                         >
                           {m.name}
                         </Typography>
-                        <Typography sx={{ fontSize: 10, color: "#9ca3af" }}>
+                        <Typography sx={{ fontSize: 10, color: theme.palette.text.muted }}>
                           {m.id}
                         </Typography>
                       </Box>
@@ -596,7 +596,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                   </Box>
                 ) : filteredModels.length === 0 ? (
                   <Box sx={{ p: 3, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.muted }}>
                       No models found
                     </Typography>
                   </Box>
@@ -621,7 +621,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                           "&:hover": {
                             backgroundColor: isSelected
                               ? theme.palette.background.accent
-                              : "#f9fafb",
+                              : theme.palette.background.accent,
                           },
                         }}
                       >
@@ -636,7 +636,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                               fontWeight: isSelected ? 600 : 400,
                               color: isSelected
                                 ? theme.palette.primary.main
-                                : "#374151",
+                                : theme.palette.text.dark,
                             }}
                           >
                             {m.name}

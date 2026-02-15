@@ -70,7 +70,7 @@ const AssessmentQuestions = ({
     <>
       {assessmentsValues[activeTab]?.subtopics.map((subtopic) => (
         <Stack key={subtopic.id} mb={15}>
-          <Typography sx={{ fontSize: 16, color: "#344054" }}>
+          <Typography sx={{ fontSize: 16, color: theme.palette.text.secondary }}>
             {subtopic.name}
           </Typography>
           {subtopic.questions.map((question) => (

@@ -125,12 +125,12 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
             minWidth: 155, // minimum width
             height: 25,
             fontSize: 11,
-            border: "1px solid #D0D5DD",
-            backgroundColor: "white",
-            color: "#344054",
+            border: `1px solid ${theme.palette.border.dark}`,
+            backgroundColor: theme.palette.background.main,
+            color: theme.palette.text.secondary,
             "&:hover": {
-              backgroundColor: "#F9FAFB",
-              border: "1px solid #D0D5DD",
+              backgroundColor: theme.palette.background.accent,
+              border: `1px solid ${theme.palette.border.dark}`,
             },
           }}
           disableRipple={
@@ -145,7 +145,7 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
           <Typography
             sx={{
               fontSize: 11,
-              color: "#344054",
+              color: theme.palette.text.secondary,
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
@@ -160,7 +160,7 @@ const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
             <Typography
               sx={{
                 fontSize: 11,
-                color: "#344054",
+                color: theme.palette.text.secondary,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",

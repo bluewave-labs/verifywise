@@ -50,7 +50,7 @@ export function GroupedTableView<T>({
               sx={{
                 fontSize: '15px',
                 fontWeight: 600,
-                color: '#374151',
+                color: 'text.dark',
                 marginBottom: '4px',
                 paddingLeft: '4px',
                 display: 'flex',

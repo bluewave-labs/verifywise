@@ -6,7 +6,7 @@
 }
 
 .back-link:hover {
-  color: #13715B;
+  color: var(--vw-primary);
 }
 
 /* Article row hover */
@@ -15,7 +15,7 @@
 }
 
 .article-row:hover {
-  background-color: #f9fafb;
+  background-color: var(--vw-bg-accent);
 }
 
 .article-row .arrow-icon {
@@ -23,5 +23,5 @@
 }
 
 .article-row:hover .arrow-icon {
-  color: #13715B;
+  color: var(--vw-primary);
 }

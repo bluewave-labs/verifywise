@@ -133,7 +133,7 @@ const SortableTableHead = ({
                                         color:
                                             sortConfig.key === column.id
                                                 ? "primary.main"
-                                                : "#9CA3AF",
+                                                : theme.palette.text.muted,
                                     }}
                                 >
                                     {sortConfig.key === column.id &&
@@ -314,7 +314,7 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
                         ...cellStyle,
                         backgroundColor:
                           sortConfig?.key?.toLowerCase().includes("status")
-                            ? "#f5f5f5"
+                            ? theme.palette.background.hover
                             : "inherit",
                       }}
                     >
@@ -327,7 +327,7 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
                         ...cellStyle,
                         backgroundColor:
                           sortConfig?.key?.toLowerCase().includes("tags")
-                            ? "#f5f5f5"
+                            ? theme.palette.background.hover
                             : "inherit",
                       }}
                     >
@@ -340,7 +340,7 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
                         ...cellStyle,
                         backgroundColor:
                           sortConfig?.key?.toLowerCase().includes("author")
-                            ? "#f5f5f5"
+                            ? theme.palette.background.hover
                             : "inherit",
                       }}
                     >
@@ -358,7 +358,7 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
                           (sortConfig.key.toLowerCase().includes("last") ||
                             sortConfig.key.toLowerCase().includes("updated")) &&
                           !sortConfig.key.toLowerCase().includes("by")
-                            ? "#f5f5f5"
+                            ? theme.palette.background.hover
                             : "inherit",
                       }}
                     >
@@ -375,7 +375,7 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
                           sortConfig?.key
                             ?.toLowerCase()
                             .includes("updated by")
-                            ? "#f5f5f5"
+                            ? theme.palette.background.hover
                             : "inherit",
                       }}
                     >

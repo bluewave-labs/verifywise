@@ -12,6 +12,7 @@ import {
   Typography,
   TextField,
   Box,
+  useTheme,
 } from "@mui/material";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
@@ -91,6 +92,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   initialData,
   isEdit = false,
 }) => {
+  const theme = useTheme();
   const [values, setValues] = useState<IModelRiskFormData>(
     initialData || initialState
   );
@@ -276,23 +278,23 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   };
 
   const fieldStyle = {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.palette.background.main,
     "& input": {
       padding: "0 14px",
     },
   };
 
   const textAreaStyle = {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.palette.background.main,
     "& .MuiOutlinedInput-root": {
       borderRadius: "4px",
       fontSize: "13px",
       "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#D0D5DD",
+        borderColor: theme.palette.border.dark,
         borderWidth: "1px",
       },
       "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#D0D5DD",
+        borderColor: theme.palette.border.dark,
       },
       "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
         borderColor: "#888",
@@ -406,7 +408,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 handleDateChange={handleDateChange}
                 sx={{
                   width: "100%",
-                  backgroundColor: "#FFFFFF",
+                  backgroundColor: theme.palette.background.main,
                 }}
                 isRequired
                 error={errors.target_date}

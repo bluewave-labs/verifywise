@@ -11,9 +11,9 @@ export const getToggleStyles = (theme: Theme) => ({
     padding: 2,
     '&.Mui-checked': {
       transform: 'translateX(14px)',
-      color: '#fff',
+      color: theme.palette.background.main,
       '& + .MuiSwitch-track': {
-        backgroundColor: '#13715B',
+        backgroundColor: theme.palette.primary.main,
         opacity: 1,
         border: 0,
       },
@@ -24,7 +24,7 @@ export const getToggleStyles = (theme: Theme) => ({
     width: 14,
     height: 14,
     borderRadius: '4px !important',
-    backgroundColor: '#fff',
+    backgroundColor: theme.palette.background.main,
     margin: 0,
   },
   '& .MuiSwitch-track': {

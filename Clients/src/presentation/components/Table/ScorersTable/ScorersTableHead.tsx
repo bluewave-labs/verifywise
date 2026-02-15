@@ -1,4 +1,4 @@
-import { TableCell, TableHead, TableRow, Box, Typography } from "@mui/material";
+import { TableCell, TableHead, TableRow, Box, Typography, useTheme } from "@mui/material";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { SortConfig } from "./index";
@@ -20,6 +20,7 @@ const ScorersTableHead: React.FC<ScorersTableHeadProps> = ({
   sortConfig,
   onSort,
 }) => {
+  const theme = useTheme();
   return (
     <TableHead
       sx={{
@@ -77,7 +78,7 @@ const ScorersTableHead: React.FC<ScorersTableHeadProps> = ({
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                      color: sortConfig.key === column.id ? "primary.main" : theme.palette.text.muted,
                     }}
                   >
                     {sortConfig.key === column.id && sortConfig.direction === "asc" && (

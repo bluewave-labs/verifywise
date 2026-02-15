@@ -136,7 +136,7 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
                   borderRadius: theme.shape.borderRadius,
                   transition: "color 0.2s ease, background-color 0.2s ease",
                   "&:hover": {
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                     backgroundColor: theme.palette.background.accent,
                   },
                 },
@@ -229,7 +229,7 @@ const AutoCompleteField: React.FC<AutoCompleteFieldProps> = ({
                 borderRadius: theme.shape.borderRadius,
                 transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                 },
               },
             },

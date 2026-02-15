@@ -1,10 +1,11 @@
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { StatsCardFrame, StatsCardRate } from "./style";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import { useMemo } from "react";
 import { StatsCardProps } from "../../../types/interfaces/i.statsCard";
 
 export function StatsCard({ title, completed, total }: StatsCardProps) {
+  const theme = useTheme();
   // Convert to numbers and ensure they are non-negative
   const completedNum = useMemo(() => {
     const num = Number(completed);
@@ -40,7 +41,7 @@ export function StatsCard({ title, completed, total }: StatsCardProps) {
         <ProgressBar progress={progress} />
         <Typography
           sx={{
-            color: "#8594AC",
+            color: theme.palette.text.accent,
             fontSize: 13,
           }}
         >

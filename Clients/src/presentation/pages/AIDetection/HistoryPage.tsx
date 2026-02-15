@@ -125,7 +125,7 @@ const SortableTableHead: React.FC<{
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                    color: sortConfig.key === column.id ? "primary.main" : theme.palette.text.muted,
                   }}
                 >
                   {sortConfig.key === column.id && sortConfig.direction === "asc" && (
@@ -541,8 +541,8 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
       label: "DURATION",
       render: (scan: Scan) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Clock size={14} color="#667085" />
-          <Typography variant="body2" sx={{ color: "#667085", fontFamily: "monospace" }}>
+          <Clock size={14} color={theme.palette.other.icon} />
+          <Typography variant="body2" sx={{ color: theme.palette.other.icon, fontFamily: "monospace" }}>
             {scan.status === "completed" ? formatDuration(scan.duration_ms) : "-"}
           </Typography>
         </Box>
@@ -609,7 +609,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
   if (isLoading && scans.length === 0) {
     return (
       <Box sx={{ textAlign: "center" }}>
-        <Typography variant="body1" sx={{ color: "#667085" }}>
+        <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
           Loading scan history...
         </Typography>
       </Box>

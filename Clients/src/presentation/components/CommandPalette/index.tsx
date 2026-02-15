@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Box, Typography, CircularProgress, Button } from '@mui/material'
+import { Box, Typography, CircularProgress, Button, useTheme } from '@mui/material'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import {
@@ -164,6 +164,7 @@ function WiseSearchWelcomeBanner({ onDismiss }: { onDismiss: () => void }) {
 }
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
+  const theme = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
@@ -493,7 +494,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 padding: '3px 8px',
                 cursor: 'pointer',
                 fontSize: '12px',
-                color: reviewStatus ? '#13715B' : '#666',
+                color: reviewStatus ? theme.palette.primary.main : '#666',
                 fontWeight: reviewStatus ? 500 : 400,
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
@@ -559,7 +560,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                         : 'transparent',
                       cursor: 'pointer',
                       fontSize: '13px',
-                      color: reviewStatus === option.value ? '#13715B' : '#666',
+                      color: reviewStatus === option.value ? theme.palette.primary.main : '#666',
                       fontWeight: reviewStatus === option.value ? 500 : 400,
                       textAlign: 'left',
                       transition: 'all 0.1s ease',
@@ -620,7 +621,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           {/* Loading state for search */}
           {isSearching && (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 3 }}>
-              <CircularProgress size={20} sx={{ color: '#13715B' }} />
+              <CircularProgress size={20} sx={{ color: theme.palette.primary.main }} />
               <Typography sx={{ ml: 2, color: '#666' }}>Searching...</Typography>
             </Box>
           )}
@@ -650,7 +651,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 <Typography variant="caption" sx={{ color: '#999', fontWeight: 400 }}>
                   {actualTotalCount} result{actualTotalCount !== 1 ? 's' : ''} found
                   {reviewStatus && (
-                    <Typography component="span" variant="caption" sx={{ color: '#13715B', fontWeight: 500, ml: 0.5 }}>
+                    <Typography component="span" variant="caption" sx={{ color: theme.palette.primary.main, fontWeight: 500, ml: 0.5 }}>
                       &middot; Filtered by: {REVIEW_STATUS_OPTIONS.find(o => o.value === reviewStatus)?.label}
                     </Typography>
                   )}

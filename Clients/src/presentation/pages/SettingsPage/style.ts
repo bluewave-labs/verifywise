@@ -1,11 +1,13 @@
-export const tabIndicatorStyle = { style: { backgroundColor: "#13715B" } };
+import { Theme } from "@mui/material/styles";
+
+export const tabIndicatorStyle = (theme: Theme) => ({ style: { backgroundColor: theme.palette.primary.main } });
 
 export const tabContainerStyle = {
   minHeight: "20px",
   "& .MuiTabs-flexContainer": { columnGap: "34px" },
 };
 
-export const settingTabStyle = {
+export const settingTabStyle = (theme: Theme) => ({
   textTransform: "none",
   fontWeight: 400,
   alignItems: "center",
@@ -14,6 +16,6 @@ export const settingTabStyle = {
   minWidth: "auto",
   minHeight: "20px",
   "&.Mui-selected": {
-    color: "#13715B",
+    color: theme.palette.primary.main,
   },
-};
+});

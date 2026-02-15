@@ -1,4 +1,4 @@
-import { Typography, Box, Grid } from "@mui/material";
+import { Typography, Box, Grid, useTheme } from "@mui/material";
 import type { GridProps } from "@mui/material";
 import { Gauge as SpeedGreenIcon } from "lucide-react";
 
@@ -13,10 +13,10 @@ interface RiskMetricsCardProps {
   };
 }
 
-const metricBoxStyle = {
+const getMetricBoxStyle = (theme: ReturnType<typeof useTheme>) => ({
   p: 2,
-  backgroundColor: "#FFFFFF",
-  border: "1px solid #E5E7EB",
+  backgroundColor: theme.palette.background.main,
+  border: `1px solid ${theme.palette.border.input}`,
   borderRadius: 2,
   textAlign: "center",
   height: "100%",
@@ -24,7 +24,7 @@ const metricBoxStyle = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
-};
+});
 
 const gridItemProps = {
   item: true,
@@ -33,10 +33,13 @@ const gridItemProps = {
 } as GridProps & { item: boolean; xs: number; sm: number };
 
 export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
+  const theme = useTheme();
+  const metricBoxStyle = getMetricBoxStyle(theme);
+
   const getVelocityColor = (velocity: number): string => {
-    if (velocity > 0) return "#EF4444"; // Red - increasing risks
-    if (velocity < 0) return "#10B981"; // Green - decreasing risks
-    return "#6B7280"; // Gray - stable
+    if (velocity > 0) return theme.palette.status?.error?.text || "#EF4444"; // Red - increasing risks
+    if (velocity < 0) return theme.palette.status?.success?.main || "#10B981"; // Green - decreasing risks
+    return theme.palette.text.muted; // Gray - stable
   };
 
   const getVelocityDirection = (velocity: number): string => {
@@ -53,7 +56,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
           fontSize: 16,
           fontWeight: 600,
           marginBottom: 2,
-          color: "#111827",
+          color: theme.palette.text.primary,
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -70,7 +73,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
             <Typography
               variant="caption"
               sx={{
-                color: "#6B7280",
+                color: theme.palette.text.muted,
                 fontWeight: 500,
                 mb: 1,
                 fontSize: 11,
@@ -103,7 +106,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
             <Typography
               variant="caption"
               sx={{
-                color: "#6B7280",
+                color: theme.palette.text.muted,
                 fontWeight: 500,
                 mb: 1,
                 fontSize: 11,
@@ -117,7 +120,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
               variant="h6"
               sx={{
                 fontWeight: 700,
-                color: "#111827",
+                color: theme.palette.text.primary,
                 fontSize: 18
               }}
             >
@@ -133,7 +136,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
               <Typography
                 variant="caption"
                 sx={{
-                  color: "#6B7280",
+                  color: theme.palette.text.muted,
                   fontWeight: 500,
                   mb: 1,
                   fontSize: 11,
@@ -147,7 +150,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
                 variant="h6"
                 sx={{
                   fontWeight: 700,
-                  color: "#111827",
+                  color: theme.palette.text.primary,
                   fontSize: 18
                 }}
               >
@@ -164,7 +167,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
               <Typography
                 variant="caption"
                 sx={{
-                  color: "#6B7280",
+                  color: theme.palette.text.muted,
                   fontWeight: 500,
                   mb: 1,
                   fontSize: 11,
@@ -178,7 +181,7 @@ export function RiskMetricsCard({ metrics, velocity }: RiskMetricsCardProps) {
                 variant="h6"
                 sx={{
                   fontWeight: 700,
-                  color: "#111827",
+                  color: theme.palette.text.primary,
                   fontSize: 18
                 }}
               >

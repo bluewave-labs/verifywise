@@ -47,7 +47,9 @@ const FileListItem: React.FC<{
   onDownloadClick?: (fileId: string, fileName: string) => void;
   styles: ReturnType<typeof getStyles>;
   isPending?: boolean;
-}> = ({ file, onDeleteClick, onDownloadClick, styles, isPending = false }) => (
+}> = ({ file, onDeleteClick, onDownloadClick, styles, isPending = false }) => {
+  const theme = useTheme();
+  return (
   <Stack
     direction="row"
     justifyContent="space-between"
@@ -61,7 +63,7 @@ const FileListItem: React.FC<{
     }}
   >
     <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-      <FileIcon size={16} color={isPending ? "#92400E" : "#6B7280"} />
+      <FileIcon size={16} color={isPending ? "#92400E" : theme.palette.text.muted} />
       {!isPending && onDownloadClick ? (
         <Link
           component="button"
@@ -112,7 +114,8 @@ const FileListItem: React.FC<{
       </IconButton>
     </Stack>
   </Stack>
-);
+  );
+};
 
 const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
   files,
@@ -215,18 +218,18 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
             disabled={disabled}
             sx={{
               borderRadius: 1,
-              border: "1px solid #D0D5DD",
-              color: "#344054",
+              border: `1px solid ${theme.palette.border.dark}`,
+              color: theme.palette.text.secondary,
               textTransform: "none",
               "&:hover": {
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #D0D5DD",
+                backgroundColor: theme.palette.background.accent,
+                border: `1px solid ${theme.palette.border.dark}`,
               },
             }}
           >
             Add files
           </Button>
-          <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#6B7280" }}>
+          <Typography variant="caption" sx={{ display: "block", mt: 1, color: theme.palette.text.muted }}>
             Supported formats: PDF, DOC, DOCX, XLS, XLSX, Images
           </Typography>
         </Box>
@@ -266,7 +269,7 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
             sx={{
               fontSize: 12,
               fontWeight: 600,
-              color: "#344054",
+              color: theme.palette.text.secondary,
               mb: 1,
             }}
           >
@@ -292,10 +295,10 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
           sx={{
             textAlign: "center",
             py: 4,
-            color: "#6B7280",
-            border: "2px dashed #D1D5DB",
+            color: theme.palette.text.muted,
+            border: `2px dashed ${theme.palette.border.medium}`,
             borderRadius: 1,
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.background.accent,
             width: "100%",
             mb: 2,
           }}
@@ -303,7 +306,7 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
           <Typography variant="body2" sx={{ mb: 1 }}>
             No evidence files attached yet
           </Typography>
-          <Typography variant="caption" color="#9CA3AF">
+          <Typography variant="caption" color={theme.palette.text.muted}>
             Click "Add files" to upload documentation
           </Typography>
         </Box>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, useTheme } from "@mui/material";
 import Field from "../../Inputs/Field";
 import { CustomizableButton } from "../../button/customizable-button";
 
@@ -17,6 +17,7 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
   onInsert,
   selectedText,
 }) => {
+  const theme = useTheme();
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
 
@@ -67,10 +68,10 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
               border: "1px solid #D9E0DD",
             }}
           >
-            <Typography sx={{ fontSize: 12, color: "#667085", mb: 0.5 }}>
+            <Typography sx={{ fontSize: 12, color: theme.palette.other.icon, mb: 0.5 }}>
               Selected text
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#344054", fontWeight: 500 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, fontWeight: 500 }}>
               {selectedText}
             </Typography>
           </Box>
@@ -100,7 +101,7 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
         <CustomizableButton
           text="Cancel"
           variant="text"
-          sx={{ color: "#344054", px: "32px", width: 120 }}
+          sx={{ color: theme.palette.text.secondary, px: "32px", width: 120 }}
           onClick={onClose}
         />
         <CustomizableButton

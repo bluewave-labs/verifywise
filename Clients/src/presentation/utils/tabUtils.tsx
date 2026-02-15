@@ -14,8 +14,8 @@ export interface TabLabelWithCountOptions {
 const BADGE_MIN_WIDTH = '22px';
 const BADGE_HEIGHT = '22px';
 const BADGE_FONT_SIZE = '10px';
-const BADGE_COLOR = '#047857';
-const BADGE_BG_COLOR = '#D1FAE5';
+const BADGE_COLOR = 'var(--vw-primary, #047857)';
+const BADGE_BG_COLOR = 'var(--vw-bg-subtle, #D1FAE5)';
 const BADGE_BORDER_RADIUS = '11px';
 const MAX_DISPLAY_COUNT = 99;
 

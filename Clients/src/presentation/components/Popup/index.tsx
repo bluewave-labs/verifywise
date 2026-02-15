@@ -98,7 +98,7 @@ const Popup: FC<IPopupProps> = ({
           <Typography
             variant="h1"
             component="div"
-            sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 3.5 }}
+            sx={{ color: theme.palette.text.secondary, fontSize: 16, fontWeight: 600, mb: 3.5 }}
           >
             {popupTitle}
           </Typography>
@@ -106,7 +106,7 @@ const Popup: FC<IPopupProps> = ({
             <Typography
               variant="subtitle1"
               component="div"
-              sx={{ color: "#344054", fontSize: 13 }}
+              sx={{ color: theme.palette.text.secondary, fontSize: 13 }}
             >
               {popupSubtitle}
             </Typography>

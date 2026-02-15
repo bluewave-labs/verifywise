@@ -7,6 +7,7 @@ import {
   Popover,
   Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { Pencil, Trash2, MoreVertical } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -43,6 +44,7 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const theme = useTheme();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [menuRow, setMenuRow] = useState<ScorerRow | null>(null);
 
@@ -100,7 +102,7 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
               ...singleTheme.tableStyles.primary.body.row,
               cursor: onRowClick ? "pointer" : "default",
               "&:hover": {
-                backgroundColor: "#F9FAFB",
+                backgroundColor: theme.palette.background.accent,
               },
             }}
           >
@@ -174,10 +176,10 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
                 size="small"
                 onClick={(e) => handleMenuOpen(e, scorer)}
                 sx={{
-                  color: "#667085",
+                  color: theme.palette.other.icon,
                   padding: "6px",
                   "&:hover": {
-                    backgroundColor: "#F3F4F6",
+                    backgroundColor: theme.palette.background.subtle,
                   },
                 }}
               >
@@ -199,7 +201,7 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
           "& .MuiPopover-paper": {
             minWidth: 120,
             borderRadius: "4px",
-            border: "1px solid #d0d5dd",
+            border: `1px solid ${theme.palette.border.dark}`,
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             overflow: "hidden",
             mt: 0.5,
@@ -217,14 +219,14 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: theme.palette.text.dark,
+                borderColor: theme.palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
                   backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
                 },
               }}
             >
@@ -241,7 +243,7 @@ const ScorersTableBody: React.FC<ScorersTableBodyProps> = ({
                 fontSize: "13px",
                 fontWeight: 500,
                 color: "#DC2626",
-                borderColor: "#d0d5dd",
+                borderColor: theme.palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {

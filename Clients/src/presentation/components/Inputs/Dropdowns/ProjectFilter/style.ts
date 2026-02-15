@@ -1,14 +1,16 @@
+import { Theme } from "@mui/material";
+
 export const inputStyles = {
   minWidth: 100,
   maxWidth: 200,
   height: 34,
 };
 
-export const dropdownStyles = {
+export const getDropdownStyles = (theme: Theme) => ({
   borderRadius: 2,
   padding: "0 12px 0 0",
   fontSize: 13,
-  color: "#111827",
+  color: theme.palette.text.primary,
   "&:hover": {
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: "rgba(0, 0, 0, 0.23)",
@@ -16,10 +18,10 @@ export const dropdownStyles = {
   },
   "&.Mui-focused": {
     "& .MuiOutlinedInput-notchedOutline": {
-      border: '1px solid #d0d5dd',
+      border: `1px solid ${theme.palette.border.dark}`,
     },
   },
   "& .MuiOutlinedInput-notchedOutline": {
-    border: '1px solid #d0d5dd',
+    border: `1px solid ${theme.palette.border.dark}`,
   },
-};
+});

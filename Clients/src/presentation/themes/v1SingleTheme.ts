@@ -3,8 +3,8 @@
  * all the similar values, merging them and then adding them to the main theme files
  */
 
-import { alertStyles } from "./alerts";
-import { tableStyles } from "./tables";
+import { alertStyles, getAlertStyles } from "./alerts";
+import { tableStyles, getTableStyles } from "./tables";
 
 const textColors = {
   theme: "#0f604d",
@@ -73,10 +73,17 @@ const flashColors = {
 
 // Table colors for consistent styling
 const tableColors = {
-  rowHover: "#f5f5f5",
-  rowAlternate: "#fafbfc",
-  sortedColumn: "#f5f5f5",
+  rowHover: "var(--vw-bg-hover, #f5f5f5)",
+  rowAlternate: "var(--vw-bg-subtle, #fafbfc)",
+  sortedColumn: "var(--vw-bg-hover, #f5f5f5)",
   sortedColumnFirst: "#e8e8e8",
+};
+
+const darkTableColors = {
+  rowHover: "#1a1d23",
+  rowAlternate: "#141720",
+  sortedColumn: "#1a1d23",
+  sortedColumnFirst: "#21242b",
 };
 
 const buttons = {
@@ -101,8 +108,8 @@ const buttons = {
         boxShadow: "none",
       },
       "&.Mui-disabled": {
-        backgroundColor: "#E5E7EB",
-        color: "#9CA3AF",
+        backgroundColor: "var(--vw-border-input, #E5E7EB)",
+        color: "var(--vw-text-muted, #9CA3AF)",
       },
     },
     outlined: {
@@ -124,8 +131,8 @@ const buttons = {
         backgroundColor: `${colors.primary}12`,
       },
       "&.Mui-disabled": {
-        borderColor: "#E5E7EB",
-        color: "#9CA3AF",
+        borderColor: "var(--vw-border-input, #E5E7EB)",
+        color: "var(--vw-text-muted, #9CA3AF)",
       },
     },
     text: {
@@ -146,7 +153,7 @@ const buttons = {
         backgroundColor: `${colors.primary}12`,
       },
       "&.Mui-disabled": {
-        color: "#9CA3AF",
+        color: "var(--vw-text-muted, #9CA3AF)",
       },
     },
   },
@@ -171,8 +178,8 @@ const buttons = {
         boxShadow: "none",
       },
       "&.Mui-disabled": {
-        backgroundColor: "#E5E7EB",
-        color: "#9CA3AF",
+        backgroundColor: "var(--vw-border-input, #E5E7EB)",
+        color: "var(--vw-text-muted, #9CA3AF)",
       },
     },
     outlined: {
@@ -411,12 +418,24 @@ const buttons = {
 
 const textStyles = {
   pageTitle: {
-    color: "#1A1919",
+    color: "var(--vw-text-primary, #1A1919)",
     fontSize: fontSizes.large,
     fontWeight: 600,
   },
   pageDescription: {
-    color: "#344054",
+    color: "var(--vw-text-secondary, #344054)",
+    fontSize: fontSizes.medium,
+  },
+};
+
+const darkTextStyles = {
+  pageTitle: {
+    color: "var(--vw-text-primary, #e6e8eb)",
+    fontSize: fontSizes.large,
+    fontWeight: 600,
+  },
+  pageDescription: {
+    color: "var(--vw-text-secondary, #b0b4bb)",
     fontSize: fontSizes.medium,
   },
 };
@@ -442,7 +461,7 @@ const iconButtons = {
     outline: "none",
   },
   "& svg path": {
-    stroke: "#667085",
+    stroke: "var(--vw-icon, #667085)",
   },
   "&:hover": {
     backgroundColor: "transparent",
@@ -454,19 +473,19 @@ const iconButtonsRectangle = {
   width: "34px",
   padding: "8px",
   borderRadius: "4px",
-  border: "1px solid #E2E4E9",
-  backgroundColor: "#ffffff",
-  iconColor: "#667085",
-  iconColorDisabled: "#d1d5db",
+  border: "1px solid var(--vw-border-input, #E2E4E9)",
+  backgroundColor: "var(--vw-bg-main, #ffffff)",
+  iconColor: "var(--vw-icon, #667085)",
+  iconColorDisabled: "var(--vw-border-medium, #d1d5db)",
   "& svg path": {
-    stroke: "#667085",
+    stroke: "var(--vw-icon, #667085)",
   },
   "&:hover": {
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--vw-bg-accent, #f9fafb)",
   },
   "&:disabled": {
     backgroundColor: "transparent",
-    borderColor: "#E2E4E9",
+    borderColor: "var(--vw-border-input, #E2E4E9)",
   }
 };
 
@@ -487,5 +506,13 @@ const singleTheme = {
   flashColors,
   tableColors,
 };
+
+export const getSingleTheme = (mode: "light" | "dark" = "light") => ({
+  ...singleTheme,
+  textStyles: mode === "dark" ? darkTextStyles : textStyles,
+  tableStyles: getTableStyles(mode),
+  alertStyles: getAlertStyles(mode),
+  tableColors: mode === "dark" ? darkTableColors : tableColors,
+});
 
 export default singleTheme;

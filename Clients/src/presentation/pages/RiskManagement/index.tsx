@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { RisksCard } from "../../components/Cards/RisksCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -78,6 +79,7 @@ const initialLoadingState: LoadingStatus = {
 
 
 const RiskManagement = () => {
+  const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -764,7 +766,7 @@ const RiskManagement = () => {
                 aria-label="Analytics"
                 sx={analyticsIconButtonStyle}
               >
-                <BarChart3 size={16} color="#344054" />
+                <BarChart3 size={16} color={theme.palette.text.secondary} />
               </IconButton>
             </div>
             <div data-joyride-id="add-risk-button">

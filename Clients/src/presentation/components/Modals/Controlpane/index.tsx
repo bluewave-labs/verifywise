@@ -50,9 +50,9 @@ const CustomModal: React.FC<ICustomModalProps> = ({
   // };
 
   const buttonTabStyles = {
-    backgroundColor: "#EAECF0",
+    backgroundColor: theme.palette.border.light,
     color: "Black",
-    borderColor: "#EAECF0",
+    borderColor: theme.palette.border.light,
     borderTop: 0,
     borderBottom: 0,
     borderRadius: 0,
@@ -142,7 +142,7 @@ const CustomModal: React.FC<ICustomModalProps> = ({
         )}
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
 
-        <Box sx={{ width: "100%", bgcolor: "#FCFCFD" }}>
+        <Box sx={{ width: "100%", bgcolor: theme.palette.background.alt }}>
           <Tabs
             value={selectedTab}
             onChange={handleSelectedTab}
@@ -173,7 +173,7 @@ const CustomModal: React.FC<ICustomModalProps> = ({
             flexDirection: "row",
             justifyContent: "flex-start",
             borderRadius: "4px",
-            border: "1px solid #EAECF0",
+            border: `1px solid ${theme.palette.border.light}`,
             width: "fit-content",
           }}
         >
@@ -187,7 +187,7 @@ const CustomModal: React.FC<ICustomModalProps> = ({
                 sx={{
                   ...buttonTabStyles,
                   backgroundColor:
-                    activeSection === section ? "#EAECF0" : "transparent",
+                    activeSection === section ? theme.palette.border.light : "transparent",
                   fontWeight: activeSection === section ? "500" : 300,
                 }}
               >

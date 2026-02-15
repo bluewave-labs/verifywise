@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -61,6 +61,11 @@ const AgentTable: React.FC<AgentTableProps> = ({
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Reset to first page when agents list changes (e.g., filter applied)
+  useEffect(() => {
+    setPage(0);
+  }, [agents]);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);

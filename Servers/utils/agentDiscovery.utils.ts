@@ -144,7 +144,7 @@ export const deleteAgentPrimitiveByIdQuery = async (
     `DELETE FROM "${tenant}".agent_primitives WHERE id = :id`,
     { replacements: { id } }
   );
-  return (meta as any) > 0;
+  return ((meta as any)?.rowCount ?? 0) > 0;
 };
 
 export const updateReviewStatusQuery = async (
@@ -274,7 +274,7 @@ export const flagStaleAgentsQuery = async (
        AND is_stale = false`,
     { replacements: { source } }
   );
-  return (meta as any) ?? 0;
+  return (meta as any)?.rowCount ?? 0;
 };
 
 export const getAgentStatsQuery = async (

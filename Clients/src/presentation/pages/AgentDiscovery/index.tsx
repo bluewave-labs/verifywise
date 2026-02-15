@@ -208,7 +208,6 @@ const AgentDiscovery: React.FC = () => {
         />
         <Box sx={{ flexGrow: 1 }} />
         <CustomizableButton
-          text="Sync now"
           sx={syncButton}
           variant="outlined"
           onClick={handleSync}

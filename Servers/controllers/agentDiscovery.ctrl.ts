@@ -128,15 +128,21 @@ export async function createAgentPrimitive(req: Request, res: Response) {
   logStructured("processing", "creating agent primitive", functionName, fileName);
 
   try {
-    const { display_name, primitive_type } = req.body;
+    const { display_name, primitive_type, owner_id, permissions, permission_categories, metadata } = req.body;
     if (!display_name || !primitive_type) {
       return res.status(400).json(STATUS_CODE[400]("display_name and primitive_type are required"));
     }
 
     const primitive = await createAgentPrimitiveQuery(
       {
-        ...req.body,
+        display_name,
+        primitive_type,
+        owner_id,
+        permissions,
+        permission_categories,
+        metadata,
         source_system: "manual",
+        external_id: `manual_${Date.now()}`,
         is_manual: true,
       },
       req.tenantId!

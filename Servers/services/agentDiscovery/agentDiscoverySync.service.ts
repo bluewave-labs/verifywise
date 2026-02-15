@@ -54,19 +54,22 @@ function categorizePermissions(permissions: string[]): string[] {
   const categories = new Set<string>();
   for (const perm of permissions) {
     const normalized = perm.toLowerCase().trim();
-    // Check for exact match
+    let matched = false;
+    // Check for exact match first
     if (PERMISSION_CATEGORY_MAP[normalized]) {
       categories.add(PERMISSION_CATEGORY_MAP[normalized]);
       continue;
     }
-    // Check for partial match (e.g., "files:read" contains "read")
-    for (const [key, category] of Object.entries(PERMISSION_CATEGORY_MAP)) {
-      if (normalized.includes(key)) {
-        categories.add(category);
+    // Check colon-delimited segments (e.g., "files:read" → check "files", "read")
+    const segments = normalized.split(/[:.]/);
+    for (const segment of segments) {
+      if (PERMISSION_CATEGORY_MAP[segment]) {
+        categories.add(PERMISSION_CATEGORY_MAP[segment]);
+        matched = true;
       }
     }
-    // If no match found, add as "other"
-    if (![...categories].length || categories.size === 0) {
+    // If no segment matched, mark as "other"
+    if (!matched) {
       categories.add("other");
     }
   }

@@ -1067,27 +1067,32 @@ const Framework = () => {
                   label: "Dashboard",
                   value: "dashboard",
                   icon: "LayoutDashboard",
+                  tooltip: "Compliance progress and status across this framework",
                 },
                 {
                   label: "Framework risks",
                   value: "framework-risks",
                   icon: "AlertTriangle",
+                  tooltip: "Risks identified at the organizational level",
                 },
                 {
                   label: "Linked models",
                   value: "linked-models",
                   icon: "Link",
                   count: linkedModelsCount,
+                  tooltip: "AI models mapped to this framework's controls",
                 },
                 {
                   label: "Controls and Requirements",
                   value: "controls",
                   icon: "FileCode",
+                  tooltip: "Regulatory controls and their implementation status",
                 },
                 {
                   label: "Settings",
                   value: "settings",
                   icon: "Settings",
+                  tooltip: "Framework visibility and configuration",
                 },
               ]}
               activeTab={mainTabValue}

@@ -13,6 +13,8 @@ export interface TabItem {
   count?: number;
   isLoading?: boolean;
   disabled?: boolean;
+  /** Optional tooltip shown on hover to explain the tab's purpose */
+  tooltip?: string;
 }
 
 export interface TabBarProps {
@@ -163,14 +165,17 @@ const TabBar: React.FC<TabBarProps> = ({
             />
           );
 
-          // Wrap disabled tabs with tooltip
-          if (tab.disabled) {
+          // Show tooltip on hover: custom tooltip text, or disabled fallback
+          const tooltipText = tab.tooltip || (tab.disabled ? disabledTabTooltip : "");
+          if (tooltipText) {
             return (
               <Tooltip
                 key={tab.value}
-                title={disabledTabTooltip}
+                title={tooltipText}
                 arrow
                 placement="top"
+                enterDelay={400}
+                leaveDelay={0}
                 slotProps={{
                   tooltip: {
                     sx: {

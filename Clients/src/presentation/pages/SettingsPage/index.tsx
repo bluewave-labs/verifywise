@@ -140,39 +140,46 @@ export default function ProfilePage() {
               label: "Profile",
               value: "profile",
               icon: "User",
+              tooltip: "Your name, email and personal details",
             },
             {
               label: "Password",
               value: "password",
               icon: "Lock",
+              tooltip: "Update your account password",
             },
             {
               label: "Team",
               value: "team",
               icon: "Users",
               disabled: isTeamManagementDisabled,
+              tooltip: "Manage team members and their roles",
             },
             {
               label: "Organization",
               value: "organization",
               icon: "Building2",
+              tooltip: "Organization name and general settings",
             },
             {
               label: "Preferences",
               value: "preferences",
               icon: "Settings",
+              tooltip: "Customize your display and notification preferences",
             },
             {
               label: "Features",
               value: "features",
               icon: "Zap",
               disabled: isFeaturesDisabled,
+              tooltip: "Enable or disable optional platform features",
             },
             {
               label: "API Keys",
               value: "apikeys",
               icon: "Key",
               disabled: isApiKeysDisabled,
+              tooltip: "Generate keys for programmatic API access",
             },
             // Dynamically add plugin tabs
             ...pluginTabs.map((tab) => ({

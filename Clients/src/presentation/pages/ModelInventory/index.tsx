@@ -2338,6 +2338,7 @@ const ModelInventory: React.FC = () => {
                   icon: "Box",
                   count: modelInventoryData.length,
                   isLoading: isLoading,
+                  tooltip: "Catalog and track all registered AI/ML models",
                 },
                 {
                   label: "Model risks",
@@ -2345,6 +2346,7 @@ const ModelInventory: React.FC = () => {
                   icon: "AlertTriangle",
                   count: modelRisksData.length,
                   isLoading: isModelRisksLoading,
+                  tooltip: "Risks identified for models in your inventory",
                 },
                 {
                   label: "Datasets",
@@ -2352,6 +2354,7 @@ const ModelInventory: React.FC = () => {
                   icon: "Database" as const,
                   count: datasetData.length,
                   isLoading: isDatasetLoading,
+                  tooltip: "Training and evaluation datasets used by your models",
                 },
                 // Dynamically add plugin tabs
                 ...pluginTabs.map((tab) => ({
@@ -2365,6 +2368,7 @@ const ModelInventory: React.FC = () => {
                   icon: "Database" as const,
                   count: evidenceHubData.length,
                   isLoading: isEvidenceLoading,
+                  tooltip: "Compliance evidence and documentation for audits",
                 },
               ]}
               activeTab={activeTab}

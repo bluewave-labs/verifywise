@@ -155,7 +155,7 @@ const TabBar: React.FC<TabBarProps> = ({
 
           // Wrap label content in VWTooltip so Tab remains a direct child of TabList
           const label = tooltipText ? (
-            <VWTooltip content={tooltipText} placement="top" maxWidth={280}>
+            <VWTooltip content={tooltipText} placement="top">
               <span style={{ display: "inline-flex", alignItems: "center" }}>{labelContent}</span>
             </VWTooltip>
           ) : labelContent;

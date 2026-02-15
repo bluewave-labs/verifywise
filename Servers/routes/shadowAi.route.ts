@@ -77,9 +77,9 @@ router.delete("/config/syslog/:id", authenticateJWT, deleteSyslogConfig);
 router.get("/settings", authenticateJWT, getSettings);
 router.patch("/settings", authenticateJWT, updateSettings);
 
-// ─── Reporting ──────────────────────────────────────────────────────────
-router.post("/reporting/generate", authenticateJWT, generateReport);
-router.get("/reporting/reports", authenticateJWT, getReports);
-router.delete("/reporting/:id", authenticateJWT, deleteReport);
+// ─── Reports ─────────────────────────────────────────────────────────────
+router.post("/reports/generate", authenticateJWT, generateReport);
+router.get("/reports", authenticateJWT, getReports);
+router.delete("/reports/:id", authenticateJWT, deleteReport);
 
 export default router;

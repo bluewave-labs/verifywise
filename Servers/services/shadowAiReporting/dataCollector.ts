@@ -415,7 +415,7 @@ export class ShadowAIReportDataCollector {
 
     // Recent alerts
     const [alertRows] = await sequelize.query(
-      `SELECT ah.fired_at, ah.details,
+      `SELECT ah.fired_at, ah.trigger_data,
               r.name as rule_name
        FROM "${this.tenantId}".shadow_ai_alert_history ah
        JOIN "${this.tenantId}".shadow_ai_rules r ON ah.rule_id = r.id
@@ -436,9 +436,9 @@ export class ShadowAIReportDataCollector {
           ? new Date(a.fired_at).toLocaleString()
           : "Unknown",
         details:
-          typeof a.details === "object"
-            ? JSON.stringify(a.details)
-            : a.details || "",
+          typeof a.trigger_data === "object"
+            ? JSON.stringify(a.trigger_data)
+            : a.trigger_data || "",
       })),
     };
   }

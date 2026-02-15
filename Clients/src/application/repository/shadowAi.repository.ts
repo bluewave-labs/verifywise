@@ -370,20 +370,20 @@ export interface ShadowAIReportListItem {
 export async function generateShadowAIReport(
   body: GenerateShadowAIReportParams
 ): Promise<import("axios").AxiosResponse<Blob>> {
-  return apiServices.post(`${BASE_URL}/reporting/generate`, body, {
+  return apiServices.post(`${BASE_URL}/reports/generate`, body, {
     responseType: "blob",
   });
 }
 
 export async function getShadowAIReports(): Promise<ShadowAIReportListItem[]> {
   const response = await apiServices.get<{ data: ShadowAIReportListItem[] }>(
-    `${BASE_URL}/reporting/reports`
+    `${BASE_URL}/reports`
   );
   return response.data.data;
 }
 
 export async function deleteShadowAIReport(id: number): Promise<void> {
-  await apiServices.delete(`${BASE_URL}/reporting/${id}`);
+  await apiServices.delete(`${BASE_URL}/reports/${id}`);
 }
 
 export async function updateSettingsConfig(

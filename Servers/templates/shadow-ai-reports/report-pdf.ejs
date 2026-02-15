@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow AI Report</title>
+  <style>
+    <%- include('./styles/pdf.css') %>
+  </style>
+</head>
+<body>
+  <div class="report-container">
+
+    <!-- Cover Page -->
+    <div class="cover-page">
+      <div class="cover-org-name"><%= branding.organizationName %></div>
+      <h1 class="cover-title">Shadow AI report</h1>
+      <p class="cover-subtitle">Period: <%= metadata.period %></p>
+      <div class="cover-meta">
+        <p class="cover-meta-item"><strong>Generated:</strong> <%= metadata.generatedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+        <p class="cover-meta-item"><strong>Prepared by:</strong> <%= metadata.generatedBy %></p>
+      </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h2 class="toc-title">Table of contents</h2>
+      <ul class="toc-list">
+        <% let sn = 1; %>
+        <% if (sections.executiveSummary) { %>
+        <li class="toc-item"><%= sn++ %>. Executive summary</li>
+        <% } %>
+        <% if (sections.toolInventory) { %>
+        <li class="toc-item"><%= sn++ %>. Tool inventory</li>
+        <% } %>
+        <% if (sections.riskAnalysis) { %>
+        <li class="toc-item"><%= sn++ %>. Risk analysis</li>
+        <% } %>
+        <% if (sections.usageTrends) { %>
+        <li class="toc-item"><%= sn++ %>. Usage trends</li>
+        <% } %>
+        <% if (sections.departmentBreakdown) { %>
+        <li class="toc-item"><%= sn++ %>. Department breakdown</li>
+        <% } %>
+        <% if (sections.topUsers) { %>
+        <li class="toc-item"><%= sn++ %>. Top users</li>
+        <% } %>
+        <% if (sections.compliancePosture) { %>
+        <li class="toc-item"><%= sn++ %>. Compliance posture</li>
+        <% } %>
+        <% if (sections.alertActivity) { %>
+        <li class="toc-item"><%= sn++ %>. Alert & rule activity</li>
+        <% } %>
+      </ul>
+    </div>
+
+    <%
+    // Helper to get chip class
+    function getChipClass(status) {
+      const map = {
+        approved: 'chip-success',
+        blocked: 'chip-error',
+        restricted: 'chip-warning',
+        detected: 'chip-warning',
+        under_review: 'chip-info',
+        dismissed: 'chip-default',
+      };
+      return map[(status || '').toLowerCase()] || 'chip-default';
+    }
+    %>
+
+    <!-- Executive Summary -->
+    <% if (sections.executiveSummary) { %>
+    <div class="group-header">
+      <h2 class="group-title">Executive summary</h2>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-value"><%= sections.executiveSummary.uniqueApps %></div>
+        <div class="stat-label">AI tools detected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= sections.executiveSummary.totalUsers %></div>
+        <div class="stat-label">Active users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= sections.executiveSummary.departments %></div>
+        <div class="stat-label">Departments</div>
+      </div>
+    </div>
+    <% if (sections.executiveSummary.highestRiskTool) { %>
+    <p style="margin-bottom: 8px; font-size: 12px;"><strong>Highest risk tool:</strong> <%= sections.executiveSummary.highestRiskTool.name %> (score: <%= sections.executiveSummary.highestRiskTool.risk_score %>)</p>
+    <% } %>
+    <% if (sections.executiveSummary.mostActiveDepartment) { %>
+    <p style="margin-bottom: 24px; font-size: 12px;"><strong>Most active department:</strong> <%= sections.executiveSummary.mostActiveDepartment %></p>
+    <% } %>
+    <% } %>
+
+    <!-- Tool Inventory -->
+    <% if (sections.toolInventory) { %>
+    <div class="group-header">
+      <h2 class="group-title">Tool inventory</h2>
+    </div>
+    <% if (charts.statusDonut || charts.riskBarChart) { %>
+    <div class="chart-row">
+      <% if (charts.statusDonut) { %>
+      <div class="chart-col chart-container">
+        <%- charts.statusDonut %>
+        <% if (charts.statusLegend) { %>
+        <div style="margin-top: 8px;"><%- charts.statusLegend %></div>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+    <% if (sections.toolInventory.tools.length > 0) { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Vendor</th>
+          <th>Status</th>
+          <th>Risk score</th>
+          <th>Users</th>
+          <th>Events</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sections.toolInventory.tools.forEach(function(tool) { %>
+        <tr>
+          <td><%= tool.name %></td>
+          <td><%= tool.vendor %></td>
+          <td><span class="chip <%= getChipClass(tool.status) %>"><%= tool.status %></span></td>
+          <td><%= tool.riskScore %></td>
+          <td><%= tool.totalUsers %></td>
+          <td><%= tool.totalEvents %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <div class="empty-state">No AI tools have been detected yet.</div>
+    <% } %>
+    <% } %>
+
+    <!-- Risk Analysis -->
+    <% if (sections.riskAnalysis) { %>
+    <div class="group-header">
+      <h2 class="group-title">Risk analysis</h2>
+    </div>
+    <% if (charts.riskBarChart) { %>
+    <div class="chart-container">
+      <%- charts.riskBarChart %>
+    </div>
+    <% } %>
+    <% if (sections.riskAnalysis.toolsByRisk.length > 0) { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Risk score</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sections.riskAnalysis.toolsByRisk.forEach(function(tool) { %>
+        <tr>
+          <td><%= tool.name %></td>
+          <td><%= tool.riskScore %></td>
+          <td><span class="chip <%= getChipClass(tool.status) %>"><%= tool.status %></span></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <div class="empty-state">No tools with risk scores found.</div>
+    <% } %>
+    <% } %>
+
+    <!-- Usage Trends -->
+    <% if (sections.usageTrends) { %>
+    <div class="group-header">
+      <h2 class="group-title">Usage trends</h2>
+    </div>
+    <% if (charts.trendLine) { %>
+    <div class="chart-container">
+      <%- charts.trendLine %>
+    </div>
+    <% } %>
+    <% if (sections.usageTrends.periodSummary) { %>
+    <div class="period-stats">
+      <div class="period-stat">
+        <div class="value"><%= sections.usageTrends.periodSummary.totalEvents.toLocaleString() %></div>
+        <div class="label">Total events</div>
+      </div>
+      <div class="period-stat">
+        <div class="value"><%= sections.usageTrends.periodSummary.avgDailyEvents %></div>
+        <div class="label">Avg per period</div>
+      </div>
+      <div class="period-stat">
+        <div class="value"><%= sections.usageTrends.periodSummary.peakEvents %></div>
+        <div class="label">Peak (<%= sections.usageTrends.periodSummary.peakDay %>)</div>
+      </div>
+    </div>
+    <% } %>
+    <% } %>
+
+    <!-- Department Breakdown -->
+    <% if (sections.departmentBreakdown) { %>
+    <div class="group-header">
+      <h2 class="group-title">Department breakdown</h2>
+    </div>
+    <% if (charts.departmentBar) { %>
+    <div class="chart-container">
+      <%- charts.departmentBar %>
+    </div>
+    <% } %>
+    <% if (sections.departmentBreakdown.departments.length > 0) { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Users</th>
+          <th>Prompts</th>
+          <th>Top tool</th>
+          <th>Max risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sections.departmentBreakdown.departments.forEach(function(dept) { %>
+        <tr>
+          <td><%= dept.name %></td>
+          <td><%= dept.users %></td>
+          <td><%= dept.prompts %></td>
+          <td><%= dept.topTool %></td>
+          <td><%= dept.maxRisk %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <div class="empty-state">No department data available.</div>
+    <% } %>
+    <% } %>
+
+    <!-- Top Users -->
+    <% if (sections.topUsers) { %>
+    <div class="group-header">
+      <h2 class="group-title">Top users</h2>
+    </div>
+    <% if (sections.topUsers.users.length > 0) { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Prompts</th>
+          <th>Department</th>
+          <th>Risk score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sections.topUsers.users.forEach(function(user) { %>
+        <tr>
+          <td><%= user.email %></td>
+          <td><%= user.prompts %></td>
+          <td><%= user.department %></td>
+          <td><%= user.riskScore %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <div class="empty-state">No user activity data available.</div>
+    <% } %>
+    <% } %>
+
+    <!-- Compliance Posture -->
+    <% if (sections.compliancePosture) { %>
+    <div class="group-header">
+      <h2 class="group-title">Compliance posture</h2>
+    </div>
+    <% if (charts.complianceDonut) { %>
+    <div class="chart-container">
+      <%- charts.complianceDonut %>
+      <% if (charts.complianceLegend) { %>
+      <div style="margin-top: 8px;"><%- charts.complianceLegend %></div>
+      <% } %>
+    </div>
+    <% } %>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--color-success);"><%= sections.compliancePosture.compliant %></div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--color-error);"><%= sections.compliancePosture.nonCompliant %></div>
+        <div class="stat-label">Blocked / restricted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= sections.compliancePosture.total %></div>
+        <div class="stat-label">Total tools</div>
+      </div>
+    </div>
+    <% if (sections.compliancePosture.byStatus.length > 0) { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sections.compliancePosture.byStatus.forEach(function(s) { %>
+        <tr>
+          <td><span class="chip <%= getChipClass(s.status) %>"><%= s.status %></span></td>
+          <td><%= s.count %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } %>
+    <% } %>
+
+    <!-- Alert & Rule Activity -->
+    <% if (sections.alertActivity) { %>
+    <div class="group-header">
+      <h2 class="group-title">Alert & rule activity</h2>
+    </div>
+    <div class="subsection">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Rules</h3>
+      </div>
+      <% if (sections.alertActivity.rules.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Rule name</th>
+            <th>Trigger type</th>
+            <th>Active</th>
+            <th>Times fired</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.alertActivity.rules.forEach(function(rule) { %>
+          <tr>
+            <td><%= rule.name %></td>
+            <td><%= rule.triggerType %></td>
+            <td><%= rule.isActive ? 'Yes' : 'No' %></td>
+            <td><%= rule.fireCount %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">No rules have been configured.</div>
+      <% } %>
+    </div>
+    <div class="subsection">
+      <div class="subsection-header">
+        <h3 class="subsection-title">Recent alerts</h3>
+      </div>
+      <% if (sections.alertActivity.recentAlerts.length > 0) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Rule</th>
+            <th>Fired at</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% sections.alertActivity.recentAlerts.forEach(function(alert) { %>
+          <tr>
+            <td><%= alert.ruleName %></td>
+            <td><%= alert.firedAt %></td>
+            <td><%= alert.details %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="empty-state">No alerts have been triggered.</div>
+      <% } %>
+    </div>
+    <% } %>
+
+  </div>
+</body>
+</html>

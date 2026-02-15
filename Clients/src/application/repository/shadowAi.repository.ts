@@ -346,6 +346,46 @@ export async function getSettingsConfig(): Promise<IShadowAiSettings> {
   return response.data.data;
 }
 
+// ============================================================================
+// Reporting
+// ============================================================================
+
+export interface GenerateShadowAIReportParams {
+  sections: string[];
+  format: "pdf" | "docx";
+  reportName?: string;
+  period?: string;
+}
+
+export interface ShadowAIReportListItem {
+  id: number;
+  filename: string;
+  type: string;
+  source: string;
+  uploaded_time: string;
+  uploader_name: string;
+  uploader_surname: string;
+}
+
+export async function generateShadowAIReport(
+  body: GenerateShadowAIReportParams
+): Promise<import("axios").AxiosResponse<Blob>> {
+  return apiServices.post(`${BASE_URL}/reporting/generate`, body, {
+    responseType: "blob",
+  });
+}
+
+export async function getShadowAIReports(): Promise<ShadowAIReportListItem[]> {
+  const response = await apiServices.get<{ data: ShadowAIReportListItem[] }>(
+    `${BASE_URL}/reporting/reports`
+  );
+  return response.data.data;
+}
+
+export async function deleteShadowAIReport(id: number): Promise<void> {
+  await apiServices.delete(`${BASE_URL}/reporting/${id}`);
+}
+
 export async function updateSettingsConfig(
   updates: Partial<Pick<IShadowAiSettings,
     "rate_limit_max_events_per_hour" |

@@ -48,6 +48,12 @@ import {
   updateSettingsQuery,
 } from "../utils/shadowAiConfig.utils";
 import { ShadowAiToolStatus } from "../domain.layer/interfaces/i.shadowAi";
+import { generateShadowAIReport } from "../services/shadowAiReporting";
+import { uploadFile } from "../utils/fileUpload.utils";
+import {
+  getReportByIdQuery,
+  deleteReportByIdQuery,
+} from "../utils/reporting.utils";
 
 const FILE_NAME = "shadowAi.ctrl.ts";
 
@@ -772,6 +778,143 @@ export async function updateSettings(req: Request, res: Response) {
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
     await logFailure({ eventType: "Update", description: "failed to update settings", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+// ─── Reporting ───────────────────────────────────────────────────────────
+
+export async function generateReport(req: Request, res: Response) {
+  const fn = "generateShadowAIReport";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+
+  logProcessing({ description: "generating Shadow AI report", functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    if (req.role !== "Admin") {
+      return res.status(403).json(STATUS_CODE[403]("Only admins can generate reports"));
+    }
+
+    const { sections, format, reportName, period } = req.body;
+
+    if (!sections || !Array.isArray(sections) || sections.length === 0) {
+      return res.status(400).json(STATUS_CODE[400]("Missing required field: sections (array)"));
+    }
+
+    const reportFormat = format === "pdf" ? "pdf" : "docx";
+
+    const result = await generateShadowAIReport(
+      { sections, format: reportFormat, reportName, period },
+      userId,
+      tenantId
+    );
+
+    if (!result.success) {
+      await logFailure({ eventType: "Create", description: `Failed to generate Shadow AI report: ${result.error}`, functionName: fn, fileName: FILE_NAME, userId, tenantId, error: new Error(result.error || "Unknown error") });
+      return res.status(500).json(STATUS_CODE[500](result.error || "Failed to generate report"));
+    }
+
+    // Upload file to storage
+    const docFile = {
+      originalname: result.filename,
+      buffer: result.content,
+      fieldname: "file",
+      mimetype: result.mimeType,
+    };
+
+    let uploadedFile;
+    try {
+      uploadedFile = await uploadFile(
+        docFile,
+        userId,
+        null,
+        "Shadow AI report",
+        tenantId
+      );
+    } catch (error) {
+      console.error("[ShadowAI Report] File upload error:", error);
+      await logFailure({ eventType: "Create", description: "Error uploading Shadow AI report file", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+      return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));
+    }
+
+    if (uploadedFile) {
+      await logSuccess({ eventType: "Create", description: `Shadow AI report generated (${reportFormat})`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+      res.setHeader("Content-Disposition", `attachment; filename="${uploadedFile.filename}"`);
+      res.setHeader("Content-Type", result.mimeType);
+      res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+      return res.status(200).send(uploadedFile.content);
+    }
+
+    await logFailure({ eventType: "Create", description: "Failed to upload Shadow AI report file", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: new Error("Upload failed") });
+    return res.status(500).json(STATUS_CODE[500]("Error uploading report file"));
+  } catch (error) {
+    await logFailure({ eventType: "Create", description: "failed to generate Shadow AI report", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getReports(req: Request, res: Response) {
+  const fn = "getShadowAIReports";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+
+  logProcessing({ description: "fetching Shadow AI reports", functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    // Query files table filtered by source = "Shadow AI report"
+    const [rows] = await sequelize.query(
+      `SELECT f.id, f.filename, f.type, f.source, f.uploaded_time,
+              u.name as uploader_name, u.surname as uploader_surname
+       FROM "${tenantId}".files f
+       LEFT JOIN public.users u ON f.uploaded_by = u.id
+       WHERE f.source = 'Shadow AI report'
+       ORDER BY f.uploaded_time DESC`
+    );
+
+    await logSuccess({ eventType: "Read", description: `${(rows as any[]).length} Shadow AI reports fetched`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+    return res.status(200).json(STATUS_CODE[200](rows));
+  } catch (error) {
+    await logFailure({ eventType: "Read", description: "failed to fetch Shadow AI reports", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function deleteReport(req: Request, res: Response) {
+  const fn = "deleteShadowAIReport";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+  const reportId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+
+  logProcessing({ description: `deleting Shadow AI report: ${reportId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    if (isNaN(reportId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid report ID"));
+    }
+
+    const report = await getReportByIdQuery(reportId, tenantId);
+    if (!report) {
+      return res.status(404).json(STATUS_CODE[404]("Report not found"));
+    }
+
+    const transaction = await sequelize.transaction();
+    try {
+      const deleted = await deleteReportByIdQuery(reportId, tenantId, transaction);
+      if (deleted) {
+        await transaction.commit();
+        await logSuccess({ eventType: "Delete", description: `Shadow AI report deleted: ${reportId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+        return res.status(200).json(STATUS_CODE[200](deleted));
+      }
+      await transaction.rollback();
+      return res.status(204).json(STATUS_CODE[204](deleted));
+    } catch (innerError) {
+      await transaction.rollback();
+      throw innerError;
+    }
+  } catch (error) {
+    await logFailure({ eventType: "Delete", description: "failed to delete Shadow AI report", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

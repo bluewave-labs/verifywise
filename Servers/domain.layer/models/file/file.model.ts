@@ -29,7 +29,8 @@ export type FileSource =
   | "Policy manager report"
   | "File Manager"
   | "policy_editor"
-  | "Post-Market Monitoring report";
+  | "Post-Market Monitoring report"
+  | "Shadow AI report";
 
 export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected' | 'expired' | 'superseded';
 

@@ -31,6 +31,9 @@ import {
   deleteSyslogConfig,
   getSettings,
   updateSettings,
+  generateReport,
+  getReports,
+  deleteReport,
 } from "../controllers/shadowAi.ctrl";
 
 // ─── API Keys (Admin only) ─────────────────────────────────────────────
@@ -73,5 +76,10 @@ router.delete("/config/syslog/:id", authenticateJWT, deleteSyslogConfig);
 // ─── Settings (Rate Limiting & Data Retention) ─────────────────────────
 router.get("/settings", authenticateJWT, getSettings);
 router.patch("/settings", authenticateJWT, updateSettings);
+
+// ─── Reporting ──────────────────────────────────────────────────────────
+router.post("/reporting/generate", authenticateJWT, generateReport);
+router.get("/reporting/reports", authenticateJWT, getReports);
+router.delete("/reporting/:id", authenticateJWT, deleteReport);
 
 export default router;

@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
-import { Box, SxProps, Theme, Tooltip } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import TabList from "@mui/lab/TabList";
 import { createTabLabelWithCount } from "../../utils/tabUtils";
 import * as LucideIcons from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import VWTooltip from "../VWTooltip";
 
 export interface TabItem {
   label: string;
@@ -152,33 +153,11 @@ const TabBar: React.FC<TabBarProps> = ({
             isLoading: tab.isLoading,
           });
 
-          // Wrap label content in Tooltip so Tab remains a direct child of TabList
+          // Wrap label content in VWTooltip so Tab remains a direct child of TabList
           const label = tooltipText ? (
-            <Tooltip
-              title={tooltipText}
-              arrow
-              placement="top"
-              enterDelay={400}
-              leaveDelay={0}
-              slotProps={{
-                tooltip: {
-                  sx: {
-                    maxWidth: "280px",
-                    fontSize: "12px !important",
-                    padding: "6px 10px !important",
-                    lineHeight: "1.3 !important",
-                    margin: "4px !important",
-                  },
-                },
-                arrow: {
-                  sx: {
-                    fontSize: "12px",
-                  },
-                },
-              }}
-            >
-              <span>{labelContent}</span>
-            </Tooltip>
+            <VWTooltip content={tooltipText} placement="top" maxWidth={280}>
+              <span style={{ display: "inline-flex", alignItems: "center" }}>{labelContent}</span>
+            </VWTooltip>
           ) : labelContent;
 
           return (

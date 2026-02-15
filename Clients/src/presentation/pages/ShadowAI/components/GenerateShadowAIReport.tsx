@@ -241,7 +241,12 @@ export default function GenerateShadowAIReport({
       handleAlert({ variant: type, body: message, setAlert });
       clearTimerRef.current = setTimeout(() => {
         setAlert(null);
-        if (type === "success") onClose();
+        if (type === "success") {
+          setCurrentPage("sections");
+          setStatusCode(200);
+          setIsGenerating(false);
+          onClose();
+        }
       }, 3000);
     },
     [onClose]

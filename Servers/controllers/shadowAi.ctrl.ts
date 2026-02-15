@@ -923,3 +923,42 @@ export async function deleteReport(req: Request, res: Response) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+export async function downloadReport(req: Request, res: Response) {
+  const fn = "downloadShadowAIReport";
+  const userId = req.userId!;
+  const tenantId = req.tenantId!;
+  const reportId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+
+  logProcessing({ description: `downloading Shadow AI report: ${reportId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+
+  try {
+    if (isNaN(reportId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid report ID"));
+    }
+
+    if (!/^[a-zA-Z0-9]{10}$/.test(tenantId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
+    }
+
+    const report = await getReportByIdQuery(reportId, tenantId);
+    if (!report) {
+      return res.status(404).json(STATUS_CODE[404]("Report not found"));
+    }
+
+    const file = report as any;
+    if (file.source !== "Shadow AI report") {
+      return res.status(403).json(STATUS_CODE[403]("Not a Shadow AI report"));
+    }
+
+    res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
+    res.setHeader("Content-Type", file.type || "application/octet-stream");
+    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+    await logSuccess({ eventType: "Read", description: `Shadow AI report downloaded: ${reportId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+    return res.status(200).send(file.content);
+  } catch (error) {
+    await logFailure({ eventType: "Read", description: "failed to download Shadow AI report", functionName: fn, fileName: FILE_NAME, userId, tenantId, error: error as Error });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

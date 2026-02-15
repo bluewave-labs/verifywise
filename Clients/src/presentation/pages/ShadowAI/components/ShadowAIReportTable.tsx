@@ -23,9 +23,9 @@ import { Download, Trash2 } from "lucide-react";
 import {
   getShadowAIReports,
   deleteShadowAIReport,
+  downloadShadowAIReport,
   ShadowAIReportListItem,
 } from "../../../../application/repository/shadowAi.repository";
-import { handleDownload } from "../../../../application/tools/fileDownload";
 import TablePaginationActions from "../../../components/TablePagination";
 import StandardModal from "../../../components/Modals/StandardModal";
 
@@ -89,7 +89,15 @@ export default function ShadowAIReportTable({
 
   const handleDownloadReport = async (report: ShadowAIReportListItem) => {
     try {
-      await handleDownload(String(report.id), report.filename);
+      const blob = await downloadShadowAIReport(report.id);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = report.filename || "report";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to download report:", error);
     }

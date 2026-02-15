@@ -34,6 +34,7 @@ import {
   generateReport,
   getReports,
   deleteReport,
+  downloadReport,
 } from "../controllers/shadowAi.ctrl";
 
 // ─── API Keys (Admin only) ─────────────────────────────────────────────
@@ -80,6 +81,7 @@ router.patch("/settings", authenticateJWT, updateSettings);
 // ─── Reports ─────────────────────────────────────────────────────────────
 router.post("/reports/generate", authenticateJWT, generateReport);
 router.get("/reports", authenticateJWT, getReports);
+router.get("/reports/:id/download", authenticateJWT, downloadReport);
 router.delete("/reports/:id", authenticateJWT, deleteReport);
 
 export default router;

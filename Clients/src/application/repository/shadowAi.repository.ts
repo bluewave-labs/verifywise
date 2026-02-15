@@ -382,6 +382,14 @@ export async function getShadowAIReports(): Promise<ShadowAIReportListItem[]> {
   return response.data.data;
 }
 
+export async function downloadShadowAIReport(id: number): Promise<Blob> {
+  const response = await apiServices.get<Blob>(
+    `${BASE_URL}/reports/${id}/download`,
+    { responseType: "blob" }
+  );
+  return response.data;
+}
+
 export async function deleteShadowAIReport(id: number): Promise<void> {
   await apiServices.delete(`${BASE_URL}/reports/${id}`);
 }

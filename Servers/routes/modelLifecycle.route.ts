@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
+import { requirePlugin } from "../middleware/pluginGuard.middleware";
 import {
   getLifecycleConfig,
   getLifecyclePhases,
@@ -16,6 +17,9 @@ import {
   deleteLifecycleItem,
   reorderLifecycleItems,
 } from "../controllers/modelLifecycleConfig.ctrl";
+
+// Guard all lifecycle config routes by plugin installation
+router.use(requirePlugin("model-lifecycle"));
 
 // Full config (phases + items) - all authenticated users
 router.get("/config", authenticateJWT, getLifecycleConfig);

@@ -93,12 +93,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: "/tasks",
       count: openTasksCount,
     },
+    {
+      id: "frameworks",
+      label: "Frameworks",
+      icon: <Layers size={16} strokeWidth={1.5} />,
+      path: "/framework",
+    },
   ];
 
   // Menu groups
   const menuGroups: SidebarMenuGroup[] = [
     {
-      name: "DISCOVERY",
+      name: "INVENTORY",
       items: [
         {
           id: "use-cases",
@@ -106,18 +112,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: <FolderTree size={16} strokeWidth={1.5} />,
           path: "/overview",
           highlightPaths: ["/project-view"],
-        },
-        {
-          id: "organizational-view",
-          label: "Organizational View",
-          icon: <Layers size={16} strokeWidth={1.5} />,
-          path: "/framework",
-        },
-        {
-          id: "vendors",
-          label: "Vendors",
-          icon: <Building size={16} strokeWidth={1.5} />,
-          path: "/vendors",
         },
         {
           id: "model-inventory",
@@ -171,6 +165,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       name: "GOVERNANCE",
       items: [
+        {
+          id: "vendors",
+          label: "Vendors",
+          icon: <Building size={16} strokeWidth={1.5} />,
+          path: "/vendors",
+        },
         {
           id: "policy-manager",
           label: "Policy Manager",

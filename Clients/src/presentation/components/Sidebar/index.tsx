@@ -125,6 +125,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: <ListIcon size={16} strokeWidth={1.5} />,
           path: "/model-inventory",
         },
+        {
+          id: "agent-discovery",
+          label: "Agent Discovery",
+          icon: <Bot size={16} strokeWidth={1.5} />,
+          path: "/agent-discovery",
+        },
       ],
     },
     {
@@ -176,12 +182,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Incident Management",
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
-        },
-        {
-          id: "agent-discovery",
-          label: "Agent Discovery",
-          icon: <Bot size={16} strokeWidth={1.5} />,
-          path: "/agent-discovery",
         },
         // {
         //   id: "approval-workflows",

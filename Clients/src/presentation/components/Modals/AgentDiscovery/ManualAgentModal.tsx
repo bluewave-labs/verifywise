@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Drawer,
   Stack,
@@ -12,6 +12,7 @@ import Field from "../../Inputs/Field";
 import SelectComponent from "../../Inputs/Select";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
 
 interface ManualAgentModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
 }) => {
   const theme = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [users, setUsers] = useState<{ _id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     display_name: "",
     primitive_type: "",
@@ -43,6 +45,27 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
     notes: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      const usersData = Array.isArray(response?.data) ? response.data : [];
+      setUsers(
+        usersData.map((u: { id: number; name: string; surname: string }) => ({
+          _id: String(u.id),
+          name: `${u.name} ${u.surname}`.trim(),
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUsers();
+    }
+  }, [isOpen, fetchUsers]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -136,19 +159,25 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
           }
         />
 
-        <Field
+        <SelectComponent
           id="owner_id"
           label="Owner"
-          placeholder="e.g. john@company.com"
+          placeholder="Select owner"
           value={formData.owner_id}
+          items={users}
           onChange={(e) =>
-            setFormData((prev) => ({ ...prev, owner_id: e.target.value }))
+            setFormData((prev) => ({
+              ...prev,
+              owner_id: e.target.value as string,
+            }))
           }
         />
 
         <Field
           id="notes"
           label="Notes"
+          type="description"
+          rows={2}
           placeholder="Any additional context about this agent"
           value={formData.notes}
           onChange={(e) =>

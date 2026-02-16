@@ -4,10 +4,6 @@ export const agentMainStack = {
   gap: "16px",
 };
 
-export const agentFilterRow = {
-  gap: "16px",
-};
-
 export const agentToastContainer = {
   position: "fixed" as const,
   top: 0,
@@ -60,53 +56,6 @@ export const statusCardValue = {
   fontWeight: 800,
 };
 
-// Table styles
-export const agentRowHover = {
-  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
-};
-
-export const agentEmptyContainer = () => ({
-  border: "1px solid #EEEEEE",
-  borderRadius: "4px",
-  padding: "60px 20px 80px 20px",
-  gap: "20px",
-  minHeight: 200,
-});
-
-export const agentLoadingContainer = () => ({
-  border: "1px solid #EEEEEE",
-  borderRadius: "4px",
-  padding: "60px 20px",
-  minHeight: 200,
-});
-
-export const agentEmptyText = {
-  fontSize: 13,
-  color: "#475467",
-  margin: 0,
-  fontWeight: 400,
-};
-
-// Review status badge
-export const reviewStatusBadge = (status: string) => {
-  const styles: Record<string, { bg: string; color: string }> = {
-    unreviewed: { bg: "#FFE5D0", color: "#E64A19" },
-    confirmed: { bg: "#E6F4EA", color: "#138A5E" },
-    rejected: { bg: "#FFD6D6", color: "#D32F2F" },
-  };
-  const style = styles[status] || { bg: "#E0E0E0", color: "#424242" };
-  return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: 4,
-    fontWeight: 500,
-    fontSize: 11,
-    textTransform: "capitalize" as const,
-    display: "inline-block" as const,
-  };
-};
-
 // Permission category chip
 export const permissionChip = {
   fontSize: 11,
@@ -118,7 +67,52 @@ export const permissionChip = {
   fontWeight: 500,
 };
 
-// Pagination
+// Pagination & footer
+export const agentFooterRow = (theme: Theme) => ({
+  "& .MuiTableCell-root.MuiTableCell-footer": {
+    paddingX: theme.spacing(8),
+    paddingY: theme.spacing(4),
+  },
+});
+
+export const agentShowingText = (theme: Theme) => ({
+  paddingX: theme.spacing(2),
+  fontSize: 11,
+  opacity: 0.7,
+  fontWeight: 400,
+  whiteSpace: "nowrap" as const,
+});
+
+export const agentPaginationMenu = (theme: Theme) => ({
+  keepMounted: true,
+  PaperProps: {
+    className: "pagination-dropdown",
+    sx: {
+      mt: 0,
+      mb: theme.spacing(2),
+    },
+  },
+  transformOrigin: {
+    vertical: "bottom" as const,
+    horizontal: "left" as const,
+  },
+  anchorOrigin: {
+    vertical: "top" as const,
+    horizontal: "left" as const,
+  },
+  sx: { mt: theme.spacing(-2) },
+});
+
+export const agentPaginationSelect = (theme: Theme) => ({
+  ml: theme.spacing(4),
+  mr: theme.spacing(12),
+  minWidth: theme.spacing(20),
+  textAlign: "left" as const,
+  "&.Mui-focused > div": {
+    backgroundColor: theme.palette.background.main,
+  },
+});
+
 export const agentPagination = (theme: Theme) => ({
   mt: theme.spacing(6),
   color: theme.palette.text.secondary,
@@ -132,12 +126,4 @@ export const agentPagination = (theme: Theme) => ({
     border: `1px solid ${theme.palette.border.light}`,
     padding: theme.spacing(4),
   },
-});
-
-export const agentShowingText = (theme: Theme) => ({
-  paddingX: theme.spacing(2),
-  fontSize: 11,
-  opacity: 0.7,
-  fontWeight: 400,
-  whiteSpace: "nowrap" as const,
 });

@@ -15,6 +15,7 @@ import {
   Layers,
   AlertCircle,
   Bot,
+  Database,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -118,6 +119,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Model Inventory",
           icon: <ListIcon size={16} strokeWidth={1.5} />,
           path: "/model-inventory",
+        },
+        {
+          id: "datasets",
+          label: "Datasets",
+          icon: <Database size={16} strokeWidth={1.5} />,
+          path: "/datasets",
         },
         {
           id: "agent-discovery",

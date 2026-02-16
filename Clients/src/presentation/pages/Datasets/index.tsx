@@ -1,0 +1,362 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { Box, Stack, Fade } from "@mui/material";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { CustomizableButton } from "../../components/button/customizable-button";
+import { SearchBox } from "../../components/Search";
+import {
+  getAllEntities,
+  deleteEntityById,
+  getEntityById,
+  updateEntityById,
+} from "../../../application/repository/entity.repository";
+import { createDataset } from "../../../application/repository/dataset.repository";
+import { logEngine } from "../../../application/tools/log.engine";
+import { useAuth } from "../../../application/hooks/useAuth";
+import { IDataset, DatasetSummary as DatasetSummaryType } from "../../../domain/interfaces/i.dataset";
+import { DatasetStatus } from "../../../domain/enums/dataset.enum";
+import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
+import PageHeader from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
+import DatasetSummary from "../ModelInventory/DatasetSummary";
+import DatasetTable from "../ModelInventory/DatasetTable";
+import NewDataset from "../../components/Modals/NewDataset";
+
+const Alert = React.lazy(() => import("../../components/Alert"));
+
+const Datasets: React.FC = () => {
+  const [datasetData, setDatasetData] = useState<IDataset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isNewDatasetModalOpen, setIsNewDatasetModalOpen] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState<IDataset | null>(null);
+  const [deletingDatasetId, setDeletingDatasetId] = useState<string | null>(null);
+  const [selectedDatasetStatus, setSelectedDatasetStatus] = useState<string | null>(null);
+  const [flashDatasetRowId, setFlashDatasetRowId] = useState<number | string | null>(null);
+  const [modelInventoryData, setModelInventoryData] = useState<IModelInventory[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { userRoleName } = useAuth();
+  const isCreatingDisabled = !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+
+  // Alert state
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+
+  const fetchDatasetData = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const response = await getAllEntities({ routeUrl: "/datasets" });
+      let datasetsData: IDataset[] = [];
+      if (Array.isArray(response)) {
+        datasetsData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        datasetsData = response.data;
+      } else if (response?.data) {
+        datasetsData = response.data;
+      }
+      setDatasetData(datasetsData);
+    } catch (error) {
+      console.error("Error fetching datasets:", error);
+      logEngine({ type: "error", message: `Failed to fetch datasets: ${error}` });
+      setAlert({ variant: "error", body: "Failed to load datasets. Please try again later." });
+      setShowAlert(true);
+    } finally {
+      if (showLoading) setIsLoading(false);
+    }
+  }, []);
+
+  const fetchModelInventoryData = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/modelInventory" });
+      setModelInventoryData(Array.isArray(response?.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching model inventory:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDatasetData();
+    fetchModelInventoryData();
+  }, [fetchDatasetData, fetchModelInventoryData]);
+
+  useEffect(() => {
+    if (alert) {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [alert]);
+
+  // Summary
+  const datasetSummary: DatasetSummaryType = useMemo(() => ({
+    draft: datasetData.filter((item) => item.status === DatasetStatus.DRAFT).length,
+    active: datasetData.filter((item) => item.status === DatasetStatus.ACTIVE).length,
+    deprecated: datasetData.filter((item) => item.status === DatasetStatus.DEPRECATED).length,
+    archived: datasetData.filter((item) => item.status === DatasetStatus.ARCHIVED).length,
+    total: datasetData.length,
+  }), [datasetData]);
+
+  // Filter datasets by status card + search
+  const filteredDatasets = useMemo(() => {
+    let data = datasetData;
+
+    if (selectedDatasetStatus) {
+      const statusMap: Record<string, string> = {
+        draft: DatasetStatus.DRAFT,
+        active: DatasetStatus.ACTIVE,
+        deprecated: DatasetStatus.DEPRECATED,
+        archived: DatasetStatus.ARCHIVED,
+      };
+      const targetStatus = statusMap[selectedDatasetStatus];
+      if (targetStatus) {
+        data = data.filter((item) => item.status === targetStatus);
+      }
+    }
+
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase();
+      data = data.filter(
+        (item) =>
+          item.name?.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query) ||
+          item.source?.toLowerCase().includes(query) ||
+          item.owner?.toLowerCase().includes(query)
+      );
+    }
+
+    return data;
+  }, [datasetData, selectedDatasetStatus, searchTerm]);
+
+  // Handlers
+  const handleNewDatasetClick = () => {
+    setSelectedDataset(null);
+    setIsNewDatasetModalOpen(true);
+  };
+
+  const handleCloseDatasetModal = () => {
+    setIsNewDatasetModalOpen(false);
+    setSelectedDataset(null);
+  };
+
+  const handleEditDataset = async (id: string) => {
+    try {
+      const response = await getEntityById({ routeUrl: `/datasets/${id}` });
+      if (response?.data) {
+        setSelectedDataset(response.data);
+        setIsNewDatasetModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching dataset details:", error);
+      setAlert({ variant: "error", body: "Failed to load dataset details. Please try again." });
+    }
+  };
+
+  const handleDeleteDataset = async (id: string) => {
+    try {
+      setDeletingDatasetId(id);
+      setDatasetData((prev) => prev.filter((item) => item.id?.toString() !== id));
+      await deleteEntityById({ routeUrl: `/datasets/${id}` });
+      await fetchDatasetData(false);
+      setAlert({ variant: "success", body: "Dataset deleted successfully!" });
+    } catch (error) {
+      console.error("Error deleting dataset:", error);
+      await fetchDatasetData(false);
+      setAlert({ variant: "error", body: "Failed to delete dataset. Please try again." });
+    } finally {
+      setDeletingDatasetId(null);
+    }
+  };
+
+  const handleDatasetSuccess = async (formData: any) => {
+    let datasetId: number | null = null;
+    if (selectedDataset) {
+      await updateEntityById({
+        routeUrl: `/datasets/${selectedDataset.id}`,
+        body: formData,
+      });
+      datasetId = selectedDataset.id || null;
+      setAlert({ variant: "success", body: "Dataset updated successfully!" });
+    } else {
+      const response = await createDataset("/datasets", formData);
+      datasetId = response?.data?.id || null;
+      setAlert({ variant: "success", body: "New dataset added successfully!" });
+    }
+    await fetchDatasetData();
+    if (datasetId) {
+      setFlashDatasetRowId(datasetId);
+      setTimeout(() => setFlashDatasetRowId(null), 3000);
+    }
+  };
+
+  const handleDatasetError = (error: any) => {
+    console.error("Dataset operation error:", error);
+    let errorMessage = selectedDataset
+      ? "Failed to update dataset. Please try again."
+      : "Failed to add dataset. Please try again.";
+
+    const errorData = error?.response?.data || error?.response || (error?.status && error?.errors ? error : null);
+    if (errorData) {
+      if (errorData.status === "error" && Array.isArray(errorData.errors)) {
+        errorMessage = errorData.errors.map((err: any) => err.message || "Validation error").join(", ");
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+    setAlert({ variant: "error", body: errorMessage });
+  };
+
+  const handleDatasetStatusCardClick = useCallback((statusKey: string) => {
+    if (statusKey === "total" || selectedDatasetStatus === statusKey) {
+      setSelectedDatasetStatus(null);
+      setAlert(null);
+      setShowAlert(false);
+    } else {
+      setSelectedDatasetStatus(statusKey);
+      const labelMap: Record<string, string> = {
+        draft: "Draft",
+        active: "Active",
+        deprecated: "Deprecated",
+        archived: "Archived",
+      };
+      setAlert({
+        variant: "info",
+        title: `Filtering by ${labelMap[statusKey]} datasets`,
+        body: "Click the card again or click Total to see all datasets.",
+      });
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+      }, 5000);
+    }
+  }, [selectedDatasetStatus]);
+
+  return (
+    <Stack sx={{ gap: "16px" }}>
+      <PageBreadcrumbs />
+
+      {/* Alert */}
+      {alert && (
+        <Suspense fallback={null}>
+          <Fade in={showAlert} timeout={300}>
+            <Box sx={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast
+                onClick={() => {
+                  setShowAlert(false);
+                  setTimeout(() => setAlert(null), 300);
+                }}
+              />
+            </Box>
+          </Fade>
+        </Suspense>
+      )}
+
+      {/* Page header */}
+      <PageHeader
+        title="Datasets"
+        description="Manage training and evaluation datasets used by your models. Track data lineage, classification, and compliance metadata."
+        rightContent={
+          <HelperIcon articlePath="ai-governance/datasets" size="small" />
+        }
+      />
+
+      {/* Summary cards */}
+      <DatasetSummary
+        summary={datasetSummary}
+        onCardClick={handleDatasetStatusCardClick}
+        selectedStatus={selectedDatasetStatus}
+      />
+
+      {/* Controls row */}
+      <Stack spacing={2}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Stack direction="row" spacing={2} alignItems="center">
+            <SearchBox
+              placeholder="Search datasets..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+              fullWidth={false}
+            />
+          </Stack>
+          <Stack direction="row" gap="8px" alignItems="center">
+            <CustomizableButton
+              variant="contained"
+              sx={{ backgroundColor: "#13715B", border: "1px solid #13715B", gap: "8px" }}
+              text="Add new dataset"
+              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={handleNewDatasetClick}
+              isDisabled={isCreatingDisabled}
+            />
+          </Stack>
+        </Stack>
+      </Stack>
+
+      {/* Table */}
+      <DatasetTable
+        data={filteredDatasets}
+        isLoading={isLoading}
+        onEdit={handleEditDataset}
+        onDelete={handleDeleteDataset}
+        deletingId={deletingDatasetId}
+        flashRowId={flashDatasetRowId}
+      />
+
+      {/* Dataset modal */}
+      <NewDataset
+        isOpen={isNewDatasetModalOpen}
+        setIsOpen={handleCloseDatasetModal}
+        onSuccess={handleDatasetSuccess}
+        onError={handleDatasetError}
+        modelInventoryData={modelInventoryData}
+        initialData={
+          selectedDataset
+            ? {
+                name: selectedDataset.name || "",
+                description: selectedDataset.description || "",
+                version: selectedDataset.version || "",
+                owner: selectedDataset.owner || "",
+                type: selectedDataset.type,
+                function: selectedDataset.function || "",
+                source: selectedDataset.source || "",
+                license: selectedDataset.license || "",
+                format: selectedDataset.format || "",
+                classification: selectedDataset.classification,
+                contains_pii: selectedDataset.contains_pii || false,
+                pii_types: selectedDataset.pii_types || "",
+                status: selectedDataset.status,
+                status_date: selectedDataset.status_date
+                  ? new Date(selectedDataset.status_date as string).toISOString().split("T")[0]
+                  : new Date().toISOString().split("T")[0],
+                known_biases: selectedDataset.known_biases || "",
+                bias_mitigation: selectedDataset.bias_mitigation || "",
+                collection_method: selectedDataset.collection_method || "",
+                preprocessing_steps: selectedDataset.preprocessing_steps || "",
+                models: selectedDataset.models || [],
+                projects: selectedDataset.projects || [],
+              }
+            : undefined
+        }
+        isEdit={!!selectedDataset}
+      />
+    </Stack>
+  );
+};
+
+export default Datasets;

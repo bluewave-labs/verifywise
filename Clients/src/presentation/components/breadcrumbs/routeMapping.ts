@@ -34,6 +34,7 @@ import {
   Key,
   WorkflowIcon,
   Bot,
+  Database,
 } from "lucide-react";
 
 /**
@@ -91,6 +92,9 @@ export const routeMapping: Record<string, string> = {
   "/model-inventory/model-risks": "Model risks",
   "/model-inventory/evidence-hub": "Evidence hub",
   // Plugin tabs are handled dynamically by the breadcrumb component
+
+  // Datasets
+  "/datasets": "Datasets",
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
@@ -188,6 +192,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/framework/linked-models": () => React.createElement(Link, { size: 14, strokeWidth: 1.5 }),
   "/framework/controls": () => React.createElement(FileCode, { size: 14, strokeWidth: 1.5 }),
   "/framework/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
+  // Datasets
+  "/datasets": () => React.createElement(Database, { size: 14, strokeWidth: 1.5 }),
 
   // Agent discovery
   "/agent-discovery": () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),

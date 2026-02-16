@@ -41,6 +41,7 @@ export interface Plugin {
   supportUrl?: string;
   isOfficial: boolean;
   isPublished: boolean;
+  isBuiltIn?: boolean;
   requiresConfiguration: boolean;
   installationType: string;
   features: PluginFeature[];

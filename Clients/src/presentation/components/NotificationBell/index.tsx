@@ -8,6 +8,7 @@ import {
   Stack,
   Divider,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
 import { Bell, CheckCheck, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -144,7 +145,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       {notification.action_url && (
         <ExternalLink
           size={14}
-          color="#9CA3AF"
+          color={theme.palette.text.muted}
           style={{ flexShrink: 0, marginTop: 2 }}
         />
       )}
@@ -158,6 +159,7 @@ interface NotificationBellProps {
 }
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
@@ -225,10 +227,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
     transition: 'all 0.2s ease',
     backgroundColor: 'transparent',
     color: '#666',
-    border: '1px solid #e5e5e5',
+    border: `1px solid ${theme.palette.border.input}`,
     '&:hover': {
       backgroundColor: 'rgba(0, 0, 0, 0.04)',
-      borderColor: '#d0d5dd',
+      borderColor: theme.palette.border.dark,
     },
   };
 
@@ -250,7 +252,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
             max={99}
             sx={{
               '& .MuiBadge-badge': {
-                backgroundColor: '#EF4444',
+                backgroundColor: theme.palette.chart.red,
                 color: 'white',
                 fontSize: '10px',
                 fontWeight: 600,
@@ -283,7 +285,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
             maxHeight: 480,
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12)',
             borderRadius: '8px',
-            border: '1px solid #e5e7eb',
+            border: `1px solid ${theme.palette.border.input}`,
             mt: 1,
             overflow: 'hidden',
           },
@@ -310,7 +312,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                     height: '28px',
                     '&:hover': {
                       backgroundColor: 'rgba(19, 113, 91, 0.08)',
-                      color: '#13715B',
+                      color: theme.palette.primary.main,
                     },
                   }}
                 >
@@ -373,7 +375,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                 px: 2,
               }}
             >
-              <Bell size={24} strokeWidth={1.5} color="#D1D5DB" />
+              <Bell size={24} strokeWidth={1.5} color={theme.palette.border.medium} />
               <Typography
                 sx={{
                   fontSize: '14px',
@@ -397,7 +399,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
             </Box>
           ) : (
             <>
-              <Stack divider={<Divider sx={{ borderColor: '#f3f4f6' }} />}>
+              <Stack divider={<Divider sx={{ borderColor: theme.palette.background.subtle }} />}>
                 {notifications.map((notification) => (
                   <NotificationItem
                     key={notification.id || `${notification.type}-${notification.created_at}`}
@@ -415,7 +417,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                     display: 'flex',
                     justifyContent: 'center',
                     py: '8px',
-                    borderTop: '1px solid #f3f4f6',
+                    borderTop: `1px solid ${theme.palette.background.subtle}`,
                   }}
                 >
                   <Box
@@ -431,16 +433,16 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                       py: 1,
                       fontSize: '13px',
                       fontWeight: 500,
-                      color: '#13715B',
+                      color: theme.palette.primary.main,
                       backgroundColor: 'transparent',
-                      border: '1px solid #d0d5dd',
+                      border: `1px solid ${theme.palette.border.dark}`,
                       borderRadius: '4px',
                       cursor: isLoadingMore ? 'not-allowed' : 'pointer',
                       transition: 'all 0.15s ease',
                       opacity: isLoadingMore ? 0.6 : 1,
                       '&:hover': {
                         backgroundColor: 'rgba(19, 113, 91, 0.04)',
-                        borderColor: '#13715B',
+                        borderColor: theme.palette.primary.main,
                       },
                     }}
                   >
@@ -465,7 +467,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
             sx={{
               px: 2,
               py: 1,
-              borderTop: '1px solid #e5e7eb',
+              borderTop: `1px solid ${theme.palette.border.input}`,
               backgroundColor: '#FEF3C7',
             }}
           >
@@ -483,7 +485,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  backgroundColor: '#F59E0B',
+                  backgroundColor: theme.palette.chart.amber,
                 }}
               />
               Reconnecting to real-time updates...

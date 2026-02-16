@@ -2,7 +2,7 @@
  * This file is currently in use
  */
 
-import { Stack, Typography, Box } from "@mui/material";
+import { Stack, Typography, Box, useTheme } from "@mui/material";
 import { RiskData } from "./riskkViewValues";
 import {
   FC,
@@ -85,6 +85,7 @@ const vendorRisksColNames = [
 
 const RisksView: FC<RisksViewProps> = memo(
   ({ risksSummary, risksData, title, projectId }) => {
+    const theme = useTheme();
     /**
      * Determines which column set to use based on risk type
      */
@@ -279,7 +280,7 @@ const RisksView: FC<RisksViewProps> = memo(
         >
           <Typography
             component="h2"
-            sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}
+            sx={{ fontSize: 16, fontWeight: 600, color: theme.palette.text.primary }}
           >
             {title} risks
           </Typography>

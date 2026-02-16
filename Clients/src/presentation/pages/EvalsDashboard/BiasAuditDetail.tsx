@@ -31,7 +31,7 @@ function StatCard({ title, value, Icon, highlight }: { title: string; value: str
       sx={{
         ...(cardStyles.base(theme) as Record<string, unknown>),
         background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #E5E7EB",
+        border: `1px solid ${theme.palette.border.input}`,
         height: "100%",
         minHeight: "80px",
         position: "relative",
@@ -43,7 +43,7 @@ function StatCard({ title, value, Icon, highlight }: { title: string; value: str
         overflow: "hidden",
         "&:hover": {
           background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-          borderColor: "#D1D5DB",
+          borderColor: theme.palette.border.medium,
         },
       }}
     >

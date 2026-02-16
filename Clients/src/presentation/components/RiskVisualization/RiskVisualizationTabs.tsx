@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import RiskHeatMap from "./RiskHeatMap";
 import RiskCategories from "./RiskCategories";
@@ -11,6 +11,7 @@ const RiskVisualizationTabs: React.FC<IRiskVisualizationTabsProps> = ({
   selectedRisk,
   onRiskSelect,
 }) => {
+  const theme = useTheme();
   const [value, setValue] = useState("0");
 
   const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -31,8 +32,8 @@ const RiskVisualizationTabs: React.FC<IRiskVisualizationTabsProps> = ({
 
         <Box
           sx={{
-            backgroundColor: "#FFFFFF",
-            border: "1px solid #E5E7EB",
+            backgroundColor: theme.palette.background.main,
+            border: `1px solid ${theme.palette.border.input}`,
             borderRadius: 2,
             borderTop: "none",
             borderTopLeftRadius: 0,

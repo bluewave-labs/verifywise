@@ -310,12 +310,12 @@ const Plugins: React.FC = () => {
                           justifyContent: "center",
                           width: "16px",
                           "& svg": {
-                            color: isSelected ? "#13715B !important" : "#667085 !important",
-                            stroke: isSelected ? "#13715B !important" : "#667085 !important",
+                            color: isSelected ? `${theme.palette.primary.main} !important` : `${theme.palette.other.icon} !important`,
+                            stroke: isSelected ? `${theme.palette.primary.main} !important` : `${theme.palette.other.icon} !important`,
                             transition: "color 0.2s ease, stroke 0.2s ease",
                           },
                           "& svg path": {
-                            stroke: isSelected ? "#13715B !important" : "#667085 !important",
+                            stroke: isSelected ? `${theme.palette.primary.main} !important` : `${theme.palette.other.icon} !important`,
                           },
                         }}
                       >
@@ -346,7 +346,7 @@ const Plugins: React.FC = () => {
                   <Stack direction="row" alignItems="center" gap={1.5} mb={1}>
                     {React.createElement(currentCategory.icon, {
                       size: 20,
-                      color: "#13715B",
+                      color: theme.palette.primary.main,
                       strokeWidth: 1.5,
                     })}
                     <Typography sx={categoryHeaderTitle}>
@@ -402,7 +402,7 @@ const Plugins: React.FC = () => {
                 <Chip
                   label={`${installedPlugins.length} plugin${installedPlugins.length !== 1 ? "s" : ""} installed`}
                   backgroundColor="rgba(19, 113, 91, 0.1)"
-                  textColor="#13715B"
+                  textColor={theme.palette.primary.main}
                 />
               </Box>
             )}

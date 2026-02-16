@@ -16,6 +16,7 @@ import {
   TextField,
   alpha,
   InputAdornment,
+  useTheme,
 } from "@mui/material";
 import {
   Trophy,
@@ -134,6 +135,7 @@ interface ArenaPageProps {
 }
 
 export default function ArenaPage({ orgId }: ArenaPageProps) {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [comparisons, setComparisons] = useState<ArenaComparisonSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -674,7 +676,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#1e1b4b", mb: 1 }}>
             No battles yet
           </Typography>
-          <Typography sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mx: "auto", mb: "16px" }}>
+          <Typography sx={{ fontSize: 14, color: theme.palette.text.accent, maxWidth: 400, mx: "auto", mb: "16px" }}>
             Create your first arena battle to pit different model versions against each other
             and discover which one performs better.
           </Typography>
@@ -711,7 +713,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Search size={16} color="#9ca3af" />
+                    <Search size={16} color=theme.palette.text.tertiary />
                   </InputAdornment>
                 ),
               }}
@@ -722,10 +724,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   borderRadius: "6px",
                   fontSize: 13,
                   "& fieldset": {
-                    borderColor: "#d0d5dd",
+                    borderColor: theme.palette.border.dark,
                   },
                   "&:hover fieldset": {
-                    borderColor: "#98a2b3",
+                    borderColor: theme.palette.text.tertiary,
                   },
                 },
               }}
@@ -789,7 +791,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 onNavigateToSettings={() => navigate("/evals#settings")}
                 label="Judge model"
               />
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 1 }}>
+              <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary, mt: 1 }}>
                 The LLM that will compare and score the responses
               </Typography>
             </Box>
@@ -797,7 +799,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             {/* Evaluation Criteria */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} mb={1.5}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.dark }}>
                   Evaluation criteria
                 </Typography>
                 <VWTooltip
@@ -817,7 +819,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   placement="right"
                 >
                   <Box sx={{ display: "flex", cursor: "help" }}>
-                    <Info size={14} color="#9ca3af" />
+                    <Info size={14} color=theme.palette.text.tertiary />
                   </Box>
                 </VWTooltip>
               </Stack>
@@ -856,7 +858,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                         sx={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#374151",
+                          color: theme.palette.text.dark,
                         }}
                       >
                         {criteria.name}
@@ -867,7 +869,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               </Box>
 
               {newComparison.selectedCriteria.length === 0 && (
-                <Typography sx={{ fontSize: 12, color: "#ef4444", mt: 1.5, textAlign: "center" }}>
+                <Typography sx={{ fontSize: 12, color: theme.palette.error.main, mt: 1.5, textAlign: "center" }}>
                   Please select at least one evaluation criterion
                 </Typography>
               )}
@@ -876,11 +878,11 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             {/* Dataset selector */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary }}>
                   Dataset
                 </Typography>
               </Stack>
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mb: 1 }}>
+              <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary, mb: 1 }}>
                 All contestants will be evaluated using this dataset
               </Typography>
               <GroupedSelect
@@ -966,7 +968,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 // Cycle through colors for multiple contestants
                 const colors = [
                   { border: "#3b82f6", bg: alpha("#3b82f6", 0.03), gradient: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" },
-                  { border: "#ef4444", bg: alpha("#ef4444", 0.03), gradient: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" },
+                  { border: theme.palette.error.main, bg: alpha(theme.palette.error.main, 0.03), gradient: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" },
                   { border: "#10b981", bg: alpha("#10b981", 0.03), gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)" },
                   { border: "#f59e0b", bg: alpha("#f59e0b", 0.03), gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" },
                   { border: "#8b5cf6", bg: alpha("#8b5cf6", 0.03), gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" },

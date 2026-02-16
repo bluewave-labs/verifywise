@@ -18,6 +18,7 @@ import {
   Chip,
   Divider,
   Tooltip,
+  useTheme,
 } from "@mui/material";
 import { X, Download, Pencil, FileText, Image, FileType, FileSpreadsheet } from "lucide-react";
 import { FileMetadata, downloadFileFromManager, getFilePreview } from "../../../../../application/repository/file.repository";
@@ -100,6 +101,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
   onEdit,
   onDownload,
 }) => {
+  const theme = useTheme();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -246,7 +248,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             height: 300,
           }}
         >
-          <CircularProgress size={40} sx={{ color: "#13715B" }} />
+          <CircularProgress size={40} sx={{ color: theme.palette.primary.main }} />
         </Box>
       );
     }
@@ -260,13 +262,13 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             justifyContent: "center",
             alignItems: "center",
             height: 300,
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.background.accent,
             borderRadius: "4px",
             border: "1px solid #E0E4E9",
           }}
         >
           {getFileIcon(file?.mimetype)}
-          <Typography sx={{ mt: 2, color: "#667085", fontSize: 13 }}>
+          <Typography sx={{ mt: 2, color: theme.palette.other.icon, fontSize: 13 }}>
             {error}
           </Typography>
         </Box>
@@ -282,16 +284,16 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             justifyContent: "center",
             alignItems: "center",
             height: 300,
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.background.accent,
             borderRadius: "4px",
             border: "1px solid #E0E4E9",
           }}
         >
           {getFileIcon(file?.mimetype)}
-          <Typography sx={{ mt: 2, color: "#667085", fontSize: 13 }}>
+          <Typography sx={{ mt: 2, color: theme.palette.other.icon, fontSize: 13 }}>
             Preview not available for this file type
           </Typography>
-          <Typography sx={{ mt: 1, color: "#98A2B3", fontSize: 12 }}>
+          <Typography sx={{ mt: 1, color: theme.palette.text.muted, fontSize: 12 }}>
             Download the file to view its contents
           </Typography>
         </Box>
@@ -326,7 +328,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             objectFit: "contain",
             border: "1px solid #E0E4E9",
             borderRadius: "4px",
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.background.accent,
           }}
         />
       );
@@ -341,7 +343,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             maxHeight: 400,
             overflow: "auto",
             padding: 2,
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.background.accent,
             border: "1px solid #E0E4E9",
             borderRadius: "4px",
             fontSize: 12,
@@ -368,14 +370,14 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               objectFit: "contain",
               border: "1px solid #E0E4E9",
               borderRadius: "4px",
-              backgroundColor: "#F9FAFB",
+              backgroundColor: theme.palette.background.accent,
             }}
           />
           <Typography
             sx={{
               mt: 1,
               fontSize: 11,
-              color: "#98A2B3",
+              color: theme.palette.text.muted,
               fontStyle: "italic",
               textAlign: "center",
             }}
@@ -415,7 +417,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           sx={{
             fontSize: 16,
             fontWeight: 600,
-            color: "#101828",
+            color: theme.palette.text.primary,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -429,7 +431,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
             <IconButton
               onClick={() => onEdit(file)}
               size="small"
-              sx={{ color: "#667085" }}
+              sx={{ color: theme.palette.other.icon }}
             >
               <Pencil size={18} />
             </IconButton>
@@ -443,14 +445,14 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
                 sx={{ color: !isAdmin ? "#D0D5DD" : "#667085" }}
               >
                 {downloading ? (
-                  <CircularProgress size={18} sx={{ color: "#667085" }} />
+                  <CircularProgress size={18} sx={{ color: theme.palette.other.icon }} />
                 ) : (
                   <Download size={18} />
                 )}
               </IconButton>
             </span>
           </Tooltip>
-          <IconButton onClick={onClose} size="small" sx={{ color: "#667085" }}>
+          <IconButton onClick={onClose} size="small" sx={{ color: theme.palette.other.icon }}>
             <X size={18} />
           </IconButton>
         </Box>
@@ -461,7 +463,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
         <Box
           sx={{
             padding: "8px 20px",
-            backgroundColor: "#FEF3F2",
+            backgroundColor: theme.palette.status.error.bg,
             borderBottom: "1px solid #FECDCA",
           }}
         >
@@ -482,7 +484,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
           {/* File details */}
           <Box>
             <Typography
-              sx={{ fontSize: 14, fontWeight: 600, color: "#344054", mb: 2 }}
+              sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.secondary, mb: 2 }}
             >
               File details
             </Typography>
@@ -497,7 +499,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               }}
             >
               {/* Size */}
-              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                 Size
               </Typography>
               <Typography sx={{ fontSize: 13, color: "#344054" }}>
@@ -505,7 +507,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               </Typography>
 
               {/* Upload date */}
-              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                 Uploaded
               </Typography>
               <Typography sx={{ fontSize: 13, color: "#344054" }}>
@@ -515,7 +517,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               {/* Uploader */}
               {file.uploader_name && (
                 <>
-                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                  <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                     Uploaded by
                   </Typography>
                   <Typography sx={{ fontSize: 13, color: "#344054" }}>
@@ -527,7 +529,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               {/* Status */}
               {file.review_status && (
                 <>
-                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                  <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                     Status
                   </Typography>
                   <Box>
@@ -539,7 +541,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               {/* Version */}
               {file.version && (
                 <>
-                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                  <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                     Version
                   </Typography>
                   <Typography sx={{ fontSize: 13, color: "#344054" }}>
@@ -551,7 +553,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               {/* Expiry Date */}
               {file.expiry_date && (
                 <>
-                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                  <Typography sx={{ fontSize: 13, color: theme.palette.other.icon }}>
                     Expiry date
                   </Typography>
                   <Typography sx={{ fontSize: 13, color: "#344054" }}>
@@ -563,7 +565,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               {/* Tags */}
               {file.tags && file.tags.length > 0 && (
                 <>
-                  <Typography sx={{ fontSize: 13, color: "#667085", alignSelf: "start", pt: 0.5 }}>
+                  <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, alignSelf: "start", pt: 0.5 }}>
                     Tags
                   </Typography>
                   <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
@@ -574,7 +576,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
                         size="small"
                         sx={{
                           backgroundColor: "#F2F4F7",
-                          color: "#344054",
+                          color: theme.palette.text.secondary,
                           fontSize: "11px",
                           height: 22,
                         }}
@@ -587,7 +589,7 @@ export const FilePreviewPanel: React.FC<FilePreviewPanelProps> = ({
               {/* Description */}
               {file.description && (
                 <>
-                  <Typography sx={{ fontSize: 13, color: "#667085", alignSelf: "start" }}>
+                  <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, alignSelf: "start" }}>
                     Description
                   </Typography>
                   <Typography sx={{ fontSize: 13, color: "#344054" }}>

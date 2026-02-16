@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
+import { Box, Typography, Select, MenuItem, FormControl, useTheme } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getAllExperiments, type Experiment } from "../../../../application/repository/deepEval.repository";
 
@@ -87,6 +87,7 @@ type ChartPoint = {
 };
 
 export default function PerformanceChart({ projectId }: PerformanceChartProps) {
+  const theme = useTheme();
   const [data, setData] = useState<ChartPoint[]>([]);
   const [activeMetrics, setActiveMetrics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -259,8 +260,8 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     return (
       <Box
         sx={{
-          backgroundColor: "#fff",
-          border: "1px solid #E5E7EB",
+          backgroundColor: theme.palette.background.main,
+          border: `1px solid ${theme.palette.border.input}`,
           borderRadius: "8px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           padding: "12px",
@@ -324,10 +325,10 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
                 px: 1.5,
               },
               "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#E5E7EB",
+                borderColor: theme.palette.border.input,
               },
               "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#D1D5DB",
+                borderColor: theme.palette.border.medium,
               },
               "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                 borderColor: "#13715B",

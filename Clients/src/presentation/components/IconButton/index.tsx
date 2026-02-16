@@ -534,15 +534,15 @@ const IconButton: React.FC<IconButtonProps> = ({
               ...(() => {
                 // Archive (soft delete) uses warning color
                 if (item === "archive" && (type === "Task" || type === "task")) {
-                  return { color: "#F59E0B" }; // warning color
+                  return { color: theme.palette.status.warning.text }; // warning color
                 }
                 // Hard delete uses error color
                 if (item === "delete" && (type === "Task" || type === "task")) {
-                  return { color: "#d32f2f" }; // error color
+                  return { color: theme.palette.status.error.main }; // error color
                 }
                 // Other remove/archive uses error color
                 if (item === "remove" || item === "archive") {
-                  return { color: "#d32f2f" };
+                  return { color: theme.palette.status.error.main };
                 }
                 // Restore uses primary/success color
                 if (item === "restore") {

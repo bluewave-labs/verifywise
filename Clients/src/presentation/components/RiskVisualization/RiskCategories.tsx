@@ -7,6 +7,7 @@ import {
   Paper,
   Grid,
   Collapse,
+  useTheme,
 } from "@mui/material";
 import type { GridProps } from "@mui/material";
 import {
@@ -24,6 +25,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   selectedRisk,
   onRiskSelect,
 }) => {
+  const theme = useTheme();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"category" | "lifecycle">(
     "category"
@@ -145,15 +147,15 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
         sx={{
           p: 4,
           textAlign: "center",
-          backgroundColor: "#F9FAFB",
+          backgroundColor: theme.palette.background.accent,
           borderRadius: 2,
-          border: "1px solid #E5E7EB",
+          border: `1px solid ${theme.palette.border.input}`,
         }}
       >
-        <Typography variant="h6" sx={{ color: "#6B7280", mb: 1 }}>
+        <Typography variant="h6" sx={{ color: theme.palette.text.accent, mb: 1 }}>
           No Category Data Available
         </Typography>
-        <Typography variant="body2" sx={{ color: "#9CA3AF" }}>
+        <Typography variant="body2" sx={{ color: theme.palette.text.muted }}>
           Risk category data will appear here as risks are categorized.
         </Typography>
       </Box>
@@ -170,7 +172,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
           mb: 3,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 600, color: "#111827" }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
           Risk Categories Analysis
         </Typography>
 
@@ -202,7 +204,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
               <Paper
                 elevation={0}
                 sx={{
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${theme.palette.border.input}`,
                   borderRadius: 2,
                   overflow: "hidden",
                   borderLeft: `4px solid ${criticalLevel.color}`,
@@ -213,7 +215,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                     p: 2,
                     cursor: "pointer",
                     "&:hover": {
-                      backgroundColor: "#F9FAFB",
+                      backgroundColor: theme.palette.background.accent,
                     },
                   }}
                   onClick={() => toggleCategory(category.name)}
@@ -229,19 +231,19 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                     <Box sx={{ flex: 1 }}>
                       <Typography
                         variant="subtitle2"
-                        sx={{ fontWeight: 600, color: "#111827", mb: 1 }}
+                        sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}
                       >
                         {category.name}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "#6B7280" }}>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.accent }}>
                         {category.count} risk{category.count !== 1 ? "s" : ""}
                       </Typography>
                     </Box>
 
                     {isExpanded ? (
-                      <ExpandLessIcon size={16} style={{ color: "#6B7280" }} />
+                      <ExpandLessIcon size={16} style={{ color: theme.palette.text.accent }} />
                     ) : (
-                      <ExpandMoreIcon size={16} style={{ color: "#6B7280" }} />
+                      <ExpandMoreIcon size={16} style={{ color: theme.palette.text.accent }} />
                     )}
                   </Box>
 
@@ -315,23 +317,23 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                 </Box>
 
                 <Collapse in={isExpanded}>
-                  <Box sx={{ p: 2, pt: 0, borderTop: "1px solid #E5E7EB" }}>
+                  <Box sx={{ p: 2, pt: 0, borderTop: `1px solid ${theme.palette.border.input}` }}>
                     <Stack spacing={1}>
                       {category.risks.map((risk) => (
                         <Box
                           key={risk.id}
                           sx={{
                             p: 2,
-                            backgroundColor: "#F9FAFB",
+                            backgroundColor: theme.palette.background.accent,
                             borderRadius: 1,
                             border:
                               selectedRisk?.id === risk.id
                                 ? `2px solid ${criticalLevel.color}`
-                                : "1px solid #E5E7EB",
+                                : `1px solid ${theme.palette.border.input}`,
                             cursor: onRiskSelect ? "pointer" : "default",
                             "&:hover": onRiskSelect
                               ? {
-                                  backgroundColor: "#F3F4F6",
+                                  backgroundColor: theme.palette.background.subtle,
                                 }
                               : {},
                           }}
@@ -339,7 +341,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                         >
                           <Typography
                             variant="body2"
-                            sx={{ fontWeight: 600, color: "#111827", mb: 1 }}
+                            sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}
                           >
                             {risk.risk_name}
                           </Typography>
@@ -369,7 +371,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                             {risk.risk_owner && (
                               <Typography
                                 variant="caption"
-                                sx={{ color: "#6B7280" }}
+                                sx={{ color: theme.palette.text.accent }}
                               >
                                 Owner:{" "}
                                 {getUserNameById(risk.risk_owner.toString())}
@@ -379,7 +381,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
                           {risk.risk_description && (
                             <Typography
                               variant="caption"
-                              sx={{ color: "#6B7280", display: "block" }}
+                              sx={{ color: theme.palette.text.accent, display: "block" }}
                             >
                               {risk.risk_description.length > 100
                                 ? `${risk.risk_description.substring(

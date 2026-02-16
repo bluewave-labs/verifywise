@@ -27,6 +27,7 @@ import {
 } from "../../../../application/interfaces/iprogress";
 
 function ProjectCardSkeleton() {
+  const theme = useTheme();
   return (
     <Stack className="project-card" sx={projectCardStyle(theme)}>
       <Stack className="project-card-header" sx={{ gap: 2 }}>
@@ -124,6 +125,7 @@ function FrameworkButton({
   type: "eu" | "iso";
   onClick: () => void;
 }) {
+  const theme = useTheme();
   const tooltipText =
     type === "eu"
       ? "EU AI Act: View and complete requirements for EU's AI Act. Answer compliance questions and track your progress."
@@ -135,7 +137,7 @@ function FrameworkButton({
         variant="contained"
         onClick={onClick}
         sx={{
-          ...(type === "eu" ? euAiActChipStyle : iso42001ChipStyle),
+          ...(type === "eu" ? euAiActChipStyle(theme) : iso42001ChipStyle(theme)),
           cursor: "pointer",
           "&:hover": {
             opacity: 0.9,
@@ -201,7 +203,7 @@ export const ProjectCard = React.memo(function ProjectCard({ project, isLoading 
   return (
     <Stack
       className="project-card"
-      sx={{ ...projectCardStyle, display: "flex", flexDirection: "column" }}
+      sx={{ ...projectCardStyle(theme), display: "flex", flexDirection: "column" }}
       role="article"
       aria-label={`Project card for ${project.project_title}`}
     >

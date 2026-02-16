@@ -17,6 +17,7 @@ import {
   AccordionDetails,
   FormHelperText,
   Chip as MuiChip,
+  useTheme,
 } from "@mui/material";
 import { Check, Database, ExternalLink, Upload, Sparkles, Settings, Plus, Layers, ChevronDown, FileSearch, MessageSquare, Bot, Clock } from "lucide-react";
 import StepperModal from "../../components/Modals/StepperModal";
@@ -76,6 +77,7 @@ export default function NewExperimentModal({
   onStarted,
   useCase,
 }: NewExperimentModalProps) {
+  const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const formFieldsRef = useRef<HTMLDivElement>(null);
@@ -924,13 +926,13 @@ export default function NewExperimentModal({
             {loadingApiKeys ? (
               <Box sx={{ py: 4, textAlign: "center" }}>
                 <CircularProgress size={24} />
-                <Typography sx={{ mt: 1, fontSize: "13px", color: "#6B7280" }}>
+                <Typography sx={{ mt: 1, fontSize: "13px", color: theme.palette.text.accent }}>
                   Loading providers...
                 </Typography>
               </Box>
             ) : (
               <Box>
-                <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: theme.palette.text.dark }}>
                   Model provider
                 </Typography>
                 <Grid container spacing={1.5}>
@@ -955,14 +957,14 @@ export default function NewExperimentModal({
                           sx={{
                             cursor: "pointer",
                             border: "1px solid",
-                            borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                            backgroundColor: "#FFFFFF",
+                            borderColor: isSelected ? theme.palette.primary.main : theme.palette.border.light,
+                            backgroundColor: theme.palette.background.main,
                             boxShadow: "none",
                             transition: "all 0.2s ease",
                             position: "relative",
                             height: "100%",
                             "&:hover": {
-                              borderColor: "#13715B",
+                              borderColor: theme.palette.primary.main,
                               boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                             },
                           }}
@@ -986,7 +988,7 @@ export default function NewExperimentModal({
                                   position: "absolute",
                                   top: 8,
                                   right: 8,
-                                  backgroundColor: "#13715B",
+                                  backgroundColor: theme.palette.primary.main,
                                   borderRadius: "50%",
                                   width: 20,
                                   height: 20,
@@ -995,7 +997,7 @@ export default function NewExperimentModal({
                                   justifyContent: "center",
                                 }}
                               >
-                                <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                <Check size={12} color=theme.palette.background.main strokeWidth={3} />
                               </Box>
                             )}
 
@@ -1022,7 +1024,7 @@ export default function NewExperimentModal({
                               sx={{
                                 fontSize: "12px",
                                 fontWeight: isSelected ? 600 : 500,
-                                color: isSelected ? "#13715B" : "#374151",
+                                color: isSelected ? theme.palette.primary.main : theme.palette.text.dark,
                                 textAlign: "center",
                               }}
                             >
@@ -1045,10 +1047,10 @@ export default function NewExperimentModal({
                   {config.model.accessMethod === "openrouter" ? (
                     /* OpenRouter - Custom model input with suggestions */
                     <Box>
-                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                         Model
                       </Typography>
-                      <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                      <Typography sx={{ fontSize: "11px", color: theme.palette.text.accent, mb: 1.5 }}>
                         OpenRouter supports any model. Enter the model ID or select from popular options.
                       </Typography>
                       <Field
@@ -1062,7 +1064,7 @@ export default function NewExperimentModal({
                         }
                         placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
                       />
-                      <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                      <Typography sx={{ fontSize: "11px", fontWeight: 600, color: theme.palette.text.tertiary, mt: 2, mb: 1, textTransform: "uppercase" }}>
                         Popular Models
                       </Typography>
                       <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -1085,12 +1087,12 @@ export default function NewExperimentModal({
                             }
                             sx={{
                               cursor: "pointer",
-                              backgroundColor: config.model.name === m.id ? "#E8F5F1" : "transparent",
-                              borderColor: config.model.name === m.id ? "#13715B" : "#E5E7EB",
-                              color: config.model.name === m.id ? "#13715B" : "#374151",
+                              backgroundColor: config.model.name === m.id ? theme.palette.primary.softBg : "transparent",
+                              borderColor: config.model.name === m.id ? theme.palette.primary.main : theme.palette.border.light,
+                              color: config.model.name === m.id ? theme.palette.primary.main : theme.palette.text.dark,
                               "&:hover": {
-                                backgroundColor: config.model.name === m.id ? "#E8F5F1" : "#f9fafb",
-                                borderColor: "#13715B",
+                                backgroundColor: config.model.name === m.id ? theme.palette.primary.softBg : theme.palette.background.alt,
+                                borderColor: theme.palette.primary.main,
                               },
                             }}
                           />
@@ -1099,7 +1101,7 @@ export default function NewExperimentModal({
                     </Box>
                   ) : PROVIDERS[config.model.accessMethod] ? (
                     <Box>
-                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                         Model
                       </Typography>
                       <FormControl fullWidth size="small">
@@ -1115,18 +1117,18 @@ export default function NewExperimentModal({
                           sx={{
                             fontSize: "13px",
                             "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#E5E7EB",
+                              borderColor: theme.palette.border.light,
                             },
                             "&:hover .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#D1D5DB",
+                              borderColor: theme.palette.border.dark,
                             },
                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#13715B",
+                              borderColor: theme.palette.primary.main,
                             },
                           }}
                         >
                           <MenuItem value="" disabled>
-                            <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>
+                            <Typography sx={{ color: theme.palette.text.tertiary, fontSize: "13px" }}>
                               Select a model
                             </Typography>
                           </MenuItem>
@@ -1135,7 +1137,7 @@ export default function NewExperimentModal({
                               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
                                 <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
                                 {model.inputCost !== undefined && (
-                                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                  <Typography sx={{ fontSize: "11px", color: theme.palette.text.tertiary }}>
                                     ${model.inputCost}/1M in • ${model.outputCost}/1M out
                                   </Typography>
                                 )}
@@ -1186,10 +1188,10 @@ export default function NewExperimentModal({
                   {/* API Key - show configured status OR input field */}
                   {selectedModelProvider?.needsApiKey && (
                     hasApiKey(config.model.accessMethod) ? (
-                      <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                      <Box sx={{ p: 1.5, backgroundColor: theme.palette.status.success.bg, borderRadius: "8px", border: `1px solid ${theme.palette.status.success.bg}` }}>
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Check size={16} color="#059669" />
-                          <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                          <Check size={16} color=theme.palette.status.success.text />
+                          <Typography sx={{ fontSize: "12px", color: theme.palette.status.success.dark }}>
                             API key configured — will be saved for future experiments
                           </Typography>
                         </Stack>
@@ -1222,13 +1224,13 @@ export default function NewExperimentModal({
         return (
           <Stack spacing="16px">
             {/* Description */}
-            <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent, lineHeight: 1.5 }}>
               Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
             </Typography>
 
             {/* Option 1: Custom dataset */}
             <Box>
-              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: "8px" }}>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px", mb: "8px" }}>
                 Option 1: Use custom dataset
               </Typography>
               {/* Upload Section - Compact drop zone */}
@@ -1240,12 +1242,12 @@ export default function NewExperimentModal({
                   gap: "8px",
                   p: "8px",
                   border: "1px dashed",
-                  borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
+                  borderColor: uploadingDataset ? theme.palette.primary.main : theme.palette.border.dark,
                   borderRadius: "4px",
                   backgroundColor: "#FAFAFA",
                   cursor: uploadingDataset ? "wait" : "pointer",
                   transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#13715B", backgroundColor: "#F0FDF4" },
+                  "&:hover": { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.status.success.bg },
                 }}
               >
                 <Box
@@ -1253,20 +1255,20 @@ export default function NewExperimentModal({
                     width: 32,
                     height: 32,
                     borderRadius: "6px",
-                    backgroundColor: "#13715B",
+                    backgroundColor: theme.palette.primary.main,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
                   }}
                 >
-                  <Upload size={16} color="#FFFFFF" />
+                  <Upload size={16} color=theme.palette.background.main />
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark }}>
                     {uploadingDataset ? "Uploading..." : "Upload dataset"}
                   </Typography>
-                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                  <Typography sx={{ fontSize: "11px", color: theme.palette.text.tertiary }}>
                     JSON file with prompts and expected outputs
                   </Typography>
                 </Box>
@@ -1345,12 +1347,12 @@ export default function NewExperimentModal({
             {/* My Datasets Section */}
             {loadingUserDatasets ? (
               <Box sx={{ py: 2, textAlign: "center" }}>
-                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your datasets...</Typography>
+                <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>Loading your datasets...</Typography>
               </Box>
             ) : userDatasets.length > 0 ? (
               <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     Option 2: Your datasets
                   </Typography>
                   <Button
@@ -1358,7 +1360,7 @@ export default function NewExperimentModal({
                     variant="text"
                     startIcon={<ExternalLink size={12} />}
                     onClick={() => window.open(`/evals/${projectId}#datasets`, "_blank")}
-                    sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                    sx={{ textTransform: "none", fontSize: "11px", color: theme.palette.text.accent, p: 0.5, minWidth: "auto", "&:hover": { color: theme.palette.primary.main } }}
                   >
                     Manage
                   </Button>
@@ -1396,7 +1398,7 @@ export default function NewExperimentModal({
                             setDatasetPrompts([]);
                           }
                         }}
-                        icon={<Database size={14} color={isEmpty ? "#DC2626" : isSelected ? "#13715B" : "#9CA3AF"} />}
+                        icon={<Database size={14} color={isEmpty ? "#DC2626" : isSelected ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                         title={dataset.name}
                         description={isEmpty ? "Cannot use empty dataset" : "Custom uploaded dataset"}
                         chip={typeChip}
@@ -1409,7 +1411,7 @@ export default function NewExperimentModal({
 
             {/* Template Datasets Section */}
             <Box>
-              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                 Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
               </Typography>
               <Stack spacing="8px">
@@ -1459,7 +1461,7 @@ export default function NewExperimentModal({
                           setDatasetPrompts([]);
                         }
                       }}
-                      icon={<Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />}
+                      icon={<Database size={14} color={isSelected ? "#6366F1" : theme.palette.text.tertiary} />}
                       title={template.name}
                       description={template.desc}
                       accentColor="#6366F1"
@@ -1484,7 +1486,7 @@ export default function NewExperimentModal({
                   setJudgeMode("scorer");
                   setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, provider: "" } }));
                 }}
-                icon={<Sparkles size={14} color={judgeMode === "scorer" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Sparkles size={14} color={judgeMode === "scorer" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Custom scorer only"
                 description="Use your own prompts for domain-specific evaluation"
               />
@@ -1494,14 +1496,14 @@ export default function NewExperimentModal({
                   setJudgeMode("standard");
                   setSelectedScorer(null);
                 }}
-                icon={<Settings size={14} color={judgeMode === "standard" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Settings size={14} color={judgeMode === "standard" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Standard judge only"
                 description="Use built-in metrics with fixed evaluation criteria"
               />
               <SelectableCard
                 isSelected={judgeMode === "both"}
                 onClick={() => setJudgeMode("both")}
-                icon={<Layers size={14} color={judgeMode === "both" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Layers size={14} color={judgeMode === "both" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Judge + scorer"
                 description="Use both built-in metrics and your custom scorers"
               />
@@ -1512,12 +1514,12 @@ export default function NewExperimentModal({
               <Box>
                 {loadingScorers ? (
                   <Box sx={{ py: 3, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your scorers...</Typography>
+                    <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>Loading your scorers...</Typography>
                   </Box>
                 ) : userScorers.length > 0 ? (
                   <Box>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                      <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         Your Scorers
                       </Typography>
                       <Stack direction="row" spacing={1}>
@@ -1531,7 +1533,7 @@ export default function NewExperimentModal({
                               setSelectedScorerIds(userScorers.map(s => s.id));
                             }
                           }}
-                          sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                          sx={{ textTransform: "none", fontSize: "11px", color: theme.palette.text.accent, p: 0.5, minWidth: "auto", "&:hover": { color: theme.palette.primary.main } }}
                         >
                           {selectedScorerIds.length === userScorers.length ? "Clear All" : "Select All"}
                         </Button>
@@ -1540,7 +1542,7 @@ export default function NewExperimentModal({
                           variant="text"
                           startIcon={<ExternalLink size={12} />}
                           onClick={() => window.open(`/evals/${projectId}#scorers`, "_blank")}
-                          sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                          sx={{ textTransform: "none", fontSize: "11px", color: theme.palette.text.accent, p: 0.5, minWidth: "auto", "&:hover": { color: theme.palette.primary.main } }}
                         >
                           Manage
                         </Button>
@@ -1563,26 +1565,26 @@ export default function NewExperimentModal({
                                   : [...prev, scorer.id]
                               );
                             }}
-                            icon={<Sparkles size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
+                            icon={<Sparkles size={14} color={isSelected ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                             title={scorer.name}
                             description={`${modelName} • ${scorer.metricKey}`}
                           />
                         );
                       })}
                     </Stack>
-                    <FormHelperText sx={{ mt: 1, fontSize: "11px", color: "#6B7280" }}>
+                    <FormHelperText sx={{ mt: 1, fontSize: "11px", color: theme.palette.text.accent }}>
                       {selectedScorerIds.length > 0
                         ? `${selectedScorerIds.length} scorer${selectedScorerIds.length > 1 ? 's' : ''} selected. Only these will run during evaluation.`
                         : "No scorers selected. All enabled scorers will run if none are selected."}
                     </FormHelperText>
                   </Box>
                 ) : (
-                  <Box sx={{ py: 4, textAlign: "center", border: "1px dashed #E5E7EB", borderRadius: "8px" }}>
-                    <Sparkles size={32} color="#D1D5DB" style={{ marginBottom: 8 }} />
-                    <Typography sx={{ fontSize: "14px", color: "#6B7280", mb: 1 }}>
+                  <Box sx={{ py: 4, textAlign: "center", border: `1px dashed ${theme.palette.border.input}`, borderRadius: "8px" }}>
+                    <Sparkles size={32} color=theme.palette.border.dark style={{ marginBottom: 8 }} />
+                    <Typography sx={{ fontSize: "14px", color: theme.palette.text.accent, mb: 1 }}>
                       No custom scorers yet
                     </Typography>
-                    <Typography sx={{ fontSize: "12px", color: "#9CA3AF", mb: 2 }}>
+                    <Typography sx={{ fontSize: "12px", color: theme.palette.text.tertiary, mb: 2 }}>
                       Create a scorer to use custom evaluation criteria
                     </Typography>
                     <Button
@@ -1593,9 +1595,9 @@ export default function NewExperimentModal({
                       sx={{
                         textTransform: "none",
                         fontSize: "12px",
-                        color: "#13715B",
-                        borderColor: "#13715B",
-                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#F0FDF4" },
+                        color: theme.palette.primary.main,
+                        borderColor: theme.palette.primary.main,
+                        "&:hover": { borderColor: theme.palette.primary.dark, backgroundColor: theme.palette.status.success.bg },
                       }}
                     >
                       Create Scorer
@@ -1609,7 +1611,7 @@ export default function NewExperimentModal({
             {judgeMode === "both" && (
               <Box sx={{ pt: 2 }}>
                 <Divider sx={{ mb: 2 }} />
-                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                   Standard Judge Configuration
                 </Typography>
               </Box>
@@ -1619,7 +1621,7 @@ export default function NewExperimentModal({
             {(judgeMode === "standard" || judgeMode === "both") && (
               <>
                 {judgeMode === "standard" && (
-                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                     Select a Provider
                   </Typography>
                 )}
@@ -1645,14 +1647,14 @@ export default function NewExperimentModal({
                             sx={{
                               cursor: "pointer",
                               border: "1px solid",
-                              borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                              backgroundColor: "#FFFFFF",
+                              borderColor: isSelected ? theme.palette.primary.main : theme.palette.border.light,
+                              backgroundColor: theme.palette.background.main,
                               boxShadow: "none",
                               transition: "all 0.2s ease",
                               position: "relative",
                               height: "100%",
                               "&:hover": {
-                                borderColor: "#13715B",
+                                borderColor: theme.palette.primary.main,
                                 boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                               },
                             }}
@@ -1676,7 +1678,7 @@ export default function NewExperimentModal({
                                     position: "absolute",
                                     top: 8,
                                     right: 8,
-                                    backgroundColor: "#13715B",
+                                    backgroundColor: theme.palette.primary.main,
                                     borderRadius: "50%",
                                     width: 20,
                                     height: 20,
@@ -1685,7 +1687,7 @@ export default function NewExperimentModal({
                                     justifyContent: "center",
                                   }}
                                 >
-                                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                  <Check size={12} color=theme.palette.background.main strokeWidth={3} />
                                 </Box>
                               )}
 
@@ -1712,7 +1714,7 @@ export default function NewExperimentModal({
                                 sx={{
                                   fontSize: "12px",
                                   fontWeight: 500,
-                                  color: "#374151",
+                                  color: theme.palette.text.dark,
                                   lineHeight: 1.3,
                                   mt: "auto",
                                 }}
@@ -1734,10 +1736,10 @@ export default function NewExperimentModal({
                       {config.judgeLlm.provider === "openrouter" ? (
                         /* OpenRouter - Custom model input with suggestions */
                         <Box>
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                             Model
                           </Typography>
-                          <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                          <Typography sx={{ fontSize: "11px", color: theme.palette.text.accent, mb: 1.5 }}>
                             OpenRouter supports any model. Enter the model ID or select from popular options.
                           </Typography>
                           <Field
@@ -1751,7 +1753,7 @@ export default function NewExperimentModal({
                             }
                             placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
                           />
-                          <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                          <Typography sx={{ fontSize: "11px", fontWeight: 600, color: theme.palette.text.tertiary, mt: 2, mb: 1, textTransform: "uppercase" }}>
                             Popular Models
                           </Typography>
                           <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -1774,12 +1776,12 @@ export default function NewExperimentModal({
                                 }
                                 sx={{
                                   cursor: "pointer",
-                                  backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "transparent",
-                                  borderColor: config.judgeLlm.model === m.id ? "#13715B" : "#E5E7EB",
-                                  color: config.judgeLlm.model === m.id ? "#13715B" : "#374151",
+                                  backgroundColor: config.judgeLlm.model === m.id ? theme.palette.primary.softBg : "transparent",
+                                  borderColor: config.judgeLlm.model === m.id ? theme.palette.primary.main : theme.palette.border.light,
+                                  color: config.judgeLlm.model === m.id ? theme.palette.primary.main : theme.palette.text.dark,
                                   "&:hover": {
-                                    backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "#f9fafb",
-                                    borderColor: "#13715B",
+                                    backgroundColor: config.judgeLlm.model === m.id ? theme.palette.primary.softBg : theme.palette.background.alt,
+                                    borderColor: theme.palette.primary.main,
                                   },
                                 }}
                               />
@@ -1788,7 +1790,7 @@ export default function NewExperimentModal({
                         </Box>
                       ) : PROVIDERS[config.judgeLlm.provider] ? (
                         <Box>
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                             Model
                           </Typography>
                           <FormControl fullWidth size="small">
@@ -1804,18 +1806,18 @@ export default function NewExperimentModal({
                               sx={{
                                 fontSize: "13px",
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#E5E7EB",
+                                  borderColor: theme.palette.border.light,
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#D1D5DB",
+                                  borderColor: theme.palette.border.dark,
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#13715B",
+                                  borderColor: theme.palette.primary.main,
                                 },
                               }}
                             >
                               <MenuItem value="" disabled>
-                                <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>
+                                <Typography sx={{ color: theme.palette.text.tertiary, fontSize: "13px" }}>
                                   Select a model
                                 </Typography>
                               </MenuItem>
@@ -1824,7 +1826,7 @@ export default function NewExperimentModal({
                                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
                                     <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
                                     {model.inputCost !== undefined && (
-                                      <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                      <Typography sx={{ fontSize: "11px", color: theme.palette.text.tertiary }}>
                                         ${model.inputCost}/1M in
                                       </Typography>
                                     )}
@@ -1855,10 +1857,10 @@ export default function NewExperimentModal({
                       {/* API Key - show configured status OR input field */}
                       {selectedProvider?.needsApiKey && (
                         hasApiKey(config.judgeLlm.provider) ? (
-                          <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                          <Box sx={{ p: 1.5, backgroundColor: theme.palette.status.success.bg, borderRadius: "8px", border: `1px solid ${theme.palette.status.success.bg}` }}>
                             <Stack direction="row" alignItems="center" spacing={1}>
-                              <Check size={16} color="#059669" />
-                              <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                              <Check size={16} color=theme.palette.status.success.text />
+                              <Typography sx={{ fontSize: "12px", color: theme.palette.status.success.dark }}>
                                 API key configured — will be saved for future experiments
                               </Typography>
                             </Stack>
@@ -1923,12 +1925,12 @@ export default function NewExperimentModal({
                 sx={{
                   p: 4,
                   textAlign: "center",
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${theme.palette.border.input}`,
                   borderRadius: "8px",
-                  backgroundColor: "#F9FAFB",
+                  backgroundColor: theme.palette.background.alt,
                 }}
               >
-                <Typography sx={{ fontSize: "15px", fontWeight: 600, color: "#374151", mb: 1 }}>
+                <Typography sx={{ fontSize: "15px", fontWeight: 600, color: theme.palette.text.dark, mb: 1 }}>
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
@@ -1943,16 +1945,16 @@ export default function NewExperimentModal({
                   sx={{
                     p: "8px",
                     borderRadius: "4px",
-                    backgroundColor: "#F0FDF4",
+                    backgroundColor: theme.palette.status.success.bg,
                     border: "1px solid #BBF7D0",
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
                   }}
                 >
-                  <Clock size={16} color="#13715B" />
+                  <Clock size={16} color=theme.palette.primary.main />
                   <Box>
-                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.primary.main }}>
                       Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
                     </Typography>
                     <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
@@ -2123,14 +2125,14 @@ export default function NewExperimentModal({
                 disableGutters
                 elevation={0}
                 sx={{
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${theme.palette.border.input}`,
                   borderRadius: "4px !important",
                   "&:before": { display: "none" },
                   "&.Mui-expanded": { margin: 0 },
                 }}
               >
                 <AccordionSummary
-                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                  expandIcon={<ChevronDown size={18} color=theme.palette.text.accent />}
                   sx={{
                     minHeight: 48,
                     px: "8px",
@@ -2427,16 +2429,16 @@ export default function NewExperimentModal({
                   mt: "16px",
                   p: "8px",
                   borderRadius: "4px",
-                  backgroundColor: "#F0FDF4",
+                  backgroundColor: theme.palette.status.success.bg,
                   border: "1px solid #BBF7D0",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
                 }}
               >
-                <Clock size={16} color="#13715B" />
+                <Clock size={16} color=theme.palette.primary.main />
                 <Box>
-                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.primary.main }}>
                     Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
                   </Typography>
                   <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>

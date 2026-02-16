@@ -3,6 +3,6 @@
 }
 
 .search-result-item:hover {
-  background-color: #f8f9fa !important;
-  border-color: #c0c5cc !important;
+  background-color: var(--vw-bg-accent, #f8f9fa) !important;
+  border-color: var(--vw-border-dark, #c0c5cc) !important;
 }

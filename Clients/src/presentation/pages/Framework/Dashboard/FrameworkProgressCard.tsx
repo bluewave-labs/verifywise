@@ -1,4 +1,4 @@
-import { Box, Typography, Stack, LinearProgress } from "@mui/material";
+import { Box, Typography, Stack, LinearProgress, useTheme } from "@mui/material";
 import { CircleDashed, CircleDot, CircleDotDashed, CircleCheck } from "lucide-react";
 import { frameworkDashboardCardStyles } from "./styles";
 
@@ -36,25 +36,26 @@ interface FrameworkProgressCardProps {
 }
 
 const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) => {
+  const theme = useTheme();
   const calculateProgress = (done: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((done / total) * 100);
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage < 30) return "#DC2626"; // Red
+    if (percentage < 30) return theme.palette.status.error.main; // Red
     if (percentage < 60) return "#EA580C"; // Orange
-    if (percentage < 85) return "#F59E0B"; // Yellow
-    return "#13715B"; // Green
+    if (percentage < 85) return theme.palette.chart.amber; // Yellow
+    return theme.palette.primary.main; // Green
   };
 
   const getProgressIcon = (percentage: number) => {
-    if (percentage === 0) return <CircleDashed size={14} style={{ color: "#9CA3AF" }} />;
-    if (percentage < 30) return <CircleDashed size={14} style={{ color: "#DC2626" }} />;
+    if (percentage === 0) return <CircleDashed size={14} style={{ color: theme.palette.text.muted }} />;
+    if (percentage < 30) return <CircleDashed size={14} style={{ color: theme.palette.status.error.main }} />;
     if (percentage < 60) return <CircleDot size={14} style={{ color: "#EA580C" }} />;
-    if (percentage < 85) return <CircleDotDashed size={14} style={{ color: "#F59E0B" }} />;
-    if (percentage < 100) return <CircleDotDashed size={14} style={{ color: "#13715B" }} />;
-    return <CircleCheck size={14} style={{ color: "#13715B" }} />;
+    if (percentage < 85) return <CircleDotDashed size={14} style={{ color: theme.palette.chart.amber }} />;
+    if (percentage < 100) return <CircleDotDashed size={14} style={{ color: theme.palette.primary.main }} />;
+    return <CircleCheck size={14} style={{ color: theme.palette.primary.main }} />;
   };
 
   return (
@@ -71,7 +72,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
         <Typography
           sx={{
             fontSize: 12,
-            color: "#666666",
+            color: theme.palette.other.icon,
             mb: 6,
             lineHeight: "16px"
           }}
@@ -104,7 +105,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   <Box
                     sx={{
                       height: "1px",
-                      backgroundColor: "#E5E7EB",
+                      backgroundColor: theme.palette.border.input,
                       mx: "-16px", // Extend to card edges
                       mb: 4,
                       mt: 1,
@@ -116,7 +117,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                     fontSize: 13,
                     fontWeight: 500,
                     mb: 2,
-                    color: "#000000",
+                    color: theme.palette.text.primary,
                   }}
                 >
                   {framework.frameworkName}
@@ -137,17 +138,17 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                             mb: 1,
                           }}
                         >
-                          <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                          <Typography sx={{ fontSize: 12, color: theme.palette.other.icon }}>
                             {func.label}
                           </Typography>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
-                            <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                            <Typography sx={{ fontSize: 12, color: theme.palette.text.primary, fontWeight: 500 }}>
                               {data.done}
                             </Typography>
-                            <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                            <Typography sx={{ fontSize: 12, color: theme.palette.text.primary, fontWeight: 500 }}>
                               /
                             </Typography>
-                            <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                            <Typography sx={{ fontSize: 12, color: theme.palette.text.muted, fontWeight: 500 }}>
                               {data.total}
                             </Typography>
                           </Box>
@@ -156,7 +157,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                             <Typography
                               sx={{
                                 fontSize: 12,
-                                color: percent === 100 ? "#13715B" : "#666666",
+                                color: percent === 100 ? theme.palette.primary.main : theme.palette.other.icon,
                                 fontWeight: 500,
                               }}
                             >
@@ -170,7 +171,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                           sx={{
                             height: 6,
                             borderRadius: 3,
-                            backgroundColor: "#F3F4F6",
+                            backgroundColor: theme.palette.background.subtle,
                             "& .MuiLinearProgress-bar": {
                               backgroundColor: getProgressColor(percent),
                               borderRadius: 3,
@@ -209,7 +210,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                 <Box
                   sx={{
                     height: "1px",
-                    backgroundColor: "#E5E7EB",
+                    backgroundColor: theme.palette.border.input,
                     mx: "-16px", // Extend to card edges
                     mb: 4,
                     mt: 1,
@@ -222,7 +223,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   fontSize: 13,
                   fontWeight: 500,
                   mb: 2,
-                  color: "#000000",
+                  color: theme.palette.text.primary,
                 }}
               >
                 {framework.frameworkName}
@@ -238,17 +239,17 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                     mb: 1,
                   }}
                 >
-                  <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                  <Typography sx={{ fontSize: 12, color: theme.palette.other.icon }}>
                     {isISO27001 || isISO42001 ? "Clauses" : "Controls"}
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
-                    <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.primary, fontWeight: 500 }}>
                       {clauseDone}
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.primary, fontWeight: 500 }}>
                       /
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.muted, fontWeight: 500 }}>
                       {clauseTotal}
                     </Typography>
                   </Box>
@@ -257,7 +258,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                     <Typography
                       sx={{
                         fontSize: 12,
-                        color: clausePercent === 100 ? "#13715B" : "#666666",
+                        color: clausePercent === 100 ? theme.palette.primary.main : theme.palette.other.icon,
                         fontWeight: 500,
                       }}
                     >
@@ -271,7 +272,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   sx={{
                     height: 6,
                     borderRadius: 3,
-                    backgroundColor: "#F3F4F6",
+                    backgroundColor: theme.palette.background.subtle,
                     "& .MuiLinearProgress-bar": {
                       backgroundColor: getProgressColor(clausePercent),
                       borderRadius: 3,
@@ -290,17 +291,17 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                     mb: 1,
                   }}
                 >
-                  <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                  <Typography sx={{ fontSize: 12, color: theme.palette.other.icon }}>
                     Annexes
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
-                    <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.primary, fontWeight: 500 }}>
                       {annexDone}
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#000000", fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.primary, fontWeight: 500 }}>
                       /
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#999999", fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.muted, fontWeight: 500 }}>
                       {annexTotal}
                     </Typography>
                   </Box>
@@ -309,7 +310,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                     <Typography
                       sx={{
                         fontSize: 12,
-                        color: annexPercent === 100 ? "#13715B" : "#666666",
+                        color: annexPercent === 100 ? theme.palette.primary.main : theme.palette.other.icon,
                         fontWeight: 500,
                       }}
                     >
@@ -323,7 +324,7 @@ const FrameworkProgressCard = ({ frameworksData }: FrameworkProgressCardProps) =
                   sx={{
                     height: 6,
                     borderRadius: 3,
-                    backgroundColor: "#F3F4F6",
+                    backgroundColor: theme.palette.background.subtle,
                     "& .MuiLinearProgress-bar": {
                       backgroundColor: getProgressColor(annexPercent),
                       borderRadius: 3,

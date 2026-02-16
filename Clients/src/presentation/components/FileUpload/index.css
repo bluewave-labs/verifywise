@@ -36,7 +36,7 @@
 .file-upload-button {
   width: 120px;
   height: 40px;
-  background-color: #3b82f6;
+  background-color: var(--vw-primary, #13715B);
   color: white;
   font-size: 14px;
   font-weight: 500;

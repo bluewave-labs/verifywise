@@ -81,7 +81,7 @@ const StatusDropdown: React.FC<IStatusDropdownProps> = ({
         {isUpdating && (
           <CircularProgress
             size={size === "small" ? 10 : 12}
-            sx={{ color: "#fff" }}
+            sx={{ color: theme.palette.background.main }}
           />
         )}
         <span
@@ -92,7 +92,7 @@ const StatusDropdown: React.FC<IStatusDropdownProps> = ({
             whiteSpace: "nowrap",
             minWidth: 0,
             maxWidth: "100%",
-            color: "#fff",
+            color: theme.palette.background.main,
             fontWeight: 500,
           }}
         >
@@ -136,14 +136,14 @@ const StatusDropdown: React.FC<IStatusDropdownProps> = ({
             mt: 0.5,
             "& .MuiMenuItem-root": {
               fontSize: fontSize,
-              color: theme.palette.text?.primary || "#000",
+              color: theme.palette.text?.primary || theme.palette.text.primary,
               "&:hover": {
-                backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                backgroundColor: theme.palette.action?.hover || theme.palette.background.hover,
               },
               "&.Mui-selected": {
-                backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                backgroundColor: theme.palette.action?.hover || theme.palette.background.hover,
                 "&:hover": {
-                  backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                  backgroundColor: theme.palette.action?.hover || theme.palette.background.hover,
                 },
               },
             },
@@ -155,7 +155,7 @@ const StatusDropdown: React.FC<IStatusDropdownProps> = ({
         height: dropdownHeight,
         fontSize: fontSize,
         backgroundColor: statusColor,
-        color: "#fff",
+        color: theme.palette.background.main,
         borderRadius: "4px",
         "& .MuiSelect-select": {
           padding: padding,
@@ -172,7 +172,7 @@ const StatusDropdown: React.FC<IStatusDropdownProps> = ({
           border: "none",
         },
         "& .MuiSelect-icon": {
-          color: "#fff",
+          color: theme.palette.background.main,
           right: size === "small" ? 4 : 6,
           top: "50%",
           transform: "translateY(-50%)",
@@ -185,7 +185,7 @@ const StatusDropdown: React.FC<IStatusDropdownProps> = ({
         "&.Mui-disabled": {
           backgroundColor: statusColor,
           opacity: 0.6,
-          color: "#fff",
+          color: theme.palette.background.main,
         },
       }}
     >

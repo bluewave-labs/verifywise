@@ -1,5 +1,5 @@
 import { PieChart } from "@mui/x-charts";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 import { StatusDonutChartProps } from "../../types/interfaces/i.chart";
 
 export function StatusDonutChart({
@@ -7,6 +7,7 @@ export function StatusDonutChart({
   total,
   size = 100,
 }: StatusDonutChartProps) {
+  const theme = useTheme();
   // Filter out zero values for cleaner visualization
   const filteredData = data.filter((item) => item.value > 0);
 

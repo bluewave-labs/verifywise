@@ -73,9 +73,9 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(function Bu
     fontSize: 11,
     px: 2, // Horizontal padding for better spacing
     py: 0.5, // Vertical padding for better text spacing
-    border: `1px solid ${theme.palette.primary.main || '#13715B'}`,
-    backgroundColor: theme.palette.primary.main || '#13715B',
-    color: theme.palette.primary.contrastText || 'white',
+    border: `1px solid ${theme.palette.primary.main || theme.palette.primary.main}`,
+    backgroundColor: theme.palette.primary.main || theme.palette.primary.main,
+    color: theme.palette.primary.contrastText || theme.palette.background.main,
     textTransform: 'none', // Prevent uppercase transformation
     fontWeight: 500,
     lineHeight: 1.2,
@@ -90,15 +90,15 @@ const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(function Bu
     
     // Hover effects
     '&:hover': {
-      backgroundColor: theme.palette.primary.dark || '#0f5d4a',
-      borderColor: theme.palette.primary.dark || '#0f5d4a',
+      backgroundColor: theme.palette.primary.dark || theme.palette.primary.dark,
+      borderColor: theme.palette.primary.dark || theme.palette.primary.dark,
       transform: 'translateY(-1px)',
       boxShadow: theme.shadows[2],
     },
     
     // Focus effects for accessibility
     '&:focus': {
-      outline: `2px solid ${theme.palette.primary.main || '#13715B'}`,
+      outline: `2px solid ${theme.palette.primary.main || theme.palette.primary.main}`,
       outlineOffset: '2px',
     },
     

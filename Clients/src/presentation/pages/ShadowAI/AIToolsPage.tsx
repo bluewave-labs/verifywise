@@ -83,10 +83,11 @@ const STATUS_CONFIG: Record<
 };
 
 function ToolIcon({ vendor, size = 18 }: { vendor?: string; size?: number }) {
-  if (!vendor) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  const theme = useTheme();
+  if (!vendor) return <Bot size={size} strokeWidth={1.5} color={theme.palette.text.muted} />;
   const iconKey = VENDOR_ICON_MAP[vendor];
   const IconComponent = iconKey ? PROVIDER_ICONS[iconKey] : null;
-  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color={theme.palette.text.muted} />;
   return <IconComponent width={size} height={size} />;
 }
 
@@ -313,7 +314,7 @@ export default function AIToolsPage() {
 
             {/* Status change */}
             <Stack direction="row" alignItems="center" gap="8px">
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.dark }}>
                 Status:
               </Typography>
               <Select
@@ -337,8 +338,8 @@ export default function AIToolsPage() {
                   text="Start governance"
                   variant="contained"
                   sx={{
-                    backgroundColor: "#13715B",
-                    "&:hover": { backgroundColor: "#0F5A47" },
+                    backgroundColor: theme.palette.primary.main,
+                    "&:hover": { backgroundColor: theme.palette.primary.dark },
                     height: 30,
                     fontSize: 12,
                   }}

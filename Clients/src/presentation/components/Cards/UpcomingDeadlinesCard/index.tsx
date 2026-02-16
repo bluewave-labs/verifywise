@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { Calendar, AlertTriangle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EmptyStateMessage } from "../../EmptyStateMessage";
@@ -10,6 +10,7 @@ import { getDaysUntilDue, getCountdownInfo } from "../../../pages/Tasks/utils";
 
 export function UpcomingDeadlinesCard({ tasks }: UpcomingDeadlinesCardProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   if (!tasks || tasks.length === 0) {
     return <EmptyStateMessage message="No upcoming deadlines" />;
@@ -55,10 +56,10 @@ export function UpcomingDeadlinesCard({ tasks }: UpcomingDeadlinesCardProps) {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "10px 0",
-              borderBottom: isLast ? "none" : `1px solid ${DASHBOARD_COLORS.borderLight}`,
+              borderBottom: isLast ? "none" : `1px solid ${theme.palette.background.subtle}`,
               cursor: "pointer",
               "&:hover": {
-                backgroundColor: DASHBOARD_COLORS.backgroundSubtle,
+                backgroundColor: theme.palette.background.accent,
                 marginX: "-12px",
                 paddingX: "12px",
               },
@@ -79,7 +80,7 @@ export function UpcomingDeadlinesCard({ tasks }: UpcomingDeadlinesCardProps) {
                 sx={{
                   fontSize: 13,
                   fontWeight: 400,
-                  color: DASHBOARD_COLORS.textMuted,
+                  color: theme.palette.text.dark,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",

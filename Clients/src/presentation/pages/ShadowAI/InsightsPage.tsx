@@ -12,6 +12,7 @@ import {
   Typography,
   Skeleton,
   SelectChangeEvent,
+  useTheme,
 } from "@mui/material";
 import {
   BarChart,
@@ -67,6 +68,7 @@ const DEPT_COLORS = [
 ];
 
 export default function InsightsPage() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [period, setPeriod] = useState("30d");
   const [loading, setLoading] = useState(true);
@@ -189,14 +191,14 @@ export default function InsightsPage() {
                     justifyContent="space-between"
                   >
                     <Stack direction="row" alignItems="center" gap="12px">
-                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.dark }}>
                         {tool.risk_score ?? 0}
                       </Typography>
-                      <Typography sx={{ fontSize: 13, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 13, color: theme.palette.text.dark }}>
                         {tool.name}
                       </Typography>
                     </Stack>
-                    <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                    <Typography sx={{ fontSize: 12, color: theme.palette.text.accent }}>
                       {tool.total_events.toLocaleString()} events
                     </Typography>
                   </Stack>
@@ -258,7 +260,7 @@ export default function InsightsPage() {
                           flexShrink: 0,
                         }}
                       />
-                      <Typography sx={{ fontSize: 12, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.dark }}>
                         {dept.department}
                       </Typography>
                     </Stack>
@@ -286,17 +288,17 @@ export default function InsightsPage() {
                     margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
                     barCategoryGap="20%"
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.border.light} horizontal={false} />
                     <XAxis
                       type="number"
-                      tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                      axisLine={{ stroke: "#e5e7eb" }}
+                      tick={{ fontSize: 11, fill: theme.palette.text.muted }}
+                      axisLine={{ stroke: theme.palette.border.input }}
                       tickLine={false}
                     />
                     <YAxis
                       type="category"
                       dataKey="tool_name"
-                      tick={{ fontSize: 12, fill: "#374151" }}
+                      tick={{ fontSize: 12, fill: theme.palette.text.dark }}
                       width={90}
                       axisLine={false}
                       tickLine={false}

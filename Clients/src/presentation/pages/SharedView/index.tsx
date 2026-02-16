@@ -14,6 +14,7 @@ import {
   Toolbar,
   IconButton,
   Tooltip,
+  useTheme,
 } from "@mui/material";
 import { Download, ShieldX } from "lucide-react";
 import { ENV_VARs } from "../../../../env.vars";
@@ -23,6 +24,7 @@ import { ENV_VARs } from "../../../../env.vars";
  * Accessed via /shared/:resourceType/:token
  */
 const SharedView: React.FC = () => {
+  const theme = useTheme();
   const { token } = useParams<{ token: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,11 +112,11 @@ const SharedView: React.FC = () => {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: theme.palette.background.hover,
         }}
       >
         <Box sx={{ textAlign: "center" }}>
-          <CircularProgress size={48} sx={{ color: "#13715B", mb: 2 }} />
+          <CircularProgress size={48} sx={{ color: theme.palette.primary.main, mb: 2 }} />
           <Typography variant="body1" color="textSecondary">
             Loading shared view...
           </Typography>
@@ -131,7 +133,7 @@ const SharedView: React.FC = () => {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: theme.palette.background.hover,
           p: 3,
         }}
       >
@@ -285,7 +287,7 @@ const SharedView: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 4 }}>
+    <Box sx={{ minHeight: "100vh", backgroundColor: theme.palette.background.hover, py: 4 }}>
       <Box sx={{ mx: "auto", px: 3 }}>
         {/* Header */}
         <Paper sx={{ p: 3, mb: 3 }}>
@@ -297,7 +299,7 @@ const SharedView: React.FC = () => {
             }}
           >
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: "#13715B", mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 1 }}>
                 Shared {share_link.resource_type.charAt(0).toUpperCase() + share_link.resource_type.slice(1)} {isTableView ? "List" : "View"}
               </Typography>
               <Typography variant="body2" color="textSecondary">
@@ -310,8 +312,8 @@ const SharedView: React.FC = () => {
                   <IconButton
                     onClick={handleExport}
                     sx={{
-                      color: "#13715B",
-                      border: "1px solid #13715B",
+                      color: theme.palette.primary.main,
+                      border: `1px solid ${theme.palette.primary.main}`,
                       "&:hover": {
                         backgroundColor: "rgba(19, 113, 91, 0.1)",
                       },
@@ -329,8 +331,8 @@ const SharedView: React.FC = () => {
         <Paper sx={{ overflow: "hidden" }}>
           <Toolbar
             sx={{
-              backgroundColor: "#fafafa",
-              borderBottom: "1px solid #e0e0e0",
+              backgroundColor: theme.palette.background.accent,
+              borderBottom: `1px solid ${theme.palette.border.light}`,
               minHeight: "48px !important",
             }}
           >
@@ -344,7 +346,7 @@ const SharedView: React.FC = () => {
                 <>
                   {/* Table View: Display rows of data */}
                   <TableHead>
-                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableRow sx={{ backgroundColor: theme.palette.background.hover }}>
                       {tableColumns.map((key) => (
                         <TableCell key={key} sx={{ fontWeight: 600, textTransform: "uppercase", fontSize: "12px" }}>
                           {key
@@ -381,7 +383,7 @@ const SharedView: React.FC = () => {
                 <>
                   {/* Single Record View: Display key-value pairs */}
                   <TableHead>
-                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableRow sx={{ backgroundColor: theme.palette.background.hover }}>
                       <TableCell sx={{ fontWeight: 600, width: "30%" }}>
                         Field
                       </TableCell>
@@ -431,7 +433,7 @@ const SharedView: React.FC = () => {
               href="https://verifywise.ai"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#13715B", textDecoration: "none", fontWeight: 600 }}
+              style={{ color: theme.palette.primary.main, textDecoration: "none", fontWeight: 600 }}
             >
               VerifyWise
             </a>

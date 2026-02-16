@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { StatusDonutChart } from "./StatusDonutChart";
 
 export interface RiskDataItem {
@@ -18,6 +18,7 @@ export function RiskDonutWithLegend({
   total,
   size = 100,
 }: RiskDonutWithLegendProps) {
+  const theme = useTheme();
   return (
     <Stack direction="row" alignItems="flex-start" justifyContent="space-around">
       <Box sx={{ pt: "8px" }}>

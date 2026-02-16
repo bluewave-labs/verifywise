@@ -810,7 +810,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   if (loadingEditor) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-        <CircularProgress sx={{ color: "#13715B" }} />
+        <CircularProgress sx={{ color: theme.palette.primary.main }} />
       </Box>
     );
   }
@@ -848,9 +848,9 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               startIcon={copiedJson ? <Check size={16} /> : <Copy size={16} />}
               sx={{
                 height: "34px",
-                color: copiedJson ? "#059669" : "#374151",
-                borderColor: copiedJson ? "#059669" : "#E5E7EB",
-                "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+                color: copiedJson ? theme.palette.status.success.text : theme.palette.text.dark,
+                borderColor: copiedJson ? theme.palette.status.success.text : theme.palette.border.light,
+                "&:hover": { borderColor: theme.palette.text.tertiary, backgroundColor: theme.palette.background.alt },
               }}
             >
               {copiedJson ? "Copied!" : "Copy JSON"}
@@ -873,9 +873,9 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               startIcon={<Download size={16} />}
               sx={{
                 height: "34px",
-                color: "#374151",
-                borderColor: "#E5E7EB",
-                "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+                color: theme.palette.text.dark,
+                borderColor: theme.palette.border.light,
+                "&:hover": { borderColor: theme.palette.text.tertiary, backgroundColor: theme.palette.background.alt },
               }}
             >
               Download
@@ -883,7 +883,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             <Button
               variant="contained"
               disabled={!isValidToSave || savingDataset}
-              sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" }, height: "34px" }}
+              sx={{ bgcolor: theme.palette.primary.main, "&:hover": { bgcolor: theme.palette.primary.dark }, height: "34px" }}
               startIcon={<SaveIcon size={16} />}
               onClick={handleSaveDataset}
             >
@@ -901,7 +901,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             placeholder="Enter a descriptive name for this dataset"
             isRequired
           />
-          <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
+          <Typography variant="body2" sx={{ color: theme.palette.text.accent, fontSize: "13px" }}>
             Edit the prompts below, then click Save to update your dataset.
           </Typography>
         </Stack>
@@ -936,9 +936,9 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       startIcon={<Plus size={16} />}
                       onClick={handleAddPrompt}
                       sx={{
-                        color: "#13715B",
-                        borderColor: "#13715B",
-                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+                        color: theme.palette.primary.main,
+                        borderColor: theme.palette.primary.main,
+                        "&:hover": { borderColor: theme.palette.primary.dark, backgroundColor: theme.palette.primary.softBg },
                       }}
                     >
                       Add your first prompt
@@ -969,7 +969,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                     }}
                   >
                     <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "70px", textAlign: "center" }}>
-                      <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: "#6B7280" }}>
+                      <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: theme.palette.text.accent }}>
                           {p.id || (isMultiTurn ? `conv_${idx + 1}` : `prompt_${idx + 1}`)}
                       </Typography>
                     </TableCell>
@@ -982,7 +982,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
-                            color: hasContent ? "#374151" : "#9CA3AF",
+                            color: hasContent ? theme.palette.text.dark : theme.palette.text.tertiary,
                             fontStyle: hasContent ? "normal" : "italic",
                         }}
                       >
@@ -1013,7 +1013,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           <Typography
                             sx={{
                               fontSize: "12px",
-                              color: "#6B7280",
+                              color: theme.palette.text.accent,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -1037,8 +1037,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           handleDeletePrompt(idx);
                         }}
                         sx={{
-                          color: "#EF4444",
-                          "&:hover": { backgroundColor: "#FEE2E2" },
+                          color: theme.palette.error.main,
+                          "&:hover": { backgroundColor: theme.palette.error.bg },
                         }}
                       >
                         <Trash2 size={14} />
@@ -1061,13 +1061,13 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             fullWidth
             sx={{
               mt: 2,
-              color: "#13715B",
-              borderColor: "#E5E7EB",
+              color: theme.palette.primary.main,
+              borderColor: theme.palette.border.light,
               borderStyle: "dashed",
               py: 1.5,
               "&:hover": { 
-                borderColor: "#13715B", 
-                backgroundColor: "#E8F5F1",
+                borderColor: theme.palette.primary.main, 
+                backgroundColor: theme.palette.primary.softBg,
                 borderStyle: "dashed",
               },
             }}
@@ -1196,12 +1196,12 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                                       }}
                                     >
                                       {turn.role === "user" ? (
-                                        <User size={12} color="#FFFFFF" />
+                                        <User size={12} color=theme.palette.background.main />
                                       ) : (
-                                        <Bot size={12} color="#FFFFFF" />
+                                        <Bot size={12} color=theme.palette.background.main />
                                       )}
                                     </Box>
-                                    <Typography sx={{ fontSize: "11px", fontWeight: 600, color: turn.role === "user" ? "#059669" : "#1E40AF" }}>
+                                    <Typography sx={{ fontSize: "11px", fontWeight: 600, color: turn.role === "user" ? theme.palette.status.success.text : "#1E40AF" }}>
                                       {turn.role === "user" ? "User" : "Assistant"}
                                     </Typography>
                                   </Stack>
@@ -1217,8 +1217,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                                     }}
                                     sx={{ 
                                       p: 0.5,
-                                      color: "#EF4444", 
-                                      "&:hover": { backgroundColor: "#FEE2E2" } 
+                                      color: theme.palette.error.main, 
+                                      "&:hover": { backgroundColor: theme.palette.error.bg } 
                                     }}
                                   >
                                     <Trash2 size={12} />
@@ -1244,7 +1244,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           {/* Empty state when no turns */}
                           {((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns || []).length === 0 && (
                             <Box sx={{ py: 4, textAlign: "center" }}>
-                              <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>
+                              <Typography sx={{ fontSize: "13px", color: theme.palette.text.tertiary }}>
                                 No conversation turns yet. Add a turn to start building the conversation.
                               </Typography>
                             </Box>
@@ -1271,13 +1271,13 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           mt: 3,
                           mb: 2,
                           textTransform: "none", 
-                          color: "#13715B",
-                          borderColor: "#E5E7EB",
+                          color: theme.palette.primary.main,
+                          borderColor: theme.palette.border.light,
                           borderStyle: "dashed",
                           py: 2,
                           "&:hover": { 
-                            borderColor: "#13715B", 
-                            backgroundColor: "#F0FDF4",
+                            borderColor: theme.palette.primary.main, 
+                            backgroundColor: theme.palette.status.success.bg,
                             borderStyle: "dashed",
                           },
                         }}
@@ -1391,7 +1391,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                   </>
                 )}
 
-                <Stack direction="row" spacing={2} sx={{ mt: 4, pt: 3, borderTop: "1px solid #E5E7EB" }}>
+                <Stack direction="row" spacing={2} sx={{ mt: 4, pt: 3, borderTop: `1px solid ${theme.palette.border.input}` }}>
                   <Button
                     variant="outlined"
                     startIcon={<Trash2 size={14} />}
@@ -1401,11 +1401,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       }
                     }}
                     sx={{
-                      color: "#EF4444",
-                      borderColor: "#FCA5A5",
+                      color: theme.palette.error.main,
+                      borderColor: theme.palette.error.light,
                       "&:hover": { 
-                        borderColor: "#EF4444", 
-                        backgroundColor: "#FEE2E2" 
+                        borderColor: theme.palette.error.main, 
+                        backgroundColor: theme.palette.error.bg 
                       },
                       height: "40px",
                       textTransform: "none",
@@ -1420,8 +1420,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       setSelectedPromptIndex(null);
                     }}
                     sx={{
-                      bgcolor: "#13715B",
-                      "&:hover": { bgcolor: "#0F5E4B" },
+                      bgcolor: theme.palette.primary.main,
+                      "&:hover": { bgcolor: theme.palette.primary.dark },
                       height: "40px",
                       flex: 1,
                       textTransform: "none",
@@ -1513,7 +1513,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 onClick={handleUploadClick}
                 isDisabled={uploading || !canUploadDataset}
                 sx={{
-                  border: "1px solid #d0d5dd",
+                  border: `1px solid ${theme.palette.border.dark}`,
                   color: "#344054",
                   gap: 2,
                 }}
@@ -1525,8 +1525,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 onClick={() => setCreateDatasetModalOpen(true)}
                 isDisabled={!canUploadDataset}
                 sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
+                  backgroundColor: theme.palette.primary.main,
+                  border: `1px solid ${theme.palette.primary.main}`,
                   gap: 2,
                 }}
               />
@@ -1707,11 +1707,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               sx={{
                 minWidth: "80px",
                 height: "34px",
-                border: "1px solid #D0D5DD",
+                border: `1px solid ${theme.palette.border.dark}`,
                 color: "#344054",
                 "&:hover": {
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid #D0D5DD",
+                  backgroundColor: theme.palette.background.alt,
+                  border: `1px solid ${theme.palette.border.dark}`,
                 },
               }}
             />
@@ -1723,7 +1723,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               sx={{
                 minWidth: "120px",
                 height: "34px",
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 "&:hover": {
                   backgroundColor: "#0F5C4A",
                 },
@@ -1744,7 +1744,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 label="Single-Turn"
                   uppercase={false}
                   backgroundColor={datasetTurnType === "single-turn" ? "#FEF3C7" : "#F3F4F6"}
-                  textColor={datasetTurnType === "single-turn" ? "#92400E" : "#6B7280"}
+                  textColor={datasetTurnType === "single-turn" ? "#92400E" : theme.palette.text.accent}
                 />
               </Box>
               <Box onClick={() => setDatasetTurnType("multi-turn")} sx={{ cursor: "pointer" }}>
@@ -1752,7 +1752,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 label="Multi-Turn"
                   uppercase={false}
                   backgroundColor={(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#E3F2FD" : "#F3F4F6"}
-                  textColor={(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#1565C0" : "#6B7280"}
+                  textColor={(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") ? "#1565C0" : theme.palette.text.accent}
                 />
               </Box>
             </Stack>
@@ -1760,7 +1760,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             {/* Multi-turn sub-options: Default or Simulated */}
             {(datasetTurnType === "multi-turn" || datasetTurnType === "simulated") && (
               <Box sx={{ mt: 1.5, ml: 2, pl: 2, borderLeft: "2px solid #E3F2FD" }}>
-                <Typography variant="body2" sx={{ fontSize: "11px", color: "#6B7280", mb: 1 }}>
+                <Typography variant="body2" sx={{ fontSize: "11px", color: theme.palette.text.accent, mb: 1 }}>
                   Multi-turn mode:
                 </Typography>
                 <Stack direction="row" spacing={1}>
@@ -1770,7 +1770,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                     size="small"
                       uppercase={false}
                       backgroundColor={datasetTurnType === "multi-turn" ? "#E3F2FD" : "#F3F4F6"}
-                      textColor={datasetTurnType === "multi-turn" ? "#1565C0" : "#6B7280"}
+                      textColor={datasetTurnType === "multi-turn" ? "#1565C0" : theme.palette.text.accent}
                     />
                   </Box>
                   <Box onClick={() => setDatasetTurnType("simulated")} sx={{ cursor: "pointer" }}>
@@ -1779,14 +1779,14 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                     size="small"
                       uppercase={false}
                       backgroundColor={datasetTurnType === "simulated" ? "#F3E8FF" : "#F3F4F6"}
-                      textColor={datasetTurnType === "simulated" ? "#7C3AED" : "#6B7280"}
+                      textColor={datasetTurnType === "simulated" ? "#7C3AED" : theme.palette.text.accent}
                     />
                   </Box>
                 </Stack>
               </Box>
             )}
 
-            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1.5 }}>
+            <Typography variant="body2" sx={{ fontSize: "12px", color: theme.palette.text.accent, mt: 1.5 }}>
               {datasetTurnType === "single-turn" 
                 ? "Simple prompt → response pairs. Best for RAG and basic Q&A evaluation."
                 : datasetTurnType === "multi-turn"
@@ -1816,20 +1816,20 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       uppercase={false}
                       backgroundColor={
                         isSelected
-                          ? type === "chatbot" ? "#DBEAFE" : type === "rag" ? "#E0E7FF" : "#FEE2E2"
+                          ? type === "chatbot" ? "#DBEAFE" : type === "rag" ? "#E0E7FF" : theme.palette.error.bg
                           : "#F3F4F6"
                       }
                       textColor={
                         isSelected
                           ? type === "chatbot" ? "#1E40AF" : type === "rag" ? "#3730A3" : "#991B1B"
-                          : "#6B7280"
+                          : theme.palette.text.accent
                       }
                     />
                   </Box>
                 );
               })}
             </Stack>
-            <Typography variant="body2" sx={{ fontSize: "12px", color: "#6B7280", mt: 1 }}>
+            <Typography variant="body2" sx={{ fontSize: "12px", color: theme.palette.text.accent, mt: 1 }}>
               {exampleDatasetType === "chatbot" && "Standard Q&A datasets for evaluating chatbot responses."}
               {exampleDatasetType === "rag" && "Datasets with retrieval_context for RAG faithfulness & relevancy metrics."}
               {exampleDatasetType === "agent" && "Datasets with tools_available for evaluating agent reasoning, tool usage, and task completion."}
@@ -1849,7 +1849,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 sx={{
                   textTransform: "none",
                   fontSize: "12px",
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                   "&:hover": {
                     backgroundColor: "rgba(19, 113, 91, 0.08)",
                   },
@@ -1860,8 +1860,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             </Box>
             <Box
               sx={{
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #E5E7EB",
+                backgroundColor: theme.palette.background.alt,
+                border: `1px solid ${theme.palette.border.input}`,
                 borderRadius: "6px",
                 p: 2,
                 fontFamily: "monospace",
@@ -2052,7 +2052,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
           {/* Header */}
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Database size={18} color="#13715B" />
+              <Database size={18} color=theme.palette.primary.main />
               <Typography fontWeight={600} color={theme.palette.text.primary}>
                 {selectedDataset?.name || "Dataset"}
               </Typography>
@@ -2073,7 +2073,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
           {/* Loading State */}
           {loadingPrompts && (
             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
-              <CircularProgress size={32} sx={{ color: "#13715B" }} />
+              <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
             </Box>
           )}
 
@@ -2119,7 +2119,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       sx={singleTheme.tableStyles.primary.body.row}
                     >
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                        <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: "#6B7280" }}>
+                        <Typography sx={{ fontSize: "12px", fontFamily: "monospace", color: theme.palette.text.accent }}>
                             {prompt.id || (isMultiTurn ? `conv_${index + 1}` : `prompt_${index + 1}`)}
                         </Typography>
                       </TableCell>
@@ -2157,7 +2157,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           {isMultiTurn ? (
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                               {(prompt as MultiTurnConversation).expected_outcome?.substring(0, 20) || "-"}
                             </Typography>
                           ) : (prompt as SingleTurnPrompt).difficulty && (
@@ -2196,7 +2196,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
           {/* Header */}
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Database size={18} color="#13715B" />
+              <Database size={18} color=theme.palette.primary.main />
               <Typography fontWeight={600} color={theme.palette.text.primary}>
                 {selectedTemplate?.name || "Template"}
               </Typography>
@@ -2217,7 +2217,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
           {/* Loading State */}
           {loadingTemplatePrompts && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-              <CircularProgress size={32} sx={{ color: "#13715B" }} />
+              <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
             </Box>
           )}
 
@@ -2234,11 +2234,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 textAlign: "center",
               }}
             >
-              <Database size={48} color="#9CA3AF" />
-              <Typography sx={{ mt: 2, color: "#6B7280", fontWeight: 500 }}>
+              <Database size={48} color=theme.palette.text.tertiary />
+              <Typography sx={{ mt: 2, color: theme.palette.text.accent, fontWeight: 500 }}>
                 No prompts found
               </Typography>
-              <Typography sx={{ mt: 0.5, color: "#9CA3AF", fontSize: "13px" }}>
+              <Typography sx={{ mt: 0.5, color: theme.palette.text.tertiary, fontSize: "13px" }}>
                 This template doesn&apos;t contain any prompts
               </Typography>
             </Box>
@@ -2302,20 +2302,20 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                               sx={{
                                 ...singleTheme.tableStyles.primary.body.row,
                                 cursor: "pointer",
-                                "&:hover": { backgroundColor: "#F9FAFB" },
+                                "&:hover": { backgroundColor: theme.palette.background.alt },
                                 verticalAlign: "top",
                               }}
                             >
                               <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
-                                <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                                <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>{index + 1}</Typography>
                               </TableCell>
                               <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "18%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
                                 <Box title={category}>
                                   <Chip
                                     label={category.length > 10 ? `${category.substring(0, 10)}...` : category}
                                     size="small"
-                                    backgroundColor="#E5E7EB"
-                                    textColor="#374151"
+                                    backgroundColor=theme.palette.border.light
+                                    textColor=theme.palette.text.dark
                                   />
                                 </Box>
                               </TableCell>
@@ -2336,7 +2336,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                                   {isExpanded ? scenarioText : (isLongScenario ? `${scenarioText.substring(0, 50)}...` : scenarioText)}
                                 </Typography>
                                 {(isLongScenario || turns.length > 0) && (
-                                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                                  <Typography sx={{ fontSize: "11px", color: theme.palette.text.tertiary, mt: 0.5 }}>
                                     {isExpanded ? "Collapse" : "Expand"}
                                   </Typography>
                                 )}
@@ -2355,9 +2355,9 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                             {isExpanded && (
                               <TableRow>
                                 <TableCell colSpan={4} sx={{ p: 0, border: "none" }}>
-                                  <Box sx={{ p: 2, backgroundColor: "#FAFAFA", borderBottom: "1px solid #E5E7EB" }}>
+                                  <Box sx={{ p: 2, backgroundColor: "#FAFAFA", borderBottom: `1px solid ${theme.palette.border.input}` }}>
                                     {conversation.expected_outcome && (
-                                      <Box sx={{ mb: 2, p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "6px" }}>
+                                      <Box sx={{ mb: 2, p: 1.5, backgroundColor: theme.palette.status.success.bg, borderRadius: "6px" }}>
                                         <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#166534", mb: 0.5 }}>
                                           Expected Outcome
                                         </Typography>
@@ -2383,10 +2383,10 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                                               backgroundColor: turn.role === "user" ? "#F3F4F6" : "#EBF5FF",
                                             }}
                                           >
-                                            <Typography sx={{ fontSize: "10px", fontWeight: 600, color: turn.role === "user" ? "#6B7280" : "#1E40AF", mb: 0.5 }}>
+                                            <Typography sx={{ fontSize: "10px", fontWeight: 600, color: turn.role === "user" ? theme.palette.text.accent : "#1E40AF", mb: 0.5 }}>
                                               {turn.role === "user" ? "User" : "Assistant"}
                                             </Typography>
-                                            <Typography sx={{ fontSize: "12px", color: "#374151", whiteSpace: "pre-wrap" }}>
+                                            <Typography sx={{ fontSize: "12px", color: theme.palette.text.dark, whiteSpace: "pre-wrap" }}>
                                               {turn.content}
                                             </Typography>
                                           </Box>
@@ -2445,20 +2445,20 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           sx={{ 
                             ...singleTheme.tableStyles.primary.body.row, 
                             cursor: isLongPrompt ? "pointer" : "default",
-                            "&:hover": isLongPrompt ? { backgroundColor: "#F9FAFB" } : {},
+                            "&:hover": isLongPrompt ? { backgroundColor: theme.palette.background.alt } : {},
                             verticalAlign: "top",
                           }}
                         >
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "8%", verticalAlign: "top", pt: 1.5 }}>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>{index + 1}</Typography>
+                            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>{index + 1}</Typography>
                           </TableCell>
                           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, width: "22%", overflow: "hidden", verticalAlign: "top", pt: 1.5 }}>
                             <Box title={prompt.category || ""}>
                             <Chip
                                 label={(prompt.category?.length || 0) > 8 ? `${prompt.category.substring(0, 8)}...` : (prompt.category || "-")}
                               size="small"
-                                backgroundColor="#E5E7EB"
-                                textColor="#374151"
+                                backgroundColor=theme.palette.border.light
+                                textColor=theme.palette.text.dark
                               />
                             </Box>
                           </TableCell>
@@ -2479,7 +2479,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                               {isExpanded ? promptText : (isLongPrompt ? `${promptText.substring(0, 40)}...` : promptText)}
                             </Typography>
                             {isLongPrompt && (
-                              <Typography sx={{ fontSize: "11px", color: "#9CA3AF", mt: 0.5 }}>
+                              <Typography sx={{ fontSize: "11px", color: theme.palette.text.tertiary, mt: 0.5 }}>
                                 {isExpanded ? "Collapse" : "Expand"}
                               </Typography>
                             )}
@@ -2518,8 +2518,8 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               sx={{
                 mt: 4,
                 textTransform: "none",
-                bgcolor: "#13715B",
-                "&:hover": { bgcolor: "#0F5E4B" },
+                bgcolor: theme.palette.primary.main,
+                "&:hover": { bgcolor: theme.palette.primary.dark },
                 height: "40px",
               }}
             >
@@ -2545,7 +2545,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               setCreateDatasetModalOpen(false);
               setCreateTypeSelectionOpen(true);
             }}
-            icon={<Edit3 size={14} color="#9CA3AF" />}
+            icon={<Edit3 size={14} color=theme.palette.text.tertiary />}
             title="Create from scratch"
             description="Choose format and manually add prompts"
           />
@@ -2557,7 +2557,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               setCreateDatasetModalOpen(false);
               setUploadModalOpen(true);
             }}
-            icon={<Upload size={14} color="#9CA3AF" />}
+            icon={<Upload size={14} color=theme.palette.text.tertiary />}
             title="Upload JSON file"
             description="Import existing dataset in JSON format"
           />
@@ -2569,7 +2569,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               setCreateDatasetModalOpen(false);
               setActiveTab("templates");
             }}
-            icon={<Database size={14} color="#9CA3AF" />}
+            icon={<Database size={14} color=theme.palette.text.tertiary />}
             title="Start from template"
             description="Browse pre-built evaluation templates"
           />
@@ -2587,7 +2587,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         <Stack spacing="20px">
           {/* Use Case Selection */}
           <Box>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: "#374151", mb: 1.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.dark, mb: 1.5 }}>
               Use Case
             </Typography>
             <Stack direction="row" spacing={1}>
@@ -2598,7 +2598,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 <SelectableCard
                   isSelected={newDatasetUseCase === "chatbot"}
                   onClick={() => setNewDatasetUseCase("chatbot")}
-                  icon={<MessageSquare size={14} color={newDatasetUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                  icon={<MessageSquare size={14} color={newDatasetUseCase === "chatbot" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                   title="Chatbot"
                   description="Standard Q&A evaluation"
                 />
@@ -2610,7 +2610,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 <SelectableCard
                   isSelected={newDatasetUseCase === "rag"}
                   onClick={() => setNewDatasetUseCase("rag")}
-                  icon={<Database size={14} color={newDatasetUseCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                  icon={<Database size={14} color={newDatasetUseCase === "rag" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                   title="RAG"
                   description="With retrieval context"
                 />
@@ -2620,7 +2620,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
 
           {/* Turn Type Selection */}
           <Box>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: "#374151", mb: 1.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.dark, mb: 1.5 }}>
               Conversation Format
             </Typography>
             <Stack direction="row" spacing={1}>
@@ -2631,7 +2631,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 <SelectableCard
                   isSelected={newDatasetTurnType === "single-turn"}
                   onClick={() => setNewDatasetTurnType("single-turn")}
-                  icon={<MessageSquare size={14} color={newDatasetTurnType === "single-turn" ? "#13715B" : "#9CA3AF"} />}
+                  icon={<MessageSquare size={14} color={newDatasetTurnType === "single-turn" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                   title="Single-turn"
                   description="One prompt, one response"
                 />
@@ -2643,7 +2643,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 <SelectableCard
                   isSelected={newDatasetTurnType === "multi-turn"}
                   onClick={() => setNewDatasetTurnType("multi-turn")}
-                  icon={<GitBranch size={14} color={newDatasetTurnType === "multi-turn" ? "#13715B" : "#9CA3AF"} />}
+                  icon={<GitBranch size={14} color={newDatasetTurnType === "multi-turn" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                   title="Multi-turn"
                   description="Conversation with multiple exchanges"
                 />
@@ -2652,11 +2652,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
           </Box>
 
           {/* Format Preview */}
-          <Box sx={{ backgroundColor: "#F9FAFB", borderRadius: "8px", p: 2 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: "#374151", mb: 1 }}>
+          <Box sx={{ backgroundColor: theme.palette.background.alt, borderRadius: "8px", p: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.dark, mb: 1 }}>
               Format Preview
             </Typography>
-            <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "12px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.text.accent, fontSize: "12px" }}>
               {newDatasetTurnType === "single-turn" ? (
                 newDatasetUseCase === "rag" 
                   ? "Prompts with expected output, category, difficulty, and retrieval_context fields"
@@ -2674,7 +2674,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             <Button
               variant="text"
               onClick={() => setCreateTypeSelectionOpen(false)}
-              sx={{ color: "#6B7280" }}
+              sx={{ color: theme.palette.text.accent }}
             >
               Cancel
             </Button>
@@ -2719,7 +2719,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 setEditorOpen(true);
               }}
               sx={{
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 "&:hover": { backgroundColor: "#0f5a47" },
               }}
             >

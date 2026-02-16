@@ -17,6 +17,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  useTheme,
 } from "@mui/material";
 import {
   Trophy,
@@ -76,7 +77,7 @@ const preprocessLatex = (text: string): string => {
 };
 
 // Markdown renderer with LaTeX support
-const MarkdownRenderer = ({ content }: { content: string }) => {
+const MarkdownRenderer = ({ content, theme }: { content: string; theme: ReturnType<typeof useTheme> }) => {
   if (!content) return null;
   
   const processedContent = preprocessLatex(content);
@@ -85,23 +86,23 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
     <Box
       sx={{
         fontSize: 13,
-        color: "#374151",
+        color: theme.palette.text.dark,
         lineHeight: 1.7,
         "& p": { mb: 1, mt: 0 },
-        "& h1": { fontSize: 15, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h2": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h3": { fontSize: 13, fontWeight: 600, color: "#1e293b", mt: 2, mb: 1 },
-        "& h4": { fontSize: 13, fontWeight: 700, color: "#1e293b", mt: 1.5, mb: 0.5 },
+        "& h1": { fontSize: 15, fontWeight: 700, color: theme.palette.text.primary, mt: 2, mb: 1 },
+        "& h2": { fontSize: 13, fontWeight: 700, color: theme.palette.text.primary, mt: 2, mb: 1 },
+        "& h3": { fontSize: 13, fontWeight: 600, color: theme.palette.text.primary, mt: 2, mb: 1 },
+        "& h4": { fontSize: 13, fontWeight: 700, color: theme.palette.text.primary, mt: 1.5, mb: 0.5 },
         "& ul, & ol": { pl: 2.5, mb: 1 },
         "& li": { mb: 0.5 },
         "& code": {
-          backgroundColor: "#f1f5f9",
+          backgroundColor: theme.palette.background.fill,
           px: 0.75,
           py: 0.25,
           borderRadius: "4px",
           fontFamily: "'Fira Code', monospace",
           fontSize: 12,
-          color: "#0f766e",
+          color: theme.palette.status.success.text,
         },
         "& pre": {
           backgroundColor: "#1e293b",
@@ -117,12 +118,12 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
         },
         "& strong": { fontWeight: 600 },
         "& em": { fontStyle: "italic" },
-        "& hr": { border: "none", borderTop: "1px solid #e2e8f0", my: 2 },
+        "& hr": { border: "none", borderTop: `1px solid ${theme.palette.border.light}`, my: 2 },
         "& blockquote": {
-          borderLeft: "3px solid #e2e8f0",
+          borderLeft: `3px solid ${theme.palette.border.light}`,
           pl: 2,
           ml: 0,
-          color: "#6b7280",
+          color: theme.palette.text.accent,
           fontStyle: "italic",
         },
         "& table": {
@@ -132,13 +133,13 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
           fontSize: 12,
         },
         "& th, & td": {
-          border: "1px solid #e2e8f0",
+          border: `1px solid ${theme.palette.border.light}`,
           px: 1,
           py: 0.5,
           textAlign: "left",
         },
         "& th": {
-          backgroundColor: "#f8fafc",
+          backgroundColor: theme.palette.background.accent,
           fontWeight: 600,
         },
         // KaTeX math styling
@@ -223,6 +224,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   comparisonId,
   onBack,
 }) => {
+  const theme = useTheme();
   const [results, setResults] = useState<ArenaResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -262,7 +264,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 12 }}>
-        <CircularProgress size={32} sx={{ color: "#13715B" }} />
+        <CircularProgress size={32} sx={{ color: theme.palette.primary.main }} />
       </Box>
     );
   }
@@ -270,8 +272,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
   if (error || !results) {
     return (
       <Box sx={{ textAlign: "center", py: 12 }}>
-        <AlertCircle size={40} color="#ef4444" style={{ marginBottom: 12 }} />
-        <Typography sx={{ fontSize: 15, color: "#6b7280", mb: 3 }}>
+        <AlertCircle size={40} color={theme.palette.chart.red} style={{ marginBottom: 12 }} />
+        <Typography sx={{ fontSize: 15, color: theme.palette.text.accent, mb: 3 }}>
           {error || "No results found"}
         </Typography>
         <CustomizableButton variant="outlined" text="Go Back" onClick={onBack} />
@@ -294,13 +296,13 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           onClick={onBack}
           sx={{
             fontSize: "13px",
-            color: "#13715B",
+            color: theme.palette.primary.main,
             cursor: "pointer",
             textDecoration: "underline",
             textDecorationStyle: "dashed",
             textUnderlineOffset: "3px",
             "&:hover": {
-              color: "#0f5a47",
+              color: theme.palette.primary.dark,
             },
           }}
         >
@@ -310,7 +312,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
       {/* Header */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-        <Typography sx={{ fontSize: 17, fontWeight: 700, color: "#111827" }}>
+        <Typography sx={{ fontSize: 17, fontWeight: 700, color: theme.palette.text.primary }}>
           {results.name}
         </Typography>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
@@ -333,12 +335,12 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             }}
             startIcon={<Download size={14} />}
             sx={{
-              borderColor: "#d0d5dd",
-              color: "#374151",
+              borderColor: theme.palette.border.dark,
+              color: theme.palette.text.dark,
               "&:hover": {
-                borderColor: "#13715B",
-                color: "#13715B",
-                backgroundColor: "#F0FDF4",
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.status.success.bg,
               },
             }}
           >
@@ -355,12 +357,12 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             }}
             startIcon={<Copy size={14} />}
             sx={{
-              borderColor: "#d0d5dd",
-              color: "#374151",
+              borderColor: theme.palette.border.dark,
+              color: theme.palette.text.dark,
               "&:hover": {
-                borderColor: "#13715B",
-                color: "#13715B",
-                backgroundColor: "#F0FDF4",
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.status.success.bg,
               },
             }}
           >
@@ -376,8 +378,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
             p: 3,
             mb: 4,
             borderRadius: "8px",
-            backgroundColor: "#fef2f2",
-            border: "1px solid #fecaca",
+            backgroundColor: theme.palette.status.error.bg,
+            border: `1px solid ${theme.palette.status.error.border}`,
           }}
         >
           <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#991b1b", mb: 0.5 }}>
@@ -396,8 +398,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           borderRadius: "4px",
           background: isCompleted
             ? "linear-gradient(135deg, #fef9c3 0%, #fde047 100%)"
-            : "#f9fafb",
-          border: isCompleted ? "1px solid #facc15" : "1px solid #e5e7eb",
+            : theme.palette.background.alt,
+          border: isCompleted ? "1px solid #facc15" : `1px solid ${theme.palette.border.light}`,
           mb: 2,
         }}
       >
@@ -405,13 +407,13 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           {/* Winner Section */}
           <Stack direction="row" alignItems="center" spacing={2}>
             <Box>
-              <Typography sx={{ fontSize: 10, fontWeight: 600, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5 }}>
+              <Typography sx={{ fontSize: 10, fontWeight: 600, color: isCompleted ? "#a16207" : theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: 0.5 }}>
                 Winner
               </Typography>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, color: isCompleted ? "#713f12" : "#6b7280" }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, color: isCompleted ? "#713f12" : theme.palette.text.accent }}>
                 {results.results?.winner || "—"}
               </Typography>
-              <Typography sx={{ fontSize: 11, color: isCompleted ? "#a16207" : "#9ca3af" }}>
+              <Typography sx={{ fontSize: 11, color: isCompleted ? "#a16207" : theme.palette.text.tertiary }}>
                 {isCompleted && results.results?.winner
                   ? `${winCounts[results.results.winner] || 0} of ${totalRounds} rounds won`
                   : "No winner determined"}
@@ -422,26 +424,26 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           {/* Battle Info Section */}
           <Stack direction="row" spacing={3} alignItems="flex-start">
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Judge
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : theme.palette.text.dark }}>
                 {results.judgeModel || "gpt-4o"}
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Rounds
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : theme.palette.text.dark }}>
                 {totalRounds}
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: isCompleted ? "#a16207" : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Duration
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: isCompleted ? "#713f12" : theme.palette.text.dark }}>
                 {results.createdAt && results.completedAt
                   ? `${Math.round((new Date(results.completedAt).getTime() - new Date(results.createdAt).getTime()) / 1000 / 1000)} seconds`
                   : "—"}
@@ -453,30 +455,30 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
       {/* Contestant Performance Table */}
       <Box sx={{ mt: "16px", mb: "16px" }}>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", mb: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
           Contestant performance
         </Typography>
         <TableContainer
           component={Paper}
           elevation={0}
-          sx={{ border: "1px solid #e2e8f0", borderRadius: "4px", overflow: "hidden" }}
+          sx={{ border: `1px solid ${theme.palette.border.light}`, borderRadius: "4px", overflow: "hidden" }}
         >
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#f8fafc" }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, pl: 2, pr: 1 }}>
+              <TableRow sx={{ backgroundColor: theme.palette.background.accent }}>
+                <TableCell sx={{ fontWeight: 600, fontSize: 11, color: theme.palette.chart.slate, textTransform: "uppercase", py: 1, pl: 2, pr: 1 }}>
                   Contestant
                 </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, px: 1 }}>
+                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: theme.palette.chart.slate, textTransform: "uppercase", py: 1, px: 1 }}>
                   Wins
                 </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, px: 1 }}>
+                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: theme.palette.chart.slate, textTransform: "uppercase", py: 1, px: 1 }}>
                   Losses
                 </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, px: 1 }}>
+                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: theme.palette.chart.slate, textTransform: "uppercase", py: 1, px: 1 }}>
                   Ties
                 </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: "#64748b", textTransform: "uppercase", py: 1, px: 1 }}>
+                <TableCell align="center" sx={{ fontWeight: 600, fontSize: 11, color: theme.palette.chart.slate, textTransform: "uppercase", py: 1, px: 1 }}>
                   Win Rate
                 </TableCell>
               </TableRow>
@@ -512,8 +514,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                             width: 24,
                             height: 24,
                             borderRadius: "4px",
-                            backgroundColor: "#f8fafc",
-                            border: "1px solid #e2e8f0",
+                            backgroundColor: theme.palette.background.accent,
+                            border: `1px solid ${theme.palette.border.light}`,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -522,11 +524,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                           {ProviderIcon ? (
                             <ProviderIcon style={{ width: 14, height: 14 }} />
                           ) : (
-                            <Bot size={14} color="#64748b" />
+                            <Bot size={14} color={theme.palette.chart.slate} />
                           )}
                         </Box>
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
                             {name}
                           </Typography>
                           {isWinner && (
@@ -549,22 +551,22 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                       </Stack>
                     </TableCell>
                     <TableCell align="center" sx={{ py: 1, px: 1 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#10b981" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.palette.chart.emerald }}>
                         {wins}
                       </Typography>
                     </TableCell>
                     <TableCell align="center" sx={{ py: 1, px: 1 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#ef4444" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.chart.red }}>
                         {losses}
                       </Typography>
                     </TableCell>
                     <TableCell align="center" sx={{ py: 1, px: 1 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#6b7280" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.accent }}>
                         {contestantTies}
                       </Typography>
                     </TableCell>
                     <TableCell align="center" sx={{ py: 1, px: 1 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: theme.palette.text.dark }}>
                         {winRate}%
                       </Typography>
                     </TableCell>
@@ -607,7 +609,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         
         return (
           <Box sx={{ mt: "16px", mb: "16px" }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", mb: 1 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
               Average scores by criteria
             </Typography>
             
@@ -624,11 +626,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                   sx={{
                     p: "8px",
                     borderRadius: "4px",
-                    backgroundColor: "#f8fafc",
-                    border: "1px solid #e2e8f0",
+                    backgroundColor: theme.palette.background.accent,
+                    border: `1px solid ${theme.palette.border.light}`,
                   }}
                 >
-                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#13715B", mb: 1, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.primary.main, mb: 1, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     {criterion}
                   </Typography>
                   <Stack spacing="8px">
@@ -643,20 +645,20 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                       return (
                         <Box key={name}>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.25 }}>
-                            <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#475569" }}>
+                            <Typography sx={{ fontSize: 11, fontWeight: 500, color: theme.palette.text.tertiary }}>
                               {name}
                             </Typography>
                             <Typography 
                               sx={{ 
                                 fontSize: 12, 
                                 fontWeight: 700, 
-                                color: "#111827",
+                                color: theme.palette.text.primary,
                               }}
                             >
                               {avgScore}
                             </Typography>
                           </Stack>
-                          <Box sx={{ height: 4, backgroundColor: "#e2e8f0", borderRadius: 2, overflow: "hidden" }}>
+                          <Box sx={{ height: 4, backgroundColor: theme.palette.border.light, borderRadius: 2, overflow: "hidden" }}>
                             <Box
                               sx={{
                                 height: "100%",
@@ -681,7 +683,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
       {/* Round Results - Clickable Cards */}
       {results.results?.detailedResults?.length > 0 && (
         <Box sx={{ mt: "16px" }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b", mb: 2 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
             Round details ({totalRounds} rounds)
           </Typography>
 
@@ -698,19 +700,19 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                   onClick={() => handleOpenRound(idx)}
                   sx={{
                     p: "12px",
-                    border: "1px solid #e2e8f0",
+                    border: `1px solid ${theme.palette.border.light}`,
                     borderRadius: "4px",
-                    backgroundColor: "#fff",
+                    backgroundColor: theme.palette.background.main,
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                     "&:hover": {
-                      backgroundColor: "#f8fafc",
-                      borderColor: "#13715B",
+                      backgroundColor: theme.palette.background.accent,
+                      borderColor: theme.palette.primary.main,
                     },
                   }}
                 >
                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: theme.palette.text.primary }}>
                       Round {idx + 1}
                     </Typography>
                     {round.winner ? (
@@ -720,14 +722,14 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                           sx={{
                             fontSize: 11,
                             fontWeight: 700,
-                            color: "#374151",
+                            color: theme.palette.text.dark,
                           }}
                         >
                           {round.winner}
                         </Typography>
                       </Stack>
                     ) : (
-                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#64748b" }}>
+                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.chart.slate }}>
                         Tie
                       </Typography>
                     )}
@@ -735,7 +737,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                   <Typography
                     sx={{
                       fontSize: 11,
-                      color: "#64748b",
+                      color: theme.palette.chart.slate,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -787,11 +789,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                   sx={{
                     minWidth: "100px",
                     height: "34px",
-                    border: "1px solid #D0D5DD",
-                    color: isFirstRound ? "#9CA3AF" : "#344054",
+                    border: `1px solid ${theme.palette.border.dark}`,
+                    color: isFirstRound ? theme.palette.text.tertiary : theme.palette.text.secondary,
                     "&:hover:not(.Mui-disabled)": {
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #D0D5DD",
+                      backgroundColor: theme.palette.background.alt,
+                      border: `1px solid ${theme.palette.border.dark}`,
                     },
                   }}
                 />
@@ -804,11 +806,11 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                   sx={{
                     minWidth: "100px",
                     height: "34px",
-                    border: "1px solid #D0D5DD",
-                    color: isLastRound ? "#9CA3AF" : "#344054",
+                    border: `1px solid ${theme.palette.border.dark}`,
+                    color: isLastRound ? theme.palette.text.tertiary : theme.palette.text.secondary,
                     "&:hover:not(.Mui-disabled)": {
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #D0D5DD",
+                      backgroundColor: theme.palette.background.alt,
+                      border: `1px solid ${theme.palette.border.dark}`,
                     },
                     flexDirection: "row-reverse",
                     "& .MuiButton-startIcon": {
@@ -822,18 +824,18 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           >
             {/* Prompt */}
             <Box sx={{ mb: "16px" }}>
-              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+              <Typography sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
                 Prompt
               </Typography>
               <Box
                 sx={{
                   p: "12px",
-                  backgroundColor: "#f8fafc",
+                  backgroundColor: theme.palette.background.accent,
                   borderRadius: "4px",
-                  border: "1px solid #e2e8f0",
+                  border: `1px solid ${theme.palette.border.light}`,
                 }}
               >
-                <Typography sx={{ fontSize: 13, color: "#1e293b", lineHeight: 1.6 }}>
+                <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, lineHeight: 1.6 }}>
                   {round.input}
                 </Typography>
               </Box>
@@ -841,7 +843,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
 
             {/* Responses Grid */}
             <Box sx={{ mb: "16px" }}>
-              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+              <Typography sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
                 Responses
               </Typography>
               <Box
@@ -862,8 +864,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                       sx={{
                         p: "12px",
                         borderRadius: "4px",
-                        border: isRoundWinner ? `2px solid #f59e0b` : "1px solid #e2e8f0",
-                        backgroundColor: "#fff",
+                        border: isRoundWinner ? `2px solid #f59e0b` : `1px solid ${theme.palette.border.light}`,
+                        backgroundColor: theme.palette.background.main,
                         minWidth: 0,
                       }}
                     >
@@ -874,8 +876,8 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                               width: 22,
                               height: 22,
                               borderRadius: "4px",
-                              backgroundColor: "#f8fafc",
-                              border: "1px solid #e2e8f0",
+                              backgroundColor: theme.palette.background.accent,
+                              border: `1px solid ${theme.palette.border.light}`,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -885,14 +887,14 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                             {RoundProviderIcon ? (
                               <RoundProviderIcon style={{ width: 12, height: 12 }} />
                             ) : (
-                              <Bot size={12} color="#64748b" />
+                              <Bot size={12} color={theme.palette.chart.slate} />
                             )}
                           </Box>
                           <Box sx={{ minWidth: 0 }}>
-                            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
+                            <Typography sx={{ fontSize: 12, fontWeight: 600, color: theme.palette.text.primary }}>
                               {c.name}
                             </Typography>
-                            <Typography sx={{ fontSize: 10, color: "#64748b" }}>
+                            <Typography sx={{ fontSize: 10, color: theme.palette.chart.slate }}>
                               {getProviderDisplayName(providerKey)}
                             </Typography>
                           </Box>
@@ -934,7 +936,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                                   border: `1px solid ${score >= 8 ? "#a7f3d0" : score >= 6 ? "#fde68a" : "#fecaca"}`,
                                 }}
                               >
-                                <Typography sx={{ fontSize: 9, color: "#6b7280", fontWeight: 500 }}>
+                                <Typography sx={{ fontSize: 9, color: theme.palette.text.accent, fontWeight: 500 }}>
                                   {criterion}
                                 </Typography>
                                 <Typography
@@ -953,7 +955,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
                       )}
 
                       {/* Separator line */}
-                      <Box sx={{ borderTop: "1px solid #e2e8f0", mt: "8px", mb: "8px" }} />
+                      <Box sx={{ borderTop: `1px solid ${theme.palette.border.light}`, mt: "8px", mb: "8px" }} />
 
                       <Box
                         sx={{
@@ -974,15 +976,15 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
               <Box
                 sx={{
                   p: "12px",
-                  backgroundColor: "#f8fafc",
+                  backgroundColor: theme.palette.background.accent,
                   borderRadius: "4px",
-                  border: "1px solid #e2e8f0",
+                  border: `1px solid ${theme.palette.border.light}`,
                 }}
               >
-                <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: "0.05em", mb: "8px" }}>
                   Judge's reasoning
                 </Typography>
-                <Box sx={{ fontSize: 12, color: "#1e293b", lineHeight: 1.6 }}>
+                <Box sx={{ fontSize: 12, color: theme.palette.text.primary, lineHeight: 1.6 }}>
                   <MarkdownRenderer content={round.reason} />
                 </Box>
               </Box>
@@ -997,13 +999,13 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
           sx={{
             textAlign: "center",
             py: 8,
-            backgroundColor: "#f9fafb",
+            backgroundColor: theme.palette.background.alt,
             borderRadius: "12px",
-            border: "1px solid #e5e7eb",
+            border: `1px solid ${theme.palette.border.light}`,
           }}
         >
-          <AlertCircle size={32} color="#9ca3af" style={{ marginBottom: 12 }} />
-          <Typography sx={{ fontSize: 14, color: "#6b7280" }}>
+          <AlertCircle size={32} color=theme.palette.text.tertiary style={{ marginBottom: 12 }} />
+          <Typography sx={{ fontSize: 14, color: theme.palette.text.accent }}>
             No detailed results available for this battle.
           </Typography>
         </Box>

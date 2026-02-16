@@ -46,12 +46,12 @@ export const trendIndicator = {
 };
 
 export const trendIconUp = (theme: Theme) => ({
-  color: theme.palette.status?.error?.text || "#EF4444",
+  color: theme.palette.status?.error?.text || theme.palette.error.main,
   fontSize: 14,
 });
 
 export const trendIconDown = (theme: Theme) => ({
-  color: theme.palette.status?.success?.main || "#10B981",
+  color: theme.palette.status?.success?.main || theme.palette.success.main,
   fontSize: 14,
 });
 

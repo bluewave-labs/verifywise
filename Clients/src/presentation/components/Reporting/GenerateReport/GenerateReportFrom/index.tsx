@@ -297,8 +297,8 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
               },
               "&.Mui-selected": {
                 backgroundColor: theme.palette.background.accent,
-                borderColor: "#13715B",
-                color: "#13715B",
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
                 },

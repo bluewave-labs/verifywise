@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Box, Stack } from "@mui/material";
+import { Box, Stack, useTheme } from "@mui/material";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useOnboarding } from "../../../application/hooks/useOnboarding";
 import { ONBOARDING_STEPS } from "./onboardingConstants";
@@ -23,6 +23,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onSkip,
   isRevisit = false,
 }) => {
+  const theme = useTheme();
   const {
     state,
     isAdmin,
@@ -196,7 +197,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       >
         <Box
           sx={{
-            backgroundColor: "white",
+            backgroundColor: theme.palette.background.main,
             borderRadius: "8px",
             boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
             width: "60%",
@@ -250,10 +251,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     text="Skip onboarding"
                     onClick={handleSkipStep}
                     sx={{
-                      color: "#6B7280",
+                      color: theme.palette.text.accent,
                       "&:hover": {
                         backgroundColor: "transparent",
-                        color: "#374151",
+                        color: theme.palette.text.dark,
                       },
                     }}
                   />
@@ -266,10 +267,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         onClick={handleBack}
                         startIcon={<ArrowLeft size={16} />}
                         sx={{
-                          borderColor: "#D0D5DD",
-                          color: "#344054",
+                          borderColor: theme.palette.border.dark,
+                          color: theme.palette.text.secondary,
                           "&:hover": {
-                            borderColor: "#98A2B3",
+                            borderColor: theme.palette.text.muted,
                           },
                         }}
                       />
@@ -280,9 +281,9 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       onClick={handleNext}
                       endIcon={<ArrowRight size={16} />}
                       sx={{
-                        backgroundColor: "#13715B",
+                        backgroundColor: theme.palette.primary.main,
                         "&:hover": {
-                          backgroundColor: "#0F5A47",
+                          backgroundColor: theme.palette.primary.dark,
                         },
                       }}
                     />

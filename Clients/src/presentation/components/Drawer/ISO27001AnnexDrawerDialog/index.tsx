@@ -1114,7 +1114,7 @@ const VWISO27001AnnexDrawerDialog = ({
                               {file.fileName}
                             </Typography>
                             <Typography
-                              sx={{ fontSize: 11, color: "#6B7280" }}
+                              sx={{ fontSize: 11, color: theme.palette.text.accent }}
                             >
                               {file.size ? `${((file.size || 0) / 1024).toFixed(1)} KB` : ""}
                               {file.size && file.source ? " • " : ""}
@@ -1294,7 +1294,7 @@ const VWISO27001AnnexDrawerDialog = ({
                           sx={{
                             color: "#4C7BF4",
                             "&:hover": {
-                              color: "#D32F2F",
+                              color: theme.palette.status.error.main,
                               backgroundColor: "rgba(211, 47, 47, 0.08)",
                             },
                           }}

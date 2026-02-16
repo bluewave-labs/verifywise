@@ -8,6 +8,7 @@ import {
   Stack,
   IconButton,
   TextField,
+  useTheme,
 } from "@mui/material";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
@@ -52,6 +53,7 @@ const formatMetricName = (name: string): string => {
 
 // Markdown renderer with LaTeX support
 const MarkdownRenderer = ({ content }: { content: string }) => {
+  const theme = useTheme();
   if (!content) return null;
 
   const processedContent = preprocessLatex(content);
@@ -60,17 +62,17 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
     <Box
       sx={{
         fontSize: 14,
-        color: "#374151",
+        color: theme.palette.text.dark,
         lineHeight: 1.7,
         "& p": { mb: 1, mt: 0 },
-        "& h1": { fontSize: 16, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h2": { fontSize: 15, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h3": { fontSize: 14, fontWeight: 700, color: "#1e293b", mt: 2, mb: 1 },
-        "& h4": { fontSize: 14, fontWeight: 600, color: "#1e293b", mt: 1.5, mb: 0.5 },
+        "& h1": { fontSize: 16, fontWeight: 700, color: theme.palette.text.primary, mt: 2, mb: 1 },
+        "& h2": { fontSize: 15, fontWeight: 700, color: theme.palette.text.primary, mt: 2, mb: 1 },
+        "& h3": { fontSize: 14, fontWeight: 700, color: theme.palette.text.primary, mt: 2, mb: 1 },
+        "& h4": { fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, mt: 1.5, mb: 0.5 },
         "& ul, & ol": { pl: 3.5, mb: 1, ml: 0.5 },
         "& li": { mb: 0.5 },
         "& code": {
-          backgroundColor: "#f1f5f9",
+          backgroundColor: theme.palette.background.subtle,
           px: 0.75,
           py: 0.25,
           borderRadius: "4px",
@@ -92,12 +94,12 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
         },
         "& strong": { fontWeight: 600 },
         "& em": { fontStyle: "italic" },
-        "& hr": { border: "none", borderTop: "1px solid #e2e8f0", my: 2 },
+        "& hr": { border: "none", borderTop: `1px solid ${theme.palette.border.light}`, my: 2 },
         "& blockquote": {
-          borderLeft: "3px solid #e2e8f0",
+          borderLeft: `3px solid ${theme.palette.border.light}`,
           pl: 2,
           ml: 0,
-          color: "#6b7280",
+          color: theme.palette.text.accent,
           fontStyle: "italic",
         },
         "& table": {
@@ -107,13 +109,13 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
           fontSize: 11,
         },
         "& th, & td": {
-          border: "1px solid #e2e8f0",
+          border: `1px solid ${theme.palette.border.light}`,
           px: 1,
           py: 0.5,
           textAlign: "left",
         },
         "& th": {
-          backgroundColor: "#f8fafc",
+          backgroundColor: theme.palette.background.accent,
           fontWeight: 600,
         },
         // KaTeX math styling
@@ -152,6 +154,7 @@ interface ExperimentDetailContentProps {
 }
 
 export default function ExperimentDetailContent({ experimentId, projectId, onBack }: ExperimentDetailContentProps) {
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [logs, setLogs] = useState<EvaluationLog[]>([]);
@@ -378,7 +381,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         <ConfirmationModal
           title="API key may not be configured"
           body={
-            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: "14px", color: theme.palette.text.dark, lineHeight: 1.6 }}>
               {apiKeyWarning}
               <br /><br />
               Do you want to run the experiment anyway?
@@ -403,13 +406,13 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           onClick={onBack}
           sx={{
             fontSize: "13px",
-            color: "#13715B",
+            color: theme.palette.primary.main,
             cursor: "pointer",
             textDecoration: "underline",
             textDecorationStyle: "dashed",
             textUnderlineOffset: "3px",
             "&:hover": {
-              color: "#0f5a47",
+              color: theme.palette.primary.dark,
             },
           }}
         >
@@ -454,7 +457,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 size="small"
                 onClick={handleSaveName}
                 disabled={saving || !editedName.trim()}
-                sx={{ color: "#13715B" }}
+                sx={{ color: theme.palette.primary.main }}
               >
                 <Check size={18} />
               </IconButton>
@@ -462,14 +465,14 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 size="small"
                 onClick={handleCancelEditName}
                 disabled={saving}
-                sx={{ color: "#6B7280" }}
+                sx={{ color: theme.palette.text.accent }}
               >
                 <X size={18} />
               </IconButton>
             </>
           ) : (
             <>
-              <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 700, color: theme.palette.text.primary }}>
                 {experiment.id}
               </Typography>
               <IconButton
@@ -479,9 +482,9 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 sx={{
                   opacity: 0,
                   transition: "opacity 0.2s",
-                  color: "#6B7280",
+                  color: theme.palette.text.accent,
                   "&:hover": {
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                     backgroundColor: "rgba(19, 113, 91, 0.1)",
                   },
                 }}
@@ -513,12 +516,12 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             }}
             startIcon={<Download size={14} />}
             sx={{
-              borderColor: "#d0d5dd",
-              color: "#374151",
+              borderColor: theme.palette.border.dark,
+              color: theme.palette.text.dark,
               "&:hover": {
-                borderColor: "#13715B",
-                color: "#13715B",
-                backgroundColor: "#F0FDF4",
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.status.success.bg,
               },
             }}
           >
@@ -537,29 +540,29 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
             }}
             startIcon={<Copy size={14} />}
             sx={{
-              borderColor: "#d0d5dd",
-              color: "#374151",
+              borderColor: theme.palette.border.dark,
+              color: theme.palette.text.dark,
               "&:hover": {
-                borderColor: "#13715B",
-                color: "#13715B",
-                backgroundColor: "#F0FDF4",
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                backgroundColor: theme.palette.status.success.bg,
               },
             }}
           >
             Copy
           </CustomizableButton>
-          <Box sx={{ width: "1px", height: "24px", backgroundColor: "#e5e7eb", mx: 0.5 }} />
+          <Box sx={{ width: "1px", height: "24px", backgroundColor: theme.palette.border.light, mx: 0.5 }} />
           <CustomizableButton
             variant="contained"
             onClick={handleRerunExperiment}
             isDisabled={rerunLoading || experiment.status === "running"}
             startIcon={<RotateCcw size={14} />}
             sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              backgroundColor: theme.palette.primary.main,
+              border: `1px solid ${theme.palette.primary.main}`,
               "&:hover": {
-                backgroundColor: "#0F5A47",
-                border: "1px solid #0F5A47",
+                backgroundColor: theme.palette.primary.dark,
+                border: `1px solid ${theme.palette.primary.dark}`,
               },
             }}
           >
@@ -576,13 +579,13 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           background: experiment.status === "completed"
             ? "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)"
             : experiment.status === "failed"
-              ? "#fef2f2"
-              : "#f9fafb",
+              ? theme.palette.error.bg
+              : theme.palette.background.alt,
           border: experiment.status === "completed"
-            ? "1px solid #10b981"
+            ? `1px solid ${theme.palette.chart.emerald}`
             : experiment.status === "failed"
-              ? "1px solid #ef4444"
-              : "1px solid #e5e7eb",
+              ? `1px solid ${theme.palette.chart.red}`
+              : `1px solid ${theme.palette.border.input}`,
           mb: 3,
         }}
       >
@@ -590,7 +593,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           {/* Status Section */}
           <Stack direction="row" alignItems="center" spacing={2}>
             <Box>
-              <Typography sx={{ fontSize: 10, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : experiment.status === "failed" ? "#991b1b" : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.5 }}>
+              <Typography sx={{ fontSize: 10, fontWeight: 600, color: experiment.status === "completed" ? theme.palette.status.success.dark : experiment.status === "failed" ? "#991b1b" : theme.palette.text.tertiary, textTransform: "uppercase", letterSpacing: 0.5 }}>
                 {experiment.status === "completed" ? "Completed" : experiment.status === "failed" ? "Failed" : "Status"}
               </Typography>
               <Box
@@ -617,23 +620,23 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                       placeholder="Add a description..."
                       sx={{ minWidth: "250px", "& .MuiOutlinedInput-root": { fontSize: "13px" } }}
                     />
-                    <IconButton size="small" onClick={handleSaveDescription} disabled={saving} sx={{ color: "#13715B" }}>
+                    <IconButton size="small" onClick={handleSaveDescription} disabled={saving} sx={{ color: theme.palette.primary.main }}>
                       <Check size={14} />
                     </IconButton>
-                    <IconButton size="small" onClick={handleCancelEditDescription} disabled={saving} sx={{ color: "#6B7280" }}>
+                    <IconButton size="small" onClick={handleCancelEditDescription} disabled={saving} sx={{ color: theme.palette.text.accent }}>
                       <X size={14} />
                     </IconButton>
                   </>
                 ) : (
                   <>
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: experiment.status === "completed" ? "#065f46" : experiment.status === "failed" ? "#991b1b" : "#6b7280" }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: experiment.status === "completed" ? theme.palette.status.success.dark : experiment.status === "failed" ? "#991b1b" : theme.palette.text.accent }}>
                       {experiment.description || `Evaluating ${config.model?.name || "model"} with ${logs.length} prompts`}
                     </Typography>
                     <IconButton
                       size="small"
                       onClick={handleStartEditDescription}
                       className="edit-icon"
-                      sx={{ opacity: 0, transition: "opacity 0.2s", color: "#6B7280", padding: "2px", "&:hover": { color: "#13715B" } }}
+                      sx={{ opacity: 0, transition: "opacity 0.2s", color: theme.palette.text.accent, padding: "2px", "&:hover": { color: theme.palette.primary.main } }}
                     >
                       <Pencil size={12} />
                     </IconButton>
@@ -646,34 +649,34 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           {/* Info Section */}
           <Stack direction="row" spacing={3} alignItems="flex-start">
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Model
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.dark }}>
                 {config.model?.name || "—"}
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Judge
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.dark }}>
                 {config.judgeLlm?.model || "—"}
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Prompts
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.dark }}>
                 {logs.length}
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
+              <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.tertiary, textTransform: "uppercase" }}>
                 Created
               </Typography>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? "#065f46" : "#374151" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: experiment.status === "completed" ? theme.palette.status.success.dark : theme.palette.text.dark }}>
                 {new Date(experiment.created_at).toLocaleDateString()}
               </Typography>
             </Box>
@@ -774,7 +777,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
         // Get score color based on value thresholds
         // For inverse metrics (bias, toxicity), lower is better
         const getScoreColor = (score: number | undefined, metricKey?: string) => {
-          if (score === undefined) return { bg: "#F3F4F6", text: "#6B7280", icon: "#6B7280" };
+          if (score === undefined) return { bg: theme.palette.background.fill, text: theme.palette.text.accent, icon: theme.palette.text.accent };
 
           // Check if this is an inverse metric (lower is better)
           const isInverse = metricKey && (metricKey.toLowerCase() === "bias" || metricKey.toLowerCase() === "toxicity");
@@ -915,7 +918,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 position: "relative",
                 overflow: "hidden",
                 background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-                border: "1px solid #d0d5dd",
+                border: `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "4px",
                 transition: "all 0.2s ease",
                 "&:hover": {
@@ -941,12 +944,12 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   transition: "opacity 0.2s ease, transform 0.3s ease",
                 }}
               >
-                <BackgroundIcon size={96} color="#374151" />
+                <BackgroundIcon size={96} color=theme.palette.text.dark />
               </Box>
 
               <CardContent sx={{ p: "16px", position: "relative", zIndex: 1, "&:last-child": { pb: "16px" } }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-                  <Typography variant="body2" sx={{ fontSize: "13px", fontWeight: 400, color: "#6B7280" }}>
+                  <Typography variant="body2" sx={{ fontSize: "13px", fontWeight: 400, color: theme.palette.text.accent }}>
                     {metric.label}
                   </Typography>
                   {delta && (
@@ -958,7 +961,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         px: 1,
                         py: 0.25,
                         borderRadius: "4px",
-                        backgroundColor: delta.type === "up" ? "#D1FAE5" : delta.type === "down" ? "#FEE2E2" : "#F3F4F6",
+                        backgroundColor: delta.type === "up" ? "#D1FAE5" : delta.type === "down" ? "#FEE2E2" : theme.palette.background.fill,
                       }}
                     >
                       {delta.type === "up" ? (
@@ -966,13 +969,13 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                       ) : delta.type === "down" ? (
                         <TrendingDown size={10} color="#EF4444" />
                       ) : (
-                        <Minus size={10} color="#6B7280" />
+                        <Minus size={10} color=theme.palette.text.accent />
                       )}
                       <Typography
                         sx={{
                           fontSize: "9px",
                           fontWeight: 600,
-                          color: delta.type === "up" ? "#065F46" : delta.type === "down" ? "#991B1B" : "#6B7280",
+                          color: delta.type === "up" ? "#065F46" : delta.type === "down" ? "#991B1B" : theme.palette.text.accent,
                         }}
                       >
                         {delta.value.toFixed(1)}%
@@ -1019,7 +1022,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
               <Box sx={{ mb: "16px" }}>
                 <Typography variant="h6" sx={{ fontSize: "15px", fontWeight: 600, mb: 2 }}>
                   Conversational metrics
-                  <Typography component="span" sx={{ fontSize: "12px", fontWeight: 400, color: "#6B7280", ml: 1 }}>
+                  <Typography component="span" sx={{ fontSize: "12px", fontWeight: 400, color: theme.palette.text.accent, ml: 1 }}>
                     (multi-turn)
                   </Typography>
                 </Typography>
@@ -1103,7 +1106,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
         return (
           <>
-            <Box sx={{ overflow: "hidden", border: "1px solid #d0d5dd", borderRadius: "4px" }}>
+            <Box sx={{ overflow: "hidden", border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px" }}>
               <Box sx={{ overflowX: "auto" }}>
                 {/* Native HTML table to bypass MUI styling conflicts */}
                 <table
@@ -1114,7 +1117,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   }}
                 >
                   <thead>
-                    <tr style={{ backgroundColor: "#F9FAFB" }}>
+                    <tr style={{ backgroundColor: theme.palette.background.alt }}>
                       <th
                         style={{
                           fontWeight: 600,
@@ -1122,8 +1125,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           width: 50,
                           textAlign: "center",
                           padding: "12px 16px",
-                          borderBottom: "2px solid #d1d5db",
-                          borderRight: "1px solid #d1d5db",
+                          borderBottom: `2px solid ${theme.palette.border.medium}`,
+                          borderRight: `1px solid ${theme.palette.border.medium}`,
                         }}
                       >
                         #
@@ -1134,8 +1137,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           fontSize: "11px",
                           textAlign: "center",
                           padding: "12px 16px",
-                          borderBottom: "2px solid #d1d5db",
-                          borderRight: "1px solid #d1d5db",
+                          borderBottom: `2px solid ${theme.palette.border.medium}`,
+                          borderRight: `1px solid ${theme.palette.border.medium}`,
                         }}
                       >
                         Input
@@ -1149,8 +1152,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                             textAlign: "center",
                             padding: "12px 16px",
                             whiteSpace: "nowrap",
-                            borderBottom: "2px solid #d1d5db",
-                            borderRight: "1px solid #d1d5db",
+                            borderBottom: `2px solid ${theme.palette.border.medium}`,
+                            borderRight: `1px solid ${theme.palette.border.medium}`,
                           }}
                         >
                           {formatMetricName(metric)}
@@ -1161,7 +1164,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   <tbody>
                     {logs.length === 0 ? (
                       <tr>
-                        <td colSpan={2 + metricColumns.length} style={{ textAlign: "center", padding: "32px 16px", color: "#6B7280" }}>
+                        <td colSpan={2 + metricColumns.length} style={{ textAlign: "center", padding: "32px 16px", color: theme.palette.text.accent }}>
                           No samples found
                         </td>
                       </tr>
@@ -1171,17 +1174,17 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                           key={log.id}
                           onClick={() => setSelectedSampleIndex(index)}
                           style={{ cursor: "pointer" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F9FAFB")}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme.palette.background.alt)}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                         >
                           <td
                             style={{
                               fontSize: "12px",
-                              color: "#6B7280",
+                              color: theme.palette.text.accent,
                               textAlign: "center",
                               padding: "12px 16px",
-                              borderBottom: "1px solid #d1d5db",
-                              borderRight: "1px solid #d1d5db",
+                              borderBottom: `1px solid ${theme.palette.border.medium}`,
+                              borderRight: `1px solid ${theme.palette.border.medium}`,
                             }}
                           >
                             {index + 1}
@@ -1191,8 +1194,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                               fontSize: "12px",
                               textAlign: "center",
                               padding: "12px 16px",
-                              borderBottom: "1px solid #d1d5db",
-                              borderRight: "1px solid #d1d5db",
+                              borderBottom: `1px solid ${theme.palette.border.medium}`,
+                              borderRight: `1px solid ${theme.palette.border.medium}`,
                               maxWidth: 400,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -1211,8 +1214,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                 style={{
                                   textAlign: "center",
                                   padding: "12px 16px",
-                                  borderBottom: "1px solid #d1d5db",
-                                  borderRight: "1px solid #d1d5db",
+                                  borderBottom: `1px solid ${theme.palette.border.medium}`,
+                                  borderRight: `1px solid ${theme.palette.border.medium}`,
                                   backgroundColor: score !== null
                                     ? passed
                                       ? "rgba(16, 185, 129, 0.18)"
@@ -1220,7 +1223,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                     : "transparent",
                                   fontSize: "12px",
                                   fontWeight: 500,
-                                  color: score !== null ? "#374151" : "#9ca3af",
+                                  color: score !== null ? theme.palette.text.dark : theme.palette.text.tertiary,
                                 }}
                               >
                                 {score !== null ? `${(score * 100).toFixed(0)}%` : "-"}
@@ -1296,11 +1299,11 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         sx={{
                           minWidth: "100px",
                           height: "34px",
-                          border: "1px solid #D0D5DD",
-                          color: isFirstSample ? "#9CA3AF" : "#344054",
+                          border: `1px solid ${theme.palette.border.dark}`,
+                          color: isFirstSample ? theme.palette.text.tertiary : theme.palette.text.secondary,
                           "&:hover:not(.Mui-disabled)": {
-                            backgroundColor: "#F9FAFB",
-                            border: "1px solid #D0D5DD",
+                            backgroundColor: theme.palette.background.alt,
+                            border: `1px solid ${theme.palette.border.dark}`,
                           },
                         }}
                       />
@@ -1313,11 +1316,11 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         sx={{
                           minWidth: "100px",
                           height: "34px",
-                          border: "1px solid #D0D5DD",
-                          color: isLastSample ? "#9CA3AF" : "#344054",
+                          border: `1px solid ${theme.palette.border.dark}`,
+                          color: isLastSample ? theme.palette.text.tertiary : theme.palette.text.secondary,
                           "&:hover:not(.Mui-disabled)": {
-                            backgroundColor: "#F9FAFB",
-                            border: "1px solid #D0D5DD",
+                            backgroundColor: theme.palette.background.alt,
+                            border: `1px solid ${theme.palette.border.dark}`,
                           },
                           flexDirection: "row-reverse",
                           "& .MuiButton-startIcon": {
@@ -1332,15 +1335,15 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   {/* Side-by-side layout: Left = Input/Output, Right = Metrics */}
                   <Box data-sample-modal-content sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", minHeight: "400px" }}>
                     {/* Left Panel: Input/Output or Conversation */}
-                    <Box sx={{ display: "flex", flexDirection: "column", borderRight: "1px solid #e5e7eb", pr: 4 }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", borderRight: `1px solid ${theme.palette.border.input}`, pr: 4 }}>
                       {/* Conversational Display (for multi-turn) */}
                       {selectedLog.metadata?.is_conversational && selectedLog.metadata?.turns ? (
                         <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1.5 }}>
+                          <Typography sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, mb: 1.5 }}>
                             Conversation ({selectedLog.metadata.turn_count || (selectedLog.metadata.turns as Array<unknown>).length} turns)
                           </Typography>
                           {selectedLog.metadata.scenario && (
-                            <Typography sx={{ fontSize: 12, color: "#6B7280", mb: 1.5 }}>
+                            <Typography sx={{ fontSize: 12, color: theme.palette.text.accent, mb: 1.5 }}>
                               Scenario: {selectedLog.metadata.scenario}
                             </Typography>
                           )}
@@ -1405,21 +1408,21 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                           {/* Input */}
                           <Box sx={{ mb: 3 }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1 }}>
+                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
                               Input
                             </Typography>
                             <Box
                               sx={{
                                 p: 2.5,
                                 pl: 4,
-                                backgroundColor: "#f8fafc",
-                                border: "1px solid #e2e8f0",
+                                backgroundColor: theme.palette.background.accent,
+                                border: `1px solid ${theme.palette.border.light}`,
                                 borderRadius: "8px",
                                 maxHeight: "120px",
                                 overflowY: "auto",
                               }}
                             >
-                              <Typography sx={{ fontSize: 13, color: "#374151", lineHeight: 1.6 }}>
+                              <Typography sx={{ fontSize: 13, color: theme.palette.text.dark, lineHeight: 1.6 }}>
                                 {selectedLog.input_text || "No input"}
                               </Typography>
                             </Box>
@@ -1427,7 +1430,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
                           {/* Output */}
                           <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1 }}>
+                            <Typography sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
                               Output
                             </Typography>
                             <Box
@@ -1435,8 +1438,8 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                 flex: 1,
                                 p: 2.5,
                                 pl: 4,
-                                backgroundColor: "#f9fafb",
-                                border: "1px solid #e2e8f0",
+                                backgroundColor: theme.palette.background.alt,
+                                border: `1px solid ${theme.palette.border.light}`,
                                 borderRadius: "8px",
                                 overflowY: "auto",
                               }}
@@ -1450,7 +1453,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
                     {/* Right Panel: Metric Scores with Full Reasoning */}
                     <Box sx={{ display: "flex", flexDirection: "column", overflowY: "auto", pl: 1 }}>
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1e293b", mb: 1.5 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, mb: 1.5 }}>
                         Evaluation Metrics
                       </Typography>
 
@@ -1470,13 +1473,13 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                 sx={{
                                   p: 2,
                                   borderRadius: "6px",
-                                  backgroundColor: "#fff",
-                                  border: "1px solid #e2e8f0",
+                                  backgroundColor: theme.palette.background.main,
+                                  border: `1px solid ${theme.palette.border.light}`,
                                   borderLeft: `3px solid ${passed ? "#22c55e" : "#ef4444"}`,
                                 }}
                               >
                                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#1e293b" }}>
+                                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
                                     {friendlyMetric}
                                   </Typography>
                                   <Typography
@@ -1491,7 +1494,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                                 </Stack>
 
                                 {/* Progress bar - subtle */}
-                                <Box sx={{ height: 4, backgroundColor: "#f1f5f9", borderRadius: 2, overflow: "hidden", mb: reason ? 1.5 : 0 }}>
+                                <Box sx={{ height: 4, backgroundColor: theme.palette.background.subtle, borderRadius: 2, overflow: "hidden", mb: reason ? 1.5 : 0 }}>
                                   <Box
                                     sx={{
                                       height: "100%",
@@ -1505,7 +1508,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
                                 {/* Full reasoning - not truncated */}
                                 {reason && (
-                                  <Typography sx={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6 }}>
+                                  <Typography sx={{ fontSize: 12, color: theme.palette.text.accent, lineHeight: 1.6 }}>
                                     {reason}
                                   </Typography>
                                 )}
@@ -1515,7 +1518,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                         </Stack>
                       ) : (
                         <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>
+                          <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary }}>
                             No metric scores available
                           </Typography>
                         </Box>
@@ -1525,7 +1528,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
 
                   {/* Error message if failed */}
                   {selectedLog.error_message && (
-                    <Box sx={{ mt: 2, p: 2, backgroundColor: "#fef2f2", borderRadius: "6px", border: "1px solid #fecaca" }}>
+                    <Box sx={{ mt: 2, p: 2, backgroundColor: theme.palette.error.bg, borderRadius: "6px", border: "1px solid #fecaca" }}>
                       <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#991B1B", mb: 0.5 }}>
                         Error
                       </Typography>
@@ -1536,25 +1539,25 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                   )}
 
                   {/* Footer: Metadata + Sample ID */}
-                  <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.border.input}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Stack direction="row" spacing={3}>
                       {selectedLog.model_name && (
-                        <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.accent }}>
                           <span style={{ fontWeight: 600 }}>Model:</span> {selectedLog.model_name}
                         </Typography>
                       )}
                       {selectedLog.latency_ms && (
-                        <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.accent }}>
                           <span style={{ fontWeight: 600 }}>Latency:</span> {selectedLog.latency_ms}ms
                         </Typography>
                       )}
                       {selectedLog.token_count && (
-                        <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.accent }}>
                           <span style={{ fontWeight: 600 }}>Tokens:</span> {selectedLog.token_count}
                         </Typography>
                       )}
                     </Stack>
-                    <Typography sx={{ fontSize: 10, color: "#9ca3af", fontFamily: "monospace" }}>
+                    <Typography sx={{ fontSize: 10, color: theme.palette.text.tertiary, fontFamily: "monospace" }}>
                       {selectedLog.id}
                     </Typography>
                   </Box>

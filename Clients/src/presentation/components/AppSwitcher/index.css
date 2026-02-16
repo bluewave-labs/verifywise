@@ -11,6 +11,12 @@
   --app-switcher-disabled-opacity: 0.4;
 }
 
+[data-theme="dark"] {
+  --app-switcher-bg-start: #0a0a1a;
+  --app-switcher-bg-end: #0d0d20;
+  --app-switcher-border: #1a1a30;
+}
+
 .app-switcher {
   width: 40px;
   min-width: 40px;

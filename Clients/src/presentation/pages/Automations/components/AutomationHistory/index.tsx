@@ -161,7 +161,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
         <Stack direction="row" spacing={4} mb={4} flexWrap="wrap">
           <Box
             sx={{
-              border: "1px solid #eaecf0",
+              border: `1px solid ${theme.palette.border.light}`,
               borderRadius: 2,
               background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
               minWidth: 228,
@@ -172,7 +172,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
             <Typography
               sx={{
                 fontSize: 13,
-                color: "#8594AC",
+                color: theme.palette.text.accent,
                 pb: "2px",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -186,7 +186,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                 mt: 1,
                 fontWeight: 600,
                 fontSize: 15,
-                color: "#1f2937",
+                color: theme.palette.text.primary,
               }}
             >
               {stats.total_executions}
@@ -196,7 +196,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                 sx={{
                   width: '100%',
                   height: 6,
-                  backgroundColor: '#E5E7EB',
+                  backgroundColor: theme.palette.border.input,
                   borderRadius: 1,
                   overflow: 'hidden',
                 }}
@@ -205,7 +205,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                   sx={{
                     width: `${stats.total_executions > 0 ? (stats.successful_executions / stats.total_executions) * 100 : 0}%`,
                     height: '100%',
-                    backgroundColor: '#10B981',
+                    backgroundColor: theme.palette.chart.emerald,
                     transition: 'width 0.3s ease',
                   }}
                 />
@@ -217,7 +217,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
           </Box>
           <Box
             sx={{
-              border: "1px solid #eaecf0",
+              border: `1px solid ${theme.palette.border.light}`,
               borderRadius: 2,
               background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
               minWidth: 228,
@@ -228,7 +228,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
             <Typography
               sx={{
                 fontSize: 13,
-                color: "#8594AC",
+                color: theme.palette.text.accent,
                 pb: "2px",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -242,7 +242,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                 mt: 1,
                 fontWeight: 600,
                 fontSize: 15,
-                color: "#1f2937",
+                color: theme.palette.text.primary,
               }}
             >
               {stats.successful_executions}
@@ -250,7 +250,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
           </Box>
           <Box
             sx={{
-              border: "1px solid #eaecf0",
+              border: `1px solid ${theme.palette.border.light}`,
               borderRadius: 2,
               background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
               minWidth: 228,
@@ -261,7 +261,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
             <Typography
               sx={{
                 fontSize: 13,
-                color: "#8594AC",
+                color: theme.palette.text.accent,
                 pb: "2px",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -275,7 +275,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                 mt: 1,
                 fontWeight: 600,
                 fontSize: 15,
-                color: "#1f2937",
+                color: theme.palette.text.primary,
               }}
             >
               {stats.failed_executions}
@@ -321,7 +321,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <Clock size={14} color="#8594AC" />
+                          <Clock size={14} color={theme.palette.text.accent} />
                           <Typography sx={{ fontSize: 13 }}>
                             {formatDate(log.triggered_at)}
                           </Typography>
@@ -342,7 +342,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                       </TableCell>
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <Timer size={14} color="#8594AC" />
+                          <Timer size={14} color={theme.palette.text.accent} />
                           <Typography sx={{ fontSize: 13 }}>
                             {formatExecutionTime(log.execution_time_ms)}
                           </Typography>
@@ -476,7 +476,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                             height: '32px',
                                             borderRadius: '50%',
                                             backgroundColor: isSuccess ? '#E6F4EA' : '#FFD6D6',
-                                            border: `2px solid ${isSuccess ? '#138A5E' : '#D32F2F'}`,
+                                            border: `2px solid ${isSuccess ? '#138A5E' : theme.palette.status.error.main}`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -487,7 +487,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                           {isSuccess ? (
                                             <CheckCircle size={16} color="#138A5E" />
                                           ) : (
-                                            <XCircle size={16} color="#D32F2F" />
+                                            <XCircle size={16} color={theme.palette.status.error.main} />
                                           )}
                                         </Box>
 
@@ -507,7 +507,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                               <Typography sx={{ fontSize: 11, color: '#8594AC', fontWeight: 600 }}>
                                                 STEP {idx + 1}
                                               </Typography>
-                                              <ArrowRight size={12} color="#8594AC" />
+                                              <ArrowRight size={12} color={theme.palette.text.accent} />
                                               <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>
                                                 {formatActionType(action.action_type)}
                                               </Typography>
@@ -520,7 +520,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                           <Stack spacing={1}>
                                             {action.executed_at && (
                                               <Stack direction="row" alignItems="center" spacing={1}>
-                                                <Clock size={12} color="#8594AC" />
+                                                <Clock size={12} color={theme.palette.text.accent} />
                                                 <Typography sx={{ fontSize: 12, color: '#8594AC' }}>
                                                   {formatDate(action.executed_at)}
                                                 </Typography>
@@ -537,7 +537,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                                   mt: 1,
                                                 }}
                                               >
-                                                <Typography sx={{ fontSize: 12, color: '#D32F2F', fontWeight: 500 }}>
+                                                <Typography sx={{ fontSize: 12, color: theme.palette.status.error.main, fontWeight: 500 }}>
                                                   Error: {action.error_message}
                                                 </Typography>
                                               </Box>
@@ -579,7 +579,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
                                     {log.status === 'success' ? (
                                       <CheckCircle size={20} color="#138A5E" />
                                     ) : log.status === 'failure' ? (
-                                      <XCircle size={20} color="#D32F2F" />
+                                      <XCircle size={20} color={theme.palette.status.error.main} />
                                     ) : (
                                       <AlertCircle size={20} color="#795000" />
                                     )}

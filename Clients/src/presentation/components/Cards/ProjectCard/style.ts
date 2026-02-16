@@ -41,7 +41,7 @@ export const projectCardSpecValueStyle = (theme: Theme) => ({ fontSize: 13, colo
 
 export const viewProjectButtonStyle = (theme: Theme) => ({
   backgroundColor: theme.palette.primary.main,
-  color: "#fff",
+  color: theme.palette.background.main,
   fontSize: 13,
   fontWeight: 600,
   px: 3,
@@ -53,9 +53,9 @@ export const viewProjectButtonStyle = (theme: Theme) => ({
   border: "none",
 });
 
-export const euAiActChipStyle = {
+export const euAiActChipStyle = (theme: Theme) => ({
   backgroundColor: '#014576',
-  color: '#fff',
+  color: theme.palette.background.main,
   fontWeight: 600,
   fontSize: 11,
   height: 28,
@@ -80,11 +80,11 @@ export const euAiActChipStyle = {
   '& .MuiButton-endIcon': {
     marginLeft: '4px',
   },
-};
+});
 
-export const iso42001ChipStyle = {
+export const iso42001ChipStyle = (theme: Theme) => ({
   backgroundColor: '#0ca5af',
-  color: '#fff',
+  color: theme.palette.background.main,
   fontWeight: 600,
   fontSize: 11,
   height: 28,
@@ -109,4 +109,4 @@ export const iso42001ChipStyle = {
   '& .MuiButton-endIcon': {
     marginLeft: '4px',
   },
-};
+});

@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useCallback } from "react";
-import { Stack, Box, Typography, Collapse, IconButton } from "@mui/material";
+import { Stack, Box, Typography, Collapse, IconButton, useTheme } from "@mui/material";
 import {
   Folder as FolderIcon,
   FolderOpen as FolderOpenIcon,
@@ -64,6 +64,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
   onDeleteFolder,
   canManage,
 }) => {
+  const theme = useTheme();
   const [showActions, setShowActions] = useState(false);
   const isSelected = selectedFolder === folder.id;
   const isExpanded = expandedFolders.has(folder.id);
@@ -111,7 +112,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
           borderRadius: "4px",
           backgroundColor: isSelected ? "#E8F5F1" : "transparent",
           "&:hover": {
-            backgroundColor: isSelected ? "#E8F5F1" : "#F9FAFB",
+            backgroundColor: isSelected ? "#E8F5F1" : theme.palette.background.accent,
           },
           transition: "background-color 0.15s ease",
         }}
@@ -132,9 +133,9 @@ const FolderItem: React.FC<FolderItemProps> = ({
         >
           {hasChildren && (
             isExpanded ? (
-              <ChevronDownIcon size={14} color="#667085" />
+              <ChevronDownIcon size={14} color={theme.palette.other.icon} />
             ) : (
-              <ChevronRightIcon size={14} color="#667085" />
+              <ChevronRightIcon size={14} color={theme.palette.other.icon} />
             )
           )}
         </Box>
@@ -145,7 +146,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
             marginRight: "8px",
             display: "flex",
             alignItems: "center",
-            color: folder.color || "#13715B",
+            color: folder.color || theme.palette.primary.main,
           }}
         >
           {isExpanded ? (
@@ -161,7 +162,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
             flex: 1,
             fontSize: 13,
             fontWeight: isSelected ? 500 : 400,
-            color: isSelected ? "#13715B" : "#344054",
+            color: isSelected ? theme.palette.primary.main : theme.palette.text.secondary,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -174,7 +175,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
         <Typography
           sx={{
             fontSize: 12,
-            color: "#98A2B3",
+            color: theme.palette.text.muted,
             marginLeft: "4px",
             flexShrink: 0,
           }}
@@ -190,36 +191,36 @@ const FolderItem: React.FC<FolderItemProps> = ({
               onClick={handleCreateSubfolder}
               sx={{
                 padding: "2px",
-                "&:hover": { backgroundColor: "#E8F5F1" },
+                "&:hover": { backgroundColor: theme.palette.status.success.bg },
               }}
               title="Create subfolder"
               aria-label={`Create subfolder in ${folder.name}`}
             >
-              <PlusIcon size={12} color="#667085" />
+              <PlusIcon size={12} color={theme.palette.other.icon} />
             </IconButton>
             <IconButton
               size="small"
               onClick={handleEdit}
               sx={{
                 padding: "2px",
-                "&:hover": { backgroundColor: "#E8F5F1" },
+                "&:hover": { backgroundColor: theme.palette.status.success.bg },
               }}
               title="Edit folder"
               aria-label={`Edit folder ${folder.name}`}
             >
-              <EditIcon size={12} color="#667085" />
+              <EditIcon size={12} color={theme.palette.other.icon} />
             </IconButton>
             <IconButton
               size="small"
               onClick={handleDelete}
               sx={{
                 padding: "2px",
-                "&:hover": { backgroundColor: "#FEE2E2" },
+                "&:hover": { backgroundColor: theme.palette.status.error.bg },
               }}
               title="Delete folder"
               aria-label={`Delete folder ${folder.name}`}
             >
-              <DeleteIcon size={12} color="#EF4444" />
+              <DeleteIcon size={12} color={theme.palette.chart.red} />
             </IconButton>
           </Box>
         )}
@@ -262,6 +263,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   loading,
   canManage,
 }) => {
+  const theme = useTheme();
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
 
   const handleToggleExpand = useCallback((folderId: number) => {
@@ -281,8 +283,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
       sx={{
         width: "240px",
         minWidth: "200px",
-        borderRight: "1px solid #E0E4E9",
-        backgroundColor: "#FAFBFC",
+        borderRight: `1px solid ${theme.palette.border.light}`,
+        backgroundColor: theme.palette.background.accent,
         height: "100%",
         overflow: "hidden",
       }}
@@ -291,7 +293,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
       <Box
         sx={{
           padding: "12px 16px",
-          borderBottom: "1px solid #E0E4E9",
+          borderBottom: `1px solid ${theme.palette.border.light}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -301,7 +303,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           sx={{
             fontSize: 12,
             fontWeight: 600,
-            color: "#667085",
+            color: theme.palette.other.icon,
             textTransform: "uppercase",
             letterSpacing: "0.5px",
           }}
@@ -314,12 +316,12 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             onClick={() => onCreateFolder?.(null)}
             sx={{
               padding: "4px",
-              "&:hover": { backgroundColor: "#E8F5F1" },
+              "&:hover": { backgroundColor: theme.palette.status.success.bg },
             }}
             title="Create folder"
             aria-label="Create new folder"
           >
-            <PlusIcon size={14} color="#13715B" />
+            <PlusIcon size={14} color={theme.palette.primary.main} />
           </IconButton>
         )}
       </Box>
@@ -336,7 +338,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           <Typography
             sx={{
               fontSize: 13,
-              color: "#98A2B3",
+              color: theme.palette.text.muted,
               padding: "12px",
               textAlign: "center",
             }}
@@ -356,13 +358,13 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 borderRadius: "4px",
                 backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "transparent",
                 "&:hover": {
-                  backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "#F9FAFB",
+                  backgroundColor: selectedFolder === "all" ? "#E8F5F1" : theme.palette.background.accent,
                 },
                 marginBottom: "4px",
               }}
             >
               <Box sx={{ width: 20 }} />
-              <Box sx={{ marginRight: "8px", display: "flex", color: "#667085" }}>
+              <Box sx={{ marginRight: "8px", display: "flex", color: theme.palette.other.icon }}>
                 <FilesIcon size={16} />
               </Box>
               <Typography
@@ -370,7 +372,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                   flex: 1,
                   fontSize: 13,
                   fontWeight: selectedFolder === "all" ? 500 : 400,
-                  color: selectedFolder === "all" ? "#13715B" : "#344054",
+                  color: selectedFolder === "all" ? theme.palette.primary.main : theme.palette.text.secondary,
                 }}
               >
                 All files
@@ -388,13 +390,13 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 borderRadius: "4px",
                 backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "transparent",
                 "&:hover": {
-                  backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "#F9FAFB",
+                  backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : theme.palette.background.accent,
                 },
                 marginBottom: "8px",
               }}
             >
               <Box sx={{ width: 20 }} />
-              <Box sx={{ marginRight: "8px", display: "flex", color: "#98A2B3" }}>
+              <Box sx={{ marginRight: "8px", display: "flex", color: theme.palette.text.muted }}>
                 <UncategorizedIcon size={16} />
               </Box>
               <Typography
@@ -402,7 +404,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                   flex: 1,
                   fontSize: 13,
                   fontWeight: selectedFolder === "uncategorized" ? 500 : 400,
-                  color: selectedFolder === "uncategorized" ? "#13715B" : "#344054",
+                  color: selectedFolder === "uncategorized" ? theme.palette.primary.main : theme.palette.text.secondary,
                 }}
               >
                 Uncategorized
@@ -437,7 +439,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 <Typography
                   sx={{
                     fontSize: 13,
-                    color: "#98A2B3",
+                    color: theme.palette.text.muted,
                     marginBottom: "8px",
                   }}
                 >

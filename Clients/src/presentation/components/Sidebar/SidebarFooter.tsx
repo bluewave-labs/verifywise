@@ -341,17 +341,17 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
               borderRadius: theme.shape.borderRadius,
               px: theme.spacing(4),
               background: isManagementActive
-                ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                ? `linear-gradient(135deg, ${theme.palette.background.fill} 0%, ${theme.palette.secondary.dark} 100%)`
                 : "transparent",
               border: isManagementActive
-                ? "1px solid #D8D8D8"
+                ? `1px solid ${theme.palette.border.medium}`
                 : "1px solid transparent",
               "&:hover": {
                 background: isManagementActive
-                  ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
-                  : "#F9F9F9",
+                  ? `linear-gradient(135deg, ${theme.palette.background.fill} 0%, ${theme.palette.secondary.dark} 100%)`
+                  : theme.palette.background.hover,
                 border: isManagementActive
-                  ? "1px solid #D8D8D8"
+                  ? `1px solid ${theme.palette.border.medium}`
                   : "1px solid transparent",
               },
               "&:hover svg": {
@@ -459,7 +459,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                 fontSize: "13px",
                 borderRadius: theme.shape.borderRadius,
                 "&:hover": {
-                  backgroundColor: "#F9F9F9",
+                  backgroundColor: theme.palette.background.hover,
                 },
                 "&:hover svg": {
                   color: `${theme.palette.primary.main} !important`,

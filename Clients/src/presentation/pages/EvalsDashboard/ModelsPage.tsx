@@ -11,6 +11,7 @@ import {
     FormControl,
     Chip as MuiChip,
     CircularProgress,
+    useTheme,
 } from "@mui/material";
 import { Plus, Check } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -76,6 +77,7 @@ interface NewModelConfig {
 }
 
 export default function ModelsPage({ orgId }: ModelsPageProps) {
+    const theme = useTheme();
     const [models, setModels] = useState<SavedModel[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -315,7 +317,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
             {/* Header + description */}
             <Stack spacing={1} mb={4}>
                 <Box display="flex" alignItems="center" gap={1}>
-                    <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+                    <Typography variant="h6" fontSize={15} fontWeight="600" color=theme.palette.text.primary>
                         Models
                     </Typography>
                     <HelperIcon articlePath="llm-evals/models" />
@@ -355,8 +357,8 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                     text="New model"
                     icon={<Plus size={16} />}
                     sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
+                        backgroundColor: theme.palette.primary.main,
+                        border: `1px solid ${theme.palette.primary.main}`,
                         gap: 2,
                     }}
                     onClick={handleAddModel}
@@ -397,13 +399,13 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                 onSubmit={handleSaveNewModel}
                 submitButtonText="Save Model"
                 isSubmitting={isSaving}
-                submitButtonColor="#13715B"
+                submitButtonColor=theme.palette.primary.main
                 maxWidth="md"
             >
                 {loadingApiKeys ? (
                     <Box sx={{ py: 4, textAlign: "center" }}>
                         <CircularProgress size={24} />
-                        <Typography sx={{ mt: 1, fontSize: "13px", color: "#6B7280" }}>
+                        <Typography sx={{ mt: 1, fontSize: "13px", color: theme.palette.text.accent }}>
                             Loading providers...
                         </Typography>
                     </Box>
@@ -411,7 +413,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                     <Stack spacing={4}>
                         {/* Provider Selection */}
                         <Box>
-                            <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                            <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: theme.palette.text.dark }}>
                                 Model provider
                             </Typography>
                             <Grid container spacing={1.5}>
@@ -432,14 +434,14 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                 sx={{
                                                     cursor: "pointer",
                                                     border: "1px solid",
-                                                    borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                                                    backgroundColor: "#FFFFFF",
+                                                    borderColor: isSelected ? theme.palette.primary.main : theme.palette.border.light,
+                                                    backgroundColor: theme.palette.background.main,
                                                     boxShadow: "none",
                                                     transition: "all 0.2s ease",
                                                     position: "relative",
                                                     height: "100%",
                                                     "&:hover": {
-                                                        borderColor: "#13715B",
+                                                        borderColor: theme.palette.primary.main,
                                                         boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                                                     },
                                                 }}
@@ -463,7 +465,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                                 position: "absolute",
                                                                 top: 8,
                                                                 right: 8,
-                                                                backgroundColor: "#13715B",
+                                                                backgroundColor: theme.palette.primary.main,
                                                                 borderRadius: "50%",
                                                                 width: 20,
                                                                 height: 20,
@@ -472,7 +474,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                                 justifyContent: "center",
                                                             }}
                                                         >
-                                                            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                                            <Check size={12} color=theme.palette.background.main strokeWidth={3} />
                                                         </Box>
                                                     )}
 
@@ -497,7 +499,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                         sx={{
                                                             fontSize: "12px",
                                                             fontWeight: isSelected ? 600 : 500,
-                                                            color: isSelected ? "#13715B" : "#374151",
+                                                            color: isSelected ? theme.palette.primary.main : theme.palette.text.dark,
                                                             textAlign: "center",
                                                         }}
                                                     >
@@ -514,14 +516,14 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                         {/* Model Selection */}
                         {newModel.accessMethod && (
                             <Box>
-                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                                     Model
                                 </Typography>
 
                                 {newModel.accessMethod === "openrouter" ? (
                                     /* OpenRouter - Custom model input with suggestions */
                                     <Box>
-                                        <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                                        <Typography sx={{ fontSize: "11px", color: theme.palette.text.accent, mb: 1.5 }}>
                                             OpenRouter supports any model. Enter the model ID or select from popular options.
                                         </Typography>
                                         <Field
@@ -530,7 +532,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                             onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
                                             placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
                                         />
-                                        <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                                        <Typography sx={{ fontSize: "11px", fontWeight: 600, color: theme.palette.text.tertiary, mt: 2, mb: 1, textTransform: "uppercase" }}>
                                             Popular Models
                                         </Typography>
                                         <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -548,12 +550,12 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                     onClick={() => setNewModel((prev) => ({ ...prev, modelName: m.id }))}
                                                     sx={{
                                                         cursor: "pointer",
-                                                        backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "transparent",
-                                                        borderColor: newModel.modelName === m.id ? "#13715B" : "#E5E7EB",
-                                                        color: newModel.modelName === m.id ? "#13715B" : "#374151",
+                                                        backgroundColor: newModel.modelName === m.id ? theme.palette.primary.softBg : "transparent",
+                                                        borderColor: newModel.modelName === m.id ? theme.palette.primary.main : theme.palette.border.light,
+                                                        color: newModel.modelName === m.id ? theme.palette.primary.main : theme.palette.text.dark,
                                                         "&:hover": {
-                                                            backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "#f9fafb",
-                                                            borderColor: "#13715B",
+                                                            backgroundColor: newModel.modelName === m.id ? theme.palette.primary.softBg : theme.palette.background.alt,
+                                                            borderColor: theme.palette.primary.main,
                                                         },
                                                     }}
                                                 />
@@ -563,7 +565,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                 ) : newModel.accessMethod === "ollama" || newModel.accessMethod === "custom" ? (
                                     /* Ollama/Custom - Text input */
                                     <Box>
-                                        <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                                        <Typography sx={{ fontSize: "11px", color: theme.palette.text.accent, mb: 1.5 }}>
                                             {newModel.accessMethod === "ollama"
                                                 ? "Enter the name of your locally running Ollama model."
                                                 : "Enter the model identifier for your custom endpoint."}
@@ -576,7 +578,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                         />
                                         {newModel.accessMethod === "custom" && (
                                             <Box sx={{ mt: 2 }}>
-                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                                                     Endpoint URL
                                                 </Typography>
                                                 <Field
@@ -595,7 +597,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                             value={newModel.modelName}
                                             onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
                                             displayEmpty
-                                            sx={{ backgroundColor: "#fff" }}
+                                            sx={{ backgroundColor: theme.palette.background.main }}
                                         >
                                             <MenuItem value="" disabled>
                                                 Select a model
@@ -622,17 +624,17 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                         {/* API Key - show configured status OR input field */}
                         {newModel.accessMethod && getModelProvider(newModel.accessMethod)?.needsApiKey && (
                             hasApiKey(newModel.accessMethod) ? (
-                                <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                                <Box sx={{ p: 1.5, backgroundColor: theme.palette.status.success.bg, borderRadius: "8px", border: `1px solid ${theme.palette.status.success.bg}` }}>
                                     <Stack direction="row" alignItems="center" spacing={1}>
-                                        <Check size={16} color="#059669" />
-                                        <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                                        <Check size={16} color=theme.palette.status.success.text />
+                                        <Typography sx={{ fontSize: "12px", color: theme.palette.status.success.dark }}>
                                             API key configured — will be used for this model
                                         </Typography>
                                     </Stack>
                                 </Box>
                             ) : (
                                 <Box>
-                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark, mb: 1 }}>
                                         API Key
                                     </Typography>
                                     <Field
@@ -643,7 +645,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                         placeholder={`Enter your ${MODEL_PROVIDERS.find(p => p.id === newModel.accessMethod)?.name || newModel.accessMethod} API key`}
                                         autoComplete="off"
                                     />
-                                    <Typography sx={{ fontSize: "11px", color: "#6b7280", mt: 0.5 }}>
+                                    <Typography sx={{ fontSize: "11px", color: theme.palette.text.accent, mt: 0.5 }}>
                                         Your key will be saved securely for future experiments
                                     </Typography>
                                 </Box>

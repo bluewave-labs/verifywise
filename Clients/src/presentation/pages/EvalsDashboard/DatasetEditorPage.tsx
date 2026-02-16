@@ -12,6 +12,7 @@ import {
   AccordionDetails,
   Chip,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -26,6 +27,7 @@ import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy,
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 
 export default function DatasetEditorPage() {
+  const theme = useTheme();
   const { projectId } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -151,7 +153,7 @@ export default function DatasetEditorPage() {
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-        <CircularProgress sx={{ color: "#13715B" }} />
+        <CircularProgress sx={{ color: theme.palette.primary.main }} />
       </Box>
     );
   }
@@ -186,9 +188,9 @@ export default function DatasetEditorPage() {
             onClick={handleCopyJson}
             startIcon={copied ? <Check size={16} /> : <Copy size={16} />}
             sx={{
-              color: copied ? "#059669" : "#374151",
-              borderColor: copied ? "#059669" : "#E5E7EB",
-              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+              color: copied ? theme.palette.status.success.text : theme.palette.text.dark,
+              borderColor: copied ? theme.palette.status.success.text : theme.palette.border.light,
+              "&:hover": { borderColor: theme.palette.text.tertiary, backgroundColor: theme.palette.background.alt },
             }}
           >
             {copied ? "Copied!" : "Copy JSON"}
@@ -198,9 +200,9 @@ export default function DatasetEditorPage() {
             onClick={handleDownload}
             startIcon={<Download size={16} />}
             sx={{
-              color: "#374151",
-              borderColor: "#E5E7EB",
-              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+              color: theme.palette.text.dark,
+              borderColor: theme.palette.border.light,
+              "&:hover": { borderColor: theme.palette.text.tertiary, backgroundColor: theme.palette.background.alt },
             }}
           >
             Download
@@ -208,7 +210,7 @@ export default function DatasetEditorPage() {
           <Button
             variant="contained"
             disabled={!isValidToSave || saving || !datasetName.trim()}
-            sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
+            sx={{ bgcolor: theme.palette.primary.main, "&:hover": { bgcolor: theme.palette.primary.dark } }}
             startIcon={<SaveIcon size={16} />}
             onClick={handleSave}
           >
@@ -227,7 +229,7 @@ export default function DatasetEditorPage() {
           size="small"
           placeholder="Enter a descriptive name for this dataset"
         />
-        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
+        <Typography variant="body2" sx={{ color: theme.palette.text.accent, fontSize: "13px" }}>
           Edit the prompts below, then click Save to create your dataset.
         </Typography>
       </Stack>
@@ -242,7 +244,7 @@ export default function DatasetEditorPage() {
               py: 4, 
               px: 2,
               borderStyle: "dashed",
-              borderColor: "#D1D5DB",
+              borderColor: theme.palette.border.dark,
             }}
           >
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -253,9 +255,9 @@ export default function DatasetEditorPage() {
               startIcon={<Plus size={16} />}
               onClick={handleAddPrompt}
               sx={{
-                color: "#13715B",
-                borderColor: "#13715B",
-                "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+                color: theme.palette.primary.main,
+                borderColor: theme.palette.primary.main,
+                "&:hover": { borderColor: theme.palette.primary.dark, backgroundColor: theme.palette.primary.softBg },
               }}
             >
               Add your first prompt
@@ -275,7 +277,7 @@ export default function DatasetEditorPage() {
                     <Typography 
                       sx={{ 
                         fontSize: "12px", 
-                        color: "#9CA3AF", 
+                        color: theme.palette.text.tertiary, 
                         ml: 1,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -294,8 +296,8 @@ export default function DatasetEditorPage() {
                     handleDeletePrompt(idx);
                   }}
                   sx={{ 
-                    color: "#9CA3AF",
-                    "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                    color: theme.palette.text.tertiary,
+                    "&:hover": { color: theme.palette.error.main, backgroundColor: theme.palette.error.bg },
                   }}
                 >
                   <Trash2 size={14} />
@@ -306,7 +308,7 @@ export default function DatasetEditorPage() {
                   <Stack spacing={2}>
                     {/* Category */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Category</Typography>
+                      <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 0.5 }}>Category</Typography>
                       <TextField
                         size="small"
                         value={stp.category || ""}
@@ -322,7 +324,7 @@ export default function DatasetEditorPage() {
 
                     {/* Prompt */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt *</Typography>
+                      <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 0.5 }}>Prompt *</Typography>
                       <TextField
                         size="small"
                         value={stp.prompt}
@@ -340,7 +342,7 @@ export default function DatasetEditorPage() {
 
                     {/* Expected output */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Expected output</Typography>
+                      <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 0.5 }}>Expected output</Typography>
                       <TextField
                         size="small"
                         value={stp.expected_output || ""}
@@ -358,7 +360,7 @@ export default function DatasetEditorPage() {
 
                     {/* Keywords */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Keywords</Typography>
+                      <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 0.5 }}>Keywords</Typography>
                       <TextField
                         size="small"
                         value={(stp.expected_keywords || []).join(", ")}
@@ -375,7 +377,7 @@ export default function DatasetEditorPage() {
 
                     {/* Retrieval context */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Retrieval context</Typography>
+                      <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 0.5 }}>Retrieval context</Typography>
                       <TextField
                         size="small"
                         value={(stp.retrieval_context || []).join("\n")}
@@ -406,13 +408,13 @@ export default function DatasetEditorPage() {
             startIcon={<Plus size={16} />}
             onClick={handleAddPrompt}
             sx={{
-              color: "#13715B",
-              borderColor: "#E5E7EB",
+              color: theme.palette.primary.main,
+              borderColor: theme.palette.border.light,
               borderStyle: "dashed",
               py: 1.5,
               "&:hover": { 
-                borderColor: "#13715B", 
-                backgroundColor: "#E8F5F1",
+                borderColor: theme.palette.primary.main, 
+                backgroundColor: theme.palette.primary.softBg,
                 borderStyle: "dashed",
               },
             }}

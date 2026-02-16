@@ -146,7 +146,7 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
                 secondary={user.email}
                 secondaryTypographyProps={{
                   fontSize: 11,
-                  color: "#9d9d9d",
+                  color: theme.palette.text.muted,
                 }}
               />
             </MenuItem>

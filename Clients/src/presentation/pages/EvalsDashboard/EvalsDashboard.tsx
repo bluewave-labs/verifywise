@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid } from "@mui/material";
+import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Card, CardContent, Grid, useTheme } from "@mui/material";
 import { Check } from "lucide-react";
 import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
@@ -171,6 +171,7 @@ interface LocalProvider {
 }
 
 export default function EvalsDashboard() {
+  const theme = useTheme();
   const { projectId } = useParams<{ projectId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1102,9 +1103,9 @@ export default function EvalsDashboard() {
         <Box
           sx={{
             p: 2,
-            backgroundColor: "#FEF2F2",
+            backgroundColor: theme.palette.error.bg,
             borderRadius: "8px",
-            border: "1px solid #FECACA",
+            border: `1px solid ${theme.palette.error.light}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -1116,7 +1117,7 @@ export default function EvalsDashboard() {
                 width: 32,
                 height: 32,
                 borderRadius: "50%",
-                backgroundColor: "#FEE2E2",
+                backgroundColor: theme.palette.error.bg,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1125,10 +1126,10 @@ export default function EvalsDashboard() {
               <Typography sx={{ fontSize: "16px" }}>⚠️</Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#DC2626" }}>
+              <Typography sx={{ fontSize: "14px", fontWeight: 600, color: theme.palette.error.main }}>
                 Unable to connect to the evaluation server
               </Typography>
-              <Typography sx={{ fontSize: "13px", color: "#7F1D1D" }}>
+              <Typography sx={{ fontSize: "13px", color: theme.palette.error.dark }}>
                 Please make sure the backend server is running and try again.
               </Typography>
             </Box>
@@ -1140,9 +1141,9 @@ export default function EvalsDashboard() {
             disabled={initialLoading}
             sx={{
               textTransform: "none",
-              borderColor: "#DC2626",
-              color: "#DC2626",
-              "&:hover": { borderColor: "#B91C1C", backgroundColor: "#FEE2E2" },
+              borderColor: theme.palette.error.main,
+              color: theme.palette.error.main,
+              "&:hover": { borderColor: theme.palette.error.dark, backgroundColor: theme.palette.error.bg },
             }}
           >
             {initialLoading ? "Retrying..." : "Retry Connection"}
@@ -1159,7 +1160,7 @@ export default function EvalsDashboard() {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
               {/* Header + description */}
               <Stack spacing={1} mb={2}>
-                <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+                <Typography variant="h6" fontSize={15} fontWeight="600" color=theme.palette.text.primary>
                   Settings
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
@@ -1170,8 +1171,8 @@ export default function EvalsDashboard() {
               {/* LLM API Keys Card */}
               <Box
                 sx={{
-                  background: "#fff",
-                  border: "1px solid #d0d5dd",
+                  background: theme.palette.background.main,
+                  border: `1px solid ${theme.palette.border.dark}`,
                   borderRadius: "4px",
                   p: "20px 24px",
                   boxShadow: "none",
@@ -1179,10 +1180,10 @@ export default function EvalsDashboard() {
               >
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                   <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: "#344054" }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: theme.palette.text.secondary }}>
                       Provider API keys
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, mt: 0.5 }}>
                       Encrypted keys for running evaluations across all projects
                     </Typography>
                   </Box>
@@ -1197,9 +1198,9 @@ export default function EvalsDashboard() {
                       }}
                       isDisabled={!canManageApiKeys}
                       sx={{
-                        backgroundColor: "#13715B",
-                        color: "#fff",
-                        "&:hover": { backgroundColor: "#0e5c47" },
+                        backgroundColor: theme.palette.primary.main,
+                        color: theme.palette.background.main,
+                        "&:hover": { backgroundColor: theme.palette.primary.dark },
                       }}
                     />
                   )}
@@ -1212,11 +1213,11 @@ export default function EvalsDashboard() {
                 ) : llmApiKeys.length === 0 ? (
                   <Box
                     sx={{
-                      border: "2px dashed #e5e7eb",
+                      border: `2px dashed ${theme.palette.border.light}`,
                       borderRadius: "12px",
                       p: 6,
                       textAlign: "center",
-                      backgroundColor: "#fafbfc",
+                      backgroundColor: theme.palette.background.alt,
                     }}
                   >
                     <Box
@@ -1224,7 +1225,7 @@ export default function EvalsDashboard() {
                         width: 56,
                         height: 56,
                         borderRadius: "50%",
-                        backgroundColor: "#f0fdf4",
+                        backgroundColor: theme.palette.status.success.bg,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1232,12 +1233,12 @@ export default function EvalsDashboard() {
                         mb: 2,
                       }}
                     >
-                      <PlusIcon size={24} color="#13715B" />
+                      <PlusIcon size={24} color=theme.palette.primary.main />
                     </Box>
-                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}>
+                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
                       No API keys yet
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, mb: 3 }}>
                       {canManageApiKeys ? "Add your first API key to enable LLM evaluations" : "Contact an admin to add API keys"}
                     </Typography>
                     <CustomizableButton
@@ -1250,9 +1251,9 @@ export default function EvalsDashboard() {
                       }}
                       isDisabled={!canManageApiKeys}
                       sx={{
-                        backgroundColor: "#13715B",
-                        color: "#fff",
-                        "&:hover": { backgroundColor: "#0e5c47" },
+                        backgroundColor: theme.palette.primary.main,
+                        color: theme.palette.background.main,
+                        "&:hover": { backgroundColor: theme.palette.primary.dark },
                       }}
                     />
                   </Box>
@@ -1269,11 +1270,11 @@ export default function EvalsDashboard() {
                         >
                           <Box
                             sx={{
-                              border: "1.5px solid #eaecf0",
+                              border: `1.5px solid ${theme.palette.border.light}`,
                               borderRadius: "4px",
                               p: 2,
                               pl: 2.5,
-                              backgroundColor: "#ffffff",
+                              backgroundColor: theme.palette.background.main,
                               display: "flex",
                               justifyContent: "space-between",
                               alignItems: "center",
@@ -1292,8 +1293,8 @@ export default function EvalsDashboard() {
                                   minWidth: 56,
                                   minHeight: 56,
                                   borderRadius: "12px",
-                                  backgroundColor: "#FAFAFA",
-                                  border: "1px solid #E5E7EB",
+                                  backgroundColor: theme.palette.background.alt,
+                                  border: `1px solid ${theme.palette.border.light}`,
                                   flexShrink: 0,
                                   overflow: "hidden",
                                   position: "relative",
@@ -1326,15 +1327,15 @@ export default function EvalsDashboard() {
                                   <Typography sx={{
                                     fontSize: 15,
                                     fontWeight: 600,
-                                    color: "#111827",
+                                    color: theme.palette.text.primary,
                                   }}>
                                     {getProviderDisplayName(key.provider)}
                                   </Typography>
                                   <Chip
                                     label="ACTIVE"
                                     sx={{
-                                      backgroundColor: "#dcfce7",
-                                      color: "#166534",
+                                      backgroundColor: theme.palette.status.success.bg,
+                                      color: theme.palette.status.success.dark,
                                       fontWeight: 600,
                                       fontSize: "9px",
                                       height: "18px",
@@ -1349,14 +1350,14 @@ export default function EvalsDashboard() {
                                 </Stack>
                                 <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
                                   <Box>
-                                    <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>API Key</Typography>
-                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151", fontFamily: "monospace" }}>
+                                    <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary, mb: 0.5 }}>API Key</Typography>
+                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.dark, fontFamily: "monospace" }}>
                                       {key.maskedKey}
                                     </Typography>
                                   </Box>
                                   <Box>
-                                    <Typography sx={{ fontSize: 11, color: "#9CA3AF", mb: 0.5 }}>Added</Typography>
-                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+                                    <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary, mb: 0.5 }}>Added</Typography>
+                                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.dark }}>
                                       {formatKeyDate(key.createdAt)}
                                     </Typography>
                                   </Box>
@@ -1375,14 +1376,14 @@ export default function EvalsDashboard() {
                                 }}
                                 disabled={!canManageApiKeys}
                                 sx={{
-                                  color: "#6B7280",
+                                  color: theme.palette.text.accent,
                                   padding: "8px",
                                   "&:hover": {
-                                    backgroundColor: "#F3F4F6",
-                                    color: "#374151",
+                                    backgroundColor: theme.palette.background.fill,
+                                    color: theme.palette.text.dark,
                                   },
                                   "&.Mui-disabled": {
-                                    color: "#D1D5DB",
+                                    color: theme.palette.border.dark,
                                   },
                                 }}
                               >
@@ -1398,14 +1399,14 @@ export default function EvalsDashboard() {
                                 }}
                                 disabled={!canManageApiKeys}
                                 sx={{
-                                  color: "#DC2626",
+                                  color: theme.palette.error.main,
                                   padding: "8px",
                                   "&:hover": {
-                                    backgroundColor: "#FEF2F2",
-                                    color: "#B91C1C",
+                                    backgroundColor: theme.palette.error.bg,
+                                    color: theme.palette.error.dark,
                                   },
                                   "&.Mui-disabled": {
-                                    color: "#D1D5DB",
+                                    color: theme.palette.border.dark,
                                   },
                                 }}
                               >
@@ -1423,8 +1424,8 @@ export default function EvalsDashboard() {
               {/* Local Providers Section */}
               <Box
                 sx={{
-                  background: "#fff",
-                  border: "1px solid #d0d5dd",
+                  background: theme.palette.background.main,
+                  border: `1px solid ${theme.palette.border.dark}`,
                   borderRadius: "4px",
                   p: "20px 24px",
                   boxShadow: "none",
@@ -1433,10 +1434,10 @@ export default function EvalsDashboard() {
               >
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3, gap: 2 }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#344054", mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 14, color: theme.palette.text.secondary, mb: 0.5 }}>
                       Local providers
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#666666", lineHeight: 1.5 }}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, lineHeight: 1.5 }}>
                       Run models locally without API keys. These will appear as options when creating a new experiment.
                     </Typography>
                   </Box>
@@ -1447,11 +1448,11 @@ export default function EvalsDashboard() {
                       icon={<PlusIcon size={16} />}
                       onClick={() => setLocalProviderModalOpen(true)}
                       sx={{
-                        backgroundColor: "#13715B",
-                        color: "#fff",
+                        backgroundColor: theme.palette.primary.main,
+                        color: theme.palette.background.main,
                         whiteSpace: "nowrap",
                         flexShrink: 0,
-                        "&:hover": { backgroundColor: "#0e5c47" },
+                        "&:hover": { backgroundColor: theme.palette.primary.dark },
                       }}
                     />
                   )}
@@ -1460,7 +1461,7 @@ export default function EvalsDashboard() {
                 {ENV_VARs.IS_DEMO_APP ? (
                   <Box
                     sx={{
-                      border: "1px solid #E0E7FF",
+                      border: `1px solid ${theme.palette.border.light}`,
                       borderRadius: "8px",
                       p: 3,
                       backgroundColor: "#EEF2FF",
@@ -1496,17 +1497,17 @@ export default function EvalsDashboard() {
                 ) : localProviders.length === 0 ? (
                   <Box
                     sx={{
-                      border: "2px dashed #E5E7EB",
+                      border: `2px dashed ${theme.palette.border.light}`,
                       borderRadius: "12px",
                       p: 5,
                       textAlign: "center",
-                      backgroundColor: "#fafbfc",
+                      backgroundColor: theme.palette.background.alt,
                     }}
                   >
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#6B7280" }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.text.accent }}>
                       No local providers configured yet
                     </Typography>
-                    <Typography sx={{ fontSize: 13, color: "#9CA3AF", mt: 0.5 }}>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, mt: 0.5 }}>
                       Click "Add local provider" to get started
                     </Typography>
                   </Box>
@@ -1520,11 +1521,11 @@ export default function EvalsDashboard() {
                       >
                         <Box
                           sx={{
-                            border: "1.5px solid #eaecf0",
+                            border: `1.5px solid ${theme.palette.border.light}`,
                             borderRadius: "4px",
                             p: 2,
                             pl: 2.5,
-                            backgroundColor: "#ffffff",
+                            backgroundColor: theme.palette.background.main,
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
@@ -1537,8 +1538,8 @@ export default function EvalsDashboard() {
                                 height: 56,
                                 minWidth: 56,
                                 borderRadius: "12px",
-                                backgroundColor: "#FAFAFA",
-                                border: "1px solid #E5E7EB",
+                                backgroundColor: theme.palette.background.alt,
+                                border: `1px solid ${theme.palette.border.light}`,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -1550,7 +1551,7 @@ export default function EvalsDashboard() {
                             </Box>
                             <Box sx={{ flex: 1 }}>
                               <Stack direction="row" alignItems="center" sx={{ mb: 0.5, gap: "10px" }}>
-                                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>
+                                <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}>
                                   {provider.name}
                                 </Typography>
                                 <Chip
@@ -1565,7 +1566,7 @@ export default function EvalsDashboard() {
                                   }}
                                 />
                               </Stack>
-                              <Typography sx={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
+                              <Typography sx={{ fontSize: 12, color: theme.palette.text.accent, fontFamily: "monospace" }}>
                                 {provider.url}
                               </Typography>
                             </Box>
@@ -1573,11 +1574,11 @@ export default function EvalsDashboard() {
                           <IconButton
                             onClick={() => handleDeleteLocalProvider(provider.id)}
                             sx={{
-                              color: "#DC2626",
+                              color: theme.palette.error.main,
                               padding: "8px",
                               "&:hover": {
-                                backgroundColor: "#FEF2F2",
-                                color: "#B91C1C",
+                                backgroundColor: theme.palette.error.bg,
+                                color: theme.palette.error.dark,
                               },
                             }}
                           >
@@ -1656,7 +1657,7 @@ export default function EvalsDashboard() {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
                   {/* Header + description */}
                   <Stack spacing={1} mb={2}>
-                    <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
+                    <Typography variant="h6" fontSize={15} fontWeight="600" color=theme.palette.text.primary>
                       Configuration
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
@@ -1667,15 +1668,15 @@ export default function EvalsDashboard() {
                   {/* LLM Use Case Card */}
                   <Box
                     sx={{
-                      background: "#fff",
-                      border: "1px solid #d0d5dd",
+                      background: theme.palette.background.main,
+                      border: `1px solid ${theme.palette.border.dark}`,
                       borderRadius: "4px",
                       p: "20px 24px",
                       boxShadow: "none",
                     }}
                   >
                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
-                      <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: 16, color: theme.palette.text.secondary }}>
                         LLM use case
                       </Typography>
                       {experimentsCount > 0 && (
@@ -1698,7 +1699,7 @@ export default function EvalsDashboard() {
                       <Box
                         sx={{
                           backgroundColor: "#FFFBEB",
-                          border: "1px solid #FDE68A",
+                          border: `1px solid ${theme.palette.warning.light}`,
                           borderRadius: "6px",
                           p: 2,
                           mb: 3,
@@ -1773,9 +1774,9 @@ export default function EvalsDashboard() {
                           control={
                             <Radio
                               sx={{
-                                color: "#d0d5dd",
-                                "&.Mui-checked": { color: "#13715B" },
-                                "&.Mui-disabled": { color: "#e5e7eb" },
+                                color: theme.palette.border.dark,
+                                "&.Mui-checked": { color: theme.palette.primary.main },
+                                "&.Mui-disabled": { color: theme.palette.border.light },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
@@ -1783,7 +1784,7 @@ export default function EvalsDashboard() {
                           label={
                             <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>RAG</Typography>
-                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                                 Evaluate retrieval-augmented generation, including recall, precision, relevancy and faithfulness.
                               </Typography>
                             </Box>
@@ -1796,9 +1797,9 @@ export default function EvalsDashboard() {
                           control={
                             <Radio
                               sx={{
-                                color: "#d0d5dd",
-                                "&.Mui-checked": { color: "#13715B" },
-                                "&.Mui-disabled": { color: "#e5e7eb" },
+                                color: theme.palette.border.dark,
+                                "&.Mui-checked": { color: theme.palette.primary.main },
+                                "&.Mui-disabled": { color: theme.palette.border.light },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
@@ -1806,7 +1807,7 @@ export default function EvalsDashboard() {
                           label={
                             <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Chatbot</Typography>
-                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                                 Evaluate single and multi-turn conversational experiences for coherence, correctness and safety.
                               </Typography>
                             </Box>
@@ -1819,9 +1820,9 @@ export default function EvalsDashboard() {
                           control={
                             <Radio
                               sx={{
-                                color: "#d0d5dd",
-                                "&.Mui-checked": { color: "#13715B" },
-                                "&.Mui-disabled": { color: "#e5e7eb" },
+                                color: theme.palette.border.dark,
+                                "&.Mui-checked": { color: theme.palette.primary.main },
+                                "&.Mui-disabled": { color: theme.palette.border.light },
                                 "& .MuiSvgIcon-root": { fontSize: 20 },
                               }}
                             />
@@ -1829,7 +1830,7 @@ export default function EvalsDashboard() {
                           label={
                             <Box sx={{ opacity: experimentsCount > 0 ? 0.6 : 1 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: "13px" }}>Agent</Typography>
-                              <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                              <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                                 Evaluate AI agents for planning, tool usage, task completion, and step efficiency.
                               </Typography>
                             </Box>
@@ -1853,9 +1854,9 @@ export default function EvalsDashboard() {
                           alignSelf: "flex-end",
                           width: "fit-content",
                           gap: 2,
-                          backgroundColor: hasUseCaseChanged ? "#13715B" : "#ccc",
-                          border: hasUseCaseChanged ? "1px solid #13715B" : "1px solid #ccc",
-                          "&:hover": hasUseCaseChanged ? { backgroundColor: "#0e5c47" } : {},
+                          backgroundColor: hasUseCaseChanged ? theme.palette.primary.main : theme.palette.border.dark,
+                          border: hasUseCaseChanged ? `1px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
+                          "&:hover": hasUseCaseChanged ? { backgroundColor: theme.palette.primary.dark } : {},
                         }}
                         icon={<Save size={16} />}
                         variant="contained"
@@ -1905,28 +1906,28 @@ export default function EvalsDashboard() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: 1.5, fontWeight: 600 }}>
+            <Box sx={{ fontSize: "12px", color: theme.palette.text.dark, mb: 1.5, fontWeight: 600 }}>
               LLM use case
             </Box>
             <Stack spacing="8px">
               <SelectableCard
                 isSelected={newProject.useCase === "rag"}
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                icon={<FileSearch size={14} color={newProject.useCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                icon={<FileSearch size={14} color={newProject.useCase === "rag" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="RAG"
                 description="Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness"
               />
               <SelectableCard
                 isSelected={newProject.useCase === "chatbot"}
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                icon={<Bot size={14} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Bot size={14} color={newProject.useCase === "chatbot" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Chatbot"
                 description="Evaluate conversational experiences for coherence, correctness and safety"
               />
               <SelectableCard
                 isSelected={newProject.useCase === "agent"}
                 onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
-                icon={<Workflow size={14} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Workflow size={14} color={newProject.useCase === "agent" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Agent"
                 description="Evaluate AI agents for planning, tool usage, and task completion"
               />
@@ -1956,28 +1957,28 @@ export default function EvalsDashboard() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: "8px", fontWeight: 600 }}>
+            <Box sx={{ fontSize: "12px", color: theme.palette.text.dark, mb: "8px", fontWeight: 600 }}>
               LLM use case
             </Box>
             <Stack spacing="8px">
               <SelectableCard
                 isSelected={onboardingProjectUseCase === "rag"}
                 onClick={() => setOnboardingProjectUseCase("rag")}
-                icon={<FileSearch size={16} color={onboardingProjectUseCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                icon={<FileSearch size={16} color={onboardingProjectUseCase === "rag" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="RAG"
                 description="Evaluate retrieval-augmented generation"
               />
               <SelectableCard
                 isSelected={onboardingProjectUseCase === "chatbot"}
                 onClick={() => setOnboardingProjectUseCase("chatbot")}
-                icon={<Bot size={16} color={onboardingProjectUseCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Bot size={16} color={onboardingProjectUseCase === "chatbot" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Chatbot"
                 description="Evaluate conversational experiences"
               />
               <SelectableCard
                 isSelected={onboardingProjectUseCase === "agent"}
                 onClick={() => setOnboardingProjectUseCase("agent")}
-                icon={<Workflow size={16} color={onboardingProjectUseCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Workflow size={16} color={onboardingProjectUseCase === "agent" ? theme.palette.primary.main : theme.palette.text.tertiary} />}
                 title="Agent"
                 description="Evaluate AI agents for planning and tool usage"
               />
@@ -2010,7 +2011,7 @@ export default function EvalsDashboard() {
           {/* Provider Selection Grid - show ALL providers (hidden when editing) */}
           {!isEditingApiKey && (
           <Box>
-            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: theme.palette.text.dark }}>
               Select Provider
             </Typography>
             <Grid container spacing={1.5}>
@@ -2026,14 +2027,14 @@ export default function EvalsDashboard() {
                       sx={{
                         cursor: "pointer",
                         border: "1px solid",
-                        borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                        backgroundColor: "#FFFFFF",
+                        borderColor: isSelected ? theme.palette.primary.main : theme.palette.border.light,
+                        backgroundColor: theme.palette.background.main,
                         boxShadow: "none",
                         transition: "all 0.2s ease",
                         position: "relative",
                         height: "100%",
                         "&:hover": {
-                          borderColor: "#13715B",
+                          borderColor: theme.palette.primary.main,
                           boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                         },
                       }}
@@ -2057,7 +2058,7 @@ export default function EvalsDashboard() {
                               position: "absolute",
                               top: 8,
                               right: 8,
-                              backgroundColor: "#13715B",
+                              backgroundColor: theme.palette.primary.main,
                               borderRadius: "50%",
                               width: 20,
                               height: 20,
@@ -2066,7 +2067,7 @@ export default function EvalsDashboard() {
                               justifyContent: "center",
                             }}
                           >
-                            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                            <Check size={12} color=theme.palette.background.main strokeWidth={3} />
                           </Box>
                         )}
 
@@ -2077,13 +2078,13 @@ export default function EvalsDashboard() {
                               position: "absolute",
                               top: 6,
                               left: 6,
-                              backgroundColor: "#dcfce7",
+                              backgroundColor: theme.palette.status.success.bg,
                               borderRadius: "4px",
                               px: 0.75,
                               py: 0.25,
                             }}
                           >
-                            <Typography sx={{ fontSize: "9px", fontWeight: 600, color: "#166534", textTransform: "uppercase" }}>
+                            <Typography sx={{ fontSize: "9px", fontWeight: 600, color: theme.palette.status.success.dark, textTransform: "uppercase" }}>
                               Active
                             </Typography>
                           </Box>
@@ -2112,7 +2113,7 @@ export default function EvalsDashboard() {
                           sx={{
                             fontSize: "12px",
                             fontWeight: isSelected ? 600 : 500,
-                            color: isSelected ? "#13715B" : "#374151",
+                            color: isSelected ? theme.palette.primary.main : theme.palette.text.dark,
                             textAlign: "center",
                           }}
                         >
@@ -2131,11 +2132,11 @@ export default function EvalsDashboard() {
           {selectedProvider && (
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: theme.palette.text.dark }}>
                   API key for {LLM_PROVIDERS.find(p => p._id === selectedProvider)?.name}
                 </Typography>
                 {llmApiKeys.some(k => k.provider === selectedProvider) && (
-                  <Typography sx={{ fontSize: "11px", color: "#6B7280" }}>
+                  <Typography sx={{ fontSize: "11px", color: theme.palette.text.accent }}>
                     This will replace the existing key
                   </Typography>
                 )}
@@ -2153,7 +2154,7 @@ export default function EvalsDashboard() {
                 <Typography
                   sx={{
                     fontSize: 11,
-                    color: "#059669",
+                    color: theme.palette.status.success.text,
                     mt: 0.5,
                     ml: 0.5,
                   }}
@@ -2166,7 +2167,7 @@ export default function EvalsDashboard() {
                   <Typography
                     sx={{
                       fontSize: 11,
-                      color: "#6B7280",
+                      color: theme.palette.text.accent,
                       mt: 0.5,
                       ml: 0.5,
                     }}
@@ -2178,8 +2179,8 @@ export default function EvalsDashboard() {
                       sx={{
                         mt: 2,
                         p: 2,
-                        backgroundColor: "#F8FAFC",
-                        border: "1px solid #E2E8F0",
+                        backgroundColor: theme.palette.background.alt,
+                        border: `1px solid ${theme.palette.border.light}`,
                         borderRadius: "8px",
                       }}
                     >
@@ -2187,7 +2188,7 @@ export default function EvalsDashboard() {
                         sx={{
                           fontSize: 13,
                           fontWeight: 600,
-                          color: "#334155",
+                          color: theme.palette.text.dark,
                           mb: 1,
                         }}
                       >
@@ -2196,12 +2197,12 @@ export default function EvalsDashboard() {
                       <Typography
                         sx={{
                           fontSize: 12,
-                          color: "#64748B",
+                          color: theme.palette.text.accent,
                           lineHeight: 1.5,
                         }}
                       >
                         Your endpoint must be OpenAI-compatible, accepting{" "}
-                        <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: "#E2E8F0", px: 0.5, borderRadius: "3px", fontSize: 11 }}>
+                        <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: theme.palette.border.light, px: 0.5, borderRadius: "3px", fontSize: 11 }}>
                           POST /v1/chat/completions
                         </Box>
                       </Typography>
@@ -2258,7 +2259,7 @@ export default function EvalsDashboard() {
         <Stack spacing={3}>
           {/* Provider Type Selection */}
           <Box>
-            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+            <Typography sx={{ mb: 2, fontSize: "14px", fontWeight: 500, color: theme.palette.text.dark }}>
               Select provider type
             </Typography>
             <Box sx={{ display: "flex", gap: 1.5 }}>
@@ -2273,13 +2274,13 @@ export default function EvalsDashboard() {
                   flex: 1,
                   cursor: "pointer",
                   border: "1px solid",
-                  borderColor: selectedLocalProviderType === "ollama" ? "#13715B" : "#E5E7EB",
-                  backgroundColor: "#FFFFFF",
+                  borderColor: selectedLocalProviderType === "ollama" ? theme.palette.primary.main : theme.palette.border.light,
+                  backgroundColor: theme.palette.background.main,
                   boxShadow: "none",
                   transition: "all 0.2s ease",
                   position: "relative",
                   "&:hover": {
-                    borderColor: "#13715B",
+                    borderColor: theme.palette.primary.main,
                     boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                   },
                 }}
@@ -2299,7 +2300,7 @@ export default function EvalsDashboard() {
                         position: "absolute",
                         top: 8,
                         right: 8,
-                        backgroundColor: "#13715B",
+                        backgroundColor: theme.palette.primary.main,
                         borderRadius: "50%",
                         width: 20,
                         height: 20,
@@ -2308,13 +2309,13 @@ export default function EvalsDashboard() {
                         justifyContent: "center",
                       }}
                     >
-                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                      <Check size={12} color=theme.palette.background.main strokeWidth={3} />
                     </Box>
                   )}
                   <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
                     <OllamaLogo />
                   </Box>
-                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? "#13715B" : "#374151" }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "ollama" ? 600 : 500, color: selectedLocalProviderType === "ollama" ? theme.palette.primary.main : theme.palette.text.dark }}>
                     Ollama
                   </Typography>
                 </CardContent>
@@ -2331,13 +2332,13 @@ export default function EvalsDashboard() {
                   flex: 1,
                   cursor: "pointer",
                   border: "1px solid",
-                  borderColor: selectedLocalProviderType === "local" ? "#13715B" : "#E5E7EB",
-                  backgroundColor: "#FFFFFF",
+                  borderColor: selectedLocalProviderType === "local" ? theme.palette.primary.main : theme.palette.border.light,
+                  backgroundColor: theme.palette.background.main,
                   boxShadow: "none",
                   transition: "all 0.2s ease",
                   position: "relative",
                   "&:hover": {
-                    borderColor: "#13715B",
+                    borderColor: theme.palette.primary.main,
                     boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                   },
                 }}
@@ -2357,7 +2358,7 @@ export default function EvalsDashboard() {
                         position: "absolute",
                         top: 8,
                         right: 8,
-                        backgroundColor: "#13715B",
+                        backgroundColor: theme.palette.primary.main,
                         borderRadius: "50%",
                         width: 20,
                         height: 20,
@@ -2366,13 +2367,13 @@ export default function EvalsDashboard() {
                         justifyContent: "center",
                       }}
                     >
-                      <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                      <Check size={12} color=theme.palette.background.main strokeWidth={3} />
                     </Box>
                   )}
                   <Box sx={{ height: 48, display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
                     <FolderFilledIcon />
                   </Box>
-                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? "#13715B" : "#374151" }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: selectedLocalProviderType === "local" ? 600 : 500, color: selectedLocalProviderType === "local" ? theme.palette.primary.main : theme.palette.text.dark }}>
                     Local Endpoint
                   </Typography>
                 </CardContent>
@@ -2398,7 +2399,7 @@ export default function EvalsDashboard() {
                   isRequired
                 />
                 {selectedLocalProviderType === "ollama" ? (
-                  <Typography sx={{ fontSize: 11, color: "#6B7280", mt: 0.5, ml: 0.5 }}>
+                  <Typography sx={{ fontSize: 11, color: theme.palette.text.accent, mt: 0.5, ml: 0.5 }}>
                     Default Ollama endpoint is http://localhost:11434
                   </Typography>
                 ) : (
@@ -2406,8 +2407,8 @@ export default function EvalsDashboard() {
                     sx={{
                       mt: 2,
                       p: 2,
-                      backgroundColor: "#F8FAFC",
-                      border: "1px solid #E2E8F0",
+                      backgroundColor: theme.palette.background.alt,
+                      border: `1px solid ${theme.palette.border.light}`,
                       borderRadius: "8px",
                     }}
                   >
@@ -2415,7 +2416,7 @@ export default function EvalsDashboard() {
                       sx={{
                         fontSize: 13,
                         fontWeight: 600,
-                        color: "#334155",
+                        color: theme.palette.text.dark,
                         mb: 1,
                       }}
                     >
@@ -2424,12 +2425,12 @@ export default function EvalsDashboard() {
                     <Typography
                       sx={{
                         fontSize: 12,
-                        color: "#64748B",
+                        color: theme.palette.text.accent,
                         lineHeight: 1.5,
                       }}
                     >
                       Your endpoint must be OpenAI-compatible, accepting{" "}
-                      <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: "#E2E8F0", px: 0.5, borderRadius: "3px", fontSize: 11 }}>
+                      <Box component="span" sx={{ fontFamily: "monospace", backgroundColor: theme.palette.border.light, px: 0.5, borderRadius: "3px", fontSize: 11 }}>
                         POST /v1/chat/completions
                       </Box>
                     </Typography>

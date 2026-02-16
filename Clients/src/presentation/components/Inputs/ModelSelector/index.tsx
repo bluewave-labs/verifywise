@@ -225,7 +225,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             }}
           >
             {/* Search */}
-            <Box sx={{ p: 1.5, borderBottom: "1px solid #f3f4f6" }}>
+            <Box sx={{ p: 1.5, borderBottom: `1px solid ${theme.palette.background.subtle}` }}>
               <TextField
                 fullWidth
                 size="small"
@@ -262,7 +262,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
               <Box
                 sx={{
                   width: 200,
-                  borderRight: "1px solid #f3f4f6",
+                  borderRight: `1px solid ${theme.palette.background.subtle}`,
                   overflowY: "auto",
                   display: "flex",
                   flexDirection: "column",
@@ -318,7 +318,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                               <Typography
                                 sx={{
                                   fontSize: 10,
-                                  color: "#f59e0b",
+                                  color: theme.palette.status.warning.text,
                                   lineHeight: 1.2,
                                 }}
                               >
@@ -338,7 +338,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                 </Box>
 
                 {/* Add provider button */}
-                <Box sx={{ p: 1.5, borderTop: "1px solid #f3f4f6" }}>
+                <Box sx={{ p: 1.5, borderTop: `1px solid ${theme.palette.background.subtle}` }}>
                   <Box
                     onClick={(e) => {
                       e.stopPropagation();
@@ -355,7 +355,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                       cursor: "pointer",
                       backgroundColor: theme.palette.background.accent,
                       "&:hover": {
-                        backgroundColor: "#D1EDE6",
+                        backgroundColor: theme.palette.primary.light,
                       },
                     }}
                   >
@@ -400,7 +400,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                           width: 48,
                           height: 48,
                           borderRadius: "12px",
-                          backgroundColor: "#fef3c7",
+                          backgroundColor: theme.palette.status.warning.bg,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -408,7 +408,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                           mb: 2,
                         }}
                       >
-                        <Key size={24} color="#f59e0b" />
+                        <Key size={24} color={theme.palette.status.warning.text} />
                       </Box>
                       <Typography
                         sx={{

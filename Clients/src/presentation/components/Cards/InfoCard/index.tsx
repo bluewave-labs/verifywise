@@ -51,9 +51,9 @@ export function InfoCard({
               color: isActionActive ? theme.palette.primary.main : theme.palette.text.muted,
               padding: "4px",
               borderRadius: "4px",
-              backgroundColor: isActionActive ? "#E6F4F1" : "transparent",
+              backgroundColor: isActionActive ? `${theme.palette.primary.main}15` : "transparent",
               "&:hover": {
-                backgroundColor: isActionActive ? "#D1EDE6" : "#F2F4F7",
+                backgroundColor: isActionActive ? `${theme.palette.primary.main}20` : theme.palette.background.subtle,
               },
             }}
           >

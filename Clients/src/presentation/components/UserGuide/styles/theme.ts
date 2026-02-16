@@ -4,28 +4,28 @@
  * CSS-only items (font-faces, resets) are in globals.css
  */
 
-// Colors - Text
+// Colors - Text (using CSS custom properties for theme support)
 export const colors = {
   text: {
-    primary: '#1a1a1a',
-    secondary: '#374151',
-    muted: '#6b7280',
+    primary: 'var(--vw-text-primary, #1a1a1a)',
+    secondary: 'var(--vw-text-secondary, #374151)',
+    muted: 'var(--vw-text-muted, #6b7280)',
     white: '#ffffff',
     whiteMuted: 'rgba(255, 255, 255, 0.8)',
   },
   brand: {
-    primary: '#13715B',
-    primaryDark: '#0A4A3A',
+    primary: 'var(--vw-primary, #13715B)',
+    primaryDark: 'var(--vw-primary-hover, #0A4A3A)',
     success: '#17B26A',
     warning: '#F79009',
     error: '#F04438',
   },
   border: {
-    default: '#d0d5dd',
+    default: 'var(--vw-border-dark, #d0d5dd)',
   },
   background: {
-    white: '#ffffff',
-    alt: '#f9fafb',
+    white: 'var(--vw-bg-main, #ffffff)',
+    alt: 'var(--vw-bg-accent, #f9fafb)',
     code: '#1C2130',
   },
 } as const;
@@ -77,7 +77,7 @@ export const spacing = {
 // Border
 export const border = {
   radius: '4px',
-  default: `1px solid ${colors.border.default}`,
+  default: `1px solid var(--vw-border-dark, #d0d5dd)`,
 } as const;
 
 // Image styles
@@ -110,8 +110,8 @@ export const chipStyles = {
   },
   // File/code chips (light gray)
   code: {
-    backgroundColor: '#f1f3f4',
-    color: '#5f6368',
+    backgroundColor: 'var(--vw-bg-subtle, #f1f3f4)',
+    color: 'var(--vw-text-tertiary, #5f6368)',
     padding: '2px 8px',
     borderRadius: '4px',
     fontFamily: typography.fontFamily.mono,

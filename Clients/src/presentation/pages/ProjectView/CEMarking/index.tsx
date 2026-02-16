@@ -146,7 +146,7 @@ const getTableHeaderRowStyles = () => ({
 });
 
 const getTableHeaderCellStyles = () => ({
-  color: "#475467",
+  color: theme.palette.text.tertiary,
   fontSize: "13px",
   fontWeight: 400,
   padding: "12px 10px",
@@ -868,7 +868,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                   sx={{
                     height: 8,
                     borderRadius: 4,
-                    backgroundColor: "#F3F4F6",
+                    backgroundColor: theme.palette.background.subtle,
                     "& .MuiLinearProgress-bar": {
                       backgroundColor: "#FBBF24",
                       borderRadius: 4,
@@ -901,7 +901,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                   sx={{
                     height: 8,
                     borderRadius: 4,
-                    backgroundColor: "#F3F4F6",
+                    backgroundColor: theme.palette.background.subtle,
                     "& .MuiLinearProgress-bar": {
                       backgroundColor: "#FBBF24",
                       borderRadius: 4,
@@ -957,7 +957,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
               sx={{
                 height: 6,
                 borderRadius: 3,
-                backgroundColor: "#F3F4F6",
+                backgroundColor: theme.palette.background.subtle,
                 "& .MuiLinearProgress-bar": {
                   backgroundColor: "#FBBF24",
                   borderRadius: 3,
@@ -1142,7 +1142,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                     {data.declarationDocument}
                   </VWLink>
                 ) : (
-                  <Typography sx={{ color: "#667085", fontSize: "14px" }}>
+                  <Typography sx={{ color: theme.palette.other.icon, fontSize: "14px" }}>
                     No declaration document linked
                   </Typography>
                 )}
@@ -1157,11 +1157,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                     width: "100%",
                     height: 34,
                     fontSize: 13,
-                    borderColor: "#D1D5DB",
-                    color: "#374151",
+                    borderColor: theme.palette.border.medium,
+                    color: theme.palette.text.dark,
                     "&:hover": {
-                      borderColor: "#9CA3AF",
-                      backgroundColor: "#F9FAFB",
+                      borderColor: theme.palette.text.muted,
+                      backgroundColor: theme.palette.background.accent,
                     },
                   }}
                 />
@@ -1276,11 +1276,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                     width: "100%",
                     height: 34,
                     fontSize: 13,
-                    borderColor: "#D1D5DB",
-                    color: "#374151",
+                    borderColor: theme.palette.border.medium,
+                    color: theme.palette.text.dark,
                     "&:hover": {
-                      borderColor: "#9CA3AF",
-                      backgroundColor: "#F9FAFB",
+                      borderColor: theme.palette.text.muted,
+                      backgroundColor: theme.palette.background.accent,
                     },
                   }}
                 />
@@ -1540,9 +1540,9 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
                         display: "flex",
                         alignItems: "center",
                         cursor: "pointer",
-                        color: "#9CA3AF",
+                        color: theme.palette.text.muted,
                         "&:hover": {
-                          color: "#6B7280",
+                          color: theme.palette.text.accent,
                         },
                       }}
                     >

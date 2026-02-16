@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Typography, Stack, Box } from "@mui/material";
+import { Typography, Stack, Box, useTheme } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { getModelInventoryTimeseries } from "../../../application/repository/modelInventoryHistory.repository";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
@@ -13,12 +13,7 @@ interface ModelInventoryHistoryChartProps {
   height?: number;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  [ModelInventoryStatus.APPROVED]: "#10B981", // Emerald green
-  [ModelInventoryStatus.PENDING]: "#F59E0B", // Amber
-  [ModelInventoryStatus.RESTRICTED]: "#EF4444", // Red
-  [ModelInventoryStatus.BLOCKED]: "#DC2626", // Dark red
-};
+// STATUS_COLORS are now defined inside the component to access theme tokens
 
 const TIMEFRAME_OPTIONS = [
   { value: "7days", label: "7 Days" },
@@ -33,7 +28,15 @@ export function ModelInventoryHistoryChart({
   parameter = "status",
   height = 400,
 }: ModelInventoryHistoryChartProps) {
+  const theme = useTheme();
   const storageKey = "analytics_timeframe_model";
+
+  const STATUS_COLORS: Record<string, string> = {
+    [ModelInventoryStatus.APPROVED]: theme.palette.chart.emerald,
+    [ModelInventoryStatus.PENDING]: theme.palette.chart.amber,
+    [ModelInventoryStatus.RESTRICTED]: theme.palette.chart.red,
+    [ModelInventoryStatus.BLOCKED]: theme.palette.chart.darkRed,
+  };
 
   // Initialize timeframe from localStorage or default
   const [timeframe, setTimeframe] = useState<string>(() => {

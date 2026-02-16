@@ -147,11 +147,12 @@ const StandardModal: React.FC<StandardModalProps> = ({
   hideFooter = false,
   headerActions,
   expandedHeight = false,
-  submitButtonColor = "#13715B",
+  submitButtonColor,
   showCancelButton = true,
   fitContent = false,
 }) => {
   const theme = useTheme();
+  const resolvedSubmitButtonColor = submitButtonColor || theme.palette.primary.main;
   return (
     <Modal
       open={isOpen}
@@ -349,10 +350,10 @@ const StandardModal: React.FC<StandardModalProps> = ({
                     sx={{
                       minWidth: "80px",
                       height: "34px",
-                      backgroundColor: submitButtonColor,
+                      backgroundColor: resolvedSubmitButtonColor,
                       "&:hover:not(.Mui-disabled)": {
-                        backgroundColor: submitButtonColor === "#13715B" ? theme.palette.primary.dark : submitButtonColor,
-                        filter: submitButtonColor !== "#13715B" ? "brightness(0.9)" : undefined,
+                        backgroundColor: !submitButtonColor ? theme.palette.primary.dark : resolvedSubmitButtonColor,
+                        filter: submitButtonColor ? "brightness(0.9)" : undefined,
                       },
                       "&.Mui-disabled": {
                         backgroundColor: theme.palette.border.input,

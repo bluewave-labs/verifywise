@@ -56,14 +56,14 @@ const FileListItem: React.FC<{
     alignItems="center"
     sx={{
       ...styles.fileItem,
-      backgroundColor: isPending ? "#FFFBEB" : "transparent",
-      border: isPending ? "1px solid #FEF3C7" : undefined,
+      backgroundColor: isPending ? theme.palette.status.warning.bg : "transparent",
+      border: isPending ? `1px solid ${theme.palette.status.warning.light}` : undefined,
       borderRadius: isPending ? "4px" : undefined,
       padding: isPending ? "8px 12px" : styles.fileItem.padding,
     }}
   >
     <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-      <FileIcon size={16} color={isPending ? "#92400E" : theme.palette.text.muted} />
+      <FileIcon size={16} color={isPending ? theme.palette.status.warning.text : theme.palette.text.muted} />
       {!isPending && onDownloadClick ? (
         <Link
           component="button"
@@ -80,7 +80,7 @@ const FileListItem: React.FC<{
           variant="body2"
           sx={{
             ...styles.fileName,
-            color: isPending ? "#92400E" : undefined,
+            color: isPending ? theme.palette.status.warning.text : undefined,
           }}
         >
           {file.fileName}
@@ -89,7 +89,7 @@ const FileListItem: React.FC<{
       {isPending && (
         <Typography
           variant="caption"
-          sx={{ color: "#B45309", ml: 1 }}
+          sx={{ color: theme.palette.status.warning.text, ml: 1 }}
         >
           (pending)
         </Typography>
@@ -110,7 +110,7 @@ const FileListItem: React.FC<{
         onClick={() => onDeleteClick(file.id, file.fileName)}
         title={isPending ? "Remove" : "Delete"}
       >
-        <DeleteIcon size={16} color={isPending ? "#92400E" : undefined} />
+        <DeleteIcon size={16} color={isPending ? theme.palette.status.warning.text : undefined} />
       </IconButton>
     </Stack>
   </Stack>
@@ -242,7 +242,7 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
             sx={{
               fontSize: 12,
               fontWeight: 600,
-              color: "#92400E",
+              color: theme.palette.status.warning.text,
               mb: 1,
             }}
           >

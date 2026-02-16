@@ -9,5 +9,5 @@
 }
 
 .tab-item.active:hover {
-  background-color: #fff;
+  background-color: var(--vw-bg-main, #fff);
 }

@@ -296,11 +296,11 @@ const LLMKeys = () => {
         >
           <Box>
             <Typography
-              sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}
+              sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}
             >
               LLM Keys
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5, mb: 3 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, mt: 0.5, mb: 3 }}>
               Manage your LLM keys for access to VerifyWise Advisor.
             </Typography>
           </Box>
@@ -312,9 +312,9 @@ const LLMKeys = () => {
               onClick={() => setIsCreateModalOpen(true)}
               isDisabled={isDisabled}
               sx={{
-                backgroundColor: "#13715B",
-                color: "#fff",
-                "&:hover": { backgroundColor: "#0e5c47" },
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.background.main,
+                "&:hover": { backgroundColor: theme.palette.primary.dark },
               }}
             />
           )}
@@ -327,11 +327,11 @@ const LLMKeys = () => {
         ) : keys.length === 0 ? (
           <Box
             sx={{
-              border: "2px dashed #e5e7eb",
+              border: `2px dashed ${theme.palette.border.input}`,
               borderRadius: "12px",
               p: 6,
               textAlign: "center",
-              backgroundColor: "#fafbfc",
+              backgroundColor: theme.palette.background.accent,
             }}
           >
             <Box
@@ -339,7 +339,7 @@ const LLMKeys = () => {
                 width: 56,
                 height: 56,
                 borderRadius: "50%",
-                backgroundColor: "#f0fdf4",
+                backgroundColor: theme.palette.status.success.bg,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -347,14 +347,14 @@ const LLMKeys = () => {
                 mb: 2,
               }}
             >
-              <PlusIcon size={24} color="#13715B" />
+              <PlusIcon size={24} color={theme.palette.primary.main} />
             </Box>
             <Typography
-              sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}
+              sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}
             >
               No LLM keys yet
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.other.icon, mb: 3 }}>
               Add your first LLM API key to enable access to your VerifyWise
               Advisor.
             </Typography>
@@ -364,9 +364,9 @@ const LLMKeys = () => {
               onClick={() => setIsCreateModalOpen(true)}
               isDisabled={isDisabled}
               sx={{
-                backgroundColor: "#13715B",
-                color: "#fff",
-                "&:hover": { backgroundColor: "#0e5c47" },
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.background.main,
+                "&:hover": { backgroundColor: theme.palette.primary.dark },
               }}
             />
           </Box>
@@ -382,11 +382,11 @@ const LLMKeys = () => {
                   onMouseEnter={() => setHoveredKeyId(key.id)}
                   onMouseLeave={() => setHoveredKeyId(null)}
                   sx={{
-                    border: "1.5px solid #eaecf0",
+                    border: `1.5px solid ${theme.palette.border.light}`,
                     borderRadius: "4px",
                     p: 4,
                     backgroundColor:
-                      hoveredKeyId === key.id ? "#f8fffe" : "#ffffff",
+                      hoveredKeyId === key.id ? "#f8fffe" : theme.palette.background.main,
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -414,7 +414,7 @@ const LLMKeys = () => {
                         sx={{
                           fontSize: 14,
                           fontWeight: 600,
-                          color: "#000000",
+                          color: theme.palette.text.primary,
                           letterSpacing: "0.01em",
                         }}
                       >
@@ -422,13 +422,13 @@ const LLMKeys = () => {
                       </Typography>
                     </Box>
                     <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                      <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.other.icon }}>
                         {key.model}
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.muted }}>
                         •
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.muted }}>
                         Added {key.getFormattedCreatedDate()}
                       </Typography>
                     </Box>
@@ -445,7 +445,7 @@ const LLMKeys = () => {
                         opacity: hoveredKeyId === key.id ? 1 : 0.6,
                         transition: "opacity 0.2s ease-in-out",
                         "&:hover": {
-                          backgroundColor: "#FEF2F2",
+                          backgroundColor: theme.palette.status.error.bg,
                         },
                         "&:disabled": {
                           opacity: 0.3,
@@ -463,11 +463,11 @@ const LLMKeys = () => {
                       disableRipple
                       disabled={isDisabled}
                       sx={{
-                        color: "#DC2626",
+                        color: theme.palette.status.error.main,
                         opacity: hoveredKeyId === key.id ? 1 : 0.6,
                         transition: "opacity 0.2s ease-in-out",
                         "&:hover": {
-                          backgroundColor: "#FEF2F2",
+                          backgroundColor: theme.palette.status.error.bg,
                         },
                         "&:disabled": {
                           opacity: 0.3,
@@ -506,9 +506,9 @@ const LLMKeys = () => {
           <Box>
             <Typography
               component="label"
-              sx={{ fontSize: 13, fontWeight: 500, color: "#344054", mb: 0.5, display: "block" }}
+              sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.secondary, mb: 0.5, display: "block" }}
             >
-              Provider <span style={{ color: "#f04438" }}>*</span>
+              Provider <span style={{ color: theme.palette.status.error.text }}>*</span>
             </Typography>
             <Box
               sx={{
@@ -531,16 +531,16 @@ const LLMKeys = () => {
                     borderRadius: "4px",
                     border: "1px solid",
                     borderColor: formData.name === provider.name
-                      ? "#13715B"
-                      : "#d0d5dd",
+                      ? theme.palette.primary.main
+                      : theme.palette.border.dark,
                     backgroundColor: formData.name === provider.name
-                      ? "#f0fdf4"
-                      : "#ffffff",
+                      ? theme.palette.status.success.bg
+                      : theme.palette.background.main,
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                     "&:hover": {
-                      borderColor: "#13715B",
-                      backgroundColor: "#f8fffe",
+                      borderColor: theme.palette.primary.main,
+                      backgroundColor: theme.palette.background.accent,
                     },
                   }}
                 >
@@ -549,7 +549,7 @@ const LLMKeys = () => {
                     alt={provider.name}
                     style={{ width: 24, height: 24 }}
                   />
-                  <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#344054" }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 500, color: theme.palette.text.secondary }}>
                     {provider.name}
                   </Typography>
                 </Box>
@@ -569,7 +569,7 @@ const LLMKeys = () => {
               isRequired
             />
             {modelOptions.length === 0 && (
-              <Typography sx={{ fontSize: 11, color: "#666666", mt: 0.5 }}>
+              <Typography sx={{ fontSize: 11, color: theme.palette.other.icon, mt: 0.5 }}>
                 Select a provider first to see available models
               </Typography>
             )}
@@ -586,7 +586,7 @@ const LLMKeys = () => {
                 placeholder="e.g., claude-3-5-sonnet-20241022"
                 isRequired
               />
-              <Typography sx={{ fontSize: 11, color: "#666666", mt: 0.5 }}>
+              <Typography sx={{ fontSize: 11, color: theme.palette.other.icon, mt: 0.5 }}>
                 Enter the exact model ID from your provider's documentation
               </Typography>
             </Box>
@@ -604,7 +604,7 @@ const LLMKeys = () => {
             />
             {currentProviderConfig && (
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
-                <Typography sx={{ fontSize: 11, color: "#666666" }}>
+                <Typography sx={{ fontSize: 11, color: theme.palette.other.icon }}>
                   Get your API key from
                 </Typography>
                 <Link
@@ -613,7 +613,7 @@ const LLMKeys = () => {
                   rel="noopener noreferrer"
                   sx={{
                     fontSize: 11,
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                     textDecoration: "none",
                     display: "inline-flex",
                     alignItems: "center",

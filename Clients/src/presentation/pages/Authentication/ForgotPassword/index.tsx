@@ -70,7 +70,7 @@ const ForgotPassword: React.FC = () => {
   // Styles for input button
   const buttonStyle = {
     width: 360,
-    backgroundColor: "#fff",
+    backgroundColor: theme.palette.background.main,
   };
 
   return (
@@ -124,7 +124,7 @@ const ForgotPassword: React.FC = () => {
               justifyContent: "center",
               alignItems: "center",
               borderRadius: "12px",
-              border: "2px solid #EAECF0",
+              border: `2px solid ${theme.palette.border.light}`,
               gap: theme.spacing(12),
             }}
           >

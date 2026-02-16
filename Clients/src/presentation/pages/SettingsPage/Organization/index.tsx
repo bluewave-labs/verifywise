@@ -419,7 +419,7 @@ const Organization = () => {
               label="Organization name"
               value={organizationName}
               onChange={handleOrganizationNameChange}
-              sx={{ mb: 2, backgroundColor: "#FFFFFF" }}
+              sx={{ mb: 2, backgroundColor: theme.palette.background.main }}
               error={organizationNameError || undefined}
               disabled={isEditingDisabled}
               placeholder="e.g. My Organization"
@@ -429,7 +429,7 @@ const Organization = () => {
               text="Save"
               sx={{
                 width: 90,
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 border: "1px solid",
                 gap: 2,
                 mt: 3,
@@ -561,7 +561,7 @@ const Organization = () => {
                 sx={{
                   fontSize: 12,
                   textTransform: "none",
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                   "&:hover": {
                     backgroundColor: "transparent !important",
                   },

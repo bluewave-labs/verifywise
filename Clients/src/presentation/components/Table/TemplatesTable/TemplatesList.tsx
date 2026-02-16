@@ -52,7 +52,7 @@ const getCategoryStyles = (category: string) => {
     case "agent":
       return { backgroundColor: "#FEE2E2", color: "#DC2626" };
     default:
-      return { backgroundColor: "#F3F4F6", color: "#6B7280" };
+      return { backgroundColor: "#F3F4F6", color: "#6B7280" }; // themed via component override
   }
 };
 
@@ -115,7 +115,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
               flexShrink: 0,
             }}
           >
-            <FileText size={compact ? 14 : 16} color={isSelected ? theme.palette.background.main : "#6B7280"} />
+            <FileText size={compact ? 14 : 16} color={isSelected ? theme.palette.background.main : theme.palette.text.accent} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
@@ -183,7 +183,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
   if (loading) {
     return (
       <Box sx={{ py: 3, textAlign: "center" }}>
-        <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading templates...</Typography>
+        <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>Loading templates...</Typography>
       </Box>
     );
   }
@@ -191,7 +191,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
   if (templates.length === 0) {
     return (
       <Box sx={{ py: 3, textAlign: "center" }}>
-        <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>No templates available</Typography>
+        <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>No templates available</Typography>
       </Box>
     );
   }
@@ -208,7 +208,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
                   sx={{
                     fontSize: "11px",
                     fontWeight: 600,
-                    color: "#6B7280",
+                    color: theme.palette.text.accent,
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                   }}
@@ -244,7 +244,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
                   sx={{
                     fontSize: "11px",
                     fontWeight: 600,
-                    color: "#6B7280",
+                    color: theme.palette.text.accent,
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                   }}
@@ -282,7 +282,7 @@ const TemplatesList: React.FC<TemplatesListProps> = ({
                   sx={{
                     fontSize: "11px",
                     fontWeight: 600,
-                    color: "#6B7280",
+                    color: theme.palette.text.accent,
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                   }}

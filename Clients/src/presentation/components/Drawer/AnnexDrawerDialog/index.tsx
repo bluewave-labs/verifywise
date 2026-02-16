@@ -1110,7 +1110,7 @@ const VWISO42001AnnexDrawerDialog = ({
                           <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
                             {file.fileName}
                           </Typography>
-                          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                          <Typography sx={{ fontSize: 11, color: theme.palette.text.accent }}>
                             {file.size ? `${(file.size / 1024).toFixed(1)} KB` : ""}
                           </Typography>
                         </Box>

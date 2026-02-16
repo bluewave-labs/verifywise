@@ -358,7 +358,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
                     backgroundColor:
-                      sortConfig.key === "vendor_name" ? "#e8e8e8" : "#fafafa",
+                      sortConfig.key === "vendor_name" ? theme.palette.background.hover : theme.palette.background.accent,
                   }}
                 >
                   <VendorLogo
@@ -413,7 +413,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                         {riskCount} risk{riskCount !== 1 ? "s" : ""}
                       </VWLink>
                     ) : (
-                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                      <Typography variant="body2" sx={{ color: theme.palette.text.muted }}>
                         No risks
                       </Typography>
                     );

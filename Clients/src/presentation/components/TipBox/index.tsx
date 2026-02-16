@@ -74,12 +74,12 @@ const TipBox = ({ entityName }: TipBoxProps) => {
             top: -8,
             right: 16,
             backgroundColor: theme.palette.background.hover,
-            border: "1px solid #E5E5E5",
+            border: `1px solid ${theme.palette.border.input}`,
             borderRadius: "4px",
             padding: "2px 8px",
             fontSize: 10,
             fontWeight: 500,
-            color: "#999",
+            color: theme.palette.text.muted,
             zIndex: 1,
           }}
         >

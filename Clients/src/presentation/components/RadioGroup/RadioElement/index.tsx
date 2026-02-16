@@ -1,16 +1,17 @@
 import styled from "styled-components";
-import { Radio, RadioProps } from "@mui/material";
+import { Radio, RadioProps, useTheme } from "@mui/material";
 import { styles } from "./styles";
 
 const BpIcon = styled("span")(() => ({ ...styles.BpIcon }));
 const BpCheckedIcon = styled(BpIcon)({ ...styles.BpCheckedIcon });
 
 const RadioElement = (props: RadioProps) => {
+  const theme = useTheme();
   return (
     <Radio
       disableRipple
       sx={{
-        color: "#D0D5DD",
+        color: theme.palette.border.dark,
       }}
       checkedIcon={<BpCheckedIcon />}
       icon={<BpIcon />}

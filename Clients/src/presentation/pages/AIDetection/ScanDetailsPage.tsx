@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Collapse, IconButton, Tooltip, Popover } from "@mui/material";
+import { Box, Typography, Collapse, IconButton, Tooltip, Popover, useTheme } from "@mui/material";
 import { TabContext } from "@mui/lab";
 import {
   ArrowLeft,
@@ -310,6 +310,7 @@ interface FilePathItemProps {
 }
 
 function FilePathItem({ path, lineNumber, matchedText, fileUrl }: FilePathItemProps) {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const hasCodeContext = matchedText && matchedText.includes("│");
   const hasContent = !!matchedText;
@@ -386,7 +387,7 @@ function FilePathItem({ path, lineNumber, matchedText, fileUrl }: FilePathItemPr
             onClick={(e) => e.stopPropagation()}
             style={{
               fontFamily: "monospace",
-              color: "#101828",
+              color: theme.palette.text.primary,
               wordBreak: "break-all",
               textDecoration: "none",
             }}
@@ -395,16 +396,16 @@ function FilePathItem({ path, lineNumber, matchedText, fileUrl }: FilePathItemPr
           >
             {path}
             {lineNumber && (
-              <span style={{ color: "#667085", marginLeft: "4px" }}>
+              <span style={{ color: theme.palette.other.icon, marginLeft: "4px" }}>
                 :{lineNumber}
               </span>
             )}
           </a>
         ) : (
-          <span style={{ fontFamily: "monospace", color: "#101828", wordBreak: "break-all" }}>
+          <span style={{ fontFamily: "monospace", color: theme.palette.text.primary, wordBreak: "break-all" }}>
             {path}
             {lineNumber && (
-              <span style={{ color: "#667085", marginLeft: "4px" }}>
+              <span style={{ color: theme.palette.other.icon, marginLeft: "4px" }}>
                 :{lineNumber}
               </span>
             )}
@@ -416,7 +417,7 @@ function FilePathItem({ path, lineNumber, matchedText, fileUrl }: FilePathItemPr
             className="click-for-code-hint"
             sx={{
               ml: "auto",
-              color: "#667085",
+              color: theme.palette.other.icon,
               fontSize: "11px",
               opacity: 0,
               transition: "opacity 0.15s ease",
@@ -464,6 +465,7 @@ interface FindingRowProps {
 }
 
 function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovernanceChange }: FindingRowProps) {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [governanceAnchor, setGovernanceAnchor] = useState<HTMLElement | null>(null);
   const [localStatus, setLocalStatus] = useState<GovernanceStatus | null>(finding.governance_status || null);
@@ -502,15 +504,15 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
   };
 
   const StatusIcon = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].icon : MoreHorizontal;
-  const statusColor = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].color : "#667085";
+  const statusColor = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].color : theme.palette.other.icon;
 
   return (
     <Box
       sx={{
-        border: "1px solid #e4e7ec",
+        border: `1px solid ${theme.palette.border.light}`,
         borderRadius: "4px",
         mb: "8px",
-        backgroundColor: "#fff",
+        backgroundColor: theme.palette.background.main,
       }}
     >
       {/* Header */}
@@ -521,7 +523,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
           p: "8px",
           cursor: "pointer",
           "&:hover": {
-            backgroundColor: "#f9fafb",
+            backgroundColor: theme.palette.background.accent,
           },
         }}
         onClick={() => setExpanded(!expanded)}
@@ -539,7 +541,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
               {finding.name}
             </Typography>
             {finding.description && (
-              <Typography variant="body2" sx={{ color: "#667085", mt: 0.5 }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon, mt: 0.5 }}>
                 {finding.description}
               </Typography>
             )}
@@ -591,18 +593,18 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                   py: "2px",
                   borderRadius: "4px",
                   backgroundColor: LICENSE_RISK_CONFIG[finding.license_risk]?.bgColor || "#f2f4f7",
-                  border: `1px solid ${LICENSE_RISK_CONFIG[finding.license_risk]?.color || "#667085"}20`,
+                  border: `1px solid ${LICENSE_RISK_CONFIG[finding.license_risk]?.color || theme.palette.other.icon}20`,
                   display: "flex",
                   alignItems: "center",
                   gap: "4px",
                 }}
               >
-                <Scale size={12} color={LICENSE_RISK_CONFIG[finding.license_risk]?.color || "#667085"} />
+                <Scale size={12} color={LICENSE_RISK_CONFIG[finding.license_risk]?.color || theme.palette.other.icon} />
                 <Typography
                   sx={{
                     fontSize: "12px",
                     fontWeight: 500,
-                    color: LICENSE_RISK_CONFIG[finding.license_risk]?.color || "#667085",
+                    color: LICENSE_RISK_CONFIG[finding.license_risk]?.color || theme.palette.other.icon,
                   }}
                 >
                   {finding.license_id}
@@ -622,8 +624,8 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
             </Tooltip>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
-            <FileCode size={14} color="#667085" />
-            <Typography variant="body2" sx={{ color: "#667085" }}>
+            <FileCode size={14} color={theme.palette.other.icon} />
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
               {finding.file_count} {finding.file_count === 1 ? "file" : "files"}
             </Typography>
           </Box>
@@ -634,10 +636,10 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
               onClick={handleGovernanceClick}
               disabled={isUpdating}
               sx={{
-                border: "1px solid #e4e7ec",
+                border: `1px solid ${theme.palette.border.light}`,
                 borderRadius: "4px",
                 p: "4px",
-                "&:hover": { backgroundColor: "#f3f4f6" },
+                "&:hover": { backgroundColor: theme.palette.background.subtle },
               }}
             >
               <StatusIcon size={16} color={statusColor} />
@@ -659,7 +661,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
               mt: 0.5,
               borderRadius: "4px",
               boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-              border: "1px solid #e4e7ec",
+              border: `1px solid ${theme.palette.border.light}`,
             },
           },
         }}
@@ -677,8 +679,8 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                   p: "6px 8px",
                   borderRadius: "4px",
                   cursor: "pointer",
-                  backgroundColor: localStatus === status ? "#f3f4f6" : "transparent",
-                  "&:hover": { backgroundColor: "#f3f4f6" },
+                  backgroundColor: localStatus === status ? theme.palette.background.subtle : "transparent",
+                  "&:hover": { backgroundColor: theme.palette.background.subtle },
                 }}
               >
                 <config.icon size={14} color={config.color} />
@@ -688,7 +690,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
           )}
           {localStatus && (
             <>
-              <Box sx={{ borderTop: "1px solid #e4e7ec", my: 0.5 }} />
+              <Box sx={{ borderTop: `1px solid ${theme.palette.border.light}`, my: 0.5 }} />
               <Box
                 onClick={() => handleStatusChange(null)}
                 sx={{
@@ -698,11 +700,11 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
                   p: "6px 8px",
                   borderRadius: "4px",
                   cursor: "pointer",
-                  "&:hover": { backgroundColor: "#f3f4f6" },
+                  "&:hover": { backgroundColor: theme.palette.background.subtle },
                 }}
               >
-                <MoreHorizontal size={14} color="#667085" />
-                <Typography sx={{ fontSize: "13px", color: "#667085" }}>Clear status</Typography>
+                <MoreHorizontal size={14} color={theme.palette.other.icon} />
+                <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>Clear status</Typography>
               </Box>
             </>
           )}
@@ -711,7 +713,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
 
       {/* Expanded Content */}
       <Collapse in={expanded}>
-        <Box sx={{ p: "8px", borderTop: "1px solid #e4e7ec" }}>
+        <Box sx={{ p: "8px", borderTop: `1px solid ${theme.palette.border.light}` }}>
           <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
             Found in:
           </Typography>
@@ -719,7 +721,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
             sx={{
               maxHeight: 200,
               overflow: "auto",
-              backgroundColor: "#f9fafb",
+              backgroundColor: theme.palette.background.accent,
               borderRadius: "4px",
               p: 1,
             }}
@@ -736,7 +738,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
             {finding.file_paths.length > 20 && (
               <Typography
                 variant="body2"
-                sx={{ color: "#667085", fontStyle: "italic", mt: 1, px: 1 }}
+                sx={{ color: theme.palette.other.icon, fontStyle: "italic", mt: 1, px: 1 }}
               >
                 And {finding.file_paths.length - 20} more files...
               </Typography>
@@ -759,6 +761,7 @@ interface SecurityFindingRowProps {
 }
 
 function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: SecurityFindingRowProps) {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
   const borderColor = SEVERITY_BORDER_COLORS[finding.severity];
 
@@ -774,7 +777,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
         border: `1px solid ${borderColor}`,
         borderRadius: "4px",
         mb: "8px",
-        backgroundColor: "#fff",
+        backgroundColor: theme.palette.background.main,
       }}
     >
       {/* Header */}
@@ -785,7 +788,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
           p: "8px",
           cursor: "pointer",
           "&:hover": {
-            backgroundColor: "#f9fafb",
+            backgroundColor: theme.palette.background.accent,
           },
         }}
         onClick={() => setExpanded(!expanded)}
@@ -799,15 +802,15 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
               {finding.name}
             </Typography>
-            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
               in {finding.module_name}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 0.5 }}>
-            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
               {finding.cwe_id}
             </Typography>
-            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+            <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
               {finding.owasp_ml_id}
             </Typography>
           </Box>
@@ -826,8 +829,8 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             </Tooltip>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
-            <FileCode size={14} color="#667085" />
-            <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+            <FileCode size={14} color={theme.palette.other.icon} />
+            <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
               {finding.file_count} {finding.file_count === 1 ? "file" : "files"}
             </Typography>
           </Box>
@@ -836,10 +839,10 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
 
       {/* Expanded Content */}
       <Collapse in={expanded}>
-        <Box sx={{ p: "8px", borderTop: "1px solid #e4e7ec" }}>
+        <Box sx={{ p: "8px", borderTop: `1px solid ${theme.palette.border.light}` }}>
           {/* Description */}
           {finding.description && (
-            <Typography variant="body2" sx={{ color: "#344054", mb: "8px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: "8px" }}>
               {finding.description}
             </Typography>
           )}
@@ -856,7 +859,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             <Box>
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 500, color: "#344054" }}
+                sx={{ fontWeight: 500, color: theme.palette.text.secondary }}
               >
                 CWE
               </Typography>
@@ -870,7 +873,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             <Box>
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 500, color: "#344054" }}
+                sx={{ fontWeight: 500, color: theme.palette.text.secondary }}
               >
                 OWASP ML
               </Typography>
@@ -884,22 +887,22 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             <Box>
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 500, color: "#344054" }}
+                sx={{ fontWeight: 500, color: theme.palette.text.secondary }}
               >
                 Threat type
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 {finding.threat_type}
               </Typography>
             </Box>
             <Box>
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 500, color: "#344054" }}
+                sx={{ fontWeight: 500, color: theme.palette.text.secondary }}
               >
                 Operator
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                 {finding.operator_name}
               </Typography>
             </Box>
@@ -912,7 +915,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             sx={{
               maxHeight: 200,
               overflow: "auto",
-              backgroundColor: "#f9fafb",
+              backgroundColor: theme.palette.background.accent,
               borderRadius: "4px",
               p: 1,
             }}
@@ -929,7 +932,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             {finding.file_paths.length > 20 && (
               <Typography
                 variant="body2"
-                sx={{ color: "#667085", fontStyle: "italic", mt: 1, px: 1 }}
+                sx={{ color: theme.palette.other.icon, fontStyle: "italic", mt: 1, px: 1 }}
               >
                 And {finding.file_paths.length - 20} more files...
               </Typography>
@@ -950,6 +953,7 @@ export default function ScanDetailsPage({
   onBack,
   initialTab = "libraries",
 }: ScanDetailsPageProps) {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [scan, setScan] = useState<ScanResponse | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
@@ -1267,7 +1271,7 @@ export default function ScanDetailsPage({
   if (isLoading && !scan) {
     return (
       <Box sx={{ textAlign: "center" }}>
-        <Typography variant="body1" sx={{ color: "#667085" }}>
+        <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
           Loading scan details...
         </Typography>
       </Box>
@@ -1314,18 +1318,18 @@ export default function ScanDetailsPage({
             )}
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: "28px" }}>
-            <Typography variant="body2" sx={{ color: "#101828", fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 500 }}>
               {formatDuration(scan.scan.duration_ms)}
             </Typography>
-            <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
-            <Typography variant="body2" sx={{ color: "#667085" }}>
+            <Typography sx={{ color: theme.palette.border.dark, fontSize: "12px" }}>•</Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
               {scan.scan.status === "failed" ? "Failed" : "Scanned"}{" "}
               {formatDistanceToNow(new Date(scan.scan.created_at), {
                 addSuffix: true,
               })}
             </Typography>
-            <Typography sx={{ color: "#d0d5dd", fontSize: "12px" }}>•</Typography>
-            <Typography variant="body2" sx={{ color: "#344054" }}>
+            <Typography sx={{ color: theme.palette.border.dark, fontSize: "12px" }}>•</Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
               by {scan.scan.triggered_by.name}
             </Typography>
           </Box>
@@ -1367,7 +1371,7 @@ export default function ScanDetailsPage({
           sx={{
             mb: 4,
             p: 2,
-            backgroundColor: "#fef3f2",
+            backgroundColor: theme.palette.status.error.bg,
             border: "1px solid #fecdca",
             borderRadius: "4px",
             display: "flex",
@@ -1455,7 +1459,7 @@ export default function ScanDetailsPage({
         {/* Libraries Tab */}
         {activeTab === "libraries" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               AI and machine learning libraries detected in the repository. Click on a finding to see file locations.
             </Typography>
             {/* Summary Cards */}
@@ -1469,8 +1473,8 @@ export default function ScanDetailsPage({
             >
               <Box
                 sx={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #d0d5dd",
+                  backgroundColor: theme.palette.background.main,
+                  border: `1px solid ${theme.palette.border.dark}`,
                   borderRadius: "4px",
                   p: 2,
                   textAlign: "center",
@@ -1482,18 +1486,18 @@ export default function ScanDetailsPage({
                   variant="h4"
                   sx={{
                     fontWeight: 600,
-                    color: confidenceFilter === null ? "#13715B" : "#101828",
+                    color: confidenceFilter === null ? theme.palette.primary.main : theme.palette.text.primary,
                   }}
                 >
                   {scan.summary.total}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Total findings
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "#fef3f2",
+                  backgroundColor: theme.palette.status.error.bg,
                   border: "1px solid #fecdca",
                   borderRadius: "4px",
                   p: 2,
@@ -1508,18 +1512,18 @@ export default function ScanDetailsPage({
                   variant="h4"
                   sx={{
                     fontWeight: 600,
-                    color: confidenceFilter === "high" ? "#d92d20" : "#101828",
+                    color: confidenceFilter === "high" ? "#d92d20" : theme.palette.text.primary,
                   }}
                 >
                   {scan.summary.by_confidence.high}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   High confidence
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "#fffaeb",
+                  backgroundColor: theme.palette.status.warning.bg,
                   border: "1px solid #fedf89",
                   borderRadius: "4px",
                   p: 2,
@@ -1534,19 +1538,19 @@ export default function ScanDetailsPage({
                   variant="h4"
                   sx={{
                     fontWeight: 600,
-                    color: confidenceFilter === "medium" ? "#dc6803" : "#101828",
+                    color: confidenceFilter === "medium" ? theme.palette.status.warning.text : theme.palette.text.primary,
                   }}
                 >
                   {scan.summary.by_confidence.medium}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Medium confidence
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #d0d5dd",
+                  backgroundColor: theme.palette.background.main,
+                  border: `1px solid ${theme.palette.border.dark}`,
                   borderRadius: "4px",
                   p: 2,
                   textAlign: "center",
@@ -1555,7 +1559,7 @@ export default function ScanDetailsPage({
                 <Typography variant="h4" sx={{ fontWeight: 600 }}>
                   {scan.scan.files_scanned}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Files scanned
                 </Typography>
               </Box>
@@ -1570,14 +1574,14 @@ export default function ScanDetailsPage({
               {findings.length === 0 ? (
                 <Box
                   sx={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #d0d5dd",
+                    backgroundColor: theme.palette.background.main,
+                    border: `1px solid ${theme.palette.border.dark}`,
                     borderRadius: "4px",
                     p: 4,
                     textAlign: "center",
                   }}
                 >
-                  <Typography variant="body1" sx={{ color: "#667085" }}>
+                  <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                     {confidenceFilter
                       ? `No ${confidenceFilter} confidence findings`
                       : "No AI/ML libraries detected"}
@@ -1614,7 +1618,7 @@ export default function ScanDetailsPage({
                       />
                       <Typography
                         variant="body2"
-                        sx={{ lineHeight: "34px", px: 2, color: "#667085" }}
+                        sx={{ lineHeight: "34px", px: 2, color: theme.palette.other.icon }}
                       >
                         Page {page} of {totalPages}
                       </Typography>
@@ -1639,27 +1643,27 @@ export default function ScanDetailsPage({
         {/* API Calls Tab */}
         {activeTab === "api-calls" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               API calls to AI/ML services detected in the codebase. These represent active usage of AI models and services.
             </Typography>
 
             {/* Summary */}
             <Box
               sx={{
-                backgroundColor: "#fff",
-                border: "1px solid #d0d5dd",
+                backgroundColor: theme.palette.background.main,
+                border: `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "4px",
                 p: "16px",
                 mb: "8px",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Info size={16} color="#667085" />
+                <Info size={16} color={theme.palette.other.icon} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.api_call || 0} API call{(scan.summary.by_finding_type?.api_call || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon, mt: "8px" }}>
                 All API call findings are marked as high confidence. These indicate direct integration with AI services.
               </Typography>
             </Box>
@@ -1683,15 +1687,15 @@ export default function ScanDetailsPage({
                 sx={{
                   p: 4,
                   textAlign: "center",
-                  backgroundColor: "#f9fafb",
+                  backgroundColor: theme.palette.background.accent,
                   borderRadius: "4px",
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: "#667085" }}>
+                <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                   No API calls detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                <Typography variant="body2" sx={{ color: theme.palette.text.muted, mt: 1 }}>
                   API calls to OpenAI, Anthropic, Google AI, and other AI services will appear here
                 </Typography>
               </Box>
@@ -1714,7 +1718,7 @@ export default function ScanDetailsPage({
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
-                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                <Typography sx={{ lineHeight: "34px", color: theme.palette.other.icon, fontSize: "13px" }}>
                   Page {apiCallPage} of {apiCallTotalPages}
                 </Typography>
                 <CustomizableButton
@@ -1732,27 +1736,27 @@ export default function ScanDetailsPage({
         {/* Models Tab */}
         {activeTab === "models" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               Pre-trained AI/ML model references detected in the codebase. These include Hugging Face models, Ollama models, and other model identifiers.
             </Typography>
 
             {/* Summary */}
             <Box
               sx={{
-                backgroundColor: "#fff",
-                border: "1px solid #d0d5dd",
+                backgroundColor: theme.palette.background.main,
+                border: `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "4px",
                 p: "16px",
                 mb: "8px",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Package size={16} color="#667085" />
+                <Package size={16} color={theme.palette.other.icon} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.model_ref || 0} model reference{(scan.summary.by_finding_type?.model_ref || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon, mt: "8px" }}>
                 Model references indicate usage of pre-trained models from Hugging Face Hub, Ollama, and other sources.
               </Typography>
             </Box>
@@ -1776,15 +1780,15 @@ export default function ScanDetailsPage({
                 sx={{
                   p: 4,
                   textAlign: "center",
-                  backgroundColor: "#f9fafb",
+                  backgroundColor: theme.palette.background.accent,
                   borderRadius: "4px",
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: "#667085" }}>
+                <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                   No model references detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                <Typography variant="body2" sx={{ color: theme.palette.text.muted, mt: 1 }}>
                   References to Hugging Face models, Ollama models, and other pre-trained models will appear here
                 </Typography>
               </Box>
@@ -1807,7 +1811,7 @@ export default function ScanDetailsPage({
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
-                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                <Typography sx={{ lineHeight: "34px", color: theme.palette.other.icon, fontSize: "13px" }}>
                   Page {modelPage} of {modelTotalPages}
                 </Typography>
                 <CustomizableButton
@@ -1825,27 +1829,27 @@ export default function ScanDetailsPage({
         {/* RAG Tab */}
         {activeTab === "rag" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               RAG (Retrieval-Augmented Generation) pipeline components detected in the codebase. These include vector databases, document loaders, and embedding models.
             </Typography>
 
             {/* Summary */}
             <Box
               sx={{
-                backgroundColor: "#fff",
-                border: "1px solid #d0d5dd",
+                backgroundColor: theme.palette.background.main,
+                border: `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "4px",
                 p: "16px",
                 mb: "8px",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Info size={16} color="#667085" />
+                <Info size={16} color={theme.palette.other.icon} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.rag_component || 0} RAG component{(scan.summary.by_finding_type?.rag_component || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon, mt: "8px" }}>
                 RAG components indicate usage of vector databases, document loaders, and embedding systems for retrieval-augmented generation.
               </Typography>
             </Box>
@@ -1869,15 +1873,15 @@ export default function ScanDetailsPage({
                 sx={{
                   p: 4,
                   textAlign: "center",
-                  backgroundColor: "#f9fafb",
+                  backgroundColor: theme.palette.background.accent,
                   borderRadius: "4px",
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: "#667085" }}>
+                <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                   No RAG components detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                <Typography variant="body2" sx={{ color: theme.palette.text.muted, mt: 1 }}>
                   Vector databases (Pinecone, Chroma, Qdrant), document loaders, and embedding models will appear here
                 </Typography>
               </Box>
@@ -1900,7 +1904,7 @@ export default function ScanDetailsPage({
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
-                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                <Typography sx={{ lineHeight: "34px", color: theme.palette.other.icon, fontSize: "13px" }}>
                   Page {ragPage} of {ragTotalPages}
                 </Typography>
                 <CustomizableButton
@@ -1918,7 +1922,7 @@ export default function ScanDetailsPage({
         {/* Agents Tab */}
         {activeTab === "agents" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               AI agent frameworks and autonomous systems detected in the codebase. These include LangChain agents, CrewAI, AutoGen, and MCP servers.
             </Typography>
 
@@ -1926,7 +1930,7 @@ export default function ScanDetailsPage({
             {agentFindings.length > 0 && (
               <Box
                 sx={{
-                  backgroundColor: "#fffaeb",
+                  backgroundColor: theme.palette.status.warning.bg,
                   border: "1px solid #fedf89",
                   borderRadius: "4px",
                   p: "16px",
@@ -1951,20 +1955,20 @@ export default function ScanDetailsPage({
             {/* Summary */}
             <Box
               sx={{
-                backgroundColor: "#fff",
-                border: "1px solid #d0d5dd",
+                backgroundColor: theme.palette.background.main,
+                border: `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "4px",
                 p: "16px",
                 mb: "8px",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Info size={16} color="#667085" />
+                <Info size={16} color={theme.palette.other.icon} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.agent || 0} agent framework{(scan.summary.by_finding_type?.agent || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: "#667085", mt: "8px" }}>
+              <Typography variant="body2" sx={{ color: theme.palette.other.icon, mt: "8px" }}>
                 Agent findings are marked as high risk due to their autonomous nature and ability to interact with external systems.
               </Typography>
             </Box>
@@ -1988,15 +1992,15 @@ export default function ScanDetailsPage({
                 sx={{
                   p: 4,
                   textAlign: "center",
-                  backgroundColor: "#f9fafb",
+                  backgroundColor: theme.palette.background.accent,
                   borderRadius: "4px",
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: "#667085" }}>
+                <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                   No AI agents detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#98a2b3", mt: 1 }}>
+                <Typography variant="body2" sx={{ color: theme.palette.text.muted, mt: 1 }}>
                   LangChain agents, CrewAI, AutoGen, MCP servers, and other autonomous AI systems will appear here
                 </Typography>
               </Box>
@@ -2019,7 +2023,7 @@ export default function ScanDetailsPage({
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
-                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                <Typography sx={{ lineHeight: "34px", color: theme.palette.other.icon, fontSize: "13px" }}>
                   Page {agentPage} of {agentTotalPages}
                 </Typography>
                 <CustomizableButton
@@ -2037,7 +2041,7 @@ export default function ScanDetailsPage({
         {/* Secrets Tab */}
         {activeTab === "secrets" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               Hardcoded API keys and secrets detected in the codebase. These should be moved to environment variables or a secrets manager.
             </Typography>
 
@@ -2045,7 +2049,7 @@ export default function ScanDetailsPage({
             {secretFindings.length > 0 && (
               <Box
                 sx={{
-                  backgroundColor: "#fef3f2",
+                  backgroundColor: theme.palette.status.error.bg,
                   border: "1px solid #fecdca",
                   borderRadius: "4px",
                   p: "16px",
@@ -2087,7 +2091,7 @@ export default function ScanDetailsPage({
                 sx={{
                   p: "16px",
                   textAlign: "center",
-                  backgroundColor: "#ecfdf3",
+                  backgroundColor: theme.palette.status.success.bg,
                   border: "1px solid #a6f4c5",
                   borderRadius: "4px",
                   mt: "8px",
@@ -2099,7 +2103,7 @@ export default function ScanDetailsPage({
                 <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#039855", mb: 1 }}>
                   No hardcoded secrets detected
                 </Typography>
-                <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+                <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
                   No API keys, tokens, or other secrets were found in the scanned code.
                 </Typography>
               </Box>
@@ -2122,7 +2126,7 @@ export default function ScanDetailsPage({
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
-                <Typography sx={{ lineHeight: "34px", color: "#667085", fontSize: "13px" }}>
+                <Typography sx={{ lineHeight: "34px", color: theme.palette.other.icon, fontSize: "13px" }}>
                   Page {secretPage} of {secretTotalPages}
                 </Typography>
                 <CustomizableButton
@@ -2140,7 +2144,7 @@ export default function ScanDetailsPage({
         {/* Security Tab */}
         {activeTab === "security" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               Security vulnerabilities found in model files. Serialized models can contain malicious code that executes when loaded.
             </Typography>
             {/* Security Summary Cards */}
@@ -2154,8 +2158,8 @@ export default function ScanDetailsPage({
             >
               <Box
                 sx={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #d0d5dd",
+                  backgroundColor: theme.palette.background.main,
+                  border: `1px solid ${theme.palette.border.dark}`,
                   borderRadius: "4px",
                   p: 2,
                   textAlign: "center",
@@ -2164,13 +2168,13 @@ export default function ScanDetailsPage({
                 <Typography variant="h4" sx={{ fontWeight: 600 }}>
                   {securitySummary?.total || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Total findings
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "#fef3f2",
+                  backgroundColor: theme.palette.status.error.bg,
                   border: "1px solid #fecdca",
                   borderRadius: "4px",
                   p: 2,
@@ -2186,12 +2190,12 @@ export default function ScanDetailsPage({
                   sx={{
                     fontWeight: 600,
                     color:
-                      severityFilter === "critical" ? "#b42318" : "#101828",
+                      severityFilter === "critical" ? "#b42318" : theme.palette.text.primary,
                   }}
                 >
                   {securitySummary?.by_severity.critical || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Critical
                 </Typography>
               </Box>
@@ -2213,18 +2217,18 @@ export default function ScanDetailsPage({
                   sx={{
                     fontWeight: 600,
                     color:
-                      severityFilter === "high" ? "#c4320a" : "#101828",
+                      severityFilter === "high" ? "#c4320a" : theme.palette.text.primary,
                   }}
                 >
                   {securitySummary?.by_severity.high || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   High
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  backgroundColor: "#fffaeb",
+                  backgroundColor: theme.palette.status.warning.bg,
                   border: "1px solid #fedf89",
                   borderRadius: "4px",
                   p: 2,
@@ -2240,12 +2244,12 @@ export default function ScanDetailsPage({
                   sx={{
                     fontWeight: 600,
                     color:
-                      severityFilter === "medium" ? "#b54708" : "#101828",
+                      severityFilter === "medium" ? "#b54708" : theme.palette.text.primary,
                   }}
                 >
                   {securitySummary?.by_severity.medium || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Medium
                 </Typography>
               </Box>
@@ -2267,12 +2271,12 @@ export default function ScanDetailsPage({
                   sx={{
                     fontWeight: 600,
                     color:
-                      severityFilter === "low" ? "#175cd3" : "#101828",
+                      severityFilter === "low" ? "#175cd3" : theme.palette.text.primary,
                   }}
                 >
                   {securitySummary?.by_severity.low || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   Low
                 </Typography>
               </Box>
@@ -2287,7 +2291,7 @@ export default function ScanDetailsPage({
               {securityFindings.length === 0 ? (
                 <Box
                   sx={{
-                    backgroundColor: "#ecfdf3",
+                    backgroundColor: theme.palette.status.success.bg,
                     border: "1px solid #a6f4c5",
                     borderRadius: "4px",
                     p: 4,
@@ -2321,8 +2325,8 @@ export default function ScanDetailsPage({
                         mt: 1,
                       }}
                     >
-                      <Info size={14} color="#667085" />
-                      <Typography variant="body2" sx={{ color: "#667085" }}>
+                      <Info size={14} color={theme.palette.other.icon} />
+                      <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                         Note: This scan checks for known malicious patterns only.
                         A clean result does not guarantee the model is safe.
                       </Typography>
@@ -2361,7 +2365,7 @@ export default function ScanDetailsPage({
                       />
                       <Typography
                         variant="body2"
-                        sx={{ lineHeight: "34px", px: 2, color: "#667085" }}
+                        sx={{ lineHeight: "34px", px: 2, color: theme.palette.other.icon }}
                       >
                         Page {securityPage} of {securityTotalPages}
                       </Typography>
@@ -2385,7 +2389,7 @@ export default function ScanDetailsPage({
             {/* Model files scanned info */}
             {securitySummary && (
               <Box sx={{ mt: 4 }}>
-                <Typography variant="body2" sx={{ color: "#667085" }}>
+                <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                   {securitySummary.model_files_scanned} model{" "}
                   {securitySummary.model_files_scanned === 1 ? "file" : "files"}{" "}
                   scanned
@@ -2398,19 +2402,19 @@ export default function ScanDetailsPage({
         {/* Compliance Tab */}
         {activeTab === "compliance" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: "#667085", mb: "16px" }}>
+            <Typography variant="body2" sx={{ color: theme.palette.other.icon, mb: "16px" }}>
               EU AI Act compliance mapping based on detected AI components. Review these requirements to ensure your AI system meets regulatory obligations.
             </Typography>
 
             {complianceLoading ? (
               <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography variant="body1" sx={{ color: "#667085" }}>
+                <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                   Loading compliance data...
                 </Typography>
               </Box>
             ) : !complianceData ? (
               <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography variant="body1" sx={{ color: "#667085" }}>
+                <Typography variant="body1" sx={{ color: theme.palette.other.icon }}>
                   Unable to load compliance data
                 </Typography>
               </Box>
@@ -2427,8 +2431,8 @@ export default function ScanDetailsPage({
                 >
                   <Box
                     sx={{
-                      backgroundColor: "#fff",
-                      border: "1px solid #d0d5dd",
+                      backgroundColor: theme.palette.background.main,
+                      border: `1px solid ${theme.palette.border.dark}`,
                       borderRadius: "4px",
                       p: 2,
                       textAlign: "center",
@@ -2437,13 +2441,13 @@ export default function ScanDetailsPage({
                     <Typography variant="h4" sx={{ fontWeight: 600 }}>
                       {complianceData.summary.totalRequirements}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#667085" }}>
+                    <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                       Total requirements
                     </Typography>
                   </Box>
                   <Box
                     sx={{
-                      backgroundColor: "#fef3f2",
+                      backgroundColor: theme.palette.status.error.bg,
                       border: "1px solid #fecdca",
                       borderRadius: "4px",
                       p: 2,
@@ -2453,13 +2457,13 @@ export default function ScanDetailsPage({
                     <Typography variant="h4" sx={{ fontWeight: 600, color: "#b42318" }}>
                       {complianceData.summary.byPriority.high}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#667085" }}>
+                    <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                       High priority
                     </Typography>
                   </Box>
                   <Box
                     sx={{
-                      backgroundColor: "#fffaeb",
+                      backgroundColor: theme.palette.status.warning.bg,
                       border: "1px solid #fedf89",
                       borderRadius: "4px",
                       p: 2,
@@ -2469,7 +2473,7 @@ export default function ScanDetailsPage({
                     <Typography variant="h4" sx={{ fontWeight: 600, color: "#b54708" }}>
                       {complianceData.summary.byPriority.medium}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#667085" }}>
+                    <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                       Medium priority
                     </Typography>
                   </Box>
@@ -2479,18 +2483,18 @@ export default function ScanDetailsPage({
                   >
                     <Box
                       sx={{
-                        backgroundColor: "#f9fafb",
-                        border: "1px solid #d0d5dd",
+                        backgroundColor: theme.palette.background.accent,
+                        border: `1px solid ${theme.palette.border.dark}`,
                         borderRadius: "4px",
                         p: 2,
                         textAlign: "center",
                         cursor: "help",
                       }}
                     >
-                      <Typography variant="h4" sx={{ fontWeight: 600, color: "#344054" }}>
+                      <Typography variant="h4" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
                         {Math.round(complianceData.summary.coveragePercentage)}%
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "#667085" }}>
+                      <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                         Requirements scope
                       </Typography>
                     </Box>
@@ -2541,7 +2545,7 @@ export default function ScanDetailsPage({
                   {complianceData.checklist.length === 0 ? (
                     <Box
                       sx={{
-                        backgroundColor: "#ecfdf3",
+                        backgroundColor: theme.palette.status.success.bg,
                         border: "1px solid #a6f4c5",
                         borderRadius: "4px",
                         p: 4,
@@ -2554,7 +2558,7 @@ export default function ScanDetailsPage({
                       <Typography variant="body1" sx={{ fontWeight: 500, color: "#039855", mb: 1 }}>
                         No specific compliance actions needed
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "#667085" }}>
+                      <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                         Based on the scan results, no additional compliance requirements were identified.
                       </Typography>
                     </Box>
@@ -2569,9 +2573,9 @@ export default function ScanDetailsPage({
                           <Box
                             key={item.id}
                             sx={{
-                              border: "1px solid #e4e7ec",
+                              border: `1px solid ${theme.palette.border.light}`,
                               borderRadius: "4px",
-                              backgroundColor: "#fff",
+                              backgroundColor: theme.palette.background.main,
                             }}
                           >
                             {/* Checklist item header */}
@@ -2581,7 +2585,7 @@ export default function ScanDetailsPage({
                                 alignItems: "flex-start",
                                 p: "12px",
                                 cursor: "pointer",
-                                "&:hover": { backgroundColor: "#f9fafb" },
+                                "&:hover": { backgroundColor: theme.palette.background.accent },
                               }}
                               onClick={() => {
                                 const newSet = new Set(expandedChecklist);
@@ -2620,8 +2624,8 @@ export default function ScanDetailsPage({
                                         cursor: "help",
                                       }}
                                     >
-                                      <FileText size={12} color="#667085" />
-                                      <Typography sx={{ fontSize: "11px", color: "#667085" }}>
+                                      <FileText size={12} color={theme.palette.other.icon} />
+                                      <Typography sx={{ fontSize: "11px", color: theme.palette.other.icon }}>
                                         {item.articleRef}
                                       </Typography>
                                     </Box>
@@ -2670,7 +2674,7 @@ export default function ScanDetailsPage({
 
                             {/* Expanded content - actionable guidance */}
                             <Collapse in={isExpanded}>
-                              <Box sx={{ px: "12px", pb: "12px", borderTop: "1px solid #e4e7ec", pt: "12px" }}>
+                              <Box sx={{ px: "12px", pb: "12px", borderTop: `1px solid ${theme.palette.border.light}`, pt: "12px" }}>
                                 {(() => {
                                   // Group findings by type to show relevant documentation needs per type
                                   const findingsByType = item.relatedFindings.reduce(
@@ -2712,9 +2716,9 @@ export default function ScanDetailsPage({
                                         const typeLabel = FINDING_TYPE_LABELS[type] || type;
 
                                         return (
-                                          <Box key={type} sx={{ backgroundColor: "#f9fafb", borderRadius: "6px", p: "12px" }}>
+                                          <Box key={type} sx={{ backgroundColor: theme.palette.background.accent, borderRadius: "6px", p: "12px" }}>
                                             {/* Type header with count */}
-                                            <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#344054", mb: "8px" }}>
+                                            <Typography sx={{ fontSize: "13px", fontWeight: 600, color: theme.palette.text.secondary, mb: "8px" }}>
                                               {typeLabel} ({findings.length})
                                             </Typography>
 
@@ -2727,21 +2731,21 @@ export default function ScanDetailsPage({
                                                     px: "8px",
                                                     py: "4px",
                                                     borderRadius: "4px",
-                                                    backgroundColor: "#fff",
-                                                    border: "1px solid #e4e7ec",
+                                                    backgroundColor: theme.palette.background.main,
+                                                    border: `1px solid ${theme.palette.border.light}`,
                                                     display: "flex",
                                                     alignItems: "center",
                                                     gap: "6px",
                                                   }}
                                                 >
                                                   {getProviderIcon(finding.name, 14)}
-                                                  <Typography sx={{ fontSize: "12px", color: "#344054" }}>
+                                                  <Typography sx={{ fontSize: "12px", color: theme.palette.text.secondary }}>
                                                     {finding.name}
                                                   </Typography>
                                                 </Box>
                                               ))}
                                               {findings.length > 10 && (
-                                                <Typography sx={{ fontSize: "12px", color: "#667085", alignSelf: "center" }}>
+                                                <Typography sx={{ fontSize: "12px", color: theme.palette.other.icon, alignSelf: "center" }}>
                                                   +{findings.length - 10} more
                                                 </Typography>
                                               )}
@@ -2750,12 +2754,12 @@ export default function ScanDetailsPage({
                                             {/* Documentation needs for this type */}
                                             {documentationNeeds.length > 0 && (
                                               <Box sx={{ mt: "8px" }}>
-                                                <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#667085", mb: "4px" }}>
+                                                <Typography sx={{ fontSize: "12px", fontWeight: 500, color: theme.palette.other.icon, mb: "4px" }}>
                                                   For each {typeLabel.toLowerCase()}, document:
                                                 </Typography>
                                                 <Box component="ul" sx={{ m: 0, pl: "16px" }}>
                                                   {documentationNeeds.map((need, idx) => (
-                                                    <Typography component="li" key={idx} sx={{ fontSize: "12px", color: "#667085" }}>
+                                                    <Typography component="li" key={idx} sx={{ fontSize: "12px", color: theme.palette.other.icon }}>
                                                       {need}
                                                     </Typography>
                                                   ))}
@@ -2771,7 +2775,7 @@ export default function ScanDetailsPage({
                                                 </Typography>
                                                 <Box component="ul" sx={{ m: 0, pl: "16px" }}>
                                                   {riskFactors.map((risk, idx) => (
-                                                    <Typography component="li" key={idx} sx={{ fontSize: "12px", color: "#667085" }}>
+                                                    <Typography component="li" key={idx} sx={{ fontSize: "12px", color: theme.palette.other.icon }}>
                                                       {risk}
                                                     </Typography>
                                                   ))}
@@ -2784,7 +2788,7 @@ export default function ScanDetailsPage({
 
                                       {/* Fallback if no findings */}
                                       {item.relatedFindings.length === 0 && (
-                                        <Typography sx={{ fontSize: "13px", color: "#667085" }}>
+                                        <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
                                           This requirement applies to AI components detected in the scan. Review your implementation to ensure compliance.
                                         </Typography>
                                       )}
@@ -2802,8 +2806,8 @@ export default function ScanDetailsPage({
 
                 {/* Generated timestamp */}
                 <Box sx={{ mt: 3, display: "flex", alignItems: "center", gap: 1 }}>
-                  <Info size={14} color="#667085" />
-                  <Typography variant="body2" sx={{ color: "#667085" }}>
+                  <Info size={14} color={theme.palette.other.icon} />
+                  <Typography variant="body2" sx={{ color: theme.palette.other.icon }}>
                     Compliance mapping generated {formatDistanceToNow(new Date(complianceData.generatedAt), { addSuffix: true })}
                   </Typography>
                 </Box>

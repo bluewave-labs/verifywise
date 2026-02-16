@@ -230,7 +230,7 @@ function ModelSelector({
 
   return (
     <Box>
-      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.75 }}>
+      <Typography sx={{ fontSize: 12, fontWeight: 600, color: theme.palette.text.secondary, mb: 0.75 }}>
         Model
       </Typography>
       <Box
@@ -243,25 +243,25 @@ function ModelSelector({
           px: 1.5,
           py: 1.25,
           border: "1px solid",
-          borderColor: open ? "#13715B" : "#e5e7eb",
+          borderColor: open ? theme.palette.primary.main : theme.palette.border.light,
           borderRadius: "8px",
           backgroundColor: "#fff",
           cursor: "pointer",
           transition: "all 0.15s ease",
           "&:hover": {
-            borderColor: "#d1d5db",
+            borderColor: theme.palette.border.dark,
           },
         }}
       >
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {renderProviderIcon(provider, 20)}
-          <Typography sx={{ fontSize: 13, color: (selectedModel || (isOpenRouter && model)) ? "#111827" : "#9ca3af" }}>
+          <Typography sx={{ fontSize: 13, color: (selectedModel || (isOpenRouter && model)) ? theme.palette.text.primary : theme.palette.text.tertiary }}>
             {isOpenRouter && model ? model : (selectedModel?.name || "Select a model")}
           </Typography>
         </Stack>
         <ChevronDown
           size={16}
-          color="#6b7280"
+          color=theme.palette.text.accent
           style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
         />
       </Box>
@@ -281,12 +281,12 @@ function ModelSelector({
             sx={{
               mt: 0.5,
               borderRadius: "12px",
-              border: "1px solid #e5e7eb",
+              border: `1px solid ${theme.palette.border.light}`,
               overflow: "hidden",
             }}
           >
             {/* Search */}
-            <Box sx={{ p: 1.5, borderBottom: "1px solid #f3f4f6" }}>
+            <Box sx={{ p: 1.5, borderBottom: `1px solid ${theme.palette.background.fill}` }}>
               <TextField
                 fullWidth
                 size="small"
@@ -298,7 +298,7 @@ function ModelSelector({
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Search size={16} color="#9ca3af" />
+                      <Search size={16} color=theme.palette.text.tertiary />
                     </InputAdornment>
                   ),
                 }}
@@ -306,10 +306,10 @@ function ModelSelector({
                   "& .MuiOutlinedInput-root": {
                     fontSize: 13,
                     borderRadius: "8px",
-                    backgroundColor: "#f9fafb",
-                    "& fieldset": { borderColor: "#e5e7eb" },
-                    "&:hover fieldset": { borderColor: "#d1d5db" },
-                    "&.Mui-focused fieldset": { borderColor: "#13715B" },
+                    backgroundColor: theme.palette.background.alt,
+                    "& fieldset": { borderColor: theme.palette.border.light },
+                    "&:hover fieldset": { borderColor: theme.palette.border.dark },
+                    "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
                   },
                 }}
               />
@@ -321,7 +321,7 @@ function ModelSelector({
               <Box
                 sx={{
                   width: 200,
-                  borderRight: "1px solid #f3f4f6",
+                  borderRight: `1px solid ${theme.palette.background.fill}`,
                   overflowY: "auto",
                   display: "flex",
                   flexDirection: "column",
@@ -343,9 +343,9 @@ function ModelSelector({
                           height: 38,
                           minHeight: 38,
                           cursor: "pointer",
-                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
+                          backgroundColor: isSelected ? theme.palette.primary.softBg : "transparent",
                           "&:hover": {
-                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
+                            backgroundColor: isSelected ? theme.palette.primary.softBg : theme.palette.background.alt,
                           },
                         }}
                       >
@@ -356,7 +356,7 @@ function ModelSelector({
                               sx={{
                                 fontSize: 13,
                                 fontWeight: isSelected ? 600 : 400,
-                                color: isSelected ? "#13715B" : "#374151",
+                                color: isSelected ? theme.palette.primary.main : theme.palette.text.dark,
                                 lineHeight: 1.2,
                               }}
                             >
@@ -370,9 +370,9 @@ function ModelSelector({
                           </Stack>
                         </Stack>
                         {isSelected ? (
-                          <Check size={14} color="#13715B" />
+                          <Check size={14} color=theme.palette.primary.main />
                         ) : (
-                          <ChevronRight size={14} color="#9ca3af" />
+                          <ChevronRight size={14} color=theme.palette.text.tertiary />
                         )}
                       </Box>
                     );
@@ -380,7 +380,7 @@ function ModelSelector({
                 </Box>
 
                 {/* Add provider button */}
-                <Box sx={{ p: 1.5, borderTop: "1px solid #f3f4f6" }}>
+                <Box sx={{ p: 1.5, borderTop: `1px solid ${theme.palette.background.fill}` }}>
                   <Box
                     onClick={(e) => {
                       e.stopPropagation();
@@ -395,14 +395,14 @@ function ModelSelector({
                       py: 1,
                       borderRadius: "8px",
                       cursor: "pointer",
-                      backgroundColor: "#E8F5F1",
+                      backgroundColor: theme.palette.primary.softBg,
                       "&:hover": {
                         backgroundColor: "#D1EDE6",
                       },
                     }}
                   >
-                    <Plus size={16} color="#13715B" />
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#13715B" }}>
+                    <Plus size={16} color=theme.palette.primary.main />
+                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.primary.main }}>
                       Add API key
                     </Typography>
                   </Box>
@@ -438,10 +438,10 @@ function ModelSelector({
                       >
                         <Key size={24} color="#f59e0b" />
                       </Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, mb: 0.5 }}>
                         API key required
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.accent, mb: 2 }}>
                         Add an API key for {PROVIDERS[provider]?.displayName || provider} to use its models
                       </Typography>
                       <Box
@@ -458,7 +458,7 @@ function ModelSelector({
                           py: 1.5,
                           borderRadius: "8px",
                           cursor: "pointer",
-                          backgroundColor: "#13715B",
+                          backgroundColor: theme.palette.primary.main,
                           color: "#fff",
                           fontSize: 13,
                           fontWeight: 500,
@@ -475,10 +475,10 @@ function ModelSelector({
                 ) : isOpenRouter ? (
                   /* Custom model input for OpenRouter */
                   <Box sx={{ p: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: theme.palette.text.dark, mb: 1 }}>
                       Enter Model Name
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.accent, mb: 1.5 }}>
                       OpenRouter supports any model. Enter the model ID (e.g., anthropic/claude-3-opus)
                     </Typography>
                     <TextField
@@ -519,12 +519,12 @@ function ModelSelector({
                         py: 1,
                         borderRadius: "6px",
                         cursor: customModel.trim() ? "pointer" : "not-allowed",
-                        backgroundColor: customModel.trim() ? "#13715B" : "#e5e7eb",
-                        color: customModel.trim() ? "#fff" : "#9ca3af",
+                        backgroundColor: customModel.trim() ? theme.palette.primary.main : theme.palette.border.light,
+                        color: customModel.trim() ? "#fff" : theme.palette.text.tertiary,
                         fontSize: 12,
                         fontWeight: 500,
                         "&:hover": {
-                          backgroundColor: customModel.trim() ? "#0f5f4c" : "#e5e7eb",
+                          backgroundColor: customModel.trim() ? "#0f5f4c" : theme.palette.border.light,
                         },
                       }}
                     >
@@ -533,7 +533,7 @@ function ModelSelector({
                     </Box>
                     
                     {/* Popular OpenRouter models */}
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.tertiary, mt: 2, mb: 1, textTransform: "uppercase" }}>
                       Popular Models
                     </Typography>
                     {[
@@ -558,16 +558,16 @@ function ModelSelector({
                           py: 0.75,
                           borderRadius: "6px",
                           cursor: "pointer",
-                          backgroundColor: model === m.id ? "#E8F5F1" : "transparent",
+                          backgroundColor: model === m.id ? theme.palette.primary.softBg : "transparent",
                           "&:hover": {
-                            backgroundColor: model === m.id ? "#E8F5F1" : "#f9fafb",
+                            backgroundColor: model === m.id ? theme.palette.primary.softBg : theme.palette.background.alt,
                           },
                         }}
                       >
-                        <Typography sx={{ fontSize: 12, fontWeight: model === m.id ? 600 : 400, color: model === m.id ? "#13715B" : "#374151" }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: model === m.id ? 600 : 400, color: model === m.id ? theme.palette.primary.main : theme.palette.text.dark }}>
                           {m.name}
                         </Typography>
-                        <Typography sx={{ fontSize: 10, color: "#9ca3af" }}>
+                        <Typography sx={{ fontSize: 10, color: theme.palette.text.tertiary }}>
                           {m.id}
                         </Typography>
                       </Box>
@@ -575,7 +575,7 @@ function ModelSelector({
                   </Box>
                 ) : filteredModels.length === 0 ? (
                   <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 3 }}>
-                    <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>No models found</Typography>
+                    <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary }}>No models found</Typography>
                   </Box>
                 ) : (
                   filteredModels.map((m) => {
@@ -592,19 +592,19 @@ function ModelSelector({
                           pr: 1.5,
                           py: 1,
                           cursor: "pointer",
-                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
+                          backgroundColor: isSelected ? theme.palette.primary.softBg : "transparent",
                           "&:hover": {
-                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
+                            backgroundColor: isSelected ? theme.palette.primary.softBg : theme.palette.background.alt,
                           },
                         }}
                       >
-                        {isSelected && <Check size={16} color="#13715B" />}
+                        {isSelected && <Check size={16} color=theme.palette.primary.main />}
                         {renderProviderIcon(provider, 20)}
                         <Typography
                           sx={{
                             fontSize: 13,
                             fontWeight: isSelected ? 600 : 400,
-                            color: isSelected ? "#13715B" : "#374151",
+                            color: isSelected ? theme.palette.primary.main : theme.palette.text.dark,
                           }}
                         >
                           {m.name}
@@ -883,7 +883,7 @@ export default function CreateScorerModal({
             {loadingProviders ? (
               <Box sx={{ display: "flex", alignItems: "center", height: 40 }}>
                 <CircularProgress size={20} />
-                <Typography sx={{ ml: 1, fontSize: "13px", color: "#6B7280" }}>
+                <Typography sx={{ ml: 1, fontSize: "13px", color: theme.palette.text.accent }}>
                   Loading providers...
                 </Typography>
               </Box>
@@ -917,16 +917,16 @@ export default function CreateScorerModal({
                       border: "1px solid #d0d5dd",
                       borderRadius: "8px",
                       cursor: "pointer",
-                      backgroundColor: paramsPopoverOpen ? "#F3F4F6" : "#fff",
+                      backgroundColor: paramsPopoverOpen ? theme.palette.background.fill : "#fff",
                       transition: "all 0.15s ease",
                       "&:hover": {
-                        borderColor: "#9CA3AF",
+                        borderColor: theme.palette.text.tertiary,
                         backgroundColor: "#FAFAFA",
                       },
                     }}
                   >
-                    <Settings size={14} color="#6B7280" />
-                    <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                    <Settings size={14} color=theme.palette.text.accent />
+                    <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>
                       Params
                     </Typography>
                   </Box>
@@ -950,17 +950,17 @@ export default function CreateScorerModal({
                         border: "1px solid #d0d5dd",
                       }}
                     >
-                      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#374151", mb: 2 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: theme.palette.text.dark, mb: 2 }}>
                         Model parameters
                       </Typography>
                       <Stack spacing={2.5}>
                         {/* Temperature */}
                         <Box>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                               Temperature
                             </Typography>
-                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
+                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: theme.palette.text.dark }}>
                               {config.modelParams.temperature.toFixed(1)}
                             </Typography>
                           </Stack>
@@ -977,7 +977,7 @@ export default function CreateScorerModal({
                             max={2}
                             step={0.1}
                             sx={{
-                              color: "#13715B",
+                              color: theme.palette.primary.main,
                               height: 4,
                               "& .MuiSlider-thumb": {
                                 width: 14,
@@ -992,7 +992,7 @@ export default function CreateScorerModal({
 
                         {/* Max Tokens */}
                         <Box>
-                          <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.75 }}>
+                          <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 0.75 }}>
                             Max tokens
                           </Typography>
                           <TextField
@@ -1011,9 +1011,9 @@ export default function CreateScorerModal({
                               "& .MuiOutlinedInput-root": {
                                 fontSize: "13px",
                                 height: 36,
-                                "& fieldset": { borderColor: "#d0d5dd" },
-                                "&:hover fieldset": { borderColor: "#D1D5DB" },
-                                "&.Mui-focused fieldset": { borderColor: "#13715B" },
+                                "& fieldset": { borderColor: theme.palette.border.dark },
+                                "&:hover fieldset": { borderColor: theme.palette.border.dark },
+                                "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
                               },
                             }}
                           />
@@ -1022,10 +1022,10 @@ export default function CreateScorerModal({
                         {/* Top P */}
                         <Box>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                               Top P
                             </Typography>
-                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
+                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: theme.palette.text.dark }}>
                               {config.modelParams.topP.toFixed(2)}
                             </Typography>
                           </Stack>
@@ -1042,7 +1042,7 @@ export default function CreateScorerModal({
                             max={1}
                             step={0.05}
                             sx={{
-                              color: "#13715B",
+                              color: theme.palette.primary.main,
                               height: 4,
                               "& .MuiSlider-thumb": {
                                 width: 14,
@@ -1079,7 +1079,7 @@ export default function CreateScorerModal({
               <Box
                 key={index}
                 sx={{
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${theme.palette.border.light}`,
                   borderRadius: "8px",
                   overflow: "hidden",
                 }}
@@ -1091,8 +1091,8 @@ export default function CreateScorerModal({
                   sx={{
                     px: 1.5,
                     py: 0.75,
-                    backgroundColor: "#F9FAFB",
-                    borderBottom: "1px solid #E5E7EB",
+                    backgroundColor: theme.palette.background.alt,
+                    borderBottom: `1px solid ${theme.palette.border.light}`,
                   }}
                 >
                   <MuiSelect
@@ -1120,7 +1120,7 @@ export default function CreateScorerModal({
                       onClick={() => handleRemoveMessage(index)}
                       sx={{ p: 0.5 }}
                     >
-                      <Trash2 size={14} color="#9CA3AF" />
+                      <Trash2 size={14} color=theme.palette.text.tertiary />
                     </IconButton>
                   )}
                 </Stack>
@@ -1159,11 +1159,11 @@ export default function CreateScorerModal({
               onClick={handleAddMessage}
               sx={{
                 alignSelf: "flex-start",
-                color: "#13715B",
+                color: theme.palette.primary.main,
                 fontSize: "13px",
                 fontWeight: 600,
                 textTransform: "none",
-                "&:hover": { backgroundColor: "#E8F5F1" },
+                "&:hover": { backgroundColor: theme.palette.primary.softBg },
               }}
             />
           </Stack>
@@ -1183,7 +1183,7 @@ export default function CreateScorerModal({
               Choice scores
             </Typography>
             <Typography
-              sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}
+              sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 2 }}
             >
               Choice scores are required when using LLM judge scorers. The
               model will be forced to choose one of the choices using a tool
@@ -1194,12 +1194,12 @@ export default function CreateScorerModal({
               {/* Header */}
               <Stack direction="row" spacing={2}>
                 <Typography
-                  sx={{ flex: 1, fontSize: "12px", color: "#6B7280" }}
+                  sx={{ flex: 1, fontSize: "12px", color: theme.palette.text.accent }}
                 >
                   Choice
                 </Typography>
                 <Typography
-                  sx={{ width: 100, fontSize: "12px", color: "#6B7280", textAlign: "center" }}
+                  sx={{ width: 100, fontSize: "12px", color: theme.palette.text.accent, textAlign: "center" }}
                 >
                   Score (0 to 1)
                 </Typography>
@@ -1235,8 +1235,8 @@ export default function CreateScorerModal({
                       size={16}
                       color={
                         config.choiceScores.length === 1
-                          ? "#D1D5DB"
-                          : "#9CA3AF"
+                          ? theme.palette.border.dark
+                          : theme.palette.text.tertiary
                       }
                     />
                   </IconButton>
@@ -1250,11 +1250,11 @@ export default function CreateScorerModal({
                 onClick={handleAddChoiceScore}
                 sx={{
                   alignSelf: "flex-start",
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                   fontSize: "12px",
                   fontWeight: 600,
                   textTransform: "none",
-                  "&:hover": { backgroundColor: "#E8F5F1" },
+                  "&:hover": { backgroundColor: theme.palette.primary.softBg },
                 }}
               />
             </Stack>
@@ -1274,7 +1274,7 @@ export default function CreateScorerModal({
             >
               Pass threshold
             </Typography>
-            <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}>
+            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent, mb: 2 }}>
               Optionally set a score threshold for passing (0 to 1)
             </Typography>
             <Stack direction="row" alignItems="center" spacing={2}>
@@ -1292,7 +1292,7 @@ export default function CreateScorerModal({
                 valueLabelDisplay="auto"
                 sx={{
                   flex: 1,
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                   "& .MuiSlider-thumb": {
                     backgroundColor: "#fff",
                     border: "2px solid #13715B",

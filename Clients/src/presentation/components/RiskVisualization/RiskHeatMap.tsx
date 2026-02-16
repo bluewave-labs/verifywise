@@ -139,7 +139,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
             width: { xs: 60, sm: 80 },
             height: { xs: 45, sm: 60 },
             backgroundColor: cell.color,
-            border: `2px solid ${isSelected ? "#13715B" : "transparent"}`,
+            border: `2px solid ${isSelected ? theme.palette.primary.main : "transparent"}`,
             borderRadius: 1,
             display: "flex",
             flexDirection: "column",
@@ -152,7 +152,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
                 ? {
                   transform: "scale(1.05)",
                   boxShadow: theme.shadows[4],
-                  borderColor: "#13715B",
+                  borderColor: theme.palette.primary.main,
                 }
                 : {},
           }}
@@ -166,7 +166,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
             variant="h6"
             sx={{
               fontWeight: 700,
-              color: cell.risks.length > 0 ? "#1A1919" : "#9CA3AF",
+              color: cell.risks.length > 0 ? theme.palette.text.primary : theme.palette.text.muted,
               fontSize: 18,
             }}
           >
@@ -176,7 +176,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
             <Typography
               variant="caption"
               sx={{
-                color: "#4B5563",
+                color: theme.palette.text.tertiary,
                 fontSize: 10,
                 lineHeight: 1,
               }}
@@ -239,7 +239,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
                   variant="subtitle2"
                   sx={{
                     fontWeight: 600,
-                    color: "#4B5563",
+                    color: theme.palette.text.tertiary,
                     transform: "rotate(180deg)",
                   }}
                 >
@@ -259,7 +259,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
                     <Box sx={{ minWidth: 80, textAlign: "right", pr: 1 }}>
                       <Typography
                         variant="caption"
-                        sx={{ color: "#6B7280", fontWeight: 500 }}
+                        sx={{ color: theme.palette.text.accent, fontWeight: 500 }}
                       >
                         {getSeverityLabel(row[0].severity)}
                       </Typography>
@@ -283,7 +283,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
                       >
                         <Typography
                           variant="caption"
-                          sx={{ color: "#6B7280", fontWeight: 500 }}
+                          sx={{ color: theme.palette.text.accent, fontWeight: 500 }}
                         >
                           {getLikelihoodLabel(likelihood)}
                         </Typography>
@@ -307,7 +307,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
               >
                 <Typography
                   variant="subtitle2"
-                  sx={{ fontWeight: 600, color: "#4B5563" }}
+                  sx={{ fontWeight: 600, color: theme.palette.text.tertiary }}
                 >
                   LIKELIHOOD
                 </Typography>
@@ -322,14 +322,14 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
             display: { xs: "none", lg: "block" },
             minWidth: 200,
             p: 3,
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.background.accent,
             borderRadius: 2,
-            border: "1px solid #E5E7EB",
+            border: `1px solid ${theme.palette.border.input}`,
           }}
         >
           <Typography
             variant="subtitle2"
-            sx={{ color: "#374151", fontWeight: 600, mb: 2 }}
+            sx={{ color: theme.palette.text.dark, fontWeight: 600, mb: 2 }}
           >
             Risk Levels
           </Typography>
@@ -355,19 +355,19 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
                     height: 16,
                     backgroundColor: item.color,
                     borderRadius: 0.5,
-                    border: "1px solid #E5E7EB",
+                    border: `1px solid ${theme.palette.border.input}`,
                   }}
                 />
                 <Stack>
                   <Typography
                     variant="caption"
-                    sx={{ color: "#374151", fontWeight: 500 }}
+                    sx={{ color: theme.palette.text.dark, fontWeight: 500 }}
                   >
                     {item.label}
                   </Typography>
                   <Typography
                     variant="caption"
-                    sx={{ color: "#6B7280", fontSize: "0.7rem" }}
+                    sx={{ color: theme.palette.text.accent, fontSize: "0.7rem" }}
                   >
                     Level {item.level}
                   </Typography>
@@ -385,17 +385,17 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
             bottom: 16,
             left: "50%",
             transform: "translateX(-50%)",
-            backgroundColor: "#FFFFFF",
+            backgroundColor: theme.palette.background.main,
             p: 2,
             borderRadius: 2,
-            border: "1px solid #E5E7EB",
+            border: `1px solid ${theme.palette.border.input}`,
             boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography
               variant="caption"
-              sx={{ color: "#6B7280", fontWeight: 500 }}
+              sx={{ color: theme.palette.text.accent, fontWeight: 500 }}
             >
               Risk Level:
             </Typography>
@@ -420,12 +420,12 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
                     height: 12,
                     backgroundColor: item.color,
                     borderRadius: 0.5,
-                    border: "1px solid #E5E7EB",
+                    border: `1px solid ${theme.palette.border.input}`,
                   }}
                 />
                 <Typography
                   variant="caption"
-                  sx={{ color: "#4B5563", fontSize: "0.7rem" }}
+                  sx={{ color: theme.palette.text.tertiary, fontSize: "0.7rem" }}
                 >
                   {item.label}
                 </Typography>

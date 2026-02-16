@@ -13,7 +13,7 @@ export const getDropdownStyles = (theme: Theme) => ({
   color: theme.palette.text.primary,
   "&:hover": {
     "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(0, 0, 0, 0.23)",
+      borderColor: theme.palette.border.dark,
     },
   },
   "&.Mui-focused": {

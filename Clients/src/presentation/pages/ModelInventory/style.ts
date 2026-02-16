@@ -28,10 +28,10 @@ export const evidenceTypeFilterSelectStyle = {
   minHeight: "34px",
 };
 
-export const addNewModelButtonStyle = {
-  backgroundColor: "#13715B",
-  border: "1px solid #13715B",
-};
+export const addNewModelButtonStyle = (theme: Theme) => ({
+  backgroundColor: theme.palette.primary.main,
+  border: `1px solid ${theme.palette.primary.main}`,
+});
 
 // Summary component styles (ModelInventorySummary.tsx)
 export const summaryContainerStyle = {
@@ -43,7 +43,7 @@ export const summaryContainerStyle = {
 export const summaryCardBoxStyle = (theme: Theme) => ({
   flex: 1,
   minWidth: "200px",
-  backgroundColor: "white",
+  backgroundColor: theme.palette.background.main,
   border: `1px solid ${theme.palette.border.light}`,
   borderRadius: theme.shape.borderRadius,
   padding: "20px",
@@ -76,49 +76,49 @@ export const capabilitiesChipContainerStyle = {
   gap: "8px",
 };
 
-export const capabilityChipStyle = {
+export const capabilityChipStyle = (theme: Theme) => ({
   fontSize: 11,
   height: "20px",
-  backgroundColor: "#f5f5f5",
+  backgroundColor: theme.palette.background.hover,
   borderRadius: 12,
-  color: "#666",
+  color: theme.palette.text.tertiary,
   margin: 0,
   fontWeight: 500,
-};
+});
 
-export const capabilityChipExtraStyle = {
+export const capabilityChipExtraStyle = (theme: Theme) => ({
   fontSize: 11,
   height: "20px",
-  backgroundColor: "#e0e0e0",
+  backgroundColor: theme.palette.border.light,
   borderRadius: 12,
-  color: "#666",
+  color: theme.palette.text.tertiary,
   margin: 0,
   fontWeight: 500,
-};
+});
 
-export const tableRowHoverStyle = {
-  "&:hover": { backgroundColor: "#f5f5f5", cursor: "pointer" },
-};
+export const tableRowHoverStyle = (theme: Theme) => ({
+  "&:hover": { backgroundColor: theme.palette.background.hover, cursor: "pointer" },
+});
 
-export const tableRowDeletingStyle = {
+export const tableRowDeletingStyle = (theme: Theme) => ({
   opacity: 0.6,
-  backgroundColor: "#f5f5f5",
-};
+  backgroundColor: theme.palette.background.hover,
+});
 
-export const loadingContainerStyle = (_: Theme) => ({
-  border: "1px solid #EEEEEE",
+export const loadingContainerStyle = (theme: Theme) => ({
+  border: `1px solid ${theme.palette.border.light}`,
   borderRadius: "4px",
   padding: "60px 20px",
   minHeight: 200,
 });
 
-export const emptyStateContainerStyle = (_: Theme) => ({
-  border: "1px solid #EEEEEE",
+export const emptyStateContainerStyle = (theme: Theme) => ({
+  border: `1px solid ${theme.palette.border.light}`,
   borderRadius: "4px",
   padding: "60px 20px 80px 20px",
   gap: "20px",
   minHeight: 200,
-  backgroundColor: "#FFFFFF", // Ensure white background
+  backgroundColor: theme.palette.background.main,
 });
 
 export const emptyStateTextStyle = {

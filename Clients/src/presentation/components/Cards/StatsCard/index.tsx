@@ -28,7 +28,7 @@ export function StatsCard({ title, completed, total }: StatsCardProps) {
   }, [completedNum, totalNum]);
 
   return (
-    <Stack sx={StatsCardFrame}>
+    <Stack sx={StatsCardFrame(theme)}>
       <Stack
         sx={{
           width: "100%",
@@ -48,7 +48,7 @@ export function StatsCard({ title, completed, total }: StatsCardProps) {
           {`${completedNum} ${title} out of ${totalNum} is completed`}
         </Typography>
       </Stack>
-      <Typography sx={StatsCardRate}>{`${percentage}%`}</Typography>
+      <Typography sx={StatsCardRate(theme)}>{`${percentage}%`}</Typography>
     </Stack>
   );
 }

@@ -1193,7 +1193,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         >
           <Stack>
             <Typography
-              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+              sx={{ fontSize: 16, color: theme.palette.text.secondary, fontWeight: "bold" }}
             >
               {isNew ? (template ? "Create new policy from the template" : "Create new policy") : formData.title}
             </Typography>
@@ -1205,7 +1205,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
                   size="small"
                   sx={{
-                    color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
+                    color: isHistorySidebarOpen ? theme.palette.primary.main : theme.palette.text.muted,
                     padding: "4px",
                     borderRadius: "4px",
                     backgroundColor: isHistorySidebarOpen ? "#E6F4F1" : "transparent",
@@ -1220,7 +1220,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             )}
             <CloseGreyIcon
               size={16}
-              style={{ color: "#98A2B3", cursor: "pointer" }}
+              style={{ color: theme.palette.text.muted, cursor: "pointer" }}
               onClick={handleClose}
             />
           </Stack>
@@ -1289,13 +1289,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                       borderRadius: "3px",
                       backgroundColor: toolbarState[key]
                         ? "#E0F7FA"
-                        : "#FFFFFF",
+                        : theme.palette.background.main,
                       border: "1px solid",
                       borderColor: toolbarState[key]
-                        ? "#13715B"
+                        ? theme.palette.primary.main
                         : "transparent",
                       "&:hover": {
-                        backgroundColor: "#F5F5F5",
+                        backgroundColor: theme.palette.background.hover,
                       },
                     }}
                   >
@@ -1307,7 +1307,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
             <Box
               sx={{
-                border: "1px solid #D0D5DD",
+                border: `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "3px",
                 transition: "border-color 150ms ease-in-out, outline 150ms ease-in-out, box-shadow 150ms ease-in-out",
                 outline: "1px solid transparent",
@@ -1316,8 +1316,8 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   borderColor: "#5FA896",
                 },
                 "&:focus-within": {
-                  borderColor: "#13715B",
-                  outline: "1px solid #13715B",
+                  borderColor: theme.palette.primary.main,
+                  outline: `1px solid ${theme.palette.primary.main}`,
                   outlineOffset: "-1px",
                   boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
                 },
@@ -1346,7 +1346,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                       padding: "16px",
                       border: "none",
                       borderRadius: "3px",
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: theme.palette.background.main,
                       fontSize: theme.typography.fontSize,
                       color: theme.palette.text.primary,
                       boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
@@ -1431,7 +1431,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             pt: 2,
             pb: "16px",
             px: 2,
-            backgroundColor: "#fff",
+            backgroundColor: theme.palette.background.main,
             display: "flex",
             justifyContent: "flex-end",
             gap: "8px",
@@ -1449,19 +1449,19 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     text={isExportingPDF ? "Exporting..." : "PDF"}
                     isDisabled={isExportingPDF || isExportingDOCX}
                     sx={{
-                      backgroundColor: "#fff",
-                      border: "1px solid #D0D5DD",
-                      color: "#344054",
+                      backgroundColor: theme.palette.background.main,
+                      border: `1px solid ${theme.palette.border.dark}`,
+                      color: theme.palette.text.secondary,
                       gap: 1,
                       minWidth: "90px",
                       "&:hover": {
-                        backgroundColor: "#F9FAFB",
-                        borderColor: "#98A2B3",
+                        backgroundColor: theme.palette.background.accent,
+                        borderColor: theme.palette.text.muted,
                       },
                       "&:disabled": {
-                        backgroundColor: "#F9FAFB",
+                        backgroundColor: theme.palette.background.accent,
                         borderColor: "#E4E7EC",
-                        color: "#98A2B3",
+                        color: theme.palette.text.muted,
                       },
                     }}
                     onClick={exportPDF}
@@ -1476,19 +1476,19 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                     text={isExportingDOCX ? "Exporting..." : "Word"}
                     isDisabled={isExportingPDF || isExportingDOCX}
                     sx={{
-                      backgroundColor: "#fff",
-                      border: "1px solid #D0D5DD",
-                      color: "#344054",
+                      backgroundColor: theme.palette.background.main,
+                      border: `1px solid ${theme.palette.border.dark}`,
+                      color: theme.palette.text.secondary,
                       gap: 1,
                       minWidth: "90px",
                       "&:hover": {
-                        backgroundColor: "#F9FAFB",
-                        borderColor: "#98A2B3",
+                        backgroundColor: theme.palette.background.accent,
+                        borderColor: theme.palette.text.muted,
                       },
                       "&:disabled": {
-                        backgroundColor: "#F9FAFB",
+                        backgroundColor: theme.palette.background.accent,
                         borderColor: "#E4E7EC",
-                        color: "#98A2B3",
+                        color: theme.palette.text.muted,
                       },
                     }}
                     onClick={exportDOCX}
@@ -1503,7 +1503,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             text={isSaving ? "Saving..." : (isNew && template ? "Save in organizational policies" : "Save")}
             isDisabled={isSaving}
             sx={{
-              backgroundColor: "#13715B",
+              backgroundColor: theme.palette.primary.main,
               border: "1px solid #13715B",
               gap: 2,
               "&:hover": {
@@ -1511,7 +1511,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 borderColor: "#0F5B4D",
               },
               "&:disabled": {
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 opacity: 0.7,
               },
             }}

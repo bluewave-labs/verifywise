@@ -137,10 +137,10 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
     minWidth: "20px",
     minHeight: "20px",
     "&.Mui-checked": {
-      color: "#13715B",
+      color: theme.palette.primary.main,
     },
     "&.MuiCheckbox-indeterminate": {
-      color: "#13715B",
+      color: theme.palette.primary.main,
     },
     "& .MuiSvgIcon-root": {
       width: "16px",

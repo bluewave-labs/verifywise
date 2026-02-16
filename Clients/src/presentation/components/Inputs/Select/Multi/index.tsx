@@ -270,7 +270,7 @@ const CustomizableMultiSelect = ({
                 }`}</span>
                 {item.email && (
                   <span
-                    style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
+                    style={{ fontSize: 11, color: theme.palette.text.muted, marginLeft: "4px" }}
                   >
                     {`${item.email}`}
                   </span>

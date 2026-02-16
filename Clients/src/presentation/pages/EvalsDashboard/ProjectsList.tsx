@@ -492,8 +492,8 @@ export default function ProjectsList() {
           icon={<Plus size={16} />}
           isDisabled={!canCreateProject}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: theme.palette.primary.main,
+            border: `1px solid ${theme.palette.primary.main}`,
             gap: 2,
           }}
         />

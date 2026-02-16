@@ -73,7 +73,7 @@
   padding: 12px 16px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 13px;
-  color: #999;
+  color: var(--vw-text-muted, #999);
   pointer-events: none;
   user-select: none;
   transition: opacity 0.3s ease-in-out;
@@ -97,7 +97,7 @@
   padding: 32px 16px;
   text-align: center;
   font-size: 14px;
-  color: #999;
+  color: var(--vw-text-muted, #999);
 }
 
 .command-group {
@@ -112,8 +112,8 @@
   padding: 5px 16px;
   font-size: 11px;
   font-weight: 500;
-  color: #aaa;
-  background: #fafafa;
+  color: var(--vw-text-muted, #aaa);
+  background: var(--vw-bg-accent, #fafafa);
   margin: 0 -8px;
   margin-top: 4px;
   margin-bottom: 5px;
@@ -130,24 +130,24 @@
   align-items: center;
   gap: 12px;
   padding: 0 12px;
-  color: #666;
+  color: var(--vw-text-tertiary, #666);
   user-select: none;
   transition: all 150ms ease;
   margin: 0 0 4px 0;
 }
 
 .command-item:hover {
-  background: #f5f5f5;
-  color: #000;
+  background: var(--vw-bg-hover, #f5f5f5);
+  color: var(--vw-text-primary, #000);
 }
 
 .command-item[data-disabled="true"] {
-  color: #ccc;
+  color: var(--vw-border-medium, #ccc);
   cursor: not-allowed;
 }
 
 .command-item:active {
-  background: #ebebeb;
+  background: var(--vw-bg-fill, #ebebeb);
 }
 
 /* Title styling - normal weight by default, bold on selection/hover */
@@ -161,11 +161,11 @@
 
 /* Override MUI Typography colors for hover state */
 .command-item:hover .MuiTypography-root {
-  color: #000;
+  color: var(--vw-text-primary, #000);
 }
 
 .command-item:hover .MuiTypography-caption {
-  color: #666;
+  color: var(--vw-text-tertiary, #666);
   opacity: 0.8;
 }
 
@@ -187,7 +187,7 @@
 
 /* What's New Section */
 .whats-new-section {
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--vw-border-input, #e5e5e5);
   margin-bottom: 12px;
 }
 
@@ -222,9 +222,9 @@
 
 /* Filter bar */
 .command-filter-bar {
-  --filter-border: #e5e5e5;
-  --filter-bg: #fafafa;
-  --dropdown-bg: #ffffff;
+  --filter-border: var(--vw-border-input, #e5e5e5);
+  --filter-bg: var(--vw-bg-accent, #fafafa);
+  --dropdown-bg: var(--vw-bg-main, #ffffff);
 }
 
 /* Filter option hover state */
@@ -243,12 +243,12 @@
 }
 
 .command-list::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
+  background: var(--vw-border-medium, #d4d4d4);
   border-radius: 3px;
 }
 
 .command-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--vw-text-muted, #a8a8a8);
 }
 
 /* Animations */
@@ -336,7 +336,7 @@
   padding: 32px 16px;
   text-align: center;
   font-size: 14px;
-  color: #999;
+  color: var(--vw-text-muted, #999);
 }
 
 .command-loading::after {
@@ -344,8 +344,8 @@
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid #e5e5e5;
-  border-top: 2px solid #000;
+  border: 2px solid var(--vw-border-input, #e5e5e5);
+  border-top: 2px solid var(--vw-text-primary, #000);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-left: 8px;
@@ -360,7 +360,7 @@
 /* Dark mode support - follows app theme via data-theme attribute */
 [data-theme="dark"] .command-dialog-content {
   background: rgba(17, 17, 17, 0.95);
-  border-color: #333;
+  border-color: var(--vw-border-light);
 }
 
 [data-theme="dark"] .command-dialog-content::after {
@@ -368,27 +368,17 @@
 }
 
 [data-theme="dark"] .command-input {
-  color: #fff;
-  border-bottom-color: #333;
+  border-bottom-color: var(--vw-border-light);
 }
 
 [data-theme="dark"] .command-input::placeholder {
   color: transparent;
 }
 
-[data-theme="dark"] .command-input-hint {
-  color: #888;
-}
-
 [data-theme="dark"] .command-group [cmdk-group-heading] {
-  color: #777;
   background: rgba(255, 255, 255, 0.02);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-[data-theme="dark"] .command-item {
-  color: #999;
 }
 
 [data-theme="dark"] .command-item svg {
@@ -398,15 +388,9 @@
 
 [data-theme="dark"] .command-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-}
-
-[data-theme="dark"] .command-item:hover .MuiTypography-root {
-  color: #fff;
 }
 
 [data-theme="dark"] .command-item:hover .MuiTypography-caption {
-  color: #999;
   opacity: 0.8;
 }
 
@@ -424,22 +408,21 @@
 }
 
 [data-theme="dark"] .command-list::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--vw-border-light);
 }
 
 [data-theme="dark"] .command-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--vw-border-medium);
 }
 
 /* Filter bar - Dark Mode */
 [data-theme="dark"] .command-filter-bar {
-  --filter-border: #333;
+  --filter-border: var(--vw-border-light);
   --filter-bg: rgba(255, 255, 255, 0.02);
-  --dropdown-bg: #1a1a1a;
+  --dropdown-bg: var(--vw-bg-alt, #1a1a1a);
 }
 
 [data-theme="dark"] .command-filter-trigger {
-  color: #999 !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
@@ -448,17 +431,13 @@
   background: rgba(255, 255, 255, 0.05) !important;
 }
 
-[data-theme="dark"] .command-filter-option {
-  color: #999 !important;
-}
-
 [data-theme="dark"] .command-filter-option:hover {
   background: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* What's New Section - Dark Mode */
 [data-theme="dark"] .whats-new-section {
-  border-bottom-color: #333;
+  border-bottom-color: var(--vw-border-light);
 }
 
 [data-theme="dark"] .whats-new-big-block {
@@ -483,22 +462,21 @@
   padding: 2px 4px;
   border-radius: 3px;
   font-size: 10px;
-  color: #666;
+  color: var(--vw-text-tertiary, #666);
 }
 
 [data-theme="dark"] .command-footer {
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--vw-border-light);
   background: rgba(255, 255, 255, 0.02);
 }
 
 [data-theme="dark"] .command-footer-key {
   background-color: rgba(255, 255, 255, 0.08);
-  color: #aaa;
 }
 
 [data-theme="dark"] .command-loading::after {
-  border-color: #333;
-  border-top-color: #fff;
+  border-color: var(--vw-border-light);
+  border-top-color: var(--vw-text-primary);
 }
 
 [data-theme="dark"] .command-item:focus-visible {

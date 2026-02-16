@@ -102,7 +102,7 @@ function PresetCard({
     impact_assessment: { bg: "#EFF6FF", color: "#1E40AF" },
     compliance_checklist: { bg: "#FFF7ED", color: "#9A3412" },
     framework_assessment: { bg: "#F5F3FF", color: "#5B21B6" },
-    custom: { bg: "#F9FAFB", color: "#374151" },
+    custom: { bg: theme.palette.background.alt, color: "#374151" },
   };
 
   const modeLabels: Record<string, string> = {
@@ -165,6 +165,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   orgId,
   onAuditCreated,
 }) => {
+  const theme = useTheme();
   // Step control
   const [activeStep, setActiveStep] = useState(0);
 
@@ -422,10 +423,10 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const renderStep1 = () => (
     <Stack spacing={3}>
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 1 }}>
           Select a compliance framework
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#667085", mb: 3 }}>
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, mb: 3 }}>
           Choose the regulatory framework that applies to your bias audit
         </Typography>
       </Box>
@@ -466,10 +467,10 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const renderStep2 = () => (
     <Stack spacing={3}>
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 1 }}>
           {systemLabel.heading}
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#667085", mb: 3 }}>
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, mb: 3 }}>
           {systemLabel.description}
         </Typography>
       </Box>
@@ -526,36 +527,36 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
     return (
     <Stack spacing={3}>
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 1 }}>
           Upload applicant data
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#667085", mb: 2 }}>
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, mb: 2 }}>
           Upload a CSV file where each row represents one applicant. The file must include demographic columns and a binary outcome column.
         </Typography>
       </Box>
 
       {/* Data requirements */}
-      <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: "12px", backgroundColor: "#F9FAFB" }}>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
+      <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: "12px", backgroundColor: theme.palette.background.alt }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 1 }}>
           Required columns
         </Typography>
         <Stack spacing={0.75}>
           {categoryNames.map((name) => (
             <Stack key={name} direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "#13715B", flexShrink: 0 }} />
-              <Typography sx={{ fontSize: 12, color: "#475467" }}>
+              <Box sx={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: theme.palette.primary.main, flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 12, color: theme.palette.text.dark }}>
                 <strong>{name}</strong> — demographic group for each applicant{name === categoryNames[0] && exampleGroups ? ` (e.g., ${exampleGroups})` : ""}
               </Typography>
             </Stack>
           ))}
           <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "#13715B", flexShrink: 0 }} />
-            <Typography sx={{ fontSize: 12, color: "#475467" }}>
+            <Box sx={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: theme.palette.primary.main, flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 12, color: theme.palette.text.dark }}>
               <strong>Outcome</strong> — binary result column (1/yes/selected = selected, 0/no = not selected)
             </Typography>
           </Stack>
         </Stack>
-        <Typography sx={{ fontSize: 11, color: "#98a2b3", mt: 1.5 }}>
+        <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary, mt: 1.5 }}>
           Column names don't need to match exactly — you'll map them in the next section after uploading.
         </Typography>
       </Box>
@@ -563,12 +564,12 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       {/* File upload area */}
       <Box
         sx={{
-          border: "2px dashed #d0d5dd",
+          border: `2px dashed ${theme.palette.border.dark}`,
           borderRadius: "4px",
           p: 4,
           textAlign: "center",
           cursor: "pointer",
-          "&:hover": { borderColor: "#13715B", backgroundColor: "#F9FAFB" },
+          "&:hover": { borderColor: theme.palette.primary.main, backgroundColor: theme.palette.background.alt },
           position: "relative",
         }}
         onClick={() => document.getElementById("csv-upload-input")?.click()}
@@ -582,21 +583,21 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
         />
         {csvFile ? (
           <Stack alignItems="center" spacing={1}>
-            <FileSpreadsheet size={32} color="#13715B" strokeWidth={1.5} />
-            <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#111827" }}>
+            <FileSpreadsheet size={32} color=theme.palette.primary.main strokeWidth={1.5} />
+            <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.primary }}>
               {csvFile.name}
             </Typography>
-            <Typography sx={{ fontSize: 12, color: "#667085" }}>
+            <Typography sx={{ fontSize: 12, color: theme.palette.text.accent }}>
               {csvHeaders.length} columns detected
             </Typography>
           </Stack>
         ) : (
           <Stack alignItems="center" spacing={1}>
-            <Upload size={32} color="#98a2b3" strokeWidth={1.5} />
-            <Typography sx={{ fontSize: 13, color: "#475467" }}>
+            <Upload size={32} color=theme.palette.text.tertiary strokeWidth={1.5} />
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.dark }}>
               Click to upload CSV file
             </Typography>
-            <Typography sx={{ fontSize: 12, color: "#98a2b3" }}>
+            <Typography sx={{ fontSize: 12, color: theme.palette.text.tertiary }}>
               Comma-separated values with demographic columns
             </Typography>
           </Stack>
@@ -606,7 +607,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       {/* Column mapping */}
       {csvFile && csvHeaders.length > 0 && (
         <Stack spacing="8px" mt={3}>
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary }}>
             Column mapping
           </Typography>
 
@@ -623,7 +624,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
               const isOptional = !cat.groups || cat.groups.length === 0;
               return (
                 <Stack key={key} direction="row" alignItems="center" spacing={2}>
-                  <Typography sx={{ fontSize: 13, color: isOptional ? "#98a2b3" : "#475467", minWidth: 140 }}>
+                  <Typography sx={{ fontSize: 13, color: isOptional ? theme.palette.text.tertiary : theme.palette.text.dark, minWidth: 140 }}>
                     {cat.label}{isOptional ? " (optional)" : ""}
                   </Typography>
                   <Select
@@ -641,7 +642,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
             })}
 
           <Stack direction="row" alignItems="center" spacing={2}>
-            <Typography sx={{ fontSize: 13, color: "#475467", minWidth: 140 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.dark, minWidth: 140 }}>
               Outcome column
             </Typography>
             <Select
@@ -660,20 +661,20 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       {csvPreview.length > 0 && (
         <Box mt={3}>
           <Typography
-            sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 2 }}
+            sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 2 }}
           >
             Data preview
           </Typography>
           <Box
             sx={{
-              border: "1px solid #d0d5dd",
+              border: `1px solid ${theme.palette.border.dark}`,
               borderRadius: "4px",
               overflow: "auto",
             }}
           >
             <Box component="table" sx={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <Box component="thead">
-                <Box component="tr" sx={{ backgroundColor: "#F9FAFB" }}>
+                <Box component="tr" sx={{ backgroundColor: theme.palette.background.alt }}>
                   {csvHeaders.map((header, idx) => (
                     <Box
                       component="th"
@@ -683,8 +684,8 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
                         px: 1.5,
                         textAlign: "left",
                         fontWeight: 600,
-                        color: "#344054",
-                        borderBottom: "1px solid #d0d5dd",
+                        color: theme.palette.text.secondary,
+                        borderBottom: `1px solid ${theme.palette.border.dark}`,
                       }}
                     >
                       {header}
@@ -698,14 +699,14 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
                     component="tr"
                     key={rowIdx}
                     sx={{
-                      borderBottom: rowIdx < csvPreview.length - 1 ? "1px solid #EAECF0" : "none",
+                      borderBottom: rowIdx < csvPreview.length - 1 ? `1px solid ${theme.palette.border.light}` : "none",
                     }}
                   >
                     {row.map((cell, cellIdx) => (
                       <Box
                         component="td"
                         key={cellIdx}
-                        sx={{ py: 1, px: 1.5, color: "#475467", fontSize: 12, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        sx={{ py: 1, px: 1.5, color: theme.palette.text.dark, fontSize: 12, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                       >
                         {escapeHtml(cell)}
                       </Box>
@@ -725,10 +726,10 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
   const renderStep4 = () => (
     <Stack spacing={3}>
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 1 }}>
           Review & run
         </Typography>
-        <Typography sx={{ fontSize: 13, color: "#667085", mb: 3 }}>
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.accent, mb: 3 }}>
           Review your configuration and adjust audit settings before running
         </Typography>
       </Box>
@@ -740,40 +741,40 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
       )}
 
       {/* Summary */}
-      <Box sx={{ border: "1px solid #d0d5dd", borderRadius: "4px", p: "8px" }}>
+      <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: "8px" }}>
         <Typography
-          sx={{ fontSize: 13, fontWeight: 600, color: "#344054", mb: 1 }}
+          sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary, mb: 1 }}
         >
           Summary
         </Typography>
         <Stack spacing={1}>
           <Stack direction="row" justifyContent="space-between">
-            <Typography sx={{ fontSize: 13, color: "#667085" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.accent }}>
               Framework
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, fontWeight: 500 }}>
               {fullPreset?.name}
             </Typography>
           </Stack>
           <Stack direction="row" justifyContent="space-between">
-            <Typography sx={{ fontSize: 13, color: "#667085" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.accent }}>
               {systemLabel.reviewLabel}
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#111827" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
               {aedtName}
             </Typography>
           </Stack>
           <Stack direction="row" justifyContent="space-between">
-            <Typography sx={{ fontSize: 13, color: "#667085" }}>Dataset</Typography>
-            <Typography sx={{ fontSize: 13, color: "#111827" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.accent }}>Dataset</Typography>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
               {csvFile?.name}
             </Typography>
           </Stack>
           <Stack direction="row" justifyContent="space-between">
-            <Typography sx={{ fontSize: 13, color: "#667085" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.accent }}>
               Categories
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#111827" }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
               {Object.keys(fullPreset?.categories || {}).length}
             </Typography>
           </Stack>
@@ -782,20 +783,20 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
 
       {/* Audit settings */}
       <Stack spacing={2}>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.secondary }}>
           Audit settings
         </Typography>
         <Stack direction="row" spacing={2}>
           <Stack sx={{ flex: 1 }} spacing={0.5}>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#344054" }}>Threshold (4/5ths rule)</Typography>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.secondary }}>Threshold (4/5ths rule)</Typography>
               <VWTooltip
                 content="Groups with an impact ratio below this threshold are flagged for adverse impact. The standard 4/5ths rule uses 0.80, meaning a group's selection rate must be at least 80% of the highest group's rate."
                 placement="top"
                 maxWidth={300}
               >
                 <Box sx={{ display: "flex", cursor: "help" }}>
-                  <Info size={14} strokeWidth={1.5} color="#98a2b3" />
+                  <Info size={14} strokeWidth={1.5} color=theme.palette.text.tertiary />
                 </Box>
               </VWTooltip>
             </Stack>
@@ -811,14 +812,14 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
           </Stack>
           <Stack sx={{ flex: 1 }} spacing={0.5}>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#344054" }}>Small sample exclusion %</Typography>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: theme.palette.text.secondary }}>Small sample exclusion %</Typography>
               <VWTooltip
                 content="Groups representing less than this percentage of total applicants are excluded from impact ratio calculations. This prevents statistically unreliable results from very small groups. Default is 2%."
                 placement="top"
                 maxWidth={300}
               >
                 <Box sx={{ display: "flex", cursor: "help" }}>
-                  <Info size={14} strokeWidth={1.5} color="#98a2b3" />
+                  <Info size={14} strokeWidth={1.5} color=theme.palette.text.tertiary />
                 </Box>
               </VWTooltip>
             </Stack>

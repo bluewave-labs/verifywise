@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
 import StandardModal from "../../Modals/StandardModal";
 import { CustomizableButton } from "../../button/customizable-button";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
@@ -45,6 +45,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   onReportGenerated,
   reportType,
 }) => {
+  const theme = useTheme();
   const [currentPage, setCurrentPage] = useState<ModalPage>("basic");
   const [responseStatusCode, setResponseStatusCode] = useState<number>(200);
   const { users } = useUsers();

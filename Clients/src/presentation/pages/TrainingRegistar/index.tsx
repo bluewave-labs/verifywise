@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { Box, Stack, Fade } from "@mui/material";
+import { Box, Stack, Fade, useTheme } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -82,6 +82,7 @@ const createAlert = (
 });
 
 const Training: React.FC = () => {
+  const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -569,8 +570,8 @@ const Training: React.FC = () => {
             <CustomizableButton
               variant="contained"
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: theme.palette.primary.main,
+                border: `1px solid ${theme.palette.primary.main}`,
                 gap: 2,
               }}
               text="New training"

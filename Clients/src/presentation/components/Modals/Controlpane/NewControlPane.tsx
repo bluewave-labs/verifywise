@@ -1133,7 +1133,7 @@ const NewControlPane = ({
                   backgroundColor: theme.palette.border.dark,
                   borderRadius: "3px",
                   "&:hover": {
-                    backgroundColor: "#98A2B3",
+                    backgroundColor: theme.palette.text.muted,
                   },
                 },
               }}
@@ -1421,7 +1421,7 @@ const NewControlPane = ({
                       <Typography
                         sx={{
                           fontSize: "13px",
-                          color: "#6B7280",
+                          color: theme.palette.text.accent,
                           mb: 2,
                         }}
                       >
@@ -1508,7 +1508,7 @@ const NewControlPane = ({
                           )}
                           {currentFormData.deletedEvidenceFileIds.length >
                             0 && (
-                            <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                            <Typography sx={{ fontSize: 11, color: theme.palette.status.error.main }}>
                               -{currentFormData.deletedEvidenceFileIds.length}{" "}
                               pending delete
                             </Typography>
@@ -1562,7 +1562,7 @@ const NewControlPane = ({
                                     <Typography
                                       sx={{
                                         fontSize: 11,
-                                        color: "#6B7280",
+                                        color: theme.palette.text.accent,
                                         mt: 0.25,
                                       }}
                                     >
@@ -1781,7 +1781,7 @@ const NewControlPane = ({
                               textAlign: "center",
                               py: 4,
                               mt: 2,
-                              color: "#6B7280",
+                              color: theme.palette.text.accent,
                               border: `2px dashed ${theme.palette.border.medium}`,
                               borderRadius: 1,
                               backgroundColor: theme.palette.background.accent,
@@ -1812,7 +1812,7 @@ const NewControlPane = ({
                       <Typography
                         sx={{
                           fontSize: "13px",
-                          color: "#6B7280",
+                          color: theme.palette.text.accent,
                           mb: 2,
                         }}
                       >
@@ -1900,7 +1900,7 @@ const NewControlPane = ({
                           )}
                           {currentFormData.deletedFeedbackFileIds.length >
                             0 && (
-                            <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                            <Typography sx={{ fontSize: 11, color: theme.palette.status.error.main }}>
                               -{currentFormData.deletedFeedbackFileIds.length}{" "}
                               pending delete
                             </Typography>
@@ -1954,7 +1954,7 @@ const NewControlPane = ({
                                     <Typography
                                       sx={{
                                         fontSize: 11,
-                                        color: "#6B7280",
+                                        color: theme.palette.text.accent,
                                         mt: 0.25,
                                       }}
                                     >
@@ -2173,7 +2173,7 @@ const NewControlPane = ({
                               textAlign: "center",
                               py: 4,
                               mt: 2,
-                              color: "#6B7280",
+                              color: theme.palette.text.accent,
                               border: `2px dashed ${theme.palette.border.medium}`,
                               borderRadius: 1,
                               backgroundColor: theme.palette.background.accent,
@@ -2195,7 +2195,7 @@ const NewControlPane = ({
                       Linked risks
                     </Typography>
 
-                    <Typography variant="body2" color="#6B7280">
+                    <Typography variant="body2" color={theme.palette.text.accent}>
                       Link risks from your risk database to track which risks
                       are being addressed by this subcontrol.
                     </Typography>
@@ -2238,7 +2238,7 @@ const NewControlPane = ({
                           </Typography>
                         )}
                         {currentFormData.deletedRisks.length > 0 && (
-                          <Typography sx={{ fontSize: 11, color: "#D32F2F" }}>
+                          <Typography sx={{ fontSize: 11, color: theme.palette.status.error.main }}>
                             {`-${currentFormData.deletedRisks.length} pending delete`}
                           </Typography>
                         )}
@@ -2318,7 +2318,7 @@ const NewControlPane = ({
                                     sx={{
                                       color: theme.palette.text.tertiary,
                                       "&:hover": {
-                                        color: "#D32F2F",
+                                        color: theme.palette.status.error.main,
                                         backgroundColor:
                                           "rgba(211, 47, 47, 0.08)",
                                       },
@@ -2342,7 +2342,7 @@ const NewControlPane = ({
                           sx={{
                             textAlign: "center",
                             py: 4,
-                            color: "#6B7280",
+                            color: theme.palette.text.accent,
                             border: `2px dashed ${theme.palette.border.medium}`,
                             borderRadius: 1,
                             backgroundColor: theme.palette.background.accent,

@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Divider,
   Stack,
+  useTheme,
 } from "@mui/material";
 import { X, Clock, FileText } from "lucide-react";
 import {
@@ -62,6 +63,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
   onClose,
   fileId,
 }) => {
+  const theme = useTheme();
   const [versions, setVersions] = useState<FileMetadata[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [versionsError, setVersionsError] = useState<string | null>(null);
@@ -168,7 +170,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
           alignItems: "center",
           justifyContent: "space-between",
           padding: "16px 20px",
-          borderBottom: "1px solid #E0E4E9",
+          borderBottom: `1px solid ${theme.palette.border.light}`,
         }}
       >
         <Box>
@@ -176,7 +178,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
             sx={{
               fontSize: 16,
               fontWeight: 600,
-              color: "#101828",
+              color: theme.palette.text.primary,
             }}
           >
             Version history
@@ -185,7 +187,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
             <Typography
               sx={{
                 fontSize: 12,
-                color: "#667085",
+                color: theme.palette.other.icon,
                 mt: 0.5,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -215,7 +217,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
           sx={{
             fontSize: 12,
             fontWeight: 600,
-            color: "#344054",
+            color: theme.palette.text.secondary,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             mb: 1.5,
@@ -232,7 +234,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
           <Box
             sx={{
               padding: "12px",
-              backgroundColor: "#FEF3F2",
+              backgroundColor: theme.palette.status.error.bg,
               borderRadius: "4px",
               border: "1px solid #FECDCA",
               mb: 2,
@@ -250,8 +252,8 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
               mb: 2,
             }}
           >
-            <FileText size={24} color="#98A2B3" />
-            <Typography sx={{ fontSize: 12, color: "#667085", mt: 1 }}>
+            <FileText size={24} color={theme.palette.text.muted} />
+            <Typography sx={{ fontSize: 12, color: theme.palette.other.icon, mt: 1 }}>
               No other versions found
             </Typography>
           </Box>
@@ -268,7 +270,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                     backgroundColor: isCurrent ? "#F0FDF4" : "transparent",
                     border: isCurrent ? "1px solid #BBF7D0" : "1px solid transparent",
                     "&:hover": {
-                      backgroundColor: isCurrent ? "#F0FDF4" : "#F9FAFB",
+                      backgroundColor: isCurrent ? "#F0FDF4" : theme.palette.background.accent,
                     },
                     position: "relative",
                   }}
@@ -282,7 +284,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                         bottom: -1,
                         width: 1,
                         height: 8,
-                        backgroundColor: "#E0E4E9",
+                        backgroundColor: theme.palette.border.light,
                       }}
                     />
                   )}
@@ -293,7 +295,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                         width: 8,
                         height: 8,
                         borderRadius: "50%",
-                        backgroundColor: isCurrent ? "#16A34A" : "#D0D5DD",
+                        backgroundColor: isCurrent ? "#16A34A" : theme.palette.border.dark,
                         flexShrink: 0,
                       }}
                     />
@@ -303,7 +305,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                           sx={{
                             fontSize: 13,
                             fontWeight: isCurrent ? 600 : 400,
-                            color: "#344054",
+                            color: theme.palette.text.secondary,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -339,13 +341,13 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                         )}
                       </Stack>
                       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
-                        <Clock size={10} color="#98A2B3" />
-                        <Typography sx={{ fontSize: 11, color: "#98A2B3" }}>
+                        <Clock size={10} color={theme.palette.text.muted} />
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.muted }}>
                           {formatDate(version.upload_date)}
                         </Typography>
                       </Stack>
                       {version.uploader_name && (
-                        <Typography sx={{ fontSize: 11, color: "#98A2B3", mt: 0.25 }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.text.muted, mt: 0.25 }}>
                           by {version.uploader_name} {version.uploader_surname}
                         </Typography>
                       )}
@@ -364,7 +366,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
           sx={{
             fontSize: 12,
             fontWeight: 600,
-            color: "#344054",
+            color: theme.palette.text.secondary,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             mb: 1.5,
@@ -384,8 +386,8 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
               textAlign: "center",
             }}
           >
-            <Clock size={24} color="#98A2B3" />
-            <Typography sx={{ fontSize: 12, color: "#667085", mt: 1 }}>
+            <Clock size={24} color={theme.palette.text.muted} />
+            <Typography sx={{ fontSize: 12, color: theme.palette.other.icon, mt: 1 }}>
               No changes recorded yet
             </Typography>
           </Box>
@@ -402,20 +404,20 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                   key={`${entry.changed_at}_${entry.id}`}
                   sx={{
                     padding: "10px 12px",
-                    backgroundColor: "#F9FAFB",
+                    backgroundColor: theme.palette.background.accent,
                     borderRadius: "4px",
                     border: "1px solid #F2F4F7",
                   }}
                 >
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: "#344054" }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 500, color: theme.palette.text.secondary }}>
                       {userName}
                     </Typography>
-                    <Typography sx={{ fontSize: 10, color: "#98A2B3" }}>
+                    <Typography sx={{ fontSize: 10, color: theme.palette.text.muted }}>
                       {formatRelativeTime(entry.changed_at)}
                     </Typography>
                   </Stack>
-                  <Typography sx={{ fontSize: 11, color: "#667085", mb: 0.5 }}>
+                  <Typography sx={{ fontSize: 11, color: theme.palette.other.icon, mb: 0.5 }}>
                     {entry.action === "created" && "Created this file"}
                     {entry.action === "updated" &&
                       `Updated ${group.length} field${group.length > 1 ? "s" : ""}`}
@@ -428,7 +430,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                           <Typography
                             sx={{
                               fontSize: 10,
-                              color: "#98A2B3",
+                              color: theme.palette.text.muted,
                               fontWeight: 500,
                               minWidth: 60,
                             }}
@@ -452,7 +454,7 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                           )}
                           {change.old_value && change.old_value !== "-" &&
                             change.new_value && change.new_value !== "-" && (
-                              <Typography sx={{ fontSize: 10, color: "#98A2B3" }}>
+                              <Typography sx={{ fontSize: 10, color: theme.palette.text.muted }}>
                                 →
                               </Typography>
                             )}

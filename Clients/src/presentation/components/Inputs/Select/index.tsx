@@ -220,7 +220,7 @@ const Select: React.FC<SelectProps> = ({
                 <span>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
               </Stack>
               {item.email && (
-                <span style={{ fontSize: 11, color: "#9d9d9d" }}>
+                <span style={{ fontSize: 11, color: theme.palette.text.muted }}>
                   {item.email}
                 </span>
               )}

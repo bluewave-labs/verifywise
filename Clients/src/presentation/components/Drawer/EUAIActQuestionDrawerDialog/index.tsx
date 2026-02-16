@@ -1263,7 +1263,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                                 <Typography
                                   sx={{
                                     fontSize: 11,
-                                    color: "#6B7280",
+                                    color: theme.palette.text.accent,
                                     mt: 0.25,
                                   }}
                                 >
@@ -1456,7 +1456,7 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
                               sx={{
                                 color: "#4C7BF4",
                                 "&:hover": {
-                                  color: "#D32F2F",
+                                  color: theme.palette.status.error.main,
                                   backgroundColor: "rgba(211, 47, 47, 0.08)",
                                 },
                               }}

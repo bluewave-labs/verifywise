@@ -178,7 +178,7 @@ const AssessmentTracker = ({
             primary={
               <Typography
                 color={
-                  index === activeTab ? "#fff" : theme.palette.text.primary
+                  index === activeTab ? theme.palette.background.main : theme.palette.text.primary
                 }
                 sx={{ fontSize: 13 }}
               >

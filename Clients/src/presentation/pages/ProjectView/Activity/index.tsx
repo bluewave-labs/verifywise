@@ -443,7 +443,7 @@ const Activity: React.FC<ActivityProps> = ({ entityType, entityId }) => {
           padding: "0 24px",
         }}
       >
-        <Clock size={48} strokeWidth={1.5} color="#13715B" opacity={0.6} />
+        <Clock size={48} strokeWidth={1.5} color={theme.palette.primary.main} opacity={0.6} />
         <Typography
           sx={{
             fontSize: 16,
@@ -475,9 +475,9 @@ const Activity: React.FC<ActivityProps> = ({ entityType, entityId }) => {
           sx={{
             padding: "12px 16px",
             marginBottom: "24px",
-            backgroundColor: "#F8FAFB",
+            backgroundColor: theme.palette.background.accent,
             borderRadius: "4px",
-            border: `1px solid #d0d5dd`,
+            border: `1px solid ${theme.palette.border.dark}`,
           }}
         >
           <Typography

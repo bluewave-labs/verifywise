@@ -268,7 +268,7 @@ const ApiKeys = () => {
             >
               API Keys
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5, mb: 3 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, mt: 0.5, mb: 3 }}>
               Manage your API keys for programmatic access to VerifyWise
               features
             </Typography>
@@ -281,9 +281,9 @@ const ApiKeys = () => {
               onClick={() => setIsCreateModalOpen(true)}
               isDisabled={isDisabled}
               sx={{
-                backgroundColor: "#13715B",
-                color: "#fff",
-                "&:hover": { backgroundColor: "#0e5c47" },
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.background.main,
+                "&:hover": { backgroundColor: theme.palette.primary.dark },
               }}
             />
           )}
@@ -316,14 +316,14 @@ const ApiKeys = () => {
                 mb: 2,
               }}
             >
-              <PlusIcon size={24} color="#13715B" />
+              <PlusIcon size={24} color={theme.palette.primary.main} />
             </Box>
             <Typography
-              sx={{ fontSize: 15, fontWeight: 600, color: "#000000", mb: 1 }}
+              sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}
             >
               No API keys yet
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#666666", mb: 3 }}>
+            <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, mb: 3 }}>
               Create your first API key to enable programmatic access to your
               account
             </Typography>
@@ -334,9 +334,9 @@ const ApiKeys = () => {
               onClick={() => setIsCreateModalOpen(true)}
               isDisabled={isDisabled}
               sx={{
-                backgroundColor: "#13715B",
-                color: "#fff",
-                "&:hover": { backgroundColor: "#0e5c47" },
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.background.main,
+                "&:hover": { backgroundColor: theme.palette.primary.dark },
               }}
             />
           </Box>
@@ -352,11 +352,11 @@ const ApiKeys = () => {
                   onMouseEnter={() => setHoveredTokenId(token.id)}
                   onMouseLeave={() => setHoveredTokenId(null)}
                   sx={{
-                    border: "1.5px solid #eaecf0",
+                    border: `1.5px solid ${theme.palette.border.light}`,
                     borderRadius: "4px",
                     p: 4,
                     backgroundColor:
-                      hoveredTokenId === token.id ? "#f8fffe" : "#ffffff",
+                      hoveredTokenId === token.id ? "#f8fffe" : theme.palette.background.main,
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -378,7 +378,7 @@ const ApiKeys = () => {
                       sx={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#000000",
+                        color: theme.palette.text.primary,
                         mb: 2,
                         letterSpacing: "0.01em",
                       }}
@@ -402,33 +402,33 @@ const ApiKeys = () => {
                           },
                         }}
                       />
-                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.muted }}>
                         •
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.muted }}>
                         Created{" "}
                         <Typography
                           component="span"
                           sx={{
                             fontSize: 12,
                             fontWeight: 600,
-                            color: "#000000",
+                            color: theme.palette.text.primary,
                           }}
                         >
                           {token.getFormattedCreatedDate()}
                         </Typography>
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.muted }}>
                         •
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      <Typography sx={{ fontSize: 12, color: theme.palette.text.muted }}>
                         {token.isExpired() ? "Expired" : "Expires"}{" "}
                         <Typography
                           component="span"
                           sx={{
                             fontSize: 12,
                             fontWeight: 600,
-                            color: "#000000",
+                            color: theme.palette.text.primary,
                           }}
                         >
                           {token.getFormattedExpiryDate()}
@@ -472,7 +472,7 @@ const ApiKeys = () => {
           title="Create New API Key"
           body={
             <Stack spacing={3}>
-              <Typography sx={{ fontSize: 13, color: "#000000", mb: 1 }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, mb: 1 }}>
                 Create a new API key for programmatic access to your account.
               </Typography>
               <Field
@@ -482,7 +482,7 @@ const ApiKeys = () => {
                 onChange={handleTokenNameChange}
                 error={newTokenNameError || undefined}
                 placeholder="e.g. Production API Key"
-                sx={{ backgroundColor: "#FFFFFF" }}
+                sx={{ backgroundColor: theme.palette.background.main }}
                 isRequired
               />
               <Stack gap={theme.spacing(2)}>
@@ -502,7 +502,7 @@ const ApiKeys = () => {
                   onChange={(e) => setSelectedExpiry(e.target.value as number)}
                   size="small"
                   sx={{
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: theme.palette.background.main,
                     ...getSelectStyles(theme),
                   }}
                 >
@@ -523,8 +523,8 @@ const ApiKeys = () => {
           proceedButtonVariant="contained"
           TitleFontSize={0}
           confirmBtnSx={{
-            backgroundColor: isCreateButtonDisabled ? "#ccc" : "#13715B",
-            color: isCreateButtonDisabled ? "#666" : "#fff",
+            backgroundColor: isCreateButtonDisabled ? "#ccc" : theme.palette.primary.main,
+            color: isCreateButtonDisabled ? "#666" : theme.palette.background.main,
             cursor: isCreateButtonDisabled ? "not-allowed" : "pointer",
             opacity: isCreateButtonDisabled ? 0.6 : 1,
             "&:hover": {
@@ -568,15 +568,15 @@ const ApiKeys = () => {
               <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 2 }}>
                 API key created
               </Typography>
-              <Typography sx={{ fontSize: 13, color: "#000000", mb: 3 }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, mb: 3 }}>
                 Your API key has been created successfully. Make sure to copy it
                 now as it won't be shown again.
               </Typography>
               <Box>
                 <Box
                   sx={{
-                    backgroundColor: "#ecfdf3",
-                    border: "1.5px solid #13715B",
+                    backgroundColor: theme.palette.status.success.bg,
+                    border: `1.5px solid ${theme.palette.primary.main}`,
                     borderRadius: "4px",
                     p: 2.5,
                     display: "flex",
@@ -589,7 +589,7 @@ const ApiKeys = () => {
                     sx={{
                       fontSize: 13,
                       fontFamily: "monospace",
-                      color: "#000000",
+                      color: theme.palette.text.primary,
                       wordBreak: "break-all",
                       flex: 1,
                       fontWeight: 500,
@@ -601,13 +601,13 @@ const ApiKeys = () => {
                     onClick={() => handleCopyToken(newlyCreatedToken, -1)}
                     disableRipple
                     sx={{
-                      color: copiedTokenId === -1 ? "#13715B" : "#666666",
+                      color: copiedTokenId === -1 ? theme.palette.primary.main : theme.palette.text.tertiary,
                       backgroundColor:
                         copiedTokenId === -1 ? "#f0fdf4" : "transparent",
                       transition: "all 0.2s ease-in-out",
                       "&:hover": {
                         backgroundColor: "#f0fdf4",
-                        color: "#13715B",
+                        color: theme.palette.primary.main,
                       },
                     }}
                   >
@@ -625,7 +625,7 @@ const ApiKeys = () => {
                   <Typography
                     sx={{
                       fontSize: 12,
-                      color: "#13715B",
+                      color: theme.palette.primary.main,
                       fontWeight: 500,
                       opacity: copiedTokenId === -1 ? 1 : 0,
                       transition: "opacity 0.2s ease-in-out",
@@ -648,10 +648,10 @@ const ApiKeys = () => {
                 text="I copied the key"
                 variant="contained"
                 sx={{
-                  backgroundColor: "#13715B",
-                  color: "#fff",
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.background.main,
                   px: "32px",
-                  "&:hover": { backgroundColor: "#0e5c47" },
+                  "&:hover": { backgroundColor: theme.palette.primary.dark },
                 }}
                 onClick={handleCloseCreateModal}
               />

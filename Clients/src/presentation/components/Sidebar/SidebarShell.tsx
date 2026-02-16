@@ -285,7 +285,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                     ? "transparent"
                     : isActive
                     ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
-                    : "#FAFAFA",
+                    : theme.palette.background.hover,
                   border: isDisabled
                     ? "1px solid transparent"
                     : isActive
@@ -369,7 +369,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                       fontSize: "10px",
                       fontWeight: 500,
                       backgroundColor: isActive ? "#f8fafc" : "#e2e8f0",
-                      color: "#475569",
+                      color: theme.palette.text.tertiary,
                       borderRadius: "9px",
                       minWidth: "18px",
                       maxWidth: "36px",
@@ -418,7 +418,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                   ? "transparent"
                   : isActive
                   ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
-                  : "#FAFAFA",
+                  : theme.palette.background.hover,
                 border: isDisabled
                   ? "1px solid transparent"
                   : isActive
@@ -502,7 +502,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                     fontSize: "10px",
                     fontWeight: 500,
                     backgroundColor: isActive ? "#f8fafc" : "#e2e8f0",
-                    color: "#475569",
+                    color: theme.palette.text.tertiary,
                     borderRadius: "9px",
                     minWidth: "18px",
                     maxWidth: "36px",
@@ -675,7 +675,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 "& path": { stroke: theme.palette.text.tertiary },
               },
               "&:focus": { outline: "none" },
-              "&:hover": { backgroundColor: "#F9F9F9" },
+              "&:hover": { backgroundColor: theme.palette.background.hover },
               "&:hover svg path": { stroke: theme.palette.primary.main },
             }}
             onClick={() => dispatch(toggleSidebar())}
@@ -936,7 +936,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 pt: theme.spacing(4.5),
                 pb: theme.spacing(1.5),
                 mt: theme.spacing(3),
-                color: "#a0a0a0 !important",
+                color: `${theme.palette.text.muted} !important`,
                 fontSize: "11px !important",
                 fontWeight: 400,
                 letterSpacing: "0.5px",
@@ -979,7 +979,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                       borderRadius: "4px",
                       px: theme.spacing(4),
                       mb: 0.25,
-                      "&:hover": { backgroundColor: "#F9F9F9" },
+                      "&:hover": { backgroundColor: theme.palette.background.hover },
                     }}
                   >
                     <ListItemText

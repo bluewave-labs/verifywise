@@ -271,7 +271,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   textTransform: "none",
                 }}
               >
-                <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                   {formatDate(dataset.createdAt)}
                 </Typography>
               </TableCell>

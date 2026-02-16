@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { IllustrationType } from "../../../domain/enums/onboarding.enum";
 
 interface IllustrationProps {
@@ -56,7 +56,9 @@ const GradientCircles: React.FC = () => (
   </Box>
 );
 
-const GeometricShapes: React.FC = () => (
+const GeometricShapes: React.FC = () => {
+  const theme = useTheme();
+  return (
   <Box
     sx={{
       width: "100%",
@@ -64,7 +66,7 @@ const GeometricShapes: React.FC = () => (
       position: "relative",
       overflow: "hidden",
       borderRadius: "8px",
-      backgroundColor: "#F9FAFB",
+      backgroundColor: theme.palette.background.accent,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",

@@ -109,9 +109,9 @@ const SkipConfirmation: React.FC<SkipConfirmationProps> = ({
               fontSize: 13,
               fontWeight: 500,
               textTransform: "none",
-              backgroundColor: "#13715B",
+              backgroundColor: theme.palette.primary.main,
               "&:hover": {
-                backgroundColor: "#0F5A47",
+                backgroundColor: theme.palette.primary.dark,
               },
             }}
           >

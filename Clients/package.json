@@ -24,7 +24,7 @@
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^10.0.1",
     "@monaco-editor/react": "^4.7.0",
-    "@mui/lab": "^7.0.1-beta.20",
+    "@mui/lab": "^7.0.1-beta.22",
     "@mui/material": "^7.3.6",
     "@mui/styled-engine-sc": "^7.3.7",
     "@mui/x-charts": "^8.27.0",

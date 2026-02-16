@@ -54,6 +54,8 @@ import TabBar from "../../components/TabBar";
 import DeadlineView from "./DeadlineView";
 import { toggleLabelStyle, toggleContainerStyle } from "./style";
 import { TASK_PRIORITY_OPTIONS, PRIORITY_DISPLAY_MAP, PRIORITY_COLOR_MAP } from "../../constants/priorityOptions";
+import { useNavigate } from "react-router-dom";
+
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -101,6 +103,8 @@ const Tasks: React.FC = () => {
     const saved = localStorage.getItem("verifywise_tasks_view_tab");
     return saved || "list";
   });
+
+  const navigate = useNavigate();
 
   // Save tab preference to localStorage
   useEffect(() => {
@@ -341,6 +345,7 @@ const Tasks: React.FC = () => {
           title: "Task created successfully",
           body: "Your new task has been added.",
         });
+
         setTimeout(() => setAlert(null), 4000);
       }
     } catch (error) {
@@ -354,9 +359,15 @@ const Tasks: React.FC = () => {
     }
   };
 
+  // const handleEditTask = (task: ITask) => {
+  //   setEditingTask(task);
+  // };
+
   const handleEditTask = (task: ITask) => {
-    setEditingTask(task);
+    console.log("TaskId", task.id);
+    navigate(`/tasks/${task.id}`);
   };
+  
 
   // Archive handler - called from IconButton's modal confirmation
   const handleArchiveTask = async (taskId: number) => {

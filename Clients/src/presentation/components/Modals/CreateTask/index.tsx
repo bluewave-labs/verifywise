@@ -72,14 +72,22 @@ const CreateTask: FC<ICreateTaskProps> = ({
       setErrors({});
       setIsSubmitting(false);
     } else if (isOpen && mode === "edit" && initialData) {
+      // FIX: Handle date conversion properly without timezone issues
+        const formatDate = (date: any) => {
+            if (!date) return "";
+            // If it's already a string in YYYY-MM-DD format, return as is
+            if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}/.test(date)) {
+                return date;
+            }
+            // Otherwise, parse it and format
+            return dayjs(date).format("YYYY-MM-DD");
+        };
       setValues({
         title: initialData.title,
         description: initialData.description || "",
         priority: initialData.priority,
         status: initialData.status,
-        due_date: initialData.due_date
-          ? dayjs(initialData.due_date).format("YYYY-MM-DD")
-          : "",
+        due_date: formatDate(initialData.due_date),
         assignees: (() => {
           if (!initialData.assignees || !users) return [];
 

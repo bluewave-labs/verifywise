@@ -359,14 +359,33 @@ const Tasks: React.FC = () => {
     }
   };
 
-  // const handleEditTask = (task: ITask) => {
-  //   setEditingTask(task);
-  // };
-
   const handleEditTask = (task: ITask) => {
-    console.log("TaskId", task.id);
     navigate(`/tasks/${task.id}`);
   };
+
+useEffect(() => {
+  const handleTaskUpdated = (event: CustomEvent) => {
+      const { taskId, updatedTask } = event.detail;
+      
+      // Update the tasks list with the updated task
+      setTasks((prev) =>
+          prev.map((task) => (task.id === taskId ? updatedTask : task))
+      );
+
+      // Flash the updated row if visible
+      setFlashRowId(taskId);
+      setTimeout(() => {
+          setFlashRowId(null);
+      }, 3000);
+  };
+
+  // Listen for custom event from TaskDetails page
+  window.addEventListener("taskUpdated", handleTaskUpdated as EventListener);
+
+  return () => {
+      window.removeEventListener("taskUpdated", handleTaskUpdated as EventListener);
+  };
+}, []);
   
 
   // Archive handler - called from IconButton's modal confirmation

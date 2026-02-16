@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
     Card,
     CardContent,
@@ -10,16 +10,18 @@ import {
     Divider,
     Button,
     useTheme,
+    Fade,
 } from "@mui/material";
-import { useParams } from "react-router-dom";
-import { getTaskById } from "../../../application/repository/task.repository";
+import { useParams, useNavigate } from "react-router-dom";
+import { getTaskById, updateTask } from "../../../application/repository/task.repository";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { TaskPriority } from "../../../domain/enums/task.enum";
 import useUsers from "../../../application/hooks/useUsers";
-import { Layers } from "lucide-react";
-import { Home } from "lucide-react";
-import { File } from "lucide-react";
-import { Columns } from "lucide-react";
+import { Layers, Home, File, Columns } from "lucide-react";
+import CreateTask from "../../components/Modals/CreateTask";
+import Alert from "../../components/Alert";
+import { ICreateTaskFormValues } from "../../../domain/interfaces/i.task";
+import dayjs from "dayjs";
 
 /* ================= STATUS & PRIORITY COLORS ================= */
 const STATUS_STYLE_MAP: Record<string, { bg: string; text: string }> = {
@@ -181,20 +183,40 @@ const MappingSection = ({ title, items, type }: any) => (
 /* ================= MAIN COMPONENT ================= */
 const TaskDetails: React.FC = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const { id } = useParams();
 
     const [task, setTask] = useState<TaskModel | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    // Alert state for notifications
+    const [alert, setAlert] = useState<{
+        variant: "success" | "error" | "warning" | "info";
+        title: string;
+        body?: string;
+    } | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
+
     const { users } = useUsers();
 
+    // Fetch task on mount or when id changes
     useEffect(() => {
         const fetchTask = async () => {
             if (!id) return;
             try {
+                setLoading(true);
                 const response = await getTaskById({ id });
                 setTask(response?.data || null);
             } catch (err) {
-                console.error(err);
+                console.error("Error fetching task:", err);
+                setAlert({
+                    variant: "error",
+                    title: "Error loading task",
+                    body: "Failed to load task details. Please try again.",
+                });
+                setShowAlert(true);
             } finally {
                 setLoading(false);
             }
@@ -202,6 +224,90 @@ const TaskDetails: React.FC = () => {
 
         fetchTask();
     }, [id]);
+
+    // Handle Edit Task button click
+    const handleEditTaskClick = useCallback(() => {
+        setIsEditModalOpen(true);
+    }, []);
+
+    // Handle task update from modal
+    const handleTaskUpdate = useCallback(
+        async (formData: ICreateTaskFormValues) => {
+            if (!task?.id) return;
+
+            try {
+                setIsUpdating(true);
+                
+                // Convert assignees from user objects back to IDs for API
+                const updatePayload = {
+                    ...formData,
+                    assignees: formData.assignees.map((assignee: any) =>
+                        typeof assignee === "object" && "id" in assignee
+                            ? assignee.id
+                            : assignee
+                    ),
+                    due_date: formData.due_date 
+                    ? new Date(dayjs(formData.due_date).toISOString())
+                    : undefined,
+                };
+
+                const response = await updateTask({
+                    id: task.id,
+                    body: updatePayload,
+                });
+
+                if (response?.data) {
+                    // Update local state with new task data
+                    setTask(response.data);
+
+                    // Close modal
+                    setIsEditModalOpen(false);
+
+                    // Show success alert
+                    setAlert({
+                        variant: "success",
+                        title: "Task updated successfully",
+                        body: "Your changes have been saved.",
+                    });
+                    setShowAlert(true);
+
+                    // Auto-hide alert after 4 seconds
+                    setTimeout(() => {
+                        setShowAlert(false);
+                        setTimeout(() => setAlert(null), 300);
+                    }, 4000);
+
+                    // Emit event to notify parent Tasks page of update
+                    // This allows the parent page to update its task list without refetching
+                    window.dispatchEvent(
+                        new CustomEvent("taskUpdated", {
+                            detail: { taskId: task.id, updatedTask: response.data },
+                        })
+                    );
+                }
+            } catch (err) {
+                console.error("Error updating task:", err);
+                setAlert({
+                    variant: "error",
+                    title: "Error updating task",
+                    body: "Failed to save changes. Please try again.",
+                });
+                setShowAlert(true);
+                setTimeout(() => {
+                    setShowAlert(false);
+                    setTimeout(() => setAlert(null), 300);
+                }, 4000);
+            } finally {
+                setIsUpdating(false);
+            }
+        },
+        [task?.id]
+    );
+
+    // Handle back navigation
+    const handleBackClick = useCallback(() => {
+        navigate(-1);
+    }, [navigate]);
 
     if (loading) return <CircularProgress />;
     if (!task) return <Typography>No task found</Typography>;
@@ -215,8 +321,19 @@ const TaskDetails: React.FC = () => {
     const vendors = ["AWS SageMaker"];
 
     return (
-        <Box sx={{ p: "32px", gap: "32px", backgroundColor: theme.palette.background.main }}>
-            <Stack direction="row" spacing={4} alignItems="stretch" sx={{ gap: "32px" }}>
+        <Box
+            sx={{
+                p: "32px",
+                gap: "32px",
+                backgroundColor: theme.palette.background.main,
+            }}
+        >
+            <Stack
+                direction="row"
+                spacing={4}
+                alignItems="stretch"
+                sx={{ gap: "32px" }}
+            >
                 {/* ================= LEFT CARD ================= */}
                 <Card
                     sx={{
@@ -238,12 +355,25 @@ const TaskDetails: React.FC = () => {
                                 backgroundColor: theme.palette.background.alt,
                             }}
                         >
-                            <Stack direction="row" justifyContent="space-between" spacing="16px">
-                                <Button variant="outlined" size="small" onClick={() => window.history.back()}>
+                            <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                spacing="16px"
+                            >
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={handleBackClick}
+                                >
                                     Back to tasks
                                 </Button>
-                                <Button variant="contained" size="small">
-                                    Edit task
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={handleEditTaskClick}
+                                    disabled={isUpdating}
+                                >
+                                    {isUpdating ? "Updating..." : "Edit task"}
                                 </Button>
                             </Stack>
                         </Box>
@@ -255,7 +385,11 @@ const TaskDetails: React.FC = () => {
                         <Box sx={{ px: "24px", py: "24px" }}>
                             <Stack spacing="24px">
                                 {/* ASSIGNEES */}
-                                <Stack direction="row" alignItems="center" sx={{ py: "16px", gap: "16px" }}>
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    sx={{ py: "16px", gap: "16px" }}
+                                >
                                     {/* Label */}
                                     <Typography
                                         sx={{
@@ -268,76 +402,130 @@ const TaskDetails: React.FC = () => {
                                         Assignees
                                     </Typography>
 
-                                    <Stack direction="row" spacing={2} alignItems="center">
+                                    <Stack
+                                        direction="row"
+                                        spacing={2}
+                                        alignItems="center"
+                                    >
                                         {/* Assignee initials */}
-                                        {task.assignees && task.assignees.length > 0 && (
-                                            <Stack direction="row" spacing={0.5} sx={{ gap: "4px" }}>
-                                                {task.assignees.slice(0, 3).map((assigneeId, idx) => {
-                                                    const user = users.find((u) => u.id === Number(assigneeId));
-                                                    const initials = user
-                                                        ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
-                                                        : "?";
+                                        {task.assignees &&
+                                            task.assignees.length > 0 && (
+                                                <Stack
+                                                    direction="row"
+                                                    spacing={0.5}
+                                                    sx={{ gap: "4px" }}
+                                                >
+                                                    {task.assignees
+                                                        .slice(0, 3)
+                                                        .map(
+                                                            (
+                                                                assigneeId,
+                                                                idx
+                                                            ) => {
+                                                                const user =
+                                                                    users.find(
+                                                                        (u) =>
+                                                                            u.id ===
+                                                                            Number(
+                                                                                assigneeId
+                                                                            )
+                                                                    );
+                                                                const initials =
+                                                                    user
+                                                                        ? `${user.name.charAt(
+                                                                              0
+                                                                          )}${user.surname.charAt(
+                                                                              0
+                                                                          )}`.toUpperCase()
+                                                                        : "?";
 
-                                                    return (
+                                                                return (
+                                                                    <Box
+                                                                        key={
+                                                                            idx
+                                                                        }
+                                                                        sx={{
+                                                                            width: 28,
+                                                                            height: 28,
+                                                                            borderRadius:
+                                                                                "50%",
+                                                                            backgroundColor:
+                                                                                "#064E3B",
+                                                                            display:
+                                                                                "flex",
+                                                                            alignItems:
+                                                                                "center",
+                                                                            justifyContent:
+                                                                                "center",
+                                                                            fontSize: 11,
+                                                                            fontWeight: 500,
+                                                                            color: "#fff",
+                                                                            border: "2px solid #fff",
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            initials
+                                                                        }
+                                                                    </Box>
+                                                                );
+                                                            }
+                                                        )}
+
+                                                    {/* +N for extra */}
+                                                    {task.assignees.length >
+                                                        3 && (
                                                         <Box
-                                                            key={idx}
                                                             sx={{
                                                                 width: 28,
                                                                 height: 28,
-                                                                borderRadius: "50%",
-                                                                backgroundColor: "#064E3B",
+                                                                borderRadius:
+                                                                    "50%",
+                                                                backgroundColor:
+                                                                    "#e5e7eb",
                                                                 display: "flex",
-                                                                alignItems: "center",
-                                                                justifyContent: "center",
-                                                                fontSize: 11,
+                                                                alignItems:
+                                                                    "center",
+                                                                justifyContent:
+                                                                    "center",
+                                                                fontSize: 10,
                                                                 fontWeight: 500,
-                                                                color: "#fff",
+                                                                color: "#6b7280",
                                                                 border: "2px solid #fff",
                                                             }}
                                                         >
-                                                            {initials}
+                                                            +
+                                                            {task.assignees
+                                                                .length - 3}
                                                         </Box>
-                                                    );
-                                                })}
-
-                                                {/* +N for extra */}
-                                                {task.assignees.length > 3 && (
-                                                    <Box
-                                                        sx={{
-                                                            width: 28,
-                                                            height: 28,
-                                                            borderRadius: "50%",
-                                                            backgroundColor: "#e5e7eb",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            fontSize: 10,
-                                                            fontWeight: 500,
-                                                            color: "#6b7280",
-                                                            border: "2px solid #fff",
-                                                        }}
-                                                    >
-                                                        +{task.assignees.length - 3}
-                                                    </Box>
-                                                )}
-                                            </Stack>
-                                        )}
+                                                    )}
+                                                </Stack>
+                                            )}
 
                                         {/* Assignee names */}
                                         <Typography
                                             sx={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                color: theme.palette.text.secondary,
+                                                color: theme.palette.text
+                                                    .secondary,
                                             }}
                                         >
                                             {task?.assignees?.length
                                                 ? task.assignees
-                                                    .map((assigneeId) => {
-                                                        const user = users.find((u) => u.id === Number(assigneeId));
-                                                        return user ? `${user.name} ${user.surname}` : "Unknown";
-                                                    })
-                                                    .join(", ")
+                                                      .map((assigneeId) => {
+                                                          const user =
+                                                              users.find(
+                                                                  (u) =>
+                                                                      u.id ===
+                                                                      Number(
+                                                                          assigneeId
+                                                                      )
+                                                              );
+                                                          return user
+                                                              ? `${user.name} ${user.surname}`
+                                                              : "Unknown";
+                                                      })
+                                                      .join(", ")
                                                 : "Unassigned"}
                                         </Typography>
                                     </Stack>
@@ -345,7 +533,10 @@ const TaskDetails: React.FC = () => {
                                 <Divider />
 
                                 {/* STATUS */}
-                                <Stack direction="row" sx={{ py: "12px", gap: "16px" }}>
+                                <Stack
+                                    direction="row"
+                                    sx={{ py: "12px", gap: "16px" }}
+                                >
                                     <Typography
                                         sx={{
                                             fontSize: 13,
@@ -366,7 +557,10 @@ const TaskDetails: React.FC = () => {
                                 <Divider />
 
                                 {/* PRIORITY */}
-                                <Stack direction="row" sx={{ py: "12px", gap: "16px" }}>
+                                <Stack
+                                    direction="row"
+                                    sx={{ py: "12px", gap: "16px" }}
+                                >
                                     <Typography
                                         sx={{
                                             fontSize: 13,
@@ -379,14 +573,20 @@ const TaskDetails: React.FC = () => {
                                     </Typography>
                                     <Chip
                                         label={task.priority}
-                                        sx={getChipStyle("priority", task.priority)}
+                                        sx={getChipStyle(
+                                            "priority",
+                                            task.priority
+                                        )}
                                     />
                                 </Stack>
 
                                 <Divider />
 
                                 {/* DUE DATE */}
-                                <Stack direction="row" sx={{ py: "16px", gap: "16px" }}>
+                                <Stack
+                                    direction="row"
+                                    sx={{ py: "16px", gap: "16px" }}
+                                >
                                     <Typography
                                         sx={{
                                             fontSize: 13,
@@ -405,11 +605,9 @@ const TaskDetails: React.FC = () => {
                                         }}
                                     >
                                         {task.due_date
-                                            ? new Date(task.due_date).toLocaleDateString("en-US", {
-                                                month: "long",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })
+                                            ? dayjs(task.due_date).format(
+                                                  "DD MMMM YYYY"
+                                              )
                                             : "-"}
                                     </Typography>
                                 </Stack>
@@ -441,7 +639,7 @@ const TaskDetails: React.FC = () => {
                                     >
                                         {task?.description?.trim()
                                             ? task.description
-                                            : "This is a static description."}
+                                            : "No description provided."}
                                     </Typography>
                                 </Stack>
                             </Stack>
@@ -470,7 +668,11 @@ const TaskDetails: React.FC = () => {
                                 backgroundColor: theme.palette.background.alt,
                             }}
                         >
-                            <Stack direction="row" justifyContent="flex-end" spacing="16px">
+                            <Stack
+                                direction="row"
+                                justifyContent="flex-end"
+                                spacing="16px"
+                            >
                                 <Button variant="contained" size="small">
                                     Edit mappings
                                 </Button>
@@ -534,7 +736,7 @@ const TaskDetails: React.FC = () => {
                     color={theme.palette.text.secondary}
                     sx={{ py: "4px" }}
                 >
-                    Click "Edit task" - Opens edit modal
+                    Click "Edit task" - Opens edit modal with pre-filled values
                 </Typography>
                 <Typography
                     fontSize={12}
@@ -545,6 +747,35 @@ const TaskDetails: React.FC = () => {
                     Click "Edit mappings" - Opens mapping modal
                 </Typography>
             </Box>
+
+            {/* Edit Task Modal - Renders with current task data */}
+            {task && (
+                <CreateTask
+                    isOpen={isEditModalOpen}
+                    setIsOpen={setIsEditModalOpen}
+                    onSuccess={handleTaskUpdate}
+                    initialData={task}
+                    mode="edit"
+                />
+            )}
+
+            {/* Notification Toast */}
+            {alert && (
+                <Fade in={showAlert} timeout={300}>
+                    <Box sx={{ position: "fixed" }}>
+                        <Alert
+                            variant={alert.variant}
+                            title={alert.title}
+                            body={alert.body || ""}
+                            isToast={true}
+                            onClick={() => {
+                                setShowAlert(false);
+                                setTimeout(() => setAlert(null), 300);
+                            }}
+                        />
+                    </Box>
+                </Fade>
+            )}
         </Box>
     );
 };

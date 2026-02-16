@@ -31,6 +31,7 @@ import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDa
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import ModelDetailPage from "../../presentation/pages/ModelInventory/ModelDetailPage";
+import Datasets from "../../presentation/pages/Datasets";
 import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import AgentDiscovery from "../../presentation/pages/AgentDiscovery";
 import Framework from "../../presentation/pages/Framework";
@@ -101,7 +102,7 @@ export const createRoutes = (
     <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
-    <Route path="/model-inventory/datasets" element={<ModelInventory />} />
+    <Route path="/datasets" element={<Datasets />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
     <Route path="/model-inventory/models/:id" element={<ModelDetailPage />} />
     {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}

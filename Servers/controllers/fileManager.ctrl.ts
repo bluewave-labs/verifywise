@@ -53,6 +53,7 @@ import {
   trackEntityChanges,
   recordMultipleFieldChanges,
 } from "../utils/changeHistory.base.utils";
+import { extractText, normalizeText } from "../services/fileIngestion/textExtractor";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -376,6 +377,34 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       }
 
       await transaction.commit();
+
+      // Best-effort: extract text content for full-text search (does not affect upload success)
+      try {
+        const rawText = await extractText(file.buffer, file.mimetype, file.originalname);
+        const normalized = rawText ? normalizeText(rawText) : "";
+
+        if (normalized && uploadedFile.id) {
+          await sequelize.query(
+            `UPDATE "${tenant}".files
+             SET content_text = :content_text,
+                 content_search = to_tsvector('english', :content_text)
+             WHERE id = :fileId`,
+            {
+              replacements: {
+                content_text: normalized,
+                fileId: uploadedFile.id,
+              },
+              type: "UPDATE" as const,
+            }
+          );
+        }
+      } catch (extractionError) {
+        // Do not fail the request if extraction or indexing fails
+        console.error(
+          "Failed to extract or index file content for search:",
+          extractionError
+        );
+      }
 
       // Send notifications to first step approvers after commit
       if (approvalRequestId) {

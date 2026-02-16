@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
@@ -46,6 +46,8 @@ const Datasets: React.FC = () => {
     body: string;
   } | null>(null);
   const [showAlert, setShowAlert] = useState(false);
+  const statusCardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusCardFadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchDatasetData = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -177,23 +179,27 @@ const Datasets: React.FC = () => {
   };
 
   const handleDatasetSuccess = async (formData: any) => {
-    let datasetId: number | null = null;
-    if (selectedDataset) {
-      await updateEntityById({
-        routeUrl: `/datasets/${selectedDataset.id}`,
-        body: formData,
-      });
-      datasetId = selectedDataset.id || null;
-      setAlert({ variant: "success", body: "Dataset updated successfully!" });
-    } else {
-      const response = await createDataset("/datasets", formData);
-      datasetId = response?.data?.id || null;
-      setAlert({ variant: "success", body: "New dataset added successfully!" });
-    }
-    await fetchDatasetData();
-    if (datasetId) {
-      setFlashDatasetRowId(datasetId);
-      setTimeout(() => setFlashDatasetRowId(null), 3000);
+    try {
+      let datasetId: number | null = null;
+      if (selectedDataset) {
+        await updateEntityById({
+          routeUrl: `/datasets/${selectedDataset.id}`,
+          body: formData,
+        });
+        datasetId = selectedDataset.id ?? null;
+        setAlert({ variant: "success", body: "Dataset updated successfully!" });
+      } else {
+        const response = await createDataset("/datasets", formData);
+        datasetId = response?.data?.id ?? null;
+        setAlert({ variant: "success", body: "New dataset added successfully!" });
+      }
+      await fetchDatasetData();
+      if (datasetId) {
+        setFlashDatasetRowId(datasetId);
+        setTimeout(() => setFlashDatasetRowId(null), 3000);
+      }
+    } catch (error) {
+      handleDatasetError(error);
     }
   };
 
@@ -215,6 +221,9 @@ const Datasets: React.FC = () => {
   };
 
   const handleDatasetStatusCardClick = useCallback((statusKey: string) => {
+    if (statusCardTimerRef.current) clearTimeout(statusCardTimerRef.current);
+    if (statusCardFadeTimerRef.current) clearTimeout(statusCardFadeTimerRef.current);
+
     if (statusKey === "total" || selectedDatasetStatus === statusKey) {
       setSelectedDatasetStatus(null);
       setAlert(null);
@@ -233,9 +242,9 @@ const Datasets: React.FC = () => {
         body: "Click the card again or click Total to see all datasets.",
       });
       setShowAlert(true);
-      setTimeout(() => {
+      statusCardTimerRef.current = setTimeout(() => {
         setShowAlert(false);
-        setTimeout(() => setAlert(null), 300);
+        statusCardFadeTimerRef.current = setTimeout(() => setAlert(null), 300);
       }, 5000);
     }
   }, [selectedDatasetStatus]);

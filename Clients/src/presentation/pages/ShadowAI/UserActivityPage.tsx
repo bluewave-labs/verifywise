@@ -62,8 +62,8 @@ interface UserDetailData {
 type ViewMode = "users" | "departments";
 
 const TABS = [
-  { label: "Users", value: "users", icon: "Users" as const },
-  { label: "Departments", value: "departments", icon: "Building2" as const },
+  { label: "Users", value: "users", icon: "Users" as const, tooltip: "Individual user AI tool usage and risk scores" },
+  { label: "Departments", value: "departments", icon: "Building2" as const, tooltip: "AI usage aggregated by department" },
 ];
 
 const DEPT_PER_PAGE = 10;

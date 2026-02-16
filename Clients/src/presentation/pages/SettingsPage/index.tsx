@@ -9,6 +9,7 @@ import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import Organization from "./Organization";
 import Preferences from "./Preferences/index";
+import Features from "./Features/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
@@ -27,6 +28,7 @@ const BUILT_IN_TABS = [
   "preferences",
   "team",
   "organization",
+  "features",
   "apikeys",
 ];
 
@@ -37,6 +39,7 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
+  const isFeaturesDisabled = !allowedRoles.features?.manage?.includes(userRoleName);
 
   // Get plugin tabs dynamically from the plugin registry
   const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();
@@ -137,33 +140,46 @@ export default function ProfilePage() {
               label: "Profile",
               value: "profile",
               icon: "User",
+              tooltip: "Your name, email and personal details",
             },
             {
               label: "Password",
               value: "password",
               icon: "Lock",
+              tooltip: "Update your account password",
             },
             {
               label: "Team",
               value: "team",
               icon: "Users",
               disabled: isTeamManagementDisabled,
+              tooltip: "Manage team members and their roles",
             },
             {
               label: "Organization",
               value: "organization",
               icon: "Building2",
+              tooltip: "Organization name and general settings",
             },
             {
               label: "Preferences",
               value: "preferences",
               icon: "Settings",
+              tooltip: "Customize your display and notification preferences",
+            },
+            {
+              label: "Features",
+              value: "features",
+              icon: "Zap",
+              disabled: isFeaturesDisabled,
+              tooltip: "Enable or disable optional platform features",
             },
             {
               label: "API Keys",
               value: "apikeys",
               icon: "Key",
               disabled: isApiKeysDisabled,
+              tooltip: "Generate keys for programmatic API access",
             },
             // Dynamically add plugin tabs
             ...pluginTabs.map((tab) => ({
@@ -194,6 +210,10 @@ export default function ProfilePage() {
 
         <TabPanel value="organization">
           <Organization />
+        </TabPanel>
+
+        <TabPanel value="features">
+          <Features />
         </TabPanel>
 
         <TabPanel value="apikeys">

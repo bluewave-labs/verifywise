@@ -85,6 +85,7 @@ const tabValue = params.tab || "overview";
                   label: "Overview",
                   value: "overview",
                   icon: "LayoutDashboard",
+                  tooltip: "Configure your public-facing AI trust center page",
                 },
                 {
                   label: "Resources",
@@ -92,6 +93,7 @@ const tabValue = params.tab || "overview";
                   icon: "FileText",
                   count: resources?.length,
                   isLoading: resourcesLoading,
+                  tooltip: "Compliance documents and certifications to share publicly",
                 },
                 {
                   label: "Subprocessors",
@@ -99,11 +101,13 @@ const tabValue = params.tab || "overview";
                   icon: "Building2",
                   count: subprocessors?.length,
                   isLoading: subprocessorsLoading,
+                  tooltip: "Third-party services that process data on your behalf",
                 },
                 {
                   label: "Settings",
                   value: "settings",
                   icon: "Settings",
+                  tooltip: "Visibility, branding and trust center configuration",
                 },
               ]}
               activeTab={tabValue}

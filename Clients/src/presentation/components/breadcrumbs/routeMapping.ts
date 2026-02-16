@@ -33,6 +33,7 @@ import {
   Building2,
   Key,
   WorkflowIcon,
+  Bot,
 } from "lucide-react";
 
 /**
@@ -93,6 +94,9 @@ export const routeMapping: Record<string, string> = {
 
   // Incident management
   "/ai-incident-managements": "Incident Management",
+
+  // Agent discovery
+  "/agent-discovery": "Agent Discovery",
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": "Framework risks",
@@ -184,6 +188,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/framework/linked-models": () => React.createElement(Link, { size: 14, strokeWidth: 1.5 }),
   "/framework/controls": () => React.createElement(FileCode, { size: 14, strokeWidth: 1.5 }),
   "/framework/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
+  // Agent discovery
+  "/agent-discovery": () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),
 
   //ApprovalWorkflow
   "/approval-workflows": () => React.createElement(WorkflowIcon, { size: 14, strokeWidth: 1.5 }),

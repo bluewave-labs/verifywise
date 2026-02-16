@@ -7,6 +7,7 @@ import {
   KeyRound,
   Swords,
   Cpu,
+  Scale,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -116,12 +117,19 @@ export default function EvalsSidebar({
       disabled: false, // Always enabled - org-scoped
     },
     {
+      id: "bias-audits",
+      label: "Bias audits",
+      value: "bias-audits",
+      icon: <Scale size={16} strokeWidth={1.5} />,
+      disabled: false, // Always enabled - org-scoped
+      dividerAfter: true,
+    },
+    {
       id: "configuration",
       label: "Configuration",
       value: "configuration",
       icon: <Settings size={16} strokeWidth={1.5} />,
       disabled: disabled,
-      dividerAfter: true,
     },
     {
       id: "settings",

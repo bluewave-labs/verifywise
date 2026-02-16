@@ -26,13 +26,13 @@ interface UseModelLifecycleResult {
 /**
  * Fetches full lifecycle data for a specific model (phases + items + values).
  */
-export function useModelLifecycle(modelId: number | null): UseModelLifecycleResult {
+export function useModelLifecycle(modelId: number | null, enabled = true): UseModelLifecycleResult {
   const [phases, setPhases] = useState<LifecyclePhase[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!modelId) return;
+    if (!modelId || !enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -43,7 +43,7 @@ export function useModelLifecycle(modelId: number | null): UseModelLifecycleResu
     } finally {
       setLoading(false);
     }
-  }, [modelId]);
+  }, [modelId, enabled]);
 
   useEffect(() => {
     fetchData();
@@ -64,13 +64,15 @@ interface UseLifecycleConfigResult {
  * Fetches the lifecycle configuration (phases + items, without model values).
  */
 export function useLifecycleConfig(
-  includeInactive = false
+  includeInactive = false,
+  enabled = true
 ): UseLifecycleConfigResult {
   const [phases, setPhases] = useState<LifecyclePhase[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -81,7 +83,7 @@ export function useLifecycleConfig(
     } finally {
       setLoading(false);
     }
-  }, [includeInactive]);
+  }, [includeInactive, enabled]);
 
   useEffect(() => {
     fetchData();
@@ -101,14 +103,15 @@ interface UseLifecycleProgressResult {
  * Fetches lifecycle completion progress for a specific model.
  */
 export function useLifecycleProgress(
-  modelId: number | null
+  modelId: number | null,
+  enabled = true
 ): UseLifecycleProgressResult {
   const [progress, setProgress] = useState<LifecycleProgress | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!modelId) return;
+    if (!modelId || !enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -119,7 +122,7 @@ export function useLifecycleProgress(
     } finally {
       setLoading(false);
     }
-  }, [modelId]);
+  }, [modelId, enabled]);
 
   useEffect(() => {
     fetchData();

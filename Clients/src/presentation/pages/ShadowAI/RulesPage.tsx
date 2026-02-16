@@ -77,8 +77,8 @@ type ViewMode = "rules" | "history";
 const ALERTS_PER_PAGE = 10;
 
 const TABS = [
-  { label: "Rules", value: "rules", icon: "Bell" as const },
-  { label: "Alert history", value: "history", icon: "History" as const },
+  { label: "Rules", value: "rules", icon: "Bell" as const, tooltip: "Configure alerts for Shadow AI activity" },
+  { label: "Alert history", value: "history", icon: "History" as const, tooltip: "Past alerts triggered by your rules" },
 ];
 
 export default function RulesPage() {

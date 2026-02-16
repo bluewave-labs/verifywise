@@ -5,15 +5,8 @@
 import { useState, useCallback, useRef } from "react";
 import {
   Stack,
-  TextField,
   Typography,
   Box,
-  Checkbox,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-  Select,
-  MenuItem,
   IconButton,
   CircularProgress,
   useTheme,
@@ -38,7 +31,11 @@ import {
 } from "../../../../../application/repository/modelLifecycle.repository";
 import { uploadFileToManager } from "../../../../../application/repository/file.repository";
 import useUsers from "../../../../../application/hooks/useUsers";
-import { getInputStyles, getSelectStyles } from "../../../../utils/inputStyles";
+import Field from "../../../../components/Inputs/Field";
+import SharedCheckbox from "../../../../components/Inputs/Checkbox";
+import RadioGroupComponent from "../../../../components/RadioGroup";
+import SharedSelect from "../../../../components/Inputs/Select";
+import CustomizableMultiSelect from "../../../../components/Inputs/Select/Multi";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
 
@@ -48,11 +45,11 @@ interface LifecycleItemFieldProps {
   onValueChanged?: () => void;
 }
 
-const LifecycleItemField = ({
+function LifecycleItemField({
   modelId,
   item,
   onValueChanged,
-}: LifecycleItemFieldProps) => {
+}: LifecycleItemFieldProps) {
   const value = item.value;
 
   switch (item.item_type) {
@@ -128,7 +125,7 @@ const LifecycleItemField = ({
         </Typography>
       );
   }
-};
+}
 
 // ============================================================================
 // Text / Textarea renderer
@@ -142,14 +139,13 @@ interface TextFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const TextFieldRenderer = ({
+function TextFieldRenderer({
   modelId,
   item,
   value,
   multiline,
   onValueChanged,
-}: TextFieldRendererProps) => {
-  const theme = useTheme();
+}: TextFieldRendererProps) {
   const config = item.config as TextItemConfig | TextareaItemConfig;
   const [text, setText] = useState(value?.value_text ?? "");
   const [saving, setSaving] = useState(false);
@@ -169,34 +165,31 @@ const TextFieldRenderer = ({
     }
   }, [text, modelId, item.id, onValueChanged]);
 
-  return (
-    <Stack sx={getInputStyles(theme)}>
-      <TextField
-        fullWidth
-        size="small"
-        multiline={multiline}
-        minRows={multiline ? 3 : undefined}
-        maxRows={multiline ? 8 : undefined}
-        placeholder={config?.placeholder || `Enter ${item.name.toLowerCase()}`}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={handleBlur}
-        inputProps={{ maxLength: config?.maxLength }}
-        InputProps={{
-          endAdornment: saving ? (
-            <CircularProgress size={14} />
-          ) : undefined,
-        }}
-        sx={{
-          "& .MuiInputBase-root": {
-            height: multiline ? "auto" : "34px",
-            fontSize: "13px",
-          },
-        }}
-      />
-    </Stack>
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (config?.maxLength && val.length > config.maxLength) return;
+      setText(val);
+    },
+    [config?.maxLength]
   );
-};
+
+  return (
+    <Field
+      type={multiline ? "description" : "text"}
+      placeholder={config?.placeholder || `Enter ${item.name.toLowerCase()}`}
+      value={text}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      rows={multiline ? 3 : undefined}
+      InputProps={{
+        endAdornment: saving ? (
+          <CircularProgress size={14} />
+        ) : undefined,
+      }}
+    />
+  );
+}
 
 // ============================================================================
 // Documents renderer
@@ -209,12 +202,12 @@ interface DocumentsFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const DocumentsFieldRenderer = ({
+function DocumentsFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: DocumentsFieldRendererProps) => {
+}: DocumentsFieldRendererProps) {
   const theme = useTheme();
   const files = value?.files ?? [];
   const [uploading, setUploading] = useState(false);
@@ -264,11 +257,11 @@ const DocumentsFieldRenderer = ({
               direction="row"
               alignItems="center"
               sx={{
-                gap: "8px",
-                p: "8px",
+                gap: "10px",
+                p: "10px 12px",
                 borderRadius: "4px",
                 border: `1px solid ${theme.palette.border.light}`,
-                backgroundColor: "#f9fafb",
+                backgroundColor: theme.palette.background.accent,
               }}
             >
               <FileText size={16} color={theme.palette.text.tertiary} />
@@ -284,9 +277,9 @@ const DocumentsFieldRenderer = ({
       )}
       <Box
         sx={{
-          border: "1px dashed #d0d5dd",
+          border: `1px dashed ${theme.palette.border.dark}`,
           borderRadius: "4px",
-          p: "16px",
+          p: "20px 16px",
           textAlign: "center",
           cursor: "pointer",
           "&:hover": { backgroundColor: theme.palette.background.accent },
@@ -314,7 +307,7 @@ const DocumentsFieldRenderer = ({
       </Box>
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // People renderer
@@ -327,13 +320,12 @@ interface PeopleFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const PeopleFieldRenderer = ({
+function PeopleFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: PeopleFieldRendererProps) => {
-  const theme = useTheme();
+}: PeopleFieldRendererProps) {
   const { users } = useUsers();
   const currentPeople: PeopleValue[] = Array.isArray(value?.value_json)
     ? (value.value_json as PeopleValue[])
@@ -342,6 +334,8 @@ const PeopleFieldRenderer = ({
     currentPeople.map((p) => p.userId)
   );
   const [saving, setSaving] = useState(false);
+
+  const userItems = users.map((u) => ({ _id: u.id, name: u.name, surname: u.surname }));
 
   const handleChange = useCallback(
     async (userIds: number[]) => {
@@ -362,47 +356,23 @@ const PeopleFieldRenderer = ({
 
   return (
     <Stack sx={{ gap: "8px" }}>
-      <Select
-        multiple
-        size="small"
-        fullWidth
+      <CustomizableMultiSelect
+        label=""
         value={selectedUserIds}
+        items={userItems}
+        getOptionValue={(u) => u._id}
         onChange={(e) => {
           const val = e.target.value;
-          handleChange(typeof val === "string" ? [] : val as number[]);
+          handleChange(
+            typeof val === "string" ? [] : (val as number[])
+          );
         }}
-        sx={{
-          ...getSelectStyles(theme),
-          "& .MuiInputBase-root": { minHeight: "34px" },
-        }}
-        renderValue={(selected) => (
-          <Stack direction="row" sx={{ gap: "4px", flexWrap: "wrap" }}>
-            {(selected as number[]).map((id) => {
-              const user = users.find((u) => u.id === id);
-              return (
-                <Chip
-                  key={id}
-                  label={user ? `${user.name} ${user.surname}` : `User #${id}`}
-                  size="small"
-                />
-              );
-            })}
-          </Stack>
-        )}
-      >
-        {users.map((user) => (
-          <MenuItem key={user.id} value={user.id}>
-            <Checkbox checked={selectedUserIds.includes(user.id)} size="small" />
-            <Typography variant="body2">
-              {user.name} {user.surname}
-            </Typography>
-          </MenuItem>
-        ))}
-      </Select>
+        placeholder="Select people..."
+      />
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Classification renderer
@@ -415,12 +385,12 @@ interface ClassificationFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const ClassificationFieldRenderer = ({
+function ClassificationFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: ClassificationFieldRendererProps) => {
+}: ClassificationFieldRendererProps) {
   const config = item.config as ClassificationItemConfig;
   const levels = config?.levels ?? [];
   const currentValue = (value?.value_json as ClassificationValue)?.level ?? "";
@@ -447,37 +417,15 @@ const ClassificationFieldRenderer = ({
 
   return (
     <Stack sx={{ gap: "8px" }}>
-      <RadioGroup
-        value={selected}
+      <RadioGroupComponent
+        values={levels}
+        defaultValue={selected}
         onChange={(e) => handleChange(e.target.value)}
-      >
-        <Stack sx={{ gap: "8px" }}>
-          {levels.map((level) => (
-            <FormControlLabel
-              key={level}
-              value={level}
-              control={
-                <Radio
-                  size="small"
-                  sx={{
-                    color: "#d0d5dd",
-                    "&.Mui-checked": { color: "#13715B" },
-                  }}
-                />
-              }
-              label={
-                <Typography variant="body2" sx={{ fontSize: "13px" }}>
-                  {level}
-                </Typography>
-              }
-            />
-          ))}
-        </Stack>
-      </RadioGroup>
+      />
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Checklist renderer
@@ -490,12 +438,12 @@ interface ChecklistFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const ChecklistFieldRenderer = ({
+function ChecklistFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: ChecklistFieldRendererProps) => {
+}: ChecklistFieldRendererProps) {
   const theme = useTheme();
   const config = item.config as ChecklistItemConfig;
   const defaultItems: ChecklistValue[] = (config?.defaultItems ?? []).map(
@@ -554,55 +502,42 @@ const ChecklistFieldRenderer = ({
   );
 
   return (
-    <Stack sx={{ gap: "8px" }}>
+    <Stack sx={{ gap: "10px" }}>
       {items.map((it, index) => (
-        <Stack key={index} direction="row" alignItems="center" sx={{ gap: "8px" }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={it.checked}
-                onChange={() => toggleItem(index)}
-                size="small"
-              />
-            }
-            label={
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: "13px",
-                  textDecoration: it.checked ? "line-through" : "none",
-                  color: it.checked
-                    ? theme.palette.text.tertiary
-                    : theme.palette.text.primary,
-                }}
-              >
-                {it.label}
-              </Typography>
-            }
-            sx={{ flex: 1 }}
+        <Stack key={index} direction="row" alignItems="center" sx={{ gap: "10px" }}>
+          <SharedCheckbox
+            id={`checklist-${item.id}-${index}`}
+            isChecked={it.checked}
+            value={String(index)}
+            onChange={() => toggleItem(index)}
+            size="small"
           />
+          <Typography
+            variant="body2"
+            sx={{
+              flex: 1,
+              fontSize: "13px",
+              textDecoration: it.checked ? "line-through" : "none",
+              color: it.checked
+                ? theme.palette.text.tertiary
+                : theme.palette.text.primary,
+            }}
+          >
+            {it.label}
+          </Typography>
           <IconButton size="small" onClick={() => removeItem(index)} aria-label="Remove item">
             <X size={14} />
           </IconButton>
         </Stack>
       ))}
-      <Stack direction="row" sx={{ gap: "8px" }}>
-        <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
-          <TextField
-            size="small"
-            fullWidth
-            placeholder="Add checklist item..."
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addItem()}
-            sx={{
-              "& .MuiInputBase-root": {
-                height: "34px",
-                fontSize: "13px",
-              },
-            }}
-          />
-        </Stack>
+      <Stack direction="row" sx={{ gap: "10px" }}>
+        <Field
+          placeholder="Add checklist item..."
+          value={newItemText}
+          onChange={(e) => setNewItemText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addItem()}
+          sx={{ flex: 1 }}
+        />
         <CustomizableButton
           variant="outlined"
           size="small"
@@ -615,7 +550,7 @@ const ChecklistFieldRenderer = ({
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 // ============================================================================
 // Approval renderer
@@ -628,12 +563,12 @@ interface ApprovalFieldRendererProps {
   onValueChanged?: () => void;
 }
 
-const ApprovalFieldRenderer = ({
+function ApprovalFieldRenderer({
   modelId,
   item,
   value,
   onValueChanged,
-}: ApprovalFieldRendererProps) => {
+}: ApprovalFieldRendererProps) {
   const theme = useTheme();
   const { users } = useUsers();
   const currentApprovals: ApprovalValue[] = Array.isArray(value?.value_json)
@@ -693,8 +628,8 @@ const ApprovalFieldRenderer = ({
             direction="row"
             alignItems="center"
             sx={{
-              gap: "8px",
-              p: "12px",
+              gap: "10px",
+              p: "12px 16px",
               borderRadius: "4px",
               border: `1px solid ${theme.palette.border.light}`,
             }}
@@ -726,36 +661,21 @@ const ApprovalFieldRenderer = ({
           </Stack>
         );
       })}
-      <Select
-        size="small"
-        fullWidth
+      <SharedSelect
+        id="add-approver"
+        placeholder="Add approver..."
         value=""
-        displayEmpty
+        items={users
+          .filter((u) => !approvals.find((a) => a.userId === u.id))
+          .map((u) => ({ _id: u.id, name: u.name, surname: u.surname }))}
         onChange={(e) => {
           const userId = Number(e.target.value);
           if (userId) addApprover(userId);
         }}
-        sx={{
-          ...getSelectStyles(theme),
-          "& .MuiInputBase-root": { height: "34px" },
-        }}
-        renderValue={() => (
-          <Typography variant="body2" color="text.secondary">
-            Add approver...
-          </Typography>
-        )}
-      >
-        {users
-          .filter((u) => !approvals.find((a) => a.userId === u.id))
-          .map((user) => (
-            <MenuItem key={user.id} value={user.id}>
-              {user.name} {user.surname}
-            </MenuItem>
-          ))}
-      </Select>
+      />
       {saving && <CircularProgress size={14} />}
     </Stack>
   );
-};
+}
 
 export default LifecycleItemField;

@@ -1075,6 +1075,7 @@ const Vendors = () => {
                   icon: "Building",
                   count: filteredVendors.length,
                   isLoading: isVendorsLoading,
+                  tooltip: "Third-party AI suppliers and their review status",
                 },
                 {
                   label: "Risks",
@@ -1082,6 +1083,7 @@ const Vendors = () => {
                   icon: "AlertTriangle",
                   count: filteredVendorRisks.length,
                   isLoading: loadingVendorRisks,
+                  tooltip: "Security and compliance risks from vendor relationships",
                 },
               ]}
               activeTab={value}

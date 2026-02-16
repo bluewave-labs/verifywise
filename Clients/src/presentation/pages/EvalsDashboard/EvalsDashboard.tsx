@@ -63,6 +63,8 @@ import ProjectScorers from "./ProjectScorers";
 import ModelsPage from "./ModelsPage";
 import ExperimentDetailContent from "./ExperimentDetailContent";
 import ArenaPage from "./ArenaPage";
+import BiasAuditsList from "./BiasAuditsList";
+import BiasAuditDetail from "./BiasAuditDetail";
 import type { DeepEvalProject } from "./types";
 
 // Track if Evals dashboard has been loaded before (persists across module switches)
@@ -218,6 +220,7 @@ export default function EvalsDashboard() {
   const shouldSkipLoading = hasLoadedEvalsBefore && !!projectId;
   const [initialLoading, setInitialLoading] = useState(!shouldSkipLoading);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
+  const [selectedBiasAuditId, setSelectedBiasAuditId] = useState<string | null>(null);
   const [recentExperiments, setRecentExperiments] = useState<RecentExperiment[]>(() => {
     try {
       const stored = localStorage.getItem(RECENT_EXPERIMENTS_KEY);
@@ -1639,6 +1642,14 @@ export default function EvalsDashboard() {
 
               {tab === "arena" && (
                 <ArenaPage orgId={orgId || currentProject?.orgId || ""} />
+              )}
+
+              {tab === "bias-audits" && (
+                selectedBiasAuditId ? (
+                  <BiasAuditDetail auditId={selectedBiasAuditId} onBack={() => setSelectedBiasAuditId(null)} />
+                ) : (
+                  <BiasAuditsList orgId={orgId || currentProject?.orgId || ""} onViewAudit={(id) => setSelectedBiasAuditId(id)} />
+                )
               )}
 
               {tab === "configuration" && (

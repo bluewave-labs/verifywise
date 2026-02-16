@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
-import { Box, SxProps, Theme, Tooltip } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import TabList from "@mui/lab/TabList";
 import { createTabLabelWithCount } from "../../utils/tabUtils";
 import * as LucideIcons from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import VWTooltip from "../VWTooltip";
 
 export interface TabItem {
   label: string;
@@ -13,6 +14,8 @@ export interface TabItem {
   count?: number;
   isLoading?: boolean;
   disabled?: boolean;
+  /** Optional tooltip shown on hover to explain the tab's purpose */
+  tooltip?: string;
 }
 
 export interface TabBarProps {
@@ -142,15 +145,25 @@ const TabBar: React.FC<TabBarProps> = ({
             />
           ) : undefined;
 
-          const tabElement = (
+          const tooltipText = tab.tooltip || (tab.disabled ? disabledTabTooltip : "");
+          const labelContent = createTabLabelWithCount({
+            label: tab.label,
+            icon: iconElement,
+            count: tab.count,
+            isLoading: tab.isLoading,
+          });
+
+          // Wrap label content in VWTooltip so Tab remains a direct child of TabList
+          const label = tooltipText ? (
+            <VWTooltip content={tooltipText} placement="top">
+              <span style={{ display: "inline-flex", alignItems: "center" }}>{labelContent}</span>
+            </VWTooltip>
+          ) : labelContent;
+
+          return (
             <Tab
               key={tab.value}
-              label={createTabLabelWithCount({
-                label: tab.label,
-                icon: iconElement,
-                count: tab.count,
-                isLoading: tab.isLoading,
-              })}
+              label={label}
               value={tab.value}
               sx={getTabStyle(!!tab.disabled)}
               disableRipple={disableRipple}
@@ -162,38 +175,6 @@ const TabBar: React.FC<TabBarProps> = ({
               }}
             />
           );
-
-          // Wrap disabled tabs with tooltip
-          if (tab.disabled) {
-            return (
-              <Tooltip
-                key={tab.value}
-                title={disabledTabTooltip}
-                arrow
-                placement="top"
-                slotProps={{
-                  tooltip: {
-                    sx: {
-                      maxWidth: "280px",
-                      fontSize: "12px !important",
-                      padding: "6px 10px !important",
-                      lineHeight: "1.3 !important",
-                      margin: "4px !important",
-                    },
-                  },
-                  arrow: {
-                    sx: {
-                      fontSize: "12px",
-                    },
-                  },
-                }}
-              >
-                <span>{tabElement}</span>
-              </Tooltip>
-            );
-          }
-
-          return tabElement;
         })}
       </TabList>
     </Box>

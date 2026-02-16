@@ -34,6 +34,7 @@ import {
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { useFeatureSettings } from "../../../application/hooks/useFeatureSettings";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { PluginSlot } from "../../components/PluginSlot";
@@ -151,6 +152,7 @@ const ModelInventory: React.FC = () => {
   const [flashDatasetRowId, setFlashDatasetRowId] = useState<number | string | null>(null);
 
   const { userRoleName } = useAuth();
+  const { featureSettings } = useFeatureSettings();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
@@ -2336,6 +2338,7 @@ const ModelInventory: React.FC = () => {
                   icon: "Box",
                   count: modelInventoryData.length,
                   isLoading: isLoading,
+                  tooltip: "Catalog and track all registered AI/ML models",
                 },
                 {
                   label: "Model risks",
@@ -2343,6 +2346,7 @@ const ModelInventory: React.FC = () => {
                   icon: "AlertTriangle",
                   count: modelRisksData.length,
                   isLoading: isModelRisksLoading,
+                  tooltip: "Risks identified for models in your inventory",
                 },
                 {
                   label: "Datasets",
@@ -2350,6 +2354,7 @@ const ModelInventory: React.FC = () => {
                   icon: "Database" as const,
                   count: datasetData.length,
                   isLoading: isDatasetLoading,
+                  tooltip: "Training and evaluation datasets used by your models",
                 },
                 // Dynamically add plugin tabs
                 ...pluginTabs.map((tab) => ({
@@ -2363,6 +2368,7 @@ const ModelInventory: React.FC = () => {
                   icon: "Database" as const,
                   count: evidenceHubData.length,
                   isLoading: isEvidenceLoading,
+                  tooltip: "Compliance evidence and documentation for audits",
                 },
               ]}
               activeTab={activeTab}
@@ -2444,7 +2450,7 @@ const ModelInventory: React.FC = () => {
                 >
                   <BarChart3 size={16} color="#344054" />
                 </IconButton>
-                {userRoleName === "Admin" && (
+                {userRoleName === "Admin" && featureSettings?.lifecycle_enabled && (
                   <IconButton
                     onClick={() => setIsLifecycleConfigOpen(true)}
                     aria-label="Configure Lifecycle"

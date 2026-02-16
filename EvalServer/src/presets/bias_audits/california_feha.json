@@ -1,0 +1,108 @@
+{
+  "id": "california_feha",
+  "name": "California FEHA",
+  "jurisdiction": "California",
+  "effective_date": "1959-09-18",
+  "mode": "quantitative_audit",
+  "description": "California Fair Employment and Housing Act. Prohibits employment discrimination across 14+ protected categories with adverse impact analysis using the four-fifths rule.",
+  "categories": {
+    "race": {
+      "label": "Race",
+      "groups": [
+        "White",
+        "Black or African American",
+        "Hispanic or Latino",
+        "Asian",
+        "Native Hawaiian or Pacific Islander",
+        "American Indian or Alaska Native",
+        "Two or more races"
+      ]
+    },
+    "color": {
+      "label": "Color",
+      "groups": []
+    },
+    "religion": {
+      "label": "Religion",
+      "groups": []
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": [
+        "Male",
+        "Female"
+      ]
+    },
+    "gender_identity": {
+      "label": "Gender Identity",
+      "groups": []
+    },
+    "sexual_orientation": {
+      "label": "Sexual Orientation",
+      "groups": []
+    },
+    "marital_status": {
+      "label": "Marital Status",
+      "groups": []
+    },
+    "national_origin": {
+      "label": "National Origin",
+      "groups": []
+    },
+    "ancestry": {
+      "label": "Ancestry",
+      "groups": []
+    },
+    "disability": {
+      "label": "Disability",
+      "groups": []
+    },
+    "medical_condition": {
+      "label": "Medical Condition",
+      "groups": []
+    },
+    "age_40_plus": {
+      "label": "Age (40+)",
+      "groups": []
+    },
+    "genetic_information": {
+      "label": "Genetic Information",
+      "groups": []
+    },
+    "military_veteran_status": {
+      "label": "Military/Veteran Status",
+      "groups": []
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [
+    "selection_rate",
+    "impact_ratio"
+  ],
+  "threshold": 0.8,
+  "required_metadata": [
+    "audit_date",
+    "selection_procedure_description",
+    "job_title",
+    "data_source_description",
+    "retention_period"
+  ],
+  "retention_period": "4 years",
+  "results_format": {
+    "tables": [
+      {
+        "type": "category",
+        "category_key": "race",
+        "title": "Impact ratios by race"
+      },
+      {
+        "type": "category",
+        "category_key": "sex",
+        "title": "Impact ratios by sex"
+      }
+    ]
+  }
+}

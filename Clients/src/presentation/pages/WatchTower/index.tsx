@@ -59,11 +59,13 @@ const WatchTower = () => {
                 label: "Events",
                 value: "1",
                 icon: "Calendar",
+                tooltip: "Tracked events across your organization",
               },
               {
                 label: "Logs",
                 value: "2",
                 icon: "FileText",
+                tooltip: "Detailed system and audit logs",
               },
             ]}
             activeTab={tabValue}

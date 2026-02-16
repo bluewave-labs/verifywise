@@ -3,7 +3,7 @@
  * Route: /model-inventory/models/:id
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Stack,
@@ -11,20 +11,21 @@ import {
   CircularProgress,
   Box,
   useTheme,
+  Alert as MuiAlert,
 } from "@mui/material";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { useModelLifecycle } from "../../../../application/hooks/useModelLifecycle";
 import { useLifecycleProgress } from "../../../../application/hooks/useModelLifecycle";
-import LifecyclePhasePanel from "../components/LifecyclePhasePanel";
-import LifecycleProgressBar from "../components/LifecycleProgressBar";
+import LifecycleStepperLayout from "../components/LifecycleStepperLayout";
 import Chip from "../../../components/Chip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import { EmptyStateMessage } from "../../../components/EmptyStateMessage";
+import { useFeatureSettings } from "../../../../application/hooks/useFeatureSettings";
 
-const ModelDetailPage = () => {
+function ModelDetailPage() {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -33,31 +34,12 @@ const ModelDetailPage = () => {
   const [model, setModel] = useState<IModelInventory | null>(null);
   const [modelLoading, setModelLoading] = useState(true);
 
+  const { featureSettings } = useFeatureSettings();
+  const isLifecycleEnabled = featureSettings?.lifecycle_enabled ?? true;
+
   const { phases, loading: lifecycleLoading, refresh: refreshLifecycle } =
-    useModelLifecycle(modelId);
-  const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId);
-
-  const phaseRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
-
-  // Auto-expand first phase on initial load
-  useEffect(() => {
-    if (phases.length > 0 && expandedPhases.size === 0) {
-      setExpandedPhases(new Set([phases[0].id]));
-    }
-  }, [phases]);
-
-  const togglePhase = useCallback((phaseId: number) => {
-    setExpandedPhases((prev) => {
-      const next = new Set(prev);
-      if (next.has(phaseId)) {
-        next.delete(phaseId);
-      } else {
-        next.add(phaseId);
-      }
-      return next;
-    });
-  }, []);
+    useModelLifecycle(modelId, isLifecycleEnabled);
+  const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId, isLifecycleEnabled);
 
   // Fetch model data
   useEffect(() => {
@@ -91,16 +73,9 @@ const ModelDetailPage = () => {
     refreshProgress();
   }, [refreshLifecycle, refreshProgress]);
 
-  const handlePhaseClick = useCallback((phaseId: number) => {
-    const el = phaseRefs.current[phaseId];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, []);
-
   if (modelLoading) {
     return (
-      <Stack alignItems="center" justifyContent="center" sx={{ py: 8 }}>
+      <Stack alignItems="center" justifyContent="center" sx={{ py: "64px" }}>
         <CircularProgress />
       </Stack>
     );
@@ -108,7 +83,7 @@ const ModelDetailPage = () => {
 
   if (!model) {
     return (
-      <Stack alignItems="center" justifyContent="center" sx={{ py: 8 }} spacing={2}>
+      <Stack alignItems="center" justifyContent="center" sx={{ py: "64px", gap: "16px" }}>
         <EmptyStateMessage message="Model not found" />
         <CustomizableButton
           variant="outlined"
@@ -132,11 +107,11 @@ const ModelDetailPage = () => {
         sx={{
           border: `1px solid ${theme.palette.border.light}`,
           borderRadius: "4px",
-          p: "16px",
+          p: "20px",
           background: theme.palette.background.main,
         }}
       >
-        <Stack spacing={2}>
+        <Stack sx={{ gap: "16px" }}>
           <CustomizableButton
             variant="text"
             startIcon={<ArrowLeft size={16} />}
@@ -156,10 +131,10 @@ const ModelDetailPage = () => {
             alignItems="center"
             justifyContent="space-between"
             flexWrap="wrap"
-            spacing={2}
+            sx={{ gap: "16px" }}
           >
-            <Stack spacing={0.5}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Stack sx={{ gap: "6px" }}>
+              <Stack direction="row" alignItems="center" sx={{ gap: "12px" }}>
                 <Typography
                   sx={{
                     fontWeight: 600,
@@ -171,7 +146,7 @@ const ModelDetailPage = () => {
                 </Typography>
                 <Chip label={model.status} />
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" sx={{ gap: "16px" }}>
                 {model.provider && (
                   <Typography
                     sx={{
@@ -198,51 +173,28 @@ const ModelDetailPage = () => {
         </Stack>
       </Box>
 
-      {/* Progress bar */}
-      <Box
-        sx={{
-          p: "16px",
-          borderRadius: "4px",
-          border: `1px solid ${theme.palette.border.light}`,
-          backgroundColor: theme.palette.background.main,
-        }}
-      >
-        <LifecycleProgressBar
+      {isLifecycleEnabled ? (
+        <LifecycleStepperLayout
+          phases={phases}
           progress={progress}
-          onPhaseClick={handlePhaseClick}
+          modelId={modelId!}
+          loading={lifecycleLoading}
+          onValueChanged={handleValueChanged}
         />
-      </Box>
-
-      {/* Lifecycle phases */}
-      {lifecycleLoading && phases.length === 0 ? (
-        <Stack alignItems="center" sx={{ py: 4 }}>
-          <CircularProgress size={24} />
-        </Stack>
       ) : (
-        <Stack spacing={0}>
-          {phases.map((phase) => (
-            <Box
-              key={phase.id}
-              ref={(el: HTMLDivElement | null) => {
-                phaseRefs.current[phase.id] = el;
-              }}
-            >
-              <LifecyclePhasePanel
-                phase={phase}
-                modelId={modelId!}
-                expanded={expandedPhases.has(phase.id)}
-                onToggle={() => togglePhase(phase.id)}
-                onValueChanged={handleValueChanged}
-              />
-            </Box>
-          ))}
-          {phases.length === 0 && (
-            <EmptyStateMessage message="No lifecycle phases configured. Contact an administrator to set up the model lifecycle." />
-          )}
-        </Stack>
+        <MuiAlert
+          severity="info"
+          icon={<Info size={20} />}
+          sx={{
+            borderRadius: "4px",
+            border: `1px solid ${theme.palette.border.light}`,
+          }}
+        >
+          The Model Lifecycle feature is currently disabled. Contact your administrator or go to Settings &gt; Features to enable it.
+        </MuiAlert>
       )}
     </Stack>
   );
-};
+}
 
 export default ModelDetailPage;

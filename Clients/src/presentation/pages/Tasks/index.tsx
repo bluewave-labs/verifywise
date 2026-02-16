@@ -346,7 +346,16 @@ const Tasks: React.FC = () => {
           body: "Your new task has been added.",
         });
 
-        setTimeout(() => setAlert(null), 4000);
+        setShowAlert(true);
+         // Auto-hide alert after 4 seconds
+         setTimeout(() => {
+          setShowAlert(false);
+          setTimeout(() => setAlert(null), 300);
+      }, 4000);
+
+        setTimeout(() => {
+          navigate(`/tasks/${response.data.id}`);
+        }, 300);
       }
     } catch (error) {
       console.error("Error creating task:", error);

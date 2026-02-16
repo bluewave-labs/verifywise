@@ -196,9 +196,10 @@ const CreateTask: FC<ICreateTaskProps> = ({
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if (newDate?.isValid()) {
+      // FIX: Use format instead of split to avoid timezone issues
       setValues((prev) => ({
         ...prev,
-        due_date: newDate ? newDate.toISOString().split("T")[0] : "",
+        due_date: newDate ? newDate.format("YYYY-MM-DD") : "",
       }));
       setErrors((prev) => ({ ...prev, due_date: "" }));
     }

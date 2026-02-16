@@ -21,6 +21,7 @@ import {
   purgeOldEvents,
   runNightlyRiskScoring,
 } from "../shadowAiAggregation.service";
+import { runAgentDiscoverySync } from "../agentDiscovery/agentDiscoverySync.service";
 import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -444,6 +445,8 @@ export const createAutomationWorker = () => {
           await runNightlyRiskScoring();
         } else if (name === "shadow_ai_purge_events") {
           await purgeOldEvents();
+        } else if (name === "agent_discovery_sync") {
+          await runAgentDiscoverySync();
         } else if (name === "send_pmm_notification") {
           // PMM notification handling - send email using MJML templates
           const { type, data } = job.data;

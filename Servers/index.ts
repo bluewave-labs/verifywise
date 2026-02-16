@@ -76,6 +76,7 @@ import virtualFolderRoutes, { filesFolderRouter } from "./routes/virtualFolder.r
 import shadowAiRoutes from "./routes/shadowAi.route";
 import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
+import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -232,6 +233,7 @@ try {
   app.use("/api/shadow-ai", shadowAiRoutes);
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
   app.use("/api/feature-settings", featureSettingsRoutes);
+  app.use("/api/agent-primitives", agentDiscoveryRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

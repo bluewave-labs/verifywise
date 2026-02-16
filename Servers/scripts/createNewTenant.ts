@@ -3414,6 +3414,77 @@ export const createNewTenant = async (
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rules_active ON "${tenantHash}".shadow_ai_rules(is_active);`, { transaction });
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rule_notifications_rule ON "${tenantHash}".shadow_ai_rule_notifications(rule_id);`, { transaction });
 
+    // 12. agent_primitives (Agent Discovery)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".agent_primitives (
+        id SERIAL PRIMARY KEY,
+        source_system VARCHAR(100) NOT NULL,
+        primitive_type VARCHAR(50) NOT NULL,
+        external_id VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255) NOT NULL,
+        owner_id VARCHAR(255),
+        permissions JSONB NOT NULL DEFAULT '[]',
+        permission_categories JSONB NOT NULL DEFAULT '[]',
+        last_activity TIMESTAMP,
+        metadata JSONB NOT NULL DEFAULT '{}',
+        review_status VARCHAR(20) NOT NULL DEFAULT 'unreviewed',
+        reviewed_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        reviewed_at TIMESTAMP,
+        linked_model_inventory_id INTEGER,
+        is_stale BOOLEAN NOT NULL DEFAULT false,
+        is_manual BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT agent_primitives_source_external_unique UNIQUE (source_system, external_id)
+      );
+    `, { transaction });
+
+    // agent_primitives indexes
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_source ON "${tenantHash}".agent_primitives(source_system);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_status ON "${tenantHash}".agent_primitives(review_status);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_type ON "${tenantHash}".agent_primitives(primitive_type);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_stale ON "${tenantHash}".agent_primitives(is_stale);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_created ON "${tenantHash}".agent_primitives(created_at DESC);`, { transaction });
+
+    // 13. agent_discovery_sync_log
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".agent_discovery_sync_log (
+        id SERIAL PRIMARY KEY,
+        source_system VARCHAR(100) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'running',
+        primitives_found INTEGER NOT NULL DEFAULT 0,
+        primitives_created INTEGER NOT NULL DEFAULT 0,
+        primitives_updated INTEGER NOT NULL DEFAULT 0,
+        primitives_stale_flagged INTEGER NOT NULL DEFAULT 0,
+        error_message TEXT,
+        started_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        completed_at TIMESTAMP,
+        triggered_by VARCHAR(20) NOT NULL DEFAULT 'scheduled'
+      );
+    `, { transaction });
+
+    // 14. agent_audit_log
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".agent_audit_log (
+        id SERIAL PRIMARY KEY,
+        agent_primitive_id INTEGER NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        field_changed VARCHAR(100),
+        old_value TEXT,
+        new_value TEXT,
+        performed_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_agent_audit_log_primitive
+      ON "${tenantHash}".agent_audit_log (agent_primitive_id);
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_agent_audit_log_created
+      ON "${tenantHash}".agent_audit_log (created_at DESC);
+    `, { transaction });
+
     console.log(`✅ Shadow AI tables created successfully for tenant: ${tenantHash}`);
 
   } catch (error) {

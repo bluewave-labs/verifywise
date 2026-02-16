@@ -32,6 +32,7 @@ import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import ModelDetailPage from "../../presentation/pages/ModelInventory/ModelDetailPage";
 import IncidentManagement from "../../presentation/pages/IncidentManagement";
+import AgentDiscovery from "../../presentation/pages/AgentDiscovery";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
@@ -108,6 +109,7 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/agent-discovery" element={<AgentDiscovery />} />
     <Route path="/approval-workflows" element={<ApprovalWorkflows />} />
     <Route path="/ai-detection" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scan" element={<AIDetectionPage />} />

@@ -162,7 +162,9 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
         maxTokens: judgeModel.params.max_tokens ?? 256,
         topP: judgeModel.params.top_p ?? 1,
       } : scorerConfig.modelParams || { temperature: 0, maxTokens: 256, topP: 1 };
-      
+      const endpointUrl = typeof judgeModel === 'object' ? judgeModel?.endpointUrl : undefined;
+      const apiKey = typeof judgeModel === 'object' ? judgeModel?.apiKey : undefined;
+
       setEditInitialConfig({
         name: scorer.name || "",
         slug: scorer.metricKey || "",
@@ -173,6 +175,8 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
         useChainOfThought: scorerConfig.useChainOfThought ?? true,
         choiceScores: scorerConfig.choiceScores || [{ label: "", score: 0 }],
         passThreshold: scorer.defaultThreshold ?? 0.5,
+        endpointUrl: endpointUrl || "",
+        apiKey: apiKey || "",
         inputSchema: scorerConfig.inputSchema || `{
           "input": "",
           "output": "",
@@ -256,6 +260,10 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
               max_tokens: config.modelParams.maxTokens,
               top_p: config.modelParams.topP,
             },
+            ...(config.provider === "self-hosted" && config.endpointUrl
+              ? { endpointUrl: config.endpointUrl } : {}),
+            ...(config.provider === "self-hosted" && config.apiKey
+              ? { apiKey: config.apiKey } : {}),
           },
           messages: config.messages,
           useChainOfThought: config.useChainOfThought,
@@ -305,6 +313,10 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
               max_tokens: config.modelParams.maxTokens,
               top_p: config.modelParams.topP,
             },
+            ...(config.provider === "self-hosted" && config.endpointUrl
+              ? { endpointUrl: config.endpointUrl } : {}),
+            ...(config.provider === "self-hosted" && config.apiKey
+              ? { apiKey: config.apiKey } : {}),
           },
           messages: config.messages,
           useChainOfThought: config.useChainOfThought,

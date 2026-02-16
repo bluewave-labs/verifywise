@@ -9,6 +9,7 @@ import {
   NotFoundException,
 } from "../../domain.layer/exceptions/custom.exception";
 import { sequelize } from "../../database/db";
+import { getBuiltinPlugins, isBuiltinPlugin } from "./builtinPlugins";
 
 // Environment configuration
 export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
@@ -30,6 +31,7 @@ interface Plugin {
   supportUrl?: string;
   isOfficial: boolean;
   isPublished: boolean;
+  isBuiltIn?: boolean;
   requiresConfiguration: boolean;
   installationType: string;
   features: Array<{
@@ -122,7 +124,13 @@ export class PluginService {
     try {
       const marketplaceData = await this.fetchRemoteMarketplace();
 
-      let plugins = marketplaceData.plugins.filter((p) => p.isPublished);
+      let remotePlugins = marketplaceData.plugins.filter((p) => p.isPublished);
+
+      // Merge built-in plugins (built-ins take precedence by key)
+      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished) as Plugin[];
+      const builtinKeys = new Set(builtinPlugins.map((p) => p.key));
+      const nonOverlapping = remotePlugins.filter((p) => !builtinKeys.has(p.key));
+      let plugins = [...builtinPlugins, ...nonOverlapping];
 
       // Filter by category if provided
       if (category) {
@@ -141,6 +149,14 @@ export class PluginService {
    */
   static async getPluginByKey(pluginKey: string): Promise<Plugin | null> {
     try {
+      // Check built-in plugins first
+      const builtinPlugin = getBuiltinPlugins().find(
+        (p) => p.key === pluginKey && p.isPublished
+      );
+      if (builtinPlugin) {
+        return builtinPlugin as Plugin;
+      }
+
       const marketplaceData = await this.fetchRemoteMarketplace();
 
       const plugin = marketplaceData.plugins.find(
@@ -167,13 +183,20 @@ export class PluginService {
 
       const lowerQuery = query.toLowerCase();
 
-      const plugins = marketplaceData.plugins.filter(
-        (p) =>
-          p.isPublished &&
-          (p.name.toLowerCase().includes(lowerQuery) ||
-            p.description.toLowerCase().includes(lowerQuery) ||
-            p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)))
-      );
+      const matchFilter = (p: Plugin) =>
+        p.isPublished &&
+        (p.name.toLowerCase().includes(lowerQuery) ||
+          p.description.toLowerCase().includes(lowerQuery) ||
+          p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)));
+
+      // Include built-in plugins in search results
+      const builtinMatches = (getBuiltinPlugins() as Plugin[]).filter(matchFilter);
+      const builtinKeys = new Set(builtinMatches.map((p) => p.key));
+      const remoteMatches = marketplaceData.plugins
+        .filter(matchFilter)
+        .filter((p) => !builtinKeys.has(p.key));
+
+      const plugins = [...builtinMatches, ...remoteMatches];
 
       return plugins;
     } catch (error: any) {
@@ -191,7 +214,7 @@ export class PluginService {
     tenantId: string
   ): Promise<any> {
     try {
-      // Verify plugin exists in marketplace
+      // Verify plugin exists in marketplace or built-in registry
       const plugin = await this.getPluginByKey(pluginKey);
       if (!plugin) {
         throw new NotFoundException(
@@ -201,17 +224,22 @@ export class PluginService {
         );
       }
 
-      // Load and execute plugin install method
-      const pluginCode = await this.loadPluginCode(plugin);
-      if (pluginCode && typeof pluginCode.install === "function") {
-        const context = {
-          sequelize,
-        };
-        const result = await pluginCode.install(userId, tenantId, {}, context);
-        console.log(
-          `[PluginService] Plugin ${pluginKey} installed:`,
-          result
-        );
+      // Skip remote code download for built-in plugins
+      if (!isBuiltinPlugin(pluginKey)) {
+        // Load and execute plugin install method
+        const pluginCode = await this.loadPluginCode(plugin);
+        if (pluginCode && typeof pluginCode.install === "function") {
+          const context = {
+            sequelize,
+          };
+          const result = await pluginCode.install(userId, tenantId, {}, context);
+          console.log(
+            `[PluginService] Plugin ${pluginKey} installed:`,
+            result
+          );
+        }
+      } else {
+        console.log(`[PluginService] Built-in plugin ${pluginKey} installed (no remote download)`);
       }
 
       // Create installation record (only after successful plugin installation)
@@ -245,24 +273,29 @@ export class PluginService {
           tenantId
         );
 
-      // Load plugin and execute uninstall method
-      const plugin = await this.getPluginByKey(installation.plugin_key);
-      if (plugin) {
-        const pluginCode = await this.loadPluginCode(plugin);
-        if (pluginCode && typeof pluginCode.uninstall === "function") {
-          const context = {
-            sequelize,
-          };
-          const result = await pluginCode.uninstall(
-            userId,
-            tenantId,
-            context
-          );
-          console.log(
-            `[PluginService] Plugin ${installation.plugin_key} uninstalled:`,
-            result
-          );
+      // Skip remote code for built-in plugins
+      if (!isBuiltinPlugin(installation.plugin_key)) {
+        // Load plugin and execute uninstall method
+        const plugin = await this.getPluginByKey(installation.plugin_key);
+        if (plugin) {
+          const pluginCode = await this.loadPluginCode(plugin);
+          if (pluginCode && typeof pluginCode.uninstall === "function") {
+            const context = {
+              sequelize,
+            };
+            const result = await pluginCode.uninstall(
+              userId,
+              tenantId,
+              context
+            );
+            console.log(
+              `[PluginService] Plugin ${installation.plugin_key} uninstalled:`,
+              result
+            );
+          }
         }
+      } else {
+        console.log(`[PluginService] Built-in plugin ${installation.plugin_key} uninstalled (no remote code)`);
       }
 
       // Delete installation record
@@ -287,9 +320,10 @@ export class PluginService {
         tenantId
       );
 
-      // Fetch plugin metadata from marketplace for each installation
+      // Fetch plugin metadata from built-in registry or marketplace for each installation
       const pluginsWithMetadata = await Promise.all(
         installations.map(async (installation) => {
+          // getPluginByKey already checks built-in plugins first
           const plugin = await this.getPluginByKey(installation.plugin_key);
           return {
             ...toJSON(installation),
@@ -316,7 +350,25 @@ export class PluginService {
     try {
       const marketplaceData = await this.fetchRemoteMarketplace();
 
-      return marketplaceData.categories || [];
+      const categories = marketplaceData.categories || [];
+
+      // Merge categories from built-in plugins
+      const builtinCategories = new Set(
+        getBuiltinPlugins().map((p) => p.category)
+      );
+      const existingCategoryIds = new Set(categories.map((c: any) => c.id));
+
+      for (const cat of builtinCategories) {
+        if (!existingCategoryIds.has(cat)) {
+          categories.push({
+            id: cat,
+            name: cat.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+            description: `${cat} plugins`,
+          });
+        }
+      }
+
+      return categories;
     } catch (error: any) {
       console.error("[PluginService] Error fetching categories:", error);
       throw error;
@@ -356,24 +408,26 @@ export class PluginService {
         configuration
       );
 
-      // Load plugin and execute configure method if it exists
-      const plugin = await this.getPluginByKey(installation.plugin_key);
-      if (plugin) {
-        const pluginCode = await this.loadPluginCode(plugin);
-        if (pluginCode && typeof pluginCode.configure === "function") {
-          const context = {
-            sequelize,
-          };
-          const result = await pluginCode.configure(
-            userId,
-            tenantId,
-            configuration,
-            context
-          );
-          console.log(
-            `[PluginService] Plugin ${installation.plugin_key} configured:`,
-            result
-          );
+      // Load plugin and execute configure method if it exists (skip for built-in)
+      if (!isBuiltinPlugin(installation.plugin_key)) {
+        const plugin = await this.getPluginByKey(installation.plugin_key);
+        if (plugin) {
+          const pluginCode = await this.loadPluginCode(plugin);
+          if (pluginCode && typeof pluginCode.configure === "function") {
+            const context = {
+              sequelize,
+            };
+            const result = await pluginCode.configure(
+              userId,
+              tenantId,
+              configuration,
+              context
+            );
+            console.log(
+              `[PluginService] Plugin ${installation.plugin_key} configured:`,
+              result
+            );
+          }
         }
       }
 
@@ -732,10 +786,15 @@ export class PluginService {
         throw new NotFoundException(`Plugin '${pluginKey}' is not installed`);
       }
 
-      // Get plugin from marketplace
+      // Get plugin from marketplace or built-in registry
       const plugin = await this.getPluginByKey(pluginKey);
       if (!plugin) {
         throw new NotFoundException(`Plugin '${pluginKey}' not found in marketplace`);
+      }
+
+      // Built-in plugins don't use the generic forwarding mechanism
+      if (isBuiltinPlugin(pluginKey)) {
+        throw new Error(`Built-in plugin '${pluginKey}' does not support route forwarding`);
       }
 
       // Load plugin code

@@ -1158,7 +1158,7 @@ export async function getFilesPendingApproval(
 
 export type FrameworkType = 'eu_ai_act' | 'nist_ai' | 'iso_27001' | 'iso_42001' | string;
 export type EntityType = 'assessment' | 'subcontrol' | 'subclause' | 'annex_control' | 'annex_category' | string;
-export type LinkType = 'evidence' | 'feedback' | 'attachment' | 'reference';
+export type LinkType = 'evidence' | 'feedback' | 'attachment' | 'reference' | 'source_data';
 
 export interface FileEntityLink {
   id?: number;

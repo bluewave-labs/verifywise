@@ -29,7 +29,7 @@ export default function ModelLifecycleContent({ modelId }: ModelLifecycleContent
   const { phases, loading, refresh } = useModelLifecycle(modelId);
   const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId);
 
-  const [viewMode, setViewMode] = useState<ViewMode>("accordion");
+  const [viewMode, setViewMode] = useState<ViewMode>("stepper");
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(() => {
     return new Set();
   });

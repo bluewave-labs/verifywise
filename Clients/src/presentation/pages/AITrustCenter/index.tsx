@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, Stack } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import { Eye as VisibilityIcon } from "lucide-react"
@@ -17,13 +16,11 @@ import {
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
-import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 import { useNavigate, useParams } from "react-router-dom";
 import TabBar from "../../components/TabBar";
 import { useAITrustCentreResourcesQuery } from "../../../application/hooks/useAITrustCentreResourcesQuery";
 import { useAITrustCentreSubprocessorsQuery } from "../../../application/hooks/useAITrustCentreSubprocessorsQuery";
-import TipBox from "../../components/TipBox";
 
 const AITrustCenter: React.FC = () => {
 const params = useParams<{ tab?: string }>();
@@ -59,23 +56,12 @@ const tabValue = params.tab || "overview";
   };
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-
-        <PageHeader
-               title="AI trust center"
-               description="AI Trust Center centralizes your AI policies, certifications, and
-               subprocessors to demonstrate responsible, transparent, and compliant AI practices."
-               rightContent={
-                  <HelperIcon
-                     articlePath="ai-governance/ai-trust-center"
-                     size="small"
-                    />
-                 }
-             />
-      <TipBox entityName="ai-trust-center" />
-
-
+    <PageHeaderExtended
+      title="AI trust center"
+      description="AI Trust Center centralizes your AI policies, certifications, and subprocessors to demonstrate responsible, transparent, and compliant AI practices."
+      helpArticlePath="ai-governance/ai-trust-center"
+      tipBoxEntity="ai-trust-center"
+    >
       <Stack>
         <TabContext value={tabValue}>
           <Box sx={{ position: "relative" }}>
@@ -153,7 +139,7 @@ const tabValue = params.tab || "overview";
       </Stack>
 
       <PageTour steps={AITrustCenterSteps} run={true} tourKey="ai-trust-center-tour" />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

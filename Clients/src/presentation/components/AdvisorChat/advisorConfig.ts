@@ -186,8 +186,10 @@ export const getPlaceholder = (domain?: AdvisorDomain): string => {
 };
 
 /**
- * Check if a path is advisor-eligible
+ * Check if a path is advisor-eligible (for the sidebar advisor panel).
+ * Excludes '/chat' since that page has its own full-page advisor.
  */
 export const isAdvisorEligiblePath = (path: string): boolean => {
+  if (path === '/chat') return false;
   return ADVISOR_PATHS.includes(path);
 };

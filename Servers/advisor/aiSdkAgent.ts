@@ -35,7 +35,10 @@ interface AiSdkAdvisorParams {
  */
 function createModel(params: Pick<AiSdkAdvisorParams, "provider" | "apiKey" | "baseURL" | "model">) {
   if (params.provider === "Anthropic") {
-    const anthropic = createAnthropic({ apiKey: params.apiKey });
+    const anthropic = createAnthropic({
+      apiKey: params.apiKey,
+      baseURL: params.baseURL || undefined,
+    });
     return anthropic(params.model);
   }
 

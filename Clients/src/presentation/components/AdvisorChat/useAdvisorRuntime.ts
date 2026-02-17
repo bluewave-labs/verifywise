@@ -89,19 +89,22 @@ const extractTextFromUIMessage = (message: UIMessage): string => {
  * Extract chart data from a UIMessage's tool invocation parts.
  * Looks for a generate_chart tool with completed output.
  * Falls back to legacy ---CHART_DATA--- separator parsing.
+ *
+ * AI SDK UIMessage tool parts arrive as `type: 'dynamic-tool'` with a
+ * `toolName` field (not `type: 'tool-generate_chart'`), because tools
+ * are not statically typed on the frontend.
  */
 const extractChartData = (message: UIMessage, text: string): unknown => {
-  // Strategy 1: Look for generate_chart tool invocation in parts
+  // Strategy 1: Look for generate_chart dynamic tool invocation in parts
   const chartPart = message.parts?.find(
     (p: any) =>
-      typeof p.type === 'string' &&
-      p.type.startsWith('tool-') &&
+      p.type === 'dynamic-tool' &&
+      p.toolName === 'generate_chart' &&
       p.state === 'output-available' &&
-      p.toolCallId
+      p.output
   );
 
-  // Check if it's the generate_chart tool by matching the type pattern "tool-generate_chart"
-  if (chartPart && (chartPart as any).type === 'tool-generate_chart' && (chartPart as any).output) {
+  if (chartPart) {
     return (chartPart as any).output;
   }
 

@@ -467,15 +467,17 @@ export async function streamAdvisorV2(req: Request, res: Response) {
       provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
     });
 
-    // Use the streamText result's built-in method to pipe the AI SDK protocol
+    // Use the streamText result's built-in method to pipe the AI SDK protocol.
+    // pipeUIMessageStreamToResponse is fire-and-forget (returns void);
+    // the AI SDK handles stream errors and response completion internally.
     result.pipeUIMessageStreamToResponse(res, {
       sendReasoning: true,
       sendSources: true,
     });
 
     logStructured(
-      "successful",
-      "AI SDK streaming advisor response piped",
+      "processing",
+      "AI SDK streaming advisor response initiated",
       functionName,
       fileName,
     );

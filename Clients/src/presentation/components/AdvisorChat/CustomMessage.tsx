@@ -49,16 +49,12 @@ const MessageText: FC = () => {
 
 interface ChartData {
   type: 'bar' | 'pie' | 'table' | 'donut' | 'line';
-  data: { label: string; value: number; color?: string }[];
+  data?: { label: string; value: number; color?: string }[];
   title: string;
+  columns?: string[];
+  rows?: (string | number)[][];
   series?: Array<{ label: string; data: number[] }>;
   xAxisLabels?: string[];
-}
-
-interface DataMessagePart {
-  type: 'data';
-  name: string;
-  data: unknown;
 }
 
 const isValidChartData = (data: unknown): data is ChartData => {
@@ -67,25 +63,35 @@ const isValidChartData = (data: unknown): data is ChartData => {
   return (
     typeof obj.type === 'string' &&
     ['bar', 'pie', 'table', 'donut', 'line'].includes(obj.type) &&
-    Array.isArray(obj.data) &&
-    typeof obj.title === 'string'
+    typeof obj.title === 'string' &&
+    (Array.isArray(obj.data) || Array.isArray(obj.columns) || Array.isArray(obj.series))
   );
 };
 
 const MessageChart: FC = () => {
   const message = useAssistantState(({ message }) => message);
 
-  // Find the chart data in the message content
-  const chartContent = message.content.find(
-    (part): part is DataMessagePart =>
-      typeof part === 'object' && part !== null && 'type' in part && part.type === 'data' && 'name' in part && part.name === 'chartData'
+  // Strategy 1: Look for generate_chart tool-call with result in message parts
+  const toolResult = message.content.find(
+    (part: Record<string, unknown>) =>
+      part.type === 'tool-call' && part.toolName === 'generate_chart' && part.result
   );
 
-  if (!chartContent || !chartContent.data || !isValidChartData(chartContent.data)) {
-    return null;
+  if (toolResult && 'result' in toolResult && isValidChartData(toolResult.result)) {
+    return <ChartRenderer chartData={toolResult.result as ChartData} />;
   }
 
-  return <ChartRenderer chartData={chartContent.data} />;
+  // Strategy 2: Legacy — look for data content part with name='chartData'
+  const chartContent = message.content.find(
+    (part: Record<string, unknown>) =>
+      part.type === 'data' && part.name === 'chartData'
+  );
+
+  if (chartContent && 'data' in chartContent && isValidChartData(chartContent.data)) {
+    return <ChartRenderer chartData={chartContent.data as ChartData} />;
+  }
+
+  return null;
 };
 
 const MessageTimestamp: FC = () => {

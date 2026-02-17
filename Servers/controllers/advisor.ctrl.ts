@@ -43,6 +43,21 @@ import { toolsDefinition as agentDiscoveryToolsDefinition } from "../advisor/too
 
 const fileName = "advisor.ctrl.ts";
 
+/**
+ * Select an LLM key by ID, falling back to the first available key.
+ */
+function selectLLMKey(clients: any[], llmKeyId?: number): any {
+  if (llmKeyId !== undefined) {
+    const found = clients.find((k: any) => k.id === llmKeyId);
+    if (found) {
+      logger.debug(`Using selected LLM key: ${found.name} (ID: ${llmKeyId})`);
+      return found;
+    }
+    logger.warn(`LLM key ID ${llmKeyId} not found, using default key`);
+  }
+  return clients[0];
+}
+
 const availableTools = {
   ...availableRiskTools,
   ...availableModelInventoryTools,
@@ -117,18 +132,7 @@ export async function runAdvisor(req: Request, res: Response) {
         .json({ error: "No LLM keys configured for this tenant." });
     }
 
-    // Select the LLM key based on llmKeyId parameter or default to first key
-    let apiKey = clients[0];
-    if (llmKeyId !== undefined) {
-      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
-      if (selectedKey) {
-        apiKey = selectedKey;
-        logger.debug(`Using selected LLM key: ${apiKey.name} (ID: ${llmKeyId})`);
-      } else {
-        logger.warn(`LLM key ID ${llmKeyId} not found, using default key`);
-      }
-    }
-
+    const apiKey = selectLLMKey(clients, llmKeyId);
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
 
     const agentParams = {
@@ -151,64 +155,9 @@ export async function runAdvisor(req: Request, res: Response) {
       fileName,
     );
 
-    // Parse the response using the ---CHART_DATA--- separator format
-    let parsedResponse: any = { markdown: response, chartData: null };
-
-    try {
-      // Convert escaped newlines to actual newlines
-      let content = response.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-      let markdown = content;
-      let chartData = null;
-
-      // Split by the ---CHART_DATA--- separator
-      const separator = '---CHART_DATA---';
-      const separatorIndex = content.indexOf(separator);
-
-      if (separatorIndex !== -1) {
-        // Extract markdown (before separator) and chart JSON (after separator)
-        markdown = content.substring(0, separatorIndex).trim();
-        const chartSection = content.substring(separatorIndex + separator.length).trim();
-
-        // Parse the chart JSON if it's not "null"
-        if (chartSection && chartSection !== 'null') {
-          try {
-            chartData = JSON.parse(chartSection);
-          } catch (e) {
-            logger.warn(`Failed to parse chart data from separator format: ${e}`);
-          }
-        }
-      } else {
-        // Fallback: try to find chart JSON in code blocks or inline
-        // First, try ```chart code blocks
-        const chartCodeBlockMatch = content.match(/```chart\s*([\s\S]*?)```/);
-        if (chartCodeBlockMatch) {
-          try {
-            chartData = JSON.parse(chartCodeBlockMatch[1].trim());
-            markdown = content.replace(/```chart\s*[\s\S]*?```/g, '').trim();
-          } catch (e) {
-            logger.warn(`Failed to parse chart code block: ${e}`);
-          }
-        }
-      }
-
-      // Clean up any extra whitespace
-      markdown = markdown.replace(/\n{3,}/g, '\n\n').trim();
-
-      parsedResponse = {
-        markdown: markdown,
-        chartData: chartData,
-      };
-    } catch (error) {
-      logger.warn(
-        `Failed to parse response, using raw response: ${error}`,
-      );
-      parsedResponse = {
-        markdown: response.replace(/\\n/g, '\n').replace(/\\"/g, '"'),
-        chartData: null,
-      };
-    }
-
-    return res.status(200).json({ prompt, response: parsedResponse });
+    // Note: chart data is delivered via generate_chart tool results in the stream,
+    // not embedded in the text. The non-streaming endpoint only returns markdown.
+    return res.status(200).json({ prompt, response: { markdown: response, chartData: null } });
   } catch (error) {
     logStructured(
       "error",
@@ -368,14 +317,7 @@ export async function streamAdvisor(req: Request, res: Response) {
       return;
     }
 
-    let apiKey = clients[0];
-    if (llmKeyId !== undefined) {
-      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
-      if (selectedKey) {
-        apiKey = selectedKey;
-      }
-    }
-
+    const apiKey = selectLLMKey(clients, llmKeyId);
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
 
     // Set SSE headers — disable ALL buffering for real-time streaming
@@ -511,14 +453,7 @@ export async function streamAdvisorV2(req: Request, res: Response) {
       return;
     }
 
-    let apiKey = clients[0];
-    if (llmKeyId !== undefined) {
-      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
-      if (selectedKey) {
-        apiKey = selectedKey;
-      }
-    }
-
+    const apiKey = selectLLMKey(clients, llmKeyId);
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
 
     const result = getStreamTextResult({

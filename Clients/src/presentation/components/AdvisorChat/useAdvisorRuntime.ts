@@ -24,7 +24,6 @@ const getChatApiUrl = (): string => {
 const createWelcomeUIMessage = (domain?: AdvisorDomain): UIMessage => ({
   id: 'welcome',
   role: 'assistant',
-  content: getWelcomeMessage(domain),
   parts: [{ type: 'text', text: getWelcomeMessage(domain) }],
   createdAt: new Date(),
 });
@@ -45,7 +44,6 @@ const convertToUIMessages = (messages: Array<{
   return messages.map((msg) => ({
     id: msg.id,
     role: msg.role,
-    content: msg.content,
     parts: [{ type: 'text' as const, text: msg.content }],
     createdAt: new Date(msg.createdAt),
   }));
@@ -81,11 +79,35 @@ const parseChartData = (fullText: string): { markdown: string; chartData: unknow
  * Extract plain text content from a UIMessage.
  */
 const extractTextFromUIMessage = (message: UIMessage): string => {
-  if (typeof message.content === 'string') return message.content;
   return message.parts
     ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
     .map((p) => p.text)
     .join('\n') || '';
+};
+
+/**
+ * Extract chart data from a UIMessage's tool invocation parts.
+ * Looks for a generate_chart tool with completed output.
+ * Falls back to legacy ---CHART_DATA--- separator parsing.
+ */
+const extractChartData = (message: UIMessage, text: string): unknown => {
+  // Strategy 1: Look for generate_chart tool invocation in parts
+  const chartPart = message.parts?.find(
+    (p: any) =>
+      typeof p.type === 'string' &&
+      p.type.startsWith('tool-') &&
+      p.state === 'output-available' &&
+      p.toolCallId
+  );
+
+  // Check if it's the generate_chart tool by matching the type pattern "tool-generate_chart"
+  if (chartPart && (chartPart as any).type === 'tool-generate_chart' && (chartPart as any).output) {
+    return (chartPart as any).output;
+  }
+
+  // Strategy 2: Legacy separator fallback for pre-migration persisted data
+  const { chartData } = parseChartData(text);
+  return chartData;
 };
 
 export const useAdvisorRuntime = (
@@ -134,7 +156,13 @@ export const useAdvisorRuntime = (
   );
 
   // Persist new messages when assistant finishes responding
-  const onFinish = useCallback(({ messages }: { message: UIMessage; messages: UIMessage[] }) => {
+  const onFinish = useCallback(({ messages, isAbort, isError, isDisconnect }: {
+    message: UIMessage; messages: UIMessage[];
+    isAbort: boolean; isError: boolean; isDisconnect: boolean;
+  }) => {
+    // Don't persist incomplete/failed responses
+    if (isAbort || isError || isDisconnect) return;
+
     const context = contextRef.current;
     const domain = pageContextRef.current;
 
@@ -147,11 +175,11 @@ export const useAdvisorRuntime = (
       const text = extractTextFromUIMessage(msg);
 
       if (msg.role === 'assistant') {
-        const { markdown, chartData } = parseChartData(text);
+        const chartData = extractChartData(msg, text);
         context.addMessage(domain, {
           id: msg.id,
           role: 'assistant',
-          content: markdown,
+          content: text,
           createdAt: msg.createdAt ? new Date(msg.createdAt).toISOString() : new Date().toISOString(),
           chartData: chartData || undefined,
         });

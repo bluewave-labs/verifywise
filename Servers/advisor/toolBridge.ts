@@ -104,11 +104,19 @@ export function bridgeTools(
       continue;
     }
 
-    const zodSchema = jsonSchemaToZod(parameters) as z.ZodObject<Record<string, ZodTypeAny>>;
+    const zodSchema = jsonSchemaToZod(parameters);
+
+    // All existing tool definitions use object-type top-level parameters.
+    // Cast to ZodObject for AI SDK's tool() type inference; non-object schemas
+    // would still work at runtime but we skip them defensively.
+    if (!(zodSchema instanceof z.ZodObject)) {
+      logger.warn(`[toolBridge] Tool "${name}" has non-object top-level schema — skipping`);
+      continue;
+    }
 
     tools[name] = tool({
       description,
-      inputSchema: zodSchema,
+      inputSchema: zodSchema as z.ZodObject<Record<string, ZodTypeAny>>,
       execute: async (params: Record<string, unknown>) => {
         try {
           const result = await fn(params, tenant);

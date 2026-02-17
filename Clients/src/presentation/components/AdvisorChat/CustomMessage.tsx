@@ -71,10 +71,10 @@ const isValidChartData = (data: unknown): data is ChartData => {
 const MessageChart: FC = () => {
   const message = useAssistantState(({ message }) => message);
 
-  // Strategy 1: Look for generate_chart tool result in message parts (AI SDK protocol)
+  // Strategy 1: Look for generate_chart tool-call with result in message parts
   const toolResult = message.content.find(
     (part: Record<string, unknown>) =>
-      part.type === 'tool-result' && part.toolName === 'generate_chart' && part.result
+      part.type === 'tool-call' && part.toolName === 'generate_chart' && part.result
   );
 
   if (toolResult && 'result' in toolResult && isValidChartData(toolResult.result)) {

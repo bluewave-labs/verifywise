@@ -34,7 +34,6 @@ import {
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { useFeatureSettings } from "../../../application/hooks/useFeatureSettings";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { PluginSlot } from "../../components/PluginSlot";
@@ -152,13 +151,12 @@ const ModelInventory: React.FC = () => {
   const [flashDatasetRowId, setFlashDatasetRowId] = useState<number | string | null>(null);
 
   const { userRoleName } = useAuth();
-  const { featureSettings } = useFeatureSettings();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
 
   // Get plugin tabs dynamically from the plugin registry
-  const { getPluginTabs } = usePluginRegistry();
+  const { getPluginTabs, isPluginInstalled } = usePluginRegistry();
   const pluginTabs = useMemo(
     () => getPluginTabs(PLUGIN_SLOTS.MODELS_TABS),
     [getPluginTabs]
@@ -2450,7 +2448,7 @@ const ModelInventory: React.FC = () => {
                 >
                   <BarChart3 size={16} color="#344054" />
                 </IconButton>
-                {userRoleName === "Admin" && featureSettings?.lifecycle_enabled && (
+                {userRoleName === "Admin" && isPluginInstalled("model-lifecycle") && (
                   <IconButton
                     onClick={() => setIsLifecycleConfigOpen(true)}
                     aria-label="Configure Lifecycle"

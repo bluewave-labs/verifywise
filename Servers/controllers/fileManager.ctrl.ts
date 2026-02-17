@@ -32,6 +32,8 @@ import {
   UpdateFileMetadataInput,
   ReviewStatus,
   UploadOrganizationFileOptions,
+  searchFilesByContent,
+  FileContentSearchOptions,
 } from "../repositories/file.repository";
 import { sequelize } from "../database/db";
 import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
@@ -557,6 +559,84 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Search organization-level files by extracted content (full-text search).
+ *
+ * GET /file-manager/search?q=...&page=&pageSize=
+ */
+export const searchFiles = async (req: Request, res: Response): Promise<any> => {
+  // Validate authentication
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return; // Response already sent
+
+  const { orgId, tenant } = auth;
+
+  const qParam = Array.isArray(req.query.q) ? req.query.q[0] : req.query.q;
+  const queryText = typeof qParam === "string" ? qParam.trim() : "";
+
+  if (!queryText) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Query parameter 'q' is required"));
+  }
+
+  const pageParam = req.query.page;
+  const pageSizeParam = req.query.pageSize;
+
+  const page = pageParam ? Number(Array.isArray(pageParam) ? pageParam[0] : pageParam) : 1;
+  const pageSize = pageSizeParam
+    ? Number(Array.isArray(pageSizeParam) ? pageSizeParam[0] : pageSizeParam)
+    : 20;
+
+  const paginationResult = validatePagination(page, pageSize);
+  if ("error" in paginationResult) {
+    return res.status(400).json(STATUS_CODE[400](paginationResult.error));
+  }
+
+  // validatePagination guarantees these are defined when there is no error
+  const validPage = paginationResult.page!;
+  const validPageSize = paginationResult.pageSize!;
+  const limit = validPageSize;
+  const offset = (validPage - 1) * validPageSize;
+
+  try {
+    const options: FileContentSearchOptions = {
+      limit,
+      offset,
+    };
+
+    const { files } = await searchFilesByContent(
+      orgId,
+      tenant,
+      queryText,
+      options
+    );
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        files,
+        page: validPage,
+        pageSize: validPageSize,
+        query: queryText,
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to search files by content",
+      functionName: "searchFiles",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res
+      .status(500)
+      .json(STATUS_CODE[500]("Internal server error while searching files"));
   }
 };
 

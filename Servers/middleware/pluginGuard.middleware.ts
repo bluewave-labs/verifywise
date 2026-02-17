@@ -30,7 +30,7 @@ export function requirePlugin(pluginKey: string) {
         });
       }
 
-      next();
+      return next();
     } catch (error) {
       console.error(`[pluginGuard] Error checking plugin '${pluginKey}':`, error);
       return res.status(500).json({ message: "Internal server error" });

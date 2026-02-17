@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
-import { runAdvisorAPI, AdvisorMessage } from '../../../application/repository/advisor.repository';
+import { AdvisorMessage, streamAdvisorAPI } from '../../../application/repository/advisor.repository';
 import { AdvisorDomain, getWelcomeMessage } from './advisorConfig';
 import { useAdvisorConversationSafe } from '../../../application/contexts/AdvisorConversation.context';
 
@@ -31,7 +31,6 @@ const convertToRuntimeMessages = (messages: AdvisorMessage[], domain?: AdvisorDo
   return messages.map(msg => {
     const content: RuntimeMessageContent[] = [{ type: 'text' as const, text: msg.content }];
 
-    // Include chart data if present
     if (msg.chartData) {
       content.push({ type: 'data' as const, name: 'chartData', data: msg.chartData });
     }
@@ -63,13 +62,38 @@ const createErrorResult = (text: string): ChatModelRunResult => ({
   status: { type: 'complete' as const, reason: 'stop' as const },
 });
 
+/**
+ * Parse the ---CHART_DATA--- separator format from the full response text.
+ * Returns { markdown, chartData }.
+ */
+const parseChartData = (fullText: string): { markdown: string; chartData: unknown } => {
+  const separator = '---CHART_DATA---';
+  const separatorIndex = fullText.indexOf(separator);
+  let markdown = fullText;
+  let chartData: unknown = null;
+
+  if (separatorIndex !== -1) {
+    markdown = fullText.substring(0, separatorIndex).trim();
+    const chartSection = fullText.substring(separatorIndex + separator.length).trim();
+
+    if (chartSection && chartSection !== 'null') {
+      try {
+        chartData = JSON.parse(chartSection);
+      } catch {
+        // Malformed chart JSON, ignore
+      }
+    }
+  }
+
+  return { markdown, chartData };
+};
+
 export const useAdvisorRuntime = (
   selectedLLMKeyId?: number,
   pageContext?: AdvisorDomain
 ) => {
   const conversationContext = useAdvisorConversationSafe();
 
-  // Use refs to avoid stale closures in the adapter
   const contextRef = useRef(conversationContext);
   const pageContextRef = useRef(pageContext);
   const llmKeyRef = useRef(selectedLLMKeyId);
@@ -81,24 +105,27 @@ export const useAdvisorRuntime = (
   }, [conversationContext, pageContext, selectedLLMKeyId]);
 
   const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
-    async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
+    async *run({ messages = [], abortSignal }: ChatModelRunOptions): AsyncGenerator<ChatModelRunResult, void> {
       const context = contextRef.current;
       const domain = pageContextRef.current;
       const llmKeyId = llmKeyRef.current;
 
       try {
         if (!messages?.length) {
-          return createErrorResult('No message to process.');
+          yield createErrorResult('No message to process.');
+          return;
         }
 
         const lastMessage = messages[messages.length - 1];
         if (!lastMessage?.content) {
-          return createErrorResult('Invalid message format.');
+          yield createErrorResult('Invalid message format.');
+          return;
         }
 
         const userMessage = extractUserMessageText(lastMessage.content as MessagePart[]);
         if (!userMessage) {
-          return createErrorResult('Please provide a message.');
+          yield createErrorResult('Please provide a message.');
+          return;
         }
 
         // Save user message to context
@@ -111,46 +138,67 @@ export const useAdvisorRuntime = (
           });
         }
 
-        const response = await runAdvisorAPI({ prompt: userMessage }, llmKeyId);
-        const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
+        // Stream the response
+        let accumulatedText = '';
+        let fullText = '';
 
-        // Handle both string and object response formats
-        let assistantText: string;
-        let chartData: unknown = null;
+        for await (const event of streamAdvisorAPI({ prompt: userMessage }, llmKeyId, abortSignal)) {
+          if (event.type === 'text') {
+            accumulatedText += event.content;
 
-        if (typeof assistantContent === 'string') {
-          assistantText = assistantContent;
-        } else {
-          assistantText = assistantContent.markdown ?? JSON.stringify(assistantContent);
-          chartData = assistantContent.chartData ?? null;
+            // Strip the chart separator from displayed text during streaming
+            const separator = '---CHART_DATA---';
+            const separatorIndex = accumulatedText.indexOf(separator);
+            const displayText = separatorIndex !== -1
+              ? accumulatedText.substring(0, separatorIndex).trim()
+              : accumulatedText;
+
+            yield {
+              content: [{ type: 'text' as const, text: displayText }],
+            };
+          } else if (event.type === 'done') {
+            fullText = event.content;
+          } else if (event.type === 'error') {
+            yield createErrorResult(`I'm sorry, I encountered an error: ${event.content}`);
+            return;
+          }
         }
 
-        // Save assistant response to context (including chart data)
+        // Use the complete text from the 'done' event (or accumulated if no done event)
+        const finalText = fullText || accumulatedText;
+        const { markdown, chartData } = parseChartData(finalText);
+
+        // Save assistant response to context
         if (context && domain) {
           context.addMessage(domain, {
             id: `assistant-${Date.now()}`,
             role: 'assistant',
-            content: typeof assistantText === 'string' ? assistantText : JSON.stringify(assistantText),
+            content: markdown,
             createdAt: new Date().toISOString(),
             chartData: chartData || undefined,
           });
         }
 
-        return {
+        // Yield the final result with chart data
+        yield {
           content: [
-            { type: 'text' as const, text: assistantText },
+            { type: 'text' as const, text: markdown },
             { type: 'data' as const, name: 'chartData', data: chartData },
           ],
           status: { type: 'complete' as const, reason: 'stop' as const },
         };
       } catch (error: unknown) {
+        // Don't log abort errors
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
         console.error('[AdvisorRuntime] Error calling advisor API:', error);
         const err = error as { data?: { message?: string }; message?: string };
         const errorMessage = err?.data?.message || err?.message || 'Failed to get response from advisor. Please try again.';
-        return createErrorResult(`I'm sorry, I encountered an error: ${errorMessage}`);
+        yield createErrorResult(`I'm sorry, I encountered an error: ${errorMessage}`);
       }
     },
-  }), []); // Empty deps - uses refs for latest values
+  }), []);
 
   const initialMessages = useMemo(() => {
     if (conversationContext && pageContext) {
@@ -165,12 +213,9 @@ export const useAdvisorRuntime = (
 
   const runtime = useLocalRuntime(chatModelAdapter, { initialMessages });
 
-  // Reset the runtime with welcome message if it was created without messages
-  // This handles the timing issue where useLocalRuntime is created before initialMessages is ready
   const hasResetRef = useRef(false);
   useEffect(() => {
     if (runtime && !hasResetRef.current && initialMessages.length > 0) {
-      // Access thread state safely through the runtime
       const threadState = runtime.thread?.getState?.();
       const messageCount = threadState?.messages?.length ?? 0;
       if (messageCount === 0 && typeof runtime.reset === 'function') {

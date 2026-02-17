@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { runAgent } from "../advisor/agent";
+import { runAgent, streamAgent } from "../advisor/agent";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { getLLMKeysWithKeyQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
@@ -288,5 +288,114 @@ export async function saveConversation(req: Request, res: Response) {
     );
     logger.error("❌ Error saving conversation:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Streaming advisor endpoint — returns SSE text/event-stream.
+ * Tool-calling iterations happen server-side; the final LLM response streams to the client.
+ */
+export async function streamAdvisor(req: Request, res: Response) {
+  const functionName = "streamAdvisor";
+  logStructured(
+    "processing",
+    "Starting streaming advisor response",
+    functionName,
+    fileName,
+  );
+
+  try {
+    const prompt = req.body.prompt;
+    const tenantId = req.tenantId!;
+    const userId = req.userId ? Number(req.userId) : undefined;
+    const llmKeyId = req.query.llmKeyId
+      ? Number(Array.isArray(req.query.llmKeyId) ? req.query.llmKeyId[0] : req.query.llmKeyId)
+      : undefined;
+
+    if (!prompt) {
+      res.status(400).json({ error: "Prompt is required" });
+      return;
+    }
+
+    if (!tenantId) {
+      res.status(400).json({ error: "Tenant context is required" });
+      return;
+    }
+
+    logger.debug(
+      `Streaming advisor for tenant: ${tenantId}, user: ${userId}, llmKeyId: ${llmKeyId}`,
+    );
+
+    const clients = await getLLMKeysWithKeyQuery(tenantId);
+
+    if (clients.length === 0) {
+      res.status(400).json({ error: "No LLM keys configured for this tenant." });
+      return;
+    }
+
+    let apiKey = clients[0];
+    if (llmKeyId !== undefined) {
+      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
+      if (selectedKey) {
+        apiKey = selectedKey;
+      }
+    }
+
+    const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
+
+    // Set SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+
+    const generator = streamAgent({
+      apiKey: apiKey.key || "",
+      baseURL: url,
+      model: apiKey.model,
+      userPrompt: prompt,
+      tenant: tenantId,
+      availableTools,
+      toolsDefinition,
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
+    });
+
+    let fullText = "";
+
+    for await (const chunk of generator) {
+      fullText += chunk;
+      // SSE format: data: <json>\n\n
+      res.write(`data: ${JSON.stringify({ type: "text", content: chunk })}\n\n`);
+    }
+
+    // Send the final done event with the complete text for chart parsing
+    res.write(`data: ${JSON.stringify({ type: "done", content: fullText })}\n\n`);
+    res.end();
+
+    logStructured(
+      "successful",
+      "Streaming advisor response completed",
+      functionName,
+      fileName,
+    );
+  } catch (error) {
+    logStructured(
+      "error",
+      "Failed to stream advisor response",
+      functionName,
+      fileName,
+    );
+    logger.error("❌ Error in streaming advisor response:", error);
+
+    // If headers haven't been sent yet, send JSON error
+    if (!res.headersSent) {
+      res.status(500).json(STATUS_CODE[500]((error as Error).message));
+      return;
+    }
+
+    // If SSE already started, send error event and close
+    res.write(`data: ${JSON.stringify({ type: "error", content: (error as Error).message })}\n\n`);
+    res.end();
   }
 }

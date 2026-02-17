@@ -239,7 +239,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       if (!isNaN(parsed)) approvalWorkflowId = parsed;
     }
 
-    // Parse source from request body (e.g., "policy_editor", "File Manager", etc.)
+    // Parse source from request body
     const source: FileSource = (req.body.source as FileSource) || "File Manager";
 
     if (!file) {
@@ -258,7 +258,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     // Validate authentication
     const auth = validateAndParseAuth(req, res);
     if (!auth) {
-      return; // Response already sent by validateAndParseAuth
+      return;
     }
 
     const { userId, orgId, tenant } = auth;
@@ -297,6 +297,10 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       }
     }
 
+    // Variables to store transaction results
+    let uploadedFile: any;
+    let approvalRequestId: number | undefined;
+
     // Start transaction for file upload and approval request creation
     const transaction = await sequelize.transaction();
 
@@ -309,7 +313,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         transaction,
       };
 
-      const uploadedFile = await uploadOrganizationFile(
+      uploadedFile = await uploadOrganizationFile(
         file,
         userId,
         orgId,
@@ -318,7 +322,6 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       );
 
       // If approval workflow is specified, create an approval request
-      let approvalRequestId: number | undefined;
       if (approvalWorkflowId && uploadedFile.id) {
         // Get workflow steps with approvers
         const workflowStepsResult = await sequelize.query(
@@ -377,72 +380,81 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       }
 
       await transaction.commit();
-
-      // Best-effort: extract text content for full-text search (does not affect upload success)
-      try {
-        const rawText = await extractText(file.buffer, file.mimetype, file.originalname);
-        const normalized = rawText ? normalizeText(rawText) : "";
-
-        if (normalized && uploadedFile.id) {
-          await sequelize.query(
-            `UPDATE "${tenant}".files
-             SET content_text = :content_text,
-                 content_search = to_tsvector('english', :content_text)
-             WHERE id = :fileId`,
-            {
-              replacements: {
-                content_text: normalized,
-                fileId: uploadedFile.id,
-              },
-              type: "UPDATE" as const,
-            }
-          );
-        }
-      } catch (extractionError) {
-        // Do not fail the request if extraction or indexing fails
-        console.error(
-          "Failed to extract or index file content for search:",
-          extractionError
-        );
-      }
-
-      // Send notifications to first step approvers after commit
-      if (approvalRequestId) {
-        try {
-          await notifyStepApprovers(tenant, approvalRequestId, 1, `File Approval: ${uploadedFile.filename}`);
-        } catch (notifyError) {
-          console.error("Failed to send approval notifications:", notifyError);
-          // Don't fail the request if notifications fail
-        }
-      }
-
-      await logSuccess({
-        eventType: "Create",
-        description: `File uploaded successfully: ${uploadedFile.filename}${approvalWorkflowId ? " (pending approval)" : ""}`,
-        functionName: "uploadFile",
-        fileName: "fileManager.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-      });
-
-      return res.status(201).json(
-        STATUS_CODE[201]({
-          id: uploadedFile.id,
-          filename: uploadedFile.filename,
-          size: uploadedFile.size,
-          mimetype: uploadedFile.mimetype,
-          upload_date: uploadedFile.upload_date,
-          uploaded_by: uploadedFile.uploaded_by,
-          modelId: uploadedFile.model_id,
-          review_status: approvalWorkflowId ? "pending_review" : "draft",
-          approval_workflow_id: approvalWorkflowId,
-          approval_request_id: approvalRequestId,
-        })
-      );
     } catch (error) {
       await transaction.rollback();
       throw error;
     }
+
+    // POST-COMMIT OPERATIONS (outside transaction try-catch)
+    // These are best-effort and should not fail the request
+
+    // Best-effort: extract text content for full-text search
+    try {
+      const rawText = await extractText(file.buffer, file.mimetype);
+      const normalized = rawText ? normalizeText(rawText) : "";
+
+      if (normalized && uploadedFile.id) {
+        await sequelize.query(
+          `UPDATE "${tenant}".files
+           SET content_text = :content_text,
+               content_search = to_tsvector('english', :content_text)
+           WHERE id = :fileId`,
+          {
+            replacements: {
+              content_text: normalized,
+              fileId: uploadedFile.id,
+            },
+            type: "UPDATE" as const,
+          }
+        );
+      }
+    } catch (extractionError) {
+      // Do not fail the request if extraction or indexing fails
+      console.error(
+        "Failed to extract or index file content for search:",
+        extractionError
+      );
+    }
+
+    // Send notifications to first step approvers
+    if (approvalRequestId) {
+      try {
+        await notifyStepApprovers(
+          tenant,
+          approvalRequestId,
+          1,
+          `File Approval: ${uploadedFile.filename}`
+        );
+      } catch (notifyError) {
+        console.error("Failed to send approval notifications:", notifyError);
+      }
+    }
+
+    await logSuccess({
+      eventType: "Create",
+      description: `File uploaded successfully: ${uploadedFile.filename}${
+        approvalWorkflowId ? " (pending approval)" : ""
+      }`,
+      functionName: "uploadFile",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(201).json(
+      STATUS_CODE[201]({
+        id: uploadedFile.id,
+        filename: uploadedFile.filename,
+        size: uploadedFile.size,
+        mimetype: uploadedFile.mimetype,
+        upload_date: uploadedFile.upload_date,
+        uploaded_by: uploadedFile.uploaded_by,
+        modelId: uploadedFile.model_id,
+        review_status: approvalWorkflowId ? "pending_review" : "draft",
+        approval_workflow_id: approvalWorkflowId,
+        approval_request_id: approvalRequestId,
+      })
+    );
   } catch (error) {
     await logFailure({
       eventType: "Error",

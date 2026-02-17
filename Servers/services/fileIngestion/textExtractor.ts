@@ -1,7 +1,7 @@
+import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 
-const pdfParse = require("pdf-parse");
 /**
  * Extract readable text from a file buffer based on its mimetype.
  *
@@ -10,7 +10,6 @@ const pdfParse = require("pdf-parse");
 export async function extractText(
   buffer: Buffer,
   mimetype: string,
-  filename?: string
 ): Promise<string | null> {
   try {
     switch (mimetype) {
@@ -40,8 +39,10 @@ export async function extractText(
 }
 
 async function extractPdf(buffer: Buffer): Promise<string> {
-  const result = await pdfParse(buffer); 
-  return result.text || "";
+  const parser = new PDFParse({ data: buffer });
+  const { text } = await parser.getText();
+  await parser.destroy();
+  return text?.trim() ?? "";
 }
 
 async function extractDocx(buffer: Buffer): Promise<string> {

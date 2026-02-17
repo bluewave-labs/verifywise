@@ -10,6 +10,7 @@ import {
 } from "../../domain.layer/exceptions/custom.exception";
 import { sequelize } from "../../database/db";
 import { getBuiltinPlugins, isBuiltinPlugin } from "./builtinPlugins";
+import { sanitizeForLog } from "../../utils/validations/validation.utils";
 
 // Environment configuration
 export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
@@ -166,8 +167,7 @@ export class PluginService {
       return plugin || null;
     } catch (error: any) {
       console.error(
-        "[PluginService] Error fetching plugin %s:",
-        pluginKey,
+        `[PluginService] Error fetching plugin ${sanitizeForLog(pluginKey)}:`,
         error
       );
       throw new Error(`Failed to fetch plugin: ${error.message}`);
@@ -234,12 +234,12 @@ export class PluginService {
           };
           const result = await pluginCode.install(userId, tenantId, {}, context);
           console.log(
-            `[PluginService] Plugin ${pluginKey} installed:`,
+            `[PluginService] Plugin ${sanitizeForLog(pluginKey)} installed:`,
             result
           );
         }
       } else {
-        console.log(`[PluginService] Built-in plugin ${pluginKey} installed (no remote download)`);
+        console.log(`[PluginService] Built-in plugin ${sanitizeForLog(pluginKey)} installed (no remote download)`);
       }
 
       // Create installation record (only after successful plugin installation)
@@ -251,7 +251,7 @@ export class PluginService {
       return toJSON(installation);
     } catch (error: any) {
       console.error(
-        `[PluginService] Error installing plugin ${pluginKey}:`,
+        `[PluginService] Error installing plugin ${sanitizeForLog(pluginKey)}:`,
         error
       );
       throw error;
@@ -289,13 +289,13 @@ export class PluginService {
               context
             );
             console.log(
-              `[PluginService] Plugin ${installation.plugin_key} uninstalled:`,
+              `[PluginService] Plugin ${sanitizeForLog(installation.plugin_key)} uninstalled:`,
               result
             );
           }
         }
       } else {
-        console.log(`[PluginService] Built-in plugin ${installation.plugin_key} uninstalled (no remote code)`);
+        console.log(`[PluginService] Built-in plugin ${sanitizeForLog(installation.plugin_key)} uninstalled (no remote code)`);
       }
 
       // Delete installation record
@@ -424,7 +424,7 @@ export class PluginService {
               context
             );
             console.log(
-              `[PluginService] Plugin ${installation.plugin_key} configured:`,
+              `[PluginService] Plugin ${sanitizeForLog(installation.plugin_key)} configured:`,
               result
             );
           }
@@ -466,8 +466,7 @@ export class PluginService {
         const pluginContext = context ? { sequelize, ...context } : undefined;
         const result = await pluginCode.testConnection(configuration, pluginContext);
         console.log(
-          "[PluginService] Plugin %s connection test:",
-          pluginKey,
+          `[PluginService] Plugin ${sanitizeForLog(pluginKey)} connection test:`,
           result
         );
         return result;
@@ -498,7 +497,7 @@ export class PluginService {
       const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
       const packageJsonUrl = `${baseUrl}/${plugin.pluginPath}/package.json`;
 
-      console.log(`[PluginService] Downloading package.json for ${plugin.key} from ${packageJsonUrl}`);
+      console.log(`[PluginService] Downloading package.json for ${sanitizeForLog(plugin.key)} from ${packageJsonUrl}`);
 
       const response = await axios.get(packageJsonUrl, {
         timeout: 10000,
@@ -518,10 +517,10 @@ export class PluginService {
       // If package.json doesn't exist (404), return null instead of throwing
       // This is expected for pre-bundled framework plugins that don't have dependencies
       if (error.response?.status === 404) {
-        console.log(`[PluginService] No package.json found for plugin ${plugin.key} (pre-bundled plugin)`);
+        console.log(`[PluginService] No package.json found for plugin ${sanitizeForLog(plugin.key)} (pre-bundled plugin)`);
         return null;
       }
-      console.error(`[PluginService] Error downloading package.json for ${plugin.key}:`, error);
+      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}:`, error);
       throw new Error(`Failed to download package.json: ${error.message}`);
     }
   }
@@ -532,12 +531,12 @@ export class PluginService {
   private static async installPluginDependencies(plugin: Plugin, tempPath: string, packageJson: any): Promise<void> {
     try {
       if (!packageJson.dependencies || Object.keys(packageJson.dependencies).length === 0) {
-        console.log(`[PluginService] No dependencies to install for plugin ${plugin.key}`);
+        console.log(`[PluginService] No dependencies to install for plugin ${sanitizeForLog(plugin.key)}`);
         return;
       }
 
       const dependenciesCount = Object.keys(packageJson.dependencies).length;
-      console.log(`[PluginService] Installing ${dependenciesCount} dependencies for plugin ${plugin.key}...`);
+      console.log(`[PluginService] Installing ${dependenciesCount} dependencies for plugin ${sanitizeForLog(plugin.key)}...`);
 
       // Check if node_modules already exists and dependencies are installed
       const nodeModulesPath = path.join(tempPath, "node_modules");
@@ -545,7 +544,7 @@ export class PluginService {
 
       // If dependencies are already installed and package-lock exists, skip installation
       if (fs.existsSync(nodeModulesPath) && fs.existsSync(packageLockPath)) {
-        console.log(`[PluginService] Dependencies already installed for plugin ${plugin.key}`);
+        console.log(`[PluginService] Dependencies already installed for plugin ${sanitizeForLog(plugin.key)}`);
         return;
       }
 
@@ -562,9 +561,9 @@ export class PluginService {
         timeout: 60000, // 60 second timeout
       });
 
-      console.log(`[PluginService] Successfully installed dependencies for plugin ${plugin.key}`);
+      console.log(`[PluginService] Successfully installed dependencies for plugin ${sanitizeForLog(plugin.key)}`);
     } catch (error: any) {
-      console.error(`[PluginService] Error installing dependencies for ${plugin.key}:`, error);
+      console.error(`[PluginService] Error installing dependencies for ${sanitizeForLog(plugin.key)}:`, error);
       throw new Error(`Failed to install plugin dependencies: ${error.message}`);
     }
   }
@@ -584,7 +583,7 @@ export class PluginService {
       const repoPath = plugin.ui.bundleUrl.replace(/^\/api/, "");
       const bundleUrl = `${baseUrl}${repoPath}`;
 
-      console.log(`[PluginService] Downloading UI bundle for ${plugin.key} from ${bundleUrl}`);
+      console.log(`[PluginService] Downloading UI bundle for ${sanitizeForLog(plugin.key)} from ${bundleUrl}`);
 
       const response = await axios.get(bundleUrl, {
         timeout: 30000,
@@ -604,10 +603,10 @@ export class PluginService {
       const bundlePath = path.join(uiDistPath, bundleFileName);
       fs.writeFileSync(bundlePath, response.data);
 
-      console.log(`[PluginService] UI bundle for ${plugin.key} downloaded to ${bundlePath}`);
+      console.log(`[PluginService] UI bundle for ${sanitizeForLog(plugin.key)} downloaded to ${bundlePath}`);
     } catch (error: any) {
       // UI bundle download failure should not block plugin installation
-      console.warn(`[PluginService] Failed to download UI bundle for ${plugin.key}:`, error.message);
+      console.warn(`[PluginService] Failed to download UI bundle for ${sanitizeForLog(plugin.key)}:`, error.message);
     }
   }
 
@@ -652,7 +651,7 @@ export class PluginService {
       return pluginCode;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error loading plugin ${plugin.key}:`,
+        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}:`,
         error
       );
       throw new Error(`Failed to load plugin code: ${error.message}`);
@@ -680,9 +679,9 @@ export class PluginService {
 
         if (fileAge < CACHE_DURATION_MS) {
           shouldDownload = false;
-          console.log(`[PluginService] Using cached plugin ${plugin.key} (age: ${Math.round(fileAge / (1000 * 60 * 60))} hours)`);
+          console.log(`[PluginService] Using cached plugin ${sanitizeForLog(plugin.key)} (age: ${Math.round(fileAge / (1000 * 60 * 60))} hours)`);
         } else {
-          console.log(`[PluginService] Cache expired for plugin ${plugin.key} (age: ${Math.round(fileAge / (1000 * 60 * 60 * 24))} days)`);
+          console.log(`[PluginService] Cache expired for plugin ${sanitizeForLog(plugin.key)} (age: ${Math.round(fileAge / (1000 * 60 * 60 * 24))} days)`);
         }
       }
 
@@ -698,7 +697,7 @@ export class PluginService {
         const baseUrl = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
         const pluginUrl = `${baseUrl}/${plugin.pluginPath}/${plugin.entryPoint}`;
 
-        console.log(`[PluginService] Downloading plugin ${plugin.key} from ${pluginUrl}`);
+        console.log(`[PluginService] Downloading plugin ${sanitizeForLog(plugin.key)} from ${pluginUrl}`);
 
         const response = await axios.get(pluginUrl, {
           timeout: 10000,
@@ -715,7 +714,7 @@ export class PluginService {
 
         fs.writeFileSync(entryPointPath, response.data);
 
-        console.log(`[PluginService] Plugin ${plugin.key} downloaded and cached`);
+        console.log(`[PluginService] Plugin ${sanitizeForLog(plugin.key)} downloaded and cached`);
 
         // 3c. Install dependencies (only if package.json exists)
         if (packageJson) {
@@ -762,7 +761,7 @@ export class PluginService {
       const pluginCode = require(entryPointPath);
       return pluginCode;
     } catch (error: any) {
-      console.error(`[PluginService] Error downloading plugin ${plugin.key}:`, error);
+      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}:`, error);
       throw new Error(`Failed to download plugin: ${error.message}`);
     }
   }
@@ -831,14 +830,14 @@ export class PluginService {
 
       // Execute the handler
       console.log(
-        `[PluginService] Forwarding request to plugin: ${pluginKey}`,
+        `[PluginService] Forwarding request to plugin: ${sanitizeForLog(pluginKey)}`,
         { method: context.method, path: context.path }
       );
 
       const response = await handler(context);
 
       console.log(
-        `[PluginService] Plugin '${pluginKey}' responded:`,
+        `[PluginService] Plugin '${sanitizeForLog(pluginKey)}' responded:`,
         { status: response.status || 200, hasData: !!response.data, hasBuffer: !!response.buffer }
       );
 
@@ -846,7 +845,7 @@ export class PluginService {
     } catch (error: any) {
       console.error(
         "[PluginService] Error forwarding to plugin:",
-        { pluginKey, method: context.method, path: context.path, error: error.message }
+        { pluginKey: sanitizeForLog(pluginKey), method: context.method, path: context.path, error: error.message }
       );
       throw error;
     }

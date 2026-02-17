@@ -51,19 +51,30 @@ export const runAdvisorAPI = async (
  * SSE event from the streaming advisor endpoint
  */
 export interface AdvisorStreamEvent {
-  type: 'text' | 'done' | 'error';
+  type: 'text' | 'done' | 'error' | 'status';
   content: string;
 }
 
 /**
- * Stream advisor response via SSE. Returns an AsyncGenerator that yields text chunks.
+ * Get the direct backend URL for SSE streaming.
+ * We bypass the Vite dev proxy because http-proxy buffers SSE responses,
+ * causing all chunks to arrive at once instead of streaming incrementally.
  */
+const getStreamBaseUrl = (): string => {
+  // In production, the API is served from the same origin — no proxy issue
+  if (import.meta.env.PROD) {
+    return ENV_VARs.URL;
+  }
+  // In development, connect directly to the backend to bypass Vite's proxy
+  return import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:3000';
+};
+
 export async function* streamAdvisorAPI(
   data: { prompt: string },
   llmKeyId?: number,
   abortSignal?: AbortSignal
 ): AsyncGenerator<AdvisorStreamEvent, void> {
-  let url = `${ENV_VARs.URL}/api/advisor/stream`;
+  let url = `${getStreamBaseUrl()}/api/advisor/stream`;
   if (llmKeyId !== undefined) {
     url += `?llmKeyId=${llmKeyId}`;
   }

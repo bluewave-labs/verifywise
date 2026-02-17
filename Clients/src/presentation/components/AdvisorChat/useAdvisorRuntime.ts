@@ -142,11 +142,22 @@ export const useAdvisorRuntime = (
         let accumulatedText = '';
         let fullText = '';
 
+        const runningStatus = { type: 'running' as const };
+
         for await (const event of streamAdvisorAPI({ prompt: userMessage }, llmKeyId, abortSignal)) {
-          if (event.type === 'text') {
+          if (event.type === 'status') {
+            if (!accumulatedText) {
+              const statusText = event.content === 'analyzing'
+                ? 'Analyzing your data...'
+                : 'Thinking...';
+              yield {
+                content: [{ type: 'text' as const, text: statusText }],
+                status: runningStatus,
+              };
+            }
+          } else if (event.type === 'text') {
             accumulatedText += event.content;
 
-            // Strip the chart separator from displayed text during streaming
             const separator = '---CHART_DATA---';
             const separatorIndex = accumulatedText.indexOf(separator);
             const displayText = separatorIndex !== -1
@@ -155,6 +166,7 @@ export const useAdvisorRuntime = (
 
             yield {
               content: [{ type: 'text' as const, text: displayText }],
+              status: runningStatus,
             };
           } else if (event.type === 'done') {
             fullText = event.content;

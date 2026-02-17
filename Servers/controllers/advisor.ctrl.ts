@@ -343,12 +343,25 @@ export async function streamAdvisor(req: Request, res: Response) {
 
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
 
-    // Set SSE headers
+    // Set SSE headers — disable ALL buffering for real-time streaming
     res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
+    res.setHeader("Content-Encoding", "none");
     res.flushHeaders();
+
+    // Helper: write SSE event and flush immediately
+    const sendSSE = (data: object) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+      // Flush if available (when compression middleware is active)
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
+    };
+
+    // Send an immediate status event so the client knows the connection is open
+    sendSSE({ type: "status", content: "thinking" });
 
     const generator = streamAgent({
       apiKey: apiKey.key || "",
@@ -362,15 +375,27 @@ export async function streamAdvisor(req: Request, res: Response) {
     });
 
     let fullText = "";
+    let chunkCount = 0;
+    let firstChunkTime = 0;
+    const streamStartTime = Date.now();
 
     for await (const chunk of generator) {
-      fullText += chunk;
-      // SSE format: data: <json>\n\n
-      res.write(`data: ${JSON.stringify({ type: "text", content: chunk })}\n\n`);
+      if (chunk.type === "text") {
+        fullText += chunk.content;
+        chunkCount++;
+        if (chunkCount === 1) {
+          firstChunkTime = Date.now();
+          logger.debug(`[TIMER] First text chunk written to client at +${firstChunkTime - streamStartTime}ms`);
+        }
+      }
+      sendSSE(chunk);
     }
 
+    const lastChunkTime = Date.now();
+    logger.debug(`[TIMER] Streamed ${chunkCount} text chunks to client. First-to-last spread: ${firstChunkTime ? lastChunkTime - firstChunkTime : 0}ms`);
+
     // Send the final done event with the complete text for chart parsing
-    res.write(`data: ${JSON.stringify({ type: "done", content: fullText })}\n\n`);
+    sendSSE({ type: "done", content: fullText });
     res.end();
 
     logStructured(

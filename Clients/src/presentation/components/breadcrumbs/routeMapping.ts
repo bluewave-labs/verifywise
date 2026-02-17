@@ -35,7 +35,6 @@ import {
   WorkflowIcon,
   Bot,
   Database,
-  MessageSquare,
 } from "lucide-react";
 
 /**
@@ -108,9 +107,6 @@ export const routeMapping: Record<string, string> = {
   "/framework/linked-models": "Linked models",
   "/framework/controls": "Controls and Requirements",
   "/framework/settings": "Settings",
-
-  // AI Advisor chat
-  "/chat": "AI Advisor",
 
   // Authentication
   "/login": "Sign In",
@@ -206,8 +202,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   //ApprovalWorkflow
   "/approval-workflows": () => React.createElement(WorkflowIcon, { size: 14, strokeWidth: 1.5 }),
 
-  // AI Advisor chat
-  "/chat": () => React.createElement(MessageSquare, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**

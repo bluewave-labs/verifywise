@@ -128,18 +128,111 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
       { prompt: 'Recommend policy templates based on our current coverage', label: 'Get recommendations' },
     ],
   },
-  'chat': {
-    path: '/chat',
-    displayName: 'AI Advisor',
-    welcomeMessage: "Hello! I'm your VerifyWise AI Advisor. I can help you with risks, models, vendors, incidents, tasks, policies, and more. What would you like to know?",
-    placeholder: 'Ask me anything about your AI governance...',
+  'use-cases': {
+    path: '/overview',
+    displayName: 'Use Cases',
+    welcomeMessage: "Hello! I'm your Use Case Advisor. I can help you understand your AI use case portfolio, track status and risk classifications, and identify high-risk projects. What would you like to know about your use cases?",
+    placeholder: 'Ask me about your use cases...',
     suggestions: [
-      { prompt: 'Give me an executive summary across all domains', label: 'Executive summary' },
-      { prompt: 'What are the highest priority risks and overdue tasks?', label: 'Top priorities' },
-      { prompt: 'Show me the status of our AI model inventory', label: 'Model inventory status' },
-      { prompt: 'Which vendors need review and what incidents are open?', label: 'Vendors & incidents' },
-      { prompt: 'How are our policies and compliance posture?', label: 'Policy compliance' },
-      { prompt: 'Show me task completion progress by category', label: 'Task progress' },
+      { prompt: 'Give me an executive summary of our use case portfolio', label: 'Summarize use cases' },
+      { prompt: 'Show me the distribution of use cases by risk classification', label: 'Show risk classifications' },
+      { prompt: 'Which use cases are classified as high risk or unacceptable risk?', label: 'Find high-risk use cases' },
+      { prompt: 'Show me use cases by status', label: 'Show status breakdown' },
+      { prompt: 'How many use cases are active vs in draft?', label: 'Active vs draft count' },
+    ],
+  },
+  'datasets': {
+    path: '/datasets',
+    displayName: 'Datasets',
+    welcomeMessage: "Hello! I'm your Dataset Advisor. I can help you analyze your dataset inventory, track PII exposure, review data classifications, and identify datasets with known biases. What would you like to know about your datasets?",
+    placeholder: 'Ask me about your datasets...',
+    suggestions: [
+      { prompt: 'Give me an executive summary of our dataset landscape', label: 'Summarize datasets' },
+      { prompt: 'Which datasets contain PII?', label: 'Find PII datasets' },
+      { prompt: 'Show me the distribution of datasets by classification level', label: 'Show classifications' },
+      { prompt: 'Which datasets have known biases?', label: 'Find biased datasets' },
+      { prompt: 'Show me datasets by type', label: 'Show type breakdown' },
+      { prompt: 'What is our PII exposure rate across all datasets?', label: 'Check PII exposure' },
+    ],
+  },
+  'frameworks': {
+    path: '/framework',
+    displayName: 'Frameworks',
+    welcomeMessage: "Hello! I'm your Framework Advisor. I can help you understand your compliance framework adoption, project coverage, and compare frameworks. What would you like to know about your frameworks?",
+    placeholder: 'Ask me about your frameworks...',
+    suggestions: [
+      { prompt: 'List all frameworks and their project adoption', label: 'List all frameworks' },
+      { prompt: 'Which frameworks have the most project adoption?', label: 'Show adoption ranking' },
+      { prompt: 'How many projects are using compliance frameworks?', label: 'Check framework coverage' },
+      { prompt: 'Compare framework adoption across projects', label: 'Compare frameworks' },
+      { prompt: 'Show me framework analytics', label: 'Show framework stats' },
+    ],
+  },
+  'training': {
+    path: '/training',
+    displayName: 'Training',
+    welcomeMessage: "Hello! I'm your Training Registry Advisor. I can help you track training completion rates, department coverage, provider statistics, and identify training gaps. What would you like to know about your training programs?",
+    placeholder: 'Ask me about your training programs...',
+    suggestions: [
+      { prompt: 'Give me an executive summary of our training programs', label: 'Summarize training' },
+      { prompt: 'What is our overall training completion rate?', label: 'Check completion rate' },
+      { prompt: 'Show me training records by status', label: 'Show status breakdown' },
+      { prompt: 'Which departments have training coverage?', label: 'Check department coverage' },
+      { prompt: 'Show me training by provider', label: 'Group by provider' },
+      { prompt: 'How many people have been trained in total?', label: 'Total people trained' },
+    ],
+  },
+  'evidence': {
+    path: '/file-manager',
+    displayName: 'Evidence',
+    welcomeMessage: "Hello! I'm your Evidence Hub Advisor. I can help you track evidence items, monitor expiry dates, check model coverage, and identify compliance gaps. What would you like to know about your evidence?",
+    placeholder: 'Ask me about your evidence...',
+    suggestions: [
+      { prompt: 'Give me an executive summary of our evidence', label: 'Summarize evidence' },
+      { prompt: 'Which evidence items have expired?', label: 'Find expired evidence' },
+      { prompt: 'What evidence is expiring in the next 30 days?', label: 'Find expiring soon' },
+      { prompt: 'Show me evidence by type', label: 'Show type breakdown' },
+      { prompt: 'How many models have evidence coverage?', label: 'Check model coverage' },
+    ],
+  },
+  'reporting': {
+    path: '/reporting',
+    displayName: 'Reporting',
+    welcomeMessage: "Hello! I'm your Reporting Advisor. I can help you understand your report generation history, find reports by type, and analyze reporting patterns. What would you like to know about your reports?",
+    placeholder: 'Ask me about your reports...',
+    suggestions: [
+      { prompt: 'Show me all generated reports', label: 'List all reports' },
+      { prompt: 'How many reports have been generated by type?', label: 'Show report types' },
+      { prompt: 'Show me the most recent reports', label: 'Show recent reports' },
+      { prompt: 'Which projects have the most reports generated?', label: 'Reports by project' },
+      { prompt: 'Show me reporting analytics', label: 'Show reporting stats' },
+    ],
+  },
+  'ai-trust-center': {
+    path: '/ai-trust-center',
+    displayName: 'AI Trust Center',
+    welcomeMessage: "Hello! I'm your AI Trust Center Advisor. I can help you understand your trust center configuration, check section visibility, review resources and subprocessors. What would you like to know about your AI Trust Center?",
+    placeholder: 'Ask me about your AI Trust Center...',
+    suggestions: [
+      { prompt: 'Show me the current trust center configuration', label: 'Show trust center overview' },
+      { prompt: 'Which sections are publicly visible?', label: 'Check section visibility' },
+      { prompt: 'How many resources are published?', label: 'Count resources' },
+      { prompt: 'List all subprocessors', label: 'Show subprocessors' },
+      { prompt: 'How complete is our trust center setup?', label: 'Check completeness' },
+    ],
+  },
+  'agent-discovery': {
+    path: '/agent-discovery',
+    displayName: 'Agent Discovery',
+    welcomeMessage: "Hello! I'm your Agent Discovery Advisor. I can help you understand your discovered agent landscape, track review statuses, identify stale agents, and analyze source system distributions. What would you like to know about your agents?",
+    placeholder: 'Ask me about your discovered agents...',
+    suggestions: [
+      { prompt: 'Give me an executive summary of agent discovery', label: 'Summarize agents' },
+      { prompt: 'How many agents are unreviewed?', label: 'Find unreviewed agents' },
+      { prompt: 'Show me agents by source system', label: 'Group by source' },
+      { prompt: 'Which agents are flagged as stale?', label: 'Find stale agents' },
+      { prompt: 'What is our agent review rate?', label: 'Check review progress' },
+      { prompt: 'Show me the distribution of agent types', label: 'Show type breakdown' },
     ],
   },
 };
@@ -149,7 +242,7 @@ export type AdvisorDomain = keyof typeof ADVISOR_DOMAINS;
 
 export const ADVISOR_PATHS = Object.values(ADVISOR_DOMAINS).map(d => d.path);
 
-export const DEFAULT_WELCOME_MESSAGE = "Hello! I'm your VerifyWise AI Advisor. I can help you with AI Risk Management, Model Inventory, Model Risks, Vendors, AI Incident Management, Tasks, and Policies. What would you like to know?";
+export const DEFAULT_WELCOME_MESSAGE = "Hello! I'm your VerifyWise AI Advisor. I can help you with risks, models, vendors, incidents, tasks, policies, use cases, datasets, frameworks, training, evidence, reporting, AI Trust Center, and agent discovery. What would you like to know?";
 
 /**
  * Get domain key by path
@@ -187,9 +280,7 @@ export const getPlaceholder = (domain?: AdvisorDomain): string => {
 
 /**
  * Check if a path is advisor-eligible (for the sidebar advisor panel).
- * Excludes '/chat' since that page has its own full-page advisor.
  */
 export const isAdvisorEligiblePath = (path: string): boolean => {
-  if (path === '/chat') return false;
   return ADVISOR_PATHS.includes(path);
 };

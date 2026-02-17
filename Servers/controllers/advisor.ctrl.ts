@@ -16,6 +16,14 @@ import { availableVendorTools } from "../advisor/functions/vendorFunctions";
 import { availableIncidentTools } from "../advisor/functions/incidentFunctions";
 import { availableTaskTools } from "../advisor/functions/taskFunctions";
 import { availablePolicyTools } from "../advisor/functions/policyFunctions";
+import { availableUseCaseTools } from "../advisor/functions/useCaseFunctions";
+import { availableDatasetTools } from "../advisor/functions/datasetFunctions";
+import { availableFrameworkTools } from "../advisor/functions/frameworkFunctions";
+import { availableTrainingTools } from "../advisor/functions/trainingFunctions";
+import { availableEvidenceTools } from "../advisor/functions/evidenceFunctions";
+import { availableReportingTools } from "../advisor/functions/reportingFunctions";
+import { availableAiTrustCentreTools } from "../advisor/functions/aiTrustCentreFunctions";
+import { availableAgentDiscoveryTools } from "../advisor/functions/agentDiscoveryFunctions";
 import { toolsDefinition as riskToolsDefinition } from "../advisor/tools/riskTools";
 import { toolsDefinition as modelInventoryToolsDefinition } from "../advisor/tools/modelInventoryTools";
 import { toolsDefinition as modelRiskToolsDefinition } from "../advisor/tools/modelRiskTools";
@@ -23,6 +31,14 @@ import { toolsDefinition as vendorToolsDefinition } from "../advisor/tools/vendo
 import { toolsDefinition as incidentToolsDefinition } from "../advisor/tools/incidentTools";
 import { toolsDefinition as taskToolsDefinition } from "../advisor/tools/taskTools";
 import { toolsDefinition as policyToolsDefinition } from "../advisor/tools/policyTools";
+import { toolsDefinition as useCaseToolsDefinition } from "../advisor/tools/useCaseTools";
+import { toolsDefinition as datasetToolsDefinition } from "../advisor/tools/datasetTools";
+import { toolsDefinition as frameworkToolsDefinition } from "../advisor/tools/frameworkTools";
+import { toolsDefinition as trainingToolsDefinition } from "../advisor/tools/trainingTools";
+import { toolsDefinition as evidenceToolsDefinition } from "../advisor/tools/evidenceTools";
+import { toolsDefinition as reportingToolsDefinition } from "../advisor/tools/reportingTools";
+import { toolsDefinition as aiTrustCentreToolsDefinition } from "../advisor/tools/aiTrustCentreTools";
+import { toolsDefinition as agentDiscoveryToolsDefinition } from "../advisor/tools/agentDiscoveryTools";
 
 const fileName = "advisor.ctrl.ts";
 
@@ -34,6 +50,14 @@ const availableTools = {
   ...availableIncidentTools,
   ...availableTaskTools,
   ...availablePolicyTools,
+  ...availableUseCaseTools,
+  ...availableDatasetTools,
+  ...availableFrameworkTools,
+  ...availableTrainingTools,
+  ...availableEvidenceTools,
+  ...availableReportingTools,
+  ...availableAiTrustCentreTools,
+  ...availableAgentDiscoveryTools,
 };
 
 const toolsDefinition = [
@@ -44,6 +68,14 @@ const toolsDefinition = [
   ...incidentToolsDefinition,
   ...taskToolsDefinition,
   ...policyToolsDefinition,
+  ...useCaseToolsDefinition,
+  ...datasetToolsDefinition,
+  ...frameworkToolsDefinition,
+  ...trainingToolsDefinition,
+  ...evidenceToolsDefinition,
+  ...reportingToolsDefinition,
+  ...aiTrustCentreToolsDefinition,
+  ...agentDiscoveryToolsDefinition,
 ];
 
 export async function runAdvisor(req: Request, res: Response) {

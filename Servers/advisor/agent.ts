@@ -1,6 +1,6 @@
 import { OpenAI } from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { getAdvisorPrompt } from "./prompts";
+import { getAdvisorPrompt, getAdvisorResponsePrompt } from "./prompts";
 import logger from "../utils/logger/fileLogger";
 
 interface AdvisorParams {
@@ -294,13 +294,23 @@ const streamAnthropicAgent = async function* (
     // Always stream — collect tool_use blocks while yielding text deltas
     let currentToolUse: { id: string; name: string; inputJson: string } | null = null;
 
-    const stream = client.messages.stream({
+    // After tools have been called, drop tool definitions and use shorter prompt
+    const hasToolResults = messages.some(
+      (m) => m.role === "user" && Array.isArray(m.content) && (m.content as any[]).some((c: any) => c.type === "tool_result")
+    );
+    const streamParams: any = {
       model: model,
       max_tokens: 4096,
-      system: systemPrompt,
+      system: hasToolResults ? getAdvisorResponsePrompt() : systemPrompt,
       messages: messages,
-      tools: anthropicTools,
-    });
+    };
+    if (!hasToolResults) {
+      streamParams.tools = anthropicTools;
+    }
+
+    logger.debug(`[TIMER] Iteration ${iterationCount} tools included: ${!hasToolResults}`);
+
+    const stream = client.messages.stream(streamParams);
 
     for await (const event of stream) {
       if (event.type === "content_block_start") {
@@ -417,6 +427,26 @@ const streamOpenAICompatibleAgent = async function* (
 
     // Use raw fetch instead of OpenAI SDK to eliminate any SDK-level buffering
     const endpoint = baseURL.replace(/\/+$/, "") + "/chat/completions";
+
+    // After tools have been called and results are in the conversation,
+    // drop tool definitions and use a shorter system prompt to reduce context size.
+    const hasToolResults = messages.some((m: any) => m.role === "tool");
+    const effectiveMessages = hasToolResults
+      ? [{ role: "system", content: getAdvisorResponsePrompt() }, ...messages.slice(1)]
+      : messages;
+    const requestBody: any = {
+      model: model,
+      messages: effectiveMessages,
+      stream: true,
+    };
+    if (!hasToolResults) {
+      requestBody.tools = toolsDefinition;
+      requestBody.tool_choice = "auto";
+    }
+
+    const payloadSize = JSON.stringify(requestBody).length;
+    logger.debug(`[TIMER] Iteration ${iterationCount} payload: ${(payloadSize / 1024).toFixed(1)}KB, tools included: ${!hasToolResults}`);
+
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -424,13 +454,7 @@ const streamOpenAICompatibleAgent = async function* (
         "Authorization": `Bearer ${params.apiKey}`,
         "Accept": "text/event-stream",
       },
-      body: JSON.stringify({
-        model: model,
-        messages: messages,
-        tools: toolsDefinition,
-        tool_choice: "auto",
-        stream: true,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

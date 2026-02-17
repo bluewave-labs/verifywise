@@ -33,8 +33,7 @@ const MessageText: FC = () => {
   const data = useMessagePartText();
   const headingStyles = createMarkdownHeadingStyles(theme);
 
-  // Safety check
-  if (data.status.type === 'running' || data.text === null || data.text === undefined || data.text === "") {
+  if (!data.text) {
     return null;
   }
 
@@ -95,6 +94,11 @@ const MessageTimestamp: FC = () => {
 
   // Skip welcome message (id: 'welcome') which is generated client-side
   if (!message?.createdAt || message.id === 'welcome') {
+    return null;
+  }
+
+  // Don't show "Answered" while the message is still being generated
+  if (message.status?.type === 'running') {
     return null;
   }
 

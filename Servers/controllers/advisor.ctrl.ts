@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { runAgent } from "../advisor/agent";
+import { runAgent, streamAgent } from "../advisor/agent";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { getLLMKeysWithKeyQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
@@ -16,6 +16,14 @@ import { availableVendorTools } from "../advisor/functions/vendorFunctions";
 import { availableIncidentTools } from "../advisor/functions/incidentFunctions";
 import { availableTaskTools } from "../advisor/functions/taskFunctions";
 import { availablePolicyTools } from "../advisor/functions/policyFunctions";
+import { availableUseCaseTools } from "../advisor/functions/useCaseFunctions";
+import { availableDatasetTools } from "../advisor/functions/datasetFunctions";
+import { availableFrameworkTools } from "../advisor/functions/frameworkFunctions";
+import { availableTrainingTools } from "../advisor/functions/trainingFunctions";
+import { availableEvidenceTools } from "../advisor/functions/evidenceFunctions";
+import { availableReportingTools } from "../advisor/functions/reportingFunctions";
+import { availableAiTrustCentreTools } from "../advisor/functions/aiTrustCentreFunctions";
+import { availableAgentDiscoveryTools } from "../advisor/functions/agentDiscoveryFunctions";
 import { toolsDefinition as riskToolsDefinition } from "../advisor/tools/riskTools";
 import { toolsDefinition as modelInventoryToolsDefinition } from "../advisor/tools/modelInventoryTools";
 import { toolsDefinition as modelRiskToolsDefinition } from "../advisor/tools/modelRiskTools";
@@ -23,6 +31,14 @@ import { toolsDefinition as vendorToolsDefinition } from "../advisor/tools/vendo
 import { toolsDefinition as incidentToolsDefinition } from "../advisor/tools/incidentTools";
 import { toolsDefinition as taskToolsDefinition } from "../advisor/tools/taskTools";
 import { toolsDefinition as policyToolsDefinition } from "../advisor/tools/policyTools";
+import { toolsDefinition as useCaseToolsDefinition } from "../advisor/tools/useCaseTools";
+import { toolsDefinition as datasetToolsDefinition } from "../advisor/tools/datasetTools";
+import { toolsDefinition as frameworkToolsDefinition } from "../advisor/tools/frameworkTools";
+import { toolsDefinition as trainingToolsDefinition } from "../advisor/tools/trainingTools";
+import { toolsDefinition as evidenceToolsDefinition } from "../advisor/tools/evidenceTools";
+import { toolsDefinition as reportingToolsDefinition } from "../advisor/tools/reportingTools";
+import { toolsDefinition as aiTrustCentreToolsDefinition } from "../advisor/tools/aiTrustCentreTools";
+import { toolsDefinition as agentDiscoveryToolsDefinition } from "../advisor/tools/agentDiscoveryTools";
 
 const fileName = "advisor.ctrl.ts";
 
@@ -34,6 +50,14 @@ const availableTools = {
   ...availableIncidentTools,
   ...availableTaskTools,
   ...availablePolicyTools,
+  ...availableUseCaseTools,
+  ...availableDatasetTools,
+  ...availableFrameworkTools,
+  ...availableTrainingTools,
+  ...availableEvidenceTools,
+  ...availableReportingTools,
+  ...availableAiTrustCentreTools,
+  ...availableAgentDiscoveryTools,
 };
 
 const toolsDefinition = [
@@ -44,6 +68,14 @@ const toolsDefinition = [
   ...incidentToolsDefinition,
   ...taskToolsDefinition,
   ...policyToolsDefinition,
+  ...useCaseToolsDefinition,
+  ...datasetToolsDefinition,
+  ...frameworkToolsDefinition,
+  ...trainingToolsDefinition,
+  ...evidenceToolsDefinition,
+  ...reportingToolsDefinition,
+  ...aiTrustCentreToolsDefinition,
+  ...agentDiscoveryToolsDefinition,
 ];
 
 export async function runAdvisor(req: Request, res: Response) {
@@ -288,5 +320,139 @@ export async function saveConversation(req: Request, res: Response) {
     );
     logger.error("❌ Error saving conversation:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Streaming advisor endpoint — returns SSE text/event-stream.
+ * Tool-calling iterations happen server-side; the final LLM response streams to the client.
+ */
+export async function streamAdvisor(req: Request, res: Response) {
+  const functionName = "streamAdvisor";
+  logStructured(
+    "processing",
+    "Starting streaming advisor response",
+    functionName,
+    fileName,
+  );
+
+  try {
+    const prompt = req.body.prompt;
+    const tenantId = req.tenantId!;
+    const userId = req.userId ? Number(req.userId) : undefined;
+    const llmKeyId = req.query.llmKeyId
+      ? Number(Array.isArray(req.query.llmKeyId) ? req.query.llmKeyId[0] : req.query.llmKeyId)
+      : undefined;
+
+    if (!prompt) {
+      res.status(400).json({ error: "Prompt is required" });
+      return;
+    }
+
+    if (!tenantId) {
+      res.status(400).json({ error: "Tenant context is required" });
+      return;
+    }
+
+    logger.debug(
+      `Streaming advisor for tenant: ${tenantId}, user: ${userId}, llmKeyId: ${llmKeyId}`,
+    );
+
+    const clients = await getLLMKeysWithKeyQuery(tenantId);
+
+    if (clients.length === 0) {
+      res.status(400).json({ error: "No LLM keys configured for this tenant." });
+      return;
+    }
+
+    let apiKey = clients[0];
+    if (llmKeyId !== undefined) {
+      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
+      if (selectedKey) {
+        apiKey = selectedKey;
+      }
+    }
+
+    const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
+
+    // Set SSE headers — disable ALL buffering for real-time streaming
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.setHeader("Content-Encoding", "none");
+    res.flushHeaders();
+
+    // Helper: write SSE event and flush immediately
+    const sendSSE = (data: object) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+      // Flush if available (when compression middleware is active)
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
+    };
+
+    // Send an immediate status event so the client knows the connection is open
+    sendSSE({ type: "status", content: "thinking" });
+
+    const generator = streamAgent({
+      apiKey: apiKey.key || "",
+      baseURL: url,
+      model: apiKey.model,
+      userPrompt: prompt,
+      tenant: tenantId,
+      availableTools,
+      toolsDefinition,
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
+    });
+
+    let fullText = "";
+    let chunkCount = 0;
+    let firstChunkTime = 0;
+    const streamStartTime = Date.now();
+
+    for await (const chunk of generator) {
+      if (chunk.type === "text") {
+        fullText += chunk.content;
+        chunkCount++;
+        if (chunkCount === 1) {
+          firstChunkTime = Date.now();
+          logger.debug(`[TIMER] First text chunk written to client at +${firstChunkTime - streamStartTime}ms`);
+        }
+      }
+      sendSSE(chunk);
+    }
+
+    const lastChunkTime = Date.now();
+    logger.debug(`[TIMER] Streamed ${chunkCount} text chunks to client. First-to-last spread: ${firstChunkTime ? lastChunkTime - firstChunkTime : 0}ms`);
+
+    // Send the final done event with the complete text for chart parsing
+    sendSSE({ type: "done", content: fullText });
+    res.end();
+
+    logStructured(
+      "successful",
+      "Streaming advisor response completed",
+      functionName,
+      fileName,
+    );
+  } catch (error) {
+    logStructured(
+      "error",
+      "Failed to stream advisor response",
+      functionName,
+      fileName,
+    );
+    logger.error("❌ Error in streaming advisor response:", error);
+
+    // If headers haven't been sent yet, send JSON error
+    if (!res.headersSent) {
+      res.status(500).json(STATUS_CODE[500]((error as Error).message));
+      return;
+    }
+
+    // If SSE already started, send error event and close
+    res.write(`data: ${JSON.stringify({ type: "error", content: (error as Error).message })}\n\n`);
+    res.end();
   }
 }

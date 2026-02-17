@@ -35,7 +35,7 @@ export interface FetchRisksParams {
 const fetchRisks = async (
   params: FetchRisksParams,
   tenant: string,
-): Promise<IRisk[]> => {
+): Promise<Partial<IRisk>[]> => {
   let risks: IRisk[] = [];
 
   try {
@@ -96,7 +96,20 @@ const fetchRisks = async (
       risks = risks.slice(0, params.limit);
     }
 
-    return risks;
+    // Return lightweight projections to reduce LLM context size
+    return risks.map((r) => ({
+      id: r.id,
+      risk_name: r.risk_name,
+      risk_level: r.risk_level_autocalculated,
+      severity: r.severity,
+      likelihood: r.likelihood,
+      risk_category: r.risk_category,
+      mitigation_status: r.mitigation_status,
+      ai_lifecycle_phase: r.ai_lifecycle_phase,
+      deadline: r.deadline,
+      risk_owner: r.risk_owner,
+      current_risk_level: r.current_risk_level,
+    }));
   } catch (error) {
     logger.error("Error fetching risks:", error);
     throw new Error(

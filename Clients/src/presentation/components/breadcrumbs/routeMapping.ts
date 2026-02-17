@@ -201,6 +201,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   //ApprovalWorkflow
   "/approval-workflows": () => React.createElement(WorkflowIcon, { size: 14, strokeWidth: 1.5 }),
+
 };
 
 /**

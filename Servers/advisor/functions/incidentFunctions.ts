@@ -21,7 +21,7 @@ export interface FetchIncidentsParams {
 const fetchIncidents = async (
   params: FetchIncidentsParams,
   tenant: string,
-): Promise<AIIncidentManagementModel[]> => {
+): Promise<Partial<AIIncidentManagementModel>[]> => {
   let incidents: AIIncidentManagementModel[] = [];
 
   try {
@@ -60,7 +60,21 @@ const fetchIncidents = async (
       incidents = incidents.slice(0, params.limit);
     }
 
-    return incidents;
+    // Return lightweight projections — exclude verbose text fields
+    return incidents.map((i) => ({
+      id: i.id,
+      incident_id: i.incident_id,
+      ai_project: i.ai_project,
+      type: i.type,
+      severity: i.severity,
+      status: i.status,
+      occurred_date: i.occurred_date,
+      date_detected: i.date_detected,
+      approval_status: i.approval_status,
+      categories_of_harm: i.categories_of_harm,
+      archived: i.archived,
+      created_at: i.created_at,
+    }));
   } catch (error) {
     logger.error("Error fetching incidents:", error);
     throw new Error(

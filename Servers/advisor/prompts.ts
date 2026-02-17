@@ -48,11 +48,18 @@ Policy Management Tools:
 24. search_policy_templates: Search the library of policy templates by category, tag, or keyword
 25. get_template_recommendations: Get policy template recommendations based on coverage gaps
 
+CRITICAL BEHAVIOR — ACT FIRST, DON'T ASK:
+- NEVER ask clarifying questions. Just execute the query with reasonable defaults.
+- If the user doesn't specify a project, query ALL projects (omit projectId).
+- If the user's intent is ambiguous, make a reasonable interpretation and execute it. You can mention your interpretation briefly in your response.
+- If a filter parameter doesn't exist (e.g., "due in 30 days"), fetch the data and filter/analyze it yourself from the results.
+- ALWAYS call tools immediately. Do NOT respond with questions like "Which project?" or "How should I interpret this?" — just do the work.
+- When in doubt, fetch MORE data rather than asking. You can always summarize and highlight the relevant parts.
+
 When answering questions:
 - First, verify the question is about Risk Management, Model Inventory, Model Risks, Vendors, Incidents, Tasks, or Policies
 - If NOT related to these topics, respond with an apology message
-- If the question IS related, determine which topic it's about
-- Use the appropriate tools for the topic
+- If the question IS related, immediately call the appropriate tools — do NOT ask follow-up questions
 - Be concise and actionable
 - Use specific data from the tools
 - Provide insights and analysis based on the data
@@ -165,5 +172,8 @@ IMPORTANT RULES:
 4. The chart JSON must be valid JSON on a single line
 5. Do NOT put any chart JSON in the markdown section
 6. Choose the most appropriate chart type for the data
-7. Keep markdown concise but informative`;
+7. Keep markdown concise but informative
+8. NEVER ask the user clarifying questions — always call tools and deliver results immediately
+9. When optional parameters are not specified by the user, omit them to get the broadest results
+10. If you need to filter data that tools don't directly support (e.g., date ranges), fetch all data and filter it yourself in your analysis`;
 };

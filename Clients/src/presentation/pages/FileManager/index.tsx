@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
+import { useLocation } from "react-router-dom";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon, FolderPlus as FolderPlusIcon } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
@@ -73,6 +74,7 @@ const MANAGE_ROLES = ["Admin", "Editor"];
  * Main component for managing files with virtual folder support.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -366,6 +368,17 @@ const FileManager: React.FC = (): JSX.Element => {
   const handleClosePreview = useCallback(() => {
     setIsPreviewOpen(false);
     setPreviewFile(null);
+  }, []);
+
+  // Open preview automatically when navigated from Wise Search
+  useEffect(() => {
+    const state = location.state as { previewFileId?: number | string } | null;
+    if (state?.previewFileId) {
+      handleOpenPreview(state.previewFileId);
+      // We intentionally do not mutate history state here; preview will only
+      // auto-open on the initial navigation from Wise Search.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Metadata editor handlers

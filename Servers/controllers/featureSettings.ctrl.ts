@@ -2,6 +2,11 @@
  * Feature Settings Controller
  *
  * Handles GET and PATCH for per-tenant feature toggles.
+ *
+ * @deprecated The `lifecycle_enabled` flag is superseded by the plugin
+ * installation system. Use `isPluginInstalled("model-lifecycle")` on the
+ * client and check plugin installation status on the server instead.
+ * This controller is kept for backward compatibility during the transition.
  */
 
 import { Request, Response } from "express";

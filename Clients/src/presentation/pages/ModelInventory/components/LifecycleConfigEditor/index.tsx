@@ -15,6 +15,9 @@ import {
   FormControlLabel,
   Box,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   useTheme,
 } from "@mui/material";
 import {
@@ -336,38 +339,47 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
           <Stack sx={{ gap: "16px" }}>
             {/* Existing phases */}
             {phases.map((phase, phaseIdx) => (
-              <Box
+              <Accordion
                 key={phase.id}
+                expanded={expandedPhases.has(phase.id)}
+                onChange={() => toggleExpanded(phase.id)}
+                disableGutters
                 sx={{
                   border: `1px solid ${theme.palette.border.light}`,
-                  borderRadius: "4px",
+                  borderRadius: "4px !important",
+                  "&:before": { display: "none" },
+                  boxShadow: "none",
                   overflow: "hidden",
                   opacity: phase.is_active ? 1 : 0.6,
                 }}
               >
-                {/* Phase header */}
-                <Stack
-                  direction="row"
-                  alignItems="center"
+                <AccordionSummary
+                  expandIcon={
+                    <ChevronRight
+                      size={16}
+                      color={theme.palette.text.secondary}
+                      style={{
+                        transform: expandedPhases.has(phase.id) ? "rotate(90deg)" : "rotate(0deg)",
+                        transition: "transform 0.2s ease",
+                      }}
+                    />
+                  }
                   sx={{
-                    gap: "10px",
+                    backgroundColor: theme.palette.background.accent,
                     px: "16px",
                     py: "12px",
-                    backgroundColor: theme.palette.background.accent,
-                    cursor: "pointer",
-                    userSelect: "none",
+                    "& .MuiAccordionSummary-expandIconWrapper": {
+                      transform: "none !important",
+                      order: -1,
+                      mr: "10px",
+                    },
+                    "& .MuiAccordionSummary-content": {
+                      margin: 0,
+                      alignItems: "center",
+                      gap: "10px",
+                    },
                   }}
-                  onClick={() => toggleExpanded(phase.id)}
                 >
-                  <ChevronRight
-                    size={16}
-                    color={theme.palette.text.secondary}
-                    style={{
-                      transform: expandedPhases.has(phase.id) ? "rotate(90deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s ease",
-                      flexShrink: 0,
-                    }}
-                  />
                   {editingPhaseId === phase.id ? (
                     <Stack
                       direction="row"
@@ -484,11 +496,10 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                   >
                     <Trash2 size={16} />
                   </IconButton>
-                </Stack>
+                </AccordionSummary>
 
-                {/* Phase items (expanded) */}
-                {expandedPhases.has(phase.id) && (
-                  <Stack spacing={0} sx={{ px: "16px", py: "16px" }}>
+                <AccordionDetails sx={{ px: "16px", py: "16px" }}>
+                  <Stack spacing={0}>
                     {(phase.items ?? []).map((item, itemIdx) => (
                       <Stack
                         key={item.id}
@@ -621,8 +632,8 @@ function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
                       </CustomizableButton>
                     )}
                   </Stack>
-                )}
-              </Box>
+                </AccordionDetails>
+              </Accordion>
             ))}
 
             {/* Add new phase */}

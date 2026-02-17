@@ -3,7 +3,7 @@
  * Route: /model-inventory/models/:id
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Stack,
@@ -16,14 +16,13 @@ import {
 import { ArrowLeft, Info } from "lucide-react";
 import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory";
 import { getEntityById } from "../../../../application/repository/entity.repository";
-import { useModelLifecycle } from "../../../../application/hooks/useModelLifecycle";
-import { useLifecycleProgress } from "../../../../application/hooks/useModelLifecycle";
-import LifecycleStepperLayout from "../components/LifecycleStepperLayout";
+import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
+import { PluginSlot } from "../../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
 import Chip from "../../../components/Chip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
 import { EmptyStateMessage } from "../../../components/EmptyStateMessage";
-import { useFeatureSettings } from "../../../../application/hooks/useFeatureSettings";
 
 function ModelDetailPage() {
   const theme = useTheme();
@@ -34,12 +33,8 @@ function ModelDetailPage() {
   const [model, setModel] = useState<IModelInventory | null>(null);
   const [modelLoading, setModelLoading] = useState(true);
 
-  const { featureSettings } = useFeatureSettings();
-  const isLifecycleEnabled = featureSettings?.lifecycle_enabled ?? true;
-
-  const { phases, loading: lifecycleLoading, refresh: refreshLifecycle } =
-    useModelLifecycle(modelId, isLifecycleEnabled);
-  const { progress, refresh: refreshProgress } = useLifecycleProgress(modelId, isLifecycleEnabled);
+  const { isPluginInstalled } = usePluginRegistry();
+  const lifecycleInstalled = isPluginInstalled("model-lifecycle");
 
   // Fetch model data
   useEffect(() => {
@@ -67,11 +62,6 @@ function ModelDetailPage() {
       cancelled = true;
     };
   }, [modelId]);
-
-  const handleValueChanged = useCallback(() => {
-    refreshLifecycle();
-    refreshProgress();
-  }, [refreshLifecycle, refreshProgress]);
 
   if (modelLoading) {
     return (
@@ -173,13 +163,10 @@ function ModelDetailPage() {
         </Stack>
       </Box>
 
-      {isLifecycleEnabled ? (
-        <LifecycleStepperLayout
-          phases={phases}
-          progress={progress}
-          modelId={modelId!}
-          loading={lifecycleLoading}
-          onValueChanged={handleValueChanged}
+      {lifecycleInstalled ? (
+        <PluginSlot
+          id={PLUGIN_SLOTS.MODEL_DETAIL_LIFECYCLE}
+          slotProps={{ modelId: modelId! }}
         />
       ) : (
         <MuiAlert
@@ -190,7 +177,7 @@ function ModelDetailPage() {
             border: `1px solid ${theme.palette.border.light}`,
           }}
         >
-          The Model Lifecycle feature is currently disabled. Contact your administrator or go to Settings &gt; Features to enable it.
+          Install the Model Lifecycle plugin from the Plugins page to enable lifecycle tracking.
         </MuiAlert>
       )}
     </Stack>

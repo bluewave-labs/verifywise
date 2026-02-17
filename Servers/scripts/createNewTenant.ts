@@ -3402,6 +3402,13 @@ export const createNewTenant = async (
       ON CONFLICT (id) DO NOTHING;
     `, { transaction });
 
+    // Auto-install model-lifecycle built-in plugin for new tenants
+    await sequelize.query(`
+      INSERT INTO "${tenantHash}".plugin_installations (plugin_key, status, created_at, updated_at)
+      VALUES ('model-lifecycle', 'installed', NOW(), NOW())
+      ON CONFLICT (plugin_key) DO NOTHING;
+    `, { transaction });
+
     // Composite indexes for common query patterns
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_dept_ts ON "${tenantHash}".shadow_ai_events(department, event_timestamp DESC);`, { transaction });
     await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_user_ts ON "${tenantHash}".shadow_ai_events(user_email, event_timestamp DESC);`, { transaction });

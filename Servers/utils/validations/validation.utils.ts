@@ -518,3 +518,14 @@ export const VENDOR_RISK_ENUMS = {
   LIKELIHOOD: ['Rare', 'Unlikely', 'Possible', 'Likely', 'Almost certain'] as const,
   RISK_SEVERITY: ['Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'] as const
 } as const;
+
+/** Matches valid plugin keys: lowercase alphanumeric + hyphens, 1-64 chars */
+export const PLUGIN_KEY_PATTERN = /^[a-z0-9][a-z0-9\-]{0,63}$/;
+
+/**
+ * Strips characters that could corrupt structured logs (CSV, JSON).
+ * Removes newlines, carriage returns, commas, and non-printable control chars.
+ */
+export const sanitizeForLog = (value: string): string => {
+  return String(value).replace(/[\r\n,\x00-\x1f\x7f]/g, "");
+};

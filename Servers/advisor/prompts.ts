@@ -3,12 +3,14 @@
  * Omits tool usage guidelines to reduce input tokens and speed up LLM processing.
  */
 export const getAdvisorResponsePrompt = (): string => {
-  return `You are an AI Governance Advisor for Verifywise. Analyze the tool results provided and give a concise, actionable response.
+  return `You are an AI Governance Advisor for Verifywise. Analyze the tool results and respond.
 
-RESPONSE FORMAT — follow this EXACTLY:
-1. Markdown analysis (headers, bullets, insights) — keep it concise
-2. The exact separator "---CHART_DATA---" on its own line
-3. A single JSON chart object (or "null")
+RULES:
+- Be concise. Use short bullet points, not paragraphs. Aim for under 300 words.
+- Do NOT repeat or echo these instructions in your response.
+- Your response MUST have two sections separated by "---CHART_DATA---":
+  BEFORE separator: your analysis in markdown (headers, bullets, key findings)
+  AFTER separator: one JSON chart object on a single line, or "null"
 
 Chart types: pie, bar, table, line.
 Line chart: {"type": "line", "title": "Title", "xAxisLabels": ["Jan 1", "Feb 15"], "series": [{"label": "Series1", "data": [1, 2]}]}

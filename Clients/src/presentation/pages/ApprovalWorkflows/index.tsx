@@ -1,6 +1,5 @@
 import { Box, Stack } from "@mui/material"
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
@@ -270,16 +269,11 @@ const ApprovalWorkflows: React.FC = () => {
 
     /** -------------------- RENDER -------------------- */
     return (
-        <Stack className="vwhome" gap={"16px"}>
-            <PageBreadcrumbs />
-
+        <PageHeaderExtended
+            title="Approval Workflows"
+            description="A structured overview of all approval processes, including steps, conditions, and current status."
+        >
             <Stack sx={workflowMainStack}>
-                <Stack>
-                    <PageHeader
-                        title="Approval Workflows"
-                        description="A structured overview of all approval processes, including steps, conditions, and current status."
-                    />
-                </Stack>
                 <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -299,7 +293,6 @@ const ApprovalWorkflows: React.FC = () => {
                             inputProps={{ "aria-label": "Search workflows" }}
                             fullWidth={false}
                         />
-                       
                     </Stack>
                     <Box data-joyride-id="add-workflow-button">
                         <CustomizableButton
@@ -335,7 +328,7 @@ const ApprovalWorkflows: React.FC = () => {
                 isEdit={!!selectWorkflow}
                 onSuccess={handleWorkflowSuccess}
             />
-        </Stack>
+        </PageHeaderExtended>
     )
 }
 

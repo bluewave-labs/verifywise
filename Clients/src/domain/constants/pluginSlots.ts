@@ -11,6 +11,9 @@ export const PLUGIN_SLOTS = {
   MODELS_TABS: "page.models.tabs", // Additional tabs in TabBar
   MODELS_TOOLBAR: "page.models.toolbar", // Toolbar buttons
 
+  // Model Detail Page
+  MODEL_DETAIL_LIFECYCLE: "page.model-detail.lifecycle", // Lifecycle phase tracking
+
   // Settings Page
   SETTINGS_TABS: "page.settings.tabs", // Additional tabs in Settings
 

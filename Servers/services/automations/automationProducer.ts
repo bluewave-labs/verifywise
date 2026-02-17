@@ -125,3 +125,17 @@ export async function scheduleShadowAiJobs() {
     },
   );
 }
+
+export async function scheduleAgentDiscoverySync() {
+  logger.info("Adding Agent Discovery Sync jobs to the queue...");
+  // Agent discovery sync every 6 hours
+  await automationQueue.add(
+    "agent_discovery_sync",
+    { type: "agent_discovery" },
+    {
+      repeat: { pattern: "0 */6 * * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+}

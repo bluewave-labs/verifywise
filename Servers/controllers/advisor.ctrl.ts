@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { runAgent, streamAgent } from "../advisor/agent";
+import type { UIMessage } from "ai";
+import { streamAdvisorAiSdk, runAdvisorAiSdk, getStreamTextResult } from "../advisor/aiSdkAgent";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { getLLMKeysWithKeyQuery, getLLMProviderUrl } from "../utils/llmKey.utils";
@@ -130,7 +131,7 @@ export async function runAdvisor(req: Request, res: Response) {
 
     const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
 
-    const response = await runAgent({
+    const agentParams = {
       apiKey: apiKey.key || "",
       baseURL: url,
       model: apiKey.model,
@@ -139,7 +140,9 @@ export async function runAdvisor(req: Request, res: Response) {
       availableTools,
       toolsDefinition,
       provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
-    });
+    };
+
+    const response = await runAdvisorAiSdk(agentParams);
 
     logStructured(
       "successful",
@@ -392,10 +395,7 @@ export async function streamAdvisor(req: Request, res: Response) {
       }
     };
 
-    // Send an immediate status event so the client knows the connection is open
-    sendSSE({ type: "status", content: "thinking" });
-
-    const generator = streamAgent({
+    const agentParams = {
       apiKey: apiKey.key || "",
       baseURL: url,
       model: apiKey.model,
@@ -404,7 +404,12 @@ export async function streamAdvisor(req: Request, res: Response) {
       availableTools,
       toolsDefinition,
       provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
-    });
+    };
+
+    // Send an immediate status event so the client knows the connection is open
+    sendSSE({ type: "status", content: "thinking" });
+
+    const generator = streamAdvisorAiSdk(agentParams);
 
     let fullText = "";
     let chunkCount = 0;
@@ -454,5 +459,102 @@ export async function streamAdvisor(req: Request, res: Response) {
     // If SSE already started, send error event and close
     res.write(`data: ${JSON.stringify({ type: "error", content: (error as Error).message })}\n\n`);
     res.end();
+  }
+}
+
+/**
+ * AI SDK v2 streaming endpoint — outputs the native AI SDK UI message stream protocol.
+ * Consumed by the frontend's useChat hook from @ai-sdk/react.
+ *
+ * Expects body: { messages: UIMessage[], llmKeyId?: number }
+ * The last user message is extracted as the prompt.
+ */
+export async function streamAdvisorV2(req: Request, res: Response) {
+  const functionName = "streamAdvisorV2";
+  logStructured(
+    "processing",
+    "Starting AI SDK streaming advisor response",
+    functionName,
+    fileName,
+  );
+
+  try {
+    const messages: UIMessage[] = req.body.messages || [];
+    const llmKeyId = req.body.llmKeyId as number | undefined;
+    const tenantId = req.tenantId!;
+
+    // Extract the last user message as the prompt
+    const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+    const prompt = lastUserMessage?.parts
+      ?.filter((p: any) => p.type === "text")
+      .map((p: any) => p.text)
+      .join("\n") || undefined;
+
+    if (!prompt) {
+      res.status(400).json({ error: "No user message found" });
+      return;
+    }
+
+    if (!tenantId) {
+      res.status(400).json({ error: "Tenant context is required" });
+      return;
+    }
+
+    logger.debug(
+      `AI SDK streaming advisor for tenant: ${tenantId}, llmKeyId: ${llmKeyId}`,
+    );
+
+    const clients = await getLLMKeysWithKeyQuery(tenantId);
+
+    if (clients.length === 0) {
+      res.status(400).json({ error: "No LLM keys configured for this tenant." });
+      return;
+    }
+
+    let apiKey = clients[0];
+    if (llmKeyId !== undefined) {
+      const selectedKey = clients.find((key: any) => key.id === llmKeyId);
+      if (selectedKey) {
+        apiKey = selectedKey;
+      }
+    }
+
+    const url = apiKey.url || getLLMProviderUrl(apiKey.name as LLMProvider);
+
+    const result = getStreamTextResult({
+      apiKey: apiKey.key || "",
+      baseURL: url,
+      model: apiKey.model,
+      userPrompt: prompt,
+      tenant: tenantId,
+      availableTools,
+      toolsDefinition,
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
+    });
+
+    // Use the streamText result's built-in method to pipe the AI SDK protocol
+    result.pipeUIMessageStreamToResponse(res, {
+      sendReasoning: true,
+      sendSources: true,
+    });
+
+    logStructured(
+      "successful",
+      "AI SDK streaming advisor response piped",
+      functionName,
+      fileName,
+    );
+  } catch (error) {
+    logStructured(
+      "error",
+      "Failed to stream AI SDK advisor response",
+      functionName,
+      fileName,
+    );
+    logger.error("❌ Error in AI SDK streaming advisor response:", error);
+
+    if (!res.headersSent) {
+      res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
   }
 }

@@ -9,6 +9,7 @@ import { Transaction } from "sequelize";
 
 export interface IFeatureSettings {
   id?: number;
+  /** @deprecated Use plugin installation status (`isPluginInstalled("model-lifecycle")`) instead. */
   lifecycle_enabled: boolean;
   updated_at?: string;
   updated_by?: number | null;

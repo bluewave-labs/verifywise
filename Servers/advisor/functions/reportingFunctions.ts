@@ -81,7 +81,7 @@ const getReportingAnalytics = async (
     });
 
     // Recent reports (last 5)
-    const recentReports = reports
+    const recentReports = [...reports]
       .sort((a: any, b: any) => {
         const dateA = a.uploaded_time
           ? new Date(a.uploaded_time).getTime()

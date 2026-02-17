@@ -131,24 +131,33 @@ const getUseCaseExecutiveSummary = async (
         p.ai_risk_classification === "Unacceptable risk"
     ).length;
 
-    // Get risk counts for each project
-    const projectRiskSummaries = [];
-    for (const project of projects.slice(0, 10)) {
-      if (!project.id) continue;
-      try {
-        const risks = await calculateProjectRisks(project.id, tenant);
-        if (risks && (risks as any).totalRisks > 0) {
-          projectRiskSummaries.push({
-            id: project.id,
-            title: project.project_title,
-            riskClassification: project.ai_risk_classification,
-            totalRisks: (risks as any).totalRisks || 0,
-          });
-        }
-      } catch {
-        // Skip projects with no risk data
-      }
-    }
+    // Get risk counts for each project (parallelized to avoid N+1)
+    const projectsToCheck = projects.slice(0, 10).filter((p: any) => p.id);
+    const riskResults = await Promise.allSettled(
+      projectsToCheck.map((project: any) =>
+        calculateProjectRisks(project.id, tenant).then((rows) => ({
+          project,
+          totalRisks: rows.reduce(
+            (sum, row) => sum + parseInt(String(row.count), 10),
+            0
+          ),
+        }))
+      )
+    );
+
+    const projectRiskSummaries = riskResults
+      .filter(
+        (r): r is PromiseFulfilledResult<{
+          project: any;
+          totalRisks: number;
+        }> => r.status === "fulfilled" && r.value.totalRisks > 0
+      )
+      .map((r) => ({
+        id: r.value.project.id,
+        title: r.value.project.project_title,
+        riskClassification: r.value.project.ai_risk_classification,
+        totalRisks: r.value.totalRisks,
+      }));
 
     return {
       totalUseCases: total,

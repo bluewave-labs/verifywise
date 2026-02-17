@@ -98,7 +98,12 @@ const getDatasetAnalytics = async (
 
     // Bias flags
     const datasetsWithBiases = datasets.filter(
-      (d: any) => d.known_biases && d.known_biases.trim() !== ""
+      (d: any) => d.known_biases &&
+        (typeof d.known_biases === "string"
+          ? d.known_biases.trim() !== ""
+          : Array.isArray(d.known_biases)
+            ? d.known_biases.length > 0
+            : true)
     ).length;
 
     return {
@@ -130,7 +135,12 @@ const getDatasetExecutiveSummary = async (
       total > 0 ? Math.round((piiCount / total) * 100) : 0;
 
     const datasetsWithBiases = datasets.filter(
-      (d: any) => d.known_biases && d.known_biases.trim() !== ""
+      (d: any) => d.known_biases &&
+        (typeof d.known_biases === "string"
+          ? d.known_biases.trim() !== ""
+          : Array.isArray(d.known_biases)
+            ? d.known_biases.length > 0
+            : true)
     ).length;
 
     // Classification breakdown
@@ -142,7 +152,7 @@ const getDatasetExecutiveSummary = async (
     });
 
     // Recent datasets (last 5)
-    const recentDatasets = datasets
+    const recentDatasets = [...datasets]
       .sort((a: any, b: any) => {
         const dateA = a.created_at
           ? new Date(a.created_at).getTime()

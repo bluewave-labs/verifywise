@@ -56,7 +56,8 @@ const getFrameworkAnalytics = async (
     frameworks.forEach((f: any) => {
       if (Array.isArray((f as any).projects)) {
         (f as any).projects.forEach((p: any) => {
-          allProjectIds.add(p.project_id || p.id);
+          const pid = p.project_id ?? p.id;
+          if (pid != null) allProjectIds.add(pid);
         });
       }
     });

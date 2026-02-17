@@ -34,7 +34,7 @@ import {
   editLLMKey,
   getLLMKeys,
 } from "../../../../application/repository/llmKeys.repository";
-import { getModelsForProvider } from "../../../utils/providers";
+import { getModelsForProvider, getRecommendedModel } from "../../../utils/providers";
 
 // Import provider logos
 import anthropicLogo from "../../../assets/icons/anthropic_logo.svg";
@@ -147,12 +147,14 @@ const LLMKeys = () => {
     return options;
   }, [currentProviderId]);
 
-  // Reset model when provider changes
+  // Reset model when provider changes, auto-selecting the recommended model
   const handleProviderChange = useCallback((providerName: string) => {
+    const providerId = LLMKeysModel.getProviderIdByName(providerName as LLMProviderName);
+    const recommended = providerId ? getRecommendedModel(providerId) : undefined;
     setFormData(prev => ({
       ...prev,
       name: providerName as LLMProviderName,
-      model: "", // Reset model when provider changes
+      model: recommended?.id || "",
     }));
     setIsCustomModel(false);
     setCustomModelName("");

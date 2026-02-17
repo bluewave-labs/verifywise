@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Bot,
   Database,
+  MessageSquare,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -99,6 +100,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "Frameworks",
       icon: <Layers size={16} strokeWidth={1.5} />,
       path: "/framework",
+    },
+    {
+      id: "chat",
+      label: "AI Advisor",
+      icon: <MessageSquare size={16} strokeWidth={1.5} />,
+      path: "/chat",
     },
   ];
 

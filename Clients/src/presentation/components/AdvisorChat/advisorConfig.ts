@@ -128,6 +128,20 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
       { prompt: 'Recommend policy templates based on our current coverage', label: 'Get recommendations' },
     ],
   },
+  'chat': {
+    path: '/chat',
+    displayName: 'AI Advisor',
+    welcomeMessage: "Hello! I'm your VerifyWise AI Advisor. I can help you with risks, models, vendors, incidents, tasks, policies, and more. What would you like to know?",
+    placeholder: 'Ask me anything about your AI governance...',
+    suggestions: [
+      { prompt: 'Give me an executive summary across all domains', label: 'Executive summary' },
+      { prompt: 'What are the highest priority risks and overdue tasks?', label: 'Top priorities' },
+      { prompt: 'Show me the status of our AI model inventory', label: 'Model inventory status' },
+      { prompt: 'Which vendors need review and what incidents are open?', label: 'Vendors & incidents' },
+      { prompt: 'How are our policies and compliance posture?', label: 'Policy compliance' },
+      { prompt: 'Show me task completion progress by category', label: 'Task progress' },
+    ],
+  },
 };
 
 // Derived types and helpers

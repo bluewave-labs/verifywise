@@ -47,6 +47,7 @@ import AIDetectionPage from "../../presentation/pages/AIDetection";
 import ShadowAIPage from "../../presentation/pages/ShadowAI";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
+import Chat from "../../presentation/pages/Chat";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -129,6 +130,7 @@ export const createRoutes = (
     <Route path="/shadow-ai/settings" element={<ShadowAIPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
+    <Route path="/chat" element={<Chat />} />
   </Route>,
   <Route
     key="admin-reg"

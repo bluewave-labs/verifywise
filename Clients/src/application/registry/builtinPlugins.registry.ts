@@ -13,6 +13,14 @@ const BUILTIN_PLUGINS: Record<string, Record<string, React.LazyExoticComponent<R
       () => import("../../presentation/pages/ModelInventory/ModelDetailPage/ModelLifecycleContent")
     ),
   },
+  "dataset-bulk-upload": {
+    BulkUploadButton: React.lazy(
+      () => import("../../presentation/pages/Datasets/BulkUpload/BulkUploadButton")
+    ),
+    BulkUploadModal: React.lazy(
+      () => import("../../presentation/pages/Datasets/BulkUpload/BulkUploadModal")
+    ),
+  },
 };
 
 /**

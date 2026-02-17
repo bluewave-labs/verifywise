@@ -68,31 +68,20 @@ const isValidChartData = (data: unknown): data is ChartData => {
   );
 };
 
-const MessageChart: FC = () => {
-  const message = useAssistantState(({ message }) => message);
-
-  // Strategy 1: Look for generate_chart tool-call with result in message parts
-  const toolResult = message.content.find(
-    (part: Record<string, unknown>) =>
-      part.type === 'tool-call' && part.toolName === 'generate_chart' && part.result
-  );
-
-  if (toolResult && 'result' in toolResult && isValidChartData(toolResult.result)) {
-    return <ChartRenderer chartData={toolResult.result as ChartData} />;
-  }
-
-  // Strategy 2: Legacy — look for data content part with name='chartData'
-  const chartContent = message.content.find(
-    (part: Record<string, unknown>) =>
-      part.type === 'data' && part.name === 'chartData'
-  );
-
-  if (chartContent && 'data' in chartContent && isValidChartData(chartContent.data)) {
-    return <ChartRenderer chartData={chartContent.data as ChartData} />;
-  }
-
-  return null;
+/**
+ * Tool UI component for generate_chart — rendered inline by MessagePrimitive.Content
+ * when it encounters a tool-call part with toolName === 'generate_chart'.
+ */
+const GenerateChartToolUI: FC<{ result?: unknown }> = ({ result }) => {
+  if (!result || !isValidChartData(result)) return null;
+  return <ChartRenderer chartData={result as ChartData} />;
 };
+
+/**
+ * Fallback tool UI for non-chart tools (e.g. fetch_risks, get_risk_analytics).
+ * These run server-side and their results are consumed by the LLM, not shown to the user.
+ */
+const DefaultToolFallback: FC = () => null;
 
 const MessageTimestamp: FC = () => {
   const theme = useTheme();
@@ -281,9 +270,16 @@ const CustomMessageComponent: FC = () => {
                   wordBreak: 'break-word',
                 }}
               >
-                <MessagePrimitive.Content components={{ Text: MessageText }} />
+                <MessagePrimitive.Content components={{
+                    Text: MessageText,
+                    tools: {
+                      by_name: {
+                        generate_chart: GenerateChartToolUI,
+                      },
+                      Fallback: DefaultToolFallback,
+                    },
+                  }} />
               </Box>
-              <MessageChart />
               <MessageTimestamp />
             </Stack>
           </MessagePrimitive.If>

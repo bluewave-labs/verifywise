@@ -287,9 +287,20 @@ const AgentDiscovery: React.FC = () => {
   };
 
   const handleEditAgent = (agent: AgentPrimitiveRow) => {
-    setIsReviewModalOpen(false);
     setEditAgent(agent);
     setIsManualModalOpen(true);
+  };
+
+  const handleDeleteAgent = async (agent: AgentPrimitiveRow) => {
+    try {
+      await apiServices.delete(`/agent-primitives/${agent.id}`);
+      fetchAgents();
+      fetchStats();
+      showAlertMessage("success", "Agent deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete agent:", error);
+      showAlertMessage("error", "Failed to delete agent.");
+    }
   };
 
   return (
@@ -394,6 +405,8 @@ const AgentDiscovery: React.FC = () => {
             agents={data}
             isLoading={isLoading}
             onRowClick={handleRowClick}
+            onEdit={handleEditAgent}
+            onDelete={handleDeleteAgent}
           />
         )}
       />
@@ -404,7 +417,6 @@ const AgentDiscovery: React.FC = () => {
         setIsOpen={setIsReviewModalOpen}
         agent={selectedAgent}
         onSuccess={handleReviewSuccess}
-        onEdit={handleEditAgent}
       />
 
       {/* Manual entry modal */}

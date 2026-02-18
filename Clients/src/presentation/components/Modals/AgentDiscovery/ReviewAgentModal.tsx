@@ -230,12 +230,11 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
             ) : (
               <CustomizableButton
                 variant="outlined"
-                sx={{ border: "1px solid #d0d5dd", gap: "6px" }}
+                sx={{ border: "1px solid #d0d5dd" }}
+                icon={<LinkIcon size={14} strokeWidth={1.5} />}
+                text="Link to model"
                 onClick={() => setIsLinkModalOpen(true)}
-              >
-                <LinkIcon size={14} strokeWidth={1.5} />
-                Link to model
-              </CustomizableButton>
+              />
             )}
           </Box>
 

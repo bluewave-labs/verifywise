@@ -23,6 +23,20 @@ export interface AdvisorDomainConfig {
 }
 
 export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
+  'dashboard': {
+    path: '/',
+    displayName: 'Dashboard',
+    welcomeMessage: "Hello! I'm your VerifyWise AI Advisor. I can help you with risks, models, vendors, incidents, tasks, policies, use cases, datasets, frameworks, training, evidence, reporting, AI Trust Center, and agent discovery. What would you like to know?",
+    placeholder: 'Ask me anything about your AI governance...',
+    suggestions: [
+      { prompt: 'Give me an executive summary of our risk landscape', label: 'Summarize risks' },
+      { prompt: 'Which vendors are high risk or require follow-up?', label: 'High-risk vendors' },
+      { prompt: 'What tasks are overdue?', label: 'Overdue tasks' },
+      { prompt: 'Show me our model inventory summary', label: 'Model overview' },
+      { prompt: 'Are there any open incidents?', label: 'Active incidents' },
+      { prompt: 'What is our policy review status?', label: 'Policy status' },
+    ],
+  },
   'risk-management': {
     path: '/risk-management',
     displayName: 'Risks',

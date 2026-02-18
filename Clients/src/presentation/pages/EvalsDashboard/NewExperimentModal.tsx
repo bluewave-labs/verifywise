@@ -52,6 +52,7 @@ import {
   type LLMProvider,
 } from "../../../application/repository/deepEval.repository";
 import { PROVIDERS, type ModelInfo } from "../../utils/providers";
+import { evalModelsService, type SavedModel } from "../../../infrastructure/api/evalModelsService";
 import { useModelPreferences } from "../../../application/hooks/useModelPreferences";
 
 interface NewExperimentModalProps {
@@ -121,6 +122,12 @@ export default function NewExperimentModal({
   const [configuredApiKeys, setConfiguredApiKeys] = useState<LLMApiKey[]>([]);
   const [loadingApiKeys, setLoadingApiKeys] = useState(true);
 
+  // Saved models from the Models page (database)
+  const [savedModels, setSavedModels] = useState<SavedModel[]>([]);
+  // Track when user picks "Other (type custom)" in a saved-models dropdown
+  const [useCustomModelName, setUseCustomModelName] = useState(false);
+  const [useCustomJudgeModelName, setUseCustomJudgeModelName] = useState(false);
+
   // Model preferences hook for auto-loading saved settings
   const { preferences: savedPreferences, loading: preferencesLoading, savePreferences } = useModelPreferences(projectId, orgId);
   const [preferencesApplied, setPreferencesApplied] = useState(false);
@@ -142,6 +149,7 @@ export default function NewExperimentModal({
       provider: "" as ProviderType | "",
       model: "",
       apiKey: "",
+      endpointUrl: "",
       temperature: 0.7,
       maxTokens: 2048,
     },
@@ -342,21 +350,25 @@ export default function NewExperimentModal({
     setActiveStep((prev) => prev + 1);
   };
 
-  // Load configured API keys when modal opens
+  // Load configured API keys and saved models when modal opens
   useEffect(() => {
     if (!isOpen) return;
     (async () => {
       try {
         setLoadingApiKeys(true);
-        const keys = await getAllLlmApiKeys();
+        const [keys, models] = await Promise.all([
+          getAllLlmApiKeys(),
+          evalModelsService.listModels(orgId || undefined),
+        ]);
         setConfiguredApiKeys(keys);
+        setSavedModels(models);
       } catch {
         /* ignore */
       } finally {
         setLoadingApiKeys(false);
       }
     })();
-  }, [isOpen]);
+  }, [isOpen, orgId]);
 
   // Apply saved model/judge preferences when they finish loading
   useEffect(() => {
@@ -364,18 +376,22 @@ export default function NewExperimentModal({
 
     if (savedPreferences) {
       console.log("Loading saved model preferences:", savedPreferences);
+      // Normalize "custom"/"self-hosted" → "custom_api" so Models-page saves auto-select the merged card
+      const am = savedPreferences.model.accessMethod;
+      const normalizedAccessMethod = (am === "custom" || am === "self-hosted") ? "custom_api" : am;
       setConfig(prev => ({
         ...prev,
         model: {
           ...prev.model,
           name: savedPreferences.model.name || prev.model.name,
-          accessMethod: (savedPreferences.model.accessMethod || prev.model.accessMethod) as ProviderType | "",
+          accessMethod: (normalizedAccessMethod || prev.model.accessMethod) as ProviderType | "",
           endpointUrl: savedPreferences.model.endpointUrl || prev.model.endpointUrl,
         },
         judgeLlm: {
           ...prev.judgeLlm,
           provider: (savedPreferences.judgeLlm.provider || prev.judgeLlm.provider) as ProviderType | "",
           model: savedPreferences.judgeLlm.model || prev.judgeLlm.model,
+          endpointUrl: savedPreferences.judgeLlm.endpointUrl || prev.judgeLlm.endpointUrl,
           temperature: savedPreferences.judgeLlm.temperature ?? prev.judgeLlm.temperature,
           maxTokens: savedPreferences.judgeLlm.maxTokens ?? prev.judgeLlm.maxTokens,
         },
@@ -637,6 +653,7 @@ export default function NewExperimentModal({
             provider: config.judgeLlm.provider,
             model: config.judgeLlm.model,
             apiKey: config.judgeLlm.apiKey || undefined, // Send actual key to runner, backend won't store it
+            endpointUrl: config.judgeLlm.endpointUrl || undefined,
             temperature: config.judgeLlm.temperature,
             maxTokens: config.judgeLlm.maxTokens,
           } : undefined,
@@ -683,6 +700,7 @@ export default function NewExperimentModal({
         judgeLlm: {
           provider: config.judgeLlm.provider,
           model: config.judgeLlm.model,
+          endpointUrl: config.judgeLlm.endpointUrl || undefined,
           temperature: config.judgeLlm.temperature,
           maxTokens: config.judgeLlm.maxTokens,
         },
@@ -739,6 +757,9 @@ export default function NewExperimentModal({
     // Reset scorer state
     setJudgeMode("standard");
     setSelectedScorer(null);
+    // Reset custom model name toggles
+    setUseCustomModelName(false);
+    setUseCustomJudgeModelName(false);
     setConfig({
       taskType: useCase,
       model: {
@@ -752,6 +773,7 @@ export default function NewExperimentModal({
         provider: "",
         model: "",
         apiKey: "",
+        endpointUrl: "",
         temperature: 0.7,
         maxTokens: 2048,
       },
@@ -848,6 +870,7 @@ export default function NewExperimentModal({
   const localProviders = [
     { id: "huggingface" as ProviderType, name: "HuggingFace", Logo: HuggingFaceLogo, needsApiKey: false },
     { id: "ollama" as ProviderType, name: "Ollama", Logo: OllamaLogo, needsApiKey: false },
+    { id: "custom_api" as ProviderType, name: "Custom / Self-hosted", Logo: BuildIcon, needsApiKey: false },
   ];
 
   // All available providers for judge selection (all cloud + local)
@@ -855,14 +878,37 @@ export default function NewExperimentModal({
 
   const selectedProvider = availableJudgeProviders.find(p => p.id === config.judgeLlm.provider);
 
-  // Get models for selected provider
+  // Get saved models that match a given provider ID
+  const getSavedModelsForProvider = (providerId: string): SavedModel[] => {
+    const pid = providerId.toLowerCase();
+    return savedModels.filter((m) => {
+      const mp = (m.provider || "").toLowerCase();
+      if (pid === "custom_api") return mp === "custom" || mp === "custom_api" || mp === "self-hosted";
+      if (pid === "ollama") return mp === "ollama";
+      // Cloud providers match their own ID
+      return mp === pid;
+    });
+  };
+
+  // Get models for selected provider (saved models + static provider list)
   const getProviderModels = (providerId: string): ModelInfo[] => {
-    // For cloud providers, use the saved model lists
+    // Convert saved models to ModelInfo format
+    const saved = getSavedModelsForProvider(providerId).map((m) => ({
+      id: m.name,
+      name: m.name,
+      description: m.endpointUrl ? `Saved · ${m.endpointUrl}` : "Saved model",
+    }));
+
+    // For cloud providers, merge saved models with static list (deduplicate by id)
     if (PROVIDERS[providerId]) {
-      return PROVIDERS[providerId].models;
+      const staticModels = PROVIDERS[providerId].models;
+      const staticIds = new Set(staticModels.map((sm) => sm.id));
+      const uniqueSaved = saved.filter((s) => !staticIds.has(s.id));
+      return [...uniqueSaved, ...staticModels];
     }
-    // For local providers, return empty (user types model name)
-    return [];
+
+    // For local providers, return only saved models
+    return saved;
   };
 
   // Auto-scroll when provider is selected
@@ -889,7 +935,6 @@ export default function NewExperimentModal({
     ...cloudProviders.map(p => ({ ...p, needsUrl: false })),
     ...localProviders.map(p => ({ ...p, needsUrl: false })),
     { id: "local" as ProviderType, name: "Local", Logo: FolderFilledIcon, needsApiKey: false, needsUrl: true },
-    { id: "custom_api" as ProviderType, name: "Custom API", Logo: BuildIcon, needsApiKey: true, needsUrl: true },
   ];
 
   // Show all providers - we'll handle missing API keys with a message
@@ -943,7 +988,7 @@ export default function NewExperimentModal({
                     return (
                       <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
                         <Card
-                          onClick={() =>
+                          onClick={() => {
                             setConfig((prev) => ({
                               ...prev,
                               model: {
@@ -951,8 +996,9 @@ export default function NewExperimentModal({
                                 accessMethod: provider.id as typeof config.model.accessMethod,
                                 name: "", // Reset model name when changing provider
                               },
-                            }))
-                          }
+                            }));
+                            setUseCustomModelName(false);
+                          }}
                           sx={{
                             cursor: "pointer",
                             border: "1px solid",
@@ -1147,27 +1193,98 @@ export default function NewExperimentModal({
                       </FormControl>
                     </Box>
                   ) : (
-                    <Field
-                      label="Model name"
-                      value={config.model.name}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          model: { ...prev.model, name: e.target.value },
-                        }))
+                    /* Local/self-hosted/custom providers: show dropdown if saved models exist, else text input */
+                    (() => {
+                      const providerSavedModels = getProviderModels(config.model.accessMethod);
+                      const showDropdown = providerSavedModels.length > 0 && !useCustomModelName;
+                      const placeholder = config.model.accessMethod === "ollama"
+                        ? "e.g., llama2, mistral, codellama"
+                        : config.model.accessMethod === "huggingface"
+                          ? "e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+                          : "e.g., gpt-4, claude-3-opus";
+
+                      if (showDropdown) {
+                        return (
+                          <Box>
+                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                              Model
+                            </Typography>
+                            <FormControl fullWidth size="small">
+                              <Select
+                                value={config.model.name}
+                                onChange={(e) => {
+                                  const val = e.target.value as string;
+                                  if (val === "__other__") {
+                                    setUseCustomModelName(true);
+                                    setConfig((prev) => ({ ...prev, model: { ...prev.model, name: "" } }));
+                                  } else {
+                                    setConfig((prev) => ({ ...prev, model: { ...prev.model, name: val } }));
+                                  }
+                                }}
+                                displayEmpty
+                                sx={{
+                                  fontSize: "13px",
+                                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
+                                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
+                                }}
+                              >
+                                <MenuItem value="" disabled>
+                                  <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>Select a model</Typography>
+                                </MenuItem>
+                                {providerSavedModels.map((model) => (
+                                  <MenuItem key={model.id} value={model.id}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
+                                      <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
+                                      {model.description && (
+                                        <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{model.description}</Typography>
+                                      )}
+                                    </Stack>
+                                  </MenuItem>
+                                ))}
+                                <Divider />
+                                <MenuItem value="__other__">
+                                  <Typography sx={{ fontSize: "13px", color: "#6B7280", fontStyle: "italic" }}>Other (type custom)</Typography>
+                                </MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        );
                       }
-                      placeholder={
-                        config.model.accessMethod === "ollama"
-                          ? "e.g., llama2, mistral, codellama"
-                          : config.model.accessMethod === "huggingface"
-                            ? "e.g., TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-                            : "e.g., gpt-4, claude-3-opus"
-                      }
-                    />
+
+                      return (
+                        <Box>
+                          {providerSavedModels.length > 0 && (
+                            <Button
+                              size="small"
+                              variant="text"
+                              onClick={() => {
+                                setUseCustomModelName(false);
+                                setConfig((prev) => ({ ...prev, model: { ...prev.model, name: "" } }));
+                              }}
+                              sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0, mb: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                            >
+                              &larr; Back to saved models
+                            </Button>
+                          )}
+                          <Field
+                            label="Model name"
+                            value={config.model.name}
+                            onChange={(e) =>
+                              setConfig((prev) => ({ ...prev, model: { ...prev.model, name: e.target.value } }))
+                            }
+                            placeholder={placeholder}
+                          />
+                        </Box>
+                      );
+                    })()
                   )}
 
-                  {/* URL field for Local and Custom API */}
-                  {(selectedModelProvider && 'needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl) && (
+                  {/* URL field for Local, Custom / Self-hosted */}
+                  {(selectedModelProvider && (
+                    ('needsUrl' in selectedModelProvider && selectedModelProvider.needsUrl) ||
+                    config.model.accessMethod === "custom_api"
+                  )) && (
                     <Field
                       label="Endpoint URL"
                       value={config.model.endpointUrl}
@@ -1185,7 +1302,8 @@ export default function NewExperimentModal({
                   )}
 
                   {/* API Key - show configured status OR input field */}
-                  {selectedModelProvider?.needsApiKey && (
+                  {/* Cloud providers: required. Custom / Self-hosted: optional */}
+                  {(selectedModelProvider?.needsApiKey || config.model.accessMethod === "custom_api") && (
                     hasApiKey(config.model.accessMethod) ? (
                       <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
                         <Stack direction="row" alignItems="center" spacing={1}>
@@ -1197,7 +1315,7 @@ export default function NewExperimentModal({
                       </Box>
                     ) : (
                       <Field
-                        label="API Key"
+                        label={config.model.accessMethod === "custom_api" ? "API key (optional)" : "API key"}
                         type="password"
                         value={config.model.apiKey}
                         onChange={(e) =>
@@ -1206,9 +1324,15 @@ export default function NewExperimentModal({
                             model: { ...prev.model, apiKey: e.target.value },
                           }))
                         }
-                        placeholder={`Enter your ${selectedModelProvider.name} API key`}
+                        placeholder={config.model.accessMethod === "custom_api"
+                          ? "Leave blank if not required"
+                          : `Enter your ${selectedModelProvider?.name || ""} API key`
+                        }
                         autoComplete="off"
-                        helperText="Your key will be saved securely for future experiments"
+                        helperText={config.model.accessMethod === "custom_api"
+                          ? undefined
+                          : "Your key will be saved securely for future experiments"
+                        }
                       />
                     )
                   )}
@@ -1633,7 +1757,7 @@ export default function NewExperimentModal({
                       return (
                         <Grid size={{ xs: 4, sm: 3 }} key={provider.id}>
                           <Card
-                            onClick={() =>
+                            onClick={() => {
                               setConfig((prev) => ({
                                 ...prev,
                                 judgeLlm: {
@@ -1641,8 +1765,9 @@ export default function NewExperimentModal({
                                   provider: provider.id,
                                   model: "", // Reset model when changing provider
                                 },
-                              }))
-                            }
+                              }));
+                              setUseCustomJudgeModelName(false);
+                            }}
                             sx={{
                               cursor: "pointer",
                               border: "1px solid",
@@ -1836,21 +1961,125 @@ export default function NewExperimentModal({
                           </FormControl>
                         </Box>
                       ) : (
-                        <Field
-                          label="Model Name"
-                          value={config.judgeLlm.model}
-                          onChange={(e) =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              judgeLlm: { ...prev.judgeLlm, model: e.target.value },
-                            }))
-                          }
-                          placeholder={
-                            config.judgeLlm.provider === "ollama"
-                              ? "e.g., llama2, mistral, codellama"
-                              : "e.g., gpt-4, claude-3-opus"
-                          }
-                        />
+                        /* Local judge providers (Ollama, HuggingFace, Custom / Self-hosted) */
+                        (() => {
+                          const isCustom = config.judgeLlm.provider === "custom_api";
+                          const judgeSaved = getProviderModels(config.judgeLlm.provider);
+                          const showJudgeDropdown = judgeSaved.length > 0 && !useCustomJudgeModelName;
+                          const placeholder = config.judgeLlm.provider === "ollama"
+                            ? "e.g., llama2, mistral, codellama"
+                            : isCustom
+                              ? "e.g., llama3.2, mistral, gpt-4"
+                              : "e.g., gpt-4, claude-3-opus";
+
+                          return (
+                            <Stack spacing={2}>
+                              {/* Endpoint URL for Custom / Self-hosted judge */}
+                              {isCustom && (
+                                <Field
+                                  label="Endpoint URL"
+                                  value={config.judgeLlm.endpointUrl}
+                                  onChange={(e) =>
+                                    setConfig((prev) => ({
+                                      ...prev,
+                                      judgeLlm: { ...prev.judgeLlm, endpointUrl: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="https://api.example.com/v1/chat/completions"
+                                />
+                              )}
+
+                              {/* Model: dropdown when saved models exist, else text input */}
+                              {showJudgeDropdown ? (
+                                <Box>
+                                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                    Model
+                                  </Typography>
+                                  <FormControl fullWidth size="small">
+                                    <Select
+                                      value={config.judgeLlm.model}
+                                      onChange={(e) => {
+                                        const val = e.target.value as string;
+                                        if (val === "__other__") {
+                                          setUseCustomJudgeModelName(true);
+                                          setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, model: "" } }));
+                                        } else {
+                                          setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, model: val } }));
+                                        }
+                                      }}
+                                      displayEmpty
+                                      sx={{
+                                        fontSize: "13px",
+                                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+                                        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
+                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
+                                      }}
+                                    >
+                                      <MenuItem value="" disabled>
+                                        <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>Select a model</Typography>
+                                      </MenuItem>
+                                      {judgeSaved.map((model) => (
+                                        <MenuItem key={model.id} value={model.id}>
+                                          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
+                                            <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
+                                            {model.description && (
+                                              <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{model.description}</Typography>
+                                            )}
+                                          </Stack>
+                                        </MenuItem>
+                                      ))}
+                                      <Divider />
+                                      <MenuItem value="__other__">
+                                        <Typography sx={{ fontSize: "13px", color: "#6B7280", fontStyle: "italic" }}>Other (type custom)</Typography>
+                                      </MenuItem>
+                                    </Select>
+                                  </FormControl>
+                                </Box>
+                              ) : (
+                                <Box>
+                                  {judgeSaved.length > 0 && (
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      onClick={() => {
+                                        setUseCustomJudgeModelName(false);
+                                        setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, model: "" } }));
+                                      }}
+                                      sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0, mb: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                                    >
+                                      &larr; Back to saved models
+                                    </Button>
+                                  )}
+                                  <Field
+                                    label="Model name"
+                                    value={config.judgeLlm.model}
+                                    onChange={(e) =>
+                                      setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, model: e.target.value } }))
+                                    }
+                                    placeholder={placeholder}
+                                  />
+                                </Box>
+                              )}
+
+                              {/* API key (optional) for Custom / Self-hosted judge */}
+                              {isCustom && (
+                                <Field
+                                  label="API key (optional)"
+                                  type="password"
+                                  value={config.judgeLlm.apiKey}
+                                  onChange={(e) =>
+                                    setConfig((prev) => ({
+                                      ...prev,
+                                      judgeLlm: { ...prev.judgeLlm, apiKey: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="Leave blank if not required"
+                                  autoComplete="off"
+                                />
+                              )}
+                            </Stack>
+                          );
+                        })()
                       )}
 
                       {/* API Key - show configured status OR input field */}
@@ -2493,17 +2722,19 @@ export default function NewExperimentModal({
         return userScorers.length > 0;
       } else if (judgeMode === "standard") {
         // Standard judge only - must have provider and model (API key is from saved settings)
-        return !!(
-          config.judgeLlm.provider &&
-          config.judgeLlm.model
-        );
+        const hasBase = !!(config.judgeLlm.provider && config.judgeLlm.model);
+        // Custom / Self-hosted also requires endpoint URL
+        if (config.judgeLlm.provider === "custom_api") {
+          return hasBase && !!config.judgeLlm.endpointUrl;
+        }
+        return hasBase;
       } else {
         // Both mode - can proceed if scorers exist AND standard judge configured
         const hasScorers = userScorers.length > 0;
-        const hasJudge = !!(
-          config.judgeLlm.provider &&
-          config.judgeLlm.model
-        );
+        let hasJudge = !!(config.judgeLlm.provider && config.judgeLlm.model);
+        if (config.judgeLlm.provider === "custom_api") {
+          hasJudge = hasJudge && !!config.judgeLlm.endpointUrl;
+        }
         return hasScorers && hasJudge;
       }
     }

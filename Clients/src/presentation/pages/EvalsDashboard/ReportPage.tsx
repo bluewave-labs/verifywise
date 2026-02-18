@@ -260,13 +260,13 @@ export default function ReportPage({
                 width: 42,
                 height: 42,
                 borderRadius: "8px",
-                background: "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)",
+                background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <FileText size={20} strokeWidth={1.5} color="#4F46E5" />
+              <FileText size={20} strokeWidth={1.5} color="#13715B" />
             </Box>
             <Box>
               <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>
@@ -284,13 +284,14 @@ export default function ReportPage({
             icon={<Download size={14} />}
             text="Generate Report"
             sx={{
-              backgroundColor: "#4F46E5",
-              "&:hover": { backgroundColor: "#4338CA" },
+              backgroundColor: "#13715B",
+              "&:hover": { backgroundColor: "#0f604d" },
               textTransform: "none",
               fontSize: 13,
               fontWeight: 500,
               borderRadius: "6px",
-              px: 2.5,
+              px: 3.5,
+              py: 1.2,
             }}
           />
         </Stack>
@@ -353,8 +354,8 @@ export default function ReportPage({
                     sx={{
                       fontSize: 10,
                       height: 18,
-                      backgroundColor: entry.format === "PDF" ? "#EEF2FF" : "#ECFDF5",
-                      color: entry.format === "PDF" ? "#4338CA" : "#065F46",
+                      backgroundColor: entry.format === "PDF" ? "#ECFDF5" : "#ECFDF5",
+                      color: entry.format === "PDF" ? "#13715B" : "#065F46",
                     }}
                   />
                   <Chip
@@ -402,7 +403,7 @@ export default function ReportPage({
             ["COMPL-AI", "EU AI Act compliance framework mapping for safety metrics"],
           ].map(([title, desc]) => (
             <Stack key={title} direction="row" gap={1} alignItems="baseline">
-              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#4F46E5", minWidth: 90 }}>
+              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#13715B", minWidth: 90 }}>
                 {title}
               </Typography>
               <Typography sx={{ fontSize: 11, color: "#6B7280" }}>{desc}</Typography>

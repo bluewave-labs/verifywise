@@ -17,7 +17,7 @@ import type {
 const COLORS = {
   primary: [17, 24, 39] as [number, number, number],       // #111827
   secondary: [107, 114, 128] as [number, number, number],   // #6B7280
-  accent: [79, 70, 229] as [number, number, number],        // #4F46E5
+  accent: [19, 113, 91] as [number, number, number],         // #13715B
   success: [22, 163, 74] as [number, number, number],       // #16A34A
   danger: [220, 38, 38] as [number, number, number],        // #DC2626
   warning: [217, 119, 6] as [number, number, number],       // #D97706

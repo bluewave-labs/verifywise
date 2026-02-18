@@ -145,7 +145,7 @@ export default function ReportConfigModal({
               onClick={selectAllExperiments}
               sx={{
                 fontSize: 12,
-                color: "#4F46E5",
+                color: "#13715B",
                 cursor: "pointer",
                 "&:hover": { textDecoration: "underline" },
               }}
@@ -210,8 +210,8 @@ export default function ReportConfigModal({
                     sx={{
                       fontSize: 10,
                       height: 20,
-                      backgroundColor: "#EEF2FF",
-                      color: "#4338CA",
+                      backgroundColor: "#ECFDF5",
+                      color: "#13715B",
                     }}
                   />
                 </Box>

@@ -11,6 +11,9 @@ export const PLUGIN_SLOTS = {
   MODELS_TABS: "page.models.tabs", // Additional tabs in TabBar
   MODELS_TOOLBAR: "page.models.toolbar", // Toolbar buttons
 
+  // Model Detail Page
+  MODEL_DETAIL_LIFECYCLE: "page.model-detail.lifecycle", // Lifecycle phase tracking
+
   // Settings Page
   SETTINGS_TABS: "page.settings.tabs", // Additional tabs in Settings
 
@@ -34,6 +37,9 @@ export const PLUGIN_SLOTS = {
 
   // Use-case Overview - Custom Framework Progress
   PROJECT_OVERVIEW_CUSTOM_FRAMEWORK: "page.project-overview.custom-framework", // Custom framework progress in use-case overview
+
+  // Datasets Page
+  DATASETS_TOOLBAR: "page.datasets.toolbar", // Toolbar buttons (e.g., bulk upload)
 
   // Dashboard (future)
   DASHBOARD_WIDGETS: "page.dashboard.widgets", // Dashboard widget area

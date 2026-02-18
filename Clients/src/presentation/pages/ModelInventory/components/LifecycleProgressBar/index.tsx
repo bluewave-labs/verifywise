@@ -17,10 +17,10 @@ interface LifecycleProgressBarProps {
   onPhaseClick?: (phaseId: number) => void;
 }
 
-const LifecycleProgressBar = ({
+function LifecycleProgressBar({
   progress,
   onPhaseClick,
-}: LifecycleProgressBarProps) => {
+}: LifecycleProgressBarProps) {
   const theme = useTheme();
 
   if (!progress || progress.phases.length === 0) {
@@ -39,7 +39,7 @@ const LifecycleProgressBar = ({
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
           variant="body2"
-          sx={{ fontWeight: 600, color: "#1F2937", fontSize: "14px" }}
+          sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "14px" }}
         >
           Lifecycle Progress
         </Typography>
@@ -52,7 +52,7 @@ const LifecycleProgressBar = ({
       </Stack>
 
       {/* Segmented progress bar */}
-      <Stack direction="row" sx={{ gap: "4px", width: "100%" }}>
+      <Stack direction="row" sx={{ gap: "6px", width: "100%" }}>
         {progress.phases.map((phase) => {
           const pct = phase.total_items > 0
             ? (phase.filled_items / phase.total_items) * 100
@@ -94,7 +94,7 @@ const LifecycleProgressBar = ({
       </Stack>
 
       {/* Phase labels */}
-      <Stack direction="row" sx={{ gap: "4px", width: "100%" }}>
+      <Stack direction="row" sx={{ gap: "6px", width: "100%" }}>
         {progress.phases.map((phase) => (
           <Typography
             key={phase.phase_id}
@@ -117,6 +117,6 @@ const LifecycleProgressBar = ({
       </Stack>
     </Stack>
   );
-};
+}
 
 export default LifecycleProgressBar;

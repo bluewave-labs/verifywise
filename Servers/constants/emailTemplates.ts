@@ -50,6 +50,9 @@ export const EMAIL_TEMPLATES = {
 
   // Vendor templates
   VENDOR_REVIEW_DUE: "vendor-review-due.mjml",
+
+  // Shadow AI templates
+  SHADOW_AI_ALERT: "shadow-ai-alert.mjml",
 } as const;
 
 // Type-safe template keys

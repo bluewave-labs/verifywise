@@ -26,13 +26,13 @@ interface LifecyclePhasePanelProps {
   onValueChanged?: () => void;
 }
 
-const LifecyclePhasePanel = ({
+function LifecyclePhasePanel({
   phase,
   modelId,
   expanded,
   onToggle,
   onValueChanged,
-}: LifecyclePhasePanelProps) => {
+}: LifecyclePhasePanelProps) {
   const theme = useTheme();
 
   const items = phase.items ?? [];
@@ -80,7 +80,7 @@ const LifecyclePhasePanel = ({
             : theme.palette.background.main,
           "&:hover": { backgroundColor: theme.palette.background.accent },
           px: "16px",
-          py: "10px",
+          py: "12px",
           "& .MuiAccordionSummary-expandIconWrapper": {
             transform: "none !important",
           },
@@ -127,9 +127,9 @@ const LifecyclePhasePanel = ({
           {items.map((item) => (
             <Stack
               key={item.id}
-              sx={{ px: "16px", py: "16px" }}
+              sx={{ px: "16px", py: "16px", gap: "10px" }}
             >
-              <Stack direction="row" alignItems="center" sx={{ mb: "8px", gap: "8px" }}>
+              <Stack direction="row" alignItems="center" sx={{ gap: "8px" }}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -154,7 +154,6 @@ const LifecyclePhasePanel = ({
                   variant="caption"
                   sx={{
                     color: theme.palette.text.tertiary,
-                    mb: "8px",
                     display: "block",
                     fontSize: "12px",
                   }}
@@ -176,6 +175,6 @@ const LifecyclePhasePanel = ({
       </AccordionDetails>
     </Accordion>
   );
-};
+}
 
 export default LifecyclePhasePanel;

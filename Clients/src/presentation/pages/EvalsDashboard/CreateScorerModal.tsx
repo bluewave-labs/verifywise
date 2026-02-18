@@ -31,6 +31,7 @@ import { ReactComponent as GeminiLogo } from "../../assets/icons/gemini_logo.svg
 import { ReactComponent as MistralLogo } from "../../assets/icons/mistral_logo.svg";
 import { ReactComponent as XAILogo } from "../../assets/icons/xai_logo.svg";
 import { ReactComponent as OpenRouterLogo } from "../../assets/icons/openrouter_logo.svg";
+import { ReactComponent as OllamaLogo } from "../../assets/icons/ollama_logo.svg";
 
 const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   openai: OpenAILogo,
@@ -39,6 +40,7 @@ const PROVIDER_ICONS: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = 
   mistral: MistralLogo,
   xai: XAILogo,
   openrouter: OpenRouterLogo,
+  "self-hosted": OllamaLogo,
 };
 
 interface ChoiceScore {
@@ -69,6 +71,9 @@ export interface ScorerConfig {
   useChainOfThought: boolean;
   choiceScores: ChoiceScore[];
   passThreshold: number;
+  // Self-hosted fields
+  endpointUrl?: string;
+  apiKey?: string;
   // Variables schema
   inputSchema: string;
 }
@@ -149,6 +154,10 @@ interface ModelSelectorProps {
   onModelChange: (model: string) => void;
   configuredProviders: LLMApiKey[];
   onNavigateToSettings: () => void;
+  endpointUrl?: string;
+  apiKey?: string;
+  onEndpointUrlChange?: (url: string) => void;
+  onApiKeyChange?: (key: string) => void;
 }
 
 function ModelSelector({
@@ -158,6 +167,10 @@ function ModelSelector({
   onModelChange,
   configuredProviders,
   onNavigateToSettings,
+  endpointUrl,
+  apiKey,
+  onEndpointUrlChange,
+  onApiKeyChange,
 }: ModelSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -170,13 +183,14 @@ function ModelSelector({
   
   // OpenRouter allows custom model names
   const isOpenRouter = provider === "openrouter";
-  
-  // Sync customModel when model prop changes (for OpenRouter)
+  const isSelfHosted = provider === "self-hosted";
+
+  // Sync customModel when model prop changes (for OpenRouter and self-hosted)
   useEffect(() => {
-    if (isOpenRouter) {
+    if (isOpenRouter || isSelfHosted) {
       setCustomModel(model);
     }
-  }, [model, isOpenRouter]);
+  }, [model, isOpenRouter, isSelfHosted]);
 
   // Check if provider has API key configured
   const hasApiKey = (providerId: string) =>
@@ -255,8 +269,8 @@ function ModelSelector({
       >
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {renderProviderIcon(provider, 20)}
-          <Typography sx={{ fontSize: 13, color: (selectedModel || (isOpenRouter && model)) ? "#111827" : "#9ca3af" }}>
-            {isOpenRouter && model ? model : (selectedModel?.name || "Select a model")}
+          <Typography sx={{ fontSize: 13, color: (selectedModel || ((isOpenRouter || isSelfHosted) && model)) ? "#111827" : "#9ca3af" }}>
+            {(isOpenRouter || isSelfHosted) && model ? model : (selectedModel?.name || "Select a model")}
           </Typography>
         </Stack>
         <ChevronDown
@@ -362,7 +376,7 @@ function ModelSelector({
                             >
                               {p.displayName}
                             </Typography>
-                            {!providerHasKey && (
+                            {!providerHasKey && p.provider !== "self-hosted" && (
                               <Typography sx={{ fontSize: 10, color: "#f59e0b", lineHeight: 1.2 }}>
                                 No API key
                               </Typography>
@@ -419,7 +433,119 @@ function ModelSelector({
                   flexDirection: "column",
                 }}
               >
-                {!currentProviderHasKey ? (
+                {isSelfHosted ? (
+                  /* Self-hosted model configuration */
+                  <Box sx={{ p: 2 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                      Self-Hosted Model Configuration
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}>
+                      Connect to a locally running model server (Ollama, vLLM, etc.)
+                    </Typography>
+
+                    {/* Endpoint URL */}
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+                      Endpoint URL *
+                    </Typography>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="http://localhost:11434/v1"
+                      value={endpointUrl || ""}
+                      onChange={(e) => onEndpointUrlChange?.(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      autoComplete="off"
+                      sx={{
+                        mb: 1.5,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 13,
+                          borderRadius: "8px",
+                        },
+                      }}
+                    />
+
+                    {/* Model Name */}
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+                      Model Name *
+                    </Typography>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="e.g., llama3.2, mistral, codellama"
+                      value={customModel}
+                      onChange={(e) => setCustomModel(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && customModel.trim() && (endpointUrl || "").trim()) {
+                          onModelChange(customModel.trim());
+                          setOpen(false);
+                        }
+                        e.stopPropagation();
+                      }}
+                      autoComplete="off"
+                      sx={{
+                        mb: 1.5,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 13,
+                          borderRadius: "8px",
+                        },
+                      }}
+                    />
+
+                    {/* API Key (optional) */}
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+                      API Key (optional)
+                    </Typography>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      type="password"
+                      placeholder="Leave empty if not required"
+                      value={apiKey || ""}
+                      onChange={(e) => onApiKeyChange?.(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      autoComplete="off"
+                      sx={{
+                        mb: 2,
+                        "& .MuiOutlinedInput-root": {
+                          fontSize: 13,
+                          borderRadius: "8px",
+                        },
+                      }}
+                    />
+
+                    {/* Use this model button */}
+                    <Box
+                      onClick={() => {
+                        if (customModel.trim() && (endpointUrl || "").trim()) {
+                          onModelChange(customModel.trim());
+                          setOpen(false);
+                        }
+                      }}
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 1,
+                        px: 2,
+                        py: 1,
+                        borderRadius: "6px",
+                        cursor: customModel.trim() && (endpointUrl || "").trim() ? "pointer" : "not-allowed",
+                        backgroundColor: customModel.trim() && (endpointUrl || "").trim() ? "#13715B" : "#e5e7eb",
+                        color: customModel.trim() && (endpointUrl || "").trim() ? "#fff" : "#9ca3af",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        "&:hover": {
+                          backgroundColor: customModel.trim() && (endpointUrl || "").trim() ? "#0f5f4c" : "#e5e7eb",
+                        },
+                      }}
+                    >
+                      <Check size={14} />
+                      Use this model
+                    </Box>
+                  </Box>
+                ) : !currentProviderHasKey ? (
                   /* No API key message - centered vertically */
                   <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 4 }}>
                     <Box sx={{ textAlign: "center" }}>
@@ -651,6 +777,8 @@ export default function CreateScorerModal({
     useChainOfThought: initialConfig?.useChainOfThought ?? true,
     choiceScores: initialConfig?.choiceScores || [{ label: "", score: 0 }],
     passThreshold: initialConfig?.passThreshold ?? 0.5,
+    endpointUrl: initialConfig?.endpointUrl || "",
+    apiKey: initialConfig?.apiKey || "",
     inputSchema: initialConfig?.inputSchema || DEFAULT_INPUT_SCHEMA,
   });
 
@@ -685,6 +813,8 @@ export default function CreateScorerModal({
         useChainOfThought: initialConfig.useChainOfThought ?? true,
         choiceScores: initialConfig.choiceScores || [{ label: "", score: 0 }],
         passThreshold: initialConfig.passThreshold ?? 0.5,
+        endpointUrl: initialConfig.endpointUrl || "",
+        apiKey: initialConfig.apiKey || "",
         inputSchema: initialConfig.inputSchema || DEFAULT_INPUT_SCHEMA,
       });
     } else {
@@ -706,6 +836,8 @@ export default function CreateScorerModal({
         useChainOfThought: true,
         choiceScores: [{ label: "", score: 0 }],
         passThreshold: 0.5,
+        endpointUrl: "",
+        apiKey: "",
         inputSchema: DEFAULT_INPUT_SCHEMA,
       });
     }
@@ -757,6 +889,7 @@ export default function CreateScorerModal({
       ...prev,
       provider: providerId,
       model: models.length > 0 ? models[0].id : "",
+      ...(providerId !== "self-hosted" ? { endpointUrl: "", apiKey: "" } : {}),
     }));
   }, []);
 
@@ -766,6 +899,14 @@ export default function CreateScorerModal({
       ...prev,
       model: modelId,
     }));
+  }, []);
+
+  const handleEndpointUrlChange = useCallback((url: string) => {
+    setConfig((prev) => ({ ...prev, endpointUrl: url }));
+  }, []);
+
+  const handleApiKeyChange = useCallback((key: string) => {
+    setConfig((prev) => ({ ...prev, apiKey: key }));
   }, []);
 
   const handleAddMessage = useCallback(() => {
@@ -902,6 +1043,10 @@ export default function CreateScorerModal({
                         onClose();
                         navigate(`/evals/${projectId}#settings`);
                       }}
+                      endpointUrl={config.endpointUrl}
+                      apiKey={config.apiKey}
+                      onEndpointUrlChange={handleEndpointUrlChange}
+                      onApiKeyChange={handleApiKeyChange}
                     />
                   </Box>
                   <Box

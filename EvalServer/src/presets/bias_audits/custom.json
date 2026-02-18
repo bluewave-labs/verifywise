@@ -1,0 +1,19 @@
+{
+  "id": "custom",
+  "name": "Custom",
+  "jurisdiction": "",
+  "effective_date": "",
+  "mode": "custom",
+  "description": "User-defined custom bias audit configuration. All categories, metrics, thresholds, and metadata fields are defined by the user.",
+  "categories": {},
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "threshold": null,
+  "required_metadata": [],
+  "results_format": {
+    "sections": []
+  }
+}

@@ -91,6 +91,7 @@ export interface SidebarShellProps {
   showDemoDataButton?: boolean;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
+  openReleaseNotes?: () => void;
   /** Only show demo data options to admins */
   isAdmin?: boolean;
 
@@ -114,6 +115,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
   showDemoDataButton = true,
   showReadyToSubscribe = false,
   openUserGuide,
+  openReleaseNotes,
   isAdmin = false,
   enableFlyingHearts = false,
 }) => {
@@ -1013,6 +1015,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
           showDemoDataButton={showDemoDataButton}
           showReadyToSubscribe={showReadyToSubscribe}
           openUserGuide={openUserGuide}
+          openReleaseNotes={openReleaseNotes}
           isAdmin={isAdmin}
         />
 

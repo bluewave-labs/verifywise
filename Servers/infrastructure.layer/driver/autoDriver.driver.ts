@@ -19,6 +19,7 @@ import { createPolicyQuery } from "../../utils/policyManager.utils";
 import { createNewModelInventoryQuery } from "../../utils/modelInventory.utils";
 import { createNewDatasetQuery } from "../../utils/dataset.utils";
 
+import { insertShadowAiDemoData, deleteShadowAiDemoData } from "./shadowAiDemoData";
 import { addVendorProjects } from "../../utils/vendor.utils";
 import { ProjectModel } from "../../domain.layer/models/project/project.model";
 import { HighRiskRole } from "../../domain.layer/enums/high-risk-role.enum";
@@ -498,6 +499,9 @@ export async function insertMockData(
       // project already exists, delete it and insert a new one
     }
 
+    // Seed Shadow AI demo data (tools, events, rollups, rules, alerts)
+    await insertShadowAiDemoData(tenant, userId, transaction);
+
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();
@@ -508,6 +512,9 @@ export async function insertMockData(
 export async function deleteMockData(tenant: string) {
   const transaction = await sequelize.transaction();
   try {
+    // Clean all Shadow AI demo data first (no FK ties to governance tables)
+    await deleteShadowAiDemoData(tenant, transaction);
+
     // =====================================================
     // DELETE ORDER MATTERS - respect foreign key constraints
     // =====================================================

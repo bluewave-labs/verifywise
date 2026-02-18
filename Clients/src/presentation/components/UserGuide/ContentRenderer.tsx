@@ -20,6 +20,12 @@ import {
   Info,
   Lightbulb,
   ArrowRight,
+  Radar,
+  Search,
+  TrendingUp,
+  Building2,
+  ShieldAlert,
+  Circle,
   type LucideIcon,
 } from 'lucide-react';
 import type {
@@ -62,6 +68,12 @@ const iconMap: Record<string, LucideIcon> = {
   Settings,
   Info,
   Lightbulb,
+  Radar,
+  Search,
+  TrendingUp,
+  Building2,
+  ShieldAlert,
+  Circle,
 };
 
 const getIcon = (name: string): LucideIcon => iconMap[name] || Info;

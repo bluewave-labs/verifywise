@@ -1,0 +1,10 @@
+version: models_v0.1
+models:
+  - provider: openrouter
+    model_id: openai/gpt-4o-mini
+
+  - provider: openrouter
+    model_id: x-ai/grok-3-mini
+
+  - provider: openrouter
+    model_id: google/gemini-2.5-pro

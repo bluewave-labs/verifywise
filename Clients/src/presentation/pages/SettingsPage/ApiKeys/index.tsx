@@ -7,6 +7,8 @@ import {
   IconButton,
   Chip,
   Collapse,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
@@ -28,6 +30,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { ApiTokenModel } from "../../../../domain/models/Common/apiToken/apiToken.model";
 import LLMKeys from "../LLMKeys";
+import { getSelectStyles } from "../../../utils/inputStyles";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -35,6 +38,15 @@ interface AlertState {
   body: string;
   isToast?: boolean;
 }
+
+const EXPIRY_OPTIONS = [
+  { value: 7, label: "7 days" },
+  { value: 30, label: "30 days" },
+  { value: 60, label: "60 days" },
+  { value: 90, label: "90 days" },
+  { value: 180, label: "180 days" },
+  { value: 365, label: "1 year" },
+];
 
 const ApiKeys = () => {
   const { userRoleName } = useAuth();
@@ -52,6 +64,7 @@ const ApiKeys = () => {
   const [newTokenNameError, setNewTokenNameError] = useState<string | null>(
     null,
   );
+  const [selectedExpiry, setSelectedExpiry] = useState<number>(30);
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(
     null,
   );
@@ -126,7 +139,7 @@ const ApiKeys = () => {
 
       const response = await createApiToken({
         routeUrl: "/tokens",
-        body: { name: tokenCreationData.name },
+        body: { name: tokenCreationData.name, expires_in_days: selectedExpiry },
       });
 
       if (response && response.data && response.data.data) {
@@ -225,6 +238,7 @@ const ApiKeys = () => {
     setNewTokenName("");
     setNewTokenNameError(null);
     setNewlyCreatedToken(null);
+    setSelectedExpiry(30);
   }, []);
 
   return (
@@ -471,6 +485,34 @@ const ApiKeys = () => {
                 sx={{ backgroundColor: "#FFFFFF" }}
                 isRequired
               />
+              <Stack gap={theme.spacing(2)}>
+                <Typography
+                  component="p"
+                  variant="body1"
+                  color={theme.palette.text.secondary}
+                  fontWeight={500}
+                  fontSize="13px"
+                  sx={{ margin: 0, height: "22px" }}
+                >
+                  Expiration
+                </Typography>
+                <Select
+                  id="expiry-select"
+                  value={selectedExpiry}
+                  onChange={(e) => setSelectedExpiry(e.target.value as number)}
+                  size="small"
+                  sx={{
+                    backgroundColor: "#FFFFFF",
+                    ...getSelectStyles(theme),
+                  }}
+                >
+                  {EXPIRY_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </Stack>
             </Stack>
           }
           cancelText="Cancel"

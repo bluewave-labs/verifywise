@@ -1,14 +1,9 @@
 import { Suspense, lazy, useState, useCallback } from "react";
-import { Stack } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 const GenerateReport = lazy(() => import("./GenerateReport"));
 const ReportLists = lazy(() => import("./Reports"));
-const ReportingHeader = lazy(
-  () => import("../../components/Reporting/ReportOverviewHeader")
-);
 import PageTour from "../../components/PageTour";
 import ReportingSteps from "./ReportingSteps";
-import TipBox from "../../components/TipBox";
 
 const Reporting = () => {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -19,14 +14,13 @@ const Reporting = () => {
   }, []);
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-      <Suspense fallback={"loading..."}>
-        <ReportingHeader articlePath="reporting/generating-reports" />
-      </Suspense>
-      <TipBox entityName="reporting" />
-
-      <Stack data-joyride-id="reports-list">
+    <PageHeaderExtended
+      title="Reporting"
+      description="Want a report? We'll create one using the info from your Compliance, Assessment, and Vendor/Risk sections."
+      helpArticlePath="reporting/generating-reports"
+      tipBoxEntity="reporting"
+    >
+      <div data-joyride-id="reports-list">
         <Suspense fallback={"loading..."}>
           <ReportLists
             refreshKey={refreshKey}
@@ -37,10 +31,10 @@ const Reporting = () => {
             }
           />
         </Suspense>
-      </Stack>
+      </div>
 
       <PageTour steps={ReportingSteps} run={true} tourKey="reporting-tour" />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

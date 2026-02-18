@@ -16,7 +16,7 @@ export interface FetchVendorsParams {
 const fetchVendors = async (
   params: FetchVendorsParams,
   tenant: string,
-): Promise<IVendor[]> => {
+): Promise<Partial<IVendor>[]> => {
   let vendors: IVendor[] = [];
 
   try {
@@ -48,7 +48,18 @@ const fetchVendors = async (
       vendors = vendors.slice(0, params.limit);
     }
 
-    return vendors;
+    // Return lightweight projections
+    return vendors.map((v) => ({
+      id: v.id,
+      vendor_name: v.vendor_name,
+      vendor_provides: v.vendor_provides,
+      review_status: v.review_status,
+      review_date: v.review_date,
+      data_sensitivity: v.data_sensitivity,
+      business_criticality: v.business_criticality,
+      regulatory_exposure: v.regulatory_exposure,
+      risk_score: v.risk_score,
+    }));
   } catch (error) {
     logger.error("Error fetching vendors:", error);
     throw new Error(
@@ -67,7 +78,7 @@ export interface FetchVendorRisksParams {
 const fetchVendorRisks = async (
   params: FetchVendorRisksParams,
   tenant: string,
-): Promise<IVendorRisk[]> => {
+): Promise<Partial<IVendorRisk>[]> => {
   let risks: IVendorRisk[] = [];
 
   try {
@@ -89,7 +100,15 @@ const fetchVendorRisks = async (
       risks = risks.slice(0, params.limit);
     }
 
-    return risks;
+    // Return lightweight projections — exclude verbose text fields
+    return risks.map((r) => ({
+      id: r.id,
+      vendor_id: r.vendor_id,
+      likelihood: r.likelihood,
+      risk_severity: r.risk_severity,
+      risk_level: r.risk_level,
+      action_owner: r.action_owner,
+    }));
   } catch (error) {
     logger.error("Error fetching vendor risks:", error);
     throw new Error(

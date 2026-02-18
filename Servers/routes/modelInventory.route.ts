@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
 import authenticateJWT from "../middleware/auth.middleware";
+import { requirePlugin } from "../middleware/pluginGuard.middleware";
 import {
   createNewModelInventory,
   deleteModelInventoryById,
@@ -33,11 +34,12 @@ router.patch("/:id", authenticateJWT, updateModelInventoryById);
 // DELETE
 router.delete("/:id", authenticateJWT, deleteModelInventoryById);
 
-// Lifecycle value endpoints
-router.get("/:id/lifecycle", authenticateJWT, getModelLifecycle);
-router.get("/:id/lifecycle/progress", authenticateJWT, getModelLifecycleProgress);
-router.put("/:id/lifecycle/items/:itemId", authenticateJWT, upsertLifecycleValue);
-router.post("/:id/lifecycle/items/:itemId/files", authenticateJWT, addLifecycleFile);
-router.delete("/:id/lifecycle/items/:itemId/files/:fileId", authenticateJWT, removeLifecycleFile);
+// Lifecycle value endpoints (guarded by plugin installation)
+const lifecycleGuard = requirePlugin("model-lifecycle");
+router.get("/:id/lifecycle", authenticateJWT, lifecycleGuard, getModelLifecycle);
+router.get("/:id/lifecycle/progress", authenticateJWT, lifecycleGuard, getModelLifecycleProgress);
+router.put("/:id/lifecycle/items/:itemId", authenticateJWT, lifecycleGuard, upsertLifecycleValue);
+router.post("/:id/lifecycle/items/:itemId/files", authenticateJWT, lifecycleGuard, addLifecycleFile);
+router.delete("/:id/lifecycle/items/:itemId/files/:fileId", authenticateJWT, lifecycleGuard, removeLifecycleFile);
 
 export default router;

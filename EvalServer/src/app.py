@@ -9,6 +9,7 @@ from routers.deepeval_projects import router as deepeval_projects
 from routers.evaluation_logs import router as evaluation_logs
 from routers.deepeval_orgs import router as deepeval_orgs
 from routers.deepeval_arena import router as deepeval_arena
+from routers.bias_audits import router as bias_audits
 from middlewares.middleware import TenantMiddleware
 from database.redis import close_redis
 from alembic.config import Config
@@ -66,6 +67,7 @@ app.include_router(deepeval, prefix="/deepeval", tags=["DeepEval"])
 app.include_router(deepeval_projects, prefix="/deepeval", tags=["DeepEval Projects"])
 app.include_router(deepeval_orgs, prefix="/deepeval", tags=["DeepEval Orgs"])
 app.include_router(deepeval_arena, prefix="/deepeval", tags=["DeepEval Arena"])
+app.include_router(bias_audits, prefix="/deepeval", tags=["Bias Audits"])
 app.include_router(evaluation_logs, tags=["Evaluation Logs & Monitoring"])
 
 if __name__ == "__main__":

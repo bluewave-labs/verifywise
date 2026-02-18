@@ -711,8 +711,8 @@ const Tasks: React.FC = () => {
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
-            { label: "List view", value: "list", icon: "List" },
-            { label: "Deadline view", value: "deadline", icon: "Calendar" },
+            { label: "List view", value: "list", icon: "List", tooltip: "Tasks in a filterable table" },
+            { label: "Deadline view", value: "deadline", icon: "Calendar", tooltip: "Tasks organized by due date" },
           ]}
           activeTab={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}

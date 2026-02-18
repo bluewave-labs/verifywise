@@ -7,6 +7,7 @@ import CollectionPage from './CollectionPage';
 import ArticlePage from './ArticlePage';
 import ContentRenderer from './ContentRenderer';
 import HelpSection from './HelpSection';
+import WhatsNewSection from './WhatsNewSection';
 import SearchResults from './SearchResults';
 import { getCollection, getArticle } from '@user-guide-content/userGuideConfig';
 import { getArticleContent } from '@user-guide-content/content';
@@ -17,7 +18,7 @@ import { AdvisorDomain, isAdvisorEligiblePath, getDomainByPath } from '../Adviso
 import AdvisorHeader from './AdvisorHeader';
 import './SidebarWrapper.css';
 
-type Tab = 'user-guide' | 'advisor' | 'help';
+type Tab = 'user-guide' | 'advisor' | 'help' | 'whats-new';
 
 interface SidebarWrapperProps {
   isOpen: boolean;
@@ -39,13 +40,14 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   initialPath,
   onOpenInNewTab,
 }) => {
-  const { setContentWidth: setContextContentWidth } = useUserGuideSidebarContext();
+  const { setContentWidth: setContextContentWidth, requestedTab, clearRequestedTab } = useUserGuideSidebarContext();
   const [activeTab, setActiveTab] = useState<Tab>('user-guide');
   const [collectionId, setCollectionId] = useState<string | undefined>();
   const [articleId, setArticleId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [contentWidth, setContentWidthLocal] = useState(DEFAULT_CONTENT_WIDTH);
+  const [isAdvisorEnlarged, setIsAdvisorEnlarged] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const [mouseY, setMouseY] = useState(0);
@@ -117,6 +119,14 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
       setActiveTab('user-guide');
     }
   }, [activeTab, displayAdvisor]);
+
+  // React to external tab open requests (e.g. from SidebarFooter menu)
+  useEffect(() => {
+    if (requestedTab) {
+      setActiveTab(requestedTab as Tab);
+      clearRequestedTab();
+    }
+  }, [requestedTab, clearRequestedTab]);
 
   // Persist sidebar state to localStorage
   useEffect(() => {
@@ -243,7 +253,9 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
         }
         return items;
       case 'advisor':
-        return [{ label: 'Advisor', onClick: () => {} }];
+        return [{ label: 'AI advisor', onClick: () => {} }];
+      case 'whats-new':
+        return [{ label: "What's new", onClick: () => {} }];
       default:
         return [{ label: 'Help', onClick: () => {} }];
     }
@@ -345,10 +357,24 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
         return renderUserGuideContent();
       case 'advisor':
         return renderAdvisorContent();
-      default: 
+      case 'whats-new':
+        return <WhatsNewSection />;
+      default:
         return <HelpSection />;
     }
   }
+
+  // Handle advisor enlarge toggle
+  const handleToggleAdvisorEnlarge = useCallback(() => {
+    setIsAdvisorEnlarged((prev) => {
+      const next = !prev;
+      const newWidth = next
+        ? Math.round(DEFAULT_CONTENT_WIDTH * 1.4)
+        : DEFAULT_CONTENT_WIDTH;
+      setContentWidth(newWidth);
+      return next;
+    });
+  }, [setContentWidth]);
 
   // Handle tab click - open sidebar if closed, close if clicking active tab, or switch tab
   const handleTabClick = (tab: Tab) => {
@@ -361,6 +387,11 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     } else {
       // Clicking a different tab switches to it
       setActiveTab(tab);
+      // Reset enlarge when switching away from advisor
+      if (isAdvisorEnlarged) {
+        setIsAdvisorEnlarged(false);
+        setContentWidth(DEFAULT_CONTENT_WIDTH);
+      }
     }
   };
 
@@ -429,7 +460,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
           position: 'absolute',
           left: 0,
           top: 0,
-          width: 8,
+          width: 4,
           height: '100%',
           cursor: 'ew-resize',
           zIndex: 20,
@@ -495,6 +526,8 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
                 selectedLLMKeyId={selectedLLMKeyId}
                 onLLMKeyChange={handleLLMKeyChange}
                 onLLMKeysLoaded={handleLLMKeysLoaded}
+                isEnlarged={isAdvisorEnlarged}
+                onToggleEnlarge={handleToggleAdvisorEnlarge}
               />
             ): (
               <SidebarHeader

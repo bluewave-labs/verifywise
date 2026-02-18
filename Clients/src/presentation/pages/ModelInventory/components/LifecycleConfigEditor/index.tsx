@@ -7,18 +7,17 @@ import { useState, useCallback } from "react";
 import {
   Stack,
   Typography,
-  TextField,
-  Select,
-  MenuItem,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
   FormControlLabel,
   Box,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   useTheme,
 } from "@mui/material";
 import {
@@ -28,6 +27,8 @@ import {
   ArrowDown,
   ChevronRight,
   X,
+  Pencil,
+  Check,
 } from "lucide-react";
 import {
   LifecycleItem,
@@ -44,9 +45,13 @@ import {
   deleteItem,
   reorderItems,
 } from "../../../../../application/repository/modelLifecycle.repository";
-import { getInputStyles } from "../../../../utils/inputStyles";
+import { logEngine } from "../../../../../application/tools/log.engine";
+import Field from "../../../../components/Inputs/Field";
+import Toggle from "../../../../components/Inputs/Toggle";
+import SharedSelect from "../../../../components/Inputs/Select";
 import Chip from "../../../../components/Chip";
 import { CustomizableButton } from "../../../../components/button/customizable-button";
+import ConfirmationModal from "../../../../components/Dialogs/ConfirmationModal";
 
 interface LifecycleConfigEditorProps {
   open: boolean;
@@ -63,7 +68,12 @@ const ITEM_TYPES: { value: LifecycleItemType; label: string }[] = [
   { value: "approval", label: "Approval" },
 ];
 
-const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) => {
+const ITEM_TYPE_SELECT_ITEMS = ITEM_TYPES.map((t) => ({
+  _id: t.value,
+  name: t.label,
+}));
+
+function LifecycleConfigEditor({ open, onClose }: LifecycleConfigEditorProps) {
   const theme = useTheme();
   const { phases, loading, refresh, setPhases } = useLifecycleConfig(true);
   const [saving, setSaving] = useState(false);
@@ -78,17 +88,25 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
   const [newItemType, setNewItemType] = useState<LifecycleItemType>("text");
   const [newItemRequired, setNewItemRequired] = useState(false);
 
+  // Confirmation modal state
+  const [deletePhaseId, setDeletePhaseId] = useState<number | null>(null);
+  const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
+
+  // Inline phase name editing
+  const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
+  const [editingPhaseName, setEditingPhaseName] = useState("");
+
   // Expanded phases
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set());
 
-  const toggleExpanded = (phaseId: number) => {
+  const toggleExpanded = useCallback((phaseId: number) => {
     setExpandedPhases((prev) => {
       const next = new Set(prev);
       if (next.has(phaseId)) next.delete(phaseId);
       else next.add(phaseId);
       return next;
     });
-  };
+  }, []);
 
   // ============================================================================
   // Phase operations
@@ -103,27 +121,25 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       setNewPhaseDesc("");
       refresh();
     } catch (err) {
-      console.error("Failed to create phase:", err);
+      logEngine({ type: "error", message: "Failed to create phase" });
     } finally {
       setSaving(false);
     }
   }, [newPhaseName, newPhaseDesc, refresh]);
 
-  const handleDeletePhase = useCallback(
-    async (phaseId: number) => {
-      if (!window.confirm("Delete this phase and all its items? This cannot be undone.")) return;
-      setSaving(true);
-      try {
-        await deletePhase(phaseId);
-        refresh();
-      } catch (err) {
-        console.error("Failed to delete phase:", err);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [refresh]
-  );
+  const confirmDeletePhase = useCallback(async () => {
+    if (deletePhaseId === null) return;
+    setSaving(true);
+    try {
+      await deletePhase(deletePhaseId);
+      refresh();
+    } catch (err) {
+      logEngine({ type: "error", message: "Failed to delete phase" });
+    } finally {
+      setSaving(false);
+      setDeletePhaseId(null);
+    }
+  }, [deletePhaseId, refresh]);
 
   const handleMovePhase = useCallback(
     async (phaseId: number, direction: "up" | "down") => {
@@ -141,12 +157,41 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         await reorderPhases(orderedIds);
         refresh();
       } catch (err) {
-        console.error("Failed to reorder phases:", err);
+        logEngine({ type: "error", message: "Failed to reorder phases" });
       } finally {
         setSaving(false);
       }
     },
     [phases, refresh]
+  );
+
+  const handleRenamePhaseSave = useCallback(
+    async (phaseId: number, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed) {
+        setEditingPhaseId(null);
+        return;
+      }
+      const oldName = phases.find((p) => p.id === phaseId)?.name ?? "";
+      if (trimmed === oldName) {
+        setEditingPhaseId(null);
+        return;
+      }
+      // Optimistic update
+      setPhases((prev) =>
+        prev.map((p) => (p.id === phaseId ? { ...p, name: trimmed } : p))
+      );
+      setEditingPhaseId(null);
+      try {
+        await updatePhase(phaseId, { name: trimmed });
+      } catch {
+        logEngine({ type: "error", message: "Failed to rename phase" });
+        setPhases((prev) =>
+          prev.map((p) => (p.id === phaseId ? { ...p, name: oldName } : p))
+        );
+      }
+    },
+    [phases, setPhases]
   );
 
   const handleTogglePhaseActive = useCallback(
@@ -159,7 +204,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       try {
         await updatePhase(phaseId, { is_active: isActive });
       } catch (err) {
-        console.error("Failed to toggle phase:", err);
+        logEngine({ type: "error", message: "Failed to toggle phase" });
         // Revert on failure
         setPhases((prev) =>
           prev.map((p) => (p.id === phaseId ? { ...p, is_active: !isActive } : p))
@@ -189,7 +234,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         setAddingItemForPhase(null);
         refresh();
       } catch (err) {
-        console.error("Failed to create item:", err);
+        logEngine({ type: "error", message: "Failed to create item" });
       } finally {
         setSaving(false);
       }
@@ -197,21 +242,19 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
     [newItemName, newItemType, newItemRequired, refresh]
   );
 
-  const handleDeleteItem = useCallback(
-    async (itemId: number) => {
-      if (!window.confirm("Delete this item? This cannot be undone.")) return;
-      setSaving(true);
-      try {
-        await deleteItem(itemId);
-        refresh();
-      } catch (err) {
-        console.error("Failed to delete item:", err);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [refresh]
-  );
+  const confirmDeleteItem = useCallback(async () => {
+    if (deleteItemId === null) return;
+    setSaving(true);
+    try {
+      await deleteItem(deleteItemId);
+      refresh();
+    } catch (err) {
+      logEngine({ type: "error", message: "Failed to delete item" });
+    } finally {
+      setSaving(false);
+      setDeleteItemId(null);
+    }
+  }, [deleteItemId, refresh]);
 
   const handleToggleItemRequired = useCallback(
     async (itemId: number, isRequired: boolean) => {
@@ -227,7 +270,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       try {
         await updateItem(itemId, { is_required: isRequired });
       } catch (err) {
-        console.error("Failed to toggle item required:", err);
+        logEngine({ type: "error", message: "Failed to toggle item required" });
         // Revert on failure
         setPhases((prev) =>
           prev.map((p) => ({
@@ -258,7 +301,7 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         await reorderItems(phaseId, orderedIds);
         refresh();
       } catch (err) {
-        console.error("Failed to reorder items:", err);
+        logEngine({ type: "error", message: "Failed to reorder items" });
       } finally {
         setSaving(false);
       }
@@ -275,11 +318,11 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
       maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { maxHeight: "85vh", background: "#FCFCFD" },
+        sx: { maxHeight: "85vh", background: theme.palette.background.alt },
       }}
     >
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography sx={{ fontWeight: 600, fontSize: "16px", color: "#1c2130" }}>
+        <Typography sx={{ fontWeight: 600, fontSize: "16px", color: theme.palette.text.primary }}>
           Configure Model Lifecycle
         </Typography>
         <IconButton onClick={onClose} size="small" aria-label="Close">
@@ -293,47 +336,119 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
             <CircularProgress />
           </Stack>
         ) : (
-          <Stack sx={{ gap: "12px" }}>
+          <Stack sx={{ gap: "16px" }}>
             {/* Existing phases */}
             {phases.map((phase, phaseIdx) => (
-              <Box
+              <Accordion
                 key={phase.id}
+                expanded={expandedPhases.has(phase.id)}
+                onChange={() => toggleExpanded(phase.id)}
+                disableGutters
                 sx={{
-                  border: "1px solid #eaecf0",
-                  borderRadius: "4px",
+                  border: `1px solid ${theme.palette.border.light}`,
+                  borderRadius: "4px !important",
+                  "&:before": { display: "none" },
+                  boxShadow: "none",
                   overflow: "hidden",
                   opacity: phase.is_active ? 1 : 0.6,
                 }}
               >
-                {/* Phase header */}
-                <Stack
-                  direction="row"
-                  alignItems="center"
+                <AccordionSummary
+                  expandIcon={
+                    <ChevronRight
+                      size={16}
+                      color={theme.palette.text.secondary}
+                      style={{
+                        transform: expandedPhases.has(phase.id) ? "rotate(90deg)" : "rotate(0deg)",
+                        transition: "transform 0.2s ease",
+                      }}
+                    />
+                  }
                   sx={{
-                    gap: "8px",
-                    px: "16px",
-                    py: "10px",
                     backgroundColor: theme.palette.background.accent,
-                    cursor: "pointer",
-                    userSelect: "none",
+                    px: "16px",
+                    py: "12px",
+                    "& .MuiAccordionSummary-expandIconWrapper": {
+                      transform: "none !important",
+                      order: -1,
+                      mr: "10px",
+                    },
+                    "& .MuiAccordionSummary-content": {
+                      margin: 0,
+                      alignItems: "center",
+                      gap: "10px",
+                    },
                   }}
-                  onClick={() => toggleExpanded(phase.id)}
                 >
-                  <ChevronRight
-                    size={16}
-                    color={theme.palette.text.secondary}
-                    style={{
-                      transform: expandedPhases.has(phase.id) ? "rotate(90deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s ease",
-                      flexShrink: 0,
-                    }}
-                  />
-                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, fontSize: "13px" }}>
-                    {phase.name}
-                  </Typography>
+                  {editingPhaseId === phase.id ? (
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      sx={{ flex: 1, gap: "6px", mr: "8px" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Field
+                        value={editingPhaseName}
+                        onChange={(e) => setEditingPhaseName(e.target.value)}
+                        onBlur={() => handleRenamePhaseSave(phase.id, editingPhaseName)}
+                        onKeyDown={(e: React.KeyboardEvent) => {
+                          if (e.key === "Enter") {
+                            handleRenamePhaseSave(phase.id, editingPhaseName);
+                          } else if (e.key === "Escape") {
+                            setEditingPhaseId(null);
+                          }
+                        }}
+                        autoFocus
+                        sx={{ flex: 1, "& input": { fontSize: "13px", fontWeight: 600, py: "2px" } }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRenamePhaseSave(phase.id, editingPhaseName)}
+                        aria-label="Save phase name"
+                        sx={{ color: theme.palette.text.secondary, p: "2px" }}
+                      >
+                        <Check size={16} />
+                      </IconButton>
+                    </Stack>
+                  ) : (
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      sx={{
+                        flex: 1,
+                        gap: "6px",
+                        "&:hover .phase-edit-icon": { opacity: 1 },
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, fontSize: "13px", cursor: "text" }}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          setEditingPhaseId(phase.id);
+                          setEditingPhaseName(phase.name);
+                        }}
+                      >
+                        {phase.name}
+                      </Typography>
+                      <IconButton
+                        className="phase-edit-icon"
+                        size="small"
+                        sx={{ opacity: 0, transition: "opacity 0.2s", p: "2px" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingPhaseId(phase.id);
+                          setEditingPhaseName(phase.name);
+                        }}
+                        aria-label="Edit phase name"
+                      >
+                        <Pencil size={14} />
+                      </IconButton>
+                    </Stack>
+                  )}
                   <FormControlLabel
                     control={
-                      <Switch
+                      <Toggle
                         size="small"
                         checked={phase.is_active}
                         onChange={(e) => {
@@ -374,118 +489,116 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeletePhase(phase.id);
+                      setDeletePhaseId(phase.id);
                     }}
                     sx={{ color: theme.palette.status.error.text }}
                     aria-label="Delete phase"
                   >
                     <Trash2 size={16} />
                   </IconButton>
-                </Stack>
+                </AccordionSummary>
 
-                {/* Phase items (expanded) */}
-                {expandedPhases.has(phase.id) && (
-                  <Stack spacing={0} sx={{ px: "16px", py: "12px" }}>
+                <AccordionDetails sx={{ px: "16px", py: "16px" }}>
+                  <Stack spacing={0}>
                     {(phase.items ?? []).map((item, itemIdx) => (
                       <Stack
                         key={item.id}
                         direction="row"
                         alignItems="center"
                         sx={{
-                          gap: "8px",
-                          py: "8px",
+                          gap: "16px",
+                          py: "10px",
                           borderBottom: `1px solid ${theme.palette.border.light}`,
                         }}
                       >
                         <Typography variant="body2" sx={{ flex: 1, fontSize: "13px" }}>
                           {item.name}
                         </Typography>
-                        <Chip label={item.item_type} size="small" variant="info" />
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              size="small"
-                              checked={item.is_required}
-                              onChange={(e) =>
-                                handleToggleItemRequired(item.id, e.target.checked)
-                              }
-                            />
-                          }
-                          label={<Typography variant="caption">Req</Typography>}
-                          sx={{ mr: 0 }}
-                        />
-                        <IconButton
-                          size="small"
-                          disabled={itemIdx === 0}
-                          onClick={() =>
-                            handleMoveItem(phase.id, phase.items ?? [], item.id, "up")
-                          }
-                          aria-label="Move item up"
-                          sx={{ opacity: itemIdx === 0 ? 0.4 : 1 }}
+                        <Stack direction="row" alignItems="center" sx={{ gap: "16px" }}>
+                          <Chip label={item.item_type} size="small" variant="info" />
+                          <FormControlLabel
+                            control={
+                              <Toggle
+                                size="small"
+                                checked={item.is_required}
+                                onChange={(e) =>
+                                  handleToggleItemRequired(item.id, e.target.checked)
+                                }
+                              />
+                            }
+                            label={<Typography variant="caption">Req</Typography>}
+                            sx={{ mr: 0 }}
+                          />
+                        </Stack>
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          sx={{
+                            gap: "6px",
+                            pl: "12px",
+                            borderLeft: `1px solid ${theme.palette.border.light}`,
+                          }}
                         >
-                          <ArrowUp size={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          disabled={itemIdx === (phase.items?.length ?? 0) - 1}
-                          onClick={() =>
-                            handleMoveItem(phase.id, phase.items ?? [], item.id, "down")
-                          }
-                          aria-label="Move item down"
-                          sx={{ opacity: itemIdx === (phase.items?.length ?? 0) - 1 ? 0.4 : 1 }}
-                        >
-                          <ArrowDown size={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteItem(item.id)}
-                          sx={{ color: theme.palette.status.error.text }}
-                          aria-label="Delete item"
-                        >
-                          <Trash2 size={16} />
-                        </IconButton>
+                          <IconButton
+                            size="small"
+                            disabled={itemIdx === 0}
+                            onClick={() =>
+                              handleMoveItem(phase.id, phase.items ?? [], item.id, "up")
+                            }
+                            aria-label="Move item up"
+                            sx={{ opacity: itemIdx === 0 ? 0.4 : 1 }}
+                          >
+                            <ArrowUp size={16} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            disabled={itemIdx === (phase.items?.length ?? 0) - 1}
+                            onClick={() =>
+                              handleMoveItem(phase.id, phase.items ?? [], item.id, "down")
+                            }
+                            aria-label="Move item down"
+                            sx={{ opacity: itemIdx === (phase.items?.length ?? 0) - 1 ? 0.4 : 1 }}
+                          >
+                            <ArrowDown size={16} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => setDeleteItemId(item.id)}
+                            sx={{ color: theme.palette.status.error.text }}
+                            aria-label="Delete item"
+                          >
+                            <Trash2 size={16} />
+                          </IconButton>
+                        </Stack>
                       </Stack>
                     ))}
 
                     {/* Add item form */}
                     {addingItemForPhase === phase.id ? (
-                      <Stack direction="row" sx={{ gap: "8px", pt: "12px" }} alignItems="center">
-                        <Stack sx={{ ...getInputStyles(theme), flex: 1 }}>
-                          <TextField
-                            size="small"
-                            placeholder="Item name"
-                            value={newItemName}
-                            onChange={(e) => setNewItemName(e.target.value)}
-                            fullWidth
-                            sx={{
-                              "& .MuiInputBase-root": {
-                                height: "34px",
-                                fontSize: "13px",
-                              },
-                            }}
-                          />
-                        </Stack>
-                        <Select
-                          size="small"
+                      <Stack direction="row" sx={{ gap: "10px", pt: "16px" }} alignItems="center">
+                        <Field
+                          placeholder="Item name"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                          sx={{ flex: 1 }}
+                        />
+                        <SharedSelect
+                          id="new-item-type"
                           value={newItemType}
+                          items={ITEM_TYPE_SELECT_ITEMS}
                           onChange={(e) => setNewItemType(e.target.value as LifecycleItemType)}
                           sx={{ minWidth: 120 }}
-                        >
-                          {ITEM_TYPES.map((t) => (
-                            <MenuItem key={t.value} value={t.value}>
-                              {t.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                        />
                         <FormControlLabel
                           control={
-                            <Switch
+                            <Toggle
                               size="small"
                               checked={newItemRequired}
                               onChange={(e) => setNewItemRequired(e.target.checked)}
                             />
                           }
                           label={<Typography variant="caption">Req</Typography>}
+                          sx={{ ml: "4px" }}
                         />
                         <CustomizableButton
                           variant="contained"
@@ -513,14 +626,14 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                         startIcon={<Plus size={16} />}
                         onClick={() => setAddingItemForPhase(phase.id)}
                         ariaLabel="Add item"
-                        sx={{ alignSelf: "flex-start", mt: "12px", textTransform: "none" }}
+                        sx={{ alignSelf: "flex-start", mt: "16px", textTransform: "none" }}
                       >
                         Add item
                       </CustomizableButton>
                     )}
                   </Stack>
-                )}
-              </Box>
+                </AccordionDetails>
+              </Accordion>
             ))}
 
             {/* Add new phase */}
@@ -531,41 +644,22 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
                 p: "16px",
               }}
             >
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: "8px" }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: "12px" }}>
                 Add new phase
               </Typography>
-              <Stack sx={{ gap: "8px" }}>
-                <Stack sx={getInputStyles(theme)}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    placeholder="Phase name"
-                    value={newPhaseName}
-                    onChange={(e) => setNewPhaseName(e.target.value)}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        height: "34px",
-                        fontSize: "13px",
-                      },
-                    }}
-                  />
-                </Stack>
-                <Stack sx={getInputStyles(theme)}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    placeholder="Description (optional)"
-                    value={newPhaseDesc}
-                    onChange={(e) => setNewPhaseDesc(e.target.value)}
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        fontSize: "13px",
-                      },
-                    }}
-                  />
-                </Stack>
+              <Stack sx={{ gap: "12px" }}>
+                <Field
+                  placeholder="Phase name"
+                  value={newPhaseName}
+                  onChange={(e) => setNewPhaseName(e.target.value)}
+                />
+                <Field
+                  type="description"
+                  placeholder="Description (optional)"
+                  value={newPhaseDesc}
+                  onChange={(e) => setNewPhaseDesc(e.target.value)}
+                  rows={2}
+                />
                 <CustomizableButton
                   variant="contained"
                   size="small"
@@ -582,13 +676,37 @@ const LifecycleConfigEditor = ({ open, onClose }: LifecycleConfigEditorProps) =>
         )}
       </DialogContent>
 
-      <DialogActions>
+      <DialogActions sx={{ px: "16px", py: "12px" }}>
         <CustomizableButton variant="text" onClick={onClose}>
           Close
         </CustomizableButton>
       </DialogActions>
+      <ConfirmationModal
+        isOpen={deletePhaseId !== null}
+        title="Delete phase"
+        body="Delete this phase and all its items? This cannot be undone."
+        cancelText="Cancel"
+        proceedText="Delete"
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+        onCancel={() => setDeletePhaseId(null)}
+        onProceed={confirmDeletePhase}
+        isLoading={saving}
+      />
+      <ConfirmationModal
+        isOpen={deleteItemId !== null}
+        title="Delete item"
+        body="Delete this item? This cannot be undone."
+        cancelText="Cancel"
+        proceedText="Delete"
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+        onCancel={() => setDeleteItemId(null)}
+        onProceed={confirmDeleteItem}
+        isLoading={saving}
+      />
     </Dialog>
   );
-};
+}
 
 export default LifecycleConfigEditor;

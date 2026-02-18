@@ -1,0 +1,42 @@
+{
+  "id": "eeoc_guidelines",
+  "name": "EEOC Uniform Guidelines",
+  "jurisdiction": "United States (Federal)",
+  "effective_date": "1978-09-25",
+  "mode": "quantitative_audit",
+  "description": "Uniform Guidelines on Employee Selection Procedures. Requires adverse impact analysis using the four-fifths (80%) rule across race, sex, and ethnic groups for any selection procedure.",
+  "categories": {
+    "race": {
+      "label": "Race",
+      "groups": [
+        "White",
+        "Black",
+        "Hispanic",
+        "Asian/Pacific Islander",
+        "American Indian/Alaska Native"
+      ]
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": ["Male", "Female"]
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": ["selection_rate", "impact_ratio"],
+  "threshold": 0.80,
+  "required_metadata": [
+    "audit_date",
+    "selection_procedure_description",
+    "job_title",
+    "data_source_description"
+  ],
+  "results_format": {
+    "tables": [
+      { "type": "category", "category_key": "race", "title": "Impact ratios by race" },
+      { "type": "category", "category_key": "sex", "title": "Impact ratios by sex" }
+    ]
+  }
+}

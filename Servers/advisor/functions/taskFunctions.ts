@@ -47,7 +47,7 @@ const getAllTasksQuery = async (tenant: string): Promise<TaskWithAssignees[]> =>
 const fetchTasks = async (
   params: FetchTasksParams,
   tenant: string
-): Promise<TaskWithAssignees[]> => {
+): Promise<Partial<TaskWithAssignees>[]> => {
   let tasks: TaskWithAssignees[] = [];
 
   try {
@@ -82,7 +82,18 @@ const fetchTasks = async (
       tasks = tasks.slice(0, params.limit);
     }
 
-    return tasks;
+    // Return lightweight projections — exclude verbose description
+    return tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      status: t.status,
+      priority: t.priority,
+      due_date: t.due_date,
+      categories: t.categories,
+      assignees: t.assignees,
+      creator_name: t.creator_name,
+      created_at: t.created_at,
+    }));
   } catch (error) {
     logger.error("Error fetching tasks:", error);
     throw new Error(

@@ -9,6 +9,7 @@ import {
   Trophy,
   Cpu,
   MessageSquare,
+  Scale,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -129,7 +130,15 @@ export default function EvalsSidebar({
       label: "Leaderboard",
       value: "leaderboard",
       icon: <Trophy size={16} strokeWidth={1.5} />,
-      disabled: false, // Always enabled - aggregates all experiments
+      disabled: false,
+    },
+    {
+      id: "bias-audits",
+      label: "Bias audits",
+      value: "bias-audits",
+      icon: <Scale size={16} strokeWidth={1.5} />,
+      disabled: false,
+      dividerAfter: true,
     },
     {
       id: "configuration",
@@ -137,7 +146,6 @@ export default function EvalsSidebar({
       value: "configuration",
       icon: <Settings size={16} strokeWidth={1.5} />,
       disabled: disabled,
-      dividerAfter: true,
     },
     {
       id: "settings",

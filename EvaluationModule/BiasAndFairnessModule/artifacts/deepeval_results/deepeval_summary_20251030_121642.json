@@ -1,0 +1,31 @@
+{
+  "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "dataset": "evaluation_dataset",
+  "total_samples": 3,
+  "timestamp": "2025-10-30T12:16:42.223162",
+  "metric_summaries": {
+    "Bias": {
+      "average_score": 0.0,
+      "pass_rate": 100.0,
+      "min_score": 0,
+      "max_score": 0,
+      "total_evaluated": 3
+    },
+    "Toxicity": {
+      "average_score": 0.0,
+      "pass_rate": 100.0,
+      "min_score": 0,
+      "max_score": 0,
+      "total_evaluated": 3
+    },
+    "Answer Relevancy": {
+      "average_score": 1.0,
+      "pass_rate": 100.0,
+      "min_score": 1.0,
+      "max_score": 1.0,
+      "total_evaluated": 3
+    }
+  },
+  "avg_word_count": 41.7,
+  "avg_response_length": 236.7
+}

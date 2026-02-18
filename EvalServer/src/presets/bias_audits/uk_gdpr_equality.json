@@ -1,0 +1,75 @@
+{
+  "id": "uk_gdpr_equality",
+  "name": "UK GDPR + Equality Act",
+  "jurisdiction": "United Kingdom",
+  "effective_date": "2018-05-25",
+  "mode": "compliance_checklist",
+  "description": "UK GDPR combined with the Equality Act 2010. Requires Data Protection Impact Assessments for automated decision-making and impact assessment across protected characteristics.",
+  "categories": {
+    "age": {
+      "label": "Age",
+      "groups": []
+    },
+    "disability": {
+      "label": "Disability",
+      "groups": []
+    },
+    "gender_reassignment": {
+      "label": "Gender Reassignment",
+      "groups": []
+    },
+    "marriage_civil_partnership": {
+      "label": "Marriage/Civil Partnership",
+      "groups": []
+    },
+    "pregnancy_maternity": {
+      "label": "Pregnancy/Maternity",
+      "groups": []
+    },
+    "race": {
+      "label": "Race",
+      "groups": []
+    },
+    "religion_belief": {
+      "label": "Religion/Belief",
+      "groups": []
+    },
+    "sex": {
+      "label": "Sex",
+      "groups": []
+    },
+    "sexual_orientation": {
+      "label": "Sexual Orientation",
+      "groups": []
+    }
+  },
+  "intersectional": {
+    "required": false,
+    "cross": []
+  },
+  "metrics": [],
+  "recommended_threshold": null,
+  "checklist_items": [
+    "Complete Data Protection Impact Assessment",
+    "Document automated decision-making justification",
+    "Assess impact across Equality Act characteristics",
+    "Document human review procedures"
+  ],
+  "required_metadata": [
+    "audit_date",
+    "system_description",
+    "data_protection_officer"
+  ],
+  "results_format": {
+    "sections": [
+      {
+        "type": "checklist",
+        "title": "Compliance checklist"
+      },
+      {
+        "type": "assessment",
+        "title": "Recommended EEOC-style adverse impact analysis"
+      }
+    ]
+  }
+}

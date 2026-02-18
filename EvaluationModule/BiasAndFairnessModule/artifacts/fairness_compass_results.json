@@ -1,0 +1,396 @@
+{
+  "metadata": {
+    "evaluation_type": "fairness_compass_analysis",
+    "dataset": "adult-census-income",
+    "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "model_task": "binary_classification",
+    "label_behavior": "binary",
+    "evaluation_timestamp": "2025-08-21T05:47:05.965659"
+  },
+  "compass_system": {
+    "llm_evaluation": {
+      "status": "requires_setup",
+      "note": "Use main evaluation_runner.py for LLM evaluation"
+    },
+    "status": "available"
+  },
+  "metric_routing": {
+    "configured_task": {
+      "task_type": "binary_classification",
+      "label_behavior": "binary",
+      "metrics": [
+        "demographic_parity",
+        "equalized_odds",
+        "equalized_opportunity",
+        "predictive_equality",
+        "predictive_parity",
+        "conditional_use_accuracy_equality",
+        "accuracy_difference",
+        "precision_difference",
+        "recall_difference",
+        "f1_difference"
+      ]
+    },
+    "other_tasks": {
+      "generation_continuous": [
+        "toxicity_gap",
+        "sentiment_gap",
+        "stereotype_gap",
+        "exposure_disparity",
+        "representation_disparity",
+        "prompt_fairness",
+        "accuracy_difference",
+        "precision_difference",
+        "recall_difference",
+        "f1_difference"
+      ],
+      "regression_continuous": [
+        "balance_for_positive_class",
+        "balance_for_negative_class",
+        "regression_demographic_parity",
+        "accuracy_difference",
+        "precision_difference",
+        "recall_difference",
+        "f1_difference"
+      ],
+      "multiclass_classification_categorical": [
+        "demographic_parity",
+        "equalized_odds",
+        "multiclass_demographic_parity",
+        "multiclass_equalized_odds",
+        "accuracy_difference",
+        "precision_difference",
+        "recall_difference",
+        "f1_difference"
+      ]
+    }
+  },
+  "recommendations": {
+    "policy_enforcement_equal": {
+      "recommendations": [
+        "equal_selection_parity"
+      ],
+      "explanation": {
+        "configuration": {
+          "enforce_policy": true,
+          "representation_type": "equal_number",
+          "base_rates_equal": null,
+          "ground_truth_available": null,
+          "label_bias": null,
+          "explaining_variables_present": null,
+          "output_type": null,
+          "fairness_focus": null,
+          "error_sensitivity": null
+        },
+        "recommendations": [
+          "equal_selection_parity"
+        ],
+        "reasoning": "Policy enforcement requires equal selection rates across groups",
+        "available_metrics": [
+          "equal_selection_parity",
+          "demographic_parity",
+          "conditional_statistical_parity",
+          "calibration",
+          "conditional_use_accuracy_equality",
+          "predictive_parity",
+          "equalized_odds",
+          "equalized_opportunity",
+          "equalized_opportunities",
+          "predictive_equality",
+          "balance_positive_class",
+          "balance_negative_class",
+          "toxicity_gap",
+          "sentiment_gap",
+          "stereotype_gap",
+          "exposure_disparity",
+          "representation_disparity",
+          "prompt_fairness",
+          "accuracy_difference",
+          "precision_difference",
+          "recall_difference",
+          "f1_difference",
+          "multiclass_demographic_parity",
+          "multiclass_equalized_odds",
+          "regression_demographic_parity"
+        ]
+      }
+    },
+    "policy_enforcement_proportional": {
+      "recommendations": [
+        "demographic_parity"
+      ],
+      "explanation": {
+        "configuration": {
+          "enforce_policy": true,
+          "representation_type": "proportional",
+          "base_rates_equal": null,
+          "ground_truth_available": null,
+          "label_bias": null,
+          "explaining_variables_present": null,
+          "output_type": null,
+          "fairness_focus": null,
+          "error_sensitivity": null
+        },
+        "recommendations": [
+          "demographic_parity"
+        ],
+        "reasoning": "Policy enforcement requires proportional representation across groups",
+        "available_metrics": [
+          "equal_selection_parity",
+          "demographic_parity",
+          "conditional_statistical_parity",
+          "calibration",
+          "conditional_use_accuracy_equality",
+          "predictive_parity",
+          "equalized_odds",
+          "equalized_opportunity",
+          "equalized_opportunities",
+          "predictive_equality",
+          "balance_positive_class",
+          "balance_negative_class",
+          "toxicity_gap",
+          "sentiment_gap",
+          "stereotype_gap",
+          "exposure_disparity",
+          "representation_disparity",
+          "prompt_fairness",
+          "accuracy_difference",
+          "precision_difference",
+          "recall_difference",
+          "f1_difference",
+          "multiclass_demographic_parity",
+          "multiclass_equalized_odds",
+          "regression_demographic_parity"
+        ]
+      }
+    },
+    "no_ground_truth": {
+      "recommendations": [
+        "demographic_parity"
+      ],
+      "explanation": {
+        "configuration": {
+          "enforce_policy": false,
+          "representation_type": null,
+          "base_rates_equal": null,
+          "ground_truth_available": false,
+          "label_bias": true,
+          "explaining_variables_present": null,
+          "output_type": null,
+          "fairness_focus": null,
+          "error_sensitivity": null
+        },
+        "recommendations": [
+          "demographic_parity"
+        ],
+        "reasoning": "Ground truth unavailable or label bias detected - using demographic parity as fallback",
+        "available_metrics": [
+          "equal_selection_parity",
+          "demographic_parity",
+          "conditional_statistical_parity",
+          "calibration",
+          "conditional_use_accuracy_equality",
+          "predictive_parity",
+          "equalized_odds",
+          "equalized_opportunity",
+          "equalized_opportunities",
+          "predictive_equality",
+          "balance_positive_class",
+          "balance_negative_class",
+          "toxicity_gap",
+          "sentiment_gap",
+          "stereotype_gap",
+          "exposure_disparity",
+          "representation_disparity",
+          "prompt_fairness",
+          "accuracy_difference",
+          "precision_difference",
+          "recall_difference",
+          "f1_difference",
+          "multiclass_demographic_parity",
+          "multiclass_equalized_odds",
+          "regression_demographic_parity"
+        ]
+      }
+    },
+    "base_rates_equal": {
+      "recommendations": [
+        "demographic_parity"
+      ],
+      "explanation": {
+        "configuration": {
+          "enforce_policy": false,
+          "representation_type": null,
+          "base_rates_equal": true,
+          "ground_truth_available": null,
+          "label_bias": null,
+          "explaining_variables_present": null,
+          "output_type": null,
+          "fairness_focus": null,
+          "error_sensitivity": null
+        },
+        "recommendations": [
+          "demographic_parity"
+        ],
+        "reasoning": "Ground truth unavailable or label bias detected - using demographic parity as fallback",
+        "available_metrics": [
+          "equal_selection_parity",
+          "demographic_parity",
+          "conditional_statistical_parity",
+          "calibration",
+          "conditional_use_accuracy_equality",
+          "predictive_parity",
+          "equalized_odds",
+          "equalized_opportunity",
+          "equalized_opportunities",
+          "predictive_equality",
+          "balance_positive_class",
+          "balance_negative_class",
+          "toxicity_gap",
+          "sentiment_gap",
+          "stereotype_gap",
+          "exposure_disparity",
+          "representation_disparity",
+          "prompt_fairness",
+          "accuracy_difference",
+          "precision_difference",
+          "recall_difference",
+          "f1_difference",
+          "multiclass_demographic_parity",
+          "multiclass_equalized_odds",
+          "regression_demographic_parity"
+        ]
+      }
+    },
+    "output_scores_false_positive": {
+      "recommendations": [
+        "demographic_parity"
+      ],
+      "explanation": {
+        "configuration": {
+          "enforce_policy": false,
+          "representation_type": null,
+          "base_rates_equal": null,
+          "ground_truth_available": null,
+          "label_bias": null,
+          "explaining_variables_present": null,
+          "output_type": "score",
+          "fairness_focus": null,
+          "error_sensitivity": "false_positive"
+        },
+        "recommendations": [
+          "demographic_parity"
+        ],
+        "reasoning": "Ground truth unavailable or label bias detected - using demographic parity as fallback",
+        "available_metrics": [
+          "equal_selection_parity",
+          "demographic_parity",
+          "conditional_statistical_parity",
+          "calibration",
+          "conditional_use_accuracy_equality",
+          "predictive_parity",
+          "equalized_odds",
+          "equalized_opportunity",
+          "equalized_opportunities",
+          "predictive_equality",
+          "balance_positive_class",
+          "balance_negative_class",
+          "toxicity_gap",
+          "sentiment_gap",
+          "stereotype_gap",
+          "exposure_disparity",
+          "representation_disparity",
+          "prompt_fairness",
+          "accuracy_difference",
+          "precision_difference",
+          "recall_difference",
+          "f1_difference",
+          "multiclass_demographic_parity",
+          "multiclass_equalized_odds",
+          "regression_demographic_parity"
+        ]
+      }
+    },
+    "output_labels_precision_focus": {
+      "recommendations": [
+        "demographic_parity"
+      ],
+      "explanation": {
+        "configuration": {
+          "enforce_policy": false,
+          "representation_type": null,
+          "base_rates_equal": null,
+          "ground_truth_available": null,
+          "label_bias": null,
+          "explaining_variables_present": null,
+          "output_type": "label",
+          "fairness_focus": "precision",
+          "error_sensitivity": null
+        },
+        "recommendations": [
+          "demographic_parity"
+        ],
+        "reasoning": "Ground truth unavailable or label bias detected - using demographic parity as fallback",
+        "available_metrics": [
+          "equal_selection_parity",
+          "demographic_parity",
+          "conditional_statistical_parity",
+          "calibration",
+          "conditional_use_accuracy_equality",
+          "predictive_parity",
+          "equalized_odds",
+          "equalized_opportunity",
+          "equalized_opportunities",
+          "predictive_equality",
+          "balance_positive_class",
+          "balance_negative_class",
+          "toxicity_gap",
+          "sentiment_gap",
+          "stereotype_gap",
+          "exposure_disparity",
+          "representation_disparity",
+          "prompt_fairness",
+          "accuracy_difference",
+          "precision_difference",
+          "recall_difference",
+          "f1_difference",
+          "multiclass_demographic_parity",
+          "multiclass_equalized_odds",
+          "regression_demographic_parity"
+        ]
+      }
+    }
+  },
+  "intelligent_metric_selection": {
+    "task_type": "binary_classification",
+    "label_behavior": "binary",
+    "compass_recommended": [
+      "demographic_parity",
+      "equalized_odds",
+      "equalized_opportunity",
+      "predictive_equality",
+      "predictive_parity",
+      "conditional_use_accuracy_equality",
+      "accuracy_difference",
+      "precision_difference",
+      "recall_difference",
+      "f1_difference"
+    ],
+    "current_config": [
+      "demographic_parity",
+      "equalized_odds",
+      "predictive_parity"
+    ],
+    "missing_recommended": [
+      "equalized_opportunity",
+      "predictive_equality",
+      "conditional_use_accuracy_equality",
+      "accuracy_difference",
+      "precision_difference",
+      "recall_difference",
+      "f1_difference"
+    ],
+    "extra_current": [],
+    "recommendation_quality": "suboptimal"
+  }
+}

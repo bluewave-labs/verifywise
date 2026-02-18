@@ -242,6 +242,56 @@ export const ENTITY_TIPS: EntityTips = {
       content: "If your organization uses other systems for task management, documentation, or communication, integration settings can connect them to VerifyWise. These connections reduce duplicate data entry and keep information synchronized across platforms.",
     },
   ],
+  "shadow-ai-insights": [
+    {
+      header: "Shadow AI insights reveal hidden AI usage across your organization.",
+      content: "The insights dashboard aggregates data from network traffic, proxy logs, and browser activity to show which AI tools are being used, by whom, and how often. Use the period selector to compare activity over different time ranges.",
+    },
+    {
+      header: "Risk scores help prioritize which tools need attention first.",
+      content: "Tools with higher risk scores may be handling sensitive data or lack enterprise security features. Focus governance efforts on high-risk tools first, then work through the list systematically.",
+    },
+  ],
+  "shadow-ai-user-activity": [
+    {
+      header: "Track individual user AI activity to identify training opportunities.",
+      content: "Users with high prompt counts may need guidance on approved AI tools and data handling policies. Use this view to identify power users who can become AI governance champions in their departments.",
+    },
+    {
+      header: "Department breakdowns reveal organizational AI adoption patterns.",
+      content: "Some departments adopt AI tools faster than others. Understanding these patterns helps you tailor training programs and governance policies to each department's needs and risk profile.",
+    },
+  ],
+  "shadow-ai-tools": [
+    {
+      header: "Review detected tools to decide which should be approved or blocked.",
+      content: "Each detected tool shows usage statistics, risk score, and which departments are using it. Update tool status to approved, restricted, or blocked based on your organization's security and compliance requirements.",
+    },
+    {
+      header: "Start governance directly from a detected tool to bring it under formal management.",
+      content: "When you find a tool worth governing, use the 'Start governance' button to create a model inventory entry. This connects the tool to your existing compliance frameworks and risk management processes.",
+    },
+  ],
+  "shadow-ai-rules": [
+    {
+      header: "Alert rules notify you automatically when specific conditions are met.",
+      content: "Set up rules to get alerted when new AI tools are detected, usage thresholds are exceeded, or sensitive departments start using unapproved tools. Early detection prevents data leaks and compliance violations.",
+    },
+    {
+      header: "Review alert history to understand patterns and adjust rules.",
+      content: "Frequent alerts may indicate rules need fine-tuning, while no alerts might mean thresholds are too high. Check alert history regularly and adjust trigger conditions to maintain an effective monitoring balance.",
+    },
+  ],
+  "shadow-ai-settings": [
+    {
+      header: "API keys authenticate your network monitoring infrastructure.",
+      content: "Generate API keys for each data source (proxy, firewall, browser extension) to feed network traffic data into Shadow AI detection. Each key can be labeled and revoked independently for security.",
+    },
+    {
+      header: "Syslog sources define where your network traffic data comes from.",
+      content: "Configure syslog sources for each network monitoring point in your infrastructure. Select the appropriate parser type to ensure events are correctly parsed and attributed to the right AI tools.",
+    },
+  ],
   "evals-overview": [
     {
       header: "Monitor trends to track progress over time.",

@@ -199,6 +199,7 @@ const VWProjectView = () => {
                 value: "overview",
                 icon: "LayoutDashboard",
                 disabled: isApprovalBlocked,
+                tooltip: "Use case details, risk summary and status",
               },
               {
                 label: "Use case risks",
@@ -207,6 +208,7 @@ const VWProjectView = () => {
                 count: projectRisksCount,
                 isLoading: isLoadingRisks,
                 disabled: isApprovalBlocked,
+                tooltip: "Risks specific to this use case",
               },
               {
                 label: "Linked models",
@@ -215,36 +217,42 @@ const VWProjectView = () => {
                 count: linkedModelsCount,
                 isLoading: isLoadingModels,
                 disabled: isApprovalBlocked,
+                tooltip: "AI models associated with this use case",
               },
               {
                 label: "Frameworks/regulations",
                 value: "frameworks",
                 icon: "Shield",
                 disabled: isApprovalBlocked,
+                tooltip: "Compliance frameworks applied to this use case",
               },
               {
                 label: "CE Marking",
                 value: "ce-marking",
                 icon: "Award",
                 disabled: isApprovalBlocked,
+                tooltip: "EU conformity assessment and CE marking status",
               },
               {
                 label: "Activity",
                 value: "activity",
                 icon: "History",
                 disabled: isApprovalBlocked,
+                tooltip: "Recent changes and audit trail",
               },
               {
                 label: "Monitoring",
                 value: "monitoring",
                 icon: "ClipboardCheck",
                 disabled: isApprovalBlocked,
+                tooltip: "Post-deployment monitoring and checks",
               },
               {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
                 disabled: isApprovalBlocked || !allowedRoles.projects.edit.includes(userRoleName),
+                tooltip: "Use case configuration and permissions",
               },
             ]}
             activeTab={value}

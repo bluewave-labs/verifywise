@@ -17,6 +17,7 @@ export interface Project {
   goal?: string;
   last_updated?: string;
   created_at?: string;
+  _source?: string;
 }
 
 /**

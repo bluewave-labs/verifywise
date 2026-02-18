@@ -30,6 +30,7 @@ import modelInventoryRoutes from "./routes/modelInventory.route";
 import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
 import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
 import modelLifecycleRoutes from "./routes/modelLifecycle.route";
+import datasetBulkUploadRoutes from "./routes/datasetBulkUpload.route";
 import datasetRoutes from "./routes/dataset.route";
 import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
@@ -76,6 +77,7 @@ import virtualFolderRoutes, { filesFolderRouter } from "./routes/virtualFolder.r
 import shadowAiRoutes from "./routes/shadowAi.route";
 import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
+import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -176,6 +178,7 @@ try {
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
   app.use("/api/model-lifecycle", modelLifecycleRoutes);
+  app.use("/api/dataset-bulk-upload", datasetBulkUploadRoutes);
   app.use(
     "/api/model-inventory-change-history",
     modelInventoryChangeHistoryRoutes
@@ -232,6 +235,7 @@ try {
   app.use("/api/shadow-ai", shadowAiRoutes);
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
   app.use("/api/feature-settings", featureSettingsRoutes);
+  app.use("/api/agent-primitives", agentDiscoveryRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

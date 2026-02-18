@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
   Home,
@@ -14,6 +14,8 @@ import {
   FolderTree,
   Layers,
   AlertCircle,
+  Bot,
+  Database,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -43,7 +45,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { open: openUserGuide } = useUserGuideSidebarContext();
+  const { open: openUserGuide, openTab } = useUserGuideSidebarContext();
+  const openReleaseNotes = useCallback(() => openTab('whats-new'), [openTab]);
   const { changeComponentVisibility } = useContext(VerifyWiseContext);
 
   const { refs: _refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -92,12 +95,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: "/tasks",
       count: openTasksCount,
     },
+    {
+      id: "frameworks",
+      label: "Frameworks",
+      icon: <Layers size={16} strokeWidth={1.5} />,
+      path: "/framework",
+    },
   ];
 
   // Menu groups
   const menuGroups: SidebarMenuGroup[] = [
     {
-      name: "DISCOVERY",
+      name: "INVENTORY",
       items: [
         {
           id: "use-cases",
@@ -107,22 +116,22 @@ const Sidebar: React.FC<SidebarProps> = ({
           highlightPaths: ["/project-view"],
         },
         {
-          id: "organizational-view",
-          label: "Organizational View",
-          icon: <Layers size={16} strokeWidth={1.5} />,
-          path: "/framework",
-        },
-        {
-          id: "vendors",
-          label: "Vendors",
-          icon: <Building size={16} strokeWidth={1.5} />,
-          path: "/vendors",
-        },
-        {
           id: "model-inventory",
           label: "Model Inventory",
           icon: <ListIcon size={16} strokeWidth={1.5} />,
           path: "/model-inventory",
+        },
+        {
+          id: "datasets",
+          label: "Datasets",
+          icon: <Database size={16} strokeWidth={1.5} />,
+          path: "/datasets",
+        },
+        {
+          id: "agent-discovery",
+          label: "Agent Discovery",
+          icon: <Bot size={16} strokeWidth={1.5} />,
+          path: "/agent-discovery",
         },
       ],
     },
@@ -164,6 +173,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       name: "GOVERNANCE",
       items: [
+        {
+          id: "vendors",
+          label: "Vendors",
+          icon: <Building size={16} strokeWidth={1.5} />,
+          path: "/vendors",
+        },
         {
           id: "policy-manager",
           label: "Policy Manager",
@@ -227,6 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       showDemoDataButton={showDemoDataButton}
       showReadyToSubscribe={true}
       openUserGuide={openUserGuide}
+      openReleaseNotes={openReleaseNotes}
       isAdmin={isAdmin}
       enableFlyingHearts={true}
     />

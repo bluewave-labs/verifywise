@@ -21,7 +21,7 @@ export interface FetchModelInventoriesParams {
 const fetchModelInventories = async (
   params: FetchModelInventoriesParams,
   tenant: string,
-): Promise<IModelInventory[]> => {
+): Promise<Partial<IModelInventory>[]> => {
   let models: IModelInventory[] = [];
 
   try {
@@ -77,7 +77,20 @@ const fetchModelInventories = async (
       models = models.slice(0, params.limit);
     }
 
-    return models;
+    // Return lightweight projections — exclude verbose text fields and file data
+    return models.map((m) => ({
+      id: m.id,
+      provider_model: m.provider_model,
+      provider: m.provider,
+      model: m.model,
+      version: m.version,
+      capabilities: m.capabilities,
+      security_assessment: m.security_assessment,
+      status: m.status,
+      status_date: m.status_date,
+      hosting_provider: m.hosting_provider,
+      created_at: m.created_at,
+    }));
   } catch (error) {
     logger.error("Error fetching model inventories:", error);
     throw new Error(

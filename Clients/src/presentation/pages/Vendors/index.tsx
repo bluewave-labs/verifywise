@@ -3,7 +3,6 @@
 import "./index.css";
 import { Box, SelectChangeEvent, Stack, useTheme, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import {
@@ -36,7 +35,6 @@ import { RisksCard } from "../../components/Cards/RisksCard";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
-import HelperIcon from "../../components/HelperIcon";
 import SearchBox from "../../components/Search/SearchBox";
 import {
   useVendors,
@@ -46,11 +44,10 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
-import PageHeader from "../../components/Layout/PageHeader";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 import { VendorModel } from "../../../domain/models/Common/vendor/vendor.model";
 import { ExistingRisk } from "../../../domain/interfaces/i.vendor";
 import TabBar from "../../components/TabBar";
-import TipBox from "../../components/TipBox";
 import { ReviewStatus } from "../../../domain/enums/status.enum";
 import { GroupBy } from "../../components/Table/GroupBy";
 import {
@@ -1014,19 +1011,35 @@ const Vendors = () => {
   }, [vendorRisks, vendors, users]);
 
   return (
-    <Stack className="vwhome" gap={0}>
-      <PageBreadcrumbs />
-      <PageTour
-        steps={VendorsSteps}
-        run={runVendorTour}
-        onFinish={() => {
-          localStorage.setItem("vendor-tour", "true");
-          setRunVendorTour(false);
-        }}
-        tourKey="vendor-tour"
-      />
-      <Stack gap={"16px"}>
-        {alert && (
+    <PageHeaderExtended
+      title={value === "1" ? "Vendor list" : "Vendor risks list"}
+      description={
+        value === "1"
+          ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+          : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+      }
+      helpArticlePath={
+        value === "1" ? "risk-management/vendor-management" : undefined
+      }
+      tipBoxEntity="vendors"
+      summaryCards={
+        value !== "1" &&
+        (loadingVendorRisks || isVendorsLoading ? (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="50%"
+            height={100}
+          />
+        ) : (
+          <RisksCard
+            risksSummary={vendorRisksSummary}
+            onCardClick={handleRiskCardClick}
+            selectedLevel={selectedRiskLevel}
+          />
+        ))
+      }
+      alert={
+        alert && (
           <Suspense fallback={<div>Loading...</div>}>
             <Fade in={showAlert} timeout={300}>
               <Box sx={{ position: 'fixed' }}>
@@ -1043,68 +1056,36 @@ const Vendors = () => {
               </Box>
             </Fade>
           </Suspense>
-        )}
+        )
+      }
+    >
+      <TabContext value={value}>
 
-        <TabContext value={value}>
-          <Box sx={{ mt: 4 }}>
-            <PageHeader
-              title={value === "1" ? "Vendor list" : "Vendor risks list"}
-              description={
-                value === "1"
-                  ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
-                  : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
-              }
-              rightContent={
-                value === "1" ? (
-                  <HelperIcon
-                    articlePath="risk-management/vendor-management"
-                    size="small"
-                  />
-                ) : undefined
-              }
-            />
-          </Box>
-          <TipBox entityName="vendors" />
-
-          <Box sx={{ mt: 2 }}>
-            <TabBar
-              tabs={[
-                {
-                  label: "Vendors",
-                  value: "1",
-                  icon: "Building",
-                  count: filteredVendors.length,
-                  isLoading: isVendorsLoading,
-                  tooltip: "Third-party AI suppliers and their review status",
-                },
-                {
-                  label: "Risks",
-                  value: "2",
-                  icon: "AlertTriangle",
-                  count: filteredVendorRisks.length,
-                  isLoading: loadingVendorRisks,
-                  tooltip: "Security and compliance risks from vendor relationships",
-                },
-              ]}
-              activeTab={value}
-              onChange={handleChange}
-              dataJoyrideId="vendor-list-tab"
-            />
-          </Box>
-          {value !== "1" &&
-            (loadingVendorRisks || isVendorsLoading ? (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="50%"
-                height={100}
-              />
-            ) : (
-              <RisksCard
-                risksSummary={vendorRisksSummary}
-                onCardClick={handleRiskCardClick}
-                selectedLevel={selectedRiskLevel}
-              />
-            ))}
+        <Box sx={{ mt: 2 }}>
+          <TabBar
+            tabs={[
+              {
+                label: "Vendors",
+                value: "1",
+                icon: "Building",
+                count: filteredVendors.length,
+                isLoading: isVendorsLoading,
+                tooltip: "Third-party AI suppliers and their review status",
+              },
+              {
+                label: "Risks",
+                value: "2",
+                icon: "AlertTriangle",
+                count: filteredVendorRisks.length,
+                isLoading: loadingVendorRisks,
+                tooltip: "Security and compliance risks from vendor relationships",
+              },
+            ]}
+            activeTab={value}
+            onChange={handleChange}
+            dataJoyrideId="vendor-list-tab"
+          />
+        </Box>
           {isVendorsLoading && value === "1" ? (
             <CustomizableSkeleton
               variant="rectangular"
@@ -1312,8 +1293,8 @@ const Vendors = () => {
               />
             </TabPanel>
           )}
-        </TabContext>
-      </Stack>
+      </TabContext>
+
       <AddNewVendor
         isOpen={isOpen}
         setIsOpen={() => setIsOpen(false)}
@@ -1336,7 +1317,17 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-    </Stack>
+
+      <PageTour
+        steps={VendorsSteps}
+        run={runVendorTour}
+        onFinish={() => {
+          localStorage.setItem("vendor-tour", "true");
+          setRunVendorTour(false);
+        }}
+        tourKey="vendor-tour"
+      />
+    </PageHeaderExtended>
   );
 };
 

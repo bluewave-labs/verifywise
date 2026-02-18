@@ -13,6 +13,11 @@ interface UseFeatureSettingsResult {
   updateSettings: (updates: Partial<Pick<IFeatureSettings, "lifecycle_enabled">>) => Promise<IFeatureSettings>;
 }
 
+/**
+ * @deprecated The `lifecycle_enabled` flag is superseded by the plugin
+ * installation system. Use `isPluginInstalled("model-lifecycle")` from
+ * the `usePluginRegistry` hook instead.
+ */
 export function useFeatureSettings(): UseFeatureSettingsResult {
   const [featureSettings, setFeatureSettings] = useState<IFeatureSettings | null>(null);
   const [loading, setLoading] = useState(true);

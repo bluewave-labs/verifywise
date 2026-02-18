@@ -100,7 +100,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               },
             }}
           >
-            {/* EXPERIMENT ID */}
+            {/* EXPERIMENT NAME */}
             <TableCell
               sx={{
                 ...singleTheme.tableStyles.primary.body.cell,
@@ -134,7 +134,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               ) : row.status === "Failed" ? (
                 <Typography sx={{ fontSize: 13, color: "#c62828", fontWeight: 500 }}>Failed</Typography>
               ) : (
-                row.id
+                row.name || row.id
               )}
             </TableCell>
 

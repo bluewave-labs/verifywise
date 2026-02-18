@@ -11,6 +11,9 @@ export const PLUGIN_SLOTS = {
   MODELS_TABS: "page.models.tabs", // Additional tabs in TabBar
   MODELS_TOOLBAR: "page.models.toolbar", // Toolbar buttons
 
+  // Model Detail Page
+  MODEL_DETAIL_LIFECYCLE: "page.model-detail.lifecycle", // Lifecycle phase tracking
+
   // Settings Page
   SETTINGS_TABS: "page.settings.tabs", // Additional tabs in Settings
 
@@ -45,6 +48,9 @@ export const PLUGIN_SLOTS = {
   USE_CASE_ACTIVITY: "page.usecase.activity", // Activity tab
   USE_CASE_MONITORING: "page.usecase.monitoring", // Monitoring tab
   USE_CASE_SETTINGS: "page.usecase.settings", // Settings tab
+
+  // Datasets Page
+  DATASETS_TOOLBAR: "page.datasets.toolbar", // Toolbar buttons (e.g., bulk upload)
 
   // Dashboard (future)
   DASHBOARD_WIDGETS: "page.dashboard.widgets", // Dashboard widget area

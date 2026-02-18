@@ -4,7 +4,7 @@ import singleTheme from "../../../../themes/v1SingleTheme";
 
 // Column width definitions for consistent spacing
 const columnWidths: Record<string, string> = {
-  "EXPERIMENT ID": "20%",
+  "EXPERIMENT NAME": "20%",
   "MODEL": "12%",
   "JUDGE/SCORER": "16%",
   "# PROMPTS": "8%",
@@ -15,7 +15,7 @@ const columnWidths: Record<string, string> = {
 
 // Map column labels to sortable field keys
 const columnSortKeys: Record<string, string> = {
-  "EXPERIMENT ID": "id",
+  "EXPERIMENT NAME": "name",
   "MODEL": "model",
   "JUDGE/SCORER": "judge",
   "# PROMPTS": "prompts",

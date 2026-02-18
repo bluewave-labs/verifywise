@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PluginInstallation } from "../../domain/types/plugins";
 import { getInstalledPlugins } from "../repository/plugin.repository";
 import { PluginRenderType } from "../../domain/constants/pluginSlots";
+import { getBuiltinPluginComponents } from "../registry/builtinPlugins.registry";
 
 const PLUGINS_QUERY_KEY = ['plugins', 'installations'] as const;
 
@@ -154,6 +155,50 @@ export function PluginRegistryProvider({
   // Load a plugin's UI bundle dynamically
   const loadPluginUI = useCallback(
     async (pluginKey: string, uiConfig: PluginUIConfig) => {
+      // Handle built-in plugins: resolve components from the main bundle
+      if (uiConfig.bundleUrl === "__builtin__") {
+        const builtinComponents = getBuiltinPluginComponents(pluginKey);
+        if (!builtinComponents) {
+          console.warn(`[PluginRegistry] No built-in components found for plugin ${pluginKey}`);
+          return;
+        }
+
+        setLoadedComponents((prevComponents) => {
+          const newComponents = new Map(prevComponents);
+
+          for (const slotConfig of uiConfig.slots) {
+            const Component = builtinComponents[slotConfig.componentName];
+            if (!Component) {
+              console.warn(
+                `[PluginRegistry] Built-in component ${slotConfig.componentName} not found for plugin ${pluginKey}`
+              );
+              continue;
+            }
+
+            const loadedComponent: LoadedPluginComponent = {
+              pluginKey,
+              slotId: slotConfig.slotId,
+              componentName: slotConfig.componentName,
+              Component,
+              renderType: slotConfig.renderType,
+              props: slotConfig.props,
+              trigger: slotConfig.trigger,
+            };
+
+            const existing = newComponents.get(slotConfig.slotId) || [];
+            const alreadyRegistered = existing.some(
+              (c) => c.pluginKey === pluginKey && c.componentName === slotConfig.componentName
+            );
+            if (!alreadyRegistered) {
+              newComponents.set(slotConfig.slotId, [...existing, loadedComponent]);
+            }
+          }
+
+          return newComponents;
+        });
+        return;
+      }
+
       // Check if currently loading to prevent concurrent loads
       if (loadingBundles.current.has(uiConfig.bundleUrl)) {
         return;

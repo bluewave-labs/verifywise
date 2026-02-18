@@ -36,7 +36,7 @@
   min-height: 0; /* Critical for flex scroll containers */
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding: 24px;
+  padding: 24px 8px 24px 24px;
 }
 .home-layout > div:has(> [class*="fallback__"]) .background-pattern-svg {
   position: absolute;

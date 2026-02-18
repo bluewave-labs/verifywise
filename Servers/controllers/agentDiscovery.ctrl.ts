@@ -182,6 +182,10 @@ export async function updateAgentPrimitive(req: Request, res: Response) {
 
     const { display_name, primitive_type, owner_id, metadata } = req.body;
 
+    if (display_name === undefined && primitive_type === undefined && owner_id === undefined && metadata === undefined) {
+      return res.status(400).json(STATUS_CODE[400]("No fields to update"));
+    }
+
     const updated = await updateAgentPrimitiveQuery(
       id,
       { display_name, primitive_type, owner_id, metadata },

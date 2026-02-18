@@ -170,15 +170,15 @@ export const collections: Collection[] = [
   {
     id: 'ai-detection',
     title: 'AI Detection',
-    description: 'Scan repositories to discover AI/ML libraries and detect shadow AI in your codebase.',
+    description: 'Scan repositories to discover AI/ML libraries, CI/CD pipelines, container images, and detect shadow AI in your codebase.',
     icon: 'ScanSearch',
     articleCount: 2,
     articles: [
       {
         id: 'scanning',
         title: 'Scanning repositories',
-        description: 'Learn how to scan GitHub repositories to detect AI/ML usage.',
-        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai'],
+        description: 'Learn how to scan GitHub repositories to detect AI/ML usage across code, workflows, and infrastructure.',
+        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai', 'docker', 'github actions', 'mcp', 'cicd', 'container'],
       },
       {
         id: 'history',

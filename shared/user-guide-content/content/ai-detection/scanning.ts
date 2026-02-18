@@ -14,7 +14,7 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The scanner analyzes source files, dependency manifests, and model files to detect over 50 AI/ML frameworks including OpenAI, TensorFlow, PyTorch, LangChain, and more. Results are stored for audit purposes and can be reviewed at any time from the scan history.',
+      text: 'The scanner analyzes source files, dependency manifests, CI/CD workflows, container definitions, and model files to detect over 80 AI/ML frameworks and infrastructure patterns including OpenAI, TensorFlow, PyTorch, LangChain, and more. Results are stored for audit purposes and can be reviewed at any time from the scan history.',
     },
     {
       type: 'heading',
@@ -122,7 +122,7 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The Libraries tab displays all detected AI/ML technologies. Each finding shows the library name, provider, risk level, confidence level, and number of files where it was found. Click any row to expand and view specific file paths and line numbers.',
+      text: 'The Libraries tab displays all detected AI/ML technologies. Each finding shows the library name, provider, risk level, confidence level, and number of files where it was found. Click any row to expand and view specific file paths and line numbers. Detection covers source code imports, dependency manifests, Dockerfiles, and docker-compose configurations.',
     },
     {
       type: 'paragraph',
@@ -190,8 +190,9 @@ export const scanningContent: ArticleContent = {
       type: 'bullet-list',
       items: [
         { bold: 'REST API endpoints', text: 'Direct HTTP calls to AI provider APIs (e.g., api.openai.com)' },
-        { bold: 'SDK method calls', text: 'Usage of official SDKs (e.g., openai.chat.completions.create())' },
+        { bold: 'SDK method calls', text: 'Usage of official SDKs (e.g., openai.chat.completions.create() or client.chat.completions.create())' },
         { bold: 'Framework integrations', text: 'LangChain, LlamaIndex, and other framework API calls' },
+        { bold: 'CI/CD pipeline usage', text: 'AI service secrets referenced in GitHub Actions workflows (e.g., ${{ secrets.OPENAI_API_KEY }})' },
       ],
     },
     {
@@ -312,7 +313,8 @@ export const scanningContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { bold: 'Agent frameworks', text: 'LangChain agents, CrewAI, AutoGPT, and similar frameworks' },
+        { bold: 'Agent frameworks', text: 'LangChain agents, CrewAI (including @agent and @crew decorators), AutoGen, Swarm, and similar frameworks' },
+        { bold: 'MCP servers', text: 'Model Context Protocol server implementations and configuration files (mcp.json, claude_desktop_config.json)' },
         { bold: 'Tool usage', text: 'Code that defines or uses tools for AI agents' },
         { bold: 'Planning components', text: 'Task planning and execution orchestration code' },
       ],
@@ -345,6 +347,55 @@ export const scanningContent: ArticleContent = {
         { bold: 'Human oversight', text: 'Requirements for human supervision of AI systems' },
         { bold: 'Security', text: 'Cybersecurity and resilience requirements' },
       ],
+    },
+    {
+      type: 'heading',
+      id: 'infrastructure-detection',
+      level: 2,
+      text: 'Infrastructure and CI/CD detection',
+    },
+    {
+      type: 'paragraph',
+      text: 'Beyond source code, the scanner also detects AI usage in infrastructure and CI/CD configuration files. This helps surface AI technologies that may not appear in application code but are present in deployment pipelines and container definitions.',
+    },
+    {
+      type: 'heading',
+      id: 'github-actions',
+      level: 3,
+      text: 'GitHub Actions workflows',
+    },
+    {
+      type: 'paragraph',
+      text: 'YAML workflow files (.yml, .yaml) are scanned for references to AI services. The scanner detects GitHub Actions that use AI provider actions and secrets references such as OPENAI_API_KEY, ANTHROPIC_API_KEY, and similar tokens in workflow environment variables.',
+    },
+    {
+      type: 'heading',
+      id: 'docker-containers',
+      level: 3,
+      text: 'Docker and container images',
+    },
+    {
+      type: 'paragraph',
+      text: 'Dockerfiles and docker-compose files are scanned for AI/ML container images. Detected images include:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'GPU compute', text: 'NVIDIA CUDA and NGC container images' },
+        { bold: 'ML frameworks', text: 'PyTorch, TensorFlow, and Hugging Face container images' },
+        { bold: 'Inference servers', text: 'Ollama, vLLM, and NVIDIA Triton Inference Server' },
+        { bold: 'ML operations', text: 'MLflow tracking and serving containers' },
+      ],
+    },
+    {
+      type: 'heading',
+      id: 'mcp-configuration',
+      level: 3,
+      text: 'MCP server configuration',
+    },
+    {
+      type: 'paragraph',
+      text: 'The scanner detects Model Context Protocol (MCP) configuration files such as mcp.json and claude_desktop_config.json. These files define MCP servers that extend AI assistants with external tools and data sources, and are flagged as agent-type findings.',
     },
     {
       type: 'heading',

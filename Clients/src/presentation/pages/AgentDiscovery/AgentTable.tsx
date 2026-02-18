@@ -14,6 +14,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle } from "lucide-react";
+import IconButton from "../../components/IconButton";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { EmptyState } from "../../components/EmptyState";
 import Chip from "../../components/Chip";
@@ -53,6 +54,8 @@ interface AgentTableProps {
   agents: AgentPrimitiveRow[];
   isLoading: boolean;
   onRowClick: (agent: AgentPrimitiveRow) => void;
+  onEdit: (agent: AgentPrimitiveRow) => void;
+  onDelete: (agent: AgentPrimitiveRow) => void;
 }
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
@@ -65,6 +68,7 @@ const TABLE_COLUMNS = [
   { id: "last_activity", label: "LAST ACTIVITY", sortable: true },
   { id: "review_status", label: "STATUS", sortable: true },
   { id: "stale", label: "", sortable: false },
+  { id: "actions", label: "", sortable: false },
 ];
 
 type SortDirection = "asc" | "desc" | null;
@@ -74,6 +78,8 @@ const AgentTable: React.FC<AgentTableProps> = ({
   agents,
   isLoading,
   onRowClick,
+  onEdit,
+  onDelete,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -296,6 +302,20 @@ const AgentTable: React.FC<AgentTableProps> = ({
                   color="#F9A825"
                 />
               )}
+            </TableCell>
+            <TableCell
+              sx={{ ...cellStyle, width: 40 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <IconButton
+                id={agent.id}
+                onEdit={() => onEdit(agent)}
+                onDelete={() => onDelete(agent)}
+                onMouseEvent={() => {}}
+                warningTitle="Delete this agent?"
+                warningMessage="When you delete this agent, all data related to this agent will be removed. This action is non-recoverable."
+                type="Vendor"
+              />
             </TableCell>
           </TableRow>
         ))}

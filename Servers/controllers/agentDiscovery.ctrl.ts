@@ -3,6 +3,7 @@ import {
   getAllAgentPrimitivesQuery,
   getAgentPrimitiveByIdQuery,
   createAgentPrimitiveQuery,
+  updateAgentPrimitiveQuery,
   deleteAgentPrimitiveByIdQuery,
   updateReviewStatusQuery,
   linkModelQuery,
@@ -154,6 +155,68 @@ export async function createAgentPrimitive(req: Request, res: Response) {
     return res.status(201).json(STATUS_CODE[201](primitive));
   } catch (error) {
     logStructured("error", "failed to create agent primitive", functionName, fileName);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Update a manually-added agent primitive
+ */
+export async function updateAgentPrimitive(req: Request, res: Response) {
+  const functionName = "updateAgentPrimitive";
+  logStructured("processing", "updating agent primitive", functionName, fileName);
+
+  try {
+    const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid agent primitive ID"));
+    }
+
+    const existing = await getAgentPrimitiveByIdQuery(id, req.tenantId!);
+    if (!existing) {
+      return res.status(404).json(STATUS_CODE[404]("Agent primitive not found"));
+    }
+    if (!existing.is_manual) {
+      return res.status(403).json(STATUS_CODE[403]("Only manually-added agents can be edited"));
+    }
+
+    const { display_name, primitive_type, owner_id, metadata } = req.body;
+
+    if (display_name === undefined && primitive_type === undefined && owner_id === undefined && metadata === undefined) {
+      return res.status(400).json(STATUS_CODE[400]("No fields to update"));
+    }
+
+    const updated = await updateAgentPrimitiveQuery(
+      id,
+      { display_name, primitive_type, owner_id, metadata },
+      req.tenantId!
+    );
+
+    // Create audit log entries for each changed field
+    const fieldsToCheck: Array<{ field: string; oldVal: any; newVal: any }> = [
+      { field: "display_name", oldVal: existing.display_name, newVal: display_name },
+      { field: "primitive_type", oldVal: existing.primitive_type, newVal: primitive_type },
+      { field: "owner_id", oldVal: existing.owner_id, newVal: owner_id },
+      { field: "metadata", oldVal: JSON.stringify(existing.metadata), newVal: metadata !== undefined ? JSON.stringify(metadata) : undefined },
+    ];
+
+    for (const { field, oldVal, newVal } of fieldsToCheck) {
+      if (newVal !== undefined && String(oldVal ?? "") !== String(newVal ?? "")) {
+        await createAuditLogQuery({
+          agent_primitive_id: id,
+          action: "field_updated",
+          field_changed: field,
+          old_value: oldVal != null ? String(oldVal) : null,
+          new_value: newVal != null ? String(newVal) : null,
+          performed_by: req.userId!,
+        }, req.tenantId!);
+      }
+    }
+
+    logStructured("successful", "agent primitive updated", functionName, fileName);
+    return res.status(200).json(STATUS_CODE[200](updated));
+  } catch (error) {
+    logStructured("error", "failed to update agent primitive", functionName, fileName);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

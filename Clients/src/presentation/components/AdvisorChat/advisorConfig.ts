@@ -23,11 +23,25 @@ export interface AdvisorDomainConfig {
 }
 
 export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
+  'dashboard': {
+    path: '/',
+    displayName: 'Dashboard',
+    welcomeMessage: "Hello! I'm your VerifyWise AI Advisor. I can help you with risks, models, vendors, incidents, tasks, policies, use cases, datasets, frameworks, training, evidence, reporting, AI Trust Center, and agent discovery. What would you like to know?",
+    placeholder: 'Ask me anything about your AI governance...',
+    suggestions: [
+      { prompt: 'Give me an executive summary of our risk landscape', label: 'Summarize risks' },
+      { prompt: 'Which vendors are high risk or require follow-up?', label: 'High-risk vendors' },
+      { prompt: 'What tasks are overdue?', label: 'Overdue tasks' },
+      { prompt: 'Show me our model inventory summary', label: 'Model overview' },
+      { prompt: 'Are there any open incidents?', label: 'Active incidents' },
+      { prompt: 'What is our policy review status?', label: 'Policy status' },
+    ],
+  },
   'risk-management': {
     path: '/risk-management',
     displayName: 'Risks',
     welcomeMessage: "Hello! I'm your AI Risk Management Advisor. I can help you analyze risk distributions, track mitigation progress, identify high-priority risks, and understand trends over time. What would you like to know about your risks?",
-    placeholder: 'Ask me about your risks...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our risk landscape', label: 'Summarize all risks' },
       { prompt: 'Show me the risk distribution by severity and likelihood', label: 'Show risk matrix' },
@@ -42,7 +56,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/model-inventory',
     displayName: 'Models',
     welcomeMessage: "Hello! I'm your AI Model Inventory Advisor. I can help you understand your model landscape, check approval statuses, review security assessments, and analyze provider distributions. What would you like to know about your models?",
-    placeholder: 'Ask me about your models...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our AI model inventory', label: 'Summarize all models' },
       { prompt: 'Which models are pending approval or blocked?', label: 'Find pending approvals' },
@@ -57,7 +71,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/model-inventory/model-risks',
     displayName: 'Model Risks',
     welcomeMessage: "Hello! I'm your AI Model Risk Advisor. I can help you analyze model-specific risks, track risk categories and severity levels, monitor mitigation progress, and identify risks needing attention. What would you like to know about your model risks?",
-    placeholder: 'Ask me about your model risks...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our model risk landscape', label: 'Summarize all model risks' },
       { prompt: 'Show me the distribution of risks by severity level', label: 'Show severity breakdown' },
@@ -72,7 +86,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/vendors',
     displayName: 'Vendors',
     welcomeMessage: "Hello! I'm your Vendor Management Advisor. I can help you analyze vendor risks, track review statuses, monitor compliance requirements, and identify vendors needing attention. What would you like to know about your vendors?",
-    placeholder: 'Ask me about your vendors...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our vendor landscape', label: 'Summarize all vendors' },
       { prompt: 'Show me vendor distribution by review status', label: 'Show review status' },
@@ -87,7 +101,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/ai-incident-managements',
     displayName: 'AI Incidents',
     welcomeMessage: "Hello! I'm your AI Incident Management Advisor. I can help you analyze incident trends, track severity levels, monitor resolution progress, and identify incidents needing attention. What would you like to know about your AI incidents?",
-    placeholder: 'Ask me about your AI incidents...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our incident landscape', label: 'Summarize all incidents' },
       { prompt: 'Show me incident distribution by severity', label: 'Show severity breakdown' },
@@ -102,7 +116,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/tasks',
     displayName: 'Tasks',
     welcomeMessage: "Hello! I'm your Task Management Advisor. I can help you analyze task distributions, track progress, identify overdue items, and understand workload across your team. What would you like to know about your tasks?",
-    placeholder: 'Ask me about your tasks...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our task landscape', label: 'Summarize all tasks' },
       { prompt: 'Show me task distribution by status', label: 'Show status breakdown' },
@@ -117,7 +131,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/policies',
     displayName: 'Policies',
     welcomeMessage: "Hello! I'm your Policy Management Advisor. I can help you analyze policy coverage, track review schedules, find policy templates, and identify gaps in your governance framework. What would you like to know about your policies?",
-    placeholder: 'Ask me about your policies...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our policy landscape', label: 'Summarize all policies' },
       { prompt: 'Show me policy distribution by status', label: 'Show status breakdown' },
@@ -132,7 +146,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/overview',
     displayName: 'Use Cases',
     welcomeMessage: "Hello! I'm your Use Case Advisor. I can help you understand your AI use case portfolio, track status and risk classifications, and identify high-risk projects. What would you like to know about your use cases?",
-    placeholder: 'Ask me about your use cases...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our use case portfolio', label: 'Summarize use cases' },
       { prompt: 'Show me the distribution of use cases by risk classification', label: 'Show risk classifications' },
@@ -146,7 +160,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/datasets',
     displayName: 'Datasets',
     welcomeMessage: "Hello! I'm your Dataset Advisor. I can help you analyze your dataset inventory, track PII exposure, review data classifications, and identify datasets with known biases. What would you like to know about your datasets?",
-    placeholder: 'Ask me about your datasets...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our dataset landscape', label: 'Summarize datasets' },
       { prompt: 'Which datasets contain PII?', label: 'Find PII datasets' },
@@ -160,7 +174,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/framework',
     displayName: 'Frameworks',
     welcomeMessage: "Hello! I'm your Framework Advisor. I can help you understand your compliance framework adoption, project coverage, and compare frameworks. What would you like to know about your frameworks?",
-    placeholder: 'Ask me about your frameworks...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'List all frameworks and their project adoption counts', label: 'List all frameworks' },
       { prompt: 'Which frameworks have the most project adoption?', label: 'Show adoption ranking' },
@@ -172,7 +186,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/training',
     displayName: 'Training',
     welcomeMessage: "Hello! I'm your Training Registry Advisor. I can help you track training completion rates, department coverage, provider statistics, and identify training gaps. What would you like to know about your training programs?",
-    placeholder: 'Ask me about your training programs...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our training programs', label: 'Summarize training' },
       { prompt: 'What is our overall training completion rate?', label: 'Check completion rate' },
@@ -186,7 +200,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/file-manager',
     displayName: 'Evidence',
     welcomeMessage: "Hello! I'm your Evidence Hub Advisor. I can help you track evidence items, monitor expiry dates, check model coverage, and identify compliance gaps. What would you like to know about your evidence?",
-    placeholder: 'Ask me about your evidence...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of our evidence', label: 'Summarize evidence' },
       { prompt: 'Which evidence items have expired?', label: 'Find expired evidence' },
@@ -199,7 +213,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/reporting',
     displayName: 'Reporting',
     welcomeMessage: "Hello! I'm your Reporting Advisor. I can help you understand your report generation history, find reports by type, and analyze reporting patterns. What would you like to know about your reports?",
-    placeholder: 'Ask me about your reports...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Show me all generated reports', label: 'List all reports' },
       { prompt: 'Show me the breakdown of reports by type', label: 'Reports by type' },
@@ -211,7 +225,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/ai-trust-center',
     displayName: 'AI Trust Center',
     welcomeMessage: "Hello! I'm your AI Trust Center Advisor. I can help you understand your trust center configuration, check section visibility, review resources and subprocessors. What would you like to know about your AI Trust Center?",
-    placeholder: 'Ask me about your AI Trust Center...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Show me the current trust center configuration', label: 'Show trust center overview' },
       { prompt: 'Which sections are publicly visible?', label: 'Check section visibility' },
@@ -224,7 +238,7 @@ export const ADVISOR_DOMAINS: Record<string, AdvisorDomainConfig> = {
     path: '/agent-discovery',
     displayName: 'Agent Discovery',
     welcomeMessage: "Hello! I'm your Agent Discovery Advisor. I can help you understand your discovered agent landscape, track review statuses, identify stale agents, and analyze source system distributions. What would you like to know about your agents?",
-    placeholder: 'Ask me about your discovered agents...',
+    placeholder: 'Ask any question about your data...',
     suggestions: [
       { prompt: 'Give me an executive summary of agent discovery', label: 'Summarize agents' },
       { prompt: 'How many agents are unreviewed?', label: 'Find unreviewed agents' },
@@ -267,7 +281,7 @@ export const getSuggestions = (domain?: AdvisorDomain): AdvisorSuggestion[] => {
   return ADVISOR_DOMAINS[domain]?.suggestions ?? [];
 };
 
-export const DEFAULT_PLACEHOLDER = 'Ask me anything...';
+export const DEFAULT_PLACEHOLDER = 'Ask any question about your data...';
 
 /**
  * Get placeholder text for a domain

@@ -142,6 +142,7 @@ export default function NewExperimentModal({
       provider: "" as ProviderType | "",
       model: "",
       apiKey: "",
+      endpointUrl: "",
       temperature: 0.7,
       maxTokens: 2048,
     },
@@ -376,6 +377,7 @@ export default function NewExperimentModal({
           ...prev.judgeLlm,
           provider: (savedPreferences.judgeLlm.provider || prev.judgeLlm.provider) as ProviderType | "",
           model: savedPreferences.judgeLlm.model || prev.judgeLlm.model,
+          endpointUrl: savedPreferences.judgeLlm.endpointUrl || prev.judgeLlm.endpointUrl,
           temperature: savedPreferences.judgeLlm.temperature ?? prev.judgeLlm.temperature,
           maxTokens: savedPreferences.judgeLlm.maxTokens ?? prev.judgeLlm.maxTokens,
         },
@@ -637,6 +639,7 @@ export default function NewExperimentModal({
             provider: config.judgeLlm.provider,
             model: config.judgeLlm.model,
             apiKey: config.judgeLlm.apiKey || undefined, // Send actual key to runner, backend won't store it
+            endpointUrl: config.judgeLlm.endpointUrl || undefined,
             temperature: config.judgeLlm.temperature,
             maxTokens: config.judgeLlm.maxTokens,
           } : undefined,
@@ -683,6 +686,7 @@ export default function NewExperimentModal({
         judgeLlm: {
           provider: config.judgeLlm.provider,
           model: config.judgeLlm.model,
+          endpointUrl: config.judgeLlm.endpointUrl || undefined,
           temperature: config.judgeLlm.temperature,
           maxTokens: config.judgeLlm.maxTokens,
         },
@@ -752,6 +756,7 @@ export default function NewExperimentModal({
         provider: "",
         model: "",
         apiKey: "",
+        endpointUrl: "",
         temperature: 0.7,
         maxTokens: 2048,
       },
@@ -827,7 +832,7 @@ export default function NewExperimentModal({
     });
   };
 
-  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter";
+  type ProviderType = "openai" | "anthropic" | "google" | "xai" | "huggingface" | "mistral" | "ollama" | "local" | "custom_api" | "openrouter" | "self-hosted";
 
   // Check if a provider has a configured API key
   const hasApiKey = (providerId: string): boolean => {
@@ -848,6 +853,7 @@ export default function NewExperimentModal({
   const localProviders = [
     { id: "huggingface" as ProviderType, name: "HuggingFace", Logo: HuggingFaceLogo, needsApiKey: false },
     { id: "ollama" as ProviderType, name: "Ollama", Logo: OllamaLogo, needsApiKey: false },
+    { id: "self-hosted" as ProviderType, name: "Self-Hosted", Logo: OllamaLogo, needsApiKey: false },
   ];
 
   // All available providers for judge selection (all cloud + local)
@@ -1835,6 +1841,44 @@ export default function NewExperimentModal({
                             </Select>
                           </FormControl>
                         </Box>
+                      ) : config.judgeLlm.provider === "self-hosted" ? (
+                        <Stack spacing={2}>
+                          <Field
+                            label="Endpoint URL"
+                            value={config.judgeLlm.endpointUrl}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, endpointUrl: e.target.value },
+                              }))
+                            }
+                            placeholder="http://localhost:11434/v1"
+                          />
+                          <Field
+                            label="Model name"
+                            value={config.judgeLlm.model}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, model: e.target.value },
+                              }))
+                            }
+                            placeholder="e.g., llama3.2, mistral, codellama"
+                          />
+                          <Field
+                            label="API key (optional)"
+                            type="password"
+                            value={config.judgeLlm.apiKey}
+                            onChange={(e) =>
+                              setConfig((prev) => ({
+                                ...prev,
+                                judgeLlm: { ...prev.judgeLlm, apiKey: e.target.value },
+                              }))
+                            }
+                            placeholder="Leave blank if not required"
+                            autoComplete="off"
+                          />
+                        </Stack>
                       ) : (
                         <Field
                           label="Model Name"
@@ -2493,17 +2537,19 @@ export default function NewExperimentModal({
         return userScorers.length > 0;
       } else if (judgeMode === "standard") {
         // Standard judge only - must have provider and model (API key is from saved settings)
-        return !!(
-          config.judgeLlm.provider &&
-          config.judgeLlm.model
-        );
+        const hasBase = !!(config.judgeLlm.provider && config.judgeLlm.model);
+        // Self-hosted also requires endpoint URL
+        if (config.judgeLlm.provider === "self-hosted") {
+          return hasBase && !!config.judgeLlm.endpointUrl;
+        }
+        return hasBase;
       } else {
         // Both mode - can proceed if scorers exist AND standard judge configured
         const hasScorers = userScorers.length > 0;
-        const hasJudge = !!(
-          config.judgeLlm.provider &&
-          config.judgeLlm.model
-        );
+        let hasJudge = !!(config.judgeLlm.provider && config.judgeLlm.model);
+        if (config.judgeLlm.provider === "self-hosted") {
+          hasJudge = hasJudge && !!config.judgeLlm.endpointUrl;
+        }
         return hasScorers && hasJudge;
       }
     }

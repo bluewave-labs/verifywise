@@ -44,8 +44,6 @@ import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import AIDetectionPage from "../../presentation/pages/AIDetection";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
-import ShadowAI from "../../presentation/pages/ShadowAI";
-
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
 
@@ -117,14 +115,6 @@ export const createRoutes = (
     <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
-    <Route path="/shadow-ai" element={<ShadowAI />} />
-    <Route path="/shadow-ai/events" element={<ShadowAI />} />
-    <Route path="/shadow-ai/inventory" element={<ShadowAI />} />
-    <Route path="/shadow-ai/policies" element={<ShadowAI />} />
-    <Route path="/shadow-ai/violations" element={<ShadowAI />} />
-    <Route path="/shadow-ai/reviews" element={<ShadowAI />} />
-    <Route path="/shadow-ai/evidence" element={<ShadowAI />} />
-    <Route path="/shadow-ai/connectors" element={<ShadowAI />} />
   </Route>,
   <Route
     key="admin-reg"

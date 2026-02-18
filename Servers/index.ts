@@ -72,7 +72,6 @@ import githubIntegrationRoutes from "./routes/githubIntegration.route";
 import notificationRoutes from "./routes/notification.route";
 import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
 import complianceRoutes from "./routes/compliance.route";
-import shadowAiRoutes from "./routes/shadowAi.route";
 import virtualFolderRoutes, { filesFolderRouter } from "./routes/virtualFolder.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
@@ -226,7 +225,6 @@ try {
   app.use("/api/pmm", postMarketMonitoringRoutes);
   app.use("/api/compliance", complianceRoutes);
   app.use("/api/virtual-folders", virtualFolderRoutes);
-  app.use("/api/shadow-ai", shadowAiRoutes);
   app.use("/api/files", filesFolderRouter); // Additional file-folder routes
 
   // Setup notification subscriber for real-time notifications

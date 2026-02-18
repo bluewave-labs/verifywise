@@ -30,6 +30,7 @@ import modelInventoryRoutes from "./routes/modelInventory.route";
 import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
 import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
 import modelLifecycleRoutes from "./routes/modelLifecycle.route";
+import datasetBulkUploadRoutes from "./routes/datasetBulkUpload.route";
 import datasetRoutes from "./routes/dataset.route";
 import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
@@ -177,6 +178,7 @@ try {
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
   app.use("/api/model-lifecycle", modelLifecycleRoutes);
+  app.use("/api/dataset-bulk-upload", datasetBulkUploadRoutes);
   app.use(
     "/api/model-inventory-change-history",
     modelInventoryChangeHistoryRoutes

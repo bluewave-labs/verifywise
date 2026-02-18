@@ -1,9 +1,9 @@
-import { FC, useContext, useEffect, useState, memo } from 'react';
+import { FC, useContext, useEffect, useState, useRef, useCallback, memo } from 'react';
 import { Stack, Box, useTheme, Avatar, Typography, Theme } from '@mui/material';
 import { MessagePrimitive, useMessagePartText, useAssistantState } from '@assistant-ui/react';
 import Markdown from 'react-markdown';
 
-import { Bot } from 'lucide-react';
+import { Bot, Copy, Check } from 'lucide-react';
 import { ChartRenderer } from './ChartRenderer';
 import VWAvatar from '../Avatar/VWAvatar';
 import { VerifyWiseContext } from '../../../application/contexts/VerifyWise.context';
@@ -49,16 +49,12 @@ const MessageText: FC = () => {
 
 interface ChartData {
   type: 'bar' | 'pie' | 'table' | 'donut' | 'line';
-  data: { label: string; value: number; color?: string }[];
+  data?: { label: string; value: number; color?: string }[];
   title: string;
+  columns?: string[];
+  rows?: (string | number)[][];
   series?: Array<{ label: string; data: number[] }>;
   xAxisLabels?: string[];
-}
-
-interface DataMessagePart {
-  type: 'data';
-  name: string;
-  data: unknown;
 }
 
 const isValidChartData = (data: unknown): data is ChartData => {
@@ -67,25 +63,35 @@ const isValidChartData = (data: unknown): data is ChartData => {
   return (
     typeof obj.type === 'string' &&
     ['bar', 'pie', 'table', 'donut', 'line'].includes(obj.type) &&
-    Array.isArray(obj.data) &&
-    typeof obj.title === 'string'
+    typeof obj.title === 'string' &&
+    (Array.isArray(obj.data) || Array.isArray(obj.columns) || Array.isArray(obj.series))
   );
 };
 
 const MessageChart: FC = () => {
   const message = useAssistantState(({ message }) => message);
 
-  // Find the chart data in the message content
-  const chartContent = message.content.find(
-    (part): part is DataMessagePart =>
-      typeof part === 'object' && part !== null && 'type' in part && part.type === 'data' && 'name' in part && part.name === 'chartData'
+  // Strategy 1: Look for generate_chart tool-call with result in message parts
+  const toolResult = message.content.find(
+    (part: Record<string, unknown>) =>
+      part.type === 'tool-call' && part.toolName === 'generate_chart' && part.result
   );
 
-  if (!chartContent || !chartContent.data || !isValidChartData(chartContent.data)) {
-    return null;
+  if (toolResult && 'result' in toolResult && isValidChartData(toolResult.result)) {
+    return <ChartRenderer chartData={toolResult.result as ChartData} />;
   }
 
-  return <ChartRenderer chartData={chartContent.data} />;
+  // Strategy 2: Legacy — look for data content part with name='chartData'
+  const chartContent = message.content.find(
+    (part: Record<string, unknown>) =>
+      part.type === 'data' && part.name === 'chartData'
+  );
+
+  if (chartContent && 'data' in chartContent && isValidChartData(chartContent.data)) {
+    return <ChartRenderer chartData={chartContent.data as ChartData} />;
+  }
+
+  return null;
 };
 
 const MessageTimestamp: FC = () => {
@@ -117,6 +123,175 @@ const MessageTimestamp: FC = () => {
   );
 };
 
+const CopyButton: FC<{ bubbleRef: React.RefObject<HTMLDivElement | null> }> = ({ bubbleRef }) => {
+  const theme = useTheme();
+  const [copied, setCopied] = useState(false);
+  const message = useAssistantState(({ message }) => message);
+
+  // Don't show while message is still generating or for welcome message
+  if (message.status?.type === 'running' || message.id === 'welcome') {
+    return null;
+  }
+
+  const handleCopy = async () => {
+    const el = bubbleRef.current;
+    if (!el) return;
+
+    try {
+      const html = el.innerHTML;
+      const text = el.innerText;
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+        }),
+      ]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback to plain text
+      const text = el.innerText;
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <Box
+      onClick={handleCopy}
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        cursor: 'pointer',
+        color: copied
+          ? (theme.palette.success?.main ?? '#4CAF50')
+          : (theme.palette.text.tertiary ?? theme.palette.text.disabled),
+        ml: 0.5,
+        '&:hover': {
+          color: copied
+            ? (theme.palette.success?.main ?? '#4CAF50')
+            : theme.palette.text.primary,
+        },
+      }}
+      aria-label="Copy response"
+      title={copied ? 'Copied!' : 'Copy'}
+    >
+      {copied ? <Check size={12} strokeWidth={1.5} /> : <Copy size={12} strokeWidth={1.5} />}
+      <Typography
+        component="span"
+        sx={{
+          fontSize: 11,
+          lineHeight: 1,
+        }}
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </Typography>
+    </Box>
+  );
+};
+
+const THINKING_MESSAGES = [
+  'Thinking wisely',
+  'Verifying assumptions',
+  'Consulting the knowledge base',
+  'Reasoning through options',
+  'Checking the fine print',
+  'Connecting the dots',
+  'Reading between the lines',
+  'Crunching the context',
+  'Doing the due diligence',
+  'Sifting through the details',
+  'Asking the right questions',
+  'Double-checking everything',
+  'Looking at the big picture',
+  'Weighing the evidence',
+  'Putting it all together',
+  'Going through the checklist',
+  'Making sense of it all',
+  'Almost there',
+  'One more thing to check',
+  'Brewing an answer',
+];
+
+const ThinkingIndicator: FC = () => {
+  const theme = useTheme();
+  const [messageIndex, setMessageIndex] = useState(() =>
+    Math.floor(Math.random() * THINKING_MESSAGES.length)
+  );
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+
+  const rotate = useCallback(() => {
+    setMessageIndex((prev) => {
+      let next: number;
+      do {
+        next = Math.floor(Math.random() * THINKING_MESSAGES.length);
+      } while (next === prev && THINKING_MESSAGES.length > 1);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(rotate, 2500);
+    return () => clearInterval(intervalRef.current);
+  }, [rotate]);
+
+  return (
+    <Stack
+      direction="row"
+      gap={1.5}
+      sx={{
+        alignSelf: 'flex-start',
+        maxWidth: '75%',
+      }}
+    >
+      <Box
+        sx={{
+          backgroundColor: theme.palette.background.fill ?? theme.palette.grey[100],
+          padding: '12px 16px',
+          borderRadius: 3,
+          borderTopLeftRadius: 1,
+        }}
+      >
+        <Stack direction="row" gap={1} alignItems="center">
+          <Stack direction="row" gap={0.75}>
+            {[0, 0.2, 0.4].map((delay, index) => (
+              <Box
+                key={index}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.text.accent ?? theme.palette.text.secondary,
+                  animation: 'pulse 1.4s infinite',
+                  animationDelay: `${delay}s`,
+                  '@keyframes pulse': {
+                    '0%, 60%, 100%': { opacity: 0.3 },
+                    '30%': { opacity: 1 },
+                  },
+                }}
+              />
+            ))}
+          </Stack>
+          <Typography
+            variant="caption"
+            sx={{
+              color: theme.palette.text.tertiary ?? theme.palette.text.disabled,
+              fontSize: 11,
+              fontStyle: 'italic',
+              ml: 0.5,
+              transition: 'opacity 200ms ease',
+            }}
+          >
+            {THINKING_MESSAGES[messageIndex]}
+          </Typography>
+        </Stack>
+      </Box>
+    </Stack>
+  );
+};
+
 const DEFAULT_USER: User = {
   id: 1,
   name: "",
@@ -130,6 +305,7 @@ const CustomMessageComponent: FC = () => {
   const { userId, users, photoRefreshFlag } = useContext(VerifyWiseContext);
   const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
   const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const bubbleRef = useRef<HTMLDivElement>(null);
 
   const user: User = users
     ? users.find((u: User) => u.id === userId) || DEFAULT_USER
@@ -175,6 +351,8 @@ const CustomMessageComponent: FC = () => {
               xs: '100%',
             },
             justifyContent: 'flex-end',
+            paddingLeft: '8px',
+            paddingRight: '8px',
           }}
         >
           <Box
@@ -185,7 +363,7 @@ const CustomMessageComponent: FC = () => {
               borderRadius: 3,
               borderTopRightRadius: 1,
               fontSize: theme.typography.body2.fontSize,
-              lineHeight: 1.5,
+              lineHeight: 1.7,
               wordBreak: 'break-word',
               whiteSpace: 'pre-wrap',
             }}
@@ -208,6 +386,8 @@ const CustomMessageComponent: FC = () => {
           sx={{
             alignSelf: 'flex-start',
             width: '100%',
+            paddingLeft: '8px',
+            paddingRight: '16px',
           }}
         >
           <Avatar
@@ -222,63 +402,32 @@ const CustomMessageComponent: FC = () => {
           </Avatar>
 
           <MessagePrimitive.If hasContent={false}>
-            <Stack
-                direction="row"
-                gap={1.5}
-                sx={{
-                  alignSelf: 'flex-start',
-                  maxWidth: '75%',
-                }}
-              >
-                <Box
-                  sx={{
-                    backgroundColor: theme.palette.background.fill ?? theme.palette.grey[100],
-                    padding: '12px 16px',
-                    borderRadius: 3,
-                    borderTopLeftRadius: 1,
-                  }}
-                >
-                  <Stack direction="row" gap={0.75}>
-                    {[0, 0.2, 0.4].map((delay, index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          backgroundColor: theme.palette.text.accent ?? theme.palette.text.secondary,
-                          animation: 'pulse 1.4s infinite',
-                          animationDelay: `${delay}s`,
-                          '@keyframes pulse': {
-                            '0%, 60%, 100%': { opacity: 0.3 },
-                            '30%': { opacity: 1 },
-                          },
-                        }}
-                      />
-                    ))}
-                  </Stack>
-                </Box>
-              </Stack>
+            <ThinkingIndicator />
           </MessagePrimitive.If>
 
           <MessagePrimitive.If hasContent>
             <Stack gap={0.75} sx={{ flex: 1, minWidth: 0 }}>
               <Box
+                ref={bubbleRef}
                 sx={{
                   backgroundColor: theme.palette.background.fill ?? theme.palette.grey[100],
+                  border: `1px solid ${theme.palette.border?.light ?? theme.palette.divider}`,
                   color: theme.palette.text.primary,
                   padding: '10px 14px',
                   borderRadius: 3,
                   borderTopLeftRadius: 1,
                   fontSize: theme.typography.body2.fontSize,
-                  lineHeight: 1.5,
+                  lineHeight: 1.7,
                   wordBreak: 'break-word',
                 }}
               >
                 <MessagePrimitive.Content components={{ Text: MessageText }} />
               </Box>
               <MessageChart />
-              <MessageTimestamp />
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <MessageTimestamp />
+                <CopyButton bubbleRef={bubbleRef} />
+              </Stack>
             </Stack>
           </MessagePrimitive.If>
         </Stack>

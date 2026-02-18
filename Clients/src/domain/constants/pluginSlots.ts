@@ -38,6 +38,9 @@ export const PLUGIN_SLOTS = {
   // Use-case Overview - Custom Framework Progress
   PROJECT_OVERVIEW_CUSTOM_FRAMEWORK: "page.project-overview.custom-framework", // Custom framework progress in use-case overview
 
+  // Datasets Page
+  DATASETS_TOOLBAR: "page.datasets.toolbar", // Toolbar buttons (e.g., bulk upload)
+
   // Dashboard (future)
   DASHBOARD_WIDGETS: "page.dashboard.widgets", // Dashboard widget area
 

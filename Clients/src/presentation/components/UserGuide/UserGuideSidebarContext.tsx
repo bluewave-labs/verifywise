@@ -20,6 +20,11 @@ interface UserGuideSidebarContextValue {
   totalSidebarWidth: number;
   /** Required padding-right for main content to maintain minimum gap */
   requiredPaddingRight: number;
+  /** Open sidebar to a specific tab */
+  openTab: (tab: string) => void;
+  /** Tab requested by external code — consumed and cleared by SidebarWrapper */
+  requestedTab: string | undefined;
+  clearRequestedTab: () => void;
 }
 
 const UserGuideSidebarContext = createContext<UserGuideSidebarContextValue | null>(null);
@@ -33,6 +38,7 @@ export const UserGuideSidebarProvider: React.FC<{ children: React.ReactNode }> =
 
   const [currentPath, setCurrentPath] = useState<string | undefined>();
   const [contentWidth, setContentWidth] = useState(DEFAULT_CONTENT_WIDTH);
+  const [requestedTab, setRequestedTab] = useState<string | undefined>();
 
   // Calculate total sidebar width and required padding
   const totalSidebarWidth = isOpen ? TAB_BAR_WIDTH + contentWidth : TAB_BAR_WIDTH;
@@ -81,6 +87,15 @@ export const UserGuideSidebarProvider: React.FC<{ children: React.ReactNode }> =
     setIsOpen((prev) => !prev);
   }, []);
 
+  const openTab = useCallback((tab: string) => {
+    setRequestedTab(tab);
+    setIsOpen(true);
+  }, []);
+
+  const clearRequestedTab = useCallback(() => {
+    setRequestedTab(undefined);
+  }, []);
+
   return (
     <UserGuideSidebarContext.Provider value={{
       isOpen,
@@ -92,6 +107,9 @@ export const UserGuideSidebarProvider: React.FC<{ children: React.ReactNode }> =
       setContentWidth,
       totalSidebarWidth,
       requiredPaddingRight,
+      openTab,
+      requestedTab,
+      clearRequestedTab,
     }}>
       {children}
     </UserGuideSidebarContext.Provider>

@@ -38,7 +38,7 @@ const SuggestionChipsComponent = ({ suggestions }: SuggestionChipsProps) => {
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: theme.spacing(1),
+          gap: '8px',
           justifyContent: 'center',
           maxWidth: 400,
         }}
@@ -126,7 +126,7 @@ const CustomThreadComponent = ({ pageContext }: CustomThreadProps) => {
             padding: theme.spacing(2),
           }}
         >
-          <Stack gap={1.5}>
+          <Stack gap="16px">
             <ThreadPrimitive.Messages
               components={{
                 UserMessage: CustomMessage,

@@ -243,7 +243,7 @@ class CommandRegistryImpl implements CommandRegistry {
           }
 
           const hasPermission = Array.isArray(actionPermissions) &&
-                               actionPermissions.includes(context.userRole)
+                               (actionPermissions as string[]).includes(context.userRole)
           if (!hasPermission) return false
         } catch (error) {
           console.error(`Error checking permissions for scope: ${command.scope}`, error)

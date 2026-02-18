@@ -45,6 +45,7 @@ interface FieldProps extends OriginalFieldProps {
   helperText?: string;
   InputProps?: TextFieldProps["InputProps"];
   formHelperTextProps?: TextFieldProps["FormHelperTextProps"];
+  autoFocus?: boolean;
 }
 
 const Field = forwardRef(
@@ -75,6 +76,7 @@ const Field = forwardRef(
       formHelperTextProps,
       min,
       max,
+      autoFocus,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -136,6 +138,7 @@ const Field = forwardRef(
           id={id}
           autoComplete={autoComplete}
           placeholder={placeholder}
+          autoFocus={autoFocus}
           multiline={type === "description"}
           rows={type === "description" ? (rows || 4) : 1}
           value={value}

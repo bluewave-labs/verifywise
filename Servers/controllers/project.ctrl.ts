@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
+import { PluginService } from "../services/plugin/pluginService";
 import {
   calculateProjectRisks,
   calculateVendirRisks,
@@ -104,6 +105,23 @@ export async function getAllProjects(
       })
     );
 
+    // Fetch additional use-cases from plugins (e.g., JIRA Assets)
+    let allProjects = [...projects];
+    try {
+      const pluginUseCases = await PluginService.getDataFromProviders(
+        "use-cases",
+        req.tenantId!,
+        sequelize
+      );
+      if (pluginUseCases.length > 0) {
+        console.log(`[getAllProjects] Merging ${pluginUseCases.length} use-cases from plugins`);
+        allProjects = [...projects, ...pluginUseCases];
+      }
+    } catch (pluginError) {
+      console.error("[getAllProjects] Error fetching plugin use-cases:", pluginError);
+      // Continue with native projects even if plugin fetch fails
+    }
+
     await logSuccess({
       eventType: "Read",
       description: "Retrieved all projects",
@@ -113,7 +131,7 @@ export async function getAllProjects(
       tenantId: req.tenantId!,
     });
 
-    return res.status(200).json(STATUS_CODE[200](projects));
+    return res.status(200).json(STATUS_CODE[200](allProjects));
   } catch (error) {
     await logFailure({
       eventType: "Read",

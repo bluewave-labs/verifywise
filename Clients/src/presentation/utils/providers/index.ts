@@ -59,7 +59,6 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   },
   "self-hosted": {
     provider: "self-hosted",
-    displayName: "Self-Hosted",
     models: [],
     ...PROVIDER_META["self-hosted"],
   },

@@ -299,13 +299,13 @@ const ProjectSettings = React.memo(
             riskClassificationItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.ai_risk_classification.toLowerCase(),
+                (project.ai_risk_classification || "").toLowerCase(),
             )?._id || 0,
           typeOfHighRiskRole:
             highRiskRoleItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.type_of_high_risk_role.toLowerCase(),
+                (project.type_of_high_risk_role || "").toLowerCase(),
             )?._id || 0,
           geography: project.geography ?? 1,
           targetIndustry: project.target_industry ?? "",

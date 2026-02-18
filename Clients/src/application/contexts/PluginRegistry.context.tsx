@@ -249,14 +249,6 @@ export function PluginRegistryProvider({
               trigger: slotConfig.trigger,
             };
 
-            console.log(`[PluginRegistry] Debug - Registering component:`, {
-              pluginKey,
-              slotId: slotConfig.slotId,
-              componentName: slotConfig.componentName,
-              renderType: slotConfig.renderType,
-              props: slotConfig.props,
-            });
-
             const existing = newComponents.get(slotConfig.slotId) || [];
             newComponents.set(slotConfig.slotId, [...existing, loadedComponent]);
           }

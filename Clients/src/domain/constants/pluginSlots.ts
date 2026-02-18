@@ -35,6 +35,17 @@ export const PLUGIN_SLOTS = {
   // Use-case Overview - Custom Framework Progress
   PROJECT_OVERVIEW_CUSTOM_FRAMEWORK: "page.project-overview.custom-framework", // Custom framework progress in use-case overview
 
+  // Use-case Detail View - All tabs can be overridden by plugins
+  USE_CASE_DETAIL_VIEW: "page.usecase.detail-view", // Full detail view override
+  USE_CASE_OVERVIEW: "page.usecase.overview", // Overview tab
+  USE_CASE_RISKS: "page.usecase.risks", // Risks tab
+  USE_CASE_MODELS: "page.usecase.models", // Linked models tab
+  USE_CASE_FRAMEWORKS: "page.usecase.frameworks", // Frameworks tab
+  USE_CASE_CE_MARKING: "page.usecase.ce-marking", // CE Marking tab
+  USE_CASE_ACTIVITY: "page.usecase.activity", // Activity tab
+  USE_CASE_MONITORING: "page.usecase.monitoring", // Monitoring tab
+  USE_CASE_SETTINGS: "page.usecase.settings", // Settings tab
+
   // Dashboard (future)
   DASHBOARD_WIDGETS: "page.dashboard.widgets", // Dashboard widget area
 

@@ -140,6 +140,12 @@ export class ProjectModel
   })
   enable_ai_data_insertion?: boolean;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  _source?: string;
+
   static async CreateNewProject(
     projectAttributes: Partial<IProjectAttributes>
   ) {
@@ -182,6 +188,7 @@ export class ProjectModel
       created_at: this.created_at?.toISOString(),
       is_organizational: this.is_organizational,
       status: this.status,
+      _source: (this as any)._source,
       // Include dynamically added properties from queries
       framework: dataValues?.framework,
       members: dataValues?.members,

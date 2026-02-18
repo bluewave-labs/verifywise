@@ -61,7 +61,7 @@ interface NewExperimentModalProps {
   projectId: string;
   orgId?: string | null;
   onSuccess: () => void;
-  onStarted?: (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
+  onStarted?: (exp: { id: string; name?: string; config: Record<string, unknown>; status: string; created_at?: string }) => void;
   /** Project's use case - determines default metrics and datasets (required) */
   useCase: "chatbot" | "rag" | "agent";
 }

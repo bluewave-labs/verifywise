@@ -102,7 +102,7 @@ function StatCard({ title, value, Icon, highlight }: { title: string; value: str
   );
 }
 
-function ResultsTable({ table, threshold }: { table: CategoryTableResult; threshold: number }) {
+function ResultsTable({ table, threshold: _threshold }: { table: CategoryTableResult; threshold: number }) {
   const theme = useTheme();
   const headerCellSx = {
     fontSize: 12,
@@ -318,7 +318,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
             variant="outlined"
             text={isDeleting ? "Deleting..." : "Delete"}
             onClick={() => setShowDeleteConfirm(true)}
-            disabled={isDeleting}
+            isDisabled={isDeleting}
             sx={{ height: 34, fontSize: 13, border: `1px solid ${theme.palette.border.dark}`, color: "#B42318", "&:hover": { backgroundColor: "#FEF3F2", border: "1px solid #FCA5A5" } }}
           />
         </Stack>

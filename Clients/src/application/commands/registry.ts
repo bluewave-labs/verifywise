@@ -236,7 +236,7 @@ class CommandRegistryImpl implements CommandRegistry {
             return false
           }
 
-          const actionPermissions = resourcePermissions[action as keyof typeof resourcePermissions]
+          const actionPermissions = resourcePermissions[action as keyof typeof resourcePermissions] as string[] | undefined
           if (!actionPermissions) {
             console.error(`Unknown action in scope: ${action}`)
             return false

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Drawer,
   Stack,
@@ -6,15 +6,17 @@ import {
   Typography,
   Divider,
   IconButton,
-  Chip,
+  Chip as MuiChip,
   useTheme,
   Tab,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import { X, Link as LinkIcon, Unlink } from "lucide-react";
+import VWChip from "../../Chip";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { AgentPrimitiveRow } from "../../../pages/AgentDiscovery/AgentTable";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
 import LinkModelModal from "./LinkModelModal";
 
 interface ReviewAgentModalProps {
@@ -34,8 +36,31 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [permissionsTab, setPermissionsTab] = useState("categories");
+  const [usersMap, setUsersMap] = useState<Record<string, string>>({});
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      const usersData = Array.isArray(response?.data) ? response.data : [];
+      const map: Record<string, string> = {};
+      usersData.forEach((u: { id: number; name: string; surname: string }) => {
+        map[String(u.id)] = `${u.name} ${u.surname}`.trim();
+      });
+      setUsersMap(map);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUsers();
+    }
+  }, [isOpen, fetchUsers]);
 
   if (!agent) return null;
+
+  const ownerName = agent.owner_id ? usersMap[agent.owner_id] || agent.owner_id : "—";
 
   const handleReview = async (status: "confirmed" | "rejected") => {
     setIsSubmitting(true);
@@ -107,21 +132,24 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
           <DetailRow label="Source system" value={agent.source_system} />
           <DetailRow label="Type" value={agent.primitive_type} />
           <DetailRow label="External ID" value={agent.external_id} />
-          <DetailRow label="Owner" value={agent.owner_id || "—"} />
+          <DetailRow label="Owner" value={ownerName} />
           <DetailRow label="Last activity" value={formatDate(agent.last_activity)} />
           <DetailRow label="Created" value={formatDate(agent.created_at)} />
-          <DetailRow
-            label="Review status"
-            value={agent.review_status}
-            isChip
-            chipColor={
-              agent.review_status === "confirmed"
-                ? "#2E7D32"
-                : agent.review_status === "rejected"
-                ? "#D32F2F"
-                : "#F9A825"
-            }
-          />
+          <Box>
+            <Typography fontSize={12} fontWeight={600} color="text.secondary" mb={0.5}>
+              Review status
+            </Typography>
+            <VWChip
+              label={agent.review_status}
+              variant={
+                agent.review_status === "confirmed"
+                  ? "success"
+                  : agent.review_status === "rejected"
+                  ? "error"
+                  : "warning"
+              }
+            />
+          </Box>
           {agent.is_stale && (
             <DetailRow label="Stale" value="This agent has been inactive for 30+ days" />
           )}
@@ -150,7 +178,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
                 <Stack direction="row" flexWrap="wrap" gap={0.5}>
                   {(agent.permission_categories || []).length > 0 ? (
                     agent.permission_categories.map((cat) => (
-                      <Chip
+                      <MuiChip
                         key={cat}
                         label={cat}
                         size="small"
@@ -168,7 +196,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
                 <Stack direction="row" flexWrap="wrap" gap={0.5}>
                   {(agent.permissions || []).length > 0 ? (
                     agent.permissions.map((perm: any, idx: number) => (
-                      <Chip
+                      <MuiChip
                         key={idx}
                         label={typeof perm === "string" ? perm : JSON.stringify(perm)}
                         size="small"
@@ -202,12 +230,11 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
             ) : (
               <CustomizableButton
                 variant="outlined"
-                sx={{ border: "1px solid #d0d5dd", gap: "6px" }}
+                sx={{ border: "1px solid #d0d5dd" }}
+                icon={<LinkIcon size={14} strokeWidth={1.5} />}
+                text="Link to model"
                 onClick={() => setIsLinkModalOpen(true)}
-              >
-                <LinkIcon size={14} strokeWidth={1.5} />
-                Link to model
-              </CustomizableButton>
+              />
             )}
           </Box>
 
@@ -283,29 +310,12 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
 const DetailRow: React.FC<{
   label: string;
   value: string;
-  isChip?: boolean;
-  chipColor?: string;
-}> = ({ label, value, isChip, chipColor }) => (
+}> = ({ label, value }) => (
   <Box>
     <Typography fontSize={12} fontWeight={600} color="text.secondary" mb={0.5}>
       {label}
     </Typography>
-    {isChip ? (
-      <Chip
-        label={value}
-        size="small"
-        sx={{
-          fontSize: 11,
-          height: 22,
-          color: chipColor,
-          backgroundColor: chipColor ? `${chipColor}20` : undefined,
-          fontWeight: 500,
-          textTransform: "capitalize",
-        }}
-      />
-    ) : (
-      <Typography fontSize={13}>{value}</Typography>
-    )}
+    <Typography fontSize={13}>{value}</Typography>
   </Box>
 );
 

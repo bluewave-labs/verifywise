@@ -1,22 +1,21 @@
 export const projectRisksCard = {
-  minWidth: "fit-content",
-  width: { xs: "100%", sm: "fit-content" },
+  width: "100%",
   height: "100%",
   display: "flex",
   flexDirection: { xs: "column", sm: "row" },
+  flexWrap: "wrap",
   gap: "16px",
-  overflow: "auto",
 };
 
 export const projectRisksTileCard = {
   paddingY: { xs: "10px", sm: "15px" },
-  paddingX: { xs: "15px", sm: "30px" },
+  paddingX: { xs: "15px", sm: "20px" },
   textAlign: "center" as const,
   fontWeight: 600,
   gap: 5,
   position: "relative" as const,
-  minWidth: { xs: "120px", sm: "140px" },
-  width: { xs: "120px", sm: "140px" },
+  flex: { xs: "1 1 120px", sm: "1 1 100px" },
+  minWidth: { xs: "100px", sm: "100px" },
   background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
   border: "1px solid #E5E7EB",
   borderRadius: 2,

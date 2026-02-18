@@ -1,9 +1,9 @@
 import React from 'react';
-import { BookOpen, HelpCircle, MessageSquare } from 'lucide-react';
+import { BookOpen, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
 import { colors, typography } from './styles/theme';
 import './TabBar.css';
 
-type Tab = 'user-guide' | 'advisor' | 'help';
+type Tab = 'user-guide' | 'advisor' | 'help' | 'whats-new';
 
 interface TabBarProps {
   activeTab: Tab | undefined;
@@ -84,12 +84,19 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange, displayAdvisor 
       {displayAdvisor && (
         <TabItem
           id="advisor"
-          label="Advisor"
+          label="AI advisor"
           icon={<MessageSquare size={18} strokeWidth={1.5} />}
           isActive={activeTab === 'advisor'}
           onClick={() => onTabChange('advisor')}
         />
       )}
+      <TabItem
+        id="whats-new"
+        label="What's new"
+        icon={<Sparkles size={18} strokeWidth={1.5} />}
+        isActive={activeTab === 'whats-new'}
+        onClick={() => onTabChange('whats-new')}
+      />
       <TabItem
         id="help"
         label="Help"

@@ -13,7 +13,7 @@ import { getBuiltinPlugins, isBuiltinPlugin } from "./builtinPlugins";
 import { sanitizeForLog } from "../../utils/validations/validation.utils";
 
 // Environment configuration
-export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/verifywise-ai/plugin-marketplace/hp-feb-13-add-jira-plugin/plugins.json";
+export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/verifywise-ai/plugin-marketplace/main/plugins.json";
 export const PLUGIN_MARKETPLACE_BASE_URL = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
 
 interface Plugin {

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { SearchBox } from "../../components/Search";
 import {
@@ -19,8 +18,7 @@ import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { IDataset, DatasetSummary as DatasetSummaryType } from "../../../domain/interfaces/i.dataset";
 import { DatasetStatus } from "../../../domain/enums/dataset.enum";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
 import DatasetSummary from "../ModelInventory/DatasetSummary";
 import DatasetTable from "../ModelInventory/DatasetTable";
 import NewDataset from "../../components/Modals/NewDataset";
@@ -255,45 +253,39 @@ const Datasets: React.FC = () => {
   }, [selectedDatasetStatus]);
 
   return (
-    <Stack sx={{ gap: "16px" }}>
-      <PageBreadcrumbs />
-
-      {/* Alert */}
-      {alert && (
-        <Suspense fallback={null}>
-          <Fade in={showAlert} timeout={300}>
-            <Box sx={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-
-      {/* Page header */}
-      <PageHeader
-        title="Datasets"
-        description="Manage training and evaluation datasets used by your models. Track data lineage, classification, and compliance metadata."
-        rightContent={
-          <HelperIcon articlePath="ai-governance/datasets" size="small" />
-        }
-      />
-
-      {/* Summary cards */}
-      <DatasetSummary
-        summary={datasetSummary}
-        onCardClick={handleDatasetStatusCardClick}
-        selectedStatus={selectedDatasetStatus}
-      />
-
+    <PageHeaderExtended
+      title="Datasets"
+      description="Manage training and evaluation datasets used by your models. Track data lineage, classification, and compliance metadata."
+      helpArticlePath="ai-governance/datasets"
+      tipBoxEntity="datasets"
+      summaryCards={
+        <DatasetSummary
+          summary={datasetSummary}
+          onCardClick={handleDatasetStatusCardClick}
+          selectedStatus={selectedDatasetStatus}
+        />
+      }
+      alert={
+        alert && (
+          <Suspense fallback={null}>
+            <Fade in={showAlert} timeout={300}>
+              <Box sx={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}>
+                <Alert
+                  variant={alert.variant}
+                  title={alert.title}
+                  body={alert.body}
+                  isToast
+                  onClick={() => {
+                    setShowAlert(false);
+                    setTimeout(() => setAlert(null), 300);
+                  }}
+                />
+              </Box>
+            </Fade>
+          </Suspense>
+        )
+      }
+    >
       {/* Controls row */}
       <Stack spacing={2}>
         <Stack
@@ -388,7 +380,7 @@ const Datasets: React.FC = () => {
         }
         isEdit={!!selectedDataset}
       />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

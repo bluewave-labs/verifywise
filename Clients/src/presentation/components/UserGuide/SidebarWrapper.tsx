@@ -376,8 +376,15 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     });
   }, [setContentWidth]);
 
+  // Guard against rapid open/close during CSS transition
+  const tabClickLockRef = useRef(false);
+
   // Handle tab click - open sidebar if closed, close if clicking active tab, or switch tab
   const handleTabClick = (tab: Tab) => {
+    if (tabClickLockRef.current) return;
+    tabClickLockRef.current = true;
+    setTimeout(() => { tabClickLockRef.current = false; }, 350);
+
     if (!isOpen) {
       onOpen();
       setActiveTab(tab);

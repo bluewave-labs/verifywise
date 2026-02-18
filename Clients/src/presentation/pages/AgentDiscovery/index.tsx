@@ -63,6 +63,7 @@ const AgentDiscovery: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<AgentPrimitiveRow | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [editAgent, setEditAgent] = useState<AgentPrimitiveRow | null>(null);
 
   // Alert
   const [alert, setAlert] = useState<{
@@ -279,9 +280,27 @@ const AgentDiscovery: React.FC = () => {
 
   const handleManualSuccess = () => {
     setIsManualModalOpen(false);
+    setEditAgent(null);
     fetchAgents();
     fetchStats();
-    showAlertMessage("success", "Agent added successfully.");
+    showAlertMessage("success", editAgent ? "Agent updated successfully." : "Agent added successfully.");
+  };
+
+  const handleEditAgent = (agent: AgentPrimitiveRow) => {
+    setEditAgent(agent);
+    setIsManualModalOpen(true);
+  };
+
+  const handleDeleteAgent = async (agent: AgentPrimitiveRow) => {
+    try {
+      await apiServices.delete(`/agent-primitives/${agent.id}`);
+      fetchAgents();
+      fetchStats();
+      showAlertMessage("success", "Agent deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete agent:", error);
+      showAlertMessage("error", "Failed to delete agent.");
+    }
   };
 
   return (
@@ -386,6 +405,8 @@ const AgentDiscovery: React.FC = () => {
             agents={data}
             isLoading={isLoading}
             onRowClick={handleRowClick}
+            onEdit={handleEditAgent}
+            onDelete={handleDeleteAgent}
           />
         )}
       />
@@ -401,8 +422,12 @@ const AgentDiscovery: React.FC = () => {
       {/* Manual entry modal */}
       <ManualAgentModal
         isOpen={isManualModalOpen}
-        setIsOpen={setIsManualModalOpen}
+        setIsOpen={(open) => {
+          setIsManualModalOpen(open);
+          if (!open) setEditAgent(null);
+        }}
         onSuccess={handleManualSuccess}
+        agent={editAgent}
       />
     </Stack>
   );

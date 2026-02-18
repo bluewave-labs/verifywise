@@ -666,6 +666,7 @@ export default function NewExperimentModal({
       if (onStarted && response?.experiment?.id) {
         onStarted({
           id: response.experiment.id,
+          name: experimentConfig.name,
           config: experimentConfig.config,
           status: "running",
           created_at: new Date().toISOString(),

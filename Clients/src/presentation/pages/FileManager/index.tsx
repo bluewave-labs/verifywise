@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon, FolderPlus as FolderPlusIcon } from "lucide-react";
 import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
@@ -72,6 +72,7 @@ const MANAGE_ROLES = ["Admin", "Editor"];
  */
 const FileManager: React.FC = (): JSX.Element => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -367,16 +368,14 @@ const FileManager: React.FC = (): JSX.Element => {
     setPreviewFile(null);
   }, []);
 
-  // Open preview automatically when navigated from Wise Search
+  // Open preview automatically when navigated from Wise Search.
   useEffect(() => {
     const state = location.state as { previewFileId?: number | string } | null;
     if (state?.previewFileId) {
       handleOpenPreview(state.previewFileId);
-      // We intentionally do not mutate history state here; preview will only
-      // auto-open on the initial navigation from Wise Search.
+      navigate(location.pathname + location.search, { replace: true, state: {} });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location, handleOpenPreview, navigate]);
 
   // Metadata editor handlers
   const handleOpenMetadataEditor = useCallback(async (fileId: number | string) => {

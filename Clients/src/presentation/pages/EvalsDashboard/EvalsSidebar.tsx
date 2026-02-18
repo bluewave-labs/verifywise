@@ -10,6 +10,7 @@ import {
   Cpu,
   MessageSquare,
   Scale,
+  FileText,
 } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
@@ -138,6 +139,13 @@ export default function EvalsSidebar({
       value: "bias-audits",
       icon: <Scale size={16} strokeWidth={1.5} />,
       disabled: false,
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      value: "reports",
+      icon: <FileText size={16} strokeWidth={1.5} />,
+      disabled: disabled,
       dividerAfter: true,
     },
     {

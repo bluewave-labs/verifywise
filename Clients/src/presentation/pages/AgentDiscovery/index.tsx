@@ -63,6 +63,7 @@ const AgentDiscovery: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<AgentPrimitiveRow | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [editAgent, setEditAgent] = useState<AgentPrimitiveRow | null>(null);
 
   // Alert
   const [alert, setAlert] = useState<{
@@ -279,9 +280,16 @@ const AgentDiscovery: React.FC = () => {
 
   const handleManualSuccess = () => {
     setIsManualModalOpen(false);
+    setEditAgent(null);
     fetchAgents();
     fetchStats();
-    showAlertMessage("success", "Agent added successfully.");
+    showAlertMessage("success", editAgent ? "Agent updated successfully." : "Agent added successfully.");
+  };
+
+  const handleEditAgent = (agent: AgentPrimitiveRow) => {
+    setIsReviewModalOpen(false);
+    setEditAgent(agent);
+    setIsManualModalOpen(true);
   };
 
   return (
@@ -396,13 +404,18 @@ const AgentDiscovery: React.FC = () => {
         setIsOpen={setIsReviewModalOpen}
         agent={selectedAgent}
         onSuccess={handleReviewSuccess}
+        onEdit={handleEditAgent}
       />
 
       {/* Manual entry modal */}
       <ManualAgentModal
         isOpen={isManualModalOpen}
-        setIsOpen={setIsManualModalOpen}
+        setIsOpen={(open) => {
+          setIsManualModalOpen(open);
+          if (!open) setEditAgent(null);
+        }}
         onSuccess={handleManualSuccess}
+        agent={editAgent}
       />
     </Stack>
   );

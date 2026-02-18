@@ -13,11 +13,13 @@ import SelectComponent from "../../Inputs/Select";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { AgentPrimitiveRow } from "../../../pages/AgentDiscovery/AgentTable";
 
 interface ManualAgentModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onSuccess: () => void;
+  agent?: AgentPrimitiveRow | null;
 }
 
 const PRIMITIVE_TYPES = [
@@ -34,8 +36,10 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
+  agent,
 }) => {
   const theme = useTheme();
+  const isEditMode = Boolean(agent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [users, setUsers] = useState<{ _id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
@@ -64,8 +68,16 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
+      if (agent) {
+        setFormData({
+          display_name: agent.display_name || "",
+          primitive_type: agent.primitive_type || "",
+          owner_id: agent.owner_id || "",
+          notes: agent.metadata?.notes || "",
+        });
+      }
     }
-  }, [isOpen, fetchUsers]);
+  }, [isOpen, fetchUsers, agent]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -90,16 +102,22 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await apiServices.post("/agent-primitives", {
+      const payload = {
         display_name: formData.display_name.trim(),
         primitive_type: formData.primitive_type,
         owner_id: formData.owner_id.trim() || undefined,
         metadata: formData.notes.trim() ? { notes: formData.notes.trim() } : {},
-      });
+      };
+
+      if (isEditMode && agent) {
+        await apiServices.patch(`/agent-primitives/${agent.id}`, payload);
+      } else {
+        await apiServices.post("/agent-primitives", payload);
+      }
       handleClose();
       onSuccess();
     } catch (error) {
-      console.error("Failed to create agent:", error);
+      console.error(`Failed to ${isEditMode ? "update" : "create"} agent:`, error);
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +138,7 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
         sx={{ p: "16px 24px" }}
       >
         <Typography fontSize={16} fontWeight={600}>
-          Add agent manually
+          {isEditMode ? "Edit agent" : "Add agent manually"}
         </Typography>
         <IconButton onClick={handleClose} size="small">
           <X size={20} />
@@ -202,7 +220,9 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
           onClick={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Adding..." : "Add agent"}
+          {isSubmitting
+            ? isEditMode ? "Saving..." : "Adding..."
+            : isEditMode ? "Save changes" : "Add agent"}
         </CustomizableButton>
       </Stack>
     </Drawer>

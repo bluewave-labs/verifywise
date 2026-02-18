@@ -136,6 +136,45 @@ export const createAgentPrimitiveQuery = async (
   return (results as AgentPrimitive[])[0];
 };
 
+export const updateAgentPrimitiveQuery = async (
+  id: number,
+  data: {
+    display_name?: string;
+    primitive_type?: string;
+    owner_id?: string | null;
+    metadata?: Record<string, any>;
+  },
+  tenant: string
+): Promise<AgentPrimitive | null> => {
+  const sets: string[] = [];
+  const replacements: Record<string, any> = { id };
+
+  if (data.display_name !== undefined) {
+    sets.push("display_name = :display_name");
+    replacements.display_name = data.display_name;
+  }
+  if (data.primitive_type !== undefined) {
+    sets.push("primitive_type = :primitive_type");
+    replacements.primitive_type = data.primitive_type;
+  }
+  if (data.owner_id !== undefined) {
+    sets.push("owner_id = :owner_id");
+    replacements.owner_id = data.owner_id;
+  }
+  if (data.metadata !== undefined) {
+    sets.push("metadata = :metadata");
+    replacements.metadata = JSON.stringify(data.metadata);
+  }
+
+  sets.push("updated_at = NOW()");
+
+  const [results] = await sequelize.query(
+    `UPDATE "${tenant}".agent_primitives SET ${sets.join(", ")} WHERE id = :id RETURNING *`,
+    { replacements }
+  );
+  return (results as AgentPrimitive[])[0] || null;
+};
+
 export const deleteAgentPrimitiveByIdQuery = async (
   id: number,
   tenant: string

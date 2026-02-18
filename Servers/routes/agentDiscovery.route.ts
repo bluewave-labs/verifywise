@@ -8,6 +8,7 @@ import {
   getSyncStatus,
   getAgentPrimitiveById,
   createAgentPrimitive,
+  updateAgentPrimitive,
   triggerSync,
   reviewAgentPrimitive,
   linkModelToAgent,
@@ -28,6 +29,9 @@ router.get("/:id", authenticateJWT, getAgentPrimitiveById);
 // Create + sync trigger
 router.post("/", authenticateJWT, createAgentPrimitive);
 router.post("/sync", authenticateJWT, triggerSync);
+
+// Update (manual agents only)
+router.patch("/:id", authenticateJWT, updateAgentPrimitive);
 
 // Review + model linking
 router.patch("/:id/review", authenticateJWT, reviewAgentPrimitive);

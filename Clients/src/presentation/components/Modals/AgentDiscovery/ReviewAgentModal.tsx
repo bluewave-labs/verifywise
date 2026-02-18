@@ -11,7 +11,7 @@ import {
   Tab,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { X, Link as LinkIcon, Unlink } from "lucide-react";
+import { X, Pencil, Link as LinkIcon, Unlink } from "lucide-react";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { AgentPrimitiveRow } from "../../../pages/AgentDiscovery/AgentTable";
@@ -22,6 +22,7 @@ interface ReviewAgentModalProps {
   setIsOpen: (open: boolean) => void;
   agent: AgentPrimitiveRow | null;
   onSuccess: () => void;
+  onEdit?: (agent: AgentPrimitiveRow) => void;
 }
 
 const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
@@ -29,6 +30,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
   setIsOpen,
   agent,
   onSuccess,
+  onEdit,
 }) => {
   const theme = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,9 +96,20 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
           <Typography fontSize={16} fontWeight={600}>
             Agent details
           </Typography>
-          <IconButton onClick={() => setIsOpen(false)} size="small">
-            <X size={20} />
-          </IconButton>
+          <Stack direction="row" alignItems="center" gap={0.5}>
+            {agent.is_manual && onEdit && (
+              <IconButton
+                onClick={() => onEdit(agent)}
+                size="small"
+                title="Edit agent"
+              >
+                <Pencil size={16} strokeWidth={1.5} />
+              </IconButton>
+            )}
+            <IconButton onClick={() => setIsOpen(false)} size="small">
+              <X size={20} />
+            </IconButton>
+          </Stack>
         </Stack>
 
         <Divider />

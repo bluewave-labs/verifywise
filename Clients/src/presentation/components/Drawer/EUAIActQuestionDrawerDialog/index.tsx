@@ -44,7 +44,7 @@ import Alert from "../../Alert";
 import StandardModal from "../../Modals/StandardModal";
 
 // Lazy-loaded components
-const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks").then(m => ({ default: m.LinkedRisksPopup })));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 

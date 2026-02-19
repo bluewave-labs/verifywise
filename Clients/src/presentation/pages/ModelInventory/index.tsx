@@ -63,7 +63,7 @@ import {
 } from "./style";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import TabContext from "@mui/lab/TabContext";
 import { SearchBox } from "../../components/Search";
 import TabBar from "../../components/TabBar";

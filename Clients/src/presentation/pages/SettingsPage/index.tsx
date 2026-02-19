@@ -14,7 +14,7 @@ import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
 import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import TabBar, { TabItem } from "../../components/TabBar";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";

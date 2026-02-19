@@ -39,7 +39,7 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import { EmptyState } from "../../components/EmptyState";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TipBox from "../../components/TipBox";

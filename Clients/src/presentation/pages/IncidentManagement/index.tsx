@@ -22,7 +22,7 @@ import {
   updateEntityById,
 } from "../../../application/repository/entity.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import {
   addNewIncidentButton,

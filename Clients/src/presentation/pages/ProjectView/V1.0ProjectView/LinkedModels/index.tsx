@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { getAllEntities } from "../../../../../application/repository/entity.repository";
 import { IModelInventory } from "../../../../../domain/interfaces/i.modelInventory";
 import { Project } from "../../../../../domain/types/Project";
-import LinkedModelsView from "../../../../components/LinkedModelsView";
+import { LinkedModelsView } from "../../../../components/LinkedModelsView";
 
 const LinkedModels = ({ project }: { project?: Project }) => {
   const projectId = project?.id;

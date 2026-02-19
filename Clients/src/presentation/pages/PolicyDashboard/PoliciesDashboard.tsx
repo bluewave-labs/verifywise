@@ -4,7 +4,7 @@ import { Box, Stack } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import HelperIcon from "../../components/HelperIcon";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PageTour from "../../components/PageTour";
 import TipBox from "../../components/TipBox";

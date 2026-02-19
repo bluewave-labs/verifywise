@@ -40,4 +40,3 @@ node_modules/
 EvaluationModule/data/uploads/*
 !EvaluationModule/data/uploads/.gitkeep
 nul
-agents

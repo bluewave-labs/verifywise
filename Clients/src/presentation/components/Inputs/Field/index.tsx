@@ -77,7 +77,6 @@ const Field = forwardRef(
       formHelperTextProps,
       min,
       max,
-      autoFocus,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
@@ -140,7 +139,6 @@ const Field = forwardRef(
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           placeholder={placeholder}
-          autoFocus={autoFocus}
           multiline={type === "description"}
           rows={type === "description" ? (rows || 4) : 1}
           value={value}

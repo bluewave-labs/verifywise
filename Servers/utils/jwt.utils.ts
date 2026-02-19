@@ -99,6 +99,7 @@ const getRefreshTokenPayload = (token: any): any => {
 
 // Token expiration constants
 const ONE_HOUR_MS = 1 * 3600 * 1000;
+const ONE_WEEK_MS = 7 * 24 * 3600 * 1000;
 const THIRTY_DAYS_MS = 1 * 3600 * 1000 * 24 * 30;
 
 /**
@@ -127,6 +128,13 @@ const generateToken = (payload: Object) => {
 };
 
 /**
+ * Generates a JWT token for invitation and password-reset emails (1 week)
+ */
+const generateInviteToken = (payload: Object) => {
+  return signToken(payload, ONE_WEEK_MS, process.env.JWT_SECRET as string);
+};
+
+/**
  * Generates a long-lived JWT refresh token (30 days)
  * Signed with REFRESH_TOKEN_SECRET for added security
  */
@@ -147,4 +155,4 @@ const generateApiToken = (payload: Object, expiresInDays?: number) => {
   return signToken(payload, expiresInMs, process.env.JWT_SECRET as string);
 };
 
-export { getTokenPayload, generateToken, getRefreshTokenPayload, generateRefreshToken, generateApiToken };
+export { getTokenPayload, generateToken, generateInviteToken, getRefreshTokenPayload, generateRefreshToken, generateApiToken };

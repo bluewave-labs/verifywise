@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
-import { generateToken } from "../utils/jwt.utils";
+import { generateInviteToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { invite } from "../controllers/vwmailer.ctrl";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
@@ -57,7 +57,7 @@ router.post("/reset-password", resetPasswordLimiter, async (req: Request, res: R
       );
       const template = fs.readFileSync(templatePath, "utf8");
 
-      const token = generateToken({
+      const token = generateInviteToken({
         name: name,
         email: to
       }) as string

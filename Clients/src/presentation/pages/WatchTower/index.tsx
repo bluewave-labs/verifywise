@@ -6,7 +6,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
 import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import TipBox from "../../components/TipBox";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabBar from "../../components/TabBar";

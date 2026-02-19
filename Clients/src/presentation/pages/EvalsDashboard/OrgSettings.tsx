@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import { Home, FlaskConical, Settings, Trash2, Plus } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";

@@ -26,9 +26,7 @@ const TABLE_COLUMNS = [
   { id: "status", label: "STATUS" },
 ];
 
-const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
-  status,
-}) => {
+function StatusBadge({ status }: { status: ModelInventoryStatus }) {
   const statusStyles = {
     [ModelInventoryStatus.APPROVED]: { bg: "#E6F4EA", color: "#138A5E" },
     [ModelInventoryStatus.PENDING]: { bg: "#FFF8E1", color: "#795548" },
@@ -67,12 +65,12 @@ interface LinkedModelsViewProps {
   emptyMessage?: string;
 }
 
-const LinkedModelsView = ({
+export function LinkedModelsView({
   fetchModels,
   headerContent,
   refreshTrigger,
   emptyMessage = "No AI models linked yet",
-}: LinkedModelsViewProps) => {
+}: LinkedModelsViewProps) {
   const [linkedModels, setLinkedModels] = useState<IModelInventory[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const theme = useTheme();
@@ -225,4 +223,3 @@ const LinkedModelsView = ({
   );
 };
 
-export default LinkedModelsView;

@@ -22,32 +22,32 @@ import {
 import "./index.css";
 
 import { Square } from "lucide-react";
-import { FC } from "react";
 import { CheckboxProps } from "../../../types/widget.types";
 
 // Custom filled checkbox icon matching Lucide's Square dimensions
-const FilledCheckSquare: FC<{ size?: number }> = ({ size = 24 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Green filled rounded rectangle */}
-    <rect x="3" y="3" width="18" height="18" rx="2" fill="#13715B" />
-    {/* White checkmark */}
-    <path
-      d="M9 12l2 2 4-4"
-      stroke="white"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+function FilledCheckSquare({ size = 24 }: { size?: number }) {
+  const theme = useTheme();
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" fill={theme.palette.primary.main} />
+      <path
+        d="M9 12l2 2 4-4"
+        stroke="white"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-const Checkbox: FC<CheckboxProps> = ({
+function Checkbox({
   id,
   label,
   size = "medium",
@@ -57,7 +57,7 @@ const Checkbox: FC<CheckboxProps> = ({
   onClick,
   isDisabled,
   sx: customSx,
-}) => {
+}: CheckboxProps) {
   const sizes: { [key in "small" | "medium" | "large"]: string } = {
     small: "20px",
     medium: "24px",
@@ -126,6 +126,6 @@ const Checkbox: FC<CheckboxProps> = ({
       }}
     />
   );
-};
+}
 
 export default Checkbox;

@@ -23,7 +23,7 @@ import { FileData } from "../../../domain/types/File";
 import { Button } from "../button";
 import Select from "../Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
-import LinkedRisksPopup from "../LinkedRisks";
+import { LinkedRisksPopup } from "../LinkedRisks";
 import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
 import { updateEUAIActAnswerById } from "../../../application/repository/question.repository";
 import { useAuth } from "../../../application/hooks/useAuth";

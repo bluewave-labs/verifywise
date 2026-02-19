@@ -4,7 +4,7 @@ import { Box, Stack, Typography, Collapse, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import { Home, Puzzle, ChevronDown } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
 import { SearchBox } from "../../components/Search";

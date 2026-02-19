@@ -31,6 +31,7 @@ import {
   Trash2 as DeleteIconGrey,
   ChevronUp,
   ChevronDown,
+  RefreshCw,
 } from "lucide-react";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
@@ -47,6 +48,13 @@ import {
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { UserModel } from "../../../../domain/models/Common/user/user.model";
+import useInvitations from "../../../../application/hooks/useInvitations";
+import {
+  revokeInvitation,
+  resendInvitation,
+} from "../../../../application/repository/invitation.repository";
+import Chip from "../../../components/Chip";
+import { formatRelativeDate } from "../../../../application/utils/dateFormatter";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -63,6 +71,15 @@ const TABLE_COLUMNS = [
   { id: "email", label: "EMAIL" },
   { id: "role", label: "ROLE" },
   { id: "action", label: "ACTION" },
+];
+
+const INVITATION_TABLE_COLUMNS = [
+  { id: "name", label: "NAME" },
+  { id: "email", label: "EMAIL" },
+  { id: "role", label: "ROLE" },
+  { id: "sent", label: "SENT" },
+  { id: "status", label: "STATUS" },
+  { id: "actions", label: "ACTIONS" },
 ];
 
 const TEAM_TABLE_SORTING_KEY = "verifywise_team_table_sorting";
@@ -114,6 +131,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [page, setPage] = useState(0); // Current page
   const { userId } = useAuth();
   const { users, refreshUsers } = useUsers();
+  const { invitations, refreshInvitations } = useInvitations();
 
   // Initialize sorting state from localStorage or default to no sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
@@ -372,6 +390,48 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(true);
   };
 
+  const handleResendInvitation = async (id: number) => {
+    try {
+      const response = await resendInvitation(id);
+      if (response.status === 200) {
+        showAlert("success", "Success", "Invitation resent successfully.");
+      } else if (response.status === 206) {
+        showAlert(
+          "info",
+          "Info",
+          "Email service unavailable. A fallback link was generated."
+        );
+      } else {
+        showAlert("error", "Error", "Failed to resend invitation.");
+      }
+      refreshInvitations();
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Failed to resend invitation: ${(error as Error).message || "Please try again."}`
+      );
+    }
+  };
+
+  const handleRevokeInvitation = async (id: number) => {
+    try {
+      const response = await revokeInvitation(id);
+      if (response.status === 200) {
+        showAlert("success", "Success", "Invitation revoked.");
+      } else {
+        showAlert("error", "Error", "Failed to revoke invitation.");
+      }
+      refreshInvitations();
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Failed to revoke invitation: ${(error as Error).message || "Please try again."}`
+      );
+    }
+  };
+
   const handleInvitation = (
     email: string,
     status: number | string,
@@ -398,6 +458,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     }
 
     setInviteUserModalOpen(false);
+    refreshInvitations();
   };
 
   return (
@@ -772,6 +833,128 @@ const TeamManagement: React.FC = (): JSX.Element => {
               )}
             </>
           )}
+          <Box sx={{ mt: 5 }}>
+            <Typography
+              sx={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#1A1919",
+                mb: 2,
+              }}
+            >
+              Pending invitations ({invitations.length})
+            </Typography>
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
+                <TableHead
+                  sx={{
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }}
+                >
+                  <TableRow>
+                    {INVITATION_TABLE_COLUMNS.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        sx={singleTheme.tableStyles.primary.header.cell}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {column.label}
+                        </Typography>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {invitations.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={INVITATION_TABLE_COLUMNS.length}
+                        align="center"
+                        sx={{ py: 4 }}
+                      >
+                        No pending invitations
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    invitations.map((inv) => {
+                      const isExpired =
+                        new Date(inv.expires_at) <= new Date();
+                      return (
+                        <TableRow
+                          key={inv.id}
+                          sx={singleTheme.tableStyles.primary.body.row}
+                        >
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
+                            {[inv.name, inv.surname]
+                              .filter(Boolean)
+                              .join(" ") || "-"}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              ...singleTheme.tableStyles.primary.body.cell,
+                              textTransform: "none",
+                            }}
+                          >
+                            {inv.email}
+                          </TableCell>
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
+                            {inv.role_name || "-"}
+                          </TableCell>
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
+                            {formatRelativeDate(inv.created_at)}
+                          </TableCell>
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
+                            <Chip
+                              label={isExpired ? "Expired" : "Pending"}
+                              variant={isExpired ? "error" : "warning"}
+                            />
+                          </TableCell>
+                          <TableCell
+                            sx={singleTheme.tableStyles.primary.body.cell}
+                          >
+                            <Stack direction="row" spacing={1}>
+                              <IconButton
+                                onClick={() => handleResendInvitation(inv.id)}
+                                disableRipple
+                                size="small"
+                                title="Resend invitation"
+                              >
+                                <RefreshCw size={16} />
+                              </IconButton>
+                              <IconButton
+                                onClick={() => handleRevokeInvitation(inv.id)}
+                                disableRipple
+                                size="small"
+                                title="Revoke invitation"
+                              >
+                                <DeleteIconGrey size={16} />
+                              </IconButton>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }} />
         </Stack>
       </Box>

@@ -3499,6 +3499,28 @@ export const createNewTenant = async (
 
     console.log(`✅ Shadow AI tables created successfully for tenant: ${tenantHash}`);
 
+    // Create invitations table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".invitations (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
+        surname VARCHAR(255),
+        role_id INT REFERENCES public.roles(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        invited_by INT REFERENCES public.users(id),
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`,
+      { transaction }
+    );
+    await sequelize.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_invitations_pending_email
+      ON "${tenantHash}".invitations (email)
+      WHERE status = 'pending';
+    `, { transaction });
+
   } catch (error) {
     throw error;
   }

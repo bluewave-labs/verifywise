@@ -155,4 +155,4 @@ const generateApiToken = (payload: Object, expiresInDays?: number) => {
   return signToken(payload, expiresInMs, process.env.JWT_SECRET as string);
 };
 
-export { getTokenPayload, generateToken, generateInviteToken, getRefreshTokenPayload, generateRefreshToken, generateApiToken };
+export { getTokenPayload, generateToken, generateInviteToken, getRefreshTokenPayload, generateRefreshToken, generateApiToken, ONE_WEEK_MS };

@@ -8,6 +8,7 @@ import { invite } from "../controllers/vwmailer.ctrl";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import rateLimit from "express-rate-limit";
 import { getUserByEmailQuery } from "../utils/user.utils";
+import authenticateJWT from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ const inviteLimiter = rateLimit({
   }
 });
 
-router.post("/invite", inviteLimiter, async (req, res) => {
+router.post("/invite", authenticateJWT, inviteLimiter, async (req, res) => {
   await invite(req, res, req.body);
 });
 

@@ -210,6 +210,11 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const { users } = useUsers();
   const { project, error: projectError, isLoading: projectLoading } = useProjectData({ projectId });
 
+  // Extract numeric ID for API calls (handles plugin-sourced IDs like "prefix-123")
+  const numericProjectId = projectId.includes("-")
+    ? projectId.substring(projectId.lastIndexOf("-") + 1)
+    : projectId;
+
   // Loading and error states
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -295,7 +300,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const fetchCEMarkingData = async () => {
     try {
       setLoading(true);
-      const ceMarkingData = await getCEMarking(projectId);
+      const ceMarkingData = await getCEMarking(numericProjectId);
       setData(ceMarkingData);
       setIsHighRiskAISystem(ceMarkingData.isHighRiskAISystem || false);
       setAnnexIIICategory(ceMarkingData.annexIIICategory || "annex_iii_5");
@@ -334,7 +339,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
 
         try {
           setSaving(true);
-          const updatedData = await updateClassificationAndScope(projectId, {
+          const updatedData = await updateClassificationAndScope(numericProjectId, {
             isHighRiskAISystem: newValue,
           });
           setData(updatedData);
@@ -359,7 +364,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setAnnexIIICategory(newValue);
 
     try {
-      const updatedData = await updateClassificationAndScope(projectId, {
+      const updatedData = await updateClassificationAndScope(numericProjectId, {
         annexIIICategory: newValue,
       });
       setData(updatedData);
@@ -379,7 +384,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setRoleInProduct(newValue);
 
     try {
-      const updatedData = await updateClassificationAndScope(projectId, {
+      const updatedData = await updateClassificationAndScope(numericProjectId, {
         roleInProduct: newValue,
       });
       setData(updatedData);
@@ -421,7 +426,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     try {
       setSaving(true);
       const updatedData = await updateConformityStep(
-        projectId,
+        numericProjectId,
         selectedStep.id,
         {
           description: stepEditForm.description,
@@ -468,7 +473,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     try {
       setSaving(true);
       const updatedData = await updateDeclaration(
-        projectId,
+        numericProjectId,
         {
           declarationStatus: declarationEditForm.status,
           signedOn: declarationEditForm.signedOn ? declarationEditForm.signedOn.format("YYYY-MM-DD") : null,
@@ -513,7 +518,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     try {
       setSaving(true);
       const updatedData = await updateRegistration(
-        projectId,
+        numericProjectId,
         {
           registrationStatus: registrationEditForm.status,
           euRegistrationId: registrationEditForm.euRegistrationId,
@@ -556,7 +561,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSavePolicies = async () => {
     try {
       setSaving(true);
-      const updatedData = await updateLinkedPolicies(projectId, selectedPolicies);
+      const updatedData = await updateLinkedPolicies(numericProjectId, selectedPolicies);
       setData(updatedData);
       showAlert("Linked policies updated successfully");
       handleClosePoliciesModal();
@@ -599,7 +604,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSaveEvidences = async () => {
     try {
       setSaving(true);
-      const updatedData = await updateLinkedEvidences(projectId, selectedEvidences);
+      const updatedData = await updateLinkedEvidences(numericProjectId, selectedEvidences);
       setData(updatedData);
       showAlert("Linked evidence updated successfully");
       handleCloseEvidencesModal();
@@ -642,7 +647,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSaveIncidents = async () => {
     try {
       setSaving(true);
-      const updatedData = await updateLinkedIncidents(projectId, selectedIncidents);
+      const updatedData = await updateLinkedIncidents(numericProjectId, selectedIncidents);
       setData(updatedData);
       showAlert("Linked incidents updated successfully");
       handleCloseIncidentsModal();

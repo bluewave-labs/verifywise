@@ -374,7 +374,7 @@ const AgentDiscovery: React.FC = () => {
               sx={syncButton}
               variant="outlined"
               onClick={handleSync}
-              disabled={isSyncing}
+              isDisabled={isSyncing}
               icon={
                 <RefreshCw
                   size={14}

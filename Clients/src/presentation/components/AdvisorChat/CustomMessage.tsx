@@ -47,7 +47,7 @@ const MessageText: FC = () => {
   );
 };
 
-interface ChartData {
+interface LocalChartData {
   type: 'bar' | 'pie' | 'table' | 'donut' | 'line';
   data?: { label: string; value: number; color?: string }[];
   title: string;
@@ -57,7 +57,7 @@ interface ChartData {
   xAxisLabels?: string[];
 }
 
-const isValidChartData = (data: unknown): data is ChartData => {
+const isValidChartData = (data: unknown): data is LocalChartData => {
   if (!data || typeof data !== 'object') return false;
   const obj = data as Record<string, unknown>;
   return (
@@ -74,7 +74,12 @@ const isValidChartData = (data: unknown): data is ChartData => {
  */
 const GenerateChartToolUI: FC<{ result?: unknown }> = ({ result }) => {
   if (!result || !isValidChartData(result)) return null;
-  return <ChartRenderer chartData={result as ChartData} />;
+  // Ensure data array exists for ChartRenderer (default to empty array if missing)
+  const chartData = {
+    ...result,
+    data: result.data || [],
+  };
+  return <ChartRenderer chartData={chartData} />;
 };
 
 /**
@@ -209,7 +214,7 @@ const ThinkingIndicator: FC = () => {
   const [messageIndex, setMessageIndex] = useState(() =>
     Math.floor(Math.random() * THINKING_MESSAGES.length)
   );
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const rotate = useCallback(() => {
     setMessageIndex((prev) => {

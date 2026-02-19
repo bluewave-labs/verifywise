@@ -218,7 +218,7 @@ const ManualAgentModal: React.FC<ManualAgentModalProps> = ({
           variant="contained"
           sx={{ backgroundColor: "#13715B", border: "1px solid #13715B" }}
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          isDisabled={isSubmitting}
         >
           {isSubmitting
             ? isEditMode ? "Saving..." : "Adding..."

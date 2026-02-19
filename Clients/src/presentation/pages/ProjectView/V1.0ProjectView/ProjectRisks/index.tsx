@@ -7,8 +7,11 @@ import { RiskModel } from "../../../../../domain/models/Common/risks/risk.model"
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const [searchParams] = useSearchParams();
-  const projectId =
-    parseInt(searchParams.get("projectId") ?? "0") || project!.id;
+  const rawProjectId = searchParams.get("projectId") ?? "0";
+  // Extract numeric ID from composite IDs (e.g., "prefix-123" -> 123)
+  const projectId = rawProjectId.includes("-")
+    ? parseInt(rawProjectId.substring(rawProjectId.lastIndexOf("-") + 1), 10) || project!.id
+    : parseInt(rawProjectId, 10) || project!.id;
 
   // Create fetch function for use case risks
   const fetchProjectRisks = useCallback(

@@ -193,6 +193,7 @@ export const createNewTenant = async (
         approval_workflow_id INTEGER REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE SET NULL,
         pending_frameworks JSONB DEFAULT NULL,
         enable_ai_data_insertion BOOLEAN DEFAULT FALSE,
+        _source VARCHAR(100),
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)
@@ -415,6 +416,10 @@ export const createNewTenant = async (
       description text,
       file_group_id UUID DEFAULT gen_random_uuid(),
       approval_workflow_id integer,
+      -- Optional plain-text content for search/snippets
+      content_text text,
+      -- tsvector column for PostgreSQL full-text search
+      content_search tsvector,
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
@@ -468,6 +473,12 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX IF NOT EXISTS idx_files_approval_workflow_id ON "${tenantHash}".files(approval_workflow_id);`,
+      { transaction }
+    );
+
+    // Full-text search index on extracted content
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_content_search ON "${tenantHash}".files USING GIN(content_search);`,
       { transaction }
     );
 

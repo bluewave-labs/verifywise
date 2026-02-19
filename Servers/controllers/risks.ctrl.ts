@@ -83,6 +83,11 @@ export async function getRisksByProject(
   const projectId = parseInt(req.params.id as string);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
+  // Return empty array for non-numeric project IDs (e.g., plugin-sourced IDs like "plugin-prefix-2")
+  if (isNaN(projectId)) {
+    return res.status(200).json(STATUS_CODE[200]([]));
+  }
+
   logStructured(
     "processing",
     `fetching risks for project ID: ${projectId} with filter: ${filter}`,

@@ -85,7 +85,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [auditToDelete, setAuditToDelete] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [_deleting, setDeleting] = useState(false);
   const deletingRef = useRef(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -328,7 +328,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         orgId={orgId}
-        onAuditCreated={(auditId) => {
+        onAuditCreated={(_auditId) => {
           setModalOpen(false);
           fetchAudits();
         }}

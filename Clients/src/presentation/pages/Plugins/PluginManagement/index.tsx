@@ -43,7 +43,7 @@ import { cardStyles } from "../../../themes/components";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import { BreadcrumbItem } from "../../../../domain/types/breadcrumbs.types";
 import { ENV_VARs } from "../../../../../env.vars";
-import { getConfigFields, ConfigField, MLFLOW_DEFAULT_CONFIG } from "./config-fields";
+import { getConfigFields, ConfigField } from "./config-fields";
 import {
   backButton,
   pluginIconPlaceholder,
@@ -179,13 +179,8 @@ const PluginManagement: React.FC = () => {
             installedAt: installation.installedAt,
           });
 
-          // Load existing configuration with defaults
-          const defaults: Record<string, string> = pluginKey === "mlflow" ? { ...MLFLOW_DEFAULT_CONFIG } : {};
-
-          setConfigData({
-            ...defaults,
-            ...(installation.configuration || {}),
-          });
+          // Load existing configuration
+          setConfigData(installation.configuration || {});
         } else {
           setPlugin(pluginData);
         }

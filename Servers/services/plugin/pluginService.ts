@@ -13,7 +13,7 @@ import { getBuiltinPlugins, isBuiltinPlugin } from "./builtinPlugins";
 import { sanitizeForLog } from "../../utils/validations/validation.utils";
 
 // Environment configuration
-export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
+export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/verifywise-ai/plugin-marketplace/main/plugins.json";
 export const PLUGIN_MARKETPLACE_BASE_URL = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
 
 interface Plugin {
@@ -340,6 +340,62 @@ export class PluginService {
     } catch (error: any) {
       console.error("[PluginService] Error fetching installed plugins:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Get data from plugin data providers
+   * This allows plugins to contribute data to core VerifyWise features
+   * @param providerType - The type of data provider (e.g., "use-cases")
+   * @param tenantId - The tenant ID
+   * @param sequelize - Sequelize instance for database access
+   */
+  static async getDataFromProviders(
+    providerType: string,
+    tenantId: string,
+    sequelize: any
+  ): Promise<any[]> {
+    try {
+      // Get all installed plugins for this tenant
+      const installations = await getInstalledPlugins(tenantId);
+      const results: any[] = [];
+
+      for (const installation of installations) {
+        if (installation.status !== "installed") continue;
+
+        try {
+          // Get plugin metadata from marketplace
+          const pluginMeta = await this.getPluginByKey(installation.plugin_key);
+          if (!pluginMeta) continue;
+
+          // Load the plugin code
+          const pluginCode = await this.loadPluginCode(pluginMeta);
+          if (!pluginCode) continue;
+
+          // Check if plugin has data providers
+          const dataProviders = pluginCode.dataProviders;
+          if (!dataProviders || !dataProviders[providerType]) continue;
+
+          const provider = dataProviders[providerType];
+          if (!provider.enabled) continue;
+
+          // Call the provider's getData function
+          console.log(`[PluginService] Fetching ${providerType} data from plugin: ${installation.plugin_key}`);
+          const data = await provider.getData({ sequelize, tenantId });
+
+          if (Array.isArray(data)) {
+            results.push(...data);
+          }
+        } catch (pluginError: any) {
+          console.error(`[PluginService] Error fetching data from plugin ${installation.plugin_key}:`, pluginError.message);
+          // Continue with other plugins even if one fails
+        }
+      }
+
+      return results;
+    } catch (error: any) {
+      console.error("[PluginService] Error in getDataFromProviders:", error);
+      return [];
     }
   }
 

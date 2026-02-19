@@ -44,7 +44,7 @@ import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants"
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import { ButtonToggle } from "../../components/button-toggle";
 import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";

@@ -61,8 +61,14 @@ export async function getAllVendorRisks(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+  const projectIdParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const projectId = parseInt(projectIdParam);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+
+  // Return empty array for non-numeric project IDs (e.g., plugin-sourced IDs like "plugin-prefix-2")
+  if (isNaN(projectId)) {
+    return res.status(200).json(STATUS_CODE[200]([]));
+  }
 
   logProcessing({
     description: `starting getAllVendorRisks for project ID ${projectId} with filter: ${filter}`,

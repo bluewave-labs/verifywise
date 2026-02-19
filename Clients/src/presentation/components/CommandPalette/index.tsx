@@ -375,8 +375,16 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const handleSearchResultSelect = useCallback((result: SearchResult) => {
     // Add to recent searches
     addToRecent(search)
-    // Navigate to the result
-    navigate(result.route)
+
+    // Special handling for file manager search results:
+    // navigate with state so File Manager can open the preview panel.
+    if (result.entityType === "file_manager") {
+      navigate(result.route, { state: { previewFileId: result.id } })
+    } else {
+      // Default navigation for all other entities
+      navigate(result.route)
+    }
+
     onOpenChange(false)
   }, [navigate, onOpenChange, addToRecent, search])
 
@@ -475,7 +483,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         }}>
           <Filter size={14} color="#999" />
           <Typography sx={{ fontSize: '12px', color: '#999', whiteSpace: 'nowrap', userSelect: 'none' }}>
-            Review Status:
+            Evidence Status:
           </Typography>
           <Box ref={filterDropdownRef} sx={{ position: 'relative' }}>
             <Box

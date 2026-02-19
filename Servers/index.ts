@@ -78,7 +78,9 @@ import shadowAiRoutes from "./routes/shadowAi.route";
 import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
 import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
+import invitationRoutes from "./routes/invitation.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
+import { addAgentDiscoveryTables } from "./scripts/addAgentDiscoveryTables";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -166,6 +168,7 @@ try {
   app.use("/api/roles", roleRoutes);
   app.use("/api/files", fileRoutes);
   app.use("/api/mail", mailRoutes);
+  app.use("/api/invitations", invitationRoutes);
   // app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter); // **
@@ -243,6 +246,15 @@ try {
       await setupNotificationSubscriber();
     } catch (error) {
       console.error("Failed to setup notification subscriber:", error);
+    }
+  })();
+
+  // Run agent discovery tenant migrations (idempotent, safe on every boot)
+  (async () => {
+    try {
+      await addAgentDiscoveryTables();
+    } catch (error) {
+      console.error("Agent discovery table migration failed:", error);
     }
   })();
 

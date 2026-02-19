@@ -509,7 +509,7 @@ export default function ProjectOverview({
           </Box>
         ) : (
           <EvaluationTable
-            columns={["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE"]}
+            columns={["EXPERIMENT NAME", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE"]}
             rows={recentExperimentsRows}
             page={0}
             setCurrentPagingation={() => {}}

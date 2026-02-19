@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
@@ -31,7 +31,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
   const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
@@ -80,10 +79,10 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // Handle policyId URL param to open edit modal from Wise Search
   useEffect(() => {
     const policyId = searchParams.get("policyId");
-    if (policyId && !hasProcessedUrlParam.current && policies.length > 0) {
-      hasProcessedUrlParam.current = true;
+    if (policyId && policies.length > 0) {
       // Use existing handleOpen function which sets selectedPolicy and opens modal
       handleOpen(parseInt(policyId, 10));
+      // Clear query params so this only runs once per navigation
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, policies, setSearchParams, handleOpen]);

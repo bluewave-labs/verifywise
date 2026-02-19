@@ -18,7 +18,6 @@ import {
   useTheme,
   IconButton,
 } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon, BarChart3, Settings } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -53,7 +52,6 @@ import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
-import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import ModelInventorySteps from "./ModelInventorySteps";
 import {
@@ -65,10 +63,9 @@ import {
 } from "./style";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import TabContext from "@mui/lab/TabContext";
 import { SearchBox } from "../../components/Search";
-import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
@@ -1929,29 +1926,6 @@ const ModelInventory: React.FC = () => {
 
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
-      {/* <PageBreadcrumbs /> */}
-
-      <PageBreadcrumbs />
-
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
-            <Box mb={2}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast={true}
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-
       {/* Replace Share Link Confirmation Modal */}
       <Modal
         open={showReplaceConfirmation}
@@ -2047,36 +2021,50 @@ const ModelInventory: React.FC = () => {
         </Stack>
       </Modal>
 
-      <Stack sx={mainStackStyle}>
-        <PageHeader
-          title="Model Inventory"
-          description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
-          rightContent={
-            <HelperIcon
-              articlePath="ai-governance/model-inventory"
-              size="small"
-            />
-          }
-        />
-        <TipBox entityName="model-inventory" />
-
-        {/* Summary Cards */}
-        {activeTab === "models" && (
-          <div data-joyride-id="model-summary-cards">
+      <PageHeaderExtended
+        title="Model Inventory"
+        description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
+        helpArticlePath="ai-governance/model-inventory"
+        tipBoxEntity="model-inventory"
+        summaryCards={
+          activeTab === "models" ? (
             <ModelInventorySummary
               summary={summary}
               onCardClick={handleStatusCardClick}
               selectedStatus={selectedStatus}
             />
-          </div>
-        )}
-        {activeTab === "model-risks" && (
-          <ModelRiskSummary
-            modelRisks={modelRisksData}
-            onCardClick={handleRiskLevelCardClick}
-            selectedRiskLevel={selectedRiskLevel}
-          />
-        )}
+          ) : activeTab === "model-risks" ? (
+            <ModelRiskSummary
+              modelRisks={modelRisksData}
+              onCardClick={handleRiskLevelCardClick}
+              selectedRiskLevel={selectedRiskLevel}
+            />
+          ) : null
+        }
+        summaryCardsJoyrideId={
+          activeTab === "models" ? "model-summary-cards" : undefined
+        }
+        alert={
+          alert && (
+            <Suspense fallback={<div>Loading...</div>}>
+              <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
+                <Box mb={2}>
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => {
+                      setShowAlert(false);
+                      setTimeout(() => setAlert(null), 300);
+                    }}
+                  />
+                </Box>
+              </Fade>
+            </Suspense>
+          )
+        }
+      >
         {/* Tab Bar */}
         <TabContext value={activeTab}>
           <Box sx={{ marginBottom: 3 }}>
@@ -2415,7 +2403,6 @@ const ModelInventory: React.FC = () => {
             />
           </>
         )}
-      </Stack>
 
       {/* Analytics Drawer */}
       <AnalyticsDrawer
@@ -2535,6 +2522,7 @@ const ModelInventory: React.FC = () => {
         open={isLifecycleConfigOpen}
         onClose={() => setIsLifecycleConfigOpen(false)}
       />
+      </PageHeaderExtended>
     </Stack>
   );
 };

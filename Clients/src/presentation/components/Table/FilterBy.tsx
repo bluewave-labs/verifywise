@@ -3,7 +3,7 @@ import { Button, Stack, Popover, Box, Typography } from '@mui/material';
 import { X, Filter, Plus } from 'lucide-react';
 import Select from '../Inputs/Select';
 import Field from '../Inputs/Field';
-import VWLink from '../Link/VWLink';
+import { VWLink } from '../Link/VWLink';
 
 // Column type determines available operators and value input type
 export type FilterColumnType = 'select' | 'text' | 'date';

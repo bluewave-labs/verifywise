@@ -55,7 +55,7 @@ import EvidenceHubTable from "../../../pages/ModelInventory/evidenceHubTable";
 import { EvidenceHubModel } from "../../../../domain/models/Common/evidenceHub/evidenceHub.model";
 import { addNewModelButtonStyle } from "../../../pages/ModelInventory/style";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import VWLink from "../../Link/VWLink";
+import { VWLink } from "../../Link/VWLink";
 import { useQueryClient } from "@tanstack/react-query";
 
 dayjs.extend(utc);

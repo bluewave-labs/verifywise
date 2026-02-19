@@ -255,6 +255,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         // Add the new experiment to the list optimistically
         handleStarted({
           id: response.experiment.id,
+          name: nextName,
           config: payload.config as Record<string, unknown>,
           status: "running",
           created_at: new Date().toISOString(),
@@ -360,7 +361,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     }
   };
 
-  const handleStarted = (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
+  const handleStarted = (exp: { id: string; name?: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
     const cfg = exp.config as { 
       model?: { name?: string }; 
       judgeLlm?: { model?: string; provider?: string };
@@ -378,7 +379,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       ({
         id: exp.id,
         project_id: projectId,
-        name: cfg.model?.name || exp.id,
+        name: exp.name || exp.id,
         description: `Pending eval for ${cfg.model?.name || "model"}`,
         config: cfgForState,
         baseline_experiment_id: undefined,
@@ -479,7 +480,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
+  const tableColumns = ["EXPERIMENT NAME", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
     // Get dataset name from config - try multiple sources

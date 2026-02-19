@@ -6,7 +6,6 @@ export interface Invitation {
   name: string;
   surname: string;
   role_id: number;
-  organization_id: number;
   status: string;
   invited_by: number;
   created_at: string;

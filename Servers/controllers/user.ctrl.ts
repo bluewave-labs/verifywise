@@ -67,6 +67,7 @@ import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
 import { uploadFile } from "../utils/fileUpload.utils";
 import { markInvitationAcceptedQuery } from "../utils/invitation.utils";
+import { getTenantHash } from "../tools/getTenantHash";
 
 /**
  * Retrieves all users within the authenticated user's organization
@@ -386,7 +387,7 @@ async function createNewUser(req: Request, res: Response) {
 
       // Mark any pending invitation as accepted (fire-and-forget)
       try {
-        await markInvitationAcceptedQuery(email, organizationId);
+        await markInvitationAcceptedQuery(getTenantHash(organizationId), email);
       } catch (_) {
         // Non-critical — don't block user creation
       }

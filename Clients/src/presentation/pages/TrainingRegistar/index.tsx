@@ -23,7 +23,7 @@ import TrainingTable from "./trainingTable";
 import NewTraining from "../../../presentation/components/Modals/NewTraining";
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { SearchBox } from "../../components/Search";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";

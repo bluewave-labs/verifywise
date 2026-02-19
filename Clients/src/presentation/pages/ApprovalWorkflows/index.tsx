@@ -1,5 +1,5 @@
 import { Box, Stack } from "@mui/material"
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import ApprovalWorkflowsTable from "./ApprovalWorkflowsTable";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";

@@ -6,7 +6,7 @@ interface PageHeaderProps {
     rightContent?: React.ReactNode;
 }
 
-const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
+export function PageHeader({ title, description, rightContent }: PageHeaderProps) {
     return (
         <Stack spacing={2}>
             {/* Title + description */}
@@ -26,6 +26,4 @@ const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
             )}
         </Stack>
     );
-};
-
-export default PageHeader;
+}

@@ -1,12 +1,11 @@
-import React, { useMemo, memo, useCallback, useEffect } from 'react';
-import { Stack, IconButton } from '@mui/material';
+import { useState, useMemo, memo, useCallback, useEffect, type ReactNode } from 'react';
+import { Stack, IconButton, Box } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Zap, WorkflowIcon, Package } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
-import { Box } from '@mui/material';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
-import ApprovalButton from './ApprovalButton';
+import { ApprovalButton } from './ApprovalButton';
 import NotificationBell from '../NotificationBell';
 import {
   getPendingApprovals,
@@ -18,43 +17,45 @@ interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
 }
 
-// Keyboard shortcut badge component
-const KeyboardBadge: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Box
-    component="span"
-    sx={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-      borderRadius: '4px',
-      padding: '2px 6px',
-      fontSize: '12px',
-      fontWeight: 500,
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      minWidth: '22px',
-    }}
-  >
-    {children}
-  </Box>
-);
-
-// Tooltip content for Wise Search
-const WiseSearchTooltipContent: React.FC<{ isMac: boolean }> = ({ isMac }) => (
-  <Box>
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-      <KeyboardBadge>{isMac ? '⌘' : 'Ctrl'}</KeyboardBadge>
-      <KeyboardBadge>K</KeyboardBadge>
+function KeyboardBadge({ children }: { children: ReactNode }) {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        borderRadius: '4px',
+        padding: '2px 6px',
+        fontSize: '12px',
+        fontWeight: 500,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        minWidth: '22px',
+      }}
+    >
+      {children}
     </Box>
-    <Box sx={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '13px', lineHeight: 1.5 }}>
-      Search across all projects, tasks, vendors, policies, and more in your workspace.
-    </Box>
-  </Box>
-);
+  );
+}
 
-const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
-  hideOnMainDashboard = true
-}) => {
+function WiseSearchTooltipContent({ isMac }: { isMac: boolean }) {
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <KeyboardBadge>{isMac ? '⌘' : 'Ctrl'}</KeyboardBadge>
+        <KeyboardBadge>K</KeyboardBadge>
+      </Box>
+      <Box sx={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '13px', lineHeight: 1.5 }}>
+        Search across all projects, tasks, vendors, policies, and more in your workspace.
+      </Box>
+    </Box>
+  );
+}
+
+export const DashboardActionButtons = memo(function DashboardActionButtons({
+  hideOnMainDashboard = true,
+}: DashboardActionButtonsProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { userRoleName } = useAuth();
@@ -69,7 +70,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     return false;
   }, []);
 
-  const [isRequestModalOpen, setIsRequestModalOpen] = React.useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
   const isMainDashboard = useMemo(
@@ -96,7 +97,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     transition: 'all 0.2s ease',
   };
 
-  const [totalApprovalCount, setTotalApprovalCount] = React.useState(0);
+  const [totalApprovalCount, setTotalApprovalCount] = useState(0);
 
   // Function to fetch approval counts
   const fetchApprovalCounts = useCallback(async () => {
@@ -209,5 +210,3 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
 });
 
 DashboardActionButtons.displayName = 'DashboardActionButtons';
-
-export default DashboardActionButtons;

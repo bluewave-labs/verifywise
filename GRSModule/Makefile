@@ -24,4 +24,7 @@ infer-multi-model:
 judge:
 	uv run grs-scenarios generate stage judge --judge-model-id openai/gpt-4o-mini --judge-limit 5
 
+judge-resume:
+	uv run grs-scenarios generate --stage judge --judge-resume
+
 all: seeds render perturb validate

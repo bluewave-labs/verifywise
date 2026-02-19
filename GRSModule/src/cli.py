@@ -48,6 +48,10 @@ from judge.join import build_pairs
 from llm.openrouter import OpenRouterChatClient
 from io_utils.jsonl import read_jsonl, write_jsonl
 
+from judge.resume import load_completed_judgements
+from io_utils.jsonl import append_jsonl
+from judge.runner import run_judging_resumable
+
 
 console = Console()
 
@@ -473,6 +477,13 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 console.print(f"[yellow]No joinable pairs for:[/yellow] {rf.name}")
                 continue
 
+            out_path = out_dir / rf.name
+            fail_path = out_dir / (rf.name + ".failures.jsonl")
+
+            skip = set()
+            if args.judge_resume:
+                skip = load_completed_judgements(out_path)
+
             cfg = JudgeConfig(
                 judge_model_id=args.judge_model_id,
                 judge_provider="openrouter",
@@ -480,15 +491,30 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 max_tokens=int(args.judge_max_tokens),
             )
 
-            scores = run_judging(pairs=pairs, client=judge_client, rubric=rubric, cfg=cfg)
+            scores, failures, skipped = run_judging_resumable(
+                pairs=pairs,
+                client=judge_client,
+                rubric=rubric,
+                cfg=cfg,
+                skip_keys=skip,
+                retry_max_attempts=int(args.judge_retry_max_attempts),
+            )
 
-            out_path = out_dir / rf.name  # same filename as candidate responses
-            write_jsonl(out_path, scores)
+            if args.judge_resume:
+                append_jsonl(out_path, scores)
+                append_jsonl(fail_path, failures)
+            else:
+                write_jsonl(out_path, scores)
+                write_jsonl(fail_path, failures)
 
             console.print("[bold green]Judging complete.[/bold green]")
             console.print(f"- candidate_file: {rf.name}")
-            console.print(f"- pairs_scored: {len(scores)}")
+            console.print(f"- pairs_total: {len(pairs)}")
+            console.print(f"- skipped: {skipped}")
+            console.print(f"- scored: {len(scores)}")
+            console.print(f"- failed: {len(failures)}")
             console.print(f"- wrote: {out_path}")
+            console.print(f"- wrote: {fail_path}")
 
         return 0
 
@@ -523,7 +549,8 @@ def main() -> None:
     gen.add_argument("--judge-temperature", default="0.0")
     gen.add_argument("--judge-max-tokens", default="800")
     gen.add_argument("--judge-limit", default=None)  # optional: limit scenarios for smoke tests
-
+    gen.add_argument("--judge-resume", action="store_true")
+    gen.add_argument("--judge-retry-max-attempts", default="5")
     gen.add_argument("--models-config", default=None)
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")

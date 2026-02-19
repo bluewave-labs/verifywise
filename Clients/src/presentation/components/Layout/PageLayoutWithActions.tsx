@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { PageBreadcrumbs } from '../breadcrumbs/PageBreadcrumbs';
 import { DashboardActionButtons } from './DashboardActionButtons';
 import { BreadcrumbItem } from '../../types/interfaces/i.breadcrumbs';
@@ -39,28 +39,23 @@ export function PageLayoutWithActions({
 
       {title && (
         <Box sx={{ mb: 3 }}>
-          <Box
-            component="h1"
+          <Typography
+            variant="h5"
             sx={{
-              fontSize: '24px',
               fontWeight: 600,
               color: 'text.primary',
               mb: 1,
             }}
           >
             {title}
-          </Box>
+          </Typography>
           {description && (
-            <Box
-              component="p"
-              sx={{
-                fontSize: '14px',
-                color: 'text.secondary',
-                m: 0,
-              }}
+            <Typography
+              variant="body2"
+              color="text.secondary"
             >
               {description}
-            </Box>
+            </Typography>
           )}
         </Box>
       )}

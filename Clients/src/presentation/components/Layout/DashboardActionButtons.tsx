@@ -126,7 +126,7 @@ export const DashboardActionButtons = memo(function DashboardActionButtons({
   return (
     <Stack
       direction="row"
-      spacing={'8px'}
+      spacing={1}
       alignItems="center"
       sx={{
         visibility: shouldHide ? 'hidden' : 'visible',

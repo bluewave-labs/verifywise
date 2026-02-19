@@ -9,15 +9,7 @@ import StandardModal from "../Modals/StandardModal";
 
 import { textfieldStyle } from "./styles";
 import { LinkedRisksModalProps } from "../../types/interfaces/i.table";
-
-interface ProjectRisk {
-  id: number;
-  risk_name: string;
-  risk_description?: string;
-  severity?: string;
-  likelihood?: string;
-  category?: string;
-}
+import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 
 export function LinkedRisksPopup({
   onClose,
@@ -32,7 +24,7 @@ export function LinkedRisksPopup({
   const pId = searchParams.get("projectId");
   const projectId = propProjectId || parseInt(pId ?? "0");
 
-  const [frameworkRisks, setFrameworkRisks] = useState<ProjectRisk[]>([]);
+  const [frameworkRisks, setFrameworkRisks] = useState<RiskModel[]>([]);
 
   const shouldUseProjectRisks =
     !isOrganizational && projectId > 0 && frameworkId !== 1;

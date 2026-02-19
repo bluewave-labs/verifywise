@@ -81,7 +81,8 @@ const ComplianceTracker = ({
   };
 
   const fetchControlCategories = async () => {
-    if (!currentProjectId) return;
+    // Only fetch if project has EU AI Act framework assigned
+    if (!currentProjectId || !currentProjectFramework) return;
 
     try {
       const response = await getEntityById({
@@ -98,11 +99,14 @@ const ComplianceTracker = ({
   };
 
   useEffect(() => {
-    if (currentProjectId) {
+    if (currentProjectId && currentProjectFramework) {
       fetchComplianceData();
       fetchControlCategories();
+    } else if (currentProjectId) {
+      // No EU AI Act framework - just stop loading
+      setLoading(false);
     }
-  }, [currentProjectId]);
+  }, [currentProjectId, currentProjectFramework]);
 
   if (loading) {
     return (

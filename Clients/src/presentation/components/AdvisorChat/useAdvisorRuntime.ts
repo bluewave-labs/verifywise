@@ -6,6 +6,9 @@ import { useAdvisorConversationSafe } from '../../../application/contexts/Adviso
 import { store } from '../../../application/redux/store';
 import { ENV_VARs } from '../../../../env.vars';
 
+// Extended UIMessage type with optional createdAt for our use case
+type ExtendedUIMessage = UIMessage & { createdAt?: Date };
+
 /**
  * Get the direct backend URL for the AI SDK chat endpoint.
  * In development, bypass the Vite dev proxy to avoid SSE buffering.
@@ -21,7 +24,7 @@ const getChatApiUrl = (): string => {
 /**
  * Create a welcome UIMessage for the assistant-ui thread.
  */
-const createWelcomeUIMessage = (domain?: AdvisorDomain): UIMessage => ({
+const createWelcomeUIMessage = (domain?: AdvisorDomain): ExtendedUIMessage => ({
   id: 'welcome',
   role: 'assistant',
   parts: [{ type: 'text', text: getWelcomeMessage(domain) }],
@@ -149,7 +152,7 @@ export const useAdvisorRuntime = (
     () =>
       new DefaultChatTransport({
         api: getChatApiUrl(),
-        headers: () => {
+        headers: (): Record<string, string> => {
           const token = store.getState().auth?.authToken;
           return token ? { Authorization: `Bearer ${token}` } : {};
         },
@@ -179,19 +182,21 @@ export const useAdvisorRuntime = (
 
       if (msg.role === 'assistant') {
         const chartData = extractChartData(msg, text);
+        const extMsg = msg as ExtendedUIMessage;
         context.addMessage(domain, {
           id: msg.id,
           role: 'assistant',
           content: text,
-          createdAt: msg.createdAt ? new Date(msg.createdAt).toISOString() : new Date().toISOString(),
+          createdAt: extMsg.createdAt ? new Date(extMsg.createdAt).toISOString() : new Date().toISOString(),
           chartData: chartData || undefined,
         });
       } else if (msg.role === 'user') {
+        const extMsg = msg as ExtendedUIMessage;
         context.addMessage(domain, {
           id: msg.id,
           role: 'user',
           content: text,
-          createdAt: msg.createdAt ? new Date(msg.createdAt).toISOString() : new Date().toISOString(),
+          createdAt: extMsg.createdAt ? new Date(extMsg.createdAt).toISOString() : new Date().toISOString(),
         });
       }
 

@@ -29,7 +29,8 @@ export default function BulkUploadModal({
   const [uploadResults, setUploadResults] = useState<FileUploadResult[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const { userName } = useAuth();
+  const { userToken } = useAuth();
+  const userName = userToken?.name || "";
   const {
     analyses,
     analyzing,

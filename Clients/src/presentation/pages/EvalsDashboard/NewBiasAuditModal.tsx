@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
+import dayjs from "dayjs";
 import { Box, Stack, Typography, CircularProgress, Alert, useTheme } from "@mui/material";
 import Chip from "../../components/Chip";
 import { Upload, FileSpreadsheet, Info } from "lucide-react";
@@ -496,7 +497,7 @@ const NewBiasAuditModal: React.FC<NewBiasAuditModalProps> = ({
 
       <DatePicker
         label="Distribution date"
-        date={distributionDate || null}
+        date={distributionDate ? dayjs(distributionDate) : null}
         handleDateChange={(value) => setDistributionDate(value ? value.format("YYYY-MM-DD") : "")}
         isOptional
       />

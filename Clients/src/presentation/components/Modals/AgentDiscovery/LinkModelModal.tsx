@@ -131,7 +131,7 @@ const LinkModelModal: React.FC<LinkModelModalProps> = ({
           variant="contained"
           sx={{ backgroundColor: "#13715B", border: "1px solid #13715B" }}
           onClick={handleSubmit}
-          disabled={isSubmitting || !selectedModelId}
+          isDisabled={isSubmitting || !selectedModelId}
         >
           {isSubmitting ? "Linking..." : "Link model"}
         </CustomizableButton>

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import path from "path";
 import fs from "fs/promises";
-import { generateToken } from "../utils/jwt.utils";
+import { generateInviteToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { sendEmail } from "../services/emailService";
 import {
@@ -43,7 +43,7 @@ export const invite = async (
     );
     const template = await fs.readFile(templatePath, "utf8");
 
-    const token = generateToken({
+    const token = generateInviteToken({
       name,
       surname,
       roleId,

@@ -279,7 +279,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
               variant="outlined"
               sx={{ border: "1px solid #D32F2F", color: "#D32F2F" }}
               onClick={() => handleReview("rejected")}
-              disabled={isSubmitting}
+              isDisabled={isSubmitting}
             >
               Reject
             </CustomizableButton>
@@ -289,7 +289,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
               variant="contained"
               sx={{ backgroundColor: "#13715B", border: "1px solid #13715B" }}
               onClick={() => handleReview("confirmed")}
-              disabled={isSubmitting}
+              isDisabled={isSubmitting}
             >
               Confirm
             </CustomizableButton>

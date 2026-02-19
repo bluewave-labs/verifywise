@@ -193,6 +193,7 @@ export const createNewTenant = async (
         approval_workflow_id INTEGER REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE SET NULL,
         pending_frameworks JSONB DEFAULT NULL,
         enable_ai_data_insertion BOOLEAN DEFAULT FALSE,
+        _source VARCHAR(100),
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)

@@ -470,7 +470,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           ) : (
             <>
               <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>
-                {experiment.id}
+                {experiment.name || experiment.id}
               </Typography>
               <IconButton
                 size="small"

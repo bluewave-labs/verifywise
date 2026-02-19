@@ -70,7 +70,7 @@ function IconButton({
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
 
-  const openMenu = (event: React.MouseEvent<HTMLElement>, id: string | number, url: string) => {
+  const openMenu = (event: React.MouseEvent<HTMLElement>, _id: string | number, _url: string) => {
     event.preventDefault();
     event.stopPropagation();
     setAnchorEl(event.currentTarget);

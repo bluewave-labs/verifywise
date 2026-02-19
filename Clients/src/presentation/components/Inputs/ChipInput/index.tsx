@@ -29,7 +29,7 @@ function ChipInput({
   isRequired = false,
   sx,
   disabled = false,
-}) {
+}: ChipInputProps) {
   const theme = useTheme();
 
   return (

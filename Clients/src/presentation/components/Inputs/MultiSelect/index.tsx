@@ -15,10 +15,6 @@ import {
 import { ChevronDown } from "lucide-react";
 import { getSelectStyles } from "../../../utils/inputStyles";
 
-function isRecordSx(sx: SxProps<Theme>): sx is Record<string, unknown> {
-  return typeof sx === 'object' && sx !== null && !Array.isArray(sx);
-}
-
 interface MultiSelectProps {
   id: string;
   label?: string;
@@ -47,19 +43,23 @@ function MultiSelect({
   const theme = useTheme();
 
   // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
-  const extractedLayoutProps = sx && isRecordSx(sx)
-    ? {
-        width: sx.width as string | number | undefined,
-        flexGrow: sx.flexGrow as number | undefined,
-        minWidth: sx.minWidth as string | number | undefined,
-        maxWidth: sx.maxWidth as string | number | undefined,
-      }
-    : {};
+  const extractedLayoutProps = (() => {
+    if (!sx || typeof sx !== 'object' || Array.isArray(sx)) return {};
+    const s = sx as Record<string, unknown>;
+    return {
+      width: s.width as string | number | undefined,
+      flexGrow: s.flexGrow as number | undefined,
+      minWidth: s.minWidth as string | number | undefined,
+      maxWidth: s.maxWidth as string | number | undefined,
+    };
+  })();
 
   // Create a copy of sx without layout props to pass to MuiSelect
-  const sxWithoutLayoutProps = sx && isRecordSx(sx)
-    ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
-    : sx;
+  const sxWithoutLayoutProps = (() => {
+    if (!sx || typeof sx !== 'object' || Array.isArray(sx)) return sx;
+    const s = sx as Record<string, unknown>;
+    return Object.fromEntries(Object.entries(s).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)));
+  })();
 
   const renderValue = (selected: number[]) => {
     if (selected.length === 0) {

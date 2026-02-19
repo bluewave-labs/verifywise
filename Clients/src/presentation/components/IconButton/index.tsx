@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * IconButton component that renders a custom-styled Material-UI IconButton with a settings icon.
  * It includes a dropdown menu with options to edit or remove a vendor, and modals for adding or removing vendors.
@@ -25,7 +24,7 @@ import { IconButtonProps } from "../../types/widget.types";
 import { AlertProps } from "../../types/alert.types";
 import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
 
-const IconButton: React.FC<IconButtonProps> = ({
+function IconButton({
   id,
   onDelete,
   onEdit,
@@ -59,11 +58,9 @@ const IconButton: React.FC<IconButtonProps> = ({
   onPreview,
   onEditMetadata,
   onViewHistory,
-}) => {
+}: IconButtonProps) {
   const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setActions] = useState({});
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
   const [isOpenHardDeleteModal, setIsOpenHardDeleteModal] = useState(false);
   const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] =
@@ -73,27 +70,12 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
 
-  /**
-   * Handles the opening of a menu by preventing the default event behavior,
-   * stopping event propagation, setting the anchor element, and updating the actions state.
-   *
-   * @param {any} id - The identifier associated with the menu item.
-   * @param {any} event - The event object triggered by the user interaction.
-   * @param {any} url - The URL associated with the menu item.
-   */
-  const openMenu = (event: any, id: any, url: any) => {
+  const openMenu = (event: React.MouseEvent<HTMLElement>, id: string | number, url: string) => {
     event.preventDefault();
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
-    setActions({ id: id, url: url });
   };
 
-  /**
-   * Handles the closing of the dropdown menu by stopping event propagation
-   * and setting the anchor element to null.
-   *
-   * @param {React.SyntheticEvent} e - The event object triggered by the user interaction.
-   */
   function closeDropDownMenu(e: React.SyntheticEvent) {
     e.stopPropagation();
     setAnchorEl(null);
@@ -166,7 +148,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       onView();
       if (e) {
         closeDropDownMenu(e);
-        onMouseEvent?.(e); // optional chaining just in case
+        onMouseEvent?.(e);
       }
     }
   };
@@ -272,7 +254,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
-  function handleCancle(e?: React.SyntheticEvent) {
+  function handleCancel(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
       closeDropDownMenu(e);
@@ -343,7 +325,7 @@ const IconButton: React.FC<IconButtonProps> = ({
 
     return ["edit", "remove"];
   };
-  
+
   const listOfButtons = getListOfButtons();
 
   /**
@@ -352,12 +334,12 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const getMenuItemText = (item: string) => {
     const normalizedType = type?.toLowerCase();
-  
+
     // Dynamic case stays explicit
     if (item === "make visible") {
       return isVisible ? "Make hidden" : "Make visible";
     }
-  
+
     const LABELS_BY_TYPE: Record<string, Record<string, string>> = {
       incident: {
         archive: "Archive incident",
@@ -368,7 +350,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         restore: "Restore task",
       },
     };
-  
+
     const COMMON_ITEM_LABELS: Record<string, string> = {
       link_objects: "Linked objects",
       linked_policies: "Linked policies",
@@ -379,37 +361,22 @@ const IconButton: React.FC<IconButtonProps> = ({
       edit_metadata: "Edit metadata",
       version_history: "Version history",
     };
-  
+
     // Type-specific
     const typeLabel = normalizedType ? LABELS_BY_TYPE[normalizedType]?.[item] : undefined;
     if (typeLabel) {
       return typeLabel;
     }
-  
+
     // Shared labels across multiple types
     if (COMMON_ITEM_LABELS[item]) {
       return COMMON_ITEM_LABELS[item];
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
-  
 
 
-  /**
-   * Renders a dropdown menu with dynamic options (e.g., Edit, Download, Remove)
-   * based on the context (e.g., "Vendor", "report", etc.).
-   *
-   * The menu is styled using the theme's dropdown styles. The "Remove" option is
-   * conditionally styled in red, while others use default styling.
-   *
-   * The options are dynamically mapped from a list of button labels (`listOfButtons`),
-   * which is determined by the `type` prop (e.g., "report" only shows "Download").
-   *
-   * @constant
-   * @type {JSX.Element}
-   *
-   * @returns {JSX.Element} A Material-UI Menu component containing context-based actions.
-   */
+
   const dropDownListOfOptions: JSX.Element = (
     <Menu
       anchorEl={anchorEl}
@@ -534,22 +501,22 @@ const IconButton: React.FC<IconButtonProps> = ({
               ...(() => {
                 // Archive (soft delete) uses warning color
                 if (item === "archive" && (type === "Task" || type === "task")) {
-                  return { color: "#F59E0B" }; // warning color
+                  return { color: theme.palette.warning.main };
                 }
                 // Hard delete uses error color
                 if (item === "delete" && (type === "Task" || type === "task")) {
-                  return { color: "#d32f2f" }; // error color
+                  return { color: theme.palette.error.main };
                 }
                 // Other remove/archive uses error color
                 if (item === "remove" || item === "archive") {
-                  return { color: "#d32f2f" };
+                  return { color: theme.palette.error.main };
                 }
                 // Restore uses primary/success color
                 if (item === "restore") {
-                  return { color: "#13715B" }; // primary color
+                  return { color: theme.palette.primary.main };
                 }
                 if (item === "link_objects" || item === "linked_policies") {
-                  return { color: "#13715B" }; // primary color
+                  return { color: theme.palette.primary.main };
                 }
                 return {};
               })(),
@@ -563,22 +530,6 @@ const IconButton: React.FC<IconButtonProps> = ({
     </Menu>
   );
 
-  /**
-   * Custom IconButton component styled as settings button.
-   *
-   * @constant
-   * @type {JSX.Element}
-   * @description This component renders a Material-UI IconButton with custom styles and behavior.
-   * It disables the ripple effect if specified in the theme, removes the outline on focus,
-   * and sets the stroke color of the SVG path to a custom color from the theme palette.
-   * The button's onClick event handler stops the event propagation and opens a menu with specified parameters.
-   *
-   * @param {React.MouseEvent} event - The click event.
-   * @param {string} someId - The ID to be used when opening the menu.
-   * @param {string} someUrl - The URL to be used when opening the menu.
-   *
-   * @returns {JSX.Element} A styled IconButton component with a settings icon.
-   */
   const customIconButtonAsSettings: JSX.Element = (
     <MuiIconButton
       disableRipple={
@@ -604,7 +555,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           title={warningTitle}
           body={
             typeof warningMessage === "string" ? (
-              <Typography fontSize={13} color="#344054">
+              <Typography fontSize={13} color={theme.palette.text.primary}>
                 {warningMessage}
               </Typography>
             ) : (
@@ -617,7 +568,7 @@ const IconButton: React.FC<IconButtonProps> = ({
               ? `Archive ${type.toLowerCase()}`
               : `Delete ${type}`
           }
-          onCancel={() => handleCancle()}
+          onCancel={() => handleCancel()}
           onProceed={() =>
             checkForRisks && onDeleteWithRisks
               ? handleDeleteWithRiskCheck()
@@ -636,7 +587,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           title={hardDeleteWarningTitle}
           body={
             typeof hardDeleteWarningMessage === "string" ? (
-              <Typography fontSize={13} color="#344054">
+              <Typography fontSize={13} color={theme.palette.text.primary}>
                 {hardDeleteWarningMessage}
               </Typography>
             ) : (
@@ -669,6 +620,6 @@ const IconButton: React.FC<IconButtonProps> = ({
       )}
     </>
   );
-};
+}
 
 export default IconButton;

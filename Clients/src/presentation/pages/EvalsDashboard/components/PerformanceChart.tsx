@@ -90,7 +90,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
   const [data, setData] = useState<ChartPoint[]>([]);
   const [activeMetrics, setActiveMetrics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+  const [timeRange, setTimeRange] = useState<TimeRange>("all");
 
   // Get cutoff date based on time range
   const getCutoffDate = useCallback((range: TimeRange): Date | null => {

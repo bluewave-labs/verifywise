@@ -80,6 +80,7 @@ import featureSettingsRoutes from "./routes/featureSettings.route";
 import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import invitationRoutes from "./routes/invitation.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
+import { addAgentDiscoveryTables } from "./scripts/addAgentDiscoveryTables";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -245,6 +246,15 @@ try {
       await setupNotificationSubscriber();
     } catch (error) {
       console.error("Failed to setup notification subscriber:", error);
+    }
+  })();
+
+  // Run agent discovery tenant migrations (idempotent, safe on every boot)
+  (async () => {
+    try {
+      await addAgentDiscoveryTables();
+    } catch (error) {
+      console.error("Agent discovery table migration failed:", error);
     }
   })();
 

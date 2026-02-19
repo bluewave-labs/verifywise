@@ -658,8 +658,8 @@ const PluginManagement: React.FC = () => {
                       />
                     )}
 
-                    {/* Generic Configuration Form - only for plugins without custom config UI */}
-                    {!connectingOAuth && pluginKey && !getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(c => c.pluginKey === pluginKey) && !plugin.ui?.slots?.some((s: { slotId: string }) => s.slotId === PLUGIN_SLOTS.PLUGIN_CONFIG) && (
+                    {/* Generic Configuration Form - only for plugins without custom config UI (that don't require configuration) */}
+                    {!connectingOAuth && pluginKey && !getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(c => c.pluginKey === pluginKey) && !plugin.requiresConfiguration && (
                       <>
                         <Typography variant="body2" color="text.secondary" fontSize={13} sx={{ mb: 3 }}>
                           Configure {plugin.displayName} settings and preferences.

@@ -15,7 +15,7 @@ import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";

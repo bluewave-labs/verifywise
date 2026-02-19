@@ -20,13 +20,13 @@ interface ReviewerMultiSelectProps {
   error?: boolean | string;
 }
 
-const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
+function ReviewerMultiSelect({
   selected,
   setSelected,
   label = "Assigned reviewers",
   required = false,
   error,
-}) => {
+}: ReviewerMultiSelectProps) {
   const theme = useTheme();
   const { users } = useUsers();
 
@@ -104,13 +104,13 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
                 transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                   },
                 },
               },
@@ -146,7 +146,7 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
                 secondary={user.email}
                 secondaryTypographyProps={{
                   fontSize: 11,
-                  color: "#9d9d9d",
+                  color: theme.palette.text.disabled,
                 }}
               />
             </MenuItem>
@@ -169,6 +169,6 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
       )}
     </Stack>
   );
-};
+}
 
 export default ReviewerMultiSelect;

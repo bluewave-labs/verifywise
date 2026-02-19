@@ -44,7 +44,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { useUserGuideSidebarContext } from "../../components/UserGuide";
 import TipBox from "../../components/TipBox";

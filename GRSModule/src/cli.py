@@ -40,6 +40,19 @@ from llm.openrouter import OpenRouterChatClient
 from infer.resume import load_completed_pairs
 from reports.infer_report import build_infer_report
 
+from judge.load_rubric import load_judge_rubric
+from judge.runner import run_judging, JudgeConfig, run_judging_resumable
+from judge.discovery import list_response_files
+from judge.join import build_pairs
+from judge.resume import load_completed_judgements
+from judge.stats import compute_judge_stats
+from judge.manifest import write_judge_manifest
+from reports.judge_report import build_judge_report
+
+from leaderboard.aggregate import aggregate_from_judge_scores
+from leaderboard.discovery import list_judge_score_files
+from leaderboard.export import write_leaderboard_json, write_leaderboard_csv
+
 
 console = Console()
 
@@ -433,6 +446,154 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         console.print(f"- wrote: {out_path}")
         return 0
 
+    if args.stage == "judge":
+        scenarios_path = final_dir / "scenarios.jsonl"
+        judge_report_path = final_dir / "judge_report.json"
+        judge_manifest_path = final_dir / "judge_manifest.json"
+
+        if not scenarios_path.exists():
+            console.print(f"[red]Missing input:[/red] {scenarios_path} (run --stage validate first)")
+            return 2
+
+        scenarios = list(read_jsonl(scenarios_path))
+        if args.judge_limit is not None:
+            scenarios = scenarios[: int(args.judge_limit)]
+
+        rubric = load_judge_rubric(Path(args.judge_rubric))
+
+        # judge client (OpenRouter)
+        judge_client = OpenRouterChatClient(model_id=args.judge_model_id)
+
+        responses_dir = Path(args.responses_dir) if args.responses_dir else (final_dir / "responses")
+        out_dir = Path(args.judge_out_dir) if args.judge_out_dir else (final_dir / "judge_scores")
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        resp_files = list_response_files(responses_dir)
+        if not resp_files:
+            console.print(f"[red]No response files found in:[/red] {responses_dir}")
+            return 2
+
+        outputs = []
+        for rf in resp_files:
+            responses = list(read_jsonl(rf))
+            pairs = build_pairs(scenarios=scenarios, responses=responses)
+
+            if not pairs:
+                console.print(f"[yellow]No joinable pairs for:[/yellow] {rf.name}")
+                continue
+
+            out_path = out_dir / rf.name
+            fail_path = out_dir / (rf.name + ".failures.jsonl")
+
+            skip = set()
+            if args.judge_resume:
+                skip = load_completed_judgements(out_path)
+
+            cfg = JudgeConfig(
+                judge_model_id=args.judge_model_id,
+                judge_provider="openrouter",
+                temperature=float(args.judge_temperature),
+                max_tokens=int(args.judge_max_tokens),
+            )
+
+            scores, failures, skipped = run_judging_resumable(
+                pairs=pairs,
+                client=judge_client,
+                rubric=rubric,
+                cfg=cfg,
+                skip_keys=skip,
+                retry_max_attempts=int(args.judge_retry_max_attempts),
+            )
+
+            if args.judge_resume:
+                append_jsonl(out_path, scores)
+                append_jsonl(fail_path, failures)
+            else:
+                write_jsonl(out_path, scores)
+                write_jsonl(fail_path, failures)
+
+            outputs.append({
+                "candidate_response_file": rf.name,
+                "judge_scores_path": str(out_path),
+                "judge_scores_sha256": sha256_file(out_path) if out_path.exists() else None,
+                "judge_failures_path": str(fail_path),
+                "judge_failures_sha256": sha256_file(fail_path) if fail_path.exists() else None,
+            })
+
+            console.print("[bold green]Judging complete.[/bold green]")
+            console.print(f"- candidate_file: {rf.name}")
+            console.print(f"- pairs_total: {len(pairs)}")
+            console.print(f"- skipped: {skipped}")
+            console.print(f"- scored: {len(scores)}")
+            console.print(f"- failed: {len(failures)}")
+            console.print(f"- wrote: {out_path}")
+            console.print(f"- wrote: {fail_path}")
+        
+        per_candidate = []
+        for o in outputs:
+            sp = Path(o["judge_scores_path"])
+            fp = Path(o["judge_failures_path"])
+            stats = compute_judge_stats(sp, fp)
+            stats["candidate_response_file"] = o["candidate_response_file"]
+            per_candidate.append(stats)
+
+        report = build_judge_report(
+            judge_model_id=args.judge_model_id,
+            rubric_version=rubric.version,
+            per_candidate=per_candidate,
+        )
+        report["generated_at"] = datetime.now(timezone.utc).isoformat()
+        report["dataset_version"] = args.dataset_version
+        judge_report_path.parent.mkdir(parents=True, exist_ok=True)
+        judge_report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+        write_judge_manifest(
+            out_path=judge_manifest_path,
+            dataset_version=args.dataset_version,
+            scenarios_path=scenarios_path,
+            responses_dir=responses_dir,
+            judge_out_dir=out_dir,
+            judge_model_id=args.judge_model_id,
+            judge_rubric_path=Path(args.judge_rubric),
+            judge_temperature=float(args.judge_temperature),
+            judge_max_tokens=int(args.judge_max_tokens),
+            judge_retry_max_attempts=int(args.judge_retry_max_attempts),
+            judge_resume=bool(args.judge_resume),
+            outputs=outputs,
+        )
+
+        console.print(f"[bold green]Wrote judge report:[/bold green] {judge_report_path}")
+        console.print(f"[bold green]Wrote judge manifest:[/bold green] {judge_manifest_path}")
+
+        return 0
+
+    if args.stage == "leaderboard":
+        scenarios_path = final_dir / "scenarios.jsonl"
+        if not scenarios_path.exists():
+            console.print(f"[red]Missing input:[/red] {scenarios_path}")
+            return 2
+
+        js_dir = Path(args.judge_scores_dir) if args.judge_scores_dir else (final_dir / "judge_scores")
+        files = list_judge_score_files(js_dir)
+        if not files:
+            console.print(f"[red]No judge score files found in:[/red] {js_dir}")
+            return 2
+
+        agg = aggregate_from_judge_scores(scenarios_path=scenarios_path, judge_scores_paths=files)
+
+        out_dir = Path(args.leaderboard_out_dir) if args.leaderboard_out_dir else final_dir
+        out_json = out_dir / "leaderboard.json"
+        out_csv = out_dir / "leaderboard.csv"
+
+        write_leaderboard_json(out_json, agg)
+        write_leaderboard_csv(out_csv, agg["rows"])
+
+        console.print("[bold green]Leaderboard aggregation complete.[/bold green]")
+        console.print(f"- judge_files: {len(files)}")
+        console.print(f"- wrote: {out_json}")
+        console.print(f"- wrote: {out_csv}")
+        return 0
+
 
     console.print(f"[red]Unsupported stage:[/red] {args.stage}")
     return 2
@@ -443,7 +604,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     gen = sub.add_parser("generate", help="Generate artifacts for the scenario pipeline")
-    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate", "infer"], required=True)
+    gen.add_argument("--stage", choices=["seeds", "render", "perturb", "validate", "infer", "judge", "leaderboard"], required=True)
     gen.add_argument("--seed", default="42")
     gen.add_argument("--per-obligation", default="2")
     gen.add_argument("--mutations", default="configs/mutations.yaml")
@@ -457,6 +618,17 @@ def main() -> None:
     gen.add_argument("--limit", type=int, default=None, help="Max number of scenarios to run inference on")
     gen.add_argument("--resume", action="store_true")
     gen.add_argument("--retry-max-attempts", default="5")
+    gen.add_argument("--judge-model-id", default="openai/gpt-4o-mini")
+    gen.add_argument("--judge-rubric", default="configs/judge_rubric.yaml")
+    gen.add_argument("--responses-dir", default=None)  # default: <final_dir>/responses
+    gen.add_argument("--judge-out-dir", default=None)  # default: <final_dir>/judge_scores
+    gen.add_argument("--judge-temperature", default="0.0")
+    gen.add_argument("--judge-max-tokens", default="800")
+    gen.add_argument("--judge-limit", default=None)  # optional: limit scenarios for smoke tests
+    gen.add_argument("--judge-resume", action="store_true")
+    gen.add_argument("--judge-retry-max-attempts", default="5")
+    gen.add_argument("--judge-scores-dir", default=None)
+    gen.add_argument("--leaderboard-out-dir", default=None)
     gen.add_argument("--models-config", default=None)
     gen.add_argument("--dataset-version", default="grs_scenarios_v0.1")
     gen.add_argument("--obligations", default="configs/obligations.yaml")

@@ -52,7 +52,7 @@ import { FilePickerModal } from "../../FilePickerModal";
 import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
-const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks").then(m => ({ default: m.LinkedRisksPopup })));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 

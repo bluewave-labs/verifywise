@@ -111,7 +111,6 @@ export interface FieldProps {
   isOptional?: boolean;
   optionalLabel?: string;
   autoComplete?: string;
-  autoFocus?: boolean;
   https?: boolean;
   width?: number | string;
   rows?: number;

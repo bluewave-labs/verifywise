@@ -47,7 +47,7 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import {

@@ -32,14 +32,14 @@ interface CustomizableMultiSelectProps {
     email?: string;
     surname?: string;
   }[];
-  getOptionValue?: (item: any) => any;
+  getOptionValue?: (item: { _id: string | number; name: string; email?: string; surname?: string }) => string | number;
   placeholder?: string;
   isHidden?: boolean;
   width?: number;
   sx?: object;
 }
 
-const CustomizableMultiSelect = ({
+function CustomizableMultiSelect({
   label = "This is a multi-select",
   required = false,
   error,
@@ -51,7 +51,7 @@ const CustomizableMultiSelect = ({
   isHidden,
   width,
   sx,
-}: CustomizableMultiSelectProps) => {
+}: CustomizableMultiSelectProps) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
 
@@ -211,13 +211,13 @@ const CustomizableMultiSelect = ({
                 transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -270,7 +270,7 @@ const CustomizableMultiSelect = ({
                 }`}</span>
                 {item.email && (
                   <span
-                    style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
+                    style={{ fontSize: 11, color: theme.palette.text.disabled, marginLeft: "4px" }}
                   >
                     {`${item.email}`}
                   </span>
@@ -294,6 +294,6 @@ const CustomizableMultiSelect = ({
       )}
     </Stack>
   );
-};
+}
 
 export default CustomizableMultiSelect;

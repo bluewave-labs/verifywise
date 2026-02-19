@@ -22,7 +22,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { Info as GreyCircleInfoIcon } from "lucide-react";
 import { cardStyles } from "../../../themes";
 import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/ceMarking";
-import VWLink from "../../../components/Link/VWLink";
+import { VWLink } from "../../../components/Link/VWLink";
 import Select from "../../../components/Inputs/Select";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import StandardModal from "../../../components/Modals/StandardModal";
@@ -210,11 +210,6 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const { users } = useUsers();
   const { project, error: projectError, isLoading: projectLoading } = useProjectData({ projectId });
 
-  // Extract numeric ID for API calls (handles plugin-sourced IDs like "prefix-123")
-  const numericProjectId = projectId.includes("-")
-    ? projectId.substring(projectId.lastIndexOf("-") + 1)
-    : projectId;
-
   // Loading and error states
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -300,7 +295,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const fetchCEMarkingData = async () => {
     try {
       setLoading(true);
-      const ceMarkingData = await getCEMarking(numericProjectId);
+      const ceMarkingData = await getCEMarking(projectId);
       setData(ceMarkingData);
       setIsHighRiskAISystem(ceMarkingData.isHighRiskAISystem || false);
       setAnnexIIICategory(ceMarkingData.annexIIICategory || "annex_iii_5");
@@ -339,7 +334,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
 
         try {
           setSaving(true);
-          const updatedData = await updateClassificationAndScope(numericProjectId, {
+          const updatedData = await updateClassificationAndScope(projectId, {
             isHighRiskAISystem: newValue,
           });
           setData(updatedData);
@@ -364,7 +359,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setAnnexIIICategory(newValue);
 
     try {
-      const updatedData = await updateClassificationAndScope(numericProjectId, {
+      const updatedData = await updateClassificationAndScope(projectId, {
         annexIIICategory: newValue,
       });
       setData(updatedData);
@@ -384,7 +379,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     setRoleInProduct(newValue);
 
     try {
-      const updatedData = await updateClassificationAndScope(numericProjectId, {
+      const updatedData = await updateClassificationAndScope(projectId, {
         roleInProduct: newValue,
       });
       setData(updatedData);
@@ -426,7 +421,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     try {
       setSaving(true);
       const updatedData = await updateConformityStep(
-        numericProjectId,
+        projectId,
         selectedStep.id,
         {
           description: stepEditForm.description,
@@ -473,7 +468,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     try {
       setSaving(true);
       const updatedData = await updateDeclaration(
-        numericProjectId,
+        projectId,
         {
           declarationStatus: declarationEditForm.status,
           signedOn: declarationEditForm.signedOn ? declarationEditForm.signedOn.format("YYYY-MM-DD") : null,
@@ -518,7 +513,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
     try {
       setSaving(true);
       const updatedData = await updateRegistration(
-        numericProjectId,
+        projectId,
         {
           registrationStatus: registrationEditForm.status,
           euRegistrationId: registrationEditForm.euRegistrationId,
@@ -561,7 +556,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSavePolicies = async () => {
     try {
       setSaving(true);
-      const updatedData = await updateLinkedPolicies(numericProjectId, selectedPolicies);
+      const updatedData = await updateLinkedPolicies(projectId, selectedPolicies);
       setData(updatedData);
       showAlert("Linked policies updated successfully");
       handleClosePoliciesModal();
@@ -604,7 +599,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSaveEvidences = async () => {
     try {
       setSaving(true);
-      const updatedData = await updateLinkedEvidences(numericProjectId, selectedEvidences);
+      const updatedData = await updateLinkedEvidences(projectId, selectedEvidences);
       setData(updatedData);
       showAlert("Linked evidence updated successfully");
       handleCloseEvidencesModal();
@@ -647,7 +642,7 @@ const CEMarking: React.FC<CEMarkingProps> = ({ projectId }) => {
   const handleSaveIncidents = async () => {
     try {
       setSaving(true);
-      const updatedData = await updateLinkedIncidents(numericProjectId, selectedIncidents);
+      const updatedData = await updateLinkedIncidents(projectId, selectedIncidents);
       setData(updatedData);
       showAlert("Linked incidents updated successfully");
       handleCloseIncidentsModal();

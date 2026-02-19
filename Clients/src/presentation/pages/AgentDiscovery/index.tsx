@@ -4,7 +4,7 @@ import { RefreshCw, CirclePlus } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getAllEntities } from "../../../application/repository/entity.repository";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import AgentStatusCards from "./AgentStatusCards";
 import AgentTable, { AgentPrimitiveRow } from "./AgentTable";
 import ReviewAgentModal from "../../components/Modals/AgentDiscovery/ReviewAgentModal";

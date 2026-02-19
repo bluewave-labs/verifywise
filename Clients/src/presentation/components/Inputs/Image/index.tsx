@@ -27,12 +27,12 @@ import { CloudUpload as CloudUploadIcon } from "lucide-react";
 import { ImageFieldProps } from "../../../types/widget.types";
 import { checkImage, IconButtonStack, TextFieldStyles } from "./constants";
 
-const ImageField: React.FC<ImageFieldProps> = ({
+function ImageField({
   id,
   src,
   loading,
   onChange,
-}) => {
+}: ImageFieldProps) {
   const theme = useTheme();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -130,6 +130,6 @@ const ImageField: React.FC<ImageFieldProps> = ({
       )}
     </>
   );
-};
+}
 
 export default ImageField;

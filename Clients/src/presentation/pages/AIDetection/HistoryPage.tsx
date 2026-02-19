@@ -31,7 +31,7 @@ import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";

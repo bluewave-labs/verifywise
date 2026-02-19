@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
+import { Box, Card, CardContent, Typography, Stack, FormControl, Select, MenuItem } from "@mui/material";
 import { Play, Clock } from "lucide-react";
 import {
   getAllExperiments,
@@ -15,7 +15,7 @@ import NewExperimentModal from "./NewExperimentModal";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { useNavigate } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
-import PerformanceChart from "./components/PerformanceChart";
+import PerformanceChart, { TIME_RANGE_OPTIONS, type TimeRange } from "./components/PerformanceChart";
 import type { IEvaluationRow } from "../../types/interfaces/i.table";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
@@ -76,6 +76,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const [chartTimeRange, setChartTimeRange] = useState<TimeRange>("all");
   const prevRunningIdsRef = useRef<Set<string>>(new Set());
 
   // RBAC permissions
@@ -670,16 +671,38 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           <Box mb={1}>
             <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600 }}>Performance tracking</Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "13px" }}>
-            Track metric scores across eval runs
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
+              Track metric scores across eval runs
+            </Typography>
+            <FormControl size="small">
+              <Select
+                value={chartTimeRange}
+                onChange={(e) => setChartTimeRange(e.target.value as TimeRange)}
+                sx={{
+                  fontSize: "12px",
+                  height: "28px",
+                  "& .MuiSelect-select": { py: 0.5, px: 1.5 },
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
+                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
+                }}
+              >
+                {TIME_RANGE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: "12px" }}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
           <Box sx={{ position: "relative" }}>
             <Box sx={{
               filter: experiments.length === 0 ? "blur(4px)" : "none",
               pointerEvents: experiments.length === 0 ? "none" : "auto",
             }}>
-              <PerformanceChart key={`chart-${chartRefreshKey}`} projectId={projectId} />
+              <PerformanceChart key={`chart-${chartRefreshKey}`} projectId={projectId} timeRange={chartTimeRange} />
             </Box>
             {experiments.length === 0 && (
               <Box

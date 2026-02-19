@@ -26,6 +26,7 @@ import express, { Request, Response, NextFunction } from "express";
 import {
   uploadFile,
   listFiles,
+  searchFiles,
   downloadFile,
   removeFile,
   getFileMetadata,
@@ -148,6 +149,24 @@ router.post(
  * @returns {500} Server error
  */
 router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
+
+/**
+ * @route   GET /file-manager/search
+ * @desc    Full-text search over file contents (organization-level files)
+ * @access  All authenticated users
+ * @query   q - Search query (required)
+ * @query   page - Page number (optional, default 1)
+ * @query   pageSize - Items per page (optional, default 20)
+ * @returns {200} List of matching files with snippets and pagination
+ * @returns {400} Validation error
+ * @returns {500} Server error
+ */
+router.get(
+  "/search",
+  fileOperationsLimiter,
+  authenticateJWT,
+  searchFiles
+);
 
 /**
  * @route   GET /file-manager/with-metadata

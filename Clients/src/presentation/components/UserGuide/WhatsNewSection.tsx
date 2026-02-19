@@ -11,6 +11,30 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    version: 'v2.1',
+    date: 'February 19, 2026',
+    title: 'Shadow AI, agent discovery, and bias audits',
+    summary:
+      'Major release introducing Shadow AI detection for discovering unauthorized AI tool usage, an AI agent discovery and inventory system, law-aware bias audits for LLM evaluations, self-hosted scorer and judge support, and a plugin ecosystem expansion with Jira integration and dataset bulk upload.',
+    items: [
+      'Shadow AI detection module — discover unauthorized AI tool usage across the organization',
+      'AI agent discovery and inventory — catalog and monitor AI agents org-wide',
+      'Law-aware bias audit module for LLM evaluations',
+      'Self-hosted local LLM scorer support (e.g. Ollama)',
+      'Self-hosted judge provider and saved model dropdowns for evals',
+      'GRS judge scoring and leaderboard aggregation',
+      'Resumable multi-model inference with OpenRouter and audit manifests',
+      'Jira integration plugin',
+      'Model inventory lifecycle plugin',
+      'Dataset bulk upload plugin',
+      'AI detection extended to workflows, containers, and configs',
+      'Lifecycle initialization in Shadow AI governance wizard',
+      'Pending invitations table in team settings',
+      'Configurable API key expiration',
+      'Release notes tab in right sidebar and user menu',
+    ],
+  },
+  {
     version: 'v2.0',
     date: 'February 6, 2026',
     title: 'Plugin marketplace and notifications',

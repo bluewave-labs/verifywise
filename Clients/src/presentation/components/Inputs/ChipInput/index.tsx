@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Autocomplete,
   TextField,
@@ -20,7 +19,7 @@ export interface ChipInputProps {
   disabled?: boolean;
 }
 
-const ChipInput: React.FC<ChipInputProps> = ({
+function ChipInput({
   id,
   label,
   value,
@@ -30,7 +29,7 @@ const ChipInput: React.FC<ChipInputProps> = ({
   isRequired = false,
   sx,
   disabled = false,
-}) => {
+}: ChipInputProps) {
   const theme = useTheme();
 
   return (
@@ -112,7 +111,7 @@ const ChipInput: React.FC<ChipInputProps> = ({
           backgroundColor: theme.palette.background.main,
           "& .MuiOutlinedInput-root": {
             ...getAutocompleteStyles(theme, { hasError: !!error })["& .MuiOutlinedInput-root"],
-            borderRadius: "5px",
+            borderRadius: theme.shape.borderRadius,
           },
           "& .MuiChip-root": {
             borderRadius: theme.shape.borderRadius,
@@ -144,6 +143,6 @@ const ChipInput: React.FC<ChipInputProps> = ({
       )}
     </Stack>
   );
-};
+}
 
 export default ChipInput;

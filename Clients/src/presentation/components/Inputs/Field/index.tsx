@@ -106,7 +106,7 @@ const Field = forwardRef(
             sx={{ margin: 0, height: '22px' }}
           >
             {label}
-            {isRequired ? (
+            {isRequired && (
               <Typography
                 component="span"
                 ml={theme.spacing(1)}
@@ -114,10 +114,8 @@ const Field = forwardRef(
               >
                 *
               </Typography>
-            ) : (
-              ""
             )}
-            {isOptional ? (
+            {isOptional && (
               <Typography
                 component="span"
                 fontSize="inherit"
@@ -127,8 +125,6 @@ const Field = forwardRef(
               >
                 {optionalLabel || "(optional)"}
               </Typography>
-            ) : (
-              ""
             )}
           </Typography>
         )}
@@ -232,5 +228,7 @@ const Field = forwardRef(
     );
   }
 );
+
+Field.displayName = "Field";
 
 export default Field;

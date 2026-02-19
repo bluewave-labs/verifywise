@@ -1,5 +1,5 @@
-import React from "react";
-import { IconButton } from "@mui/material";
+import { IconButton, useTheme } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { Info as GreyCircleInfoIcon } from "lucide-react";
 import { useUserGuideSidebarContext } from "../UserGuide";
 
@@ -9,7 +9,8 @@ interface HelperIconProps {
   size?: "small" | "medium" | "large";
 }
 
-const HelperIcon: React.FC<HelperIconProps> = ({ articlePath, size = "small" }) => {
+function HelperIcon({ articlePath, size = "small" }: HelperIconProps) {
+  const theme = useTheme();
   const userGuideSidebar = useUserGuideSidebarContext();
 
   const handleClick = () => {
@@ -23,17 +24,17 @@ const HelperIcon: React.FC<HelperIconProps> = ({ articlePath, size = "small" }) 
       aria-label="Open help information"
       size={size}
       sx={{
-        color: "#9CA3AF",
+        color: theme.palette.text.secondary,
         backgroundColor: "transparent",
-        padding: "4px",
+        padding: 0.5,
         "&:hover": {
-          backgroundColor: "rgba(156, 163, 175, 0.1)",
+          backgroundColor: alpha(theme.palette.text.secondary, 0.1),
         },
       }}
     >
       <GreyCircleInfoIcon size={16} />
     </IconButton>
   );
-};
+}
 
 export default HelperIcon;

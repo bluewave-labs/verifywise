@@ -26,7 +26,7 @@ interface InfoBoxProps {
   borderColor?: string; // Optional custom border color
 }
 
-const InfoBox = ({
+function InfoBox({
   message,
   storageKey,
   variant = "info",
@@ -36,7 +36,7 @@ const InfoBox = ({
   disableAnimation = false,
   backgroundColor,
   borderColor
-}: InfoBoxProps) => {
+}: InfoBoxProps) {
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(true);
   const [isClosing, setIsClosing] = useState(false);
@@ -45,11 +45,11 @@ const InfoBox = ({
   const iconConfig = {
     info: {
       Icon: Info,
-      color: "#059669", // Green
+      color: theme.palette.success.main,
     },
     warning: {
       Icon: AlertCircle,
-      color: "#D97706", // Yellow/Orange
+      color: theme.palette.warning.main,
     },
   };
 
@@ -105,8 +105,9 @@ const InfoBox = ({
         fontSize: 13,
         color: theme.palette.text.secondary,
         background: backgroundColor || theme.palette.background.paper,
-        padding: "12px 16px",
-        borderRadius: "4px",
+        px: 2,
+        py: 1.5,
+        borderRadius: 0.5,
         border: `1px solid ${borderColor || theme.palette.divider}`,
         gap: 2,
         animation: !disableAnimation && isClosing ? `${fadeOut} 0.3s ease-out forwards` : "none",
@@ -141,6 +142,7 @@ const InfoBox = ({
       <IconButton
         onClick={handleClose}
         size="small"
+        aria-label="Dismiss"
         sx={{
           padding: "4px",
           "&:hover": {
@@ -152,6 +154,6 @@ const InfoBox = ({
       </IconButton>
     </Box>
   );
-};
+}
 
 export default InfoBox;

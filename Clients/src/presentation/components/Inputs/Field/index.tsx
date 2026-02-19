@@ -77,7 +77,6 @@ const Field = forwardRef(
       formHelperTextProps,
       min,
       max,
-      autoFocus,
     }: FieldProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {

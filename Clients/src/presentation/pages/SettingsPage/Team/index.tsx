@@ -833,47 +833,57 @@ const TeamManagement: React.FC = (): JSX.Element => {
               )}
             </>
           )}
-          {invitations.length > 0 && (
-            <Box sx={{ mt: 5 }}>
-              <Typography
-                sx={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#1A1919",
-                  mb: 2,
-                }}
-              >
-                Pending invitations ({invitations.length})
-              </Typography>
-              <TableContainer sx={{ overflowX: "auto" }}>
-                <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
-                  <TableHead
-                    sx={{
-                      backgroundColor:
-                        singleTheme.tableStyles.primary.header.backgroundColors,
-                    }}
-                  >
-                    <TableRow>
-                      {INVITATION_TABLE_COLUMNS.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          sx={singleTheme.tableStyles.primary.header.cell}
+          <Box sx={{ mt: 5 }}>
+            <Typography
+              sx={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#1A1919",
+                mb: 2,
+              }}
+            >
+              Pending invitations ({invitations.length})
+            </Typography>
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
+                <TableHead
+                  sx={{
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }}
+                >
+                  <TableRow>
+                    {INVITATION_TABLE_COLUMNS.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        sx={singleTheme.tableStyles.primary.header.cell}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            textTransform: "uppercase",
+                          }}
                         >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: 500,
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            {column.label}
-                          </Typography>
-                        </TableCell>
-                      ))}
+                          {column.label}
+                        </Typography>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {invitations.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={INVITATION_TABLE_COLUMNS.length}
+                        align="center"
+                        sx={{ py: 4 }}
+                      >
+                        No pending invitations
+                      </TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {invitations.map((inv) => {
+                  ) : (
+                    invitations.map((inv) => {
                       const isExpired =
                         new Date(inv.expires_at) <= new Date();
                       return (
@@ -938,12 +948,12 @@ const TeamManagement: React.FC = (): JSX.Element => {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          )}
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 20 }} />
         </Stack>

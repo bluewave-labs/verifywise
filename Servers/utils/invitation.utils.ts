@@ -62,7 +62,11 @@ export const getInvitationsByTenantQuery = async (
   tenant: string
 ): Promise<InvitationRow[]> => {
   const result = (await sequelize.query(
-    `SELECT i.*, r.name AS role_name
+    `SELECT i.id, i.email, i.name, i.surname, i.role_id, i.status, i.invited_by,
+            to_char(i.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
+            to_char(i.expires_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS expires_at,
+            i.updated_at,
+            r.name AS role_name
      FROM "${tenant}".invitations i
      LEFT JOIN public.roles r ON r.id = i.role_id
      WHERE i.status = 'pending'
@@ -136,4 +140,22 @@ export const updateInvitationExpiryQuery = async (
      WHERE id = :id`,
     { replacements: { id, expiresAt: expiresAt.toISOString() } }
   );
+};
+
+/**
+ * Check if a pending invitation exists for the given email.
+ * Used during registration to verify the invitation wasn't revoked.
+ */
+export const checkPendingInvitationQuery = async (
+  tenant: string,
+  email: string
+): Promise<boolean> => {
+  const result = (await sequelize.query(
+    `SELECT id FROM "${tenant}".invitations
+     WHERE email = :email AND status = 'pending'
+     LIMIT 1`,
+    { replacements: { email } }
+  )) as [InvitationRow[], number];
+
+  return result[0].length > 0;
 };

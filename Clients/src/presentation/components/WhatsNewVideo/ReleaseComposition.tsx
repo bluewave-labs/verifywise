@@ -16,7 +16,7 @@ export const ReleaseComposition: React.FC = () => {
       <Audio
         src="/ambient-pad.mp3"
         volume={(f) => {
-          const maxVolume = 0.45;
+          const maxVolume = 0.585;
           const fadeIn = interpolate(f, [0, 2 * fps], [0, maxVolume], {
             extrapolateRight: "clamp",
           });

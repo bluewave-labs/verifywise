@@ -467,14 +467,14 @@ const IncidentManagement: React.FC = () => {
   const exportColumns = useMemo(() => {
     return [
       { id: "incident_id", label: "Incident ID" },
-      { id: "ai_project", label: "AI Project" },
+      { id: "ai_project", label: "AI project" },
       { id: "type", label: "Type" },
       { id: "severity", label: "Severity" },
       { id: "status", label: "Status" },
-      { id: "occurred_date", label: "Occurred Date" },
-      { id: "date_detected", label: "Date Detected" },
+      { id: "occurred_date", label: "Occurred date" },
+      { id: "date_detected", label: "Date detected" },
       { id: "reporter", label: "Reporter" },
-      { id: "approval_status", label: "Approval Status" },
+      { id: "approval_status", label: "Approval status" },
     ];
   }, []);
 

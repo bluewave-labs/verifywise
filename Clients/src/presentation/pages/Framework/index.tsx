@@ -345,38 +345,38 @@ const Framework = () => {
 
   // Status options following ProjectFrameworks pattern for ISO27001
   const iso27001StatusOptions = [
-    { value: "not started", label: "Not Started" },
-    { value: "in progress", label: "In Progress" },
+    { value: "not started", label: "Not started" },
+    { value: "in progress", label: "In progress" },
     { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting Approval" },
-    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "awaiting approval", label: "Awaiting approval" },
+    { value: "awaiting review", label: "Awaiting review" },
     { value: "draft", label: "Draft" },
     // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs Rework" },
+    { value: "needs rework", label: "Needs rework" },
   ];
 
   // Status options for ISO42001 (same as project view)
   const iso42001StatusOptions = [
-    { value: "not started", label: "Not Started" },
-    { value: "in progress", label: "In Progress" },
+    { value: "not started", label: "Not started" },
+    { value: "in progress", label: "In progress" },
     { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting Approval" },
-    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "awaiting approval", label: "Awaiting approval" },
+    { value: "awaiting review", label: "Awaiting review" },
     { value: "draft", label: "Draft" },
     // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs Rework" },
+    { value: "needs rework", label: "Needs rework" },
   ];
 
   // Status options for NIST AI RMF (same as other frameworks)
   const nistAiRmfStatusOptions = [
-    { value: "not started", label: "Not Started" },
-    { value: "in progress", label: "In Progress" },
+    { value: "not started", label: "Not started" },
+    { value: "in progress", label: "In progress" },
     { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting Approval" },
-    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "awaiting approval", label: "Awaiting approval" },
+    { value: "awaiting review", label: "Awaiting review" },
     { value: "draft", label: "Draft" },
     // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs Rework" },
+    { value: "needs rework", label: "Needs rework" },
   ];
 
   // User options for owner and reviewer filters

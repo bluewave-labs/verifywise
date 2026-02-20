@@ -43,12 +43,12 @@ type SortConfig = {
 };
 
 const columns = [
-  { id: "ucId", label: "Use Case ID", minWidth: 120, sortable: true },
+  { id: "ucId", label: "Use case ID", minWidth: 120, sortable: true },
   { id: "title", label: "Use case title", minWidth: 200, sortable: true },
-  { id: "risk", label: "AI Risk Level", minWidth: 130, sortable: true },
+  { id: "risk", label: "AI risk level", minWidth: 130, sortable: true },
   { id: "role", label: "Role", minWidth: 150, sortable: true },
-  { id: "startDate", label: "Start Date", minWidth: 120, sortable: true },
-  { id: "lastUpdated", label: "Last Updated", minWidth: 120, sortable: true },
+  { id: "startDate", label: "Start date", minWidth: 120, sortable: true },
+  { id: "lastUpdated", label: "Last updated", minWidth: 120, sortable: true },
   { id: "actions", label: "", minWidth: 80, sortable: false },
 ];
 

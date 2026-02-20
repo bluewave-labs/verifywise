@@ -50,7 +50,7 @@ export const routeMapping: Record<string, string> = {
   "/project-view": "Project overview",
 
   // Vendor management
-  "/vendors": "Vendor Management",
+  "/vendors": "Vendor management",
 
   // Settings
   "/settings": "Settings",
@@ -60,7 +60,7 @@ export const routeMapping: Record<string, string> = {
   "/settings/organization": "Organization",
   "/settings/preferences": "Preferences",
   "/settings/apikeys": "API keys",
-  "/organization": "Organization Settings",
+  "/organization": "Organization settings",
 
   // File management
   "/file-manager": "Evidence",
@@ -70,24 +70,24 @@ export const routeMapping: Record<string, string> = {
   "/plugins/my-plugins": "Plugins",
 
   // Reporting
-  "/reporting": "Reporting Dashboard",
+  "/reporting": "Reporting dashboard",
 
   // AI Trust Center
-  "/ai-trust-center": "AI Trust Center",
+  "/ai-trust-center": "AI trust center",
   "/public": "Public AI Trust Center",
 
   // Training
-  "/training": "Training Registry",
+  "/training": "Training registry",
 
   // Event tracking
-  "/event-tracker": "Event Tracker",
+  "/event-tracker": "Event tracker",
   "/event-tracker/logs": "Logs",
 
   // Automations
   "/automations": "Automations",
 
   // Model inventory
-  "/model-inventory": "Model Inventory",
+  "/model-inventory": "Model inventory",
   "/model-inventory/model-risks": "Model risks",
   "/model-inventory/evidence-hub": "Evidence hub",
   // Plugin tabs are handled dynamically by the breadcrumb component
@@ -96,26 +96,26 @@ export const routeMapping: Record<string, string> = {
   "/datasets": "Datasets",
 
   // Incident management
-  "/ai-incident-managements": "Incident Management",
+  "/ai-incident-managements": "Incident management",
 
   // Agent discovery
-  "/agent-discovery": "Agent Discovery",
+  "/agent-discovery": "Agent discovery",
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": "Framework risks",
   "/framework/linked-models": "Linked models",
-  "/framework/controls": "Controls and Requirements",
+  "/framework/controls": "Controls and requirements",
   "/framework/settings": "Settings",
 
   // Authentication
-  "/login": "Sign In",
-  "/register": "Create Account",
-  "/admin-reg": "Admin Registration",
-  "/user-reg": "User Registration",
-  "/forgot-password": "Forgot Password",
-  "/reset-password": "Reset Password",
-  "/set-new-password": "Set New Password",
-  "/reset-password-continue": "Continue Password Reset",
+  "/login": "Sign in",
+  "/register": "Create account",
+  "/admin-reg": "Admin registration",
+  "/user-reg": "User registration",
+  "/forgot-password": "Forgot password",
+  "/reset-password": "Reset password",
+  "/set-new-password": "Set new password",
+  "/reset-password-continue": "Continue password reset",
 
 };
 
@@ -215,7 +215,7 @@ export const dynamicRoutePatterns = [
   },
   {
     pattern: /\/fairness-results\/\w+/,
-    label: "Fairness Results",
+    label: "Fairness results",
     description: "Fairness results for specific analysis",
   },
   {
@@ -225,17 +225,17 @@ export const dynamicRoutePatterns = [
   },
   {
     pattern: /\/vendors\/[a-zA-Z0-9-]+/,
-    label: "Vendor Details",
+    label: "Vendor details",
     description: "Specific vendor information",
   },
   {
     pattern: /\/ai-incident-managements\/\d+/,
-    label: "Incident Management Details",
+    label: "Incident management details",
     description: "Specific incident management information",
   },
   {
     pattern: /\/plugins\/[a-zA-Z0-9-]+\/manage/,
-    label: "Plugin Details",
+    label: "Plugin details",
     description: "Specific plugin management page",
   },
 ] as const;

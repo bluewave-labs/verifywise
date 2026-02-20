@@ -67,14 +67,14 @@ const PolicyDashboard: React.FC = () => {
           <TabBar
             tabs={[
               {
-                label: "Organizational Policies",
+                label: "Organizational policies",
                 value: "policies",
                 icon: "Shield",
                 count: policies.length,
                 tooltip: "Your organization's active policies",
               },
               {
-                label: "Policy Templates",
+                label: "Policy templates",
                 value: "templates",
                 icon: "ShieldHalf",
                 count: policyTemplates.length,

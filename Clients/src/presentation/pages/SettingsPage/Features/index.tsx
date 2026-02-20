@@ -48,7 +48,7 @@ const Features: React.FC = () => {
             </Box>
             <CustomizableButton
               variant="contained"
-              text="Manage Plugins"
+              text="Manage plugins"
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",

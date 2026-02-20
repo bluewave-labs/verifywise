@@ -373,11 +373,11 @@ const Vendors = () => {
         label: "Risk level",
         type: "select" as const,
         options: [
-          { value: "Very High", label: "Very High" },
+          { value: "Very High", label: "Very high" },
           { value: "High", label: "High" },
           { value: "Medium", label: "Medium" },
           { value: "Low", label: "Low" },
-          { value: "Very Low", label: "Very Low" },
+          { value: "Very Low", label: "Very low" },
         ],
       },
       {
@@ -947,7 +947,7 @@ const Vendors = () => {
       { id: "assignee", label: "Assignee" },
       { id: "review_status", label: "Status" },
       { id: "scorecard", label: "Scorecard" },
-      { id: "review_date", label: "Review Date" },
+      { id: "review_date", label: "Review date" },
     ];
   }, []);
 
@@ -975,13 +975,13 @@ const Vendors = () => {
   // Define export columns for vendor risks table
   const vendorRisksExportColumns = useMemo(() => {
     return [
-      { id: "risk_description", label: "Risk Description" },
+      { id: "risk_description", label: "Risk description" },
       { id: "vendor_name", label: "Vendor" },
-      { id: "project_titles", label: "Use Case" },
-      { id: "action_owner", label: "Action Owner" },
-      { id: "risk_severity", label: "Risk Severity" },
+      { id: "project_titles", label: "Use case" },
+      { id: "action_owner", label: "Action owner" },
+      { id: "risk_severity", label: "Risk severity" },
       { id: "likelihood", label: "Likelihood" },
-      { id: "risk_level", label: "Risk Level" },
+      { id: "risk_level", label: "Risk level" },
     ];
   }, []);
 

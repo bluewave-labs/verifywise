@@ -587,7 +587,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             </Typography>
             <CustomizableButton
               variant="contained"
-              text="New Battle"
+              text="New battle"
               icon={<Zap size={18} />}
               onClick={() => setCreateModalOpen(true)}
               sx={{
@@ -893,7 +893,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 emptyText="No datasets found. Upload one in the Datasets tab."
                 groups={[
                   {
-                    label: "My Datasets",
+                    label: "My datasets",
                     color: "#6366f1",
                     items: myDatasets.map((ds) => ({
                       value: ds.path,
@@ -902,7 +902,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     })),
                   },
                   {
-                    label: "Template Datasets",
+                    label: "Template datasets",
                     color: "#10b981",
                     items: templateDatasets.map((ds) => ({
                       value: ds.path,

@@ -127,23 +127,23 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
     if (total === 0) return [];
 
     return [
-      { id: 0, value: data["not started"], label: "Not Started", color: "#9CA3AF" },
+      { id: 0, value: data["not started"], label: "Not started", color: "#9CA3AF" },
       { id: 1, value: data["draft"], label: "Draft", color: "#D1D5DB" },
-      { id: 2, value: data["in progress"], label: "In Progress", color: "#F59E0B" },
-      { id: 3, value: data["awaiting review"], label: "Awaiting Review", color: "#3B82F6" },
+      { id: 2, value: data["in progress"], label: "In progress", color: "#F59E0B" },
+      { id: 3, value: data["awaiting review"], label: "Awaiting review", color: "#3B82F6" },
       { id: 4, value: data["implemented"], label: "Implemented", color: "#13715B" },
-      { id: 5, value: data["needs rework"], label: "Needs Rework", color: "#EA580C" },
+      { id: 5, value: data["needs rework"], label: "Needs rework", color: "#EA580C" },
     ];
   };
 
   const getAllStatuses = (data: StatusData) => {
     return [
-      { id: 0, value: data["not started"], label: "Not Started", color: "#9CA3AF" },
+      { id: 0, value: data["not started"], label: "Not started", color: "#9CA3AF" },
       { id: 1, value: data["draft"], label: "Draft", color: "#D1D5DB" },
-      { id: 2, value: data["in progress"], label: "In Progress", color: "#F59E0B" },
-      { id: 3, value: data["awaiting review"], label: "Awaiting Review", color: "#3B82F6" },
+      { id: 2, value: data["in progress"], label: "In progress", color: "#F59E0B" },
+      { id: 3, value: data["awaiting review"], label: "Awaiting review", color: "#3B82F6" },
       { id: 4, value: data["implemented"], label: "Implemented", color: "#13715B" },
-      { id: 5, value: data["needs rework"], label: "Needs Rework", color: "#EA580C" },
+      { id: 5, value: data["needs rework"], label: "Needs rework", color: "#EA580C" },
     ];
   };
 

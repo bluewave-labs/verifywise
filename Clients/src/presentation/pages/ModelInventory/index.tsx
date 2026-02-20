@@ -357,7 +357,7 @@ const ModelInventory: React.FC = () => {
         type: "select" as const,
         options: [
           { value: "Open", label: "Open" },
-          { value: "In Progress", label: "In Progress" },
+          { value: "In Progress", label: "In progress" },
           { value: "Resolved", label: "Resolved" },
           { value: "Accepted", label: "Accepted" },
         ],
@@ -478,53 +478,53 @@ const ModelInventory: React.FC = () => {
         label: "Evidence type",
         type: "select" as const,
         options: [
-          { value: "Model Card", label: "Model Card" },
-          { value: "Risk Assessment Report", label: "Risk Assessment Report" },
+          { value: "Model Card", label: "Model card" },
+          { value: "Risk Assessment Report", label: "Risk assessment report" },
           {
             value: "Bias and Fairness Report",
-            label: "Bias and Fairness Report",
+            label: "Bias and fairness report",
           },
           {
             value: "Security Assessment Report",
-            label: "Security Assessment Report",
+            label: "Security assessment report",
           },
           {
             value: "Data Protection Impact Assessment",
-            label: "Data Protection Impact Assessment",
+            label: "Data protection impact assessment",
           },
           {
             value: "Robustness and Stress Test Report",
-            label: "Robustness and Stress Test Report",
+            label: "Robustness and stress test report",
           },
           {
             value: "Evaluation Metrics Summary",
-            label: "Evaluation Metrics Summary",
+            label: "Evaluation metrics summary",
           },
-          { value: "Human Oversight Plan", label: "Human Oversight Plan" },
+          { value: "Human Oversight Plan", label: "Human oversight plan" },
           {
             value: "Post-Market Monitoring Plan",
-            label: "Post-Market Monitoring Plan",
+            label: "Post-market monitoring plan",
           },
-          { value: "Version Change Log", label: "Version Change Log" },
+          { value: "Version Change Log", label: "Version change log" },
           {
             value: "Third-Party Audit Report",
-            label: "Third-Party Audit Report",
+            label: "Third-party audit report",
           },
           {
             value: "Conformity Assessment Report",
-            label: "Conformity Assessment Report",
+            label: "Conformity assessment report",
           },
           {
             value: "Technical File / CE Documentation",
-            label: "Technical File / CE Documentation",
+            label: "Technical file / CE documentation",
           },
           {
             value: "Vendor Model Documentation",
-            label: "Vendor Model Documentation",
+            label: "Vendor model documentation",
           },
           {
             value: "Internal Approval Record",
-            label: "Internal Approval Record",
+            label: "Internal approval record",
           },
         ],
       },
@@ -720,9 +720,9 @@ const ModelInventory: React.FC = () => {
       { id: "model", label: "Model" },
       { id: "version", label: "Version" },
       { id: "approver", label: "Approver" },
-      { id: "security_assessment", label: "Security Assessment" },
+      { id: "security_assessment", label: "Security assessment" },
       { id: "status", label: "Status" },
-      { id: "status_date", label: "Status Date" },
+      { id: "status_date", label: "Status date" },
     ];
   }, []);
 
@@ -1631,13 +1631,13 @@ const ModelInventory: React.FC = () => {
   // Export columns and data for Model Risks
   const modelRisksExportColumns = useMemo(() => {
     return [
-      { id: "risk_name", label: "Risk Name" },
-      { id: "model_name", label: "Model Name" },
+      { id: "risk_name", label: "Risk name" },
+      { id: "model_name", label: "Model name" },
       { id: "risk_category", label: "Category" },
-      { id: "risk_level", label: "Risk Level" },
+      { id: "risk_level", label: "Risk level" },
       { id: "status", label: "Status" },
       { id: "owner", label: "Owner" },
-      { id: "target_date", label: "Target Date" },
+      { id: "target_date", label: "Target date" },
     ];
   }, []);
 
@@ -1666,11 +1666,11 @@ const ModelInventory: React.FC = () => {
   // Export columns and data for Evidence Hub
   const evidenceHubExportColumns = useMemo(() => {
     return [
-      { id: "evidence_name", label: "Evidence Name" },
+      { id: "evidence_name", label: "Evidence name" },
       { id: "evidence_type", label: "Type" },
-      { id: "mapped_models", label: "Mapped Models" },
-      { id: "uploaded_by", label: "Uploaded By" },
-      { id: "uploaded_on", label: "Uploaded On" },
+      { id: "mapped_models", label: "Mapped models" },
+      { id: "uploaded_by", label: "Uploaded by" },
+      { id: "uploaded_on", label: "Uploaded on" },
       { id: "expiry_date", label: "Expiry" },
     ];
   }, []);
@@ -2130,7 +2130,7 @@ const ModelInventory: React.FC = () => {
                     { id: "provider", label: "Provider" },
                     { id: "status", label: "Status" },
                     { id: "security_assessment", label: "Assessment" },
-                    { id: "hosting_provider", label: "Hosting Provider" },
+                    { id: "hosting_provider", label: "Hosting provider" },
                     { id: "approver", label: "Approver" },
                   ]}
                   onGroupChange={handleGroupChange}

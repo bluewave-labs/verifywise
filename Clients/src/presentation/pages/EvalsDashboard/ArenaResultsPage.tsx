@@ -274,7 +274,7 @@ const ArenaResultsPage: React.FC<ArenaResultsPageProps> = ({
         <Typography sx={{ fontSize: 15, color: "#6b7280", mb: 3 }}>
           {error || "No results found"}
         </Typography>
-        <CustomizableButton variant="outlined" text="Go Back" onClick={onBack} />
+        <CustomizableButton variant="outlined" text="Go back" onClick={onBack} />
       </Box>
     );
   }

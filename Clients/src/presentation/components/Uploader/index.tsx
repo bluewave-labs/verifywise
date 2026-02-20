@@ -840,7 +840,7 @@ const Uploader: React.FC<UploaderProps> = ({
                 <CustomizableButton
                   variant="text"
                   onClick={handleClearAll}
-                  text="Clear All"
+                  text="Clear all"
                   sx={{ color: "#344054" }}
                 />
                 <CustomizableButton
@@ -849,7 +849,7 @@ const Uploader: React.FC<UploaderProps> = ({
                   onClick={handleSave}
                   isDisabled={!allCompleted}
                   loading={!allCompleted}
-                  text="Save Files"
+                  text="Save files"
                 />
               </Stack>
             </Box>

@@ -292,7 +292,7 @@ const WhatsNewSection: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div style={{ padding: spacing.xl }}>
+      <div style={{ padding: `${spacing.md} ${spacing.xl} ${spacing.xl}` }}>
         <h2
           style={{
             fontFamily: typography.fontFamily.sans,
@@ -321,7 +321,7 @@ const WhatsNewSection: React.FC = () => {
               <div
                 style={{
                   fontFamily: typography.fontFamily.sans,
-                  fontSize: typography.fontSize.xs,
+                  fontSize: typography.fontSize.base,
                   color: colors.text.muted,
                   marginBottom: spacing.sm,
                 }}
@@ -346,7 +346,7 @@ const WhatsNewSection: React.FC = () => {
               <p
                 style={{
                   fontFamily: typography.fontFamily.sans,
-                  fontSize: typography.fontSize.xs,
+                  fontSize: typography.fontSize.base,
                   color: colors.text.secondary,
                   lineHeight: typography.lineHeight.relaxed,
                   margin: 0,
@@ -369,7 +369,7 @@ const WhatsNewSection: React.FC = () => {
                     key={i}
                     style={{
                       fontFamily: typography.fontFamily.sans,
-                      fontSize: typography.fontSize.xs,
+                      fontSize: typography.fontSize.base,
                       color: colors.text.secondary,
                       lineHeight: typography.lineHeight.relaxed,
                       paddingBottom: '2px',

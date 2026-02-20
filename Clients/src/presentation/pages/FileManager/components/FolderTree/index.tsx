@@ -111,7 +111,7 @@ const FolderItem: React.FC<FolderItemProps> = ({
           borderRadius: "4px",
           backgroundColor: isSelected ? "#E8F5F1" : "transparent",
           "&:hover": {
-            backgroundColor: isSelected ? "#E8F5F1" : "#F9FAFB",
+            backgroundColor: isSelected ? "#E8F5F1" : "#F0F2F5",
           },
           transition: "background-color 0.15s ease",
         }}
@@ -283,7 +283,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         minWidth: "200px",
         borderRight: "1px solid #E0E4E9",
         backgroundColor: "#FAFBFC",
-        height: "100%",
+        alignSelf: "stretch",
         overflow: "hidden",
       }}
     >
@@ -356,7 +356,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 borderRadius: "4px",
                 backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "transparent",
                 "&:hover": {
-                  backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "#F9FAFB",
+                  backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "#F0F2F5",
                 },
                 marginBottom: "4px",
               }}
@@ -388,7 +388,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 borderRadius: "4px",
                 backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "transparent",
                 "&:hover": {
-                  backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "#F9FAFB",
+                  backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "#F0F2F5",
                 },
                 marginBottom: "8px",
               }}

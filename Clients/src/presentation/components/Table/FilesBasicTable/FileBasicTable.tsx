@@ -44,6 +44,22 @@ const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
+/**
+ * Truncate a filename in the middle so the extension stays visible.
+ * e.g. "very-long-document-name-here.pdf" → "very-long-documen(...)e-here.pdf"
+ */
+const truncateFileName = (name: string, maxLength = 40): string => {
+  if (!name || name.length <= maxLength) return name;
+  const extIndex = name.lastIndexOf(".");
+  const ext = extIndex > 0 ? name.slice(extIndex) : "";
+  const baseName = extIndex > 0 ? name.slice(0, extIndex) : name;
+  const availableChars = maxLength - ext.length - 5; // 5 for "(...)""
+  if (availableChars <= 0) return name.slice(0, maxLength - 5) + "(...)" + ext;
+  const frontChars = Math.ceil(availableChars * 0.6);
+  const backChars = availableChars - frontChars;
+  return baseName.slice(0, frontChars) + "(...)" + baseName.slice(-backChars) + ext;
+};
+
 // Helper function to match column name with sort key
 const getSortMatchForColumn = (
   columnName: string,
@@ -407,10 +423,14 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                           display: "flex",
                           alignItems: "center",
                           gap: "8px",
+                          maxWidth: "360px",
                         }}
+                        title={row.fileName}
                       >
                         <FileIcon fileName={row.fileName} />
-                        {row.fileName}
+                        <span style={{ whiteSpace: "nowrap" }}>
+                          {truncateFileName(row.fileName)}
+                        </span>
                       </Box>
                     </TableCell>
                   )}

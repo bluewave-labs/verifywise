@@ -850,8 +850,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     icon={<SaveIconSVGWhite />}
                                     onClick={handleSubmit as (event: unknown) => void}
                                     sx={{
-                                        backgroundColor: "#13715B",
-                                        border: "1px solid #13715B",
+                                        backgroundColor: theme.palette.primary.main,
+                                        border: `1px solid ${theme.palette.primary.main}`,
                                     }}
                                 />
                             </>

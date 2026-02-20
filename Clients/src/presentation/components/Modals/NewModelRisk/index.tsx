@@ -9,9 +9,8 @@ import React, {
 } from "react";
 import {
   Stack,
-  Typography,
-  TextField,
   Box,
+  useTheme,
 } from "@mui/material";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
@@ -96,6 +95,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   isEdit = false,
   entityId,
 }) => {
+  const theme = useTheme();
   const [values, setValues] = useState<IModelRiskFormData>(
     initialData || initialState
   );
@@ -283,33 +283,12 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   };
 
   const fieldStyle = {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.palette.background.main,
     "& input": {
       padding: "0 14px",
     },
   };
 
-  const textAreaStyle = {
-    backgroundColor: "#FFFFFF",
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "4px",
-      fontSize: "13px",
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#D0D5DD",
-        borderWidth: "1px",
-      },
-      "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#D0D5DD",
-      },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#888",
-        borderWidth: "1px",
-      },
-    },
-    "& .MuiOutlinedInput-input::placeholder": {
-      fontSize: "13px",
-    },
-  };
 
   const formContent = (
     <Stack spacing={6}>
@@ -399,7 +378,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
               handleDateChange={handleDateChange}
               sx={{
                 width: "100%",
-                backgroundColor: "#FFFFFF",
+                backgroundColor: theme.palette.background.main,
               }}
               isRequired
               error={errors.target_date}
@@ -427,73 +406,46 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       </Stack>
 
       {/* Description Section */}
-      <Stack>
-        <Typography
-          sx={{
-            fontSize: 13,
-            fontWeight: 500,
-            mb: 2,
-          }}
-        >
-          Description
-        </Typography>
-        <TextField
-          multiline
+      <Suspense fallback={<div>Loading...</div>}>
+        <Field
+          label="Description"
+          width="100%"
+          type="description"
           rows={2}
           value={values.description}
           onChange={handleOnTextFieldChange("description")}
           placeholder="Describe the risk in detail"
-          error={!!errors.description}
-          helperText={errors.description}
-          sx={textAreaStyle}
+          error={errors.description}
         />
-      </Stack>
+      </Suspense>
 
       {/* Impact Section */}
-      <Stack>
-        <Typography
-          sx={{
-            fontSize: 13,
-            fontWeight: 500,
-            mb: 2,
-          }}
-        >
-          Impact
-        </Typography>
-        <TextField
-          multiline
+      <Suspense fallback={<div>Loading...</div>}>
+        <Field
+          label="Impact"
+          width="100%"
+          type="description"
           rows={2}
           value={values.impact}
           onChange={handleOnTextFieldChange("impact")}
           placeholder="Describe the potential impact of this risk"
-          error={!!errors.impact}
-          helperText={errors.impact}
-          sx={textAreaStyle}
+          error={errors.impact}
         />
-      </Stack>
+      </Suspense>
 
       {/* Mitigation Plan Section */}
-      <Stack>
-        <Typography
-          sx={{
-            fontSize: 13,
-            fontWeight: 500,
-            mb: 2,
-          }}
-        >
-          Mitigation plan
-        </Typography>
-        <TextField
-          multiline
+      <Suspense fallback={<div>Loading...</div>}>
+        <Field
+          label="Mitigation plan"
+          width="100%"
+          type="description"
           rows={2}
           value={values.mitigation_plan}
           onChange={handleOnTextFieldChange("mitigation_plan")}
           placeholder="Describe the plan to mitigate this risk"
-          error={!!errors.mitigation_plan}
-          helperText={errors.mitigation_plan}
-          sx={textAreaStyle}
+          error={errors.mitigation_plan}
         />
-      </Stack>
+      </Suspense>
     </Stack>
   );
 

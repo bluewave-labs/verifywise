@@ -1,18 +1,18 @@
 /**
- * Component for adding a new vendor through a modal interface.
+ * Component for adding or editing a vendor risk through a modal interface.
  *
  * @component
- * @param {AddNewVendorProps} props - The properties for the AddNewVendor component.
+ * @param {AddNewRiskProps} props - The properties for the AddNewRisk component.
  * @param {boolean} props.isOpen - Determines if the modal is open.
  * @param {() => void} props.setIsOpen - Function to set the modal open state.
- * @param {string} props.value - The current value of the selected tab.
- * @param {(event: React.SyntheticEvent, newValue: string) => void} props.handleChange - Function to handle tab change events.
+ * @param {ExistingRisk} [props.existingRisk] - Existing risk data for edit mode.
+ * @param {() => void} [props.onSuccess] - Callback on successful save.
+ * @param {VendorModel[]} props.vendors - Available vendors for selection.
  *
- * @returns {JSX.Element} The rendered AddNewVendor component.
+ * @returns {JSX.Element} The rendered AddNewRisk component.
  */
 
 import TabContext from "@mui/lab/TabContext";
-import TabPanel from "@mui/lab/TabPanel";
 import {
   Box,
   Stack,
@@ -68,8 +68,8 @@ interface FormErrors {
 interface AddNewRiskProps {
   isOpen: boolean;
   setIsOpen: () => void;
-  value: string;
-  handleChange: (event: React.SyntheticEvent, newValue: string) => void;
+  value?: string;
+  handleChange?: (event: React.SyntheticEvent, newValue: string) => void;
   existingRisk?: ExistingRisk | null;
   onSuccess?: () => void;
   vendors: VendorModel[];
@@ -116,7 +116,6 @@ const RISK_SEVERITY_OPTIONS = [
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
   isOpen,
   setIsOpen,
-  value,
   existingRisk,
   onSuccess = () => {},
   vendors,
@@ -425,7 +424,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   );
 
   const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
       <Stack spacing={6}>
         <Stack direction="row" spacing={6}>
           <Stack flex={1} spacing={6}>
@@ -537,7 +535,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           </Box>
         </Stack>
       </Stack>
-    </TabPanel>
   );
 
   return (
@@ -586,9 +583,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 onChange={(_, newValue) => setActiveTab(newValue)}
               />
             </Box>
-            {activeTab === "details" && (
-              <TabContext value={value}>{risksPanel}</TabContext>
-            )}
+            {activeTab === "details" && risksPanel}
             {activeTab === "activity" && (
               <HistorySidebar
                 inline
@@ -599,7 +594,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             )}
           </TabContext>
         ) : (
-          <TabContext value={value}>{risksPanel}</TabContext>
+          {risksPanel}
         )}
       </StandardModal>
     </Stack>

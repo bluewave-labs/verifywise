@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Component for adding a new vendor through a modal interface.
+ * Component for adding or editing a vendor through a modal interface.
  *
  * @component
  * @param {AddNewVendorProps} props - The properties for the AddNewVendor component.
  * @param {boolean} props.isOpen - Determines if the modal is open.
- * @param {() => void} props.setIsOpen - Function to set the modal open state.
- * @param {string} props.value - The current value of the selected tab.
- * @param {(event: React.SyntheticEvent, newValue: string) => void} props.handleChange - Function to handle tab change events.
+ * @param {(isOpen: boolean) => void} props.setIsOpen - Function to set the modal open state.
+ * @param {() => void} props.onSuccess - Callback on successful save.
+ * @param {VendorModel} [props.existingVendor] - Existing vendor data for edit mode.
+ * @param {() => void} [props.onChange] - Optional callback on change.
  *
  * @returns {JSX.Element} The rendered AddNewVendor component.
  */
 
 import TabContext from "@mui/lab/TabContext";
-import TabPanel from "@mui/lab/TabPanel";
 import {
   Autocomplete,
   AutocompleteRenderInputParams,
@@ -120,7 +120,6 @@ const REGULATORY_EXPOSURE_OPTIONS = [
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
   isOpen,
   setIsOpen,
-  value,
   onSuccess,
   existingVendor,
   onChange = () => {},
@@ -485,7 +484,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   };
 
   const vendorDetailsPanel = (
-    <TabPanel value="1" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
       <Stack spacing={6}>
       <Stack
         direction={"row"}
@@ -942,7 +940,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         )}
       </Stack>
       </Stack>
-    </TabPanel>
   );
 
   return (
@@ -995,9 +992,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 onChange={(_, newValue) => setActiveTab(newValue)}
               />
             </Box>
-            {activeTab === "details" && (
-              <TabContext value={value}>{vendorDetailsPanel}</TabContext>
-            )}
+            {activeTab === "details" && vendorDetailsPanel}
             {activeTab === "activity" && (
               <HistorySidebar
                 inline
@@ -1008,7 +1003,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )}
           </TabContext>
         ) : (
-          <TabContext value={value}>{vendorDetailsPanel}</TabContext>
+          {vendorDetailsPanel}
         )}
       </StandardModal>
     </Stack>

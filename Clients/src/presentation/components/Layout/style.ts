@@ -1,10 +1,10 @@
 // PageHeaderExtended styles
 export const pageHeaderTitleSectionStyle = {
-  mt: "2px",
+  mt: "-14px",
 };
 
 export const pageHeaderSummaryCardsStyle = {
-  mb: "24px",
+  mb: "-3px",
 };
 
 // ApprovalButton styles

@@ -19,7 +19,7 @@ export function PageHeaderExtended({
     loadingToast,
 }: PageHeaderExtendedProps) {
     return (
-        <Stack className="vwhome" gap={2}>
+        <Stack className="vwhome" gap={4}>
             <PageBreadcrumbs />
 
             <Box sx={pageHeaderTitleSectionStyle}>
@@ -34,7 +34,7 @@ export function PageHeaderExtended({
                 />
             </Box>
 
-            <Stack gap={1.5}>
+            <Stack gap="18px">
                 {tipBoxEntity && <TipBox entityName={tipBoxEntity} />}
 
                 {alert}

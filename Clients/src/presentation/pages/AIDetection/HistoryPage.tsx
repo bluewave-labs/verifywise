@@ -31,8 +31,7 @@ import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
-import { PageHeader } from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import SearchBox from "../../components/Search/SearchBox";
@@ -618,18 +617,16 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
 
   if (!isLoading && scans.length === 0 && total === 0) {
     return (
-      <>
-        <PageHeader
-          title="Scan history"
-          description="View past repository scans and their results."
-          rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
-        />
-
+      <PageSubHeader
+        title="Scan history"
+        description="View past repository scans and their results."
+        helpArticlePath="ai-detection/history"
+      >
         <EmptyState
           message="No scans yet. Start your first scan to detect AI/ML libraries in a repository."
           showBorder
         />
-      </>
+      </PageSubHeader>
     );
   }
 
@@ -640,25 +637,23 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
   };
 
   return (
-    <>
-      {/* Toast notification */}
-      {alert && (
-        <Suspense fallback={null}>
-          <Alert
-            variant={alert.variant}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
-
-      {/* Header */}
-      <PageHeader
-        title="Scan history"
-        description="View past repository scans and their results."
-        rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
-      />
+    <PageSubHeader
+      title="Scan history"
+      description="View past repository scans and their results."
+      helpArticlePath="ai-detection/history"
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
 
       {/* Toolbar with Filter, Group, Search */}
       <Stack direction="row" gap={2} alignItems="center" sx={{ mb: 2 }}>
@@ -837,6 +832,6 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
           TitleFontSize={0}
         />
       )}
-    </>
+    </PageSubHeader>
   );
 }

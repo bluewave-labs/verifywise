@@ -153,7 +153,7 @@ export const notifyTaskAssigned = async (
       entity_type: NotificationEntityType.TASK,
       entity_id: task.id,
       entity_name: task.title,
-      action_url: `${baseUrl}/tasks/${task.id}`,
+      action_url: `/tasks?taskId=${task.id}`,
     },
     true,
     {
@@ -166,7 +166,7 @@ export const notifyTaskAssigned = async (
         task_description: task.description || "No description provided",
         task_priority: task.priority,
         task_due_date: task.due_date || "No due date",
-        task_url: `${baseUrl}/tasks/${task.id}`,
+        task_url: `${baseUrl}/tasks?taskId=${task.id}`,
       },
     }
   );
@@ -201,7 +201,7 @@ export const notifyReviewRequested = async (
       entity_type: entity.type,
       entity_id: entity.id,
       entity_name: entity.name,
-      action_url: `${baseUrl}/${entity.type}s/${entity.id}`,
+      action_url: `/${entity.type}s/${entity.id}`,
     },
     true,
     {
@@ -249,7 +249,7 @@ export const notifyReviewApproved = async (
       entity_type: entity.type,
       entity_id: entity.id,
       entity_name: entity.name,
-      action_url: `${baseUrl}/${entity.type}s/${entity.id}`,
+      action_url: `/${entity.type}s/${entity.id}`,
     },
     true,
     {
@@ -297,7 +297,7 @@ export const notifyReviewRejected = async (
       entity_type: entity.type,
       entity_id: entity.id,
       entity_name: entity.name,
-      action_url: `${baseUrl}/${entity.type}s/${entity.id}`,
+      action_url: `/${entity.type}s/${entity.id}`,
     },
     true,
     {
@@ -344,7 +344,7 @@ export const notifyApprovalRequested = async (
       entity_type: NotificationEntityType.USE_CASE,
       entity_id: useCase.id,
       entity_name: useCase.name,
-      action_url: `${baseUrl}/use-cases/${useCase.id}`,
+      action_url: `/use-cases/${useCase.id}`,
       metadata: { stepNumber: useCase.stepNumber },
     },
     true,
@@ -389,7 +389,7 @@ export const notifyApprovalComplete = async (
       entity_type: NotificationEntityType.USE_CASE,
       entity_id: useCase.id,
       entity_name: useCase.name,
-      action_url: `${baseUrl}/use-cases/${useCase.id}`,
+      action_url: `/use-cases/${useCase.id}`,
     },
     true,
     {
@@ -433,7 +433,7 @@ export const notifyVendorReviewDue = async (
       entity_type: NotificationEntityType.VENDOR,
       entity_id: vendor.id,
       entity_name: vendor.name,
-      action_url: `${baseUrl}/vendors/${vendor.id}`,
+      action_url: `/vendors/${vendor.id}`,
     },
     true,
     {
@@ -478,7 +478,7 @@ export const notifyPolicyDueSoon = async (
       entity_type: NotificationEntityType.POLICY,
       entity_id: policy.id,
       entity_name: policy.name,
-      action_url: `${baseUrl}/policies/${policy.id}`,
+      action_url: `/policies/${policy.id}`,
     },
     true,
     {
@@ -523,7 +523,7 @@ export const notifyTrainingAssigned = async (
       entity_type: NotificationEntityType.TRAINING,
       entity_id: training.id,
       entity_name: training.name,
-      action_url: `${baseUrl}/training/${training.id}`,
+      action_url: `/training/${training.id}`,
     },
     true,
     {

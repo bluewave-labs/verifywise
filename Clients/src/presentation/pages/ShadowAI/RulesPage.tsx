@@ -52,9 +52,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import { PageHeader } from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
-import TipBox from "../../components/TipBox";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import {
   SelectorVertical,
   SortableColumn,
@@ -317,25 +315,24 @@ export default function RulesPage() {
 
   return (
     <TabContext value={viewMode}>
-    <Stack gap="16px">
-      {toast && (
-        <Suspense fallback={null}>
-          <Alert
-            variant={toast.variant}
-            body={toast.body}
-            isToast={true}
-            onClick={() => setToast(null)}
-          />
-        </Suspense>
-      )}
-      <PageHeader
-        title="Rules"
-        description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/rules" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-rules" />
+    <PageSubHeader
+      title="Rules"
+      description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
+      helpArticlePath="shadow-ai/rules"
+      tipBoxEntity="shadow-ai-rules"
+      alert={
+        toast ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={toast.variant}
+              body={toast.body}
+              isToast={true}
+              onClick={() => setToast(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
@@ -747,7 +744,7 @@ export default function RulesPage() {
           preserved.
         </Typography>
       </StandardModal>
-    </Stack>
+    </PageSubHeader>
     </TabContext>
   );
 }

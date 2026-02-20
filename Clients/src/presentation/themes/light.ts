@@ -17,7 +17,7 @@ const background = {
   main: "#FFFFFF",      // General background for forms, fields, etc.
   alt: "#FCFCFD",       // Alternative background
   modal: "#FCFCFD",     // Dedicated background for all modals
-  fill: "#F4F4F4",
+  fill: "#ECF4F1",
   accent: "#f9fafb",
 };
 

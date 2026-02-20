@@ -19,7 +19,7 @@ export function PageHeaderExtended({
     loadingToast,
 }: PageHeaderExtendedProps) {
     return (
-        <Stack className="vwhome" gap={4} sx={{ pt: "16px" }}>
+        <Stack className="vwhome" gap={4}>
             <PageBreadcrumbs />
 
             <Box sx={pageHeaderTitleSectionStyle}>

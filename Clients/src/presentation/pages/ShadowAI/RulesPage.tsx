@@ -52,7 +52,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   SelectorVertical,
   SortableColumn,
@@ -74,7 +74,7 @@ type ViewMode = "rules" | "history";
 
 const ALERTS_PER_PAGE = 10;
 
-const TABS = [
+const BASE_TABS = [
   { label: "Rules", value: "rules", icon: "Bell" as const, tooltip: "Configure alerts for Shadow AI activity" },
   { label: "Alert history", value: "history", icon: "History" as const, tooltip: "Past alerts triggered by your rules" },
 ];
@@ -141,6 +141,11 @@ export default function RulesPage() {
 
   const sortedAlerts = useSortedRows(alerts, alertsSortConfig, getAlertValue);
 
+  const tabs = useMemo(() => BASE_TABS.map((tab) => ({
+    ...tab,
+    count: tab.value === "rules" ? rules.length : alertsTotal,
+  })), [rules.length, alertsTotal]);
+
   // Auto-dismiss toast
   useEffect(() => {
     if (toast) {
@@ -149,6 +154,26 @@ export default function RulesPage() {
     }
     return undefined;
   }, [toast]);
+
+  // Fetch counts for both tabs on mount
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchCounts = async () => {
+      try {
+        const [rulesData, alertsData] = await Promise.all([
+          getRules(),
+          getAlertHistory(1, 1),
+        ]);
+        if (controller.signal.aborted) return;
+        setRules(rulesData);
+        setAlertsTotal(alertsData.total);
+      } catch {
+        // counts will update when individual tabs load
+      }
+    };
+    fetchCounts();
+    return () => { controller.abort(); };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -314,10 +339,10 @@ export default function RulesPage() {
   const theme = useTheme();
 
   return (
-    <TabContext value={viewMode}>
-    <PageSubHeader
+    <PageHeaderExtended
       title="Rules"
       description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
+
       helpArticlePath="shadow-ai/rules"
       tipBoxEntity="shadow-ai-rules"
       alert={
@@ -333,11 +358,12 @@ export default function RulesPage() {
         ) : undefined
       }
     >
+      <TabContext value={viewMode}>
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar
-          tabs={TABS}
+          tabs={tabs}
           activeTab={viewMode}
           onChange={handleTabChange}
         />
@@ -744,7 +770,7 @@ export default function RulesPage() {
           preserved.
         </Typography>
       </StandardModal>
-    </PageSubHeader>
     </TabContext>
+    </PageHeaderExtended>
   );
 }

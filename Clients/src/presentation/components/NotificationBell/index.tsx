@@ -13,6 +13,7 @@ import { Bell, CheckCheck, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, Notification } from '../../../application/hooks/useNotifications';
 import VWTooltip from '../VWTooltip';
+import '../Layout/icon-shake.css';
 
 /**
  * Format relative time from ISO string
@@ -229,6 +230,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ sx }) => {
     '&:hover': {
       backgroundColor: 'rgba(0, 0, 0, 0.04)',
       borderColor: '#d0d5dd',
+    },
+    '&:hover svg': {
+      animation: 'icon-shake 400ms ease-in-out',
     },
   };
 

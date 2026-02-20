@@ -24,7 +24,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import TabBar from "../../components/TabBar";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
@@ -147,21 +147,23 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: 300,
-        }}
-      >
-        <CircularProgress size={32} />
-      </Box>
+      <PageHeaderExtended title="Settings" description="Configure integrations and tokens for AI detection scanning.">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 300,
+          }}
+        >
+          <CircularProgress size={32} />
+        </Box>
+      </PageHeaderExtended>
     );
   }
 
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="Settings"
       description="Configure integrations and tokens for AI detection scanning."
       helpArticlePath="ai-detection/settings"
@@ -316,6 +318,6 @@ export default function SettingsPage() {
           </Box>
         </TabPanel>
       </TabContext>
-    </PageSubHeader>
+    </PageHeaderExtended>
   );
 }

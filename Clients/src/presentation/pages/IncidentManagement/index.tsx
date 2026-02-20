@@ -467,14 +467,14 @@ const IncidentManagement: React.FC = () => {
   const exportColumns = useMemo(() => {
     return [
       { id: "incident_id", label: "Incident ID" },
-      { id: "ai_project", label: "AI Project" },
+      { id: "ai_project", label: "AI project" },
       { id: "type", label: "Type" },
       { id: "severity", label: "Severity" },
       { id: "status", label: "Status" },
-      { id: "occurred_date", label: "Occurred Date" },
-      { id: "date_detected", label: "Date Detected" },
+      { id: "occurred_date", label: "Occurred date" },
+      { id: "date_detected", label: "Date detected" },
       { id: "reporter", label: "Reporter" },
-      { id: "approval_status", label: "Approval Status" },
+      { id: "approval_status", label: "Approval status" },
     ];
   }, []);
 
@@ -500,6 +500,7 @@ const IncidentManagement: React.FC = () => {
       <PageHeaderExtended
         title="Incident Management"
         description="End-to-end management of the AI incident lifecycle. You can log events in full detail, analyze root causes, and document corrective and preventive actions."
+
         helpArticlePath="ai-governance/incident-management"
         tipBoxEntity="ai-incident-managements"
         alert={

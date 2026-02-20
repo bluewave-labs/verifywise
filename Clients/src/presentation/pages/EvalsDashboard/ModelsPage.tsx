@@ -28,6 +28,7 @@ import {
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import ModelsTable, { type ModelRow } from "../../components/Table/ModelsTable";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import Field from "../../components/Inputs/Field";
@@ -309,22 +310,17 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
     }, [newModel.accessMethod]);
 
     return (
-        <Box>
+        <Stack sx={{ width: "100%" }}>
             {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-            {/* Header + description */}
-            <Stack spacing={1} mb={4}>
-                <Box display="flex" alignItems="center" gap={1}>
-                    <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-                        Models
-                    </Typography>
-                    <HelperIcon articlePath="llm-evals/models" />
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-                    View and manage model configurations. These preferences are automatically saved when you run an experiment and auto-loaded for new experiments in the same project.
-                </Typography>
+            <PageHeader
+                title="Models"
+                description="View and manage model configurations. These preferences are automatically saved when you run an experiment and auto-loaded for new experiments in the same project."
+                rightContent={<HelperIcon articlePath="llm-evals/models" />}
+            />
+            <Box sx={{ mt: "18px" }}>
                 <TipBox entityName="evals-models" />
-            </Stack>
+            </Box>
 
             {/* Controls row */}
             <Stack
@@ -652,6 +648,6 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                     </Stack>
                 )}
             </StandardModal>
-        </Box>
+        </Stack>
     );
 }

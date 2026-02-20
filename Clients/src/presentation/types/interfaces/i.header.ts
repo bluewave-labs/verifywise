@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { BreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 
 export interface PageHeaderExtendedProps {
     title: string;
@@ -10,4 +11,6 @@ export interface PageHeaderExtendedProps {
     children: ReactNode;
     alert?: ReactNode;
     loadingToast?: ReactNode;
+    titleFontFamily?: string;
+    breadcrumbItems?: BreadcrumbItem[];
 }

@@ -133,7 +133,7 @@ export const collections: Collection[] = [
     title: 'LLM Evals',
     description: 'Evaluate and benchmark your LLM applications for quality, safety, and performance.',
     icon: 'FlaskConical',
-    articleCount: 5,
+    articleCount: 7,
     articles: [
       {
         id: 'llm-evals-overview',
@@ -165,6 +165,18 @@ export const collections: Collection[] = [
         description: 'Run demographic bias audits against compliance frameworks like NYC LL144 and EEOC.',
         keywords: ['bias', 'audit', 'fairness', 'discrimination', 'impact ratio', 'selection rate', 'demographic', 'compliance', 'nyc', 'll144', 'eeoc', 'four-fifths', 'adverse impact', 'intersectional'],
       },
+      {
+        id: 'models',
+        title: 'Managing models',
+        description: 'View and manage the AI models used across your evaluation experiments.',
+        keywords: ['model', 'models', 'provider', 'openai', 'anthropic', 'ollama', 'huggingface', 'api key'],
+      },
+      {
+        id: 'llm-arena',
+        title: 'LLM Arena',
+        description: 'Compare two models side by side on the same prompt.',
+        keywords: ['arena', 'compare', 'side by side', 'model comparison', 'battle', 'head to head'],
+      },
     ],
   },
   {
@@ -172,7 +184,7 @@ export const collections: Collection[] = [
     title: 'AI Detection',
     description: 'Scan repositories to discover AI/ML libraries, CI/CD pipelines, container images, and detect shadow AI in your codebase.',
     icon: 'ScanSearch',
-    articleCount: 2,
+    articleCount: 3,
     articles: [
       {
         id: 'scanning',
@@ -185,6 +197,12 @@ export const collections: Collection[] = [
         title: 'Scan history',
         description: 'View and manage your scan history and audit trail.',
         keywords: ['history', 'scan', 'audit', 'trail', 'results', 'findings'],
+      },
+      {
+        id: 'settings',
+        title: 'AI Detection settings',
+        description: 'Configure GitHub tokens and integrations for AI detection scanning.',
+        keywords: ['settings', 'github', 'token', 'integration', 'private', 'repository', 'access'],
       },
     ],
   },

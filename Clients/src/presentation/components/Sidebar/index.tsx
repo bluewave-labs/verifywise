@@ -110,14 +110,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       items: [
         {
           id: "use-cases",
-          label: "Use Cases",
+          label: "Use cases",
           icon: <FolderTree size={16} strokeWidth={1.5} />,
           path: "/overview",
           highlightPaths: ["/project-view"],
         },
         {
           id: "model-inventory",
-          label: "Model Inventory",
+          label: "Model inventory",
           icon: <ListIcon size={16} strokeWidth={1.5} />,
           path: "/model-inventory",
         },
@@ -129,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
         {
           id: "agent-discovery",
-          label: "Agent Discovery",
+          label: "Agent discovery",
           icon: <Bot size={16} strokeWidth={1.5} />,
           path: "/agent-discovery",
         },
@@ -140,13 +140,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       items: [
         {
           id: "risk-management",
-          label: "Risk Management",
+          label: "Risk management",
           icon: <AlertTriangle size={16} strokeWidth={1.5} />,
           path: "/risk-management",
         },
         {
           id: "training-registry",
-          label: "Training Registry",
+          label: "Training registry",
           icon: <GraduationCap size={16} strokeWidth={1.5} />,
           path: "/training",
         },
@@ -164,7 +164,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
         {
           id: "ai-trust-center",
-          label: "AI Trust Center",
+          label: "AI trust center",
           icon: <Brain size={16} strokeWidth={1.5} />,
           path: "/ai-trust-center",
         },
@@ -181,13 +181,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
         {
           id: "policy-manager",
-          label: "Policy Manager",
+          label: "Policy manager",
           icon: <Shield size={16} strokeWidth={1.5} />,
           path: "/policies",
         },
         {
           id: "incident-management",
-          label: "Incident Management",
+          label: "Incident management",
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
         },

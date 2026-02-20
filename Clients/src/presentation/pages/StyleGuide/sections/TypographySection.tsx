@@ -63,7 +63,7 @@ const TypographySection: React.FC = () => {
           />
           <SpecCard
             title="Font stack"
-            value="'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif"
+            value="'Geist', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif"
             note="Full fallback chain"
             onCopy={handleCopy}
           />

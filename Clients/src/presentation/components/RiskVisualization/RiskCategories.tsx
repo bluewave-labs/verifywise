@@ -176,8 +176,8 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
 
         <ButtonToggle
           options={[
-            { value: "category", label: "Risk Categories" },
-            { value: "lifecycle", label: "AI Lifecycle" },
+            { value: "category", label: "Risk categories" },
+            { value: "lifecycle", label: "AI lifecycle" },
           ]}
           value={viewMode}
           onChange={(value) => setViewMode(value as "category" | "lifecycle")}

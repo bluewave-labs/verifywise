@@ -84,7 +84,7 @@ export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCar
     },
     {
       key: "veryHigh",
-      label: "Very High",
+      label: "Very high",
       value: risksSummary.veryHighRisks,
       color: "#C63622",
       trend: enhancedSummary.trends?.veryHighTrend,
@@ -112,7 +112,7 @@ export function RisksCard({ risksSummary, onCardClick, selectedLevel }: RisksCar
     },
     {
       key: "veryLow",
-      label: "Very Low",
+      label: "Very low",
       value: risksSummary.veryLowRisks,
       color: "#B8D39C",
       trend: enhancedSummary.trends?.veryLowTrend,

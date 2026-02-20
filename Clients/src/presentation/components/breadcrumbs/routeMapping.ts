@@ -35,6 +35,11 @@ import {
   WorkflowIcon,
   Bot,
   Database,
+  FileSearch,
+  Search,
+  History,
+  Eye,
+  ShieldAlert,
 } from "lucide-react";
 
 /**
@@ -50,7 +55,7 @@ export const routeMapping: Record<string, string> = {
   "/project-view": "Project overview",
 
   // Vendor management
-  "/vendors": "Vendor Management",
+  "/vendors": "Vendor management",
 
   // Settings
   "/settings": "Settings",
@@ -60,7 +65,7 @@ export const routeMapping: Record<string, string> = {
   "/settings/organization": "Organization",
   "/settings/preferences": "Preferences",
   "/settings/apikeys": "API keys",
-  "/organization": "Organization Settings",
+  "/organization": "Organization settings",
 
   // File management
   "/file-manager": "Evidence",
@@ -70,24 +75,24 @@ export const routeMapping: Record<string, string> = {
   "/plugins/my-plugins": "Plugins",
 
   // Reporting
-  "/reporting": "Reporting Dashboard",
+  "/reporting": "Reporting dashboard",
 
   // AI Trust Center
-  "/ai-trust-center": "AI Trust Center",
+  "/ai-trust-center": "AI trust center",
   "/public": "Public AI Trust Center",
 
   // Training
-  "/training": "Training Registry",
+  "/training": "Training registry",
 
   // Event tracking
-  "/event-tracker": "Event Tracker",
+  "/event-tracker": "Event tracker",
   "/event-tracker/logs": "Logs",
 
   // Automations
   "/automations": "Automations",
 
   // Model inventory
-  "/model-inventory": "Model Inventory",
+  "/model-inventory": "Model inventory",
   "/model-inventory/model-risks": "Model risks",
   "/model-inventory/evidence-hub": "Evidence hub",
   // Plugin tabs are handled dynamically by the breadcrumb component
@@ -96,26 +101,44 @@ export const routeMapping: Record<string, string> = {
   "/datasets": "Datasets",
 
   // Incident management
-  "/ai-incident-managements": "Incident Management",
+  "/ai-incident-managements": "Incident management",
 
   // Agent discovery
-  "/agent-discovery": "Agent Discovery",
+  "/agent-discovery": "Agent discovery",
 
   // Framework tabs (note: /framework itself shows dashboard, no /framework/dashboard route)
   "/framework/framework-risks": "Framework risks",
   "/framework/linked-models": "Linked models",
-  "/framework/controls": "Controls and Requirements",
+  "/framework/controls": "Controls and requirements",
   "/framework/settings": "Settings",
 
+  // AI Detection
+  "/ai-detection": "AI detection",
+  "/ai-detection/scan": "Scan repository",
+  "/ai-detection/history": "Scan history",
+  "/ai-detection/scans": "Scan history",
+  "/ai-detection/settings": "Settings",
+
+  // Shadow AI
+  "/shadow-ai": "Shadow AI",
+  "/shadow-ai/insights": "Insights",
+  "/shadow-ai/user-activity": "User activity",
+  "/shadow-ai/user-activity/users": "Users",
+  "/shadow-ai/user-activity/departments": "Departments",
+  "/shadow-ai/tools": "AI tools",
+  "/shadow-ai/rules": "Rules",
+  "/shadow-ai/rules/alerts": "Alert history",
+  "/shadow-ai/settings": "Settings",
+
   // Authentication
-  "/login": "Sign In",
-  "/register": "Create Account",
-  "/admin-reg": "Admin Registration",
-  "/user-reg": "User Registration",
-  "/forgot-password": "Forgot Password",
-  "/reset-password": "Reset Password",
-  "/set-new-password": "Set New Password",
-  "/reset-password-continue": "Continue Password Reset",
+  "/login": "Sign in",
+  "/register": "Create account",
+  "/admin-reg": "Admin registration",
+  "/user-reg": "User registration",
+  "/forgot-password": "Forgot password",
+  "/reset-password": "Reset password",
+  "/set-new-password": "Set new password",
+  "/reset-password-continue": "Continue password reset",
 
 };
 
@@ -201,11 +224,28 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   //ApprovalWorkflow
   "/approval-workflows": () => React.createElement(WorkflowIcon, { size: 14, strokeWidth: 1.5 }),
 
+  // AI Detection
+  "/ai-detection": () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/scan": () => React.createElement(Search, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/history": () => React.createElement(History, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/scans": () => React.createElement(History, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
+  // Shadow AI
+  "/shadow-ai": () => React.createElement(Eye, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/insights": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/user-activity": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/user-activity/users": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/user-activity/departments": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/tools": () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/rules": () => React.createElement(ShieldAlert, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/rules/alerts": () => React.createElement(ShieldAlert, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
 };
 
 /**
  * Route pattern configuration for dynamic route matching
- * @type {Array<{pattern: RegExp, label: string, description?: string}>}
  */
 export const dynamicRoutePatterns = [
   {
@@ -215,7 +255,7 @@ export const dynamicRoutePatterns = [
   },
   {
     pattern: /\/fairness-results\/\w+/,
-    label: "Fairness Results",
+    label: "Fairness results",
     description: "Fairness results for specific analysis",
   },
   {
@@ -225,20 +265,32 @@ export const dynamicRoutePatterns = [
   },
   {
     pattern: /\/vendors\/[a-zA-Z0-9-]+/,
-    label: "Vendor Details",
+    label: "Vendor details",
     description: "Specific vendor information",
   },
   {
     pattern: /\/ai-incident-managements\/\d+/,
-    label: "Incident Management Details",
+    label: "Incident management details",
     description: "Specific incident management information",
   },
   {
     pattern: /\/plugins\/[a-zA-Z0-9-]+\/manage/,
-    label: "Plugin Details",
+    label: "Plugin details",
     description: "Specific plugin management page",
   },
-] as const;
+  {
+    pattern: /\/ai-detection\/scans\/\d+/,
+    label: "Scan details",
+    description: "Detailed view of specific scan results",
+    icon: () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
+  },
+  {
+    pattern: /\/shadow-ai\/tools\/\d+/,
+    label: "Tool details",
+    description: "Detailed view of specific AI tool",
+    icon: () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),
+  },
+];
 
 /**
  * Dynamic route mapping function for project-specific routes
@@ -309,8 +361,18 @@ export const getRouteMapping = (path: string): string => {
  * @returns {React.ReactNode | null} The appropriate icon or null if no match
  */
 export const getRouteIcon = (path: string): React.ReactNode | null => {
+  // Check static mapping first
   const iconFunction = routeIconMapping[path];
-  return iconFunction ? iconFunction() : null;
+  if (iconFunction) return iconFunction();
+
+  // Check dynamic patterns for icon
+  for (const entry of dynamicRoutePatterns) {
+    if (entry.pattern.test(path) && "icon" in entry && entry.icon) {
+      return entry.icon();
+    }
+  }
+
+  return null;
 };
 
 /**

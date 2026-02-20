@@ -4,6 +4,7 @@ import { Box, Stack, Typography, RadioGroup, FormControlLabel, Radio, Button, Ca
 import { Check } from "lucide-react";
 import { FlaskConical, FileSearch, Bot, LayoutDashboard, Database, Award, Settings, Save, Workflow, KeyRound, Swords } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import { useEvalsSidebarContext } from "../../../application/contexts/EvalsSidebar.context";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
@@ -37,7 +38,8 @@ import {
 import type { LLMProvider } from "../../../infrastructure/api/evaluationLlmApiKeysService";
 import { evalModelsService } from "../../../infrastructure/api/evalModelsService";
 import { Plus as PlusIcon, Trash2 as DeleteIcon } from "lucide-react";
-import { Chip, Collapse, IconButton, CircularProgress } from "@mui/material";
+import { Collapse, IconButton, CircularProgress } from "@mui/material";
+import VWChip from "../../components/Chip";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import SelectableCard from "../../components/SelectableCard";
 
@@ -936,7 +938,9 @@ export default function EvalsDashboard() {
       overview: { label: "Overview", icon: <LayoutDashboard size={14} strokeWidth={1.5} /> },
       experiments: { label: "Experiments", icon: <FlaskConical size={14} strokeWidth={1.5} /> },
       datasets: { label: "Datasets", icon: <Database size={14} strokeWidth={1.5} /> },
+      models: { label: "Models", icon: <Bot size={14} strokeWidth={1.5} /> },
       scorers: { label: "Scorers", icon: <Award size={14} strokeWidth={1.5} /> },
+      "bias-audits": { label: "Bias audits", icon: <FileSearch size={14} strokeWidth={1.5} /> },
       arena: { label: "Arena", icon: <Swords size={14} strokeWidth={1.5} /> },
       configuration: { label: "Configuration", icon: <Settings size={14} strokeWidth={1.5} /> },
       settings: { label: "Settings", icon: <KeyRound size={14} strokeWidth={1.5} /> },
@@ -1095,7 +1099,7 @@ export default function EvalsDashboard() {
 
   return (
     <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs items={breadcrumbItems} />
+      <PageBreadcrumbs items={breadcrumbItems} sx={{ mb: 0, "& > hr": { mb: 0 } }} />
 
       {/* Server Connection Error Banner */}
       {serverConnectionError && (
@@ -1157,15 +1161,10 @@ export default function EvalsDashboard() {
           /* Settings tab - always available regardless of project selection */
           tab === "settings" ? (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
-              {/* Header + description */}
-              <Stack spacing={1} mb={2}>
-                <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-                  Settings
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-                  Manage your organization's LLM provider API keys. These keys are shared across all projects.
-                </Typography>
-              </Stack>
+              <PageHeader
+                title="Settings"
+                description="Manage your organization's LLM provider API keys. These keys are shared across all projects."
+              />
 
               {/* LLM API Keys Card */}
               <Box
@@ -1330,22 +1329,7 @@ export default function EvalsDashboard() {
                                   }}>
                                     {getProviderDisplayName(key.provider)}
                                   </Typography>
-                                  <Chip
-                                    label="ACTIVE"
-                                    sx={{
-                                      backgroundColor: "#dcfce7",
-                                      color: "#166534",
-                                      fontWeight: 600,
-                                      fontSize: "9px",
-                                      height: "18px",
-                                      borderRadius: "4px",
-                                      "& .MuiChip-label": {
-                                        padding: "0 6px",
-                                        textTransform: "uppercase",
-                                        letterSpacing: "0.5px",
-                                      },
-                                    }}
-                                  />
+                                  <VWChip label="Active" variant="success" size="small" />
                                 </Stack>
                                 <Stack direction="row" alignItems="center" sx={{ gap: "48px" }}>
                                   <Box>
@@ -1553,16 +1537,11 @@ export default function EvalsDashboard() {
                                 <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>
                                   {provider.name}
                                 </Typography>
-                                <Chip
-                                  label={provider.type === "ollama" ? "OLLAMA" : "LOCAL"}
-                                  sx={{
-                                    backgroundColor: provider.type === "ollama" ? "#e0f2fe" : "#f3e8ff",
-                                    color: provider.type === "ollama" ? "#0369a1" : "#7c3aed",
-                                    fontWeight: 600,
-                                    fontSize: "9px",
-                                    height: "20px",
-                                    textTransform: "uppercase",
-                                  }}
+                                <VWChip
+                                  label={provider.type === "ollama" ? "Ollama" : "Local"}
+                                  size="small"
+                                  backgroundColor={provider.type === "ollama" ? "#e0f2fe" : "#f3e8ff"}
+                                  textColor={provider.type === "ollama" ? "#0369a1" : "#7c3aed"}
                                 />
                               </Stack>
                               <Typography sx={{ fontSize: 12, color: "#6B7280", fontFamily: "monospace" }}>
@@ -1654,15 +1633,10 @@ export default function EvalsDashboard() {
 
               {tab === "configuration" && (
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
-                  {/* Header + description */}
-                  <Stack spacing={1} mb={2}>
-                    <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-                      Configuration
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-                      Configure your project's LLM use case for running evaluations.
-                    </Typography>
-                  </Stack>
+                  <PageHeader
+                    title="Configuration"
+                    description="Configure your project's LLM use case for running evaluations."
+                  />
 
                   {/* LLM Use Case Card */}
                   <Box
@@ -1678,19 +1652,6 @@ export default function EvalsDashboard() {
                       <Typography sx={{ fontWeight: 600, fontSize: 16, color: "#344054" }}>
                         LLM use case
                       </Typography>
-                      {experimentsCount > 0 && (
-                        <Chip
-                          label="Locked"
-                          size="small"
-                          sx={{
-                            backgroundColor: "#FEF3C7",
-                            color: "#92400E",
-                            fontSize: "11px",
-                            fontWeight: 600,
-                            height: "22px",
-                          }}
-                        />
-                      )}
                     </Stack>
 
                     {/* Locked notice when experiments exist */}
@@ -1700,43 +1661,36 @@ export default function EvalsDashboard() {
                           backgroundColor: "#FFFBEB",
                           border: "1px solid #FDE68A",
                           borderRadius: "6px",
-                          p: 2,
+                          p: "8px",
                           mb: 3,
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 1.5,
                         }}
                       >
-                        <Box sx={{ color: "#D97706", mt: 0.25 }}>
-                          <Settings size={16} />
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#92400E", mb: 0.5 }}>
-                            Use case is locked
-                          </Typography>
-                          <Typography sx={{ fontSize: "12px", color: "#B45309", lineHeight: 1.5, mb: 1.5 }}>
-                            This project has {experimentsCount} experiment{experimentsCount !== 1 ? "s" : ""}.
-                            To evaluate a different use case, create a new project. This ensures your metrics and results remain consistent and comparable.
-                          </Typography>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={2}>
+                          <Box>
+                            <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#92400E", mb: 0.5 }}>
+                              Use case is locked
+                            </Typography>
+                            <Typography sx={{ fontSize: "12px", color: "#B45309", lineHeight: 1.5 }}>
+                              This project has {experimentsCount} experiment{experimentsCount !== 1 ? "s" : ""}.
+                              To evaluate a different use case, create a new project.
+                            </Typography>
+                          </Box>
                           <CustomizableButton
-                            variant="outlined"
+                            variant="contained"
                             onClick={() => setCreateProjectModalOpen(true)}
                             icon={<PlusIcon size={14} />}
                             text="Create new project"
                             sx={{
-                              height: "32px",
-                              fontSize: "12px",
-                              fontWeight: 600,
-                              color: "#92400E",
-                              borderColor: "#F59E0B",
-                              backgroundColor: "transparent",
+                              backgroundColor: "#13715B",
+                              border: "1px solid #13715B",
+                              gap: 2,
+                              whiteSpace: "nowrap",
                               "&:hover": {
-                                backgroundColor: "#FEF3C7",
-                                borderColor: "#D97706",
+                                backgroundColor: "#0f5a47",
                               },
                             }}
                           />
-                        </Box>
+                        </Stack>
                       </Box>
                     )}
 

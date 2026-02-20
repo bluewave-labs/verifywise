@@ -39,7 +39,7 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import { EmptyState } from "../../components/EmptyState";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import {
   PERIOD_OPTIONS,
@@ -59,7 +59,7 @@ interface UserDetailData {
 
 type ViewMode = "users" | "departments";
 
-const TABS = [
+const BASE_TABS = [
   { label: "Users", value: "users", icon: "Users" as const, tooltip: "Individual user AI tool usage and risk scores" },
   { label: "Departments", value: "departments", icon: "Building2" as const, tooltip: "AI usage aggregated by department" },
 ];
@@ -80,6 +80,7 @@ export default function UserActivityPage() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [page, setPage] = useState(1);
   const [departments, setDepartments] = useState<ShadowAiDepartmentActivity[]>([]);
+  const [totalDepartments, setTotalDepartments] = useState(0);
   const [deptPage, setDeptPage] = useState(0);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetailData | null>(null);
@@ -152,6 +153,31 @@ export default function UserActivityPage() {
     userDetail?.tools ?? [], detailToolsSortConfig, getDetailToolValue
   );
 
+  const tabs = useMemo(() => BASE_TABS.map((tab) => ({
+    ...tab,
+    count: tab.value === "users" ? totalUsers : totalDepartments,
+  })), [totalUsers, totalDepartments]);
+
+  // Fetch counts for both tabs on mount
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchCounts = async () => {
+      try {
+        const [usersData, deptData] = await Promise.all([
+          getUsers({ page: 1, limit: 1, period, sort_by: "total_prompts", order: "desc" }),
+          getDepartmentActivity(period),
+        ]);
+        if (controller.signal.aborted) return;
+        setTotalUsers(usersData.total);
+        setTotalDepartments(deptData.length);
+      } catch {
+        // counts will update when individual tabs load
+      }
+    };
+    fetchCounts();
+    return () => { controller.abort(); };
+  }, [period]);
+
   useEffect(() => {
     const controller = new AbortController();
     const fetchData = async () => {
@@ -173,6 +199,7 @@ export default function UserActivityPage() {
           const result = await getDepartmentActivity(period);
           if (controller.signal.aborted) return;
           setDepartments(result);
+          setTotalDepartments(result.length);
         }
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -212,13 +239,16 @@ export default function UserActivityPage() {
   // ─── Detail view ───
   if (selectedEmail) {
     return (
-      <Stack gap="16px">
+      <PageHeaderExtended
+        title="User activity"
+        description={selectedEmail}
+      >
         <Stack direction="row" alignItems="center" gap="8px">
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
           </IconButton>
           <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-            User activity
+            {selectedEmail}
           </Typography>
         </Stack>
 
@@ -291,7 +321,7 @@ export default function UserActivityPage() {
             User not found
           </Typography>
         )}
-      </Stack>
+      </PageHeaderExtended>
     );
   }
 
@@ -307,18 +337,18 @@ export default function UserActivityPage() {
   };
 
   return (
-    <TabContext value={viewMode}>
-    <PageSubHeader
+    <PageHeaderExtended
       title="User activity"
       description="Monitor individual user and department-level AI tool usage across your organization. Track prompts, identify high-risk users, and review activity by department."
       helpArticlePath="shadow-ai/user-activity"
       tipBoxEntity="shadow-ai-user-activity"
     >
+    <TabContext value={viewMode}>
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar
-          tabs={TABS}
+          tabs={tabs}
           activeTab={viewMode}
           onChange={handleTabChange}
         />
@@ -537,8 +567,8 @@ export default function UserActivityPage() {
           </Table>
         </TableContainer>
       )}
-    </PageSubHeader>
     </TabContext>
+    </PageHeaderExtended>
   );
 }
 

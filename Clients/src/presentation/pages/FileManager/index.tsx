@@ -75,6 +75,19 @@ const FileManager: React.FC = (): JSX.Element => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
+
+  // Folder sidebar collapse state (persisted in localStorage)
+  const [folderSidebarCollapsed, setFolderSidebarCollapsed] = useState(() =>
+    localStorage.getItem("verifywise:folder-sidebar-collapsed") === "true"
+  );
+
+  const handleToggleFolderSidebar = useCallback(() => {
+    setFolderSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("verifywise:folder-sidebar-collapsed", String(next));
+      return next;
+    });
+  }, []);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
@@ -710,6 +723,7 @@ const FileManager: React.FC = (): JSX.Element => {
       title="Evidence & documents"
       description="Organize and manage all files uploaded to the system."
       helpArticlePath="ai-governance/evidence-collection"
+
       tipBoxEntity="file-manager"
     >
       <PageTour
@@ -743,6 +757,8 @@ const FileManager: React.FC = (): JSX.Element => {
           onDeleteFolder={handleOpenDeleteFolder}
           loading={loadingFolders}
           canManage={canManageFolders}
+          collapsed={folderSidebarCollapsed}
+          onToggleCollapse={handleToggleFolderSidebar}
         />
 
         {/* File content area */}

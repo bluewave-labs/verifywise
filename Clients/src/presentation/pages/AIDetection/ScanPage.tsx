@@ -31,9 +31,11 @@ import {
   ShieldAlert,
   Info,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
+import AIDetectionOnboarding from "../../components/Modals/AIDetectionOnboarding";
 import {
   startScan,
   pollScanStatus,
@@ -47,11 +49,7 @@ import {
   ScanResponse,
   AIDetectionStats,
 } from "../../../domain/ai-detection/types";
-
-interface ScanPageProps {
-  onScanComplete: () => void;
-  onViewDetails: (scanId: number) => void;
-}
+import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
 
 type ScanState = "idle" | "scanning" | "completed" | "failed";
 
@@ -154,7 +152,10 @@ function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
   );
 }
 
-export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProps) {
+export default function ScanPage() {
+  const navigate = useNavigate();
+  const { refreshRecentScans } = useAIDetectionSidebarContext();
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [progress, setProgress] = useState<ScanStatusResponse | null>(null);
@@ -212,7 +213,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             );
             setResult(scanResult);
             setScanState("completed");
-            onScanComplete();
+            refreshRecentScans();
           } else if (finalStatus.status === "failed") {
             setScanState("failed");
             setError(finalStatus.error_message || "Scan failed");
@@ -236,7 +237,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       // Cleanup on unmount
       abortControllerRef.current?.abort();
     };
-  }, [onScanComplete]);
+  }, [refreshRecentScans]);
 
   /**
    * Normalizes a repository input to a full GitHub URL.
@@ -304,7 +305,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
         );
         setResult(scanResult);
         setScanState("completed");
-        onScanComplete();
+        refreshRecentScans();
       } else if (finalStatus.status === "failed") {
         setScanState("failed");
         setError(finalStatus.error_message || "Scan failed");
@@ -319,7 +320,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       setScanState("failed");
       setError(err instanceof Error ? err.message : "An error occurred");
     }
-  }, [repositoryUrl, onScanComplete]);
+  }, [repositoryUrl, refreshRecentScans]);
 
   const handleCancel = useCallback(async () => {
     // Abort local HTTP requests
@@ -349,7 +350,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
   }, []);
 
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="Scan repository"
       description="Enter a public GitHub repository URL to detect AI/ML libraries and frameworks."
       helpArticlePath="ai-detection/scanning"
@@ -674,7 +675,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             />
             <CustomizableButton
               text="View details"
-              onClick={() => onViewDetails(result.scan.id)}
+              onClick={() => navigate(`/ai-detection/scans/${result.scan.id}`)}
               sx={{ height: 34 }}
             />
           </Box>
@@ -712,6 +713,10 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
           </Box>
         </Box>
       )}
-    </PageSubHeader>
+      <AIDetectionOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
+    </PageHeaderExtended>
   );
 }

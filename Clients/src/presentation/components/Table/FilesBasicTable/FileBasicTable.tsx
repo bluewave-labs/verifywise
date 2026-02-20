@@ -19,7 +19,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
 import { FileIcon } from "../../FileIcon";
 import VersionBadge from "../../../pages/FileManager/components/VersionBadge";
-import StatusBadge from "../../../pages/FileManager/components/StatusBadge";
+import Chip from "../../Chip";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
@@ -548,7 +548,10 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                           : "inherit",
                       }}
                     >
-                      <StatusBadge status={(row as any).reviewStatus} />
+                      <Chip
+                        label={((row as any).reviewStatus || "draft").replace(/_/g, " ").replace(/^\w/, (c: string) => c.toUpperCase())}
+                        uppercase={false}
+                      />
                     </TableCell>
                   )}
                   {/* Action column */}

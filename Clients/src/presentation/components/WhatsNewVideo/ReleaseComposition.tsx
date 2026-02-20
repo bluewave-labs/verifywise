@@ -1,4 +1,3 @@
-import React from "react";
 import { AbsoluteFill } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
@@ -6,15 +5,6 @@ import { IntroScene } from "./scenes/IntroScene";
 import { FeatureScene } from "./scenes/FeatureScene";
 import { OutroScene } from "./scenes/OutroScene";
 import { COLORS, SCENE_DURATIONS } from "./styles";
-
-const TRANSITION = (
-  <TransitionSeries.Transition
-    presentation={fade()}
-    timing={linearTiming({
-      durationInFrames: SCENE_DURATIONS.transition,
-    })}
-  />
-);
 
 const FEATURES = [
   {
@@ -77,18 +67,28 @@ export const ReleaseComposition: React.FC = () => {
           <IntroScene />
         </TransitionSeries.Sequence>
 
-        {FEATURES.map((feature) => (
-          <React.Fragment key={feature.number}>
-            {TRANSITION}
-            <TransitionSeries.Sequence
-              durationInFrames={SCENE_DURATIONS.feature}
-            >
-              <FeatureScene {...feature} />
-            </TransitionSeries.Sequence>
-          </React.Fragment>
-        ))}
+        {FEATURES.flatMap((feature) => [
+          <TransitionSeries.Transition
+            key={`t-${feature.number}`}
+            presentation={fade()}
+            timing={linearTiming({
+              durationInFrames: SCENE_DURATIONS.transition,
+            })}
+          />,
+          <TransitionSeries.Sequence
+            key={feature.number}
+            durationInFrames={SCENE_DURATIONS.feature}
+          >
+            <FeatureScene {...feature} />
+          </TransitionSeries.Sequence>,
+        ])}
 
-        {TRANSITION}
+        <TransitionSeries.Transition
+          presentation={fade()}
+          timing={linearTiming({
+            durationInFrames: SCENE_DURATIONS.transition,
+          })}
+        />
         <TransitionSeries.Sequence
           durationInFrames={SCENE_DURATIONS.outro}
         >

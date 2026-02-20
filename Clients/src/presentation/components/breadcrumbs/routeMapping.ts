@@ -88,7 +88,6 @@ export const routeMapping: Record<string, string> = {
 
   // Model inventory
   "/model-inventory": "Model Inventory",
-  "/model-inventory/models": "Models",
   "/model-inventory/model-risks": "Model risks",
   "/model-inventory/evidence-hub": "Evidence hub",
   // Plugin tabs are handled dynamically by the breadcrumb component

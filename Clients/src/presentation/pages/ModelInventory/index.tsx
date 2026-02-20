@@ -39,7 +39,7 @@ import { PluginSlot } from "../../components/PluginSlot";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
-import LifecycleConfigEditor from "./components/LifecycleConfigEditor";
+// Note: LifecycleConfigEditor is now provided by the model-lifecycle plugin via plugin slots
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
@@ -106,7 +106,7 @@ const ModelInventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewModelInventoryModalOpen, setIsNewModelInventoryModalOpen] =
     useState(false);
-  const [isLifecycleConfigOpen, setIsLifecycleConfigOpen] = useState(false);
+  // Note: Lifecycle config is now provided by the model-lifecycle plugin via plugin slots
 
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
@@ -1026,9 +1026,9 @@ const ModelInventory: React.FC = () => {
 
   const handleViewModelDetails = useCallback(
     (id: string) => {
-      navigate(`/model-inventory/models/${id}`);
+      handleEditModelInventory(id);
     },
-    [navigate]
+    [handleEditModelInventory]
   );
 
   const handleEditEvidence = async (id: number) => {
@@ -2180,25 +2180,7 @@ const ModelInventory: React.FC = () => {
                 >
                   <BarChart3 size={16} color="#344054" />
                 </IconButton>
-                {userRoleName === "Admin" && isPluginInstalled("model-lifecycle") && (
-                  <IconButton
-                    onClick={() => setIsLifecycleConfigOpen(true)}
-                    aria-label="Configure Lifecycle"
-                    sx={{
-                      height: "34px",
-                      width: "34px",
-                      padding: "8px",
-                      borderRadius: "4px",
-                      border: "1px solid #e5e7eb",
-                      backgroundColor: "#ffffff",
-                      "&:hover": {
-                        backgroundColor: "#f9fafb",
-                      },
-                    }}
-                  >
-                    <Settings size={16} color="#344054" />
-                  </IconButton>
-                )}
+                {/* Lifecycle config is now accessed via Plugin Settings page */}
                 <div data-joyride-id="add-model-button">
                   <CustomizableButton
                     variant="contained"
@@ -2517,11 +2499,7 @@ const ModelInventory: React.FC = () => {
         onOpenLink={handleOpenLink}
       />
 
-      {/* Lifecycle Config Editor (Admin only) */}
-      <LifecycleConfigEditor
-        open={isLifecycleConfigOpen}
-        onClose={() => setIsLifecycleConfigOpen(false)}
-      />
+      {/* Lifecycle Config is now provided by the model-lifecycle plugin */}
       </PageHeaderExtended>
     </Stack>
   );

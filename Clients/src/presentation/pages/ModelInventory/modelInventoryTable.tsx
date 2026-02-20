@@ -20,6 +20,8 @@ import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import ViewRelationshipsButton from "../../components/ViewRelationshipsButton";
+import PluginSlot from "../../components/PluginSlot";
+import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
@@ -553,6 +555,14 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                       entityType="model"
                       entityLabel={modelInventory.model || undefined}
                     />
+                    {/* Plugin-injected icon buttons for model rows */}
+                    <PluginSlot
+                      id={PLUGIN_SLOTS.MODEL_ROW_ICON_ACTIONS}
+                      slotProps={{
+                        modelId: modelInventory.id,
+                        modelName: modelInventory.model,
+                      }}
+                    />
                     {isDeletingAllowed && (
                       <CustomIconButton
                         id={modelInventory.id || 0}
@@ -565,7 +575,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                         onMouseEvent={() => {}}
                         warningTitle="Delete this model?"
                         warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
-                        type=""
+                        type="model"
+                        entityId={modelInventory.id}
                         checkForRisks={
                           onCheckModelHasRisks
                             ? () =>

@@ -128,7 +128,13 @@ export class PluginService {
       let remotePlugins = marketplaceData.plugins.filter((p) => p.isPublished);
 
       // Merge built-in plugins (built-ins take precedence by key)
-      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished) as Plugin[];
+      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished).map((plugin) => {
+        // Transform relative iconUrl paths to full URLs for built-in plugins too
+        if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
+          return { ...plugin, iconUrl: `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}` };
+        }
+        return plugin;
+      }) as Plugin[];
       const builtinKeys = new Set(builtinPlugins.map((p) => p.key));
       const nonOverlapping = remotePlugins.filter((p) => !builtinKeys.has(p.key));
       let plugins = [...builtinPlugins, ...nonOverlapping];
@@ -155,6 +161,10 @@ export class PluginService {
         (p) => p.key === pluginKey && p.isPublished
       );
       if (builtinPlugin) {
+        // Transform relative iconUrl to full URL
+        if (builtinPlugin.iconUrl && !builtinPlugin.iconUrl.startsWith("http")) {
+          return { ...builtinPlugin, iconUrl: `${PLUGIN_MARKETPLACE_BASE_URL}/${builtinPlugin.iconUrl}` } as Plugin;
+        }
         return builtinPlugin as Plugin;
       }
 

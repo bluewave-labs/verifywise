@@ -45,62 +45,9 @@ interface BuiltinPlugin {
   };
 }
 
+// Note: model-lifecycle is now a remote plugin in the plugin-marketplace repo
+
 const BUILTIN_PLUGINS: BuiltinPlugin[] = [
-  {
-    key: "model-lifecycle",
-    name: "model-lifecycle",
-    displayName: "Model Lifecycle",
-    description:
-      "Configurable lifecycle phase tracking for AI model inventory items. Define phases, track progress, attach files, and manage governance workflows.",
-    longDescription:
-      "The Model Lifecycle plugin provides a structured approach to tracking AI models through their development and deployment lifecycle. " +
-      "Administrators can define custom phases (e.g., Development, Testing, Staging, Production, Retirement) with configurable items within each phase. " +
-      "Users can track progress per model, attach evidence files, and view completion metrics. " +
-      "All lifecycle data is preserved when uninstalled and restored when reinstalled.",
-    version: "1.0.0",
-    author: "VerifyWise",
-    category: "ml_ops",
-    isOfficial: true,
-    isPublished: true,
-    isBuiltIn: true,
-    requiresConfiguration: false,
-    installationType: "built-in",
-    features: [
-      {
-        name: "Lifecycle Phases",
-        description: "Define and manage custom lifecycle phases for model governance",
-        displayOrder: 1,
-      },
-      {
-        name: "Progress Tracking",
-        description: "Track completion progress per model across all lifecycle phases",
-        displayOrder: 2,
-      },
-      {
-        name: "File Attachments",
-        description: "Attach evidence and documentation files to lifecycle items",
-        displayOrder: 3,
-      },
-      {
-        name: "Admin Configuration",
-        description: "Admins can create, reorder, and manage phases and items",
-        displayOrder: 4,
-      },
-    ],
-    tags: ["lifecycle", "model", "governance", "phases"],
-    pluginPath: "__builtin__",
-    entryPoint: "__builtin__",
-    ui: {
-      bundleUrl: "__builtin__",
-      slots: [
-        {
-          slotId: "page.model-detail.lifecycle",
-          componentName: "ModelLifecycleContent",
-          renderType: "raw",
-        },
-      ],
-    },
-  },
   {
     key: "dataset-bulk-upload",
     name: "dataset-bulk-upload",
@@ -115,6 +62,7 @@ const BUILTIN_PLUGINS: BuiltinPlugin[] = [
     version: "1.0.0",
     author: "VerifyWise",
     category: "data_governance",
+    iconUrl: "plugins/dataset-bulk-upload/icon.svg",
     isOfficial: true,
     isPublished: true,
     isBuiltIn: true,

@@ -467,36 +467,55 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     </TableCell>
                   )}
                   {/* Source column */}
-                  {visibleColumnKeys.includes("source") && (
-                    <TableCell
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.cell,
-                        backgroundColor: getSortMatchForColumn(
-                          data.cols[colIndex++]?.name,
-                          sortConfig
-                        )
-                          ? "#f5f5f5"
-                          : "inherit",
-                      }}
-                    >
-                      <Box
+                  {visibleColumnKeys.includes("source") && (() => {
+                    const isLinked = [
+                      "Assessment tracker group",
+                      "Compliance tracker group",
+                      "Management system clauses group",
+                      "Main clauses group",
+                      "Reference controls group",
+                      "Annex controls group",
+                    ].includes(row.source || "");
+                    return (
+                      <TableCell
                         sx={{
-                          display: "flex",
-                          alignItems: "flex-end",
-                          gap: "4px",
-                          textDecoration: "underline",
-                          "& svg": { visibility: "hidden" },
-                          "&:hover": {
-                            cursor: "pointer",
-                            "& svg": { visibility: "visible" },
-                          },
+                          ...singleTheme.tableStyles.primary.body.cell,
+                          backgroundColor: getSortMatchForColumn(
+                            data.cols[colIndex++]?.name,
+                            sortConfig
+                          )
+                            ? "#f5f5f5"
+                            : "inherit",
                         }}
-                        onClick={(event) => handleRowClick(row, event)}
                       >
-                        {row.source}
-                      </Box>
-                    </TableCell>
-                  )}
+                        {isLinked ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "flex-end",
+                              gap: "4px",
+                              textDecoration: "underline",
+                              "& svg": { visibility: "hidden" },
+                              "&:hover": {
+                                cursor: "pointer",
+                                "& svg": { visibility: "visible" },
+                              },
+                            }}
+                            onClick={(event) => handleRowClick(row, event)}
+                          >
+                            {row.source}
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#98A2B3", fontSize: 13 }}
+                          >
+                            Not linked
+                          </Typography>
+                        )}
+                      </TableCell>
+                    );
+                  })()}
                   {/* Version column */}
                   {visibleColumnKeys.includes("version") && (
                     <TableCell

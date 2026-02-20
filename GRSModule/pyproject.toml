@@ -9,7 +9,11 @@ dependencies = [
   "pydantic>=2.6",
   "pyyaml>=6.0",
   "rich>=13.7",
+  "streamlit>=1.54.0",
 ]
+
+[project.optional-dependencies]
+dev = ["streamlit>=1.40", "pandas>=2.0"]
 
 [project.scripts]
 grs-scenarios = "cli:main"

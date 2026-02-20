@@ -328,7 +328,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
                 minHeight: 0,
                 overflowY: "auto", 
                 overflowX: "hidden",
-                padding: "16px 8px 24px 24px"
+                padding: "24px 8px 24px 24px"
               }}
             >
               <Outlet />

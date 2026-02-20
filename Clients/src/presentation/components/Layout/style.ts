@@ -1,8 +1,4 @@
 // PageHeaderExtended styles
-export const pageHeaderTitleSectionStyle = {
-  mt: "-14px",
-};
-
 export const pageHeaderSummaryCardsStyle = {
   mb: "-3px",
 };

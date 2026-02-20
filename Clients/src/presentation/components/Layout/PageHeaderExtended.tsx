@@ -4,7 +4,7 @@ import { PageBreadcrumbs } from "../breadcrumbs/PageBreadcrumbs";
 import HelperIcon from "../HelperIcon";
 import { PageHeader } from "./PageHeader";
 import TipBox from "../TipBox";
-import { pageHeaderTitleSectionStyle, pageHeaderSummaryCardsStyle } from "./style";
+import { pageHeaderSummaryCardsStyle } from "./style";
 import { PageHeaderExtendedProps } from "src/presentation/types/interfaces/i.header";
 
 export function PageHeaderExtended({
@@ -19,10 +19,10 @@ export function PageHeaderExtended({
     loadingToast,
 }: PageHeaderExtendedProps) {
     return (
-        <Stack className="vwhome" gap={4}>
-            <PageBreadcrumbs />
+        <Stack className="vwhome" gap={0}>
+            <PageBreadcrumbs sx={{ mb: 0, "& > hr": { mb: 0 } }} />
 
-            <Box sx={pageHeaderTitleSectionStyle}>
+            <Box sx={{ mt: "16px" }}>
                 <PageHeader
                     title={title}
                     description={description}
@@ -34,7 +34,7 @@ export function PageHeaderExtended({
                 />
             </Box>
 
-            <Stack gap="18px">
+            <Stack gap="18px" sx={{ mt: "18px" }}>
                 {tipBoxEntity && <TipBox entityName={tipBoxEntity} />}
 
                 {alert}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Box, Card, CardContent, Typography, Stack, FormControl, Select, MenuItem } from "@mui/material";
+import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
+import Select from "../../components/RiskVisualization/Inputs/Select";
 import { Play, Clock } from "lucide-react";
 import {
   getAllExperiments,
@@ -671,26 +672,13 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
               Track metric scores across eval runs
             </Typography>
-            <FormControl size="small">
-              <Select
-                value={chartTimeRange}
-                onChange={(e) => setChartTimeRange(e.target.value as TimeRange)}
-                sx={{
-                  fontSize: "12px",
-                  height: "28px",
-                  "& .MuiSelect-select": { py: 0.5, px: 1.5 },
-                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
-                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
-                }}
-              >
-                {TIME_RANGE_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: "12px" }}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Select
+              id="chart-time-range"
+              value={chartTimeRange}
+              onChange={(e) => setChartTimeRange(e.target.value as TimeRange)}
+              items={TIME_RANGE_OPTIONS.map((opt) => ({ _id: opt.value, name: opt.label }))}
+              sx={{ minWidth: 130 }}
+            />
           </Box>
 
           <Box sx={{ position: "relative" }}>

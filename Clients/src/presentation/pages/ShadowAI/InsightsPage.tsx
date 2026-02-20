@@ -46,7 +46,7 @@ import {
   IShadowAiTool,
 } from "../../../domain/interfaces/i.shadowAi";
 import Select from "../../components/Inputs/Select";
-import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
+import { StatCard } from "../../components/Cards/StatCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { VWLink } from "../../components/Link/VWLink";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
@@ -133,39 +133,34 @@ export default function InsightsPage() {
       {/* Summary header cards */}
       <Box
         sx={{
-          display: "flex",
-          flexWrap: "wrap",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: "16px",
-          "& > *": {
-            flex: "1 1 0",
-            minWidth: "150px",
-            padding: "16px !important",
-          },
         }}
       >
-        <DashboardHeaderCard
+        <StatCard
           title="Unique apps"
-          count={loading ? <Skeleton width={40} /> : (summary?.unique_apps ?? 0)}
-          icon={<AppWindow size={16} strokeWidth={1.5} />}
-          disableNavigation
+          value={loading ? "..." : String(summary?.unique_apps ?? 0)}
+          Icon={AppWindow}
+          onClick={() => navigate("/shadow-ai/tools")}
         />
-        <DashboardHeaderCard
+        <StatCard
           title="AI users"
-          count={loading ? <Skeleton width={40} /> : (summary?.total_ai_users ?? 0)}
-          icon={<Users size={16} strokeWidth={1.5} />}
-          disableNavigation
+          value={loading ? "..." : String(summary?.total_ai_users ?? 0)}
+          Icon={Users}
+          onClick={() => navigate("/shadow-ai/user-activity")}
         />
-        <DashboardHeaderCard
+        <StatCard
           title="Highest risk tool"
-          count={loading ? <Skeleton width={80} /> : (summary?.highest_risk_tool?.name ?? "—")}
-          icon={<AlertTriangle size={16} strokeWidth={1.5} />}
-          disableNavigation
+          value={loading ? "..." : (summary?.highest_risk_tool?.name ?? "—")}
+          Icon={AlertTriangle}
+          onClick={() => navigate("/shadow-ai/tools")}
         />
-        <DashboardHeaderCard
+        <StatCard
           title="Most active department"
-          count={loading ? <Skeleton width={80} /> : (summary?.most_active_department ?? "—")}
-          icon={<Building2 size={16} strokeWidth={1.5} />}
-          disableNavigation
+          value={loading ? "..." : (summary?.most_active_department ?? "—")}
+          Icon={Building2}
+          onClick={() => navigate("/shadow-ai/user-activity/departments")}
         />
       </Box>
 

@@ -365,59 +365,60 @@ export default function AIToolsPage() {
               }}
             />
 
-            {/* Departments */}
-            {selectedTool.departments && selectedTool.departments.length > 0 && (
-              <Stack>
-                <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
-                  Departments
-                </Typography>
-                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-                  <Table sx={{ tableLayout: "fixed" }}>
-                    <TableHead>
-                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>Department</TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Users</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {selectedTool.departments.map((d) => (
-                        <TableRow key={d.department} sx={singleTheme.tableStyles.primary.body.row}>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.department}</TableCell>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.user_count}</TableCell>
+            {/* Departments & Top users side by side */}
+            <Stack direction="row" gap="16px">
+              {selectedTool.departments && selectedTool.departments.length > 0 && (
+                <Stack sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
+                    Departments
+                  </Typography>
+                  <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                    <Table sx={{ tableLayout: "fixed" }}>
+                      <TableHead>
+                        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>Department</TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Users</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Stack>
-            )}
+                      </TableHead>
+                      <TableBody>
+                        {selectedTool.departments.map((d) => (
+                          <TableRow key={d.department} sx={singleTheme.tableStyles.primary.body.row}>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.department}</TableCell>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.user_count}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Stack>
+              )}
 
-            {/* Top users */}
-            {selectedTool.top_users && selectedTool.top_users.length > 0 && (
-              <Stack>
-                <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
-                  Top users
-                </Typography>
-                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-                  <Table sx={{ tableLayout: "fixed" }}>
-                    <TableHead>
-                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>User</TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Events</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {selectedTool.top_users.map((u) => (
-                        <TableRow key={u.user_email} sx={singleTheme.tableStyles.primary.body.row}>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.user_email}</TableCell>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.event_count}</TableCell>
+              {selectedTool.top_users && selectedTool.top_users.length > 0 && (
+                <Stack sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
+                    Top users
+                  </Typography>
+                  <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                    <Table sx={{ tableLayout: "fixed" }}>
+                      <TableHead>
+                        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>User</TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Events</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Stack>
-            )}
+                      </TableHead>
+                      <TableBody>
+                        {selectedTool.top_users.map((u) => (
+                          <TableRow key={u.user_email} sx={singleTheme.tableStyles.primary.body.row}>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.user_email}</TableCell>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.event_count}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Stack>
+              )}
+            </Stack>
           </Stack>
         )}
       </PageHeaderExtended>

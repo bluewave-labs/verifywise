@@ -74,7 +74,7 @@ type ViewMode = "rules" | "history";
 
 const ALERTS_PER_PAGE = 10;
 
-const TABS = [
+const BASE_TABS = [
   { label: "Rules", value: "rules", icon: "Bell" as const, tooltip: "Configure alerts for Shadow AI activity" },
   { label: "Alert history", value: "history", icon: "History" as const, tooltip: "Past alerts triggered by your rules" },
 ];
@@ -141,6 +141,11 @@ export default function RulesPage() {
 
   const sortedAlerts = useSortedRows(alerts, alertsSortConfig, getAlertValue);
 
+  const tabs = useMemo(() => BASE_TABS.map((tab) => ({
+    ...tab,
+    count: tab.value === "rules" ? rules.length : alertsTotal,
+  })), [rules.length, alertsTotal]);
+
   // Auto-dismiss toast
   useEffect(() => {
     if (toast) {
@@ -149,6 +154,26 @@ export default function RulesPage() {
     }
     return undefined;
   }, [toast]);
+
+  // Fetch counts for both tabs on mount
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchCounts = async () => {
+      try {
+        const [rulesData, alertsData] = await Promise.all([
+          getRules(),
+          getAlertHistory(1, 1),
+        ]);
+        if (controller.signal.aborted) return;
+        setRules(rulesData);
+        setAlertsTotal(alertsData.total);
+      } catch {
+        // counts will update when individual tabs load
+      }
+    };
+    fetchCounts();
+    return () => { controller.abort(); };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -338,7 +363,7 @@ export default function RulesPage() {
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar
-          tabs={TABS}
+          tabs={tabs}
           activeTab={viewMode}
           onChange={handleTabChange}
         />

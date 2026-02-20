@@ -11,7 +11,7 @@ interface ToggleCardProps {
   disabled?: boolean;
 }
 
-const ToggleCard: React.FC<ToggleCardProps> = ({ label, checked, onToggle, children, disabled }) => {
+function ToggleCard({ label, checked, onToggle, children, disabled }: ToggleCardProps) {
   const theme = useTheme();
   const formControlLabelStyles = getFormControlLabelStyles(theme);
   const CardComponent = checked ? CardActive : CardDisabled;
@@ -30,6 +30,6 @@ const ToggleCard: React.FC<ToggleCardProps> = ({ label, checked, onToggle, child
       </CardComponent>
     </Stack>
   );
-};
+}
 
 export default ToggleCard; 

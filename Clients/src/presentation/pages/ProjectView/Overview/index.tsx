@@ -34,6 +34,10 @@ interface ProgressBarCardProps {
 const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
+  // Extract numeric ID for plugin-sourced IDs like "prefix-123"
+  const numericProjectId = projectId.includes("-")
+    ? parseInt(projectId.substring(projectId.lastIndexOf("-") + 1), 10) || 0
+    : parseInt(projectId, 10) || 0;
   const { project, projectOwner, error, isLoading } = useProjectData({
     projectId,
   });
@@ -47,7 +51,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
     controlsCompleted,
     requirementsCompleted,
   } = getProjectData({
-    projectId: parseInt(projectId),
+    projectId: numericProjectId,
     assessments: projectStatus.assessments,
     controls: projectStatus.controls,
   });

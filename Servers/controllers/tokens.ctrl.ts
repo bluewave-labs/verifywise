@@ -4,33 +4,42 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { logEvent } from "../utils/logger/dbLogger";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { generateUserTokens } from "../utils/auth.utils";
+import { generateApiToken } from "../utils/jwt.utils";
+import { getTenantHash } from "../tools/getTenantHash";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { createApiTokenQuery, deleteApiTokenQuery, getApiTokensQuery } from "../utils/tokens.utils";
 
 export const createApiToken = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
-  const { name } = req.body;
-  logStructured('processing', `starting API token creation for ${name}`, 'createApiToken', 'tokens.ctrl.ts');
-  logger.debug(`🛠️ Creating API token: ${name}`);
+  const { name, expires_in_days } = req.body;
+
+  if (!expires_in_days) {
+    return res.status(400).json(STATUS_CODE[400]("expires_in_days is required"));
+  }
+
+  const expiryDays = parseInt(expires_in_days, 10);
+  logStructured('processing', `starting API token creation for ${name} with ${expiryDays} days expiry`, 'createApiToken', 'tokens.ctrl.ts');
+  logger.debug(`🛠️ Creating API token: ${name} (expires in ${expiryDays} days)`);
   try {
     const user = await getUserByIdQuery(req.userId!, transaction);
     logStructured('processing', `fetched user ${user.id} for API token creation`, 'createApiToken', 'tokens.ctrl.ts');
     logger.debug(`🔍 Fetched user: ${user.id}`);
 
-    const { accessToken } = generateUserTokens({
+    // Generate API token with user-defined expiry
+    const apiToken = generateApiToken({
       id: user.id!,
       email: user.email!,
       roleName: "Admin",
+      tenantId: getTenantHash(req.organizationId!),
       organizationId: req.organizationId!,
-    }, res);
-    logStructured('processing', `generated token for API token creation`, 'createApiToken', 'tokens.ctrl.ts');
-    logger.debug(`🔐 Generated token for user: ${user.id}`);
+    }, expiryDays) as string;
+    logStructured('processing', `generated API token for API token creation`, 'createApiToken', 'tokens.ctrl.ts');
+    logger.debug(`🔐 Generated API token for user: ${user.id}`);
 
     const tokenResponse = await createApiTokenQuery({
       name: name,
-      token: accessToken,
-      expires_at: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30), // 30 days
+      token: apiToken,
+      expires_at: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
       created_by: req.userId!,
     }, req.tenantId!, transaction);
     logStructured('successful', `created API token ${tokenResponse.id} for user ${user.id}`, 'createApiToken', 'tokens.ctrl.ts');

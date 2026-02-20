@@ -1531,6 +1531,14 @@ export const deleteAssessmentEUByProjectIdQuery = async (
   if (assessmentId[0].length === 0) {
     return false;
   }
+  // Delete answers_eu__risks first (FK: answer_id -> answers_eu.id)
+  await sequelize.query(
+    `DELETE FROM "${tenant}".answers_eu__risks WHERE answer_id IN (SELECT id FROM "${tenant}".answers_eu WHERE assessment_id = :assessment_id)`,
+    {
+      replacements: { assessment_id: assessmentId[0][0].id },
+      transaction,
+    }
+  );
   await sequelize.query(
     `DELETE FROM "${tenant}".answers_eu WHERE assessment_id = :assessment_id`,
     {
@@ -1567,6 +1575,11 @@ export const deleteComplianeEUByProjectIdQuery = async (
     return false;
   }
   for (let control of controlIds[0]) {
+    // Delete controls_eu__risks first (FK: control_id -> controls_eu.id)
+    await sequelize.query(
+      `DELETE FROM "${tenant}".controls_eu__risks WHERE control_id = :control_id`,
+      { replacements: { control_id: control.id }, transaction }
+    );
     await sequelize.query(
       `DELETE FROM "${tenant}".subcontrols_eu WHERE control_id = :control_id`,
       { replacements: { control_id: control.id }, transaction }

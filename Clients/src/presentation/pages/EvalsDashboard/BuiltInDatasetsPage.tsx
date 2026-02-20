@@ -389,11 +389,11 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
             navigate(`/evals/${projectId}#${v}`);
           }}
           tabs={[
-            { value: "overview", label: "Overview", icon: "LayoutDashboard" },
-            { value: "experiments", label: "Experiments", icon: "FlaskConical", count: experimentsCount },
-            { value: "datasets", label: "Datasets", icon: "Database", count: datasetsCount },
-            { value: "scorers", label: "Scorers", icon: "Award" },
-            { value: "configuration", label: "Configuration", icon: "Settings" },
+            { value: "overview", label: "Overview", icon: "LayoutDashboard", tooltip: "Project summary and key metrics" },
+            { value: "experiments", label: "Experiments", icon: "FlaskConical", count: experimentsCount, tooltip: "Run and compare model evaluations" },
+            { value: "datasets", label: "Datasets", icon: "Database", count: datasetsCount, tooltip: "Test datasets for evaluating models" },
+            { value: "scorers", label: "Scorers", icon: "Award", tooltip: "Metrics used to score model outputs" },
+            { value: "configuration", label: "Configuration", icon: "Settings", tooltip: "Project settings and LLM API keys" },
           ]}
           tabListSx={{ mb: 2 }}
         />

@@ -44,7 +44,7 @@ import Alert from "../../Alert";
 import StandardModal from "../../Modals/StandardModal";
 
 // Lazy-loaded components
-const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks").then(m => ({ default: m.LinkedRisksPopup })));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 
@@ -69,7 +69,7 @@ import { getEntityById } from "../../../../application/repository/entity.reposit
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import { getAssessmentTopicById } from "../../../../application/repository/assesment.repository";
 import allowedRoles from "../../../../application/constants/permissions";
-import FilePickerModal from "../../FilePickerModal";
+import { FilePickerModal } from "../../FilePickerModal";
 
 // Type for risk objects
 interface LinkedRisk {

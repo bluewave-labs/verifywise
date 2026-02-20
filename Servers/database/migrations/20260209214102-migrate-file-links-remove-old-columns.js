@@ -67,6 +67,18 @@ module.exports = {
               const fileId = parseInt(file.id, 10);
               if (isNaN(fileId)) continue;
 
+              // Check if file exists before inserting (skip orphaned references)
+              const [fileExists] = await queryInterface.sequelize.query(`
+                SELECT EXISTS (
+                  SELECT 1 FROM "${tenantHash}".files WHERE id = :fileId
+                ) AS exists;
+              `, { transaction, replacements: { fileId } });
+
+              if (!fileExists[0].exists) {
+                console.log(`Skipping orphaned file reference: file_id=${fileId} (file no longer exists)`);
+                continue;
+              }
+
               await queryInterface.sequelize.query(`
                 INSERT INTO "${tenantHash}".file_entity_links
                   (file_id, framework_type, entity_type, entity_id, project_id, link_type, created_at)

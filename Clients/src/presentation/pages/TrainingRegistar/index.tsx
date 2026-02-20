@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -23,9 +22,8 @@ import {
 import TrainingTable from "./trainingTable";
 import NewTraining from "../../../presentation/components/Modals/NewTraining";
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
-import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { SearchBox } from "../../components/Search";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
@@ -40,7 +38,6 @@ import {
 } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
-import TipBox from "../../components/TipBox";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 
@@ -97,7 +94,7 @@ const Training: React.FC = () => {
   );
   const [selectedTraining, setSelectedTraining] =
     useState<TrainingRegistarModel | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
 
   const { userRoleName } = useAuth();
   // Assuming a similar permission structure for 'training' as 'vendors'
@@ -490,9 +487,13 @@ const Training: React.FC = () => {
   }, [filteredTraining]);
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-      {alert && (
+    <PageHeaderExtended
+      title="AI Training Registry"
+      description="This registry lists all AI-related training programs available to your organization. You can view, add, and manage training details here."
+      helpArticlePath="training/training-tracking"
+      tipBoxEntity="training"
+      alert={
+        alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Fade
             in={showAlert}
@@ -519,17 +520,9 @@ const Training: React.FC = () => {
             </Box>
           </Fade>
         </Suspense>
-      )}
-
-      <PageHeader
-        title="AI Training Registry"
-        description=" This registry lists all AI-related training programs available to
-               your organization. You can view, add, and manage training details here."
-        rightContent={
-          <HelperIcon articlePath="training/training-tracking" size="small" />
-        }
-      />
-      <TipBox entityName="training" />
+      )
+      }
+    >
 
       {/* Filter + Search row */}
       <Stack
@@ -618,7 +611,7 @@ const Training: React.FC = () => {
       />
 
       <PageTour steps={TrainingSteps} run={true} tourKey="training-tour" />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

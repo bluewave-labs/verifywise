@@ -5,6 +5,7 @@ import { useContext, useEffect, FC, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { EvalsSidebarProvider } from "../../../application/contexts/EvalsSidebar.context";
 import { AIDetectionSidebarProvider } from "../../../application/contexts/AIDetectionSidebar.context";
+import { ShadowAISidebarProvider } from "../../../application/contexts/ShadowAISidebar.context";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 import { getAllProjects } from "../../../application/repository/project.repository";
 import {
@@ -274,6 +275,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   return (
     <EvalsSidebarProvider>
       <AIDetectionSidebarProvider>
+        <ShadowAISidebarProvider>
         <Stack
           maxWidth="100%"
           className="home-layout"
@@ -326,7 +328,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
                 minHeight: 0,
                 overflowY: "auto", 
                 overflowX: "hidden",
-                padding: "24px"
+                padding: "24px 8px 24px 24px"
               }}
             >
               <Outlet />
@@ -367,6 +369,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
             </Typography>
           </StandardModal>
         </Stack>
+        </ShadowAISidebarProvider>
       </AIDetectionSidebarProvider>
     </EvalsSidebarProvider>
   );

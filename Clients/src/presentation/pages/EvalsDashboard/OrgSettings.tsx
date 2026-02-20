@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 import { Home, FlaskConical, Settings, Trash2, Plus } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import { getAllLlmApiKeys, addLlmApiKey, deleteLlmApiKey } from "../../../application/repository/deepEval.repository";
+import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
 
 interface SavedKey {
   provider: string;
@@ -90,6 +91,7 @@ function validateApiKeyFormat(provider: string, apiKey: string): string | null {
 export default function OrgSettings() {
   const navigate = useNavigate();
   const theme = useTheme();
+  const isAdmin = useIsAdmin();
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "error";
@@ -109,6 +111,13 @@ export default function OrgSettings() {
     { label: "LLM Evals", path: "/evals", icon: <FlaskConical size={14} strokeWidth={1.5} />, onClick: () => navigate("/evals") },
     { label: "Organization settings", icon: <Settings size={14} strokeWidth={1.5} /> },
   ];
+
+  // Redirect non-admin users to the evals dashboard
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/evals", { replace: true });
+    }
+  }, [isAdmin, navigate]);
 
   // Fetch saved keys on mount
   useEffect(() => {

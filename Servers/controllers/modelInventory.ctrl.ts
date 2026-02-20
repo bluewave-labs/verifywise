@@ -117,7 +117,13 @@ export async function getModelInventoryById(req: Request, res: Response) {
 }
 
 export async function getModelByProjectId(req: Request, res: Response) {
-  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId);
+  const projectIdParam = Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId;
+  const projectId = parseInt(projectIdParam);
+
+  // Return empty array for non-numeric project IDs (e.g., plugin-sourced IDs like "plugin-prefix-2")
+  if (isNaN(projectId)) {
+    return res.status(200).json(STATUS_CODE[200]([]));
+  }
 
   logStructured(
     "processing",

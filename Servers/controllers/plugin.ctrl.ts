@@ -3,6 +3,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { PluginService, PluginRouteContext } from "../services/plugin/pluginService";
 import { ValidationException, NotFoundException } from "../domain.layer/exceptions/custom.exception";
+import { sanitizeForLog, PLUGIN_KEY_PATTERN } from "../utils/validations/validation.utils";
 
 const fileName = "plugin.ctrl.ts";
 
@@ -50,9 +51,14 @@ export async function getPluginByKey(
 ): Promise<any> {
   const pluginKey = Array.isArray(req.params.key) ? req.params.key[0] : req.params.key;
   const functionName = "getPluginByKey";
+
+  if (!PLUGIN_KEY_PATTERN.test(pluginKey)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid plugin key format"));
+  }
+
   logStructured(
     "processing",
-    `fetching plugin by key: ${pluginKey}`,
+    `fetching plugin by key: ${sanitizeForLog(pluginKey)}`,
     functionName,
     fileName
   );
@@ -64,7 +70,7 @@ export async function getPluginByKey(
       return res.status(404).json(STATUS_CODE[404]("Plugin not found"));
     }
 
-    logStructured("successful", `plugin ${pluginKey} found`, functionName, fileName);
+    logStructured("successful", `plugin ${sanitizeForLog(pluginKey)} found`, functionName, fileName);
     return res.status(200).json(STATUS_CODE[200](plugin));
   } catch (error) {
     logStructured("error", "failed to retrieve plugin", functionName, fileName);
@@ -84,7 +90,7 @@ export async function searchPlugins(
   const functionName = "searchPlugins";
   logStructured(
     "processing",
-    `searching plugins with query: ${query}`,
+    `searching plugins with query: ${sanitizeForLog(query || "")}`,
     functionName,
     fileName
   );
@@ -100,7 +106,7 @@ export async function searchPlugins(
 
     logStructured(
       "successful",
-      `${plugins.length} plugins found for query: ${query}`,
+      `${plugins.length} plugins found for query: ${sanitizeForLog(query)}`,
       functionName,
       fileName
     );
@@ -126,16 +132,21 @@ export async function installPlugin(
   const tenantId = (req as any).tenantId;
 
   const functionName = "installPlugin";
-  logStructured(
-    "processing",
-    `installing plugin ${pluginKey} for user ${userId}`,
-    functionName,
-    fileName
-  );
 
   if (!pluginKey) {
     return res.status(400).json(STATUS_CODE[400]("pluginKey is required"));
   }
+
+  if (!PLUGIN_KEY_PATTERN.test(pluginKey)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid plugin key format"));
+  }
+
+  logStructured(
+    "processing",
+    `installing plugin ${sanitizeForLog(pluginKey)} for user ${userId}`,
+    functionName,
+    fileName
+  );
 
   if (!userId || !organizationId || !tenantId) {
     return res
@@ -152,7 +163,7 @@ export async function installPlugin(
 
     logStructured(
       "successful",
-      `plugin ${pluginKey} installed`,
+      `plugin ${sanitizeForLog(pluginKey)} installed`,
       functionName,
       fileName
     );
@@ -372,9 +383,14 @@ export async function testPluginConnection(
   const tenantId = (req as any).tenantId;
 
   const functionName = "testPluginConnection";
+
+  if (!PLUGIN_KEY_PATTERN.test(pluginKey)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid plugin key format"));
+  }
+
   logStructured(
     "processing",
-    `testing connection for plugin ${pluginKey}`,
+    `testing connection for plugin ${sanitizeForLog(pluginKey)}`,
     functionName,
     fileName
   );
@@ -400,7 +416,7 @@ export async function testPluginConnection(
 
     logStructured(
       result.success ? "successful" : "error",
-      `plugin ${pluginKey} connection test ${result.success ? 'succeeded' : 'failed'}`,
+      `plugin ${sanitizeForLog(pluginKey)} connection test ${result.success ? 'succeeded' : 'failed'}`,
       functionName,
       fileName
     );
@@ -435,20 +451,31 @@ export async function forwardToPlugin(
   const organizationId = (req as any).organizationId;
   const tenantId = (req as any).tenantId;
 
+  const functionName = "forwardToPlugin";
+
+  if (!pluginKey) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Plugin key is required"));
+  }
+
+  if (!PLUGIN_KEY_PATTERN.test(pluginKey)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid plugin key format"));
+  }
+
   // Extract the path after /api/plugins/:key/
   // When using router.use("/:key", ...), the remaining path is in req.path
   // req.path will be something like "/mlflow/models" when the full URL is "/api/plugins/mlflow/models"
   // We need to remove the "/:key" part to get just the plugin path
   const fullPath = req.path || req.url.split('?')[0];
   const keyPath = `/${pluginKey}`;
-  const pluginPath = fullPath.startsWith(keyPath) 
+  const pluginPath = fullPath.startsWith(keyPath)
     ? fullPath.substring(keyPath.length) || "/"
     : fullPath || "/";
 
-  const functionName = "forwardToPlugin";
   logStructured(
     "processing",
-    `forwarding ${req.method} ${pluginPath} to plugin ${pluginKey}`,
+    `forwarding ${req.method} ${sanitizeForLog(pluginPath)} to plugin ${sanitizeForLog(pluginKey)}`,
     functionName,
     fileName
   );
@@ -457,12 +484,6 @@ export async function forwardToPlugin(
     return res
       .status(401)
       .json(STATUS_CODE[401]("User not authenticated"));
-  }
-
-  if (!pluginKey) {
-    return res
-      .status(400)
-      .json(STATUS_CODE[400]("Plugin key is required"));
   }
 
   try {
@@ -510,7 +531,7 @@ export async function forwardToPlugin(
 
       logStructured(
         "successful",
-        `${pluginKey} returned file: ${response.filename || "unnamed"}`,
+        `${sanitizeForLog(pluginKey)} returned file: ${sanitizeForLog(response.filename || "unnamed")}`,
         functionName,
         fileName
       );
@@ -521,7 +542,7 @@ export async function forwardToPlugin(
     // Handle JSON response
     logStructured(
       "successful",
-      `${pluginKey} responded with status ${statusCode}`,
+      `${sanitizeForLog(pluginKey)} responded with status ${statusCode}`,
       functionName,
       fileName
     );
@@ -530,18 +551,18 @@ export async function forwardToPlugin(
   } catch (error) {
     // Handle specific error types
     if (error instanceof NotFoundException) {
-      logStructured("error", `route not found in plugin ${pluginKey}`, functionName, fileName);
+      logStructured("error", `route not found in plugin ${sanitizeForLog(pluginKey)}`, functionName, fileName);
       return res.status(404).json(STATUS_CODE[404](error.message));
     }
 
     if (error instanceof ValidationException) {
-      logStructured("error", `validation error in plugin ${pluginKey}`, functionName, fileName);
+      logStructured("error", `validation error in plugin ${sanitizeForLog(pluginKey)}`, functionName, fileName);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof Error) {
       if (error.message.includes("not installed")) {
-        return res.status(400).json(STATUS_CODE[400](`Plugin '${pluginKey}' is not installed`));
+        return res.status(400).json(STATUS_CODE[400](`Plugin '${sanitizeForLog(pluginKey)}' is not installed`));
       }
       if (error.message.includes("not found")) {
         return res.status(404).json(STATUS_CODE[404](error.message));
@@ -550,11 +571,11 @@ export async function forwardToPlugin(
 
     logStructured(
       "error",
-      `failed to forward to plugin ${pluginKey}: ${(error as Error).message}`,
+      `failed to forward to plugin ${sanitizeForLog(pluginKey)}: ${(error as Error).message}`,
       functionName,
       fileName
     );
-    logger.error(`❌ Error in forwardToPlugin (${pluginKey}):`, error);
+    logger.error(`❌ Error in forwardToPlugin (${sanitizeForLog(pluginKey)}):`, error);
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

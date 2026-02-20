@@ -24,7 +24,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Alert from "../../components/Alert";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import TablePaginationActions from "../../components/TablePagination";
 import SearchBox from "../../components/Search/SearchBox";

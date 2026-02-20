@@ -8,7 +8,7 @@ import { Trash2 as DeleteIconRed, Pencil as EditIconGrey, Check as CheckGreenIco
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
-import ProjectForm from "../../../components/Forms/ProjectForm";
+import { ProjectForm } from "../../../components/Forms/ProjectForm";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import StandardModal from "../../../components/Modals/StandardModal";
 import { deleteProject } from "../../../../application/repository/project.repository";

@@ -1,20 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
-import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getAllExperiments, type Experiment } from "../../../../application/repository/deepEval.repository";
 
-interface PerformanceChartProps {
-  projectId: string;
-}
+export type TimeRange = "7d" | "30d" | "100d" | "all";
 
-type TimeRange = "7d" | "30d" | "100d" | "all";
-
-const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+export const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
   { value: "7d", label: "Last 7 days" },
   { value: "30d", label: "Last 30 days" },
   { value: "100d", label: "Last 100 days" },
   { value: "all", label: "All time" },
 ];
+
+interface PerformanceChartProps {
+  projectId: string;
+  timeRange: TimeRange;
+}
+
 
 // 15 distinct colors for the chart - no repetition
 const CHART_COLORS = [
@@ -86,11 +88,10 @@ type ChartPoint = {
   [key: string]: number | string | string[] | null;
 };
 
-export default function PerformanceChart({ projectId }: PerformanceChartProps) {
+export default function PerformanceChart({ projectId, timeRange }: PerformanceChartProps) {
   const [data, setData] = useState<ChartPoint[]>([]);
   const [activeMetrics, setActiveMetrics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
   // Get cutoff date based on time range
   const getCutoffDate = useCallback((range: TimeRange): Date | null => {
@@ -187,7 +188,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     return (
       <Box textAlign="center" py={4}>
         <Typography variant="body2" color="text.secondary">
-          No completed experiments yet. Run experiments to see performance trends.
+          No completed experiments in this time range.
         </Typography>
       </Box>
     );
@@ -310,65 +311,30 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Time range selector */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <FormControl size="small">
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-            sx={{
-              fontSize: "12px",
-              height: "28px",
-              "& .MuiSelect-select": {
-                py: 0.5,
-                px: 1.5,
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#E5E7EB",
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#D1D5DB",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#13715B",
-              },
-            }}
-          >
-            {TIME_RANGE_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: "12px" }}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Chart */}
     <Box sx={{
       width: "100%",
-      minHeight: 220,
-      height: dynamicHeight,
       "& *": { outline: "none !important" },
       "& *:focus": { outline: "none !important" },
     }}>
-        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height={Math.max(dynamicHeight, 220)} debounce={1}>
+        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis 
             dataKey="index"
             type="number"
             domain={data.length > 4 
-              ? [0, data.length - 1]  // No padding for 5+ experiments
-              : [-0.5, Math.max(data.length - 0.5, 1.5)]  // Padding for ≤4 experiments
+              ? [0, data.length - 1]
+              : [-0.5, Math.max(data.length - 0.5, 1.5)]
             }
             ticks={data.map((_, i) => i)}
             tickFormatter={formatXAxisTick}
-            tick={{ fontSize: 10, fill: "#6B7280" }}
+            tick={{ fontSize: 10, fill: "#6B7280", dy: 10 }}
             axisLine={{ stroke: "#E5E7EB" }}
             interval={0}
-            angle={-20}
+            angle={-25}
             textAnchor="end"
-            height={40}
+            height={65}
+            tickMargin={10}
             allowDataOverflow={false}
           />
           <YAxis 

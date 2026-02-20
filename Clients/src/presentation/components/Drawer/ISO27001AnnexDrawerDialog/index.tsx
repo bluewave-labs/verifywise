@@ -28,7 +28,7 @@ import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import TabBar from "../../TabBar";
 import StandardModal from "../../Modals/StandardModal";
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
-import FilePickerModal from "../../FilePickerModal";
+import { FilePickerModal } from "../../FilePickerModal";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { CustomizableButton } from "../../button/customizable-button";
@@ -49,7 +49,7 @@ import Alert from "../../Alert";
 import { SelectChangeEvent } from "@mui/material";
 import { RiskFormValues } from "../../AddNewRiskForm/interface";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
-const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks").then(m => ({ default: m.LinkedRisksPopup })));
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 

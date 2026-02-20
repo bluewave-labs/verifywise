@@ -1,1 +1,1 @@
-export { default as VWLink } from "./VWLink";
+export { VWLink } from "./VWLink";

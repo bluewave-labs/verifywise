@@ -30,8 +30,10 @@ import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
-import ModelDetailPage from "../../presentation/pages/ModelInventory/ModelDetailPage";
+import ModelLifecycleDetail from "../../presentation/pages/ModelInventory/ModelLifecycleDetail";
+import Datasets from "../../presentation/pages/Datasets";
 import IncidentManagement from "../../presentation/pages/IncidentManagement";
+import AgentDiscovery from "../../presentation/pages/AgentDiscovery";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
@@ -42,6 +44,7 @@ import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
 import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import AIDetectionPage from "../../presentation/pages/AIDetection";
+import ShadowAIPage from "../../presentation/pages/ShadowAI";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 
@@ -98,15 +101,17 @@ export const createRoutes = (
     <Route path="/event-tracker/logs" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
-    <Route path="/model-inventory/datasets" element={<ModelInventory />} />
+    <Route path="/datasets" element={<Datasets />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
-    <Route path="/model-inventory/models/:id" element={<ModelDetailPage />} />
+    {/* Model lifecycle detail page - rendered by plugin */}
+    <Route path="/model-inventory/models/:id" element={<ModelLifecycleDetail />} />
     {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}
     <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/agent-discovery" element={<AgentDiscovery />} />
     <Route path="/approval-workflows" element={<ApprovalWorkflows />} />
     <Route path="/ai-detection" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scan" element={<AIDetectionPage />} />
@@ -114,6 +119,15 @@ export const createRoutes = (
     <Route path="/ai-detection/settings" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId" element={<AIDetectionPage />} />
     <Route path="/ai-detection/scans/:scanId/:tab" element={<AIDetectionPage />} />
+    <Route path="/shadow-ai" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/user-activity" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/user-activity/users" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/user-activity/departments" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/tools" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/tools/:toolId" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/rules" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/rules/alerts" element={<ShadowAIPage />} />
+    <Route path="/shadow-ai/settings" element={<ShadowAIPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
   </Route>,

@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Stack } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import Organization from "./Organization";
 import Preferences from "./Preferences/index";
+import Features from "./Features/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
-import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
 import TabBar, { TabItem } from "../../components/TabBar";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
@@ -27,6 +24,7 @@ const BUILT_IN_TABS = [
   "preferences",
   "team",
   "organization",
+  "features",
   "apikeys",
 ];
 
@@ -37,6 +35,7 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
+  const isFeaturesDisabled = !allowedRoles.features?.manage?.includes(userRoleName);
 
   // Get plugin tabs dynamically from the plugin registry
   const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();
@@ -116,20 +115,12 @@ export default function ProfilePage() {
   };
 
   return (
-    <Stack className="vwhome">
-      <PageBreadcrumbs />
-      <PageHeader
-        title="Settings"
-        description="Manage your profile, security, team members, and application preferences."
-        rightContent={
-          <HelperIcon
-            articlePath="settings/user-management"
-            size="small"
-          />
-        }
-      />
-      <TipBox entityName="settings" />
-
+    <PageHeaderExtended
+      title="Settings"
+      description="Manage your profile, security, team members, and application preferences."
+      helpArticlePath="settings/user-management"
+      tipBoxEntity="settings"
+    >
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
@@ -137,33 +128,46 @@ export default function ProfilePage() {
               label: "Profile",
               value: "profile",
               icon: "User",
+              tooltip: "Your name, email and personal details",
             },
             {
               label: "Password",
               value: "password",
               icon: "Lock",
+              tooltip: "Update your account password",
             },
             {
               label: "Team",
               value: "team",
               icon: "Users",
               disabled: isTeamManagementDisabled,
+              tooltip: "Manage team members and their roles",
             },
             {
               label: "Organization",
               value: "organization",
               icon: "Building2",
+              tooltip: "Organization name and general settings",
             },
             {
               label: "Preferences",
               value: "preferences",
               icon: "Settings",
+              tooltip: "Customize your display and notification preferences",
+            },
+            {
+              label: "Features",
+              value: "features",
+              icon: "Zap",
+              disabled: isFeaturesDisabled,
+              tooltip: "Enable or disable optional platform features",
             },
             {
               label: "API Keys",
               value: "apikeys",
               icon: "Key",
               disabled: isApiKeysDisabled,
+              tooltip: "Generate keys for programmatic API access",
             },
             // Dynamically add plugin tabs
             ...pluginTabs.map((tab) => ({
@@ -196,6 +200,10 @@ export default function ProfilePage() {
           <Organization />
         </TabPanel>
 
+        <TabPanel value="features">
+          <Features />
+        </TabPanel>
+
         <TabPanel value="apikeys">
           <ApiKeys />
         </TabPanel>
@@ -209,6 +217,6 @@ export default function ProfilePage() {
           />
         )}
       </TabContext>
-    </Stack>
+    </PageHeaderExtended>
   );
 }

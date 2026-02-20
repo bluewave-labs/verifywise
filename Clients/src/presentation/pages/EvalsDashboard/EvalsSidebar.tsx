@@ -7,12 +7,15 @@ import {
   KeyRound,
   Swords,
   Cpu,
+  Scale,
 } from "lucide-react";
+import { useCallback } from "react";
 import SidebarShell, {
   SidebarMenuItem,
   RecentSection,
   ProjectSelectorConfig,
 } from "../../components/Sidebar/SidebarShell";
+import { useUserGuideSidebarContext } from "../../components/UserGuide";
 
 interface RecentExperiment {
   id: string;
@@ -66,6 +69,9 @@ export default function EvalsSidebar({
   allProjects = [],
   onProjectChange,
 }: EvalsSidebarProps) {
+  const { open: openUserGuide, openTab } = useUserGuideSidebarContext();
+  const openReleaseNotes = useCallback(() => openTab('whats-new'), [openTab]);
+
   // Menu items for Evals
   const flatItems: SidebarMenuItem[] = [
     {
@@ -116,12 +122,19 @@ export default function EvalsSidebar({
       disabled: false, // Always enabled - org-scoped
     },
     {
+      id: "bias-audits",
+      label: "Bias audits",
+      value: "bias-audits",
+      icon: <Scale size={16} strokeWidth={1.5} />,
+      disabled: false, // Always enabled - org-scoped
+      dividerAfter: true,
+    },
+    {
       id: "configuration",
       label: "Configuration",
       value: "configuration",
       icon: <Settings size={16} strokeWidth={1.5} />,
       disabled: disabled,
-      dividerAfter: true,
     },
     {
       id: "settings",
@@ -183,6 +196,8 @@ export default function EvalsSidebar({
       isItemActive={isItemActive}
       onItemClick={handleItemClick}
       showReadyToSubscribe={false}
+      openUserGuide={openUserGuide}
+      openReleaseNotes={openReleaseNotes}
       enableFlyingHearts={false}
     />
   );

@@ -16,7 +16,7 @@ import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import DatasetsTableHead from "./DatasetsTableHead";
 import DatasetsTableBody from "./DatasetsTableBody";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import {
   getPaginationRowCount,
   setPaginationRowCount,

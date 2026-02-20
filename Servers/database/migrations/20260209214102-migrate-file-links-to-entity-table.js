@@ -147,11 +147,18 @@ async function migrateEUAnswers(queryInterface, tenantHash, transaction) {
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const answer of answers) {
     const files = parseJsonbFiles(answer.evidence_files);
     for (const file of files) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -166,7 +173,7 @@ async function migrateEUAnswers(queryInterface, tenantHash, transaction) {
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} EU AI Act answer files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} EU AI Act answer files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 async function migrateEUSubcontrols(queryInterface, tenantHash, transaction) {
@@ -192,12 +199,19 @@ async function migrateEUSubcontrols(queryInterface, tenantHash, transaction) {
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const subcontrol of subcontrols) {
     // Migrate evidence files
     const evidenceFiles = parseJsonbFiles(subcontrol.evidence_files);
     for (const file of evidenceFiles) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -218,6 +232,12 @@ async function migrateEUSubcontrols(queryInterface, tenantHash, transaction) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
 
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
+
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
           (file_id, framework_type, entity_type, entity_id, link_type, created_at)
@@ -231,7 +251,7 @@ async function migrateEUSubcontrols(queryInterface, tenantHash, transaction) {
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} EU AI Act subcontrol files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} EU AI Act subcontrol files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 async function migrateISO27001Subclauses(queryInterface, tenantHash, transaction) {
@@ -256,11 +276,18 @@ async function migrateISO27001Subclauses(queryInterface, tenantHash, transaction
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const subclause of subclauses) {
     const files = parseJsonbFiles(subclause.evidence_links);
     for (const file of files) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -275,7 +302,7 @@ async function migrateISO27001Subclauses(queryInterface, tenantHash, transaction
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} ISO 27001 subclause files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} ISO 27001 subclause files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 async function migrateISO27001AnnexControls(queryInterface, tenantHash, transaction) {
@@ -300,11 +327,18 @@ async function migrateISO27001AnnexControls(queryInterface, tenantHash, transact
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const annexControl of annexControls) {
     const files = parseJsonbFiles(annexControl.evidence_links);
     for (const file of files) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -319,7 +353,7 @@ async function migrateISO27001AnnexControls(queryInterface, tenantHash, transact
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} ISO 27001 annex control files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} ISO 27001 annex control files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 async function migrateISO42001Subclauses(queryInterface, tenantHash, transaction) {
@@ -344,11 +378,18 @@ async function migrateISO42001Subclauses(queryInterface, tenantHash, transaction
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const subclause of subclauses) {
     const files = parseJsonbFiles(subclause.evidence_links);
     for (const file of files) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -363,7 +404,7 @@ async function migrateISO42001Subclauses(queryInterface, tenantHash, transaction
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} ISO 42001 subclause files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} ISO 42001 subclause files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 async function migrateISO42001AnnexCategories(queryInterface, tenantHash, transaction) {
@@ -388,11 +429,18 @@ async function migrateISO42001AnnexCategories(queryInterface, tenantHash, transa
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const annexCategory of annexCategories) {
     const files = parseJsonbFiles(annexCategory.evidence_links);
     for (const file of files) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -407,7 +455,7 @@ async function migrateISO42001AnnexCategories(queryInterface, tenantHash, transa
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} ISO 42001 annex category files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} ISO 42001 annex category files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 async function migrateNISTSubcategories(queryInterface, tenantHash, transaction) {
@@ -432,11 +480,18 @@ async function migrateNISTSubcategories(queryInterface, tenantHash, transaction)
   );
 
   let migratedCount = 0;
+  let skippedCount = 0;
   for (const subcategory of subcategories) {
     const files = parseJsonbFiles(subcategory.evidence_links);
     for (const file of files) {
       const fileId = parseInt(file.id);
       if (isNaN(fileId)) continue;
+
+      // Skip if file doesn't exist (orphaned reference)
+      if (!(await fileExists(queryInterface, tenantHash, fileId, transaction))) {
+        skippedCount++;
+        continue;
+      }
 
       await queryInterface.sequelize.query(
         `INSERT INTO "${tenantHash}".file_entity_links
@@ -451,7 +506,7 @@ async function migrateNISTSubcategories(queryInterface, tenantHash, transaction)
       migratedCount++;
     }
   }
-  console.log(`  Migrated ${migratedCount} NIST AI RMF subcategory files for ${tenantHash}`);
+  console.log(`  Migrated ${migratedCount} NIST AI RMF subcategory files for ${tenantHash}${skippedCount > 0 ? ` (skipped ${skippedCount} orphaned refs)` : ''}`);
 }
 
 function parseJsonbFiles(jsonbValue) {
@@ -477,4 +532,16 @@ function parseJsonbFiles(jsonbValue) {
     console.warn('Failed to parse JSONB files:', e);
     return [];
   }
+}
+
+/**
+ * Check if a file exists in the files table
+ * Returns true if file exists, false otherwise
+ */
+async function fileExists(queryInterface, tenantHash, fileId, transaction) {
+  const [result] = await queryInterface.sequelize.query(
+    `SELECT EXISTS (SELECT 1 FROM "${tenantHash}".files WHERE id = :fileId) AS exists;`,
+    { transaction, replacements: { fileId } }
+  );
+  return result[0].exists;
 }

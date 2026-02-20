@@ -16,7 +16,7 @@ import {
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
-import EmptyState from "../EmptyState";
+import { EmptyState } from "../EmptyState";
 import Chip from "../Chip";
 import ViewRelationshipsButton from "../ViewRelationshipsButton";
 import IconButton from "../IconButton";
@@ -293,8 +293,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
           break;
 
         case "role":
-          aValue = a.type_of_high_risk_role.toLowerCase();
-          bValue = b.type_of_high_risk_role.toLowerCase();
+          aValue = (a.type_of_high_risk_role || "").toLowerCase();
+          bValue = (b.type_of_high_risk_role || "").toLowerCase();
           break;
 
         case "startDate":
@@ -440,7 +440,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                     sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                 }}
               >
-                <Chip label={project.ai_risk_classification} />
+                <Chip label={project.ai_risk_classification || "—"} />
               </TableCell>
 
               <TableCell
@@ -452,7 +452,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                     sortConfig.key === "role" ? "#f5f5f5" : "inherit",
                 }}
               >
-                {project.type_of_high_risk_role.replace(/_/g, " ")}
+                {project.type_of_high_risk_role?.replace(/_/g, " ") || "—"}
               </TableCell>
               <TableCell
                 sx={{

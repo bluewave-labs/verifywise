@@ -31,6 +31,7 @@ export type Project = {
   status?: "Not started" | "In progress" | "Under review" | "Completed" | "Closed" | "On hold" | "Rejected";
   has_pending_approval?: boolean;
   approval_status?: 'pending' | 'rejected' | null;
+  _source?: string; // Plugin source identifier (e.g., 'jira-assets')
   // vendors: string[];
 
   // statistical fields

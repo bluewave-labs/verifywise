@@ -54,7 +54,7 @@ interface PolicyWithReviewers {
 const fetchPolicies = async (
   params: FetchPoliciesParams,
   tenant: string
-): Promise<PolicyWithReviewers[]> => {
+): Promise<Partial<PolicyWithReviewers>[]> => {
   let policies: PolicyWithReviewers[] = [];
 
   try {
@@ -93,7 +93,16 @@ const fetchPolicies = async (
       policies = policies.slice(0, params.limit);
     }
 
-    return policies;
+    // Return lightweight projections — exclude content_html (too large for LLM context)
+    return policies.map((p) => ({
+      id: p.id,
+      title: p.title,
+      status: p.status,
+      tags: p.tags,
+      next_review_date: p.next_review_date,
+      last_updated_at: p.last_updated_at,
+      created_at: p.created_at,
+    }));
   } catch (error) {
     logger.error("Error fetching policies:", error);
     throw new Error(

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import type { FC } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -8,6 +9,7 @@ import {
   Chip,
   InputAdornment,
   TextField,
+  useTheme,
 } from "@mui/material";
 import { FileText as FileIcon, Image as ImageIcon, File as DefaultFileIcon, Search } from "lucide-react";
 import StandardModal from "../Modals/StandardModal";
@@ -52,7 +54,7 @@ const formatDate = (dateStr?: string): string => {
   });
 };
 
-export const FilePickerModal: React.FC<FilePickerModalProps> = ({
+export const FilePickerModal: FC<FilePickerModalProps> = ({
   open,
   onClose,
   onSelect,
@@ -60,6 +62,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
   multiSelect = true,
   title = "Attach Existing Files",
 }) => {
+  const theme = useTheme();
   const [files, setFiles] = useState<FileMetadata[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,20 +167,20 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search size={16} color="#98A2B3" />
+                <Search size={16} color={theme.palette.text.accent} />
               </InputAdornment>
             ),
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              backgroundColor: "#F9FAFB",
+              backgroundColor: theme.palette.background.accent,
               borderRadius: "8px",
-              fontSize: 13,
+              fontSize: theme.typography.fontSize,
               "& fieldset": {
-                borderColor: "#E5E7EB",
+                borderColor: theme.palette.border.light,
               },
               "&:hover fieldset": {
-                borderColor: "#D1D5DB",
+                borderColor: theme.palette.border.dark,
               },
               "&.Mui-focused fieldset": {
                 borderColor: "#4C7BF4",
@@ -185,7 +188,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
               },
             },
             "& .MuiInputBase-input::placeholder": {
-              color: "#9CA3AF",
+              color: theme.palette.text.accent,
               opacity: 1,
             },
           }}
@@ -224,7 +227,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                 }}
               />
             )}
-            <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+            <Typography sx={{ fontSize: 12, color: theme.palette.other.icon }}>
               {filteredFiles.length} file{filteredFiles.length !== 1 ? "s" : ""}
             </Typography>
           </Stack>
@@ -235,9 +238,9 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
           sx={{
             maxHeight: "320px",
             overflowY: "auto",
-            border: "1px solid #E5E7EB",
+            border: `1px solid ${theme.palette.border.light}`,
             borderRadius: "8px",
-            backgroundColor: "#FFFFFF",
+            backgroundColor: theme.palette.background.main,
           }}
         >
           {loading ? (
@@ -246,7 +249,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
             </Box>
           ) : error ? (
             <Box display="flex" justifyContent="center" alignItems="center" py={4}>
-              <Typography sx={{ fontSize: 13, color: "#DC2626" }}>{error}</Typography>
+              <Typography sx={{ fontSize: theme.typography.fontSize, color: theme.palette.status.error.text }}>{error}</Typography>
             </Box>
           ) : filteredFiles.length === 0 ? (
             <Box
@@ -256,15 +259,15 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                 px: 3,
               }}
             >
-              <Typography sx={{ fontSize: 13, color: "#374151", mb: 0.5 }}>
+              <Typography sx={{ fontSize: theme.typography.fontSize, color: theme.palette.text.secondary, mb: 0.5 }}>
                 {searchTerm ? "No files match your search" : "No files available"}
               </Typography>
-              <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+              <Typography sx={{ fontSize: 12, color: theme.palette.text.accent }}>
                 {!searchTerm && "Upload files to your organization first"}
               </Typography>
             </Box>
           ) : (
-            <Stack divider={<Box sx={{ borderBottom: "1px solid #F3F4F6" }} />}>
+            <Stack divider={<Box sx={{ borderBottom: `1px solid ${theme.palette.background.fill}` }} />}>
               {filteredFiles.map((file) => (
                 <Box
                   key={file.id}
@@ -278,7 +281,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                     cursor: "pointer",
                     backgroundColor: selectedIds.has(file.id) ? "#F0F7FF" : "transparent",
                     "&:hover": {
-                      backgroundColor: selectedIds.has(file.id) ? "#E3EFFD" : "#F9FAFB",
+                      backgroundColor: selectedIds.has(file.id) ? "#E3EFFD" : theme.palette.background.accent,
                     },
                     transition: "background-color 0.12s ease",
                   }}
@@ -288,7 +291,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                     size="small"
                     sx={{
                       p: 0.5,
-                      color: "#D1D5DB",
+                      color: theme.palette.border.dark,
                       "&.Mui-checked": { color: "#4C7BF4" },
                     }}
                   />
@@ -298,7 +301,7 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                       width: 36,
                       height: 36,
                       borderRadius: "6px",
-                      backgroundColor: "#F3F4F6",
+                      backgroundColor: theme.palette.background.fill,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -311,9 +314,9 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
                       sx={{
-                        fontSize: 13,
+                        fontSize: theme.typography.fontSize,
                         fontWeight: 500,
-                        color: "#111827",
+                        color: theme.palette.text.primary,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -325,23 +328,23 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
                     </Typography>
                     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.25 }}>
                       {file.size && (
-                        <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.other.icon }}>
                           {formatFileSize(file.size)}
                         </Typography>
                       )}
                       {file.size && file.uploader_name && (
-                        <Typography sx={{ fontSize: 11, color: "#D1D5DB" }}>•</Typography>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.border.dark }}>•</Typography>
                       )}
                       {file.uploader_name && (
-                        <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.other.icon }}>
                           {file.uploader_name}
                         </Typography>
                       )}
                       {(file.size || file.uploader_name) && file.upload_date && (
-                        <Typography sx={{ fontSize: 11, color: "#D1D5DB" }}>•</Typography>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.border.dark }}>•</Typography>
                       )}
                       {file.upload_date && (
-                        <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
+                        <Typography sx={{ fontSize: 11, color: theme.palette.other.icon }}>
                           {formatDate(file.upload_date)}
                         </Typography>
                       )}
@@ -357,5 +360,3 @@ export const FilePickerModal: React.FC<FilePickerModalProps> = ({
     </StandardModal>
   );
 };
-
-export default FilePickerModal;

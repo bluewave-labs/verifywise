@@ -144,7 +144,10 @@ async def run_evaluation(
         
         # Judge LLM API keys (for DeepEval metrics - Standard Judge mode)
         print(f"📝 Judge LLM config: provider={judge_config.get('provider')}, has_apiKey={bool(judge_config.get('apiKey'))}")
-        if judge_config.get("apiKey") and judge_config["apiKey"] not in ["***", "", None]:
+        has_judge_key = judge_config.get("apiKey") and judge_config["apiKey"] not in ["***", "", None]
+        is_self_hosted_judge = judge_config.get("provider", "").lower() in ("self-hosted", "ollama")
+
+        if has_judge_key or is_self_hosted_judge:
             provider = judge_config.get("provider", "").lower()
             print(f"🔑 Setting API key for judge provider: {provider}")
             if provider == "openai":
@@ -160,6 +163,28 @@ async def run_evaluation(
                 os.environ["MISTRAL_API_KEY"] = judge_config["apiKey"]
             elif provider == "openrouter":
                 os.environ["OPENROUTER_API_KEY"] = judge_config["apiKey"]
+            elif provider in ("self-hosted", "ollama"):
+                # Self-hosted / Ollama judge uses OpenAI-compatible API
+                endpoint_url = judge_config.get("endpointUrl", "")
+                if endpoint_url:
+                    base_url = endpoint_url.rstrip("/")
+                    if not base_url.endswith("/v1"):
+                        base_url = base_url + "/v1"
+                    os.environ["OPENAI_API_BASE"] = base_url
+                    print(f"✅ OPENAI_API_BASE set to {base_url}")
+                elif provider == "ollama":
+                    # Default Ollama endpoint
+                    os.environ["OPENAI_API_BASE"] = "http://localhost:11434/v1"
+                    print(f"✅ OPENAI_API_BASE set to http://localhost:11434/v1 (default Ollama)")
+                # Set API key or dummy for self-hosted endpoints that don't require auth
+                if judge_config.get("apiKey") and judge_config["apiKey"] not in ["***", "", None]:
+                    os.environ["OPENAI_API_KEY"] = judge_config["apiKey"]
+                else:
+                    os.environ["OPENAI_API_KEY"] = "not-needed"
+                    print(f"✅ OPENAI_API_KEY set to dummy (self-hosted endpoint)")
+                # DeepEval's G-Eval uses the OpenAI client, so set provider to openai
+                provider = "openai"
+
             # Expose judge provider/model for evaluator (provider-agnostic G‑Eval)
             if provider:
                 os.environ["G_EVAL_PROVIDER"] = provider
@@ -958,7 +983,7 @@ async def run_evaluation(
                                         "score": result.score,
                                         "label": result.label,
                                         "passed": result.passed,
-                                        "reason": result.raw_response[:200] if result.raw_response else "",
+                                        "reason": result.raw_response if result.raw_response else "",
                                     }
                                 
                             except Exception as scorer_err:

@@ -21,7 +21,7 @@ import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../types/alert.types";
 import NISTAIRMFDrawerDialog from "../../../../components/Drawer/NISTAIRMFDashboardDrawerDialog";
 import { NISTAIRMFFunction } from "../types";
-import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
+import { TabFilterBar } from "../../../../components/FrameworkFilter/TabFilterBar";
 
 interface NISTAIRMFMapProps {
   project: Project;

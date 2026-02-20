@@ -5,7 +5,7 @@ import {
   ArrowUp as AscendingIcon,
   ArrowDown as DescendingIcon,
 } from "lucide-react";
-import EmptyState from "../../EmptyState";
+import { EmptyState } from "../../EmptyState";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
 import { IFileTableProps } from "../../../types/interfaces/i.table";
 

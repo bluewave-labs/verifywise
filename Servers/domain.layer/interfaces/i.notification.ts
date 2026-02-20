@@ -36,6 +36,9 @@ export enum NotificationType {
   COMMENT_ADDED = "comment_added",
   MENTION = "mention",
 
+  // Shadow AI notifications
+  SHADOW_AI_ALERT = "shadow_ai_alert",
+
   // System notifications
   SYSTEM = "system",
 }
@@ -57,6 +60,7 @@ export enum NotificationEntityType {
   ASSESSMENT = "assessment",
   COMMENT = "comment",
   USER = "user",
+  SHADOW_AI_TOOL = "shadow_ai_tool",
 }
 
 /**

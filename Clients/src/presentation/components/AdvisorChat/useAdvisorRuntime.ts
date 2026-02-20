@@ -1,67 +1,120 @@
-import { useMemo, useRef, useEffect } from 'react';
-import { useLocalRuntime } from '@assistant-ui/react';
-import type { ChatModelAdapter, ChatModelRunOptions, ChatModelRunResult } from '@assistant-ui/react';
-import { runAdvisorAPI, AdvisorMessage } from '../../../application/repository/advisor.repository';
+import { useMemo, useRef, useEffect, useCallback } from 'react';
+import { useChatRuntime } from '@assistant-ui/react-ai-sdk';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import { AdvisorDomain, getWelcomeMessage } from './advisorConfig';
 import { useAdvisorConversationSafe } from '../../../application/contexts/AdvisorConversation.context';
+import { store } from '../../../application/redux/store';
+import { ENV_VARs } from '../../../../env.vars';
 
-type RuntimeMessageContent =
-  | { type: 'text'; text: string }
-  | { type: 'data'; name: string; data: unknown };
+// Extended UIMessage type with optional createdAt for our use case
+type ExtendedUIMessage = UIMessage & { createdAt?: Date };
 
-interface RuntimeMessage {
-  role: 'user' | 'assistant';
-  id: string;
-  createdAt: Date;
-  content: RuntimeMessageContent[];
-}
+/**
+ * Get the direct backend URL for the AI SDK chat endpoint.
+ * In development, bypass the Vite dev proxy to avoid SSE buffering.
+ */
+const getChatApiUrl = (): string => {
+  if (import.meta.env.PROD) {
+    return `${ENV_VARs.URL}/api/advisor/chat`;
+  }
+  const devBase = import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:3000';
+  return `${devBase}/api/advisor/chat`;
+};
 
-const createWelcomeMessage = (domain?: AdvisorDomain): RuntimeMessage => ({
-  role: 'assistant',
+/**
+ * Create a welcome UIMessage for the assistant-ui thread.
+ */
+const createWelcomeUIMessage = (domain?: AdvisorDomain): ExtendedUIMessage => ({
   id: 'welcome',
+  role: 'assistant',
+  parts: [{ type: 'text', text: getWelcomeMessage(domain) }],
   createdAt: new Date(),
-  content: [{ type: 'text', text: getWelcomeMessage(domain) }],
 });
 
-const convertToRuntimeMessages = (messages: AdvisorMessage[], domain?: AdvisorDomain): RuntimeMessage[] => {
+/**
+ * Convert persisted AdvisorMessages to AI SDK UIMessage format.
+ */
+const convertToUIMessages = (messages: Array<{
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}>, domain?: AdvisorDomain): UIMessage[] => {
   if (!messages || messages.length === 0) {
-    return [createWelcomeMessage(domain)];
+    return [createWelcomeUIMessage(domain)];
   }
 
-  return messages.map(msg => {
-    const content: RuntimeMessageContent[] = [{ type: 'text' as const, text: msg.content }];
+  return messages.map((msg) => ({
+    id: msg.id,
+    role: msg.role,
+    parts: [{ type: 'text' as const, text: msg.content }],
+    createdAt: new Date(msg.createdAt),
+  }));
+};
 
-    // Include chart data if present
-    if (msg.chartData) {
-      content.push({ type: 'data' as const, name: 'chartData', data: msg.chartData });
+/**
+ * Parse the ---CHART_DATA--- separator format from the full response text.
+ * Returns { markdown, chartData }.
+ */
+const parseChartData = (fullText: string): { markdown: string; chartData: unknown } => {
+  const separator = '---CHART_DATA---';
+  const separatorIndex = fullText.indexOf(separator);
+  let markdown = fullText;
+  let chartData: unknown = null;
+
+  if (separatorIndex !== -1) {
+    markdown = fullText.substring(0, separatorIndex).trim();
+    const chartSection = fullText.substring(separatorIndex + separator.length).trim();
+
+    if (chartSection && chartSection !== 'null') {
+      try {
+        chartData = JSON.parse(chartSection);
+      } catch {
+        // Malformed chart JSON, ignore
+      }
     }
+  }
 
-    return {
-      role: msg.role,
-      id: msg.id,
-      createdAt: new Date(msg.createdAt),
-      content,
-    };
-  });
+  return { markdown, chartData };
 };
 
-interface MessagePart {
-  type: string;
-  text?: string;
-}
-
-const extractUserMessageText = (content: MessagePart[]): string => {
-  return content
-    .filter((part) => part?.type === 'text')
-    .map((part) => part.text || '')
-    .join('\n')
-    .trim();
+/**
+ * Extract plain text content from a UIMessage.
+ */
+const extractTextFromUIMessage = (message: UIMessage): string => {
+  return message.parts
+    ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join('\n') || '';
 };
 
-const createErrorResult = (text: string): ChatModelRunResult => ({
-  content: [{ type: 'text' as const, text }],
-  status: { type: 'complete' as const, reason: 'stop' as const },
-});
+/**
+ * Extract chart data from a UIMessage's tool invocation parts.
+ * Looks for a generate_chart tool with completed output.
+ * Falls back to legacy ---CHART_DATA--- separator parsing.
+ *
+ * AI SDK UIMessage tool parts arrive as `type: 'dynamic-tool'` with a
+ * `toolName` field (not `type: 'tool-generate_chart'`), because tools
+ * are not statically typed on the frontend.
+ */
+const extractChartData = (message: UIMessage, text: string): unknown => {
+  // Strategy 1: Look for generate_chart dynamic tool invocation in parts
+  const chartPart = message.parts?.find(
+    (p: any) =>
+      p.type === 'dynamic-tool' &&
+      p.toolName === 'generate_chart' &&
+      p.state === 'output-available' &&
+      p.output
+  );
+
+  if (chartPart) {
+    return (chartPart as any).output;
+  }
+
+  // Strategy 2: Legacy separator fallback for pre-migration persisted data
+  const { chartData } = parseChartData(text);
+  return chartData;
+};
 
 export const useAdvisorRuntime = (
   selectedLLMKeyId?: number,
@@ -69,116 +122,93 @@ export const useAdvisorRuntime = (
 ) => {
   const conversationContext = useAdvisorConversationSafe();
 
-  // Use refs to avoid stale closures in the adapter
+  // Refs to avoid stale closures in callbacks
   const contextRef = useRef(conversationContext);
   const pageContextRef = useRef(pageContext);
-  const llmKeyRef = useRef(selectedLLMKeyId);
+
+  // Track which message IDs are already persisted to avoid duplicates
+  const persistedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     contextRef.current = conversationContext;
     pageContextRef.current = pageContext;
-    llmKeyRef.current = selectedLLMKeyId;
-  }, [conversationContext, pageContext, selectedLLMKeyId]);
+  }, [conversationContext, pageContext]);
 
-  const chatModelAdapter: ChatModelAdapter = useMemo(() => ({
-    async run({ messages = [] }: ChatModelRunOptions): Promise<ChatModelRunResult> {
-      const context = contextRef.current;
-      const domain = pageContextRef.current;
-      const llmKeyId = llmKeyRef.current;
-
-      try {
-        if (!messages?.length) {
-          return createErrorResult('No message to process.');
-        }
-
-        const lastMessage = messages[messages.length - 1];
-        if (!lastMessage?.content) {
-          return createErrorResult('Invalid message format.');
-        }
-
-        const userMessage = extractUserMessageText(lastMessage.content as MessagePart[]);
-        if (!userMessage) {
-          return createErrorResult('Please provide a message.');
-        }
-
-        // Save user message to context
-        if (context && domain) {
-          context.addMessage(domain, {
-            id: lastMessage.id || `user-${Date.now()}`,
-            role: 'user',
-            content: userMessage,
-            createdAt: new Date().toISOString(),
-          });
-        }
-
-        const response = await runAdvisorAPI({ prompt: userMessage }, llmKeyId);
-        const assistantContent = response.data?.response || 'I received your message but could not generate a response.';
-
-        // Handle both string and object response formats
-        let assistantText: string;
-        let chartData: unknown = null;
-
-        if (typeof assistantContent === 'string') {
-          assistantText = assistantContent;
-        } else {
-          assistantText = assistantContent.markdown ?? JSON.stringify(assistantContent);
-          chartData = assistantContent.chartData ?? null;
-        }
-
-        // Save assistant response to context (including chart data)
-        if (context && domain) {
-          context.addMessage(domain, {
-            id: `assistant-${Date.now()}`,
-            role: 'assistant',
-            content: typeof assistantText === 'string' ? assistantText : JSON.stringify(assistantText),
-            createdAt: new Date().toISOString(),
-            chartData: chartData || undefined,
-          });
-        }
-
-        return {
-          content: [
-            { type: 'text' as const, text: assistantText },
-            { type: 'data' as const, name: 'chartData', data: chartData },
-          ],
-          status: { type: 'complete' as const, reason: 'stop' as const },
-        };
-      } catch (error: unknown) {
-        console.error('[AdvisorRuntime] Error calling advisor API:', error);
-        const err = error as { data?: { message?: string }; message?: string };
-        const errorMessage = err?.data?.message || err?.message || 'Failed to get response from advisor. Please try again.';
-        return createErrorResult(`I'm sorry, I encountered an error: ${errorMessage}`);
-      }
-    },
-  }), []); // Empty deps - uses refs for latest values
-
+  // Compute initial messages from persisted conversation
   const initialMessages = useMemo(() => {
     if (conversationContext && pageContext) {
       const persistedMessages = conversationContext.getMessages(pageContext);
       if (persistedMessages.length > 0) {
-        return convertToRuntimeMessages(persistedMessages, pageContext);
+        // Track already-persisted message IDs
+        persistedIdsRef.current = new Set(persistedMessages.map((m) => m.id));
+        return convertToUIMessages(persistedMessages, pageContext);
       }
     }
-
-    return [createWelcomeMessage(pageContext)];
+    return [createWelcomeUIMessage(pageContext)];
   }, [pageContext, conversationContext]);
 
-  const runtime = useLocalRuntime(chatModelAdapter, { initialMessages });
+  // Create transport with auth headers and extra body params
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: getChatApiUrl(),
+        headers: (): Record<string, string> => {
+          const token = store.getState().auth?.authToken;
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+        body: { llmKeyId: selectedLLMKeyId },
+      }),
+    [selectedLLMKeyId]
+  );
 
-  // Reset the runtime with welcome message if it was created without messages
-  // This handles the timing issue where useLocalRuntime is created before initialMessages is ready
-  const hasResetRef = useRef(false);
-  useEffect(() => {
-    if (runtime && !hasResetRef.current && initialMessages.length > 0) {
-      // Access thread state safely through the runtime
-      const threadState = runtime.thread?.getState?.();
-      const messageCount = threadState?.messages?.length ?? 0;
-      if (messageCount === 0 && typeof runtime.reset === 'function') {
-        runtime.reset({ initialMessages });
+  // Persist new messages when assistant finishes responding
+  const onFinish = useCallback(({ messages, isAbort, isError, isDisconnect }: {
+    message: UIMessage; messages: UIMessage[];
+    isAbort: boolean; isError: boolean; isDisconnect: boolean;
+  }) => {
+    // Don't persist incomplete/failed responses
+    if (isAbort || isError || isDisconnect) return;
+
+    const context = contextRef.current;
+    const domain = pageContextRef.current;
+
+    if (!context || !domain || !messages.length) return;
+
+    // Only persist messages we haven't already saved
+    for (const msg of messages) {
+      if (msg.id === 'welcome' || persistedIdsRef.current.has(msg.id)) continue;
+
+      const text = extractTextFromUIMessage(msg);
+
+      if (msg.role === 'assistant') {
+        const chartData = extractChartData(msg, text);
+        const extMsg = msg as ExtendedUIMessage;
+        context.addMessage(domain, {
+          id: msg.id,
+          role: 'assistant',
+          content: text,
+          createdAt: extMsg.createdAt ? new Date(extMsg.createdAt).toISOString() : new Date().toISOString(),
+          chartData: chartData || undefined,
+        });
+      } else if (msg.role === 'user') {
+        const extMsg = msg as ExtendedUIMessage;
+        context.addMessage(domain, {
+          id: msg.id,
+          role: 'user',
+          content: text,
+          createdAt: extMsg.createdAt ? new Date(extMsg.createdAt).toISOString() : new Date().toISOString(),
+        });
       }
-      hasResetRef.current = true;
+
+      persistedIdsRef.current.add(msg.id);
     }
-  }, [runtime, initialMessages]);
+  }, []);
+
+  const runtime = useChatRuntime({
+    transport,
+    messages: initialMessages,
+    onFinish,
+  });
 
   return runtime;
 };

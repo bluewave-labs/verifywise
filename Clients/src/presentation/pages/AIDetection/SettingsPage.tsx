@@ -24,6 +24,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import TabBar from "../../components/TabBar";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
@@ -160,25 +161,31 @@ export default function SettingsPage() {
   }
 
   return (
-    <>
-      {/* Toast notification */}
-      {alert && (
-        <Suspense fallback={null}>
-          <Alert
-            variant={alert.variant}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
-
+    <PageSubHeader
+      title="Settings"
+      description="Configure integrations and tokens for AI detection scanning."
+      helpArticlePath="ai-detection/settings"
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
             {
               label: "GitHub integration",
               value: "github",
+              icon: "Github",
+              tooltip: "Connect a GitHub token to scan private repositories",
             },
           ]}
           activeTab={activeTab}
@@ -309,6 +316,6 @@ export default function SettingsPage() {
           </Box>
         </TabPanel>
       </TabContext>
-    </>
+    </PageSubHeader>
   );
 }

@@ -1,0 +1,46 @@
+{
+  "id": "nyc_ll144",
+  "name": "NYC Local Law 144",
+  "jurisdiction": "New York City",
+  "effective_date": "2023-07-05",
+  "mode": "quantitative_audit",
+  "description": "Annual independent bias audit for automated employment decision tools (AEDTs). Requires selection rate and impact ratio calculations across EEO Component 1 categories with intersectional analysis.",
+  "categories": {
+    "sex": {
+      "label": "Sex",
+      "groups": ["Male", "Female"]
+    },
+    "race_ethnicity": {
+      "label": "Race/Ethnicity",
+      "groups": [
+        "Hispanic or Latino",
+        "White",
+        "Black or African American",
+        "Native Hawaiian or Pacific Islander",
+        "Asian",
+        "Native American or Alaska Native",
+        "Two or more races"
+      ]
+    }
+  },
+  "intersectional": {
+    "required": true,
+    "cross": ["sex", "race_ethnicity"]
+  },
+  "metrics": ["selection_rate", "impact_ratio"],
+  "threshold": 0.80,
+  "small_sample_exclusion": 0.02,
+  "required_metadata": [
+    "audit_date",
+    "aedt_name",
+    "aedt_distribution_date",
+    "data_source_description"
+  ],
+  "results_format": {
+    "tables": [
+      { "type": "category", "category_key": "sex", "title": "Impact ratios by sex" },
+      { "type": "category", "category_key": "race_ethnicity", "title": "Impact ratios by race/ethnicity" },
+      { "type": "intersectional", "title": "Impact ratios by intersectional category" }
+    ]
+  }
+}

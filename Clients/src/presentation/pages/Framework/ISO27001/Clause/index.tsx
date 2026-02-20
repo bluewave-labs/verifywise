@@ -25,7 +25,7 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 import { useModalKeyHandling } from "../../../../../application/hooks/useModalKeyHandling";
-import TabFilterBar from "../../../../components/FrameworkFilter/TabFilterBar";
+import { TabFilterBar } from "../../../../components/FrameworkFilter/TabFilterBar";
 
 const ISO27001Clause = ({
   project,

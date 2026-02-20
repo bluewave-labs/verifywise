@@ -31,7 +31,15 @@ export type AdvisorDomain =
   | 'vendors'
   | 'ai-incident-managements'
   | 'tasks'
-  | 'policies';
+  | 'policies'
+  | 'use-cases'
+  | 'datasets'
+  | 'frameworks'
+  | 'training'
+  | 'evidence'
+  | 'reporting'
+  | 'ai-trust-center'
+  | 'agent-discovery';
 
 /**
  * Maximum number of messages to store per conversation

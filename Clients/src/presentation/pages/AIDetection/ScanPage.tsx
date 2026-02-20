@@ -33,8 +33,7 @@ import {
 } from "lucide-react";
 import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import {
   startScan,
   pollScanStatus,
@@ -350,13 +349,11 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
   }, []);
 
   return (
-    <>
-      {/* Header */}
-      <PageHeader
-        title="Scan repository"
-        description="Enter a public GitHub repository URL to detect AI/ML libraries and frameworks."
-        rightContent={<HelperIcon articlePath="ai-detection/scanning" size="small" />}
-      />
+    <PageSubHeader
+      title="Scan repository"
+      description="Enter a public GitHub repository URL to detect AI/ML libraries and frameworks."
+      helpArticlePath="ai-detection/scanning"
+    >
 
       {/* Statistics Cards - 6 cards in 3x2 grid (only show if there are scans) */}
       {!isCheckingActive && scanState === "idle" && !statsLoading && stats && stats.total_scans > 0 && (
@@ -715,6 +712,6 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
           </Box>
         </Box>
       )}
-    </>
+    </PageSubHeader>
   );
 }

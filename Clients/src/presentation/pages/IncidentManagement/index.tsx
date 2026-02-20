@@ -8,7 +8,6 @@ import React, {
   useRef,
 } from "react";
 import { Box, Stack, Fade } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { SearchBox } from "../../components/Search";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -22,12 +21,10 @@ import {
   updateEntityById,
 } from "../../../application/repository/entity.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   addNewIncidentButton,
   incidentFilterRow,
-  incidentMainStack,
   incidentToastContainer,
 } from "./style";
 import IncidentTable from "./IncidentTable";
@@ -37,7 +34,6 @@ import {
   Severity,
 } from "../../../domain/enums/aiIncidentManagement.enum";
 import { createIncidentManagement } from "../../../application/repository/incident_management.repository";
-import HelperIcon from "../../components/HelperIcon";
 import IncidentStatusCard from "./IncidentStatusCard";
 import PageTour from "../../components/PageTour";
 import IncidentManagementSteps from "./IncidentManagementSteps";
@@ -500,51 +496,40 @@ const IncidentManagement: React.FC = () => {
 
   /** -------------------- RENDER -------------------- */
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300} style={incidentToastContainer}>
-            <Box mb={2}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast={true}
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-
-      <Stack sx={incidentMainStack}>
-        <Stack>
-          <PageHeader
-            title="Incident Management"
-            description="End-to-end management of the AI incident lifecycle. You can log events in full detail, analyze root causes, and document corrective and preventive actions."
-            rightContent={
-              <HelperIcon
-                articlePath="ai-governance/incident-management"
-                size="small"
-              />
-            }
-          />
-        </Stack>
-        <TipBox entityName="ai-incident-managements" />
-
-        {/* Incident by Status Cards */}
-        {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
-        {incidentsData.length > 0 && (
-          <Box data-joyride-id="incident-status-cards">
+    <>
+      <PageHeaderExtended
+        title="Incident Management"
+        description="End-to-end management of the AI incident lifecycle. You can log events in full detail, analyze root causes, and document corrective and preventive actions."
+        helpArticlePath="ai-governance/incident-management"
+        tipBoxEntity="ai-incident-managements"
+        alert={
+          alert ? (
+            <Suspense fallback={<div>Loading...</div>}>
+              <Fade in={showAlert} timeout={300} style={incidentToastContainer}>
+                <Box mb={2}>
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => {
+                      setShowAlert(false);
+                      setTimeout(() => setAlert(null), 300);
+                    }}
+                  />
+                </Box>
+              </Fade>
+            </Suspense>
+          ) : undefined
+        }
+        summaryCards={
+          /* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */
+          incidentsData.length > 0 ? (
             <IncidentStatusCard incidents={incidentsData} />
-          </Box>
-        )}
-
+          ) : undefined
+        }
+        summaryCardsJoyrideId="incident-status-cards"
+      >
         {/* Filters Row */}
         <Stack
           direction="row"
@@ -616,7 +601,7 @@ const IncidentManagement: React.FC = () => {
             />
           )}
         />
-      </Stack>
+      </PageHeaderExtended>
 
       <NewIncident
         isOpen={isNewIncidentModalOpen}
@@ -674,7 +659,7 @@ const IncidentManagement: React.FC = () => {
         run={!isLoading}
         tourKey="incident-management-tour"
       />
-    </Stack>
+    </>
   );
 };
 

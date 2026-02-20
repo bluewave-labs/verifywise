@@ -21,6 +21,8 @@ import {
   MenuItem,
   Select as MuiSelect,
   Stack,
+  SxProps,
+  Theme,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -29,7 +31,11 @@ import { ChevronDown } from "lucide-react";
 import { SelectProps } from "../../../types/widget.types";
 import { getSelectStyles } from "../../../utils/inputStyles";
 
-const Select: React.FC<SelectProps> = ({
+function isRecordSx(sx: SxProps<Theme>): sx is Record<string, unknown> {
+  return typeof sx === 'object' && sx !== null && !Array.isArray(sx);
+}
+
+function Select({
   id,
   label,
   placeholder,
@@ -43,7 +49,7 @@ const Select: React.FC<SelectProps> = ({
   disabled,
   customRenderValue,
   isFilterApplied = false,
-}) => {
+}: SelectProps) {
   const theme = useTheme();
   const itemStyles = {
     fontSize: "var(--env-var-font-size-medium)",
@@ -53,17 +59,17 @@ const Select: React.FC<SelectProps> = ({
   };
 
   // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
-  const extractedLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+  const extractedLayoutProps = sx && isRecordSx(sx)
     ? {
-        width: (sx as any).width,
-        flexGrow: (sx as any).flexGrow,
-        minWidth: (sx as any).minWidth,
-        maxWidth: (sx as any).maxWidth,
+        width: sx.width as string | number | undefined,
+        flexGrow: sx.flexGrow as number | undefined,
+        minWidth: sx.minWidth as string | number | undefined,
+        maxWidth: sx.maxWidth as string | number | undefined,
       }
     : {};
 
   // Create a copy of sx without layout props to pass to MuiSelect
-  const sxWithoutLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
+  const sxWithoutLayoutProps = sx && isRecordSx(sx)
     ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
     : sx;
 
@@ -169,13 +175,13 @@ const Select: React.FC<SelectProps> = ({
                 transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -220,7 +226,7 @@ const Select: React.FC<SelectProps> = ({
                 <span>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
               </Stack>
               {item.email && (
-                <span style={{ fontSize: 11, color: "#9d9d9d" }}>
+                <span style={{ fontSize: 11, color: theme.palette.text.disabled }}>
                   {item.email}
                 </span>
               )}
@@ -243,6 +249,6 @@ const Select: React.FC<SelectProps> = ({
       )}
     </Stack>
   );
-};
+}
 
 export default Select;

@@ -15,6 +15,13 @@ import { buildReportingReplacements } from "../../utils/automation/reporting.aut
 import { logAutomationExecution } from "../../utils/automationExecutionLog.utils";
 import { generateReport } from "../reporting";
 import { processPMMHourlyCheck } from "../postMarketMonitoring/pmmScheduler";
+import {
+  runDailyRollup,
+  runMonthlyRollup,
+  purgeOldEvents,
+  runNightlyRiskScoring,
+} from "../shadowAiAggregation.service";
+import { runAgentDiscoverySync } from "../agentDiscovery/agentDiscoverySync.service";
 import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -430,6 +437,16 @@ export const createAutomationWorker = () => {
           await sendReportNotificationEmail(job.data);
         } else if (name === "pmm_hourly_check") {
           await processPMMHourlyCheck();
+        } else if (name === "shadow_ai_daily_rollup") {
+          await runDailyRollup();
+        } else if (name === "shadow_ai_monthly_rollup") {
+          await runMonthlyRollup();
+        } else if (name === "shadow_ai_risk_scoring") {
+          await runNightlyRiskScoring();
+        } else if (name === "shadow_ai_purge_events") {
+          await purgeOldEvents();
+        } else if (name === "agent_discovery_sync") {
+          await runAgentDiscoverySync();
         } else if (name === "send_pmm_notification") {
           // PMM notification handling - send email using MJML templates
           const { type, data } = job.data;

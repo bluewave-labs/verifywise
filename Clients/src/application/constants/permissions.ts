@@ -45,6 +45,9 @@ const allowedRoles = {
     view: ["Admin"],
     manage: ["Admin"],
   },
+  features: {
+    manage: ["Admin"],
+  },
   apiKeys: {
     view: ["Admin"],
     manage: ["Admin"],

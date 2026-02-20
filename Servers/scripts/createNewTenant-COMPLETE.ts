@@ -130,6 +130,7 @@ async function createCoreTables(tenantHash: string, transaction: Transaction) {
       is_demo boolean NOT NULL DEFAULT false,
       is_organizational boolean NOT NULL DEFAULT false,
       status projects_status_enum NOT NULL DEFAULT 'Not started',
+      _source VARCHAR(100),
       created_at timestamp without time zone NOT NULL DEFAULT now(),
       CONSTRAINT projects_pkey PRIMARY KEY (id),
       CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)

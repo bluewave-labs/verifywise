@@ -29,6 +29,7 @@ import {
   FolderCog,
   LogOut,
   MessageCircle,
+  Sparkles,
   Telescope,
   X,
 } from "lucide-react";
@@ -57,6 +58,7 @@ interface SidebarFooterProps {
   showDemoDataButton?: boolean;
   showReadyToSubscribe?: boolean;
   openUserGuide?: () => void;
+  openReleaseNotes?: () => void;
   /** Only show demo data options to admins */
   isAdmin?: boolean;
 }
@@ -99,6 +101,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
   showDemoDataButton = true,
   showReadyToSubscribe = false,
   openUserGuide,
+  openReleaseNotes,
   isAdmin = false,
 }) => {
   const theme = useTheme();
@@ -824,6 +827,39 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                   >
                     <HelpCircle size={16} strokeWidth={1.5} />
                     <Typography sx={{ fontSize: "13px" }}>Help center</Typography>
+                  </ListItemButton>
+
+                  {/* Release notes */}
+                  <ListItemButton
+                    onClick={() => {
+                      if (openReleaseNotes) {
+                        openReleaseNotes();
+                      }
+                      closePopup();
+                    }}
+                    sx={{
+                      height: "32px",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      "& svg": {
+                        color: theme.palette.text.tertiary,
+                        stroke: theme.palette.text.tertiary,
+                      },
+                      "&:hover": {
+                        backgroundColor: "#F9FAFB",
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
+                    }}
+                  >
+                    <Sparkles size={16} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: "13px" }}>Release notes</Typography>
                   </ListItemButton>
 
                   {/* What's New */}

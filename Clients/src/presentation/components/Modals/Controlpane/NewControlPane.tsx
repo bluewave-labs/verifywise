@@ -33,10 +33,10 @@ import TabBar from "../../TabBar";
 import { CustomizableButton } from "../../button/customizable-button";
 import RichTextEditor from "../../RichTextEditor";
 import StandardModal from "../../Modals/StandardModal";
-import FilePickerModal from "../../FilePickerModal";
+import { FilePickerModal } from "../../FilePickerModal";
 
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
-const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks").then(m => ({ default: m.LinkedRisksPopup })));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 
 import {

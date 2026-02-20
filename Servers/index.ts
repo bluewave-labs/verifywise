@@ -29,7 +29,7 @@ import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
 import modelInventoryHistoryRoutes from "./routes/modelInventoryHistory.route";
 import modelInventoryChangeHistoryRoutes from "./routes/modelInventoryChangeHistory.route";
-import modelLifecycleRoutes from "./routes/modelLifecycle.route";
+import datasetBulkUploadRoutes from "./routes/datasetBulkUpload.route";
 import datasetRoutes from "./routes/dataset.route";
 import riskHistoryRoutes from "./routes/riskHistory.route";
 import modelRiskRoutes from "./routes/modelRisk.route";
@@ -73,7 +73,12 @@ import notificationRoutes from "./routes/notification.route";
 import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
 import complianceRoutes from "./routes/compliance.route";
 import virtualFolderRoutes, { filesFolderRouter } from "./routes/virtualFolder.route";
+import shadowAiRoutes from "./routes/shadowAi.route";
+import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
+import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
+import invitationRoutes from "./routes/invitation.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
+import { addAgentDiscoveryTables } from "./scripts/addAgentDiscoveryTables";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -161,6 +166,7 @@ try {
   app.use("/api/roles", roleRoutes);
   app.use("/api/files", fileRoutes);
   app.use("/api/mail", mailRoutes);
+  app.use("/api/invitations", invitationRoutes);
   // app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter); // **
@@ -172,7 +178,7 @@ try {
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelInventoryHistory", modelInventoryHistoryRoutes);
-  app.use("/api/model-lifecycle", modelLifecycleRoutes);
+  app.use("/api/dataset-bulk-upload", datasetBulkUploadRoutes);
   app.use(
     "/api/model-inventory-change-history",
     modelInventoryChangeHistoryRoutes
@@ -226,6 +232,9 @@ try {
   app.use("/api/compliance", complianceRoutes);
   app.use("/api/virtual-folders", virtualFolderRoutes);
   app.use("/api/files", filesFolderRouter); // Additional file-folder routes
+  app.use("/api/shadow-ai", shadowAiRoutes);
+  app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
+  app.use("/api/agent-primitives", agentDiscoveryRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {
@@ -233,6 +242,15 @@ try {
       await setupNotificationSubscriber();
     } catch (error) {
       console.error("Failed to setup notification subscriber:", error);
+    }
+  })();
+
+  // Run agent discovery tenant migrations (idempotent, safe on every boot)
+  (async () => {
+    try {
+      await addAgentDiscoveryTables();
+    } catch (error) {
+      console.error("Agent discovery table migration failed:", error);
     }
   })();
 

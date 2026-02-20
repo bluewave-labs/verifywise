@@ -13,7 +13,7 @@ import {
   TableFooter,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import EmptyState from "../../components/EmptyState";
+import { EmptyState } from "../../components/EmptyState";
 import singleTheme from "../../themes/v1SingleTheme";
 import IconButton from "../../components/IconButton";
 import TablePaginationActions from "../../components/TablePagination";
@@ -41,7 +41,7 @@ const titleOfTableColumns = [
   { id: "risk_level", label: "risk level", sortable: true },
   { id: "status", label: "status", sortable: true },
   { id: "owner", label: "owner", sortable: true },
-  { id: "target_date", label: "target date", sortable: true },
+  { id: "target_date", label: "next review date", sortable: true },
   { id: "actions", label: " ", sortable: false },
 ];
 

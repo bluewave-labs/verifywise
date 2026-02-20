@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon, FolderPlus as FolderPlusIcon } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
@@ -18,14 +19,11 @@ import {
 } from "../../../application/repository/file.repository";
 import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import HelperIcon from "../../components/HelperIcon";
 import { FileModel } from "../../../domain/models/Common/file/file.model";
-import PageHeader from "../../components/Layout/PageHeader";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 import { secureLogError } from "../../../application/utils/secureLogger.utils";
 import { useAuth } from "../../../application/hooks/useAuth";
-import TipBox from "../../components/TipBox";
 import { SearchBox } from "../../components/Search";
 import { GroupBy } from "../../components/Table/GroupBy";
 import {
@@ -73,6 +71,8 @@ const MANAGE_ROLES = ["Admin", "Editor"];
  * Main component for managing files with virtual folder support.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
@@ -367,6 +367,15 @@ const FileManager: React.FC = (): JSX.Element => {
     setIsPreviewOpen(false);
     setPreviewFile(null);
   }, []);
+
+  // Open preview automatically when navigated from Wise Search.
+  useEffect(() => {
+    const state = location.state as { previewFileId?: number | string } | null;
+    if (state?.previewFileId) {
+      handleOpenPreview(state.previewFileId);
+      navigate(location.pathname + location.search, { replace: true, state: {} });
+    }
+  }, [location, handleOpenPreview, navigate]);
 
   // Metadata editor handlers
   const handleOpenMetadataEditor = useCallback(async (fileId: number | string) => {
@@ -697,8 +706,12 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [allVisible]);
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
+    <PageHeaderExtended
+      title="Evidence & documents"
+      description="Organize and manage all files uploaded to the system."
+      helpArticlePath="ai-governance/evidence-collection"
+      tipBoxEntity="file-manager"
+    >
       <PageTour
         steps={FileSteps}
         run={runFileTour}
@@ -708,8 +721,6 @@ const FileManager: React.FC = (): JSX.Element => {
         }}
         tourKey="file-tour"
       />
-      <FileManagerHeader />
-      <TipBox entityName="file-manager" />
 
       {/* Main content area with folder sidebar */}
       <Box
@@ -989,21 +1000,8 @@ const FileManager: React.FC = (): JSX.Element => {
           onClick={() => setAlert(null)}
         />
       )}
-    </Stack>
+    </PageHeaderExtended>
   );
 };
-
-/**
- * Header component for the FileManager.
- */
-const FileManagerHeader: React.FC = () => (
-  <PageHeader
-    title="Evidence & documents"
-    description="Organize and manage all files uploaded to the system."
-    rightContent={
-      <HelperIcon articlePath="ai-governance/evidence-collection" size="small" />
-    }
-  />
-);
 
 export default FileManager;

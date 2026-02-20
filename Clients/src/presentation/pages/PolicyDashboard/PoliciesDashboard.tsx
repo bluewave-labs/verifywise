@@ -4,7 +4,7 @@ import { Box, Stack } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import HelperIcon from "../../components/HelperIcon";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PageTour from "../../components/PageTour";
 import TipBox from "../../components/TipBox";
@@ -71,12 +71,14 @@ const PolicyDashboard: React.FC = () => {
                 value: "policies",
                 icon: "Shield",
                 count: policies.length,
+                tooltip: "Your organization's active policies",
               },
               {
                 label: "Policy Templates",
                 value: "templates",
                 icon: "ShieldHalf",
                 count: policyTemplates.length,
+                tooltip: "Pre-built templates to create new policies from",
               },
             ]}
             activeTab={activeTab}

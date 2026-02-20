@@ -1,14 +1,13 @@
 
-import React from "react";
 import { Stack, Box } from "@mui/material";
 import { PageBreadcrumbs } from "../breadcrumbs/PageBreadcrumbs";
 import HelperIcon from "../HelperIcon";
-import PageHeader from "./PageHeader";
+import { PageHeader } from "./PageHeader";
 import TipBox from "../TipBox";
 import { pageHeaderTitleSectionStyle, pageHeaderSummaryCardsStyle } from "./style";
 import { PageHeaderExtendedProps } from "src/presentation/types/interfaces/i.header";
 
-const PageHeaderExtended: React.FC<PageHeaderExtendedProps> = ({
+export function PageHeaderExtended({
     title,
     description,
     helpArticlePath,
@@ -18,9 +17,9 @@ const PageHeaderExtended: React.FC<PageHeaderExtendedProps> = ({
     children,
     alert,
     loadingToast,
-}) => {
+}: PageHeaderExtendedProps) {
     return (
-        <Stack className="vwhome" gap="16px">
+        <Stack className="vwhome" gap={4}>
             <PageBreadcrumbs />
 
             <Box sx={pageHeaderTitleSectionStyle}>
@@ -35,7 +34,7 @@ const PageHeaderExtended: React.FC<PageHeaderExtendedProps> = ({
                 />
             </Box>
 
-            <Stack gap="12px">
+            <Stack gap="18px">
                 {tipBoxEntity && <TipBox entityName={tipBoxEntity} />}
 
                 {alert}
@@ -54,6 +53,4 @@ const PageHeaderExtended: React.FC<PageHeaderExtendedProps> = ({
             </Stack>
         </Stack>
     );
-};
-
-export default PageHeaderExtended;
+}

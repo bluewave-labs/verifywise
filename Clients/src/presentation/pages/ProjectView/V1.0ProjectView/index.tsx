@@ -28,15 +28,42 @@ import { FileText as FileTextIcon } from "lucide-react";
 import TabBar from "../../../components/TabBar";
 import { getAllProjectRisksByProjectId } from "../../../../application/repository/projectRisk.repository";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
+import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
 
 const VWProjectView = () => {
   const { userRoleName } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
+  // Extract numeric ID from composite IDs (e.g., "prefix-123" -> 123)
+  const numericProjectId = projectId.includes("-")
+    ? parseInt(projectId.substring(projectId.lastIndexOf("-") + 1), 10) || 0
+    : parseInt(projectId, 10) || 0;
   const tabParam = searchParams.get("tab");
   const framework = searchParams.get("framework");
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
+  const { getComponentsForSlot } = usePluginRegistry();
+
+  // Get project source (if any) for slot matching
+  const projectSource = (project as any)?._source;
+
+  // Helper to get plugin component for a slot
+  const getPluginComponent = (slotId: string) => {
+    const components = getComponentsForSlot(slotId);
+    return components.find((c) => c.pluginKey === projectSource);
+  };
+
+  // Get plugin components for each tab slot
+  const pluginOverview = getPluginComponent(PLUGIN_SLOTS.USE_CASE_OVERVIEW);
+  const pluginRisks = getPluginComponent(PLUGIN_SLOTS.USE_CASE_RISKS);
+  const pluginModels = getPluginComponent(PLUGIN_SLOTS.USE_CASE_MODELS);
+  const pluginFrameworks = getPluginComponent(PLUGIN_SLOTS.USE_CASE_FRAMEWORKS);
+  const pluginCeMarking = getPluginComponent(PLUGIN_SLOTS.USE_CASE_CE_MARKING);
+  const pluginActivity = getPluginComponent(PLUGIN_SLOTS.USE_CASE_ACTIVITY);
+  const pluginMonitoring = getPluginComponent(PLUGIN_SLOTS.USE_CASE_MONITORING);
+  const pluginSettings = getPluginComponent(PLUGIN_SLOTS.USE_CASE_SETTINGS);
 
   // Initialize tab value from URL parameter or default to "overview"
   const [value, setValue] = useState(tabParam || "overview");
@@ -86,46 +113,44 @@ const VWProjectView = () => {
     }
   }, [tabParam]);
 
-  // Fetch project risks count
+  // Fetch project risks count - errors are handled gracefully
   useEffect(() => {
     const fetchRisksCount = async () => {
-      if (!projectId) return;
+      if (!numericProjectId) return;
       setIsLoadingRisks(true);
       try {
         const response = await getAllProjectRisksByProjectId({
-          projectId: String(projectId),
+          projectId: String(numericProjectId),
           filter: "active",
         });
         setProjectRisksCount(response.data?.length || 0);
-      } catch (error) {
-        console.error("Error fetching project risks count:", error);
+      } catch {
         setProjectRisksCount(0);
       } finally {
         setIsLoadingRisks(false);
       }
     };
     fetchRisksCount();
-  }, [projectId, refreshKey]);
+  }, [numericProjectId, refreshKey]);
 
-  // Fetch linked models count
+  // Fetch linked models count - errors are handled gracefully
   useEffect(() => {
     const fetchLinkedModelsCount = async () => {
-      if (!projectId) return;
+      if (!numericProjectId) return;
       setIsLoadingModels(true);
       try {
         const response = await getAllEntities({
-          routeUrl: `/modelInventory/by-projectId/${projectId}`,
+          routeUrl: `/modelInventory/by-projectId/${numericProjectId}`,
         });
         setLinkedModelsCount(response.data?.length || 0);
-      } catch (error) {
-        console.error("Error fetching linked models count:", error);
+      } catch {
         setLinkedModelsCount(0);
       } finally {
         setIsLoadingModels(false);
       }
     };
     fetchLinkedModelsCount();
-  }, [projectId, refreshKey]);
+  }, [numericProjectId, refreshKey]);
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
     if (tabParam) {
@@ -140,7 +165,7 @@ const VWProjectView = () => {
 
   const handleRefresh = (isTrigger: boolean, toastMessage?: string) => {
     if (isTrigger) {
-      setRefreshKey((prevKey) => prevKey + 1); // send refresh trigger to projectdata hook
+      setRefreshKey((prevKey) => prevKey + 1);
       if (toastMessage) {
         setToast({ message: toastMessage, visible: true });
         setTimeout(() => setToast({ message: "", visible: false }), 3000);
@@ -199,6 +224,7 @@ const VWProjectView = () => {
                 value: "overview",
                 icon: "LayoutDashboard",
                 disabled: isApprovalBlocked,
+                tooltip: "Use case details, risk summary and status",
               },
               {
                 label: "Use case risks",
@@ -207,6 +233,7 @@ const VWProjectView = () => {
                 count: projectRisksCount,
                 isLoading: isLoadingRisks,
                 disabled: isApprovalBlocked,
+                tooltip: "Risks specific to this use case",
               },
               {
                 label: "Linked models",
@@ -215,36 +242,42 @@ const VWProjectView = () => {
                 count: linkedModelsCount,
                 isLoading: isLoadingModels,
                 disabled: isApprovalBlocked,
+                tooltip: "AI models associated with this use case",
               },
               {
                 label: "Frameworks/regulations",
                 value: "frameworks",
                 icon: "Shield",
                 disabled: isApprovalBlocked,
+                tooltip: "Compliance frameworks applied to this use case",
               },
               {
                 label: "CE Marking",
                 value: "ce-marking",
                 icon: "Award",
                 disabled: isApprovalBlocked,
+                tooltip: "EU conformity assessment and CE marking status",
               },
               {
                 label: "Activity",
                 value: "activity",
                 icon: "History",
                 disabled: isApprovalBlocked,
+                tooltip: "Recent changes and audit trail",
               },
               {
                 label: "Monitoring",
                 value: "monitoring",
                 icon: "ClipboardCheck",
                 disabled: isApprovalBlocked,
+                tooltip: "Post-deployment monitoring and checks",
               },
               {
                 label: "Settings",
                 value: "settings",
                 icon: "Settings",
                 disabled: isApprovalBlocked || !allowedRoles.projects.edit.includes(userRoleName),
+                tooltip: "Use case configuration and permissions",
               },
             ]}
             activeTab={value}
@@ -254,106 +287,109 @@ const VWProjectView = () => {
 
           <TabPanel value="overview" sx={tabPanelStyle}>
             {project ? (
-              <VWProjectOverview project={project} />
+              pluginOverview ? (
+                <pluginOverview.Component project={project} apiServices={apiServices} />
+              ) : (
+                <VWProjectOverview project={project} />
+              )
             ) : (
-              // <></>
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="project-risks" sx={tabPanelStyle}>
             {project ? (
-              // Render project risks content here
-              <VWProjectRisks />
+              pluginRisks ? (
+                <pluginRisks.Component project={project} apiServices={apiServices} />
+              ) : (
+                <VWProjectRisks />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="linked-models" sx={tabPanelStyle}>
             {project ? (
-              <LinkedModels project={project} />
+              pluginModels ? (
+                <pluginModels.Component project={project} apiServices={apiServices} />
+              ) : (
+                <LinkedModels project={project} />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="frameworks" sx={tabPanelStyle}>
             {project ? (
-              // Render frameworks content here
-              <ProjectFrameworks
-                project={project}
-                triggerRefresh={handleRefresh}
-                initialFrameworkId={
-                  framework === "iso-42001"
-                    ? 2
-                    : framework === "eu-ai-act"
-                    ? 1
-                    : project.framework && project.framework.length > 0
-                    ? project.framework[0].framework_id
-                    : 1
-                }
-              />
+              pluginFrameworks ? (
+                <pluginFrameworks.Component project={project} apiServices={apiServices} />
+              ) : (
+                <ProjectFrameworks
+                  project={project}
+                  triggerRefresh={handleRefresh}
+                  initialFrameworkId={
+                    framework === "iso-42001"
+                      ? 2
+                      : framework === "eu-ai-act"
+                      ? 1
+                      : project.framework && project.framework.length > 0
+                      ? project.framework[0].framework_id
+                      : 1
+                  }
+                />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="ce-marking" sx={tabPanelStyle}>
             {project ? (
-              <CEMarking projectId={projectId} />
+              pluginCeMarking ? (
+                <pluginCeMarking.Component project={project} apiServices={apiServices} />
+              ) : (
+                <CEMarking projectId={projectId} />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="settings" sx={tabPanelStyle}>
             {project ? (
-              // Render settings content here
-              <ProjectSettings triggerRefresh={handleRefresh} />
+              pluginSettings ? (
+                <pluginSettings.Component project={project} apiServices={apiServices} />
+              ) : (
+                <ProjectSettings triggerRefresh={handleRefresh} />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="activity" sx={tabPanelStyle}>
             {project ? (
-              <Activity entityType="use_case" entityId={parseInt(projectId)} />
+              pluginActivity ? (
+                <pluginActivity.Component project={project} apiServices={apiServices} />
+              ) : (
+                <Activity entityType="use_case" entityId={numericProjectId} />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
+
           <TabPanel value="monitoring" sx={tabPanelStyle}>
             {project ? (
-              <PostMarketMonitoring />
+              pluginMonitoring ? (
+                <pluginMonitoring.Component project={project} apiServices={apiServices} />
+              ) : (
+                <PostMarketMonitoring />
+              )
             ) : (
-              <CustomizableSkeleton
-                variant="rectangular"
-                width="100%"
-                height={400}
-              />
+              <CustomizableSkeleton variant="rectangular" width="100%" height={400} />
             )}
           </TabPanel>
         </TabContext>

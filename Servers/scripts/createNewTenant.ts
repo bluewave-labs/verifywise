@@ -193,6 +193,7 @@ export const createNewTenant = async (
         approval_workflow_id INTEGER REFERENCES "${tenantHash}".approval_workflows(id) ON DELETE SET NULL,
         pending_frameworks JSONB DEFAULT NULL,
         enable_ai_data_insertion BOOLEAN DEFAULT FALSE,
+        _source VARCHAR(100),
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)
@@ -415,6 +416,10 @@ export const createNewTenant = async (
       description text,
       file_group_id UUID DEFAULT gen_random_uuid(),
       approval_workflow_id integer,
+      -- Optional plain-text content for search/snippets
+      content_text text,
+      -- tsvector column for PostgreSQL full-text search
+      content_search tsvector,
       CONSTRAINT files_pkey PRIMARY KEY (id),
       CONSTRAINT files_project_id_fkey FOREIGN KEY (project_id)
         REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
@@ -468,6 +473,12 @@ export const createNewTenant = async (
     );
     await sequelize.query(
       `CREATE INDEX IF NOT EXISTS idx_files_approval_workflow_id ON "${tenantHash}".files(approval_workflow_id);`,
+      { transaction }
+    );
+
+    // Full-text search index on extracted content
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_files_content_search ON "${tenantHash}".files USING GIN(content_search);`,
       { transaction }
     );
 
@@ -675,7 +686,7 @@ export const createNewTenant = async (
       CONSTRAINT vendorrisks_pkey PRIMARY KEY (id),
       CONSTRAINT vendorrisks_vendor_id_fkey FOREIGN KEY (vendor_id)
         REFERENCES "${tenantHash}".vendors (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE SET NULL,
+        ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT vendorrisks_action_owner_fkey FOREIGN KEY (action_owner)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL
@@ -2317,6 +2328,65 @@ export const createNewTenant = async (
       ),
     ]);
 
+    // 9. llm_evals_bias_audits table (for demographic bias audits)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_bias_audits (
+        id VARCHAR(255) PRIMARY KEY,
+        org_id VARCHAR(255) NOT NULL,
+        project_id VARCHAR(255),
+        preset_id VARCHAR(100) NOT NULL,
+        preset_name VARCHAR(255) NOT NULL,
+        mode VARCHAR(50) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        config JSONB NOT NULL,
+        results JSONB,
+        error TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP WITH TIME ZONE,
+        created_by VARCHAR(255)
+      );
+    `, { transaction });
+    await Promise.all([
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_org_id ON "${tenantHash}".llm_evals_bias_audits(org_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_status ON "${tenantHash}".llm_evals_bias_audits(status);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_project_id ON "${tenantHash}".llm_evals_bias_audits(project_id);`,
+        { transaction }
+      ),
+      sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audits_created_at ON "${tenantHash}".llm_evals_bias_audits(created_at DESC);`,
+        { transaction }
+      ),
+    ]);
+
+    // 10. llm_evals_bias_audit_results table (per-group breakdown rows)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_evals_bias_audit_results (
+        id SERIAL PRIMARY KEY,
+        audit_id VARCHAR(255) NOT NULL REFERENCES "${tenantHash}".llm_evals_bias_audits(id) ON DELETE CASCADE,
+        category_type VARCHAR(100) NOT NULL,
+        category_name VARCHAR(255) NOT NULL,
+        applicant_count INTEGER NOT NULL,
+        selected_count INTEGER NOT NULL,
+        selection_rate DOUBLE PRECISION NOT NULL,
+        impact_ratio DOUBLE PRECISION,
+        excluded BOOLEAN DEFAULT FALSE,
+        flagged BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `, { transaction });
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_llm_evals_bias_audit_results_audit_id ON "${tenantHash}".llm_evals_bias_audit_results(audit_id);`,
+      { transaction }
+    );
+
     console.log(`✅ EvalServer tables created successfully for tenant: ${tenantHash}`);
 
     // Create change history table
@@ -2936,220 +3006,308 @@ export const createNewTenant = async (
       );
     `, { transaction });
 
-    // ── Model Lifecycle Tables ──────────────────────────────────────────
+    // Note: Model Lifecycle tables are now created by the model-lifecycle plugin
+    // Install the plugin from the marketplace to enable lifecycle tracking
 
-    // 1. model_lifecycle_phases
+    // ────────────────────────────────────────────────────────
+    // Shadow AI Detection tables
+    // ────────────────────────────────────────────────────────
+
+    // 1. shadow_ai_tools (must come before events due to FK)
     await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_phases (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        display_order INTEGER NOT NULL DEFAULT 0,
-        is_active BOOLEAN NOT NULL DEFAULT true,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_tools (
+        id                  SERIAL PRIMARY KEY,
+        name                VARCHAR(255) NOT NULL UNIQUE,
+        vendor              VARCHAR(255),
+        domains             TEXT[] NOT NULL,
+        status              VARCHAR(50) DEFAULT 'detected',
+        risk_score          INTEGER,
+        first_detected_at   TIMESTAMPTZ DEFAULT NOW(),
+        last_seen_at        TIMESTAMPTZ,
+        total_users         INTEGER DEFAULT 0,
+        total_events        INTEGER DEFAULT 0,
+        trains_on_data      BOOLEAN,
+        soc2_certified      BOOLEAN,
+        gdpr_compliant      BOOLEAN,
+        data_residency      VARCHAR(100),
+        sso_support         BOOLEAN,
+        encryption_at_rest  BOOLEAN,
+        model_inventory_id  INTEGER,
+        governance_owner_id INTEGER,
+        risk_entry_id       INTEGER,
+        created_at          TIMESTAMPTZ DEFAULT NOW(),
+        updated_at          TIMESTAMPTZ DEFAULT NOW()
       );
     `, { transaction });
 
+    // 2. shadow_ai_events
     await sequelize.query(`
-      CREATE INDEX IF NOT EXISTS idx_model_lifecycle_phases_display_order
-      ON "${tenantHash}".model_lifecycle_phases(display_order);
-    `, { transaction });
-
-    // 2. model_lifecycle_items
-    await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_items (
-        id SERIAL PRIMARY KEY,
-        phase_id INTEGER NOT NULL
-          REFERENCES "${tenantHash}".model_lifecycle_phases(id) ON DELETE CASCADE,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        item_type VARCHAR(50) NOT NULL
-          CHECK (item_type IN ('text','textarea','documents','people','classification','checklist','approval')),
-        is_required BOOLEAN NOT NULL DEFAULT false,
-        display_order INTEGER NOT NULL DEFAULT 0,
-        config JSONB DEFAULT '{}',
-        is_active BOOLEAN NOT NULL DEFAULT true,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_events (
+        id              BIGSERIAL PRIMARY KEY,
+        user_email      VARCHAR(255) NOT NULL,
+        destination     VARCHAR(512) NOT NULL,
+        uri_path        TEXT,
+        http_method     VARCHAR(10),
+        action          VARCHAR(20) DEFAULT 'allowed',
+        detected_tool_id INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE SET NULL,
+        detected_model  VARCHAR(255),
+        event_timestamp TIMESTAMPTZ NOT NULL,
+        ingested_at     TIMESTAMPTZ DEFAULT NOW(),
+        department      VARCHAR(255),
+        job_title       VARCHAR(255),
+        manager_email   VARCHAR(255)
       );
     `, { transaction });
 
-    await Promise.all([
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_items_phase_id ON "${tenantHash}".model_lifecycle_items(phase_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_items_phase_order ON "${tenantHash}".model_lifecycle_items(phase_id, display_order);`,
-    ].map((query) => sequelize.query(query, { transaction })));
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_timestamp ON "${tenantHash}".shadow_ai_events(event_timestamp);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_user ON "${tenantHash}".shadow_ai_events(user_email);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_tool ON "${tenantHash}".shadow_ai_events(detected_tool_id);`, { transaction });
 
-    // 3. model_lifecycle_values
+    // 3. shadow_ai_daily_rollups
     await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_values (
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_daily_rollups (
+        id              SERIAL PRIMARY KEY,
+        rollup_date     DATE NOT NULL,
+        user_email      VARCHAR(255) NOT NULL,
+        tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE CASCADE,
+        department      VARCHAR(255),
+        total_events    INTEGER DEFAULT 0,
+        post_events     INTEGER DEFAULT 0,
+        blocked_events  INTEGER DEFAULT 0,
+        created_at      TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(rollup_date, user_email, tool_id)
+      );
+    `, { transaction });
+
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rollups_date ON "${tenantHash}".shadow_ai_daily_rollups(rollup_date);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rollups_tool ON "${tenantHash}".shadow_ai_daily_rollups(tool_id);`, { transaction });
+
+    // 4. shadow_ai_monthly_rollups
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_monthly_rollups (
+        id              SERIAL PRIMARY KEY,
+        rollup_month    DATE NOT NULL,
+        tool_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_tools(id) ON DELETE CASCADE,
+        department      VARCHAR(255),
+        unique_users    INTEGER DEFAULT 0,
+        total_events    INTEGER DEFAULT 0,
+        post_events     INTEGER DEFAULT 0,
+        blocked_events  INTEGER DEFAULT 0,
+        created_at      TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(rollup_month, tool_id, department)
+      );
+    `, { transaction });
+
+    // 5. shadow_ai_rules
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_rules (
+        id              SERIAL PRIMARY KEY,
+        name            VARCHAR(255) NOT NULL,
+        description     TEXT,
+        is_active       BOOLEAN DEFAULT true,
+        trigger_type    VARCHAR(100) NOT NULL,
+        trigger_config  JSONB DEFAULT '{}',
+        actions         JSONB NOT NULL,
+        cooldown_minutes INTEGER DEFAULT 1440,
+        created_by      INTEGER NOT NULL,
+        created_at      TIMESTAMPTZ DEFAULT NOW(),
+        updated_at      TIMESTAMPTZ DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // 6. shadow_ai_rule_notifications
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_rule_notifications (
+        id          SERIAL PRIMARY KEY,
+        rule_id     INTEGER REFERENCES "${tenantHash}".shadow_ai_rules(id) ON DELETE CASCADE,
+        user_id     INTEGER NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(rule_id, user_id)
+      );
+    `, { transaction });
+
+    // 7. shadow_ai_api_keys
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_api_keys (
+        id              SERIAL PRIMARY KEY,
+        key_hash        VARCHAR(255) NOT NULL UNIQUE,
+        key_prefix      VARCHAR(20) NOT NULL,
+        label           VARCHAR(255),
+        created_by      INTEGER NOT NULL,
+        last_used_at    TIMESTAMPTZ,
+        is_active       BOOLEAN DEFAULT true,
+        created_at      TIMESTAMPTZ DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // 8. shadow_ai_syslog_config
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_syslog_config (
+        id                  SERIAL PRIMARY KEY,
+        source_identifier   VARCHAR(255) NOT NULL,
+        parser_type         VARCHAR(50) NOT NULL,
+        is_active           BOOLEAN DEFAULT true,
+        created_at          TIMESTAMPTZ DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // 9. shadow_ai_alert_history
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_alert_history (
+        id              SERIAL PRIMARY KEY,
+        rule_id         INTEGER REFERENCES "${tenantHash}".shadow_ai_rules(id) ON DELETE SET NULL,
+        rule_name       VARCHAR(255),
+        trigger_type    VARCHAR(100),
+        trigger_data    JSONB,
+        actions_taken   JSONB,
+        fired_at        TIMESTAMPTZ DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // 10. shadow_ai_settings
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".shadow_ai_settings (
         id SERIAL PRIMARY KEY,
-        model_inventory_id INTEGER NOT NULL
-          REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
-        item_id INTEGER NOT NULL
-          REFERENCES "${tenantHash}".model_lifecycle_items(id) ON DELETE CASCADE,
-        value_text TEXT,
-        value_json JSONB,
-        updated_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        rate_limit_max_events_per_hour INTEGER NOT NULL DEFAULT 0,
+        retention_events_days INTEGER NOT NULL DEFAULT 30,
+        retention_daily_rollups_days INTEGER NOT NULL DEFAULT 365,
+        retention_alert_history_days INTEGER NOT NULL DEFAULT 90,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        updated_by INTEGER NULL REFERENCES public.users(id)
+      );
+    `, { transaction });
+
+    // Insert default settings row
+    await sequelize.query(`
+      INSERT INTO "${tenantHash}".shadow_ai_settings (id)
+      VALUES (1)
+      ON CONFLICT (id) DO NOTHING;
+    `, { transaction });
+
+    // 11. feature_settings
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".feature_settings (
+        id SERIAL PRIMARY KEY,
+        lifecycle_enabled BOOLEAN NOT NULL DEFAULT true,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        updated_by INTEGER NULL REFERENCES public.users(id)
+      );
+    `, { transaction });
+
+    // Insert default feature settings row
+    await sequelize.query(`
+      INSERT INTO "${tenantHash}".feature_settings (id)
+      VALUES (1)
+      ON CONFLICT (id) DO NOTHING;
+    `, { transaction });
+
+
+    // Composite indexes for common query patterns
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_dept_ts ON "${tenantHash}".shadow_ai_events(department, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_user_ts ON "${tenantHash}".shadow_ai_events(user_email, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_tool_ts ON "${tenantHash}".shadow_ai_events(detected_tool_id, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_events_action_ts ON "${tenantHash}".shadow_ai_events(action, event_timestamp DESC);`, { transaction });
+    await sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_shadow_api_keys_hash_active ON "${tenantHash}".shadow_ai_api_keys(key_hash) WHERE is_active = true;`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_monthly_rollups_tool ON "${tenantHash}".shadow_ai_monthly_rollups(tool_id);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_fired ON "${tenantHash}".shadow_ai_alert_history(fired_at DESC);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_alert_history_rule ON "${tenantHash}".shadow_ai_alert_history(rule_id);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rules_active ON "${tenantHash}".shadow_ai_rules(is_active);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_shadow_rule_notifications_rule ON "${tenantHash}".shadow_ai_rule_notifications(rule_id);`, { transaction });
+
+    // 12. agent_primitives (Agent Discovery)
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".agent_primitives (
+        id SERIAL PRIMARY KEY,
+        source_system VARCHAR(100) NOT NULL,
+        primitive_type VARCHAR(50) NOT NULL,
+        external_id VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255) NOT NULL,
+        owner_id VARCHAR(255),
+        permissions JSONB NOT NULL DEFAULT '[]',
+        permission_categories JSONB NOT NULL DEFAULT '[]',
+        last_activity TIMESTAMP,
+        metadata JSONB NOT NULL DEFAULT '{}',
+        review_status VARCHAR(20) NOT NULL DEFAULT 'unreviewed',
+        reviewed_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        reviewed_at TIMESTAMP,
+        linked_model_inventory_id INTEGER,
+        is_stale BOOLEAN NOT NULL DEFAULT false,
+        is_manual BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        UNIQUE(model_inventory_id, item_id)
+        CONSTRAINT agent_primitives_source_external_unique UNIQUE (source_system, external_id)
       );
     `, { transaction });
 
-    await Promise.all([
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_values_model ON "${tenantHash}".model_lifecycle_values(model_inventory_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_values_item ON "${tenantHash}".model_lifecycle_values(item_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_values_model_item ON "${tenantHash}".model_lifecycle_values(model_inventory_id, item_id);`,
-    ].map((query) => sequelize.query(query, { transaction })));
+    // agent_primitives indexes
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_source ON "${tenantHash}".agent_primitives(source_system);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_status ON "${tenantHash}".agent_primitives(review_status);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_type ON "${tenantHash}".agent_primitives(primitive_type);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_stale ON "${tenantHash}".agent_primitives(is_stale);`, { transaction });
+    await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_agent_primitives_created ON "${tenantHash}".agent_primitives(created_at DESC);`, { transaction });
 
-    // 4. model_lifecycle_item_files (junction table)
+    // 13. agent_discovery_sync_log
     await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_item_files (
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".agent_discovery_sync_log (
         id SERIAL PRIMARY KEY,
-        value_id INTEGER NOT NULL
-          REFERENCES "${tenantHash}".model_lifecycle_values(id) ON DELETE CASCADE,
-        file_id INTEGER NOT NULL
-          REFERENCES "${tenantHash}".files(id) ON DELETE CASCADE,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        UNIQUE(value_id, file_id)
+        source_system VARCHAR(100) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'running',
+        primitives_found INTEGER NOT NULL DEFAULT 0,
+        primitives_created INTEGER NOT NULL DEFAULT 0,
+        primitives_updated INTEGER NOT NULL DEFAULT 0,
+        primitives_stale_flagged INTEGER NOT NULL DEFAULT 0,
+        error_message TEXT,
+        started_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        completed_at TIMESTAMP,
+        triggered_by VARCHAR(20) NOT NULL DEFAULT 'scheduled'
       );
     `, { transaction });
 
-    await Promise.all([
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_item_files_value ON "${tenantHash}".model_lifecycle_item_files(value_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_item_files_file ON "${tenantHash}".model_lifecycle_item_files(file_id);`,
-    ].map((query) => sequelize.query(query, { transaction })));
-
-    // 5. model_lifecycle_change_history
+    // 14. agent_audit_log
     await sequelize.query(`
-      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_lifecycle_change_history (
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".agent_audit_log (
         id SERIAL PRIMARY KEY,
-        model_lifecycle_value_id INTEGER NOT NULL,
-        action VARCHAR(50) NOT NULL CHECK (action IN ('created','updated','deleted')),
-        field_name VARCHAR(255),
+        agent_primitive_id INTEGER NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        field_changed VARCHAR(100),
         old_value TEXT,
         new_value TEXT,
-        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
-        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        performed_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_agent_audit_log_primitive
+      ON "${tenantHash}".agent_audit_log (agent_primitive_id);
+    `, { transaction });
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS idx_agent_audit_log_created
+      ON "${tenantHash}".agent_audit_log (created_at DESC);
+    `, { transaction });
 
-    await Promise.all([
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_change_history_value ON "${tenantHash}".model_lifecycle_change_history(model_lifecycle_value_id);`,
-      `CREATE INDEX IF NOT EXISTS idx_model_lifecycle_change_history_changed_at ON "${tenantHash}".model_lifecycle_change_history(changed_at DESC);`,
-    ].map((query) => sequelize.query(query, { transaction })));
+    console.log(`✅ Shadow AI tables created successfully for tenant: ${tenantHash}`);
 
-    // 6. Seed default lifecycle phases and items
-    const defaultPhases = [
-      {
-        name: 'Registration & Inventory',
-        description: 'Initial model registration, ownership assignment, and classification of the AI model.',
-        display_order: 1,
-        items: [
-          { name: 'Model Registration Form', item_type: 'documents', is_required: true, display_order: 1, config: { maxFiles: 5, allowedTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] } },
-          { name: 'Unique Model Identifier', item_type: 'text', is_required: true, display_order: 2, config: { placeholder: 'Enter unique model identifier' } },
-          { name: 'Model Ownership Record', item_type: 'people', is_required: true, display_order: 3, config: { maxPeople: 10, roles: ['Owner', 'Co-Owner', 'Steward'] } },
-          { name: 'Purpose & Intended Use', item_type: 'textarea', is_required: true, display_order: 4, config: { placeholder: 'Describe the purpose and intended use of this model' } },
-          { name: 'Regulatory / Risk Classification', item_type: 'classification', is_required: true, display_order: 5, config: { levels: ['Minimal', 'Low', 'Medium', 'High', 'Critical'] } },
-          { name: 'Model Dependencies', item_type: 'textarea', is_required: false, display_order: 6, config: { placeholder: 'List any model dependencies or upstream/downstream systems' } },
-        ],
-      },
-      {
-        name: 'Design & Development',
-        description: 'Documentation of model design, data lineage, feature engineering, and development assessments.',
-        display_order: 2,
-        items: [
-          { name: 'Model Design Document', item_type: 'documents', is_required: true, display_order: 1, config: {} },
-          { name: 'Data Lineage & Quality Assessment', item_type: 'documents', is_required: true, display_order: 2, config: {} },
-          { name: 'Feature Documentation Sheet', item_type: 'documents', is_required: true, display_order: 3, config: {} },
-          { name: 'Explainability Assessment (SHAP/LIME)', item_type: 'documents', is_required: true, display_order: 4, config: {} },
-          { name: 'Bias & Fairness Assessment', item_type: 'documents', is_required: true, display_order: 5, config: {} },
-          { name: 'Security & Adversarial Robustness Review', item_type: 'documents', is_required: false, display_order: 6, config: {} },
-          { name: 'Version Control Log', item_type: 'documents', is_required: false, display_order: 7, config: {} },
-        ],
-      },
-      {
-        name: 'Validation & Testing',
-        description: 'Validation test plans, performance evaluation, bias testing, and stress testing outputs.',
-        display_order: 3,
-        items: [
-          { name: 'Validation Test Plan', item_type: 'documents', is_required: true, display_order: 1, config: {} },
-          { name: 'Performance Evaluation Results', item_type: 'documents', is_required: true, display_order: 2, config: {} },
-          { name: 'Bias Testing Results & Mitigation', item_type: 'documents', is_required: true, display_order: 3, config: {} },
-          { name: 'Explainability Validation', item_type: 'documents', is_required: true, display_order: 4, config: {} },
-          { name: 'Stress / Adversarial Test Outputs', item_type: 'documents', is_required: false, display_order: 5, config: {} },
-        ],
-      },
-      {
-        name: 'Deployment & Operational Readiness',
-        description: 'Pre-deployment checklists, rollback plans, deployment records, and governance approval.',
-        display_order: 4,
-        items: [
-          { name: 'Deployment Readiness Checklist', item_type: 'checklist', is_required: true, display_order: 1, config: { defaultItems: ['Infrastructure validated', 'Security review complete', 'Performance benchmarks met', 'Monitoring configured', 'Rollback tested'] } },
-          { name: 'Rollback & Contingency Plan', item_type: 'documents', is_required: true, display_order: 2, config: {} },
-          { name: 'Deployment Record', item_type: 'documents', is_required: true, display_order: 3, config: {} },
-          { name: 'Versioning History Log', item_type: 'textarea', is_required: false, display_order: 4, config: { placeholder: 'Provide versioning history for this deployment' } },
-          { name: 'Model Acceptance & Governance Approval', item_type: 'approval', is_required: true, display_order: 5, config: { requiredApprovers: 2 } },
-        ],
-      },
-      {
-        name: 'Monitoring & Incident Management',
-        description: 'Ongoing model monitoring, drift assessment, stability reports, and incident management.',
-        display_order: 5,
-        items: [
-          { name: 'Monitoring Plan', item_type: 'documents', is_required: true, display_order: 1, config: {} },
-          { name: 'Drift Assessment Reports', item_type: 'documents', is_required: true, display_order: 2, config: {} },
-          { name: 'Operational Stability Reports', item_type: 'documents', is_required: false, display_order: 3, config: {} },
-          { name: 'Incident Response SOP', item_type: 'documents', is_required: true, display_order: 4, config: {} },
-          { name: 'Model Incident Log', item_type: 'documents', is_required: false, display_order: 5, config: {} },
-        ],
-      },
-      {
-        name: 'Human-in-the-Loop Oversight',
-        description: 'Human oversight procedures, manual review logs, escalation protocols, and ethics review.',
-        display_order: 6,
-        items: [
-          { name: 'HITL Procedure', item_type: 'documents', is_required: true, display_order: 1, config: {} },
-          { name: 'Manual Review Logs', item_type: 'documents', is_required: false, display_order: 2, config: {} },
-          { name: 'Override / Escalation Log', item_type: 'documents', is_required: false, display_order: 3, config: {} },
-          { name: 'Ethics Review Committee Approvals', item_type: 'approval', is_required: true, display_order: 4, config: { requiredApprovers: 3 } },
-        ],
-      },
-    ];
-
-    for (const phase of defaultPhases) {
-      const [phaseResult] = await sequelize.query(`
-        INSERT INTO "${tenantHash}".model_lifecycle_phases (name, description, display_order, is_active, created_at, updated_at)
-        VALUES (:name, :description, :display_order, true, NOW(), NOW())
-        RETURNING id;
-      `, {
-        replacements: { name: phase.name, description: phase.description, display_order: phase.display_order },
-        transaction,
-      }) as [Array<{ id: number }>, unknown];
-
-      const phaseId = phaseResult[0].id;
-
-      for (const item of phase.items) {
-        await sequelize.query(`
-          INSERT INTO "${tenantHash}".model_lifecycle_items (phase_id, name, item_type, is_required, display_order, config, is_active, created_at, updated_at)
-          VALUES (:phase_id, :name, :item_type, :is_required, :display_order, :config, true, NOW(), NOW());
-        `, {
-          replacements: {
-            phase_id: phaseId,
-            name: item.name,
-            item_type: item.item_type,
-            is_required: item.is_required,
-            display_order: item.display_order,
-            config: JSON.stringify(item.config),
-          },
-          transaction,
-        });
-      }
-    }
-
-    console.log(`✅ Model Lifecycle tables created successfully for tenant: ${tenantHash}`);
+    // Create invitations table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".invitations (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
+        surname VARCHAR(255),
+        role_id INT REFERENCES public.roles(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        invited_by INT REFERENCES public.users(id),
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`,
+      { transaction }
+    );
+    await sequelize.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_invitations_pending_email
+      ON "${tenantHash}".invitations (email)
+      WHERE status = 'pending';
+    `, { transaction });
 
   } catch (error) {
     throw error;

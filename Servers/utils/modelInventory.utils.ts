@@ -156,7 +156,7 @@ export const createNewModelInventoryQuery = async (
           provider: modelInventory.provider,
           model: modelInventory.model,
           version: modelInventory.version,
-          approver: modelInventory.approver,
+          approver: modelInventory.approver || null,
           capabilities: Array.isArray(modelInventory.capabilities)
             ? modelInventory.capabilities.join(", ")
             : modelInventory.capabilities,
@@ -309,7 +309,7 @@ export const updateModelInventoryByIdQuery = async (
           provider: modelInventory.provider,
           model: modelInventory.model,
           version: modelInventory.version,
-          approver: modelInventory.approver,
+          approver: modelInventory.approver || null,
           capabilities: Array.isArray(modelInventory.capabilities)
             ? modelInventory.capabilities.join(", ")
             : modelInventory.capabilities,

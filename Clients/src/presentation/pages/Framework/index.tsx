@@ -33,7 +33,7 @@ import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import { getAllEntities } from "../../../application/repository/entity.repository";
-import ProjectForm from "../../components/Forms/ProjectForm";
+import { ProjectForm } from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -44,7 +44,7 @@ import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants"
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import { ButtonToggle } from "../../components/button-toggle";
 import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";
@@ -1067,27 +1067,32 @@ const Framework = () => {
                   label: "Dashboard",
                   value: "dashboard",
                   icon: "LayoutDashboard",
+                  tooltip: "Compliance progress and status across this framework",
                 },
                 {
                   label: "Framework risks",
                   value: "framework-risks",
                   icon: "AlertTriangle",
+                  tooltip: "Risks identified at the organizational level",
                 },
                 {
                   label: "Linked models",
                   value: "linked-models",
                   icon: "Link",
                   count: linkedModelsCount,
+                  tooltip: "AI models mapped to this framework's controls",
                 },
                 {
                   label: "Controls and Requirements",
                   value: "controls",
                   icon: "FileCode",
+                  tooltip: "Regulatory controls and their implementation status",
                 },
                 {
                   label: "Settings",
                   value: "settings",
                   icon: "Settings",
+                  tooltip: "Framework visibility and configuration",
                 },
               ]}
               activeTab={mainTabValue}

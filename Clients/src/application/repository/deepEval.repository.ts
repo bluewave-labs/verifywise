@@ -58,6 +58,17 @@ import {
   type ArenaComparison,
   type ArenaComparisonSummary,
 } from "../../infrastructure/api/deepEvalArenaService";
+import {
+  biasAuditService,
+  type BiasAuditPresetSummary,
+  type BiasAuditPreset,
+  type BiasAuditSummary,
+  type BiasAuditDetailResponse,
+  type GroupResultRow,
+  type CategoryTableResult,
+  type BiasAuditResultFull,
+  type CreateBiasAuditConfig,
+} from "../../infrastructure/api/biasAuditService";
 
 // Re-export types for presentation layer
 export type {
@@ -90,6 +101,15 @@ export type {
   ArenaComparisonResult,
   ArenaComparison,
   ArenaComparisonSummary,
+  // Bias audit types
+  BiasAuditPresetSummary,
+  BiasAuditPreset,
+  BiasAuditSummary,
+  BiasAuditDetailResponse,
+  GroupResultRow,
+  CategoryTableResult,
+  BiasAuditResultFull,
+  CreateBiasAuditConfig,
 };
 
 // Re-export utility functions for presentation layer
@@ -290,3 +310,29 @@ export const getArenaComparisonResults = (comparisonId: string) =>
 
 export const deleteArenaComparison = (comparisonId: string) =>
   deepEvalArenaService.deleteComparison(comparisonId);
+
+// ==================== BIAS AUDITS ====================
+
+export const listBiasAuditPresets = () =>
+  biasAuditService.listPresets();
+
+export const getBiasAuditPreset = (presetId: string) =>
+  biasAuditService.getPreset(presetId);
+
+export const runBiasAudit = (dataset: File, config: CreateBiasAuditConfig) =>
+  biasAuditService.runAudit(dataset, config);
+
+export const getBiasAuditStatus = (auditId: string) =>
+  biasAuditService.getStatus(auditId);
+
+export const getBiasAuditResults = (auditId: string) =>
+  biasAuditService.getResults(auditId);
+
+export const listBiasAudits = (params?: { org_id?: string; project_id?: string }) =>
+  biasAuditService.listAudits(params);
+
+export const deleteBiasAudit = (auditId: string) =>
+  biasAuditService.deleteAudit(auditId);
+
+export const parseBiasAuditCsvHeaders = (dataset: File) =>
+  biasAuditService.parseHeaders(dataset);

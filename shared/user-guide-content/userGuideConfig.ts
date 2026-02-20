@@ -10,7 +10,8 @@ export type IconName =
   | 'GraduationCap'
   | 'BarChart3'
   | 'FlaskConical'
-  | 'ScanSearch';
+  | 'ScanSearch'
+  | 'EyeOff';
 
 export interface Article {
   id: string;
@@ -132,7 +133,7 @@ export const collections: Collection[] = [
     title: 'LLM Evals',
     description: 'Evaluate and benchmark your LLM applications for quality, safety, and performance.',
     icon: 'FlaskConical',
-    articleCount: 4,
+    articleCount: 5,
     articles: [
       {
         id: 'llm-evals-overview',
@@ -158,20 +159,26 @@ export const collections: Collection[] = [
         description: 'Set up evaluation metrics and scoring thresholds.',
         keywords: ['scorer', 'metric', 'threshold', 'judge', 'llm', 'bias', 'toxicity', 'hallucination', 'conversational', 'turn relevancy', 'knowledge retention', 'coherence', 'task completion'],
       },
+      {
+        id: 'bias-audits',
+        title: 'Running bias audits',
+        description: 'Run demographic bias audits against compliance frameworks like NYC LL144 and EEOC.',
+        keywords: ['bias', 'audit', 'fairness', 'discrimination', 'impact ratio', 'selection rate', 'demographic', 'compliance', 'nyc', 'll144', 'eeoc', 'four-fifths', 'adverse impact', 'intersectional'],
+      },
     ],
   },
   {
     id: 'ai-detection',
     title: 'AI Detection',
-    description: 'Scan repositories to discover AI/ML libraries and detect shadow AI in your codebase.',
+    description: 'Scan repositories to discover AI/ML libraries, CI/CD pipelines, container images, and detect shadow AI in your codebase.',
     icon: 'ScanSearch',
     articleCount: 2,
     articles: [
       {
         id: 'scanning',
         title: 'Scanning repositories',
-        description: 'Learn how to scan GitHub repositories to detect AI/ML usage.',
-        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai'],
+        description: 'Learn how to scan GitHub repositories to detect AI/ML usage across code, workflows, and infrastructure.',
+        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai', 'docker', 'github actions', 'mcp', 'cicd', 'container'],
       },
       {
         id: 'history',
@@ -344,6 +351,51 @@ export const collections: Collection[] = [
     ],
   },
   {
+    id: 'shadow-ai',
+    title: 'Shadow AI',
+    description: 'Detect and manage unauthorized AI tool usage across your organization through network traffic analysis.',
+    icon: 'EyeOff',
+    articleCount: 6,
+    articles: [
+      {
+        id: 'insights',
+        title: 'Insights dashboard',
+        description: 'View summary metrics, risk rankings, and usage trends for detected AI tools.',
+        keywords: ['shadow', 'ai', 'insights', 'dashboard', 'metrics', 'risk', 'trends'],
+      },
+      {
+        id: 'ai-tools',
+        title: 'AI tools',
+        description: 'View, classify, and manage all AI tools detected in your network traffic.',
+        keywords: ['shadow', 'ai', 'tools', 'detect', 'status', 'governance', 'risk score'],
+      },
+      {
+        id: 'user-activity',
+        title: 'User activity',
+        description: 'Monitor individual and department-level AI tool usage.',
+        keywords: ['shadow', 'user', 'activity', 'department', 'prompts', 'usage'],
+      },
+      {
+        id: 'rules',
+        title: 'Alert rules',
+        description: 'Configure automated alerts for Shadow AI events and review alert history.',
+        keywords: ['shadow', 'rules', 'alert', 'trigger', 'notification', 'threshold'],
+      },
+      {
+        id: 'settings',
+        title: 'Shadow AI settings',
+        description: 'Manage API keys, syslog sources, rate limiting, data retention, and risk score calculation.',
+        keywords: ['shadow', 'settings', 'api key', 'syslog', 'retention', 'rate limit', 'risk score'],
+      },
+      {
+        id: 'integration-guide',
+        title: 'Integration guide',
+        description: 'Step-by-step instructions for connecting your network proxy, SIEM, or custom integration to Shadow AI.',
+        keywords: ['shadow', 'integration', 'setup', 'syslog', 'zscaler', 'netskope', 'squid', 'api', 'proxy', 'troubleshooting'],
+      },
+    ],
+  },
+  {
     id: 'settings',
     title: 'Settings & configuration',
     description: 'Configure VerifyWise to match your organization\'s needs.',
@@ -415,6 +467,12 @@ export const fastFinds: FastFind[] = [
     title: 'Conducting a risk assessment',
     collectionId: 'risk-management',
     articleId: 'risk-assessment',
+  },
+  {
+    id: 'ff-7',
+    title: 'Running a bias audit for NYC LL144',
+    collectionId: 'llm-evals',
+    articleId: 'bias-audits',
   },
 ];
 

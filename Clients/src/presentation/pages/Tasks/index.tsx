@@ -14,9 +14,7 @@ import { CirclePlus as AddCircleIcon, Flag } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";
 import {
@@ -33,7 +31,7 @@ import {
 import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
-import { vwhomeBody } from "../Home/1.0Home/style";
+
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
@@ -46,7 +44,7 @@ import {
 } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
-import TipBox from "../../components/TipBox";
+
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import Alert from "../../components/Alert";
@@ -672,47 +670,50 @@ const Tasks: React.FC = () => {
   }, [filteredTasks, users]);
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-
-      {/* Page Header */}
-      <Stack sx={vwhomeBody}>
-        <PageHeader
-          title="Task management"
-          description={
-            userRoleName === "Admin"
-              ? showMyTasksOnly
-                ? "Showing tasks you created or are assigned to. You can create and manage your tasks here."
-                : "Showing all tasks in your organization. You can create and manage tasks here."
-              : "Showing tasks you created or are assigned to. You can create and manage your tasks here."
-          }
-          rightContent={
-            <HelperIcon
-              articlePath="ai-governance/task-management"
-              size="small"
-            />
-          }
-        />
-      </Stack>
-
-      {/* Tips */}
-      <TipBox entityName="tasks" />
-
-      {/* Summary Cards */}
-      <Box data-joyride-id="task-summary-cards">
+    <PageHeaderExtended
+      title="Task management"
+      description={
+        userRoleName === "Admin"
+          ? showMyTasksOnly
+            ? "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+            : "Showing all tasks in your organization. You can create and manage tasks here."
+          : "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+      }
+      helpArticlePath="ai-governance/task-management"
+      tipBoxEntity="tasks"
+      summaryCards={
         <TaskSummaryCards
           summary={summary}
           onCardClick={handleStatusCardClick}
           selectedStatus={selectedStatus}
         />
-      </Box>
-
+      }
+      summaryCardsJoyrideId="task-summary-cards"
+      alert={
+        alert ? (
+          <Fade in={showAlert} timeout={300}>
+            <Box sx={{ position: "fixed" }}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body || ""}
+                isToast={true}
+                onClick={() => {
+                  setShowAlert(false);
+                  setTimeout(() => setAlert(null), 300);
+                }}
+              />
+            </Box>
+          </Fade>
+        ) : undefined
+      }
+    >
       {/* Tab Navigation */}
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
-            { label: "List view", value: "list", icon: "List" },
-            { label: "Deadline view", value: "deadline", icon: "Calendar" },
+            { label: "List view", value: "list", icon: "List", tooltip: "Tasks in a filterable table" },
+            { label: "Deadline view", value: "deadline", icon: "Calendar", tooltip: "Tasks organized by due date" },
           ]}
           activeTab={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
@@ -934,27 +935,9 @@ const Tasks: React.FC = () => {
       {/* Archive is handled by IconButton component to avoid double modals */}
       {/* Hard delete needs a second confirmation in Tasks page */}
 
-      {/* Notification Toast */}
-      {alert && (
-        <Fade in={showAlert} timeout={300}>
-          <Box sx={{ position: 'fixed' }}>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body || ""}
-              isToast={true}
-              onClick={() => {
-                setShowAlert(false);
-                setTimeout(() => setAlert(null), 300);
-              }}
-            />
-          </Box>
-        </Fade>
-      )}
-
       {/* Page Tour */}
       <PageTour steps={TasksSteps} run={activeTab === "list"} tourKey="tasks-tour" />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

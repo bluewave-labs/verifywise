@@ -31,7 +31,7 @@ interface TabFilterBarProps {
   setSearchTerm?: Dispatch<SetStateAction<string>>;
 }
 
-const TabFilterBar = ({
+export const TabFilterBar = ({
   onStatusChange,
   onApplicabilityChange,
   onOwnerChange,
@@ -198,7 +198,7 @@ const TabFilterBar = ({
 
   return (
     <Box
-      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: "8px", mb: 0 }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 4, mb: 0 }}
     >
       <Box
         sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}
@@ -223,4 +223,3 @@ const TabFilterBar = ({
   );
 };
 
-export default TabFilterBar;

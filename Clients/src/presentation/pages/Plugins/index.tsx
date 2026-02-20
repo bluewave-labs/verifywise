@@ -102,7 +102,7 @@ const Plugins: React.FC = () => {
   const isFrameworkPlugin = useCallback((plugin: Plugin) => {
     return (
       (plugin.category as string) === "compliance" ||
-      plugin.tags.some(
+      (plugin.tags || []).some(
         (tag) =>
           tag.toLowerCase().includes("compliance") ||
           tag.toLowerCase().includes("framework")
@@ -119,7 +119,7 @@ const Plugins: React.FC = () => {
       (p) =>
         p.name.toLowerCase().includes(lowerQuery) ||
         p.description.toLowerCase().includes(lowerQuery) ||
-        p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))
+        (p.tags || []).some((tag) => tag.toLowerCase().includes(lowerQuery))
     );
   }, [plugins, searchQuery, isFrameworkPlugin]);
 

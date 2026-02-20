@@ -10,6 +10,8 @@ export const PLUGIN_SLOTS = {
   // Model Inventory Page
   MODELS_TABS: "page.models.tabs", // Additional tabs in TabBar
   MODELS_TOOLBAR: "page.models.toolbar", // Toolbar buttons
+  MODEL_ROW_ACTIONS: "table.model.row-actions", // Additional menu items in model row gear dropdown
+  MODEL_ROW_ICON_ACTIONS: "table.model.row-icon-actions", // Icon buttons beside the gear dropdown
 
   // Model Detail Page
   MODEL_DETAIL_LIFECYCLE: "page.model-detail.lifecycle", // Lifecycle phase tracking

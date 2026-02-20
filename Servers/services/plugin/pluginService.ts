@@ -13,7 +13,7 @@ import { getBuiltinPlugins, isBuiltinPlugin } from "./builtinPlugins";
 import { sanitizeForLog } from "../../utils/validations/validation.utils";
 
 // Environment configuration
-export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/verifywise-ai/plugin-marketplace/main/plugins.json";
+export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/verifywise-ai/plugin-marketplace/mo-001-feb-18-mp-plugins/plugins.json";
 export const PLUGIN_MARKETPLACE_BASE_URL = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
 
 interface Plugin {
@@ -128,7 +128,13 @@ export class PluginService {
       let remotePlugins = marketplaceData.plugins.filter((p) => p.isPublished);
 
       // Merge built-in plugins (built-ins take precedence by key)
-      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished) as Plugin[];
+      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished).map((plugin) => {
+        // Transform relative iconUrl paths to full URLs for built-in plugins too
+        if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
+          return { ...plugin, iconUrl: `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}` };
+        }
+        return plugin;
+      }) as Plugin[];
       const builtinKeys = new Set(builtinPlugins.map((p) => p.key));
       const nonOverlapping = remotePlugins.filter((p) => !builtinKeys.has(p.key));
       let plugins = [...builtinPlugins, ...nonOverlapping];
@@ -155,6 +161,10 @@ export class PluginService {
         (p) => p.key === pluginKey && p.isPublished
       );
       if (builtinPlugin) {
+        // Transform relative iconUrl to full URL
+        if (builtinPlugin.iconUrl && !builtinPlugin.iconUrl.startsWith("http")) {
+          return { ...builtinPlugin, iconUrl: `${PLUGIN_MARKETPLACE_BASE_URL}/${builtinPlugin.iconUrl}` } as Plugin;
+        }
         return builtinPlugin as Plugin;
       }
 

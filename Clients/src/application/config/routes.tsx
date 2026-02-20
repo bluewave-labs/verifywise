@@ -30,7 +30,7 @@ import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
-import ModelDetailPage from "../../presentation/pages/ModelInventory/ModelDetailPage";
+import ModelLifecycleDetail from "../../presentation/pages/ModelInventory/ModelLifecycleDetail";
 import Datasets from "../../presentation/pages/Datasets";
 import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import AgentDiscovery from "../../presentation/pages/AgentDiscovery";
@@ -103,7 +103,8 @@ export const createRoutes = (
     <Route path="/model-inventory/model-risks" element={<ModelInventory />} />
     <Route path="/datasets" element={<Datasets />} />
     <Route path="/model-inventory/evidence-hub" element={<ModelInventory />} />
-    <Route path="/model-inventory/models/:id" element={<ModelDetailPage />} />
+    {/* Model lifecycle detail page - rendered by plugin */}
+    <Route path="/model-inventory/models/:id" element={<ModelLifecycleDetail />} />
     {/* Dynamic route for plugin tabs (e.g., mlflow, other future plugins) */}
     <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />

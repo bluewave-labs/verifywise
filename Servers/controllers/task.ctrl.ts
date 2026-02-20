@@ -25,6 +25,12 @@ import {
   ForbiddenException,
 } from "../domain.layer/exceptions/custom.exception";
 import { notifyTaskAssigned } from "../services/inAppNotification.service";
+import {
+  recordEntityCreation,
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+  recordEntityDeletion,
+} from "../utils/changeHistory.base.utils";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -70,6 +76,18 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       transaction,
       assignees
     );
+
+    // Record creation in change history
+    if (task.id && userId) {
+      await recordEntityCreation(
+        "task",
+        task.id,
+        userId,
+        req.tenantId!,
+        taskData,
+        transaction
+      );
+    }
 
     await transaction.commit();
 
@@ -359,6 +377,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
 
   // Get existing task and assignees for comparison after update
   let existingAssignees: number[] = [];
+  let existingTaskData: any = null;
   try {
     const existingTask = await getTaskByIdQuery(
       taskId,
@@ -368,6 +387,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     );
     if (existingTask) {
       existingAssignees = (existingTask.dataValues as any)["assignees"] || [];
+      existingTaskData = existingTask.toJSON();
     }
   } catch (error) {
     // Continue without existing data if query fails
@@ -420,6 +440,21 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       req.tenantId!,
       assignees // Pass assignees to the function
     );
+
+    // Record changes in change history
+    if (existingTaskData && userId) {
+      const changes = await trackEntityChanges("task", existingTaskData, updateData);
+      if (changes.length > 0) {
+        await recordMultipleFieldChanges(
+          "task",
+          taskId,
+          userId,
+          req.tenantId!,
+          changes,
+          transaction
+        );
+      }
+    }
 
     await transaction.commit();
 
@@ -564,6 +599,11 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       },
       req.tenantId!
     );
+
+    // Record deletion in change history
+    if (deleted && userId) {
+      await recordEntityDeletion("task", taskId, userId, req.tenantId!, transaction);
+    }
 
     await transaction.commit();
 

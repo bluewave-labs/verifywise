@@ -17,7 +17,10 @@ export type EntityType =
   | "policy"
   | "incident"
   | "file"
-  | "model_lifecycle";
+  | "model_lifecycle"
+  | "training"
+  | "task"
+  | "model_risk";
 
 export interface EntityHistoryConfig {
   entityName: string; // Display name (e.g., "Model", "Vendor")
@@ -99,6 +102,24 @@ export const ENTITY_HISTORY_CONFIGS: {
     emptyStateTitle: "Activity history",
     emptyStateMessage:
       "Automatically tracks every change to lifecycle items. See what your team is working on and what updates they've made, in real time.",
+  },
+  training: {
+    entityName: "Training",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this training. See what your team is working on and what updates they've made, in real time.",
+  },
+  task: {
+    entityName: "Task",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this task. See what your team is working on and what updates they've made, in real time.",
+  },
+  model_risk: {
+    entityName: "Model risk",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this model risk. See what your team is working on and what updates they've made, in real time.",
   },
 };
 

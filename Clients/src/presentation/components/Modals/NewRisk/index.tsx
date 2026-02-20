@@ -18,8 +18,6 @@ import {
   Stack,
   Typography,
   Divider,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -30,6 +28,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import StandardModal from "../StandardModal";
+import TabBar from "../../TabBar";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -39,7 +38,6 @@ import {
   useUpdateVendorRisk,
 } from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { History as HistoryIcon } from "lucide-react";
 import { HistorySidebar } from "../../Common/HistorySidebar";
 import { useVendorRiskChangeHistory } from "../../../../application/hooks/useVendorRiskChangeHistory";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
@@ -143,7 +141,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     title?: string;
     body: string;
   } | null>(null);
-  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   // Prefetch history data when modal opens in edit mode
   useVendorRiskChangeHistory(
@@ -562,7 +560,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         isOpen={isOpen}
         onClose={() => {
           setValues(initialState);
-          setIsHistorySidebarOpen(false);
+          setActiveTab("details");
           setIsOpen();
         }}
         title={existingRisk ? "Edit risk" : "Add a new vendor risk"}
@@ -571,69 +569,38 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             ? "Update risk details including description, impact assessment, and mitigation plan."
             : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
         }
-        onSubmit={handleSave}
+        onSubmit={activeTab === "details" ? handleSave : undefined}
         submitButtonText="Save"
         isSubmitting={isSubmitting || isEditingDisabled}
-        maxWidth={isHistorySidebarOpen ? "1300px" : "1000px"}
-        headerActions={
-          existingRisk?.id ? (
-            <Tooltip title="View activity history" arrow>
-              <IconButton
-                onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
-                size="small"
-                sx={{
-                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
-                  padding: "4px",
-                  borderRadius: "4px",
-                  backgroundColor: isHistorySidebarOpen
-                    ? "#E6F4F1"
-                    : "transparent",
-                  "&:hover": {
-                    backgroundColor: isHistorySidebarOpen
-                      ? "#D1EDE6"
-                      : "#F2F4F7",
-                  },
-                }}
-              >
-                <HistoryIcon size={20} />
-              </IconButton>
-            </Tooltip>
-          ) : undefined
-        }
+        maxWidth="1000px"
       >
-        <Stack
-          direction="row"
-          sx={{
-            width: "100%",
-            minHeight: 0,
-            alignItems: "flex-start",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          {/* Main Content */}
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "auto",
-            }}
-          >
-            <TabContext value={value}>{risksPanel}</TabContext>
-          </Box>
-
-          {/* History Sidebar - Only shown when editing */}
-          {existingRisk?.id && (
-            <HistorySidebar
-              isOpen={isHistorySidebarOpen}
-              entityType="vendor_risk"
-              entityId={existingRisk.id}
-            />
-          )}
-        </Stack>
+        {existingRisk?.id ? (
+          <TabContext value={activeTab}>
+            <Box sx={{ marginBottom: 3 }}>
+              <TabBar
+                tabs={[
+                  { label: "Risk details", value: "details", icon: "ShieldAlert" },
+                  { label: "Activity", value: "activity", icon: "History" },
+                ]}
+                activeTab={activeTab}
+                onChange={(_, newValue) => setActiveTab(newValue)}
+              />
+            </Box>
+            {activeTab === "details" && (
+              <TabContext value={value}>{risksPanel}</TabContext>
+            )}
+            {activeTab === "activity" && (
+              <HistorySidebar
+                inline
+                isOpen={true}
+                entityType="vendor_risk"
+                entityId={existingRisk.id}
+              />
+            )}
+          </TabContext>
+        ) : (
+          <TabContext value={value}>{risksPanel}</TabContext>
+        )}
       </StandardModal>
     </Stack>
   );

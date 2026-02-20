@@ -10,8 +10,6 @@ import {
     FormLabel,
     useTheme,
     Divider,
-    IconButton,
-    Tooltip,
 } from "@mui/material";
 import Toggle from "../../Inputs/Toggle";
 import Checkbox from "../../Inputs/Checkbox";
@@ -19,7 +17,6 @@ import dayjs, { Dayjs } from "dayjs";
 import { CustomizableButton } from "../../button/customizable-button";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { History as HistoryIcon } from "lucide-react";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import { User } from "../../../../domain/types/User";
@@ -33,6 +30,8 @@ import {
     HarmCategory,
 } from "../../../../domain/enums/aiIncidentManagement.enum";
 import { HistorySidebar } from "../../Common/HistorySidebar";
+import TabBar from "../../TabBar";
+import { TabContext } from "@mui/lab";
 
 // To
 import Field from "../../Inputs/Field";
@@ -148,13 +147,10 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
     const [errors, setErrors] = useState<NewIncidentFormErrors>({});
     const [users, setUsers] = useState<User[]>([]);
     const [, setIsLoadingUsers] = useState(false);
-    const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("details");
 
     // Use the useProjects hook to get approved projects only
     const { approvedProjects } = useProjects();
-
-    // Calculate drawer width based on history sidebar state
-    const drawerWidth = isHistorySidebarOpen ? 1036 : 700;
 
     // Fetch Users
     useEffect(() => {
@@ -297,23 +293,13 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
 
     return (
         <Drawer anchor="right" open={isOpen} onClose={handleClose}>
-            <Stack
-                direction="row"
-                sx={{
-                    width: drawerWidth,
-                    maxHeight: "100vh",
-                    bgcolor: theme.palette.background.paper,
-                    transition: "width 0.3s ease",
-                }}
-            >
-                {/* Main Content */}
                 <Stack
                     sx={{
-                        width: isHistorySidebarOpen ? 700 : "100%",
+                        width: 700,
                         maxHeight: "100vh",
                         overflowY: "auto",
                         p: theme.spacing(10),
-                        transition: "width 0.3s ease",
+                        bgcolor: theme.palette.background.paper,
                     }}
                 >
                 {/* Header */}
@@ -358,25 +344,9 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     </Typography>
                                 )}
                             </Stack>
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                {isEdit && incidentId && (
-                                    <Tooltip title="Activity history">
-                                        <IconButton
-                                            onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
-                                            sx={{
-                                                color: isHistorySidebarOpen
-                                                    ? theme.palette.primary.main
-                                                    : theme.palette.text.secondary,
-                                            }}
-                                        >
-                                            <HistoryIcon size={16} />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                                <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
-                                    <CloseIcon />
-                                </Box>
-                            </Stack>
+                            <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
+                                <CloseIcon />
+                            </Box>
                         </Stack>
                         <Divider sx={{
                             mb: 4,
@@ -384,6 +354,32 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         }} />
                     </>
                 )}
+
+                {/* TabBar for edit mode */}
+                {isEdit && incidentId && (
+                    <TabContext value={activeTab}>
+                        <Box sx={{ marginBottom: 3 }}>
+                            <TabBar
+                                tabs={[
+                                    { label: "Incident details", value: "details", icon: "AlertTriangle" },
+                                    { label: "Activity", value: "activity", icon: "History" },
+                                ]}
+                                activeTab={activeTab}
+                                onChange={(_, newValue) => setActiveTab(newValue)}
+                            />
+                        </Box>
+                    </TabContext>
+                )}
+
+                {/* Activity tab content */}
+                {activeTab === "activity" && isEdit && incidentId ? (
+                    <HistorySidebar
+                        inline
+                        isOpen={true}
+                        entityType="incident"
+                        entityId={incidentId}
+                    />
+                ) : (
 
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={4} width="100%">
@@ -861,18 +857,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         )}
                     </Stack>
                 </form>
-                </Stack>
-
-                {/* History Sidebar */}
-                {isEdit && incidentId && (
-                    <HistorySidebar
-                        isOpen={isHistorySidebarOpen}
-                        entityType="incident"
-                        entityId={incidentId}
-                        height="100%"
-                    />
                 )}
-            </Stack>
+                </Stack>
         </Drawer>
     );
 };

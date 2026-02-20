@@ -31,6 +31,8 @@ interface HistorySidebarProps {
   entityType: EntityType;
   entityId?: number;
   height?: string | number;
+  /** When true, renders without Collapse wrapper at full width (for use inside a tab) */
+  inline?: boolean;
 }
 
 /**
@@ -82,6 +84,7 @@ export function HistorySidebar({
   entityType,
   entityId,
   height = "auto",
+  inline = false,
 }: HistorySidebarProps) {
   const theme = useTheme();
   const { userId: currentUserId } = useAuth();
@@ -450,25 +453,15 @@ export function HistorySidebar({
     );
   };
 
-  return (
-    <Collapse
-      in={isOpen}
-      orientation="horizontal"
-      timeout={300}
-      sx={{
-        position: "fixed",
-        right: 16,
-        top: 180,
-        zIndex: 1000,
-      }}
-    >
+  const content = (
       <Box
         sx={{
-          width: "320px",
+          width: inline ? "100%" : "320px",
           height: height,
+          marginLeft: inline ? 0 : "16px",
+          marginTop: inline ? "8px" : 0,
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
         }}
       >
         <Box
@@ -696,6 +689,22 @@ export function HistorySidebar({
         </Box>
       </Box>
       </Box>
+  );
+
+  if (inline) {
+    return content;
+  }
+
+  return (
+    <Collapse
+      in={isOpen}
+      orientation="horizontal"
+      timeout={300}
+      sx={{
+        alignSelf: "flex-start",
+      }}
+    >
+      {content}
     </Collapse>
   );
 }

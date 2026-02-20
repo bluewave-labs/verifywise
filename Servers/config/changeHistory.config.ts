@@ -43,7 +43,10 @@ export type EntityType =
   | "policy"
   | "incident"
   | "file"
-  | "model_lifecycle";
+  | "model_lifecycle"
+  | "task"
+  | "training"
+  | "model_risk";
 
 /**
  * Field formatter function type
@@ -636,6 +639,88 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
     },
     fieldFormatters: {
       value_json: GENERIC_FORMATTERS.text,
+    },
+  },
+
+  task: {
+    tableName: "task_change_history",
+    foreignKeyField: "task_id",
+    fieldsToTrack: [
+      "title",
+      "description",
+      "status",
+      "priority",
+      "due_date",
+      "categories",
+    ],
+    fieldLabels: {
+      title: "Title",
+      description: "Description",
+      status: "Status",
+      priority: "Priority",
+      due_date: "Due date",
+      categories: "Categories",
+    },
+    fieldFormatters: {
+      due_date: GENERIC_FORMATTERS.date,
+      categories: GENERIC_FORMATTERS.array,
+    },
+  },
+
+  training: {
+    tableName: "training_change_history",
+    foreignKeyField: "training_id",
+    fieldsToTrack: [
+      "training_name",
+      "duration",
+      "provider",
+      "department",
+      "status",
+      "people",
+      "description",
+    ],
+    fieldLabels: {
+      training_name: "Training name",
+      duration: "Duration",
+      provider: "Provider",
+      department: "Department",
+      status: "Status",
+      people: "Number of people",
+      description: "Description",
+    },
+  },
+
+  model_risk: {
+    tableName: "model_risk_change_history",
+    foreignKeyField: "model_risk_id",
+    fieldsToTrack: [
+      "risk_name",
+      "risk_category",
+      "risk_level",
+      "status",
+      "owner",
+      "target_date",
+      "description",
+      "mitigation_plan",
+      "impact",
+      "likelihood",
+      "model_id",
+    ],
+    fieldLabels: {
+      risk_name: "Risk name",
+      risk_category: "Risk category",
+      risk_level: "Risk level",
+      status: "Status",
+      owner: "Owner",
+      target_date: "Next review date",
+      description: "Description",
+      mitigation_plan: "Mitigation plan",
+      impact: "Impact",
+      likelihood: "Likelihood",
+      model_id: "Associated model",
+    },
+    fieldFormatters: {
+      target_date: GENERIC_FORMATTERS.date,
     },
   },
 };

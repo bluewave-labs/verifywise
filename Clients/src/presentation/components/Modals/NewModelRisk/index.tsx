@@ -18,6 +18,9 @@ const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import StandardModal from "../StandardModal";
+import TabBar from "../../TabBar";
+import { TabContext } from "@mui/lab";
+import { HistorySidebar } from "../../Common/HistorySidebar";
 import {
   ModelRiskCategory,
   ModelRiskLevel,
@@ -36,6 +39,7 @@ interface NewModelRiskProps {
   onSuccess?: (data: IModelRiskFormData) => void;
   initialData?: IModelRiskFormData;
   isEdit?: boolean;
+  entityId?: number;
 }
 
 interface NewModelRiskFormErrors {
@@ -90,6 +94,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   onSuccess,
   initialData,
   isEdit = false,
+  entityId,
 }) => {
   const [values, setValues] = useState<IModelRiskFormData>(
     initialData || initialState
@@ -100,6 +105,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const [models, setModels] = useState<any[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   useEffect(() => {
     if (initialData) {
@@ -304,6 +310,192 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     },
   };
 
+  const formContent = (
+    <Stack spacing={6}>
+      {/* First Row: Risk Name, Category, Risk Level */}
+      <Stack direction="row" spacing={6}>
+        <Box sx={{ flex: 1 }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Field
+              id="riskName"
+              label="Risk name"
+              width="100%"
+              value={values.risk_name}
+              onChange={handleOnTextFieldChange("risk_name")}
+              error={errors.risk_name}
+              isRequired
+              sx={fieldStyle}
+              placeholder="e.g., Model accuracy decline"
+            />
+          </Suspense>
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <SelectComponent
+            id="riskCategory"
+            label="Risk category"
+            value={values.risk_category}
+            error={errors.risk_category}
+            isRequired
+            sx={{ width: "100%" }}
+            items={riskCategoryOptions}
+            onChange={handleOnSelectChange("risk_category")}
+            placeholder="Select category"
+          />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <SelectComponent
+            id="riskLevel"
+            label="Risk level"
+            value={values.risk_level}
+            error={errors.risk_level}
+            isRequired
+            sx={{ width: "100%" }}
+            items={riskLevelOptions}
+            onChange={handleOnSelectChange("risk_level")}
+            placeholder="Select risk level"
+          />
+        </Box>
+      </Stack>
+
+      {/* Second Row: Status, Owner, Target Date */}
+      <Stack direction="row" spacing={6}>
+        <Box sx={{ flex: 1 }}>
+          <SelectComponent
+            id="status"
+            label="Status"
+            value={values.status}
+            error={errors.status}
+            isRequired
+            sx={{ width: "100%" }}
+            items={statusOptions}
+            onChange={handleOnSelectChange("status")}
+            placeholder="Select status"
+          />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <SelectComponent
+            id="owner"
+            label="Owner"
+            value={values.owner}
+            error={errors.owner}
+            isRequired
+            sx={{ width: "100%" }}
+            items={userOptions}
+            onChange={handleOnSelectChange("owner")}
+            placeholder="Select owner"
+            disabled={isLoadingUsers}
+          />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <DatePicker
+              label="Next review date"
+              date={
+                values.target_date
+                  ? dayjs(values.target_date)
+                  : dayjs(new Date())
+              }
+              handleDateChange={handleDateChange}
+              sx={{
+                width: "100%",
+                backgroundColor: "#FFFFFF",
+              }}
+              isRequired
+              error={errors.target_date}
+            />
+          </Suspense>
+        </Box>
+      </Stack>
+
+      {/* Third Row: Model (Optional) */}
+      <Stack direction="row" spacing={6}>
+        <Box sx={{ flex: 1 }}>
+          <SelectComponent
+            id="modelId"
+            label="Associated model (optional)"
+            value={values.model_id ?? ""}
+            sx={{ width: "100%" }}
+            items={modelOptions}
+            onChange={handleOnSelectChange("model_id")}
+            placeholder="Select model"
+            disabled={isLoadingModels}
+          />
+        </Box>
+        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: 1 }} />
+      </Stack>
+
+      {/* Description Section */}
+      <Stack>
+        <Typography
+          sx={{
+            fontSize: 13,
+            fontWeight: 500,
+            mb: 2,
+          }}
+        >
+          Description
+        </Typography>
+        <TextField
+          multiline
+          rows={2}
+          value={values.description}
+          onChange={handleOnTextFieldChange("description")}
+          placeholder="Describe the risk in detail"
+          error={!!errors.description}
+          helperText={errors.description}
+          sx={textAreaStyle}
+        />
+      </Stack>
+
+      {/* Impact Section */}
+      <Stack>
+        <Typography
+          sx={{
+            fontSize: 13,
+            fontWeight: 500,
+            mb: 2,
+          }}
+        >
+          Impact
+        </Typography>
+        <TextField
+          multiline
+          rows={2}
+          value={values.impact}
+          onChange={handleOnTextFieldChange("impact")}
+          placeholder="Describe the potential impact of this risk"
+          error={!!errors.impact}
+          helperText={errors.impact}
+          sx={textAreaStyle}
+        />
+      </Stack>
+
+      {/* Mitigation Plan Section */}
+      <Stack>
+        <Typography
+          sx={{
+            fontSize: 13,
+            fontWeight: 500,
+            mb: 2,
+          }}
+        >
+          Mitigation plan
+        </Typography>
+        <TextField
+          multiline
+          rows={2}
+          value={values.mitigation_plan}
+          onChange={handleOnTextFieldChange("mitigation_plan")}
+          placeholder="Describe the plan to mitigate this risk"
+          error={!!errors.mitigation_plan}
+          helperText={errors.mitigation_plan}
+          sx={textAreaStyle}
+        />
+      </Stack>
+    </Stack>
+  );
+
   return (
     <StandardModal
       isOpen={isOpen}
@@ -314,194 +506,36 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           ? "Update risk details, mitigation plan, and tracking information"
           : "Document and track potential risks associated with AI models"
       }
-      onSubmit={handleSubmit}
+      onSubmit={activeTab === "details" ? handleSubmit : undefined}
       submitButtonText={isEdit ? "Update risk" : "Save"}
       isSubmitting={isSubmitting}
       maxWidth="760px"
     >
-      <Stack spacing={6}>
-        {/* First Row: Risk Name, Category, Risk Level */}
-        <Stack direction="row" spacing={6}>
-          <Box sx={{ flex: 1 }}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Field
-                id="riskName"
-                label="Risk name"
-                width="100%"
-                value={values.risk_name}
-                onChange={handleOnTextFieldChange("risk_name")}
-                error={errors.risk_name}
-                isRequired
-                sx={fieldStyle}
-                placeholder="e.g., Model accuracy decline"
-              />
-            </Suspense>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <SelectComponent
-              id="riskCategory"
-              label="Risk category"
-              value={values.risk_category}
-              error={errors.risk_category}
-              isRequired
-              sx={{ width: "100%" }}
-              items={riskCategoryOptions}
-              onChange={handleOnSelectChange("risk_category")}
-              placeholder="Select category"
+      {isEdit && entityId ? (
+        <TabContext value={activeTab}>
+          <Box sx={{ marginBottom: 3 }}>
+            <TabBar
+              tabs={[
+                { label: "Risk details", value: "details", icon: "ShieldAlert" },
+                { label: "Activity", value: "activity", icon: "History" },
+              ]}
+              activeTab={activeTab}
+              onChange={(_, newValue) => setActiveTab(newValue)}
             />
           </Box>
-          <Box sx={{ flex: 1 }}>
-            <SelectComponent
-              id="riskLevel"
-              label="Risk level"
-              value={values.risk_level}
-              error={errors.risk_level}
-              isRequired
-              sx={{ width: "100%" }}
-              items={riskLevelOptions}
-              onChange={handleOnSelectChange("risk_level")}
-              placeholder="Select risk level"
+          {activeTab === "details" && formContent}
+          {activeTab === "activity" && (
+            <HistorySidebar
+              inline
+              isOpen={true}
+              entityType="model_risk"
+              entityId={entityId}
             />
-          </Box>
-        </Stack>
-
-        {/* Second Row: Status, Owner, Target Date */}
-        <Stack direction="row" spacing={6}>
-          <Box sx={{ flex: 1 }}>
-            <SelectComponent
-              id="status"
-              label="Status"
-              value={values.status}
-              error={errors.status}
-              isRequired
-              sx={{ width: "100%" }}
-              items={statusOptions}
-              onChange={handleOnSelectChange("status")}
-              placeholder="Select status"
-            />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <SelectComponent
-              id="owner"
-              label="Owner"
-              value={values.owner}
-              error={errors.owner}
-              isRequired
-              sx={{ width: "100%" }}
-              items={userOptions}
-              onChange={handleOnSelectChange("owner")}
-              placeholder="Select owner"
-              disabled={isLoadingUsers}
-            />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <DatePicker
-                label="Next review date"
-                date={
-                  values.target_date
-                    ? dayjs(values.target_date)
-                    : dayjs(new Date())
-                }
-                handleDateChange={handleDateChange}
-                sx={{
-                  width: "100%",
-                  backgroundColor: "#FFFFFF",
-                }}
-                isRequired
-                error={errors.target_date}
-              />
-            </Suspense>
-          </Box>
-        </Stack>
-
-        {/* Third Row: Model (Optional) */}
-        <Stack direction="row" spacing={6}>
-          <Box sx={{ flex: 1 }}>
-            <SelectComponent
-              id="modelId"
-              label="Associated model (optional)"
-              value={values.model_id ?? ""}
-              sx={{ width: "100%" }}
-              items={modelOptions}
-              onChange={handleOnSelectChange("model_id")}
-              placeholder="Select model"
-              disabled={isLoadingModels}
-            />
-          </Box>
-          <Box sx={{ flex: 1 }} />
-          <Box sx={{ flex: 1 }} />
-        </Stack>
-
-        {/* Description Section */}
-        <Stack>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              mb: 2,
-            }}
-          >
-            Description
-          </Typography>
-          <TextField
-            multiline
-            rows={2}
-            value={values.description}
-            onChange={handleOnTextFieldChange("description")}
-            placeholder="Describe the risk in detail"
-            error={!!errors.description}
-            helperText={errors.description}
-            sx={textAreaStyle}
-          />
-        </Stack>
-
-        {/* Impact Section */}
-        <Stack>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              mb: 2,
-            }}
-          >
-            Impact
-          </Typography>
-          <TextField
-            multiline
-            rows={2}
-            value={values.impact}
-            onChange={handleOnTextFieldChange("impact")}
-            placeholder="Describe the potential impact of this risk"
-            error={!!errors.impact}
-            helperText={errors.impact}
-            sx={textAreaStyle}
-          />
-        </Stack>
-
-        {/* Mitigation Plan Section */}
-        <Stack>
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              mb: 2,
-            }}
-          >
-            Mitigation plan
-          </Typography>
-          <TextField
-            multiline
-            rows={2}
-            value={values.mitigation_plan}
-            onChange={handleOnTextFieldChange("mitigation_plan")}
-            placeholder="Describe the plan to mitigate this risk"
-            error={!!errors.mitigation_plan}
-            helperText={errors.mitigation_plan}
-            sx={textAreaStyle}
-          />
-        </Stack>
-      </Stack>
+          )}
+        </TabContext>
+      ) : (
+        formContent
+      )}
     </StandardModal>
   );
 };

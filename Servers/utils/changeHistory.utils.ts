@@ -199,6 +199,9 @@ export const changeHistory = {
   evidenceHub: createEntityChangeHistory<Record<string, unknown>>("evidence_hub"),
   risk: createEntityChangeHistory<Record<string, unknown>>("risk"),
   vendorRisk: createEntityChangeHistory<Record<string, unknown>>("vendor_risk"),
+  task: createEntityChangeHistory<Record<string, unknown>>("task"),
+  training: createEntityChangeHistory<Record<string, unknown>>("training"),
+  modelRisk: createEntityChangeHistory<Record<string, unknown>>("model_risk"),
 } as const;
 
 // ============================================================================

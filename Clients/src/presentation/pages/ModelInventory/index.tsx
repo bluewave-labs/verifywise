@@ -2466,6 +2466,7 @@ const ModelInventory: React.FC = () => {
             : undefined
         }
         isEdit={!!selectedModelRisk}
+        entityId={selectedModelRisk?.id}
       />
 
       <NewEvidenceHub

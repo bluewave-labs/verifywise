@@ -27,4 +27,7 @@ judge:
 judge-resume:
 	uv run grs-scenarios generate --stage judge --judge-resume
 
+run-scenario-viewer:
+	uv run streamlit run viewer.py
+
 all: seeds render perturb validate

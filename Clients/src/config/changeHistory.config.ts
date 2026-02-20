@@ -20,7 +20,8 @@ export type EntityType =
   | "model_lifecycle"
   | "training"
   | "task"
-  | "model_risk";
+  | "model_risk"
+  | "dataset";
 
 export interface EntityHistoryConfig {
   entityName: string; // Display name (e.g., "Model", "Vendor")
@@ -120,6 +121,12 @@ export const ENTITY_HISTORY_CONFIGS: {
     emptyStateTitle: "Activity history",
     emptyStateMessage:
       "Automatically tracks every change to this model risk. See what your team is working on and what updates they've made, in real time.",
+  },
+  dataset: {
+    entityName: "Dataset",
+    emptyStateTitle: "Activity history",
+    emptyStateMessage:
+      "Automatically tracks every change to this dataset. See what your team is working on and what updates they've made, in real time.",
   },
 };
 

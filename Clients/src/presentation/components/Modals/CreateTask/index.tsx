@@ -245,6 +245,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
 
   const handleClose = () => {
     setIsOpen(false);
+    setActiveTab("details");
   };
 
   const handleSubmit = async (event?: React.FormEvent) => {

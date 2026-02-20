@@ -4,16 +4,16 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
 /**
- * Get change history for a specific model risk with pagination support
+ * Get change history for a specific dataset with pagination support
  */
-export async function getModelRiskChangeHistoryById(
+export async function getDatasetChangeHistoryById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const modelRiskId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
+  const datasetId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
-  if (isNaN(modelRiskId) || modelRiskId <= 0) {
-    return res.status(400).json(STATUS_CODE[400]("Invalid model risk ID"));
+  if (isNaN(datasetId) || datasetId <= 0) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid dataset ID"));
   }
 
   const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 500);
@@ -21,15 +21,15 @@ export async function getModelRiskChangeHistoryById(
 
   logStructured(
     "processing",
-    `fetching change history for model risk id: ${modelRiskId} (limit: ${limit}, offset: ${offset})`,
-    "getModelRiskChangeHistoryById",
-    "modelRiskChangeHistory.ctrl.ts"
+    `fetching change history for dataset id: ${datasetId} (limit: ${limit}, offset: ${offset})`,
+    "getDatasetChangeHistoryById",
+    "datasetChangeHistory.ctrl.ts"
   );
 
   try {
     const result = await getEntityChangeHistory(
-      "model_risk",
-      modelRiskId,
+      "dataset",
+      datasetId,
       req.tenantId!,
       limit,
       offset
@@ -37,9 +37,9 @@ export async function getModelRiskChangeHistoryById(
 
     logStructured(
       "successful",
-      `change history retrieved for model risk id: ${modelRiskId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
-      "getModelRiskChangeHistoryById",
-      "modelRiskChangeHistory.ctrl.ts"
+      `change history retrieved for dataset id: ${datasetId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
+      "getDatasetChangeHistoryById",
+      "datasetChangeHistory.ctrl.ts"
     );
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -47,10 +47,10 @@ export async function getModelRiskChangeHistoryById(
     logStructured(
       "error",
       "failed to retrieve change history",
-      "getModelRiskChangeHistoryById",
-      "modelRiskChangeHistory.ctrl.ts"
+      "getDatasetChangeHistoryById",
+      "datasetChangeHistory.ctrl.ts"
     );
-    logger.error("Error in getModelRiskChangeHistoryById:", error);
+    logger.error("Error in getDatasetChangeHistoryById:", error);
     return res.status(500).json(STATUS_CODE[500]("Failed to retrieve change history"));
   }
 }

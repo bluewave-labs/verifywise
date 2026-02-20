@@ -67,6 +67,7 @@ import fileChangeHistoryRoutes from "./routes/fileChangeHistory.route";
 import taskChangeHistoryRoutes from "./routes/taskChangeHistory.route";
 import trainingChangeHistoryRoutes from "./routes/trainingChangeHistory.route";
 import modelRiskChangeHistoryRoutes from "./routes/modelRiskChangeHistory.route";
+import datasetChangeHistoryRoutes from "./routes/datasetChangeHistory.route";
 import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
@@ -229,6 +230,7 @@ try {
   app.use("/api/task-change-history", taskChangeHistoryRoutes);
   app.use("/api/training-change-history", trainingChangeHistoryRoutes);
   app.use("/api/model-risk-change-history", modelRiskChangeHistoryRoutes);
+  app.use("/api/dataset-change-history", datasetChangeHistoryRoutes);
   app.use("/api/approval-workflows", approvalWorkflowRoutes);
   app.use("/api/approval-requests", approvalRequestRoutes);
   app.use("/api/ai-detection", aiDetectionRoutes);

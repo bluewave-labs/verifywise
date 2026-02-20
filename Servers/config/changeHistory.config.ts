@@ -46,7 +46,8 @@ export type EntityType =
   | "model_lifecycle"
   | "task"
   | "training"
-  | "model_risk";
+  | "model_risk"
+  | "dataset";
 
 /**
  * Field formatter function type
@@ -63,18 +64,6 @@ export interface EntityConfig {
   fieldLabels: { [key: string]: string };
   fieldFormatters?: { [key: string]: FieldFormatter };
 }
-
-/**
- * System fields that should never be tracked
- */
-export const SYSTEM_FIELDS_TO_EXCLUDE = [
-  "id",
-  "created_at",
-  "updated_at",
-  "deleted_at",
-  "tenant",
-  "tenant_id",
-];
 
 /**
  * Generic field formatters that can be reused across entities
@@ -246,23 +235,6 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
 
     return frameworkNames.length > 0 ? frameworkNames.join(", ") : "-";
   },
-};
-
-/**
- * Auto-format field name from snake_case to sentence case
- * Example: security_assessment -> Security assessment
- */
-export const autoFormatFieldName = (fieldName: string): string => {
-  return fieldName
-    .split("_")
-    .map((word, index) => {
-      // Capitalize only the first word
-      if (index === 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-      }
-      return word.toLowerCase();
-    })
-    .join(" ");
 };
 
 /**
@@ -721,6 +693,53 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
     },
     fieldFormatters: {
       target_date: GENERIC_FORMATTERS.date,
+    },
+  },
+
+  dataset: {
+    tableName: "dataset_change_histories",
+    foreignKeyField: "dataset_id",
+    fieldsToTrack: [
+      "name",
+      "description",
+      "version",
+      "owner",
+      "type",
+      "function",
+      "source",
+      "license",
+      "format",
+      "classification",
+      "contains_pii",
+      "pii_types",
+      "status",
+      "known_biases",
+      "bias_mitigation",
+      "collection_method",
+      "preprocessing_steps",
+    ],
+    fieldLabels: {
+      name: "Name",
+      description: "Description",
+      version: "Version",
+      owner: "Owner",
+      type: "Type",
+      function: "Function",
+      source: "Source",
+      license: "License",
+      format: "Format",
+      classification: "Classification",
+      contains_pii: "Contains PII",
+      pii_types: "PII types",
+      status: "Status",
+      known_biases: "Known biases",
+      bias_mitigation: "Bias mitigation",
+      collection_method: "Collection method",
+      preprocessing_steps: "Preprocessing steps",
+    },
+    fieldFormatters: {
+      contains_pii: GENERIC_FORMATTERS.boolean,
+      pii_types: GENERIC_FORMATTERS.array,
     },
   },
 };

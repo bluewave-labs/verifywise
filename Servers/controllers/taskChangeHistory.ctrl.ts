@@ -16,8 +16,8 @@ export async function getTaskChangeHistoryById(
     return res.status(400).json(STATUS_CODE[400]("Invalid task ID"));
   }
 
-  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 500);
+  const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
   logStructured(
     "processing",
@@ -51,6 +51,6 @@ export async function getTaskChangeHistoryById(
       "taskChangeHistory.ctrl.ts"
     );
     logger.error("Error in getTaskChangeHistoryById:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json(STATUS_CODE[500]("Failed to retrieve change history"));
   }
 }

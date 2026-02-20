@@ -454,6 +454,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
   const handleClose = () => {
     setIsOpen(false);
+    setActiveTab("details");
     // Invalidate change history cache when modal closes
     // This ensures fresh data is fetched when reopening the modal
     queryClient.invalidateQueries({

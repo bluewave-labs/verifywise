@@ -277,6 +277,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
         setIsOpen(false);
         setValues(initialState);
         setErrors({});
+        setActiveTab("details");
     };
 
     const handleSubmit = (e?: React.FormEvent) => {

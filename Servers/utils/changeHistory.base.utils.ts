@@ -78,8 +78,8 @@ export const recordEntityChange = async (
 
     await sequelize.query(
       `INSERT INTO ${schemaName}.${config.tableName}
-       (${config.foreignKeyField}, action, field_name, old_value, new_value, changed_by_user_id, changed_at, created_at)
-       VALUES (:entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW(), NOW())`,
+       (${config.foreignKeyField}, action, field_name, old_value, new_value, changed_by_user_id, changed_at)
+       VALUES (:entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW())`,
       {
         replacements: {
           entity_id: entityId,

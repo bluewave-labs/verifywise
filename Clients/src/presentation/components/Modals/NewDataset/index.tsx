@@ -15,7 +15,9 @@ import {
   Autocomplete,
   TextField,
   Typography,
+  Tab,
 } from "@mui/material";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Toggle from "../../Inputs/Toggle";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
@@ -23,6 +25,7 @@ const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import { ChevronDown } from "lucide-react";
 import StandardModal from "../StandardModal";
+import { HistorySidebar } from "../../Common/HistorySidebar";
 import {
   DatasetStatus,
   DatasetType,
@@ -92,8 +95,10 @@ const NewDataset: FC<NewDatasetProps> = ({
   initialData,
   isEdit = false,
   modelInventoryData = [],
+  entityId,
 }) => {
   const theme = useTheme();
+  const [activeTab, setActiveTab] = useState("details");
   const [values, setValues] = useState<NewDatasetFormValues>(
     initialData || initialState
   );
@@ -118,10 +123,12 @@ const NewDataset: FC<NewDatasetProps> = ({
       }
       setErrors({});
       setIsSubmitting(false);
+      setActiveTab("details");
     } else {
       setValues(initialState);
       setErrors({});
       setIsSubmitting(false);
+      setActiveTab("details");
     }
   }, [isOpen, initialData, isEdit]);
 
@@ -362,6 +369,58 @@ const NewDataset: FC<NewDatasetProps> = ({
       isSubmitting={isButtonDisabled}
       maxWidth="760px"
     >
+      <TabContext value={activeTab}>
+        {isEdit && entityId && (
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+            <TabList
+              onChange={(_: React.SyntheticEvent, newValue: string) => setActiveTab(newValue)}
+              aria-label="Dataset tabs"
+              TabIndicatorProps={{
+                style: { backgroundColor: theme.palette.primary.main },
+              }}
+              sx={{
+                minHeight: "20px",
+                "& .MuiTabs-flexContainer": {
+                  columnGap: "34px",
+                },
+              }}
+            >
+              <Tab
+                label="Details"
+                value="details"
+                sx={{
+                  textTransform: "none",
+                  minHeight: "20px",
+                  padding: "0 0 12px 0",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: theme.palette.text.secondary,
+                  "&.Mui-selected": {
+                    color: theme.palette.primary.main,
+                    fontWeight: 600,
+                  },
+                }}
+              />
+              <Tab
+                label="Activity"
+                value="activity"
+                sx={{
+                  textTransform: "none",
+                  minHeight: "20px",
+                  padding: "0 0 12px 0",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: theme.palette.text.secondary,
+                  "&.Mui-selected": {
+                    color: theme.palette.primary.main,
+                    fontWeight: 600,
+                  },
+                }}
+              />
+            </TabList>
+          </Box>
+        )}
+        <TabPanel value="details" sx={{ p: 0 }}>
       <Stack spacing={3}>
         {/* First Row: Name, Version */}
         <Stack direction={"row"} justifyContent={"space-between"} spacing={6}>
@@ -743,6 +802,18 @@ const NewDataset: FC<NewDatasetProps> = ({
           />
         </Stack>
       </Stack>
+        </TabPanel>
+        {isEdit && entityId && (
+          <TabPanel value="activity" sx={{ p: 0 }}>
+            <HistorySidebar
+              inline
+              isOpen={true}
+              entityType="dataset"
+              entityId={entityId}
+            />
+          </TabPanel>
+        )}
+      </TabContext>
     </StandardModal>
   );
 };

@@ -189,6 +189,7 @@ const NewTraining: FC<NewTrainingProps> = ({
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
+    setActiveTab("details");
   }, [setIsOpen]);
 
   // Submit: With error boundary (Defensive Programming)

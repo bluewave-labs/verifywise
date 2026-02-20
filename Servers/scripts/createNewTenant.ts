@@ -3319,8 +3319,7 @@ export const createNewTenant = async (
         old_value TEXT,
         new_value TEXT,
         changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
-        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `, { transaction });
 
@@ -3340,8 +3339,7 @@ export const createNewTenant = async (
         old_value TEXT,
         new_value TEXT,
         changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
-        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `, { transaction });
 
@@ -3361,8 +3359,7 @@ export const createNewTenant = async (
         old_value TEXT,
         new_value TEXT,
         changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
-        changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `, { transaction });
 

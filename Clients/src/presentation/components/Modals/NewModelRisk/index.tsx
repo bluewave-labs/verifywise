@@ -263,6 +263,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
 
   const handleClose = () => {
     setIsOpen(false);
+    setActiveTab("details");
   };
 
   useModalKeyHandling({

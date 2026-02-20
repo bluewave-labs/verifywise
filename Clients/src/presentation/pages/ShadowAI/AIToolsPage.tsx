@@ -47,9 +47,7 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
-import { PageHeader } from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
-import TipBox from "../../components/TipBox";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import {
   SelectorVertical,
   SortableColumn,
@@ -425,15 +423,12 @@ export default function AIToolsPage() {
 
   // ─── List view ───
   return (
-    <Stack gap="16px">
-      <PageHeader
-        title="AI tools"
-        description="View and manage all AI tools detected in your organization's network traffic. Review risk scores, update tool statuses, and start formal governance for any discovered tool."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/ai-tools" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-tools" />
+    <PageSubHeader
+      title="AI tools"
+      description="View and manage all AI tools detected in your organization's network traffic. Review risk scores, update tool statuses, and start formal governance for any discovered tool."
+      helpArticlePath="shadow-ai/ai-tools"
+      tipBoxEntity="shadow-ai-tools"
+    >
 
       <Stack direction="row" justifyContent="flex-end">
         <Select
@@ -567,7 +562,7 @@ export default function AIToolsPage() {
           </Table>
         </TableContainer>
       )}
-    </Stack>
+    </PageSubHeader>
   );
 }
 

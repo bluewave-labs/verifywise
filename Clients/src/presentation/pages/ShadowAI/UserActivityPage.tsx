@@ -39,10 +39,8 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import { EmptyState } from "../../components/EmptyState";
-import { PageHeader } from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
-import TipBox from "../../components/TipBox";
 import {
   PERIOD_OPTIONS,
   SelectorVertical,
@@ -310,15 +308,12 @@ export default function UserActivityPage() {
 
   return (
     <TabContext value={viewMode}>
-    <Stack gap="16px">
-      <PageHeader
-        title="User activity"
-        description="Monitor individual user and department-level AI tool usage across your organization. Track prompts, identify high-risk users, and review activity by department."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/user-activity" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-user-activity" />
+    <PageSubHeader
+      title="User activity"
+      description="Monitor individual user and department-level AI tool usage across your organization. Track prompts, identify high-risk users, and review activity by department."
+      helpArticlePath="shadow-ai/user-activity"
+      tipBoxEntity="shadow-ai-user-activity"
+    >
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
@@ -542,7 +537,7 @@ export default function UserActivityPage() {
           </Table>
         </TableContainer>
       )}
-    </Stack>
+    </PageSubHeader>
     </TabContext>
   );
 }

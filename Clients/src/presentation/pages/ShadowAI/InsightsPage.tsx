@@ -49,10 +49,8 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { VWLink } from "../../components/Link/VWLink";
-import { PageHeader } from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageSubHeader } from "../../components/Layout/PageSubHeader";
 import { useNavigate } from "react-router-dom";
-import TipBox from "../../components/TipBox";
 import { PERIOD_OPTIONS } from "./constants";
 
 const DEPT_COLORS = [
@@ -111,15 +109,12 @@ export default function InsightsPage() {
   };
 
   return (
-    <Stack gap="24px">
-      <PageHeader
-        title="Insights"
-        description="Overview of Shadow AI activity across your organization. See summary metrics, top tools by usage, risk rankings, and department breakdown at a glance."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/insights" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-insights" />
+    <PageSubHeader
+      title="Insights"
+      description="Overview of Shadow AI activity across your organization. See summary metrics, top tools by usage, risk rankings, and department breakdown at a glance."
+      helpArticlePath="shadow-ai/insights"
+      tipBoxEntity="shadow-ai-insights"
+    >
 
       {/* Period selector */}
       <Stack direction="row" justifyContent="flex-end">
@@ -383,7 +378,7 @@ export default function InsightsPage() {
           </DashboardCard>
         </Stack>
       </Stack>
-    </Stack>
+    </PageSubHeader>
   );
 }
 

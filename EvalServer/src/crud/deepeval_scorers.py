@@ -15,24 +15,22 @@ async def list_scorers(
   org_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
   """
-  List scorers for a tenant (optionally filtered by project_id).
-  The org_id parameter is mapped to project_id for backwards compatibility
-  with the frontend which still sends orgId.
+  List scorers for a tenant, optionally filtered by org_id.
   """
 
-  params: Dict[str, Any] = {"tenant": tenant}
+  params: Dict[str, Any] = {}
 
   if org_id:
-    where_clause = "WHERE (project_id = :project_id OR tenant = :tenant)"
-    params["project_id"] = org_id
+    where_clause = "WHERE org_id = :org_id"
+    params["org_id"] = org_id
   else:
-    where_clause = "WHERE tenant = :tenant"
+    where_clause = ""
 
   result = await db.execute(
     text(
       f'''
       SELECT id,
-             project_id,
+             org_id,
              name,
              description,
              type,
@@ -58,7 +56,7 @@ async def list_scorers(
     scorers.append(
       {
         "id": row["id"],
-        "orgId": row["project_id"],
+        "orgId": row["org_id"],
         "name": row["name"],
         "description": row["description"],
         "type": row["type"],
@@ -93,25 +91,24 @@ async def create_scorer(
 ) -> Optional[Dict[str, Any]]:
   """
   Create a new scorer definition.
-  Maps org_id from frontend to project_id column in the database.
   """
 
   result = await db.execute(
     text(
       f'''
       INSERT INTO "{tenant}".llm_evals_scorers
-      (id, project_id, name, description, type, metric_key, config, enabled,
-       default_threshold, weight, tenant, created_by)
+      (id, org_id, name, description, type, metric_key, config, enabled,
+       default_threshold, weight, created_by)
       VALUES
-      (:id, :project_id, :name, :description, :type, :metric_key, :config, :enabled,
-       :default_threshold, :weight, :tenant, :created_by)
-      RETURNING id, project_id, name, description, type, metric_key, config, enabled,
+      (:id, :org_id, :name, :description, :type, :metric_key, :config, :enabled,
+       :default_threshold, :weight, :created_by)
+      RETURNING id, org_id, name, description, type, metric_key, config, enabled,
                 default_threshold, weight, created_at, updated_at, created_by
       '''
     ),
     {
       "id": scorer_id,
-      "project_id": org_id,
+      "org_id": org_id,
       "name": name,
       "description": description,
       "type": scorer_type,
@@ -120,7 +117,6 @@ async def create_scorer(
       "enabled": enabled,
       "default_threshold": default_threshold,
       "weight": weight,
-      "tenant": tenant,
       "created_by": created_by,
     },
   )
@@ -131,7 +127,7 @@ async def create_scorer(
 
   return {
     "id": row["id"],
-    "orgId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],
@@ -193,11 +189,10 @@ async def update_scorer(
     params["weight"] = weight
 
   if not updates:
-    # Nothing to update, just return current row
     result = await db.execute(
       text(
         f'''
-        SELECT id, project_id, name, description, type, metric_key, config, enabled,
+        SELECT id, org_id, name, description, type, metric_key, config, enabled,
                default_threshold, weight, created_at, updated_at, created_by
         FROM "{tenant}".llm_evals_scorers
         WHERE id = :id
@@ -213,7 +208,7 @@ async def update_scorer(
         UPDATE "{tenant}".llm_evals_scorers
         SET {", ".join(updates)}
         WHERE id = :id
-        RETURNING id, project_id, name, description, type, metric_key, config, enabled,
+        RETURNING id, org_id, name, description, type, metric_key, config, enabled,
                   default_threshold, weight, created_at, updated_at, created_by
         '''
       ),
@@ -226,7 +221,7 @@ async def update_scorer(
 
   return {
     "id": row["id"],
-    "orgId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],
@@ -255,7 +250,7 @@ async def get_scorer_by_id(
     text(
       f'''
       SELECT id,
-             project_id,
+             org_id,
              name,
              description,
              type,
@@ -280,7 +275,7 @@ async def get_scorer_by_id(
 
   return {
     "id": row["id"],
-    "orgId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],
@@ -330,20 +325,20 @@ async def get_latest_scorer(
   Used for auto-populating experiment forms with the last used judge settings.
   """
 
-  params: Dict[str, Any] = {"tenant": tenant}
-  where_clauses = ["tenant = :tenant"]
+  params: Dict[str, Any] = {}
+  where_clauses = []
 
   if org_id:
-    where_clauses.append("project_id = :project_id")
-    params["project_id"] = org_id
+    where_clauses.append("org_id = :org_id")
+    params["org_id"] = org_id
 
-  where_clause = f"WHERE {' AND '.join(where_clauses)}"
+  where_clause = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
   result = await db.execute(
     text(
       f'''
       SELECT id,
-             project_id,
+             org_id,
              name,
              description,
              type,
@@ -370,7 +365,7 @@ async def get_latest_scorer(
 
   return {
     "id": row["id"],
-    "orgId": row["project_id"],
+    "orgId": row["org_id"],
     "name": row["name"],
     "description": row["description"],
     "type": row["type"],

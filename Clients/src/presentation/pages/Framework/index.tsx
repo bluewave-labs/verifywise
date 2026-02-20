@@ -9,7 +9,6 @@ import {
   Divider,
   Popover
 } from "@mui/material";
-import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo, useRef } from "react";
 import {
   CirclePlus as AddCircleOutlineIcon,
@@ -42,10 +41,8 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import { PageHeader } from "../../components/Layout/PageHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { ButtonToggle } from "../../components/button-toggle";
-import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
 import FrameworkRisks from "./FrameworkRisks";
@@ -864,28 +861,14 @@ const Framework = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
-      <PageBreadcrumbs />
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <PageHeader
-          title="Organizational Frameworks"
-          description="This page provides an overview of available AI and data governance frameworks to your organization."
-          rightContent={
-            <HelperIcon
-              articlePath="compliance/assessments"
-              size="small"
-            />
-          }
-        />
-        {/* Manage Project / New Project Button */}
-        <Box>
+    <Box ref={refs[0]}>
+      <PageHeaderExtended
+        title="Organizational Frameworks"
+        description="This page provides an overview of available AI and data governance frameworks to your organization."
+        helpArticlePath="compliance/assessments"
+        tipBoxEntity="framework"
+        actionButton={
+          <Box>
           {organizationalProject ? (
             <>
               <CustomizableButton
@@ -1012,13 +995,10 @@ const Framework = () => {
               isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
             />
           )}
-        </Box>
-      </Stack>
-
-      {/* Tips */}
-      <TipBox entityName="framework" />
-
-      {/* Only show framework content if organizational project exists */}
+          </Box>
+        }
+      >
+        {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <>
           <TabContext value={mainTabValue}>
@@ -1266,7 +1246,8 @@ const Framework = () => {
 
       {/* Page Tour */}
       <PageTour steps={FrameworkSteps} run={true} tourKey="framework-tour" />
-    </Stack>
+      </PageHeaderExtended>
+    </Box>
   );
 };
 

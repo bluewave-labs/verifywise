@@ -44,6 +44,7 @@
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@reduxjs/toolkit": "^2.11.2",
     "@remotion/google-fonts": "^4.0.426",
+    "@remotion/media": "^4.0.426",
     "@remotion/player": "^4.0.426",
     "@remotion/transitions": "^4.0.426",
     "@svgr/rollup": "^8.1.0",

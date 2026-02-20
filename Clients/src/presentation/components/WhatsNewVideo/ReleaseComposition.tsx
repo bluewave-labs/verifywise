@@ -1,4 +1,5 @@
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, interpolate, useVideoConfig } from "remotion";
+import { Audio } from "@remotion/media";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { IntroScene } from "./scenes/IntroScene";
@@ -58,8 +59,27 @@ const FEATURES = [
 ];
 
 export const ReleaseComposition: React.FC = () => {
+  const { fps, durationInFrames } = useVideoConfig();
+
   return (
     <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      <Audio
+        src="/ambient-pad.mp3"
+        volume={(f) => {
+          const fadeIn = interpolate(f, [0, 2 * fps], [0, 0.35], {
+            extrapolateRight: "clamp",
+          });
+          const fadeOut = interpolate(
+            f,
+            [durationInFrames - 3 * fps, durationInFrames],
+            [0.35, 0],
+            { extrapolateLeft: "clamp" }
+          );
+          return Math.min(fadeIn, fadeOut);
+        }}
+        loop
+      />
+
       <TransitionSeries>
         <TransitionSeries.Sequence
           durationInFrames={SCENE_DURATIONS.intro}

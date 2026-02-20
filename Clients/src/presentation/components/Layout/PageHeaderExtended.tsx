@@ -19,22 +19,26 @@ export function PageHeaderExtended({
     loadingToast,
     titleFontFamily,
     breadcrumbItems,
+    actionButton = null,
 }: PageHeaderExtendedProps) {
     return (
         <Stack className="vwhome" gap={0}>
             <PageBreadcrumbs items={breadcrumbItems} sx={{ mb: 0, "& > hr": { mb: 0 } }} />
 
             <Box sx={{ mt: "16px" }}>
-                <PageHeader
-                    title={title}
-                    description={description}
-                    titleFontFamily={titleFontFamily}
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                    <PageHeader
+                        title={title}
+                        description={description}
+                        titleFontFamily={titleFontFamily}
                     rightContent={
-                        helpArticlePath ? (
-                            <HelperIcon articlePath={helpArticlePath} size="small" />
-                        ) : undefined
-                    }
-                />
+                            helpArticlePath ? (
+                                <HelperIcon articlePath={helpArticlePath} size="small" />
+                            ) : undefined
+                        }
+                    />
+                    {actionButton && <Box sx={{ flexShrink: 0 }}>{actionButton}</Box>}
+                </Stack>
             </Box>
 
             <Stack gap="18px" sx={{ mt: "18px" }}>

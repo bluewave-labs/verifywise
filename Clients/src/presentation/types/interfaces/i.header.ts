@@ -13,4 +13,5 @@ export interface PageHeaderExtendedProps {
     loadingToast?: ReactNode;
     titleFontFamily?: string;
     breadcrumbItems?: BreadcrumbItem[];
+    actionButton?: ReactNode | null;
 }

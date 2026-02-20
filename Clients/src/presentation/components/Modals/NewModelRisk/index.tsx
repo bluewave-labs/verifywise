@@ -248,7 +248,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     }
 
     if (!values.target_date) {
-      newErrors.target_date = "Target date is required.";
+      newErrors.target_date = "Next review date is required.";
     }
 
     setErrors(newErrors);
@@ -397,7 +397,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           <Box sx={{ flex: 1 }}>
             <Suspense fallback={<div>Loading...</div>}>
               <DatePicker
-                label="Target date"
+                label="Next review date"
                 date={
                   values.target_date
                     ? dayjs(values.target_date)

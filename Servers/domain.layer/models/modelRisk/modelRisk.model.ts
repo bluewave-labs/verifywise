@@ -203,7 +203,7 @@ export class ModelRiskModel
 
     if (!this.target_date) {
       throw new ValidationException(
-        "Target date is required",
+        "Next review date is required",
         "target_date",
         this.target_date
       );

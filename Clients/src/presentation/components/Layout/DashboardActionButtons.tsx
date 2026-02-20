@@ -12,7 +12,6 @@ import {
   getMyApprovalRequests,
 } from '../../../application/repository/approvalRequest.repository';
 import { actionButtonsStyles } from './style';
-import './icon-shake.css';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;

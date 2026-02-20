@@ -13,7 +13,6 @@ import { Bell, CheckCheck, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications, Notification } from '../../../application/hooks/useNotifications';
 import VWTooltip from '../VWTooltip';
-import '../Layout/icon-shake.css';
 
 /**
  * Format relative time from ISO string

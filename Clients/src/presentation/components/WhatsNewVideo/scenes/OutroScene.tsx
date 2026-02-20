@@ -5,13 +5,9 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { loadFont } from "@remotion/google-fonts/Inter";
 import { COLORS } from "../styles";
 
-const { fontFamily } = loadFont("normal", {
-  weights: ["400", "700"],
-  subsets: ["latin"],
-});
+const fontFamily = '"Geist", system-ui, -apple-system, sans-serif';
 
 export const OutroScene: React.FC = () => {
   const frame = useCurrentFrame();

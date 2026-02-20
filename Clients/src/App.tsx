@@ -26,6 +26,7 @@ import CommandPaletteErrorBoundary from "./presentation/components/CommandPalett
 import useCommandPalette from "./application/hooks/useCommandPalette";
 import useUserPreferences from "./application/hooks/useUserPreferences";
 import { SetupModal, useOnboarding } from "./presentation/components/Onboarding";
+import { WhatsNewVideoModal, useWhatsNewVideo } from "./presentation/components/WhatsNewVideo";
 import { SidebarWrapper, UserGuideSidebarProvider, useUserGuideSidebarContext } from "./presentation/components/UserGuide";
 import { AdvisorConversationProvider } from './application/contexts/AdvisorConversation.context';
 import { PluginRegistryProvider } from './application/contexts/PluginRegistry.context';
@@ -98,6 +99,7 @@ function App() {
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
   const { completeOnboarding, state, isLoading: isOnboardingLoading } = useOnboarding();
+  const { showVideo, dismissVideo } = useWhatsNewVideo();
 
   // SSE notifications disabled for now - can be re-enabled later if needed
   // useNotifications({
@@ -264,6 +266,9 @@ function App() {
                     onComplete={handleOnboardingComplete}
                     onSkip={handleOnboardingSkip}
                   />
+                )}
+                {showVideo && !showModal && (
+                  <WhatsNewVideoModal onClose={dismissVideo} />
                 )}
                 <Routes>
                   {createRoutes(triggerSidebar, triggerSidebarReload)}

@@ -40,7 +40,7 @@ function IconButton({
   onDeleteWithRisks,
   onView,
   openLinkedPolicies,
-  entityId,
+  entityId: _entityId,
   onSendTest,
   onToggleEnable,
   // Task-specific props

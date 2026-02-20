@@ -19,8 +19,8 @@ interface InvitationsResponse {
 }
 
 export async function getInvitations(): Promise<InvitationsResponse> {
-  const response = await apiServices.get("/invitations");
-  return response.data;
+  const response = await apiServices.get<InvitationsResponse>("/invitations");
+  return response.data as InvitationsResponse;
 }
 
 export async function revokeInvitation(id: number) {

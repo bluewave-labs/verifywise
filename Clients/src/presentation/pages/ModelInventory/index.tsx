@@ -18,7 +18,7 @@ import {
   useTheme,
   IconButton,
 } from "@mui/material";
-import { CirclePlus as AddCircleOutlineIcon, BarChart3, Settings } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -138,7 +138,7 @@ const ModelInventory: React.FC = () => {
   const theme = useTheme();
 
   // Get plugin tabs dynamically from the plugin registry
-  const { getPluginTabs, isPluginInstalled } = usePluginRegistry();
+  const { getPluginTabs } = usePluginRegistry();
   const pluginTabs = useMemo(
     () => getPluginTabs(PLUGIN_SLOTS.MODELS_TABS),
     [getPluginTabs]

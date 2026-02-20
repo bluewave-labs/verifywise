@@ -5,13 +5,11 @@
  * Follows the SidebarShell pattern established by AIDetectionSidebar.
  */
 
-import { useCallback } from "react";
 import { BarChart3, Users, Bot, ShieldAlert, Settings } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
   RecentSection,
 } from "../../components/Sidebar/SidebarShell";
-import { useUserGuideSidebarContext } from "../../components/UserGuide";
 import { RecentTool } from "../../../application/contexts/ShadowAISidebar.context";
 
 interface ShadowAISidebarProps {

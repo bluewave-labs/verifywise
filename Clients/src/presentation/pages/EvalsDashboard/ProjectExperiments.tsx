@@ -23,6 +23,7 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -577,7 +578,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   });
 
   return (
-    <Box>
+    <Stack sx={{ width: "100%" }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Rerun Confirmation Modal */}
@@ -651,19 +652,14 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         />
       )}
 
-      {/* Header + description */}
-      <Stack spacing={1} mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Experiments
-          </Typography>
-          <HelperIcon articlePath="llm-evals/running-experiments" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
-        </Typography>
+      <PageHeader
+        title="Experiments"
+        description="Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations."
+        rightContent={<HelperIcon articlePath="llm-evals/running-experiments" />}
+      />
+      <Box sx={{ mt: "18px" }}>
         <TipBox entityName="evals-experiments" />
-      </Stack>
+      </Box>
 
       {/* Performance Chart */}
       <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
@@ -807,6 +803,6 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         onStarted={handleStarted}
         useCase={useCase}
       />
-    </Box>
+    </Stack>
   );
 }

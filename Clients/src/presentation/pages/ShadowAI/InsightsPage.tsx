@@ -114,6 +114,7 @@ export default function InsightsPage() {
     <PageHeaderExtended
       title="Insights"
       description="Overview of Shadow AI activity across your organization. See summary metrics, top tools by usage, risk rankings, and department breakdown at a glance."
+
       helpArticlePath="shadow-ai/insights"
       tipBoxEntity="shadow-ai-insights"
     >

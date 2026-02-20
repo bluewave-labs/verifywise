@@ -19,6 +19,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Plus, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import SelectableCard from "../../components/SelectableCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -428,16 +429,14 @@ export default function ProjectsList() {
   };
 
   return (
-    <>
+    <Stack sx={{ width: "100%" }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header + description */}
-      <Stack spacing={1} mb={6}>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Projects
-          </Typography>
-          {projects.length > 0 && (
+      <PageHeader
+        title="Projects"
+        description="Projects organize your LLM evaluations. Each project groups related experiments, datasets, and configurations for a specific use case."
+        rightContent={
+          projects.length > 0 ? (
             <Chip
               label={projects.length}
               size="small"
@@ -454,19 +453,16 @@ export default function ProjectsList() {
                 },
               }}
             />
-          )}
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Projects organize your LLM evaluations. Each project groups related experiments, datasets, and configurations for a specific use case.
-        </Typography>
-      </Stack>
+          ) : undefined
+        }
+      />
 
       {/* Controls row */}
       <Stack
         direction="row"
         justifyContent="space-between"
         alignItems="center"
-        sx={{ marginBottom: "18px" }}
+        sx={{ marginTop: "18px", marginBottom: "18px" }}
         gap={2}
       >
         <Stack direction="row" alignItems="center" gap={2}>
@@ -905,6 +901,6 @@ export default function ProjectsList() {
           TitleFontSize={0}
         />
       )}
-    </>
+    </Stack>
   );
 }

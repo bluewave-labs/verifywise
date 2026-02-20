@@ -18,6 +18,8 @@ import {
   Plus as PlusIcon,
   Pencil as EditIcon,
   Trash2 as DeleteIcon,
+  PanelLeftOpen as PanelLeftOpenIcon,
+  PanelLeftClose as PanelLeftCloseIcon,
 } from "lucide-react";
 import {
   IFolderTreeNode,
@@ -34,6 +36,8 @@ interface FolderTreeProps {
   onDeleteFolder?: (folder: IFolderTreeNode) => void;
   loading?: boolean;
   canManage?: boolean;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface FolderItemProps {
@@ -261,6 +265,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   onDeleteFolder,
   loading,
   canManage,
+  collapsed = false,
+  onToggleCollapse,
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
 
@@ -279,187 +285,235 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   return (
     <Stack
       sx={{
-        width: "240px",
-        minWidth: "200px",
+        width: collapsed ? "48px" : "240px",
+        minWidth: collapsed ? "48px" : "200px",
         borderRight: "1px solid #E0E4E9",
         backgroundColor: "#FAFBFC",
         alignSelf: "stretch",
         overflow: "hidden",
+        transition: "width 300ms ease, min-width 300ms ease",
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          padding: "12px 16px",
+          padding: collapsed ? "12px 0" : "12px 16px",
           borderBottom: "1px solid #E0E4E9",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: collapsed ? "center" : "space-between",
+          minHeight: "44px",
         }}
       >
-        <Typography
-          sx={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#667085",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-          }}
-        >
-          Folders
-        </Typography>
-        {canManage && (
+        {collapsed ? (
           <IconButton
             size="small"
-            onClick={() => onCreateFolder?.(null)}
+            onClick={onToggleCollapse}
             sx={{
               padding: "4px",
               "&:hover": { backgroundColor: "#E8F5F1" },
             }}
-            title="Create folder"
-            aria-label="Create new folder"
+            title="Expand sidebar"
+            aria-label="Expand folder sidebar"
           >
-            <PlusIcon size={14} color="#13715B" />
+            <PanelLeftOpenIcon size={16} color="#667085" />
           </IconButton>
-        )}
-      </Box>
-
-      {/* Folder list */}
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          padding: "8px",
-        }}
-      >
-        {loading ? (
-          <Typography
-            sx={{
-              fontSize: 13,
-              color: "#98A2B3",
-              padding: "12px",
-              textAlign: "center",
-            }}
-          >
-            Loading folders...
-          </Typography>
         ) : (
           <>
-            {/* All Files */}
-            <Box
-              onClick={() => onSelectFolder("all")}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                padding: "6px 8px",
-                cursor: "pointer",
-                borderRadius: "4px",
-                backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "transparent",
-                "&:hover": {
-                  backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "#F0F2F5",
-                },
-                marginBottom: "4px",
-              }}
-            >
-              <Box sx={{ width: 20 }} />
-              <Box sx={{ marginRight: "8px", display: "flex", color: "#667085" }}>
-                <FilesIcon size={16} />
-              </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <IconButton
+                size="small"
+                onClick={onToggleCollapse}
+                sx={{
+                  padding: "4px",
+                  "&:hover": { backgroundColor: "#E8F5F1" },
+                }}
+                title="Collapse sidebar"
+                aria-label="Collapse folder sidebar"
+              >
+                <PanelLeftCloseIcon size={14} color="#667085" />
+              </IconButton>
               <Typography
                 sx={{
-                  flex: 1,
-                  fontSize: 13,
-                  fontWeight: selectedFolder === "all" ? 500 : 400,
-                  color: selectedFolder === "all" ? "#13715B" : "#344054",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#667085",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
                 }}
               >
-                All files
+                Folders
               </Typography>
             </Box>
-
-            {/* Uncategorized */}
-            <Box
-              onClick={() => onSelectFolder("uncategorized")}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                padding: "6px 8px",
-                cursor: "pointer",
-                borderRadius: "4px",
-                backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "transparent",
-                "&:hover": {
-                  backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "#F0F2F5",
-                },
-                marginBottom: "8px",
-              }}
-            >
-              <Box sx={{ width: 20 }} />
-              <Box sx={{ marginRight: "8px", display: "flex", color: "#98A2B3" }}>
-                <UncategorizedIcon size={16} />
-              </Box>
-              <Typography
+            {canManage && (
+              <IconButton
+                size="small"
+                onClick={() => onCreateFolder?.(null)}
                 sx={{
-                  flex: 1,
-                  fontSize: 13,
-                  fontWeight: selectedFolder === "uncategorized" ? 500 : 400,
-                  color: selectedFolder === "uncategorized" ? "#13715B" : "#344054",
+                  padding: "4px",
+                  "&:hover": { backgroundColor: "#E8F5F1" },
                 }}
+                title="Create folder"
+                aria-label="Create new folder"
               >
-                Uncategorized
-              </Typography>
-            </Box>
-
-            {/* Folder tree */}
-            {folders.map((folder) => (
-              <FolderItem
-                key={folder.id}
-                folder={folder}
-                level={0}
-                selectedFolder={selectedFolder}
-                expandedFolders={expandedFolders}
-                onSelectFolder={onSelectFolder}
-                onToggleExpand={handleToggleExpand}
-                onCreateFolder={onCreateFolder}
-                onEditFolder={onEditFolder}
-                onDeleteFolder={onDeleteFolder}
-                canManage={canManage}
-              />
-            ))}
-
-            {/* Empty state */}
-            {folders.length === 0 && (
-              <Box
-                sx={{
-                  padding: "16px",
-                  textAlign: "center",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: 13,
-                    color: "#98A2B3",
-                    marginBottom: "8px",
-                  }}
-                >
-                  No folders yet
-                </Typography>
-                {canManage && (
-                  <CustomizableButton
-                    variant="outlined"
-                    text="Create folder"
-                    onClick={() => onCreateFolder?.(null)}
-                    sx={{
-                      height: "28px",
-                      fontSize: 12,
-                    }}
-                    icon={<PlusIcon size={12} />}
-                  />
-                )}
-              </Box>
+                <PlusIcon size={14} color="#13715B" />
+              </IconButton>
             )}
           </>
         )}
       </Box>
+
+      {/* Collapsed state — folder icon only */}
+      {collapsed && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "12px 0",
+          }}
+        >
+          <FolderIcon size={16} color="#667085" />
+        </Box>
+      )}
+
+      {/* Folder list — hidden when collapsed */}
+      {!collapsed && (
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            padding: "8px",
+          }}
+        >
+          {loading ? (
+            <Typography
+              sx={{
+                fontSize: 13,
+                color: "#98A2B3",
+                padding: "12px",
+                textAlign: "center",
+              }}
+            >
+              Loading folders...
+            </Typography>
+          ) : (
+            <>
+              {/* All Files */}
+              <Box
+                onClick={() => onSelectFolder("all")}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "6px 8px",
+                  cursor: "pointer",
+                  borderRadius: "4px",
+                  backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "transparent",
+                  "&:hover": {
+                    backgroundColor: selectedFolder === "all" ? "#E8F5F1" : "#F0F2F5",
+                  },
+                  marginBottom: "4px",
+                }}
+              >
+                <Box sx={{ width: 20 }} />
+                <Box sx={{ marginRight: "8px", display: "flex", color: "#667085" }}>
+                  <FilesIcon size={16} />
+                </Box>
+                <Typography
+                  sx={{
+                    flex: 1,
+                    fontSize: 13,
+                    fontWeight: selectedFolder === "all" ? 500 : 400,
+                    color: selectedFolder === "all" ? "#13715B" : "#344054",
+                  }}
+                >
+                  All files
+                </Typography>
+              </Box>
+
+              {/* Uncategorized */}
+              <Box
+                onClick={() => onSelectFolder("uncategorized")}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "6px 8px",
+                  cursor: "pointer",
+                  borderRadius: "4px",
+                  backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "transparent",
+                  "&:hover": {
+                    backgroundColor: selectedFolder === "uncategorized" ? "#E8F5F1" : "#F0F2F5",
+                  },
+                  marginBottom: "8px",
+                }}
+              >
+                <Box sx={{ width: 20 }} />
+                <Box sx={{ marginRight: "8px", display: "flex", color: "#98A2B3" }}>
+                  <UncategorizedIcon size={16} />
+                </Box>
+                <Typography
+                  sx={{
+                    flex: 1,
+                    fontSize: 13,
+                    fontWeight: selectedFolder === "uncategorized" ? 500 : 400,
+                    color: selectedFolder === "uncategorized" ? "#13715B" : "#344054",
+                  }}
+                >
+                  Uncategorized
+                </Typography>
+              </Box>
+
+              {/* Folder tree */}
+              {folders.map((folder) => (
+                <FolderItem
+                  key={folder.id}
+                  folder={folder}
+                  level={0}
+                  selectedFolder={selectedFolder}
+                  expandedFolders={expandedFolders}
+                  onSelectFolder={onSelectFolder}
+                  onToggleExpand={handleToggleExpand}
+                  onCreateFolder={onCreateFolder}
+                  onEditFolder={onEditFolder}
+                  onDeleteFolder={onDeleteFolder}
+                  canManage={canManage}
+                />
+              ))}
+
+              {/* Empty state */}
+              {folders.length === 0 && (
+                <Box
+                  sx={{
+                    padding: "16px",
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: "#98A2B3",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    No folders yet
+                  </Typography>
+                  {canManage && (
+                    <CustomizableButton
+                      variant="outlined"
+                      text="Create folder"
+                      onClick={() => onCreateFolder?.(null)}
+                      sx={{
+                        height: "28px",
+                        fontSize: 12,
+                      }}
+                      icon={<PlusIcon size={12} />}
+                    />
+                  )}
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
+      )}
     </Stack>
   );
 };

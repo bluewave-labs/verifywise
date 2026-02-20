@@ -12,7 +12,6 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Button,
   useTheme,
   IconButton,
   Menu,
@@ -20,7 +19,8 @@ import {
 } from "@mui/material";
 import { Upload, Download, X, Edit3, Trash2, ArrowLeft, Save as SaveIcon, Copy, Database, Plus, User, Bot, Check, MessageSquare, GitBranch } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import { ButtonToggle } from "../../components/button-toggle";
+import TabContext from "@mui/lab/TabContext";
+import TabBar from "../../components/TabBar";
 import {
   listMyDatasets,
   listDatasets,
@@ -46,6 +46,7 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import singleTheme from "../../themes/v1SingleTheme";
 import DatasetsTable, { type DatasetRow } from "../../components/Table/DatasetsTable";
 import TemplatesTable from "../../components/Table/TemplatesTable";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import SelectableCard from "../../components/SelectableCard";
@@ -84,6 +85,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   // My datasets state
   const [datasets, setDatasets] = useState<BuiltInDataset[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingTemplatesList, setLoadingTemplatesList] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { groupBy: datasetsGroupBy, groupSortOrder: datasetsGroupSortOrder, handleGroupChange: handleDatasetsGroupChange } = useGroupByState();
   const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
@@ -184,7 +186,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
   // Load built-in template datasets (Templates tab)
   const loadTemplateDatasets = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoadingTemplatesList(true);
       const res = await listDatasets();
       setTemplateGroups(res as Record<"chatbot" | "rag" | "agent", BuiltInDataset[]>);
     } catch (err) {
@@ -196,7 +198,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
       });
       setTimeout(() => setAlert(null), 5000);
     } finally {
-      setLoading(false);
+      setLoadingTemplatesList(false);
     }
   }, []);
 
@@ -284,14 +286,11 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
     setExpandedPromptIds(new Set()); // Reset expanded state
   };
 
-  // Load data based on active tab
+  // Load both datasets on mount so tab counts are always available
   useEffect(() => {
-    if (activeTab === "my") {
-      void loadMyDatasets();
-    } else {
-      void loadTemplateDatasets();
-    }
-  }, [activeTab, loadMyDatasets, loadTemplateDatasets]);
+    void loadMyDatasets();
+    void loadTemplateDatasets();
+  }, [loadMyDatasets, loadTemplateDatasets]);
 
   // Load template prompts when a template is selected
   useEffect(() => {
@@ -832,7 +831,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1}>
-            <Button
+            <CustomizableButton
               variant="outlined"
               onClick={async () => {
                 try {
@@ -846,16 +845,14 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 }
               }}
               startIcon={copiedJson ? <Check size={16} /> : <Copy size={16} />}
+              text={copiedJson ? "Copied!" : "Copy JSON"}
               sx={{
-                height: "34px",
                 color: copiedJson ? "#059669" : "#374151",
                 borderColor: copiedJson ? "#059669" : "#E5E7EB",
                 "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
               }}
-            >
-              {copiedJson ? "Copied!" : "Copy JSON"}
-            </Button>
-            <Button
+            />
+            <CustomizableButton
               variant="outlined"
               onClick={() => {
                 const json = JSON.stringify(editablePrompts, null, 2);
@@ -871,24 +868,20 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 URL.revokeObjectURL(url);
               }}
               startIcon={<Download size={16} />}
+              text="Download"
               sx={{
-                height: "34px",
                 color: "#374151",
                 borderColor: "#E5E7EB",
                 "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
               }}
-            >
-              Download
-            </Button>
-            <Button
+            />
+            <CustomizableButton
               variant="contained"
-              disabled={!isValidToSave || savingDataset}
-              sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" }, height: "34px" }}
+              isDisabled={!isValidToSave || savingDataset}
               startIcon={<SaveIcon size={16} />}
               onClick={handleSaveDataset}
-            >
-              {savingDataset ? "Saving..." : "Save"}
-            </Button>
+              text={savingDataset ? "Saving..." : "Save"}
+            />
           </Stack>
         </Stack>
 
@@ -931,18 +924,17 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       No prompts in this dataset yet.
                     </Typography>
-                    <Button
+                    <CustomizableButton
                       variant="outlined"
                       startIcon={<Plus size={16} />}
                       onClick={handleAddPrompt}
+                      text="Add your first prompt"
                       sx={{
                         color: "#13715B",
                         borderColor: "#13715B",
                         "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
                       }}
-                    >
-                      Add your first prompt
-                    </Button>
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -1054,26 +1046,25 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
 
         {/* Add prompt button */}
         {editablePrompts.length > 0 && (
-          <Button
+          <CustomizableButton
             variant="outlined"
             startIcon={<Plus size={16} />}
             onClick={handleAddPrompt}
             fullWidth
+            text="Add prompt"
             sx={{
               mt: 2,
               color: "#13715B",
               borderColor: "#E5E7EB",
               borderStyle: "dashed",
               py: 1.5,
-              "&:hover": { 
-                borderColor: "#13715B", 
+              "&:hover": {
+                borderColor: "#13715B",
                 backgroundColor: "#E8F5F1",
                 borderStyle: "dashed",
               },
             }}
-          >
-            Add prompt
-          </Button>
+          />
         )}
 
         {/* Prompt Edit Drawer */}
@@ -1253,7 +1244,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                       </Box>
 
                       {/* Add turn button - at the bottom with more spacing */}
-                      <Button
+                      <CustomizableButton
                         fullWidth
                         variant="outlined"
                         startIcon={<Plus size={14} />}
@@ -1261,31 +1252,29 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                           const next = [...editablePrompts];
                           const conv = next[selectedPromptIndex] as MultiTurnConversation;
                           const turns = [...(conv.turns || [])];
-                          // Add user turn if last was assistant, or assistant if last was user
                           const lastRole = turns.length > 0 ? turns[turns.length - 1].role : "assistant";
                           turns.push({ role: lastRole === "user" ? "assistant" : "user", content: "" });
                           next[selectedPromptIndex] = { ...conv, turns };
                           setEditablePrompts(next);
                         }}
-                        sx={{ 
+                        sx={{
                           mt: 3,
                           mb: 2,
-                          textTransform: "none", 
                           color: "#13715B",
                           borderColor: "#E5E7EB",
                           borderStyle: "dashed",
                           py: 2,
-                          "&:hover": { 
-                            borderColor: "#13715B", 
+                          "&:hover": {
+                            borderColor: "#13715B",
                             backgroundColor: "#F0FDF4",
                             borderStyle: "dashed",
                           },
                         }}
                       >
-                        Add {((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns?.length || 0) > 0 
-                          ? ((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns?.slice(-1)[0]?.role === "user" ? "assistant" : "user") 
+                        Add {((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns?.length || 0) > 0
+                          ? ((editablePrompts[selectedPromptIndex] as MultiTurnConversation).turns?.slice(-1)[0]?.role === "user" ? "assistant" : "user")
                           : "user"} turn
-                      </Button>
+                      </CustomizableButton>
                     </Box>
                   </>
                 ) : (
@@ -1392,7 +1381,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 )}
 
                 <Stack direction="row" spacing={2} sx={{ mt: 4, pt: 3, borderTop: "1px solid #E5E7EB" }}>
-                  <Button
+                  <CustomizableButton
                     variant="outlined"
                     startIcon={<Trash2 size={14} />}
                     onClick={() => {
@@ -1400,35 +1389,29 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                         handleDeletePrompt(selectedPromptIndex);
                       }
                     }}
+                    text="Delete"
                     sx={{
                       color: "#EF4444",
                       borderColor: "#FCA5A5",
-                      "&:hover": { 
-                        borderColor: "#EF4444", 
-                        backgroundColor: "#FEE2E2" 
+                      "&:hover": {
+                        borderColor: "#EF4444",
+                        backgroundColor: "#FEE2E2"
                       },
-                      height: "40px",
-                      textTransform: "none",
+                      minHeight: "40px",
                     }}
-                  >
-                    Delete
-                  </Button>
-                  <Button
+                  />
+                  <CustomizableButton
                     variant="contained"
                     onClick={() => {
                       setPromptDrawerOpen(false);
                       setSelectedPromptIndex(null);
                     }}
+                    text="Done"
                     sx={{
-                      bgcolor: "#13715B",
-                      "&:hover": { bgcolor: "#0F5E4B" },
-                      height: "40px",
+                      minHeight: "40px",
                       flex: 1,
-                      textTransform: "none",
                     }}
-                  >
-                    Done
-                  </Button>
+                  />
                 </Stack>
               </Stack>
             )}
@@ -1440,22 +1423,17 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
 
   // Default table view
   return (
-    <Box>
+    <Stack sx={{ width: "100%" }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header + description */}
-      <Stack spacing={1} mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Datasets
-          </Typography>
-          <HelperIcon articlePath="llm-evals/managing-datasets" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly.
-        </Typography>
+      <PageHeader
+        title="Datasets"
+        description="Datasets contain the prompts or conversations used to evaluate your models. Create custom datasets or use templates to get started quickly."
+        rightContent={<HelperIcon articlePath="llm-evals/managing-datasets" />}
+      />
+      <Box sx={{ mt: "18px" }}>
         <TipBox entityName="evals-datasets" />
-      </Stack>
+      </Box>
 
       {/* Hidden file input for uploads */}
       <input
@@ -1466,21 +1444,32 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
         onChange={handleFileChange}
       />
 
-      {/* ButtonToggle for My datasets / Templates */}
-      <Stack direction="row" alignItems="center" sx={{ marginBottom: "18px" }}>
-        <ButtonToggle
-          options={[
-            { label: "My datasets", value: "my" },
-            { label: "Templates", value: "templates" },
-          ]}
-          value={activeTab}
-          onChange={(value) => {
-            setActiveTab(value as "my" | "templates");
-            setSelectedTemplate(null);
-          }}
-          height={34}
-        />
-      </Stack>
+      {/* Tab bar for My datasets / Templates */}
+      <TabContext value={activeTab}>
+        <Box sx={{ mb: "18px" }}>
+          <TabBar
+            tabs={[
+              {
+                label: "My datasets",
+                value: "my",
+                icon: "Database",
+                count: datasets.length,
+              },
+              {
+                label: "Templates",
+                value: "templates",
+                icon: "LayoutTemplate",
+                count: flattenedTemplates.length,
+              },
+            ]}
+            activeTab={activeTab}
+            onChange={(_e, value) => {
+              setActiveTab(value as "my" | "templates");
+              setSelectedTemplate(null);
+            }}
+          />
+        </Box>
+      </TabContext>
 
       {/* My datasets view */}
       {activeTab === "my" && (
@@ -1618,7 +1607,7 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                 difficulty: ds.difficulty,
                 description: ds.description,
               }))}
-              loading={loading}
+              loading={loadingTemplatesList}
               onRowClick={(template) => handleViewTemplate(templateGroups[template.category]?.find(t => t.key === template.key) || template as unknown as BuiltInDataset)}
               onUse={(template) => handleOpenCopyModal(templateGroups[template.category]?.find(t => t.key === template.key) || template as unknown as BuiltInDataset)}
               copyingTemplate={copyingTemplate}
@@ -1842,21 +1831,20 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
               <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: "13px" }}>
                 {datasetTurnType === "single-turn" ? "Single-Turn" : datasetTurnType === "multi-turn" ? "Multi-Turn" : "Simulated"} JSON format
               </Typography>
-              <Button
+              <CustomizableButton
                 size="small"
+                variant="text"
                 startIcon={<Download size={14} />}
                 onClick={() => handleDownloadExample(exampleDatasetType)}
+                text="Download example"
                 sx={{
-                  textTransform: "none",
                   fontSize: "12px",
                   color: "#13715B",
                   "&:hover": {
                     backgroundColor: "rgba(19, 113, 91, 0.08)",
                   },
                 }}
-              >
-                Download example
-              </Button>
+              />
             </Box>
             <Box
               sx={{
@@ -2509,22 +2497,18 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
 
           {/* Copy Button */}
           {!loadingTemplatePrompts && templatePrompts.length > 0 && selectedTemplate && (
-            <Button
+            <CustomizableButton
               fullWidth
               variant="contained"
               startIcon={<Copy size={14} />}
               onClick={() => handleOpenCopyModal(selectedTemplate)}
-              disabled={copyingTemplate}
+              isDisabled={copyingTemplate}
+              text={copyingTemplate ? "Copying..." : "Copy to my datasets"}
               sx={{
                 mt: 4,
-                textTransform: "none",
-                bgcolor: "#13715B",
-                "&:hover": { bgcolor: "#0F5E4B" },
-                height: "40px",
+                minHeight: "40px",
               }}
-            >
-              {copyingTemplate ? "Copying..." : "Copy to my datasets"}
-            </Button>
+            />
           )}
         </Stack>
       </Drawer>
@@ -2671,18 +2655,18 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
 
           {/* Action Buttons */}
           <Stack direction="row" spacing={2} justifyContent="flex-end">
-            <Button
+            <CustomizableButton
               variant="text"
+              text="Cancel"
               onClick={() => setCreateTypeSelectionOpen(false)}
               sx={{ color: "#6B7280" }}
-            >
-              Cancel
-            </Button>
-            <Button
+            />
+            <CustomizableButton
               variant="contained"
+              text="Create Dataset"
               onClick={() => {
                 setCreateTypeSelectionOpen(false);
-                
+
                 // Initialize with appropriate format based on selection
                 if (newDatasetTurnType === "single-turn") {
                   const singleTurnPrompt: SingleTurnPrompt = {
@@ -2706,28 +2690,22 @@ export function ProjectDatasets({ projectId, orgId }: ProjectDatasetsProps) {
                   };
                   setEditablePrompts([multiTurnConversation]);
                 }
-                
+
                 setEditDatasetName("");
-                setEditingDataset({ 
-                  key: "new", 
-                  name: "New Dataset", 
-                  path: "", 
-                  use_case: newDatasetUseCase, 
+                setEditingDataset({
+                  key: "new",
+                  name: "New Dataset",
+                  path: "",
+                  use_case: newDatasetUseCase,
                   datasetType: newDatasetUseCase,
                   turnType: newDatasetTurnType,
                 });
                 setEditorOpen(true);
               }}
-              sx={{
-                backgroundColor: "#13715B",
-                "&:hover": { backgroundColor: "#0f5a47" },
-              }}
-            >
-              Create Dataset
-            </Button>
+            />
           </Stack>
         </Stack>
       </ModalStandard>
-    </Box>
+    </Stack>
   );
 }

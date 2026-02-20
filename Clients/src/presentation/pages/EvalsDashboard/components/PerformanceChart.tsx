@@ -346,7 +346,7 @@ export default function PerformanceChart({ projectId, timeRange }: PerformanceCh
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
-            wrapperStyle={{ paddingTop: 12, fontSize: 11 }}
+            wrapperStyle={{ paddingTop: 12, fontSize: 13 }}
             formatter={(value: string) => {
               const metricDef = metricDefinitions[value as keyof typeof metricDefinitions];
               return metricDef?.label || formatMetricLabel(value);

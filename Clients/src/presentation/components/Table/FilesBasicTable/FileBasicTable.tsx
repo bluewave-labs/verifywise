@@ -18,7 +18,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
 import { FileIcon } from "../../FileIcon";
-import VersionBadge from "../../../pages/FileManager/components/VersionBadge";
 import Chip from "../../Chip";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
@@ -40,7 +39,7 @@ type SortConfig = {
   direction: SortDirection;
 };
 
-const navigteToNewTab = (url: string) => {
+const navigateToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
@@ -325,32 +324,32 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     event.stopPropagation();
     switch (item.source) {
       case "Assessment tracker group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&topicId=${item.parentId}&questionId=${item.metaId}`
         );
         break;
       case "Compliance tracker group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`
         );
         break;
       case "Management system clauses group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-42001&clauseId=${item.parentId}&subClauseId=${item.metaId}`
         );
         break;
       case "Main clauses group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-27001&clause27001Id=${item.parentId}&subClause27001Id=${item.metaId}`
         );
         break;
       case "Reference controls group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexCategoryId=${item.metaId}`
         );
         break;
       case "Annex controls group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`
         );
         break;
@@ -529,9 +528,16 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                           : "inherit",
                       }}
                     >
-                      <VersionBadge
-                        version={(row as any).version}
-                        reviewStatus={(row as any).reviewStatus}
+                      <Chip
+                        label={`v${(row as any).version || "1.0"}`}
+                        variant={
+                          (row as any).reviewStatus === "approved"
+                            ? "success"
+                            : (row as any).reviewStatus === "superseded"
+                              ? "default"
+                              : "info"
+                        }
+                        uppercase={false}
                       />
                     </TableCell>
                   )}

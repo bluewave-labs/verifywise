@@ -87,6 +87,7 @@ const Home = () => {
     <PageHeaderExtended
       title="Use cases"
       description="Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome."
+
       helpArticlePath="reporting/dashboard-analytics"
       tipBoxEntity="overview"
     >

@@ -3,7 +3,6 @@ import {
   Stack,
   Typography,
   Box,
-  Button,
   MenuItem,
   ListItemIcon,
   ListItemText,
@@ -343,39 +342,14 @@ const Framework = () => {
 
   const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
 
-  // Status options following ProjectFrameworks pattern for ISO27001
-  const iso27001StatusOptions = [
+  // Status options shared across all frameworks
+  const frameworkStatusOptions = [
     { value: "not started", label: "Not started" },
     { value: "in progress", label: "In progress" },
     { value: "implemented", label: "Implemented" },
     { value: "awaiting approval", label: "Awaiting approval" },
     { value: "awaiting review", label: "Awaiting review" },
     { value: "draft", label: "Draft" },
-    // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs rework" },
-  ];
-
-  // Status options for ISO42001 (same as project view)
-  const iso42001StatusOptions = [
-    { value: "not started", label: "Not started" },
-    { value: "in progress", label: "In progress" },
-    { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting approval" },
-    { value: "awaiting review", label: "Awaiting review" },
-    { value: "draft", label: "Draft" },
-    // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs rework" },
-  ];
-
-  // Status options for NIST AI RMF (same as other frameworks)
-  const nistAiRmfStatusOptions = [
-    { value: "not started", label: "Not started" },
-    { value: "in progress", label: "In progress" },
-    { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting approval" },
-    { value: "awaiting review", label: "Awaiting review" },
-    { value: "draft", label: "Draft" },
-    // { value: "audited", label: "Audited" },
     { value: "needs rework", label: "Needs rework" },
   ];
 
@@ -663,7 +637,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso27001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -689,7 +663,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso27001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -743,7 +717,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso42001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -769,7 +743,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso42001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -818,7 +792,7 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
               />
@@ -829,7 +803,7 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
               />
@@ -840,7 +814,7 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
               />
@@ -851,7 +825,7 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
               />
@@ -1030,26 +1004,13 @@ const Framework = () => {
               </Popover>
             </>
           ) : (
-            <Button
+            <CustomizableButton
               variant="contained"
+              text="New Project"
               startIcon={<AddCircleOutlineIcon size={16} />}
               onClick={() => setIsProjectFormModalOpen(true)}
-              disabled={!allowedRoles.projects.create.includes(userRoleName)}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#0e5c47",
-                },
-                "&:disabled": {
-                  backgroundColor: "#cccccc",
-                  color: "#666666",
-                },
-              }}
-            >
-              New Project
-            </Button>
+              isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
+            />
           )}
         </Box>
       </Stack>

@@ -10,9 +10,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Chip,
   CircularProgress,
 } from "@mui/material";
+import VWChip from "../../components/Chip";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   readDataset,
@@ -270,7 +270,7 @@ export default function DatasetEditorPage() {
               <AccordionSummary expandIcon={<ChevronDown size={16} />}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, mr: 1 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: "13px" }}>{`Prompt ${idx + 1}`}</Typography>
-                  <Chip size="small" label={stp.category || "uncategorized"} sx={{ height: 18, fontSize: "10px" }} />
+                  <VWChip label={stp.category || "uncategorized"} size="small" variant="default" uppercase={false} />
                   {stp.prompt && (
                     <Typography 
                       sx={{ 

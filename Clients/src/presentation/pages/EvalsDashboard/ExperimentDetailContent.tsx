@@ -41,10 +41,10 @@ const formatMetricName = (name: string): string => {
     // Insert space before uppercase letters at the start of common words
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
 
-  // Capitalize first letter of each word
+  // Sentence case: capitalize first letter only, lowercase the rest
   formatted = formatted
     .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word, i) => i === 0 ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : word.toLowerCase())
     .join(' ');
 
   return formatted;
@@ -644,7 +644,7 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
           </Stack>
 
           {/* Info Section */}
-          <Stack direction="row" spacing={3} alignItems="flex-start">
+          <Stack direction="row" spacing={5} alignItems="flex-start">
             <Box sx={{ textAlign: "center" }}>
               <Typography sx={{ fontSize: 9, color: experiment.status === "completed" ? "#065f46" : "#9ca3af", textTransform: "uppercase" }}>
                 Model
@@ -1109,54 +1109,66 @@ export default function ExperimentDetailContent({ experimentId, projectId, onBac
                 <table
                   style={{
                     width: "100%",
+                    tableLayout: "fixed",
                     borderCollapse: "collapse",
                     fontSize: "12px",
                   }}
                 >
                   <thead>
-                    <tr style={{ backgroundColor: "#F9FAFB" }}>
-                      <th
-                        style={{
-                          fontWeight: 600,
-                          fontSize: "11px",
-                          width: 50,
-                          textAlign: "center",
-                          padding: "12px 16px",
-                          borderBottom: "2px solid #d1d5db",
-                          borderRight: "1px solid #d1d5db",
-                        }}
-                      >
-                        #
-                      </th>
-                      <th
-                        style={{
-                          fontWeight: 600,
-                          fontSize: "11px",
-                          textAlign: "center",
-                          padding: "12px 16px",
-                          borderBottom: "2px solid #d1d5db",
-                          borderRight: "1px solid #d1d5db",
-                        }}
-                      >
-                        Input
-                      </th>
-                      {metricColumns.map((metric) => (
-                        <th
-                          key={metric}
-                          style={{
-                            fontWeight: 600,
-                            fontSize: "11px",
-                            textAlign: "center",
-                            padding: "12px 16px",
-                            whiteSpace: "nowrap",
-                            borderBottom: "2px solid #d1d5db",
-                            borderRight: "1px solid #d1d5db",
-                          }}
-                        >
-                          {formatMetricName(metric)}
-                        </th>
-                      ))}
-                    </tr>
+                    {(() => {
+                      // Input column should be 3x the width of each metric column
+                      // Total proportional units: 3 (input) + metricColumns.length (1 each)
+                      // The # column is a fixed 50px
+                      const totalUnits = 3 + metricColumns.length;
+                      const metricColWidth = `${(100 / totalUnits).toFixed(2)}%`;
+                      const inputColWidth = `${((3 * 100) / totalUnits).toFixed(2)}%`;
+                      return (
+                        <tr style={{ backgroundColor: "#F9FAFB" }}>
+                          <th
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "11px",
+                              width: 50,
+                              textAlign: "center",
+                              padding: "12px 16px",
+                              borderBottom: "2px solid #d1d5db",
+                              borderRight: "1px solid #d1d5db",
+                            }}
+                          >
+                            #
+                          </th>
+                          <th
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "11px",
+                              width: inputColWidth,
+                              textAlign: "center",
+                              padding: "12px 16px",
+                              borderBottom: "2px solid #d1d5db",
+                              borderRight: "1px solid #d1d5db",
+                            }}
+                          >
+                            Input
+                          </th>
+                          {metricColumns.map((metric) => (
+                            <th
+                              key={metric}
+                              style={{
+                                fontWeight: 600,
+                                fontSize: "11px",
+                                width: metricColWidth,
+                                textAlign: "center",
+                                padding: "12px 8px",
+                                borderBottom: "2px solid #d1d5db",
+                                borderRight: "1px solid #d1d5db",
+                              }}
+                            >
+                              {formatMetricName(metric)}
+                            </th>
+                          ))}
+                        </tr>
+                      );
+                    })()}
                   </thead>
                   <tbody>
                     {logs.length === 0 ? (

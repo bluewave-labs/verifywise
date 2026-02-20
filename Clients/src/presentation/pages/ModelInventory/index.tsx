@@ -14,7 +14,6 @@ import {
   Fade,
   Modal,
   Typography,
-  Button,
   useTheme,
   IconButton,
 } from "@mui/material";
@@ -1100,7 +1099,6 @@ const ModelInventory: React.FC = () => {
   ): Promise<string> => {
     // Prevent concurrent link creation
     if (isCreatingLink) {
-      console.log("Link creation already in progress, skipping...");
       return shareableLink;
     }
 
@@ -1142,7 +1140,6 @@ const ModelInventory: React.FC = () => {
             id: shareLinkId,
             is_enabled: true,
           });
-          console.log("Share link re-enabled successfully");
         } catch (error) {
           console.error("Failed to re-enable share link:", error);
           // Revert the UI state if API call fails
@@ -1164,7 +1161,6 @@ const ModelInventory: React.FC = () => {
           id: shareLinkId,
           is_enabled: false,
         });
-        console.log("Share link disabled successfully");
       } catch (error) {
         console.error("Failed to disable share link:", error);
         // Revert the UI state if API call fails
@@ -1219,54 +1215,31 @@ const ModelInventory: React.FC = () => {
 
     try {
       // Fetch ALL existing share links for this resource and disable them
-      console.log("Fetching all share links for model/0...");
       const existingLinksResponse: any = await getShareLinksForResource(
         "model",
         0
       );
       const existingLinks = existingLinksResponse?.data?.data || [];
 
-      console.log(
-        `Found ${existingLinks.length} existing share links:`,
-        existingLinks
-      );
-
       // Disable all existing links
       let disabledCount = 0;
       for (const link of existingLinks) {
-        console.log(
-          `Processing link ID ${link.id}: is_enabled=${link.is_enabled}, share_token=${link.share_token}`
-        );
-
         if (link.is_enabled) {
-          console.log(`Attempting to disable share link ID: ${link.id}`);
           try {
-            const updateResult = await updateShareMutation.mutateAsync({
+            await updateShareMutation.mutateAsync({
               id: link.id,
               is_enabled: false,
             });
-            console.log(
-              `Successfully disabled link ID ${link.id}. Update result:`,
-              updateResult
-            );
             disabledCount++;
           } catch (updateError) {
             console.error(`Failed to disable link ID ${link.id}:`, updateError);
             throw updateError;
           }
-        } else {
-          console.log(`Link ID ${link.id} is already disabled, skipping`);
         }
       }
 
-      console.log(
-        `All previous links disabled. Total disabled: ${disabledCount}`
-      );
-
       // Create a new link
-      console.log("Creating new share link...");
-      const newLink = await generateShareableLink(shareSettings);
-      console.log("New share link created:", newLink);
+      await generateShareableLink(shareSettings);
 
       setAlert({
         variant: "success",
@@ -1282,7 +1255,7 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleOpenLink = (link: string) => {
-    console.log("Opening link:", link);
+    window.open(link, "_blank", "noopener,noreferrer");
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -1756,7 +1729,6 @@ const ModelInventory: React.FC = () => {
       } else {
         // Create new Evidence
         const response = await createEvidenceHub("/evidenceHub", formData);
-        console.log("response", response);
 
         if (response?.data) {
           setEvidenceHubData((prev) => [...prev, response.data]);
@@ -1976,47 +1948,28 @@ const ModelInventory: React.FC = () => {
             mt={theme.spacing(12)}
             justifyContent="flex-end"
           >
-            <Button
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
+            <CustomizableButton
               variant="text"
-              color="inherit"
+              text="Cancel"
               onClick={() => setShowReplaceConfirmation(false)}
               sx={{
                 width: 100,
-                textTransform: "capitalize",
                 fontSize: 13,
-                borderRadius: "4px",
+                color: "inherit",
                 "&:hover": {
-                  boxShadow: "none",
                   backgroundColor: "transparent",
                 },
               }}
-            >
-              Cancel
-            </Button>
-            <Button
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
+            />
+            <CustomizableButton
               variant="contained"
+              text="Replace Link"
               onClick={handleConfirmReplace}
               sx={{
                 width: 160,
                 fontSize: 13,
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                boxShadow: "none",
-                borderRadius: "4px",
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: "#0f5a48",
-                },
               }}
-            >
-              Replace Link
-            </Button>
+            />
           </Stack>
         </Stack>
       </Modal>

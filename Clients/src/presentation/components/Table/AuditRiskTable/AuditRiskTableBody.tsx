@@ -32,7 +32,7 @@ import {
   ITypeRisk,
 } from "../../../types/interfaces/i.table";
 
-const navigteToNewTab = (url: string) => {
+const navigateToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
@@ -84,7 +84,7 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
     event.stopPropagation();
     const riskId = riskData.id;
     if (riskId) {
-      navigteToNewTab(
+      navigateToNewTab(
         `/project-view?projectId=${searchParams.get(
           "projectId"
         )}&tab=project-risks&riskId=${riskId}`

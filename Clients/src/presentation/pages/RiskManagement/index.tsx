@@ -690,6 +690,7 @@ const RiskManagement = () => {
     <PageHeaderExtended
       title="Risk Management"
       description="Manage and monitor risks across all your projects"
+
       helpArticlePath="risk-management/risk-assessment"
       tipBoxEntity="risk-management"
       summaryCards={

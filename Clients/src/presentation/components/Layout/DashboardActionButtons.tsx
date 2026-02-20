@@ -12,6 +12,7 @@ import {
   getMyApprovalRequests,
 } from '../../../application/repository/approvalRequest.repository';
 import { actionButtonsStyles } from './style';
+import './icon-shake.css';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
@@ -95,6 +96,9 @@ export const DashboardActionButtons = memo(function DashboardActionButtons({
     height: '32px',
     borderRadius: '4px',
     transition: 'all 0.2s ease',
+    '&:hover svg': {
+      animation: 'icon-shake 400ms ease-in-out',
+    },
   };
 
   const [totalApprovalCount, setTotalApprovalCount] = useState(0);

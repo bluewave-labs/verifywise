@@ -500,6 +500,7 @@ const IncidentManagement: React.FC = () => {
       <PageHeaderExtended
         title="Incident Management"
         description="End-to-end management of the AI incident lifecycle. You can log events in full detail, analyze root causes, and document corrective and preventive actions."
+
         helpArticlePath="ai-governance/incident-management"
         tipBoxEntity="ai-incident-managements"
         alert={

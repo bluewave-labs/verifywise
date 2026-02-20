@@ -19,6 +19,7 @@ import {
   TableRow,
   TableCell,
   TableContainer,
+  useTheme,
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import { Trash2, Copy, Check, Pencil, Ban } from "lucide-react";
@@ -49,7 +50,7 @@ import { useUserGuideSidebarContext } from "../../components/UserGuide";
 
 const sectionTitleSx = {
   fontWeight: 600,
-  fontSize: 15,
+  fontSize: 16,
 };
 
 const docLinkSx = {
@@ -100,7 +101,19 @@ export default function SettingsPage() {
 
 // ─── API Keys Section ───────────────────────────────────────────────
 
+function useCardSx() {
+  const theme = useTheme();
+  return {
+    background: theme.palette.background.paper,
+    border: `1.5px solid ${theme.palette.border.light}`,
+    borderRadius: theme.shape.borderRadius,
+    p: theme.spacing(5, 6),
+    boxShadow: "none",
+  };
+}
+
 function ApiKeysSection() {
+  const cardSx = useCardSx();
   const { open: openGuide } = useUserGuideSidebarContext();
   const [loading, setLoading] = useState(true);
   const [keys, setKeys] = useState<IShadowAiApiKey[]>([]);
@@ -191,6 +204,7 @@ function ApiKeysSection() {
   };
 
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography sx={sectionTitleSx}>API keys</Typography>
@@ -400,12 +414,14 @@ function ApiKeysSection() {
         </Typography>
       </StandardModal>
     </Stack>
+    </Box>
   );
 }
 
 // ─── Syslog Config Section ──────────────────────────────────────────
 
 function SyslogConfigSection() {
+  const cardSx = useCardSx();
   const { open: openGuide } = useUserGuideSidebarContext();
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState<IShadowAiSyslogConfig[]>([]);
@@ -501,6 +517,7 @@ function SyslogConfigSection() {
   };
 
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography sx={sectionTitleSx}>Syslog sources</Typography>
@@ -696,6 +713,7 @@ function SyslogConfigSection() {
         </Typography>
       </StandardModal>
     </Stack>
+    </Box>
   );
 }
 
@@ -775,8 +793,10 @@ const codeBoxSx = {
 };
 
 function DataFormatsSection() {
+  const cardSx = useCardSx();
   const { open: openGuide } = useUserGuideSidebarContext();
   return (
+    <Box sx={cardSx}>
     <Stack gap="16px">
       <Typography sx={sectionTitleSx}>Data formats</Typography>
       <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
@@ -900,6 +920,7 @@ function DataFormatsSection() {
         </Table>
       </TableContainer>
     </Stack>
+    </Box>
   );
 }
 
@@ -943,11 +964,13 @@ function RateLimitSection({
     }
   };
 
+  const cardSx = useCardSx();
   const currentValue = settings?.rate_limit_max_events_per_hour ?? 0;
   const inputValue = rateLimit.trim() === "" ? 0 : parseInt(rateLimit, 10) || 0;
   const hasChanged = inputValue !== currentValue;
 
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Typography sx={sectionTitleSx}>Rate limiting</Typography>
       <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
@@ -993,6 +1016,7 @@ function RateLimitSection({
         </Typography>
       )}
     </Stack>
+    </Box>
   );
 }
 
@@ -1075,7 +1099,10 @@ function DataRetentionSection({
     },
   ];
 
+  const cardSx = useCardSx();
+
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Typography sx={sectionTitleSx}>Data retention</Typography>
       <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
@@ -1119,6 +1146,7 @@ function DataRetentionSection({
         </Stack>
       )}
     </Stack>
+    </Box>
   );
 }
 
@@ -1132,7 +1160,9 @@ const RISK_WEIGHTS = [
 ];
 
 function RiskScoreSection() {
+  const cardSx = useCardSx();
   return (
+    <Box sx={cardSx}>
     <Stack gap="16px">
       <Typography sx={sectionTitleSx}>Risk score calculation</Typography>
       <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
@@ -1166,5 +1196,6 @@ function RiskScoreSection() {
         ))}
       </Stack>
     </Stack>
+    </Box>
   );
 }

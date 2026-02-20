@@ -20,13 +20,15 @@ import {
 import {
   Trophy,
   Swords,
-  Zap,
   Target,
   Plus,
   X,
   Search,
   Info,
 } from "lucide-react";
+import { PageHeader } from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
@@ -533,79 +535,14 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   }
 
   return (
-    <Box>
-      {/* Header with gradient background */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
-          borderRadius: "8px",
-          p: "16px",
-          mb: "16px",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Decorative elements */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: -20,
-            right: -20,
-            width: 150,
-            height: 150,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%)",
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: -30,
-            left: "30%",
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(167,139,250,0.3) 0%, transparent 70%)",
-          }}
-        />
-        
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: "relative", zIndex: 1 }}>
-          <Box sx={{ textAlign: "center", flex: 1, pt: "16px", pb: "16px" }}>
-            <Typography
-              sx={{
-                fontSize: 24,
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: "-0.02em",
-                mb: 1,
-              }}
-            >
-              LLM Arena
-            </Typography>
-            <Typography sx={{ fontSize: 14, color: "rgba(255,255,255,0.7)", maxWidth: 400, mx: "auto", mb: "16px" }}>
-              Pit your models against each other in head-to-head battles. Let the LLM judge decide the winner.
-            </Typography>
-            <CustomizableButton
-              variant="contained"
-              text="New battle"
-              icon={<Zap size={18} />}
-              onClick={() => setCreateModalOpen(true)}
-              sx={{
-                background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                color: "#1e1b4b",
-                fontWeight: 600,
-                px: 6,
-                py: 1.5,
-                borderRadius: "4px",
-                boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)",
-                  boxShadow: "0 6px 20px rgba(251,191,36,0.5)",
-                },
-              }}
-            />
-          </Box>
-        </Stack>
+    <Stack sx={{ width: "100%" }}>
+      <PageHeader
+        title="LLM Arena"
+        description="Pit your models against each other in head-to-head battles. Let the LLM judge decide the winner."
+        rightContent={<HelperIcon articlePath="llm-evals/llm-arena" />}
+      />
+      <Box sx={{ mt: "18px" }}>
+        <TipBox entityName="evals-arena" />
       </Box>
 
       {/* Alert */}
@@ -622,67 +559,86 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         </Box>
       ) : comparisons.length === 0 ? (
         /* Empty state when no battles at all */
-        <Box
-          sx={{
-            border: "2px dashed #c7d2fe",
-            borderRadius: "8px",
-            p: "16px",
-            textAlign: "center",
-            backgroundColor: "#f5f3ff",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: 20,
-              left: 20,
-              opacity: 0.1,
-            }}
-          >
-            <Swords size={80} color="#6366f1" />
+        <>
+          {/* New battle button row */}
+          <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
+            <CustomizableButton
+              variant="contained"
+              text="New battle"
+              icon={<Swords size={16} />}
+              onClick={() => setCreateModalOpen(true)}
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+                "&:hover": {
+                  backgroundColor: "#0f5a47",
+                },
+              }}
+            />
           </Box>
           <Box
             sx={{
-              position: "absolute",
-              bottom: 20,
-              right: 20,
-              opacity: 0.1,
+              border: "2px dashed #c7d2fe",
+              borderRadius: "8px",
+              p: "16px",
+              textAlign: "center",
+              backgroundColor: "#f5f3ff",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            <Trophy size={80} color="#6366f1" />
+            <Box
+              sx={{
+                position: "absolute",
+                top: 20,
+                left: 20,
+                opacity: 0.1,
+              }}
+            >
+              <Swords size={80} color="#6366f1" />
+            </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 20,
+                right: 20,
+                opacity: 0.1,
+              }}
+            >
+              <Trophy size={80} color="#6366f1" />
+            </Box>
+
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto",
+                mt: "16px",
+                mb: 3,
+                boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
+              }}
+            >
+              <Swords size={36} color="#fff" />
+            </Box>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#1e1b4b", mb: 1 }}>
+              No battles yet
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mx: "auto", mb: "16px" }}>
+              Create your first arena battle to pit different model versions against each other
+              and discover which one performs better.
+            </Typography>
           </Box>
-          
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto",
-              mt: "16px",
-              mb: 3,
-              boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
-            }}
-          >
-            <Swords size={36} color="#fff" />
-          </Box>
-          <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#1e1b4b", mb: 1 }}>
-            No battles yet
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mx: "auto", mb: "16px" }}>
-            Create your first arena battle to pit different model versions against each other
-            and discover which one performs better.
-          </Typography>
-        </Box>
+        </>
       ) : (
         /* Comparisons with toolbar */
         <>
-          {/* Filter/Group/Search Toolbar */}
+          {/* Filter/Group/Search Toolbar + New battle button */}
           <Stack
             direction="row"
             spacing={2}
@@ -727,6 +683,22 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   "&:hover fieldset": {
                     borderColor: "#98a2b3",
                   },
+                },
+              }}
+            />
+            <Box sx={{ flex: 1 }} />
+            <CustomizableButton
+              variant="contained"
+              text="New battle"
+              icon={<Swords size={16} />}
+              onClick={() => setCreateModalOpen(true)}
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+                whiteSpace: "nowrap",
+                "&:hover": {
+                  backgroundColor: "#0f5a47",
                 },
               }}
             />
@@ -980,7 +952,6 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     key={index}
                     sx={{
                       p: 3,
-                      pt: 3,
                       borderRadius: "4px",
                       border: "2px solid",
                       borderColor: colorScheme.border,
@@ -1049,6 +1020,6 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         )}
       </StepperModal>
 
-    </Box>
+    </Stack>
   );
 }

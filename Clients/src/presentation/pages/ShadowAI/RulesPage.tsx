@@ -317,6 +317,7 @@ export default function RulesPage() {
     <PageHeaderExtended
       title="Rules"
       description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
+
       helpArticlePath="shadow-ai/rules"
       tipBoxEntity="shadow-ai-rules"
       alert={

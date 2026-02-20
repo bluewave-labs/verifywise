@@ -1013,6 +1013,7 @@ const Vendors = () => {
   return (
     <PageHeaderExtended
       title={value === "1" ? "Vendor list" : "Vendor risks list"}
+
       description={
         value === "1"
           ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."

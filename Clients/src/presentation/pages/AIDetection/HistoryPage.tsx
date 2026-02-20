@@ -607,11 +607,17 @@ export default function HistoryPage() {
 
   if (isLoading && scans.length === 0) {
     return (
-      <Box sx={{ textAlign: "center" }}>
-        <Typography variant="body1" sx={{ color: "#667085" }}>
-          Loading scan history...
-        </Typography>
-      </Box>
+      <PageHeaderExtended
+        title="Scan history"
+        description="View past repository scans and their results."
+        helpArticlePath="ai-detection/history"
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body1" sx={{ color: "#667085" }}>
+            Loading scan history...
+          </Typography>
+        </Box>
+      </PageHeaderExtended>
     );
   }
 

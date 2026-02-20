@@ -226,7 +226,10 @@ export default function AIToolsPage() {
   if (selectedTool) {
     const cfg = STATUS_CONFIG[selectedTool.status];
     return (
-      <Stack gap="16px">
+      <PageHeaderExtended
+        title={selectedTool.name}
+        description="AI tool details"
+      >
         <Stack direction="row" alignItems="center" gap="8px">
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
@@ -417,7 +420,7 @@ export default function AIToolsPage() {
             )}
           </Stack>
         )}
-      </Stack>
+      </PageHeaderExtended>
     );
   }
 

@@ -147,16 +147,18 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: 300,
-        }}
-      >
-        <CircularProgress size={32} />
-      </Box>
+      <PageHeaderExtended title="Settings" description="Configure integrations and tokens for AI detection scanning.">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 300,
+          }}
+        >
+          <CircularProgress size={32} />
+        </Box>
+      </PageHeaderExtended>
     );
   }
 

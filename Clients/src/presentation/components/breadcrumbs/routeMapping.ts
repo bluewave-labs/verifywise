@@ -116,17 +116,18 @@ export const routeMapping: Record<string, string> = {
   "/ai-detection": "AI detection",
   "/ai-detection/scan": "Scan repository",
   "/ai-detection/history": "Scan history",
+  "/ai-detection/scans": "Scan history",
   "/ai-detection/settings": "Settings",
 
   // Shadow AI
   "/shadow-ai": "Shadow AI",
   "/shadow-ai/insights": "Insights",
   "/shadow-ai/user-activity": "User activity",
-  "/shadow-ai/user-activity/users": "User activity",
-  "/shadow-ai/user-activity/departments": "User activity",
+  "/shadow-ai/user-activity/users": "Users",
+  "/shadow-ai/user-activity/departments": "Departments",
   "/shadow-ai/tools": "AI tools",
   "/shadow-ai/rules": "Rules",
-  "/shadow-ai/rules/alerts": "Rules",
+  "/shadow-ai/rules/alerts": "Alert history",
   "/shadow-ai/settings": "Settings",
 
   // Authentication
@@ -227,6 +228,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/ai-detection": () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
   "/ai-detection/scan": () => React.createElement(Search, { size: 14, strokeWidth: 1.5 }),
   "/ai-detection/history": () => React.createElement(History, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/scans": () => React.createElement(History, { size: 14, strokeWidth: 1.5 }),
   "/ai-detection/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // Shadow AI
@@ -244,7 +246,6 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
 /**
  * Route pattern configuration for dynamic route matching
- * @type {Array<{pattern: RegExp, label: string, description?: string}>}
  */
 export const dynamicRoutePatterns = [
   {
@@ -281,13 +282,15 @@ export const dynamicRoutePatterns = [
     pattern: /\/ai-detection\/scans\/\d+/,
     label: "Scan details",
     description: "Detailed view of specific scan results",
+    icon: () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
   },
   {
     pattern: /\/shadow-ai\/tools\/\d+/,
     label: "Tool details",
     description: "Detailed view of specific AI tool",
+    icon: () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),
   },
-] as const;
+];
 
 /**
  * Dynamic route mapping function for project-specific routes
@@ -358,8 +361,18 @@ export const getRouteMapping = (path: string): string => {
  * @returns {React.ReactNode | null} The appropriate icon or null if no match
  */
 export const getRouteIcon = (path: string): React.ReactNode | null => {
+  // Check static mapping first
   const iconFunction = routeIconMapping[path];
-  return iconFunction ? iconFunction() : null;
+  if (iconFunction) return iconFunction();
+
+  // Check dynamic patterns for icon
+  for (const entry of dynamicRoutePatterns) {
+    if (entry.pattern.test(path) && "icon" in entry && entry.icon) {
+      return entry.icon();
+    }
+  }
+
+  return null;
 };
 
 /**

@@ -212,13 +212,16 @@ export default function UserActivityPage() {
   // ─── Detail view ───
   if (selectedEmail) {
     return (
-      <Stack gap="16px">
+      <PageHeaderExtended
+        title="User activity"
+        description={selectedEmail}
+      >
         <Stack direction="row" alignItems="center" gap="8px">
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
           </IconButton>
           <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-            User activity
+            {selectedEmail}
           </Typography>
         </Stack>
 
@@ -291,7 +294,7 @@ export default function UserActivityPage() {
             User not found
           </Typography>
         )}
-      </Stack>
+      </PageHeaderExtended>
     );
   }
 

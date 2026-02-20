@@ -2,18 +2,21 @@ import React, { useState, useCallback, Suspense } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import { X } from "lucide-react";
 import { FPS, SCENE_DURATIONS } from "./styles";
+import { RELEASE_VERSION, RELEASE_FEATURES } from "./releaseConfig";
 
 // Lazy-load the entire player + composition bundle together
 const LazyVideoPlayer = React.lazy(() =>
   import("./VideoPlayer").then((mod) => ({ default: mod.VideoPlayer }))
 );
 
-// Total duration: intro(135) + 8*feature(150) + outro(135) - 9*transition(15) = 1335 frames
+// Duration auto-calculated from feature count
+const featureCount = RELEASE_FEATURES.length;
+const transitionCount = featureCount + 1; // between intro→features and features→outro
 const TOTAL_DURATION =
   SCENE_DURATIONS.intro +
-  8 * SCENE_DURATIONS.feature +
+  featureCount * SCENE_DURATIONS.feature +
   SCENE_DURATIONS.outro -
-  9 * SCENE_DURATIONS.transition;
+  transitionCount * SCENE_DURATIONS.transition;
 
 interface WhatsNewVideoModalProps {
   onClose: () => void;
@@ -97,7 +100,7 @@ export const WhatsNewVideoModal: React.FC<WhatsNewVideoModalProps> = ({
           letterSpacing: -0.5,
         }}
       >
-        What's new in v2.1
+        What's new in v{RELEASE_VERSION}
       </Box>
 
       {/* Player container */}

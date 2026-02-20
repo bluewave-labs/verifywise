@@ -6,57 +6,7 @@ import { IntroScene } from "./scenes/IntroScene";
 import { FeatureScene } from "./scenes/FeatureScene";
 import { OutroScene } from "./scenes/OutroScene";
 import { COLORS, SCENE_DURATIONS } from "./styles";
-
-const FEATURES = [
-  {
-    number: "01",
-    category: "Detection",
-    title: "Shadow AI detection",
-    description: "Discover unauthorized AI tool usage across the organization",
-  },
-  {
-    number: "02",
-    category: "Discovery",
-    title: "AI agent discovery & inventory",
-    description: "Catalog and monitor AI agents org-wide",
-  },
-  {
-    number: "03",
-    category: "Evaluation",
-    title: "Law-aware bias audit module",
-    description: "Bias auditing for LLM evaluations with legal awareness",
-  },
-  {
-    number: "04",
-    category: "Plugin",
-    title: "Jira integration plugin",
-    description: "Connect your AI governance workflow directly to Jira",
-  },
-  {
-    number: "05",
-    category: "Plugin",
-    title: "Model inventory lifecycle plugin",
-    description: "Track and manage the full lifecycle of your AI models",
-  },
-  {
-    number: "06",
-    category: "Plugin",
-    title: "Dataset bulk upload plugin",
-    description: "Upload and manage evaluation datasets in bulk",
-  },
-  {
-    number: "07",
-    category: "Detection",
-    title: "Extended AI detection",
-    description: "Now covers workflows, containers, and configs",
-  },
-  {
-    number: "08",
-    category: "Governance",
-    title: "Lifecycle initialization wizard",
-    description: "Shadow AI governance wizard for lifecycle setup",
-  },
-];
+import { RELEASE_RELEASE_FEATURES } from "./releaseConfig";
 
 export const ReleaseComposition: React.FC = () => {
   const { fps, durationInFrames } = useVideoConfig();
@@ -88,7 +38,7 @@ export const ReleaseComposition: React.FC = () => {
           <IntroScene />
         </TransitionSeries.Sequence>
 
-        {FEATURES.flatMap((feature) => [
+        {RELEASE_FEATURES.flatMap((feature) => [
           <TransitionSeries.Transition
             key={`t-${feature.number}`}
             presentation={fade()}

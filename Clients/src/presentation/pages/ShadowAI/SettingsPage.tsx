@@ -44,7 +44,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { useUserGuideSidebarContext } from "../../components/UserGuide";
 
 const sectionTitleSx = {
@@ -82,7 +82,7 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="Settings"
       description="Manage API keys for syslog integration and configure syslog sources to feed network traffic data into Shadow AI detection."
       helpArticlePath="shadow-ai/settings"
@@ -94,7 +94,7 @@ export default function SettingsPage() {
       <RateLimitSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <DataRetentionSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <RiskScoreSection />
-    </PageSubHeader>
+    </PageHeaderExtended>
   );
 }
 

@@ -52,7 +52,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   SelectorVertical,
   SortableColumn,
@@ -314,8 +314,7 @@ export default function RulesPage() {
   const theme = useTheme();
 
   return (
-    <TabContext value={viewMode}>
-    <PageSubHeader
+    <PageHeaderExtended
       title="Rules"
       description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
       helpArticlePath="shadow-ai/rules"
@@ -333,6 +332,7 @@ export default function RulesPage() {
         ) : undefined
       }
     >
+      <TabContext value={viewMode}>
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
@@ -744,7 +744,7 @@ export default function RulesPage() {
           preserved.
         </Typography>
       </StandardModal>
-    </PageSubHeader>
     </TabContext>
+    </PageHeaderExtended>
   );
 }

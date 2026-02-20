@@ -47,7 +47,7 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   SelectorVertical,
   SortableColumn,
@@ -423,7 +423,7 @@ export default function AIToolsPage() {
 
   // ─── List view ───
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="AI tools"
       description="View and manage all AI tools detected in your organization's network traffic. Review risk scores, update tool statuses, and start formal governance for any discovered tool."
       helpArticlePath="shadow-ai/ai-tools"
@@ -562,7 +562,7 @@ export default function AIToolsPage() {
           </Table>
         </TableContainer>
       )}
-    </PageSubHeader>
+    </PageHeaderExtended>
   );
 }
 

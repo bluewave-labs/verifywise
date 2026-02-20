@@ -149,7 +149,7 @@ export function ContextSidebar({
           toolsCount={shadowAiSidebarContext?.toolsCount ?? 0}
           alertsCount={shadowAiSidebarContext?.alertsCount ?? 0}
           recentTools={shadowAiSidebarContext?.recentTools ?? []}
-          onToolClick={shadowAiSidebarContext?.onToolClick}
+          onToolClick={(toolId) => navigate(`/shadow-ai/tools/${toolId}`)}
         />
       );
     }

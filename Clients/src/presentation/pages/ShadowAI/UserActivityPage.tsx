@@ -39,7 +39,7 @@ import {
   ShadowAiDepartmentActivity,
 } from "../../../domain/interfaces/i.shadowAi";
 import { EmptyState } from "../../components/EmptyState";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import {
   PERIOD_OPTIONS,
@@ -307,13 +307,13 @@ export default function UserActivityPage() {
   };
 
   return (
-    <TabContext value={viewMode}>
-    <PageSubHeader
+    <PageHeaderExtended
       title="User activity"
       description="Monitor individual user and department-level AI tool usage across your organization. Track prompts, identify high-risk users, and review activity by department."
       helpArticlePath="shadow-ai/user-activity"
       tipBoxEntity="shadow-ai-user-activity"
     >
+    <TabContext value={viewMode}>
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
@@ -537,8 +537,8 @@ export default function UserActivityPage() {
           </Table>
         </TableContainer>
       )}
-    </PageSubHeader>
     </TabContext>
+    </PageHeaderExtended>
   );
 }
 

@@ -49,7 +49,8 @@ import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import { DashboardCard } from "../../components/Cards/DashboardCard";
 import { VWLink } from "../../components/Link/VWLink";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
+import ShadowAIOnboarding from "../../components/Modals/ShadowAIOnboarding";
 import { useNavigate } from "react-router-dom";
 import { PERIOD_OPTIONS } from "./constants";
 
@@ -66,6 +67,7 @@ const DEPT_COLORS = [
 
 export default function InsightsPage() {
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [period, setPeriod] = useState("30d");
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<ShadowAiInsightsSummary | null>(null);
@@ -109,7 +111,7 @@ export default function InsightsPage() {
   };
 
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="Insights"
       description="Overview of Shadow AI activity across your organization. See summary metrics, top tools by usage, risk rankings, and department breakdown at a glance."
       helpArticlePath="shadow-ai/insights"
@@ -378,7 +380,11 @@ export default function InsightsPage() {
           </DashboardCard>
         </Stack>
       </Stack>
-    </PageSubHeader>
+      <ShadowAIOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
+    </PageHeaderExtended>
   );
 }
 

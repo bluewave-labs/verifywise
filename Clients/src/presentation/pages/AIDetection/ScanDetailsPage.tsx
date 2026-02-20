@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Box, Typography, Collapse, IconButton, Tooltip, Popover } from "@mui/material";
 import { TabContext } from "@mui/lab";
 import {
@@ -34,6 +34,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import Chip from "../../components/Chip";
 import TabBar from "../../components/TabBar";
 import { VWLink } from "../../components/Link";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 // AI provider icons - lightweight local components (no external dependencies)
 import { PROVIDER_ICONS } from "../../components/ProviderIcons";
 // ML framework logos - for providers without lobehub icons
@@ -82,11 +83,6 @@ type TabValue =
   | "agents"
   | "compliance";
 
-interface ScanDetailsPageProps {
-  scanId: number;
-  onBack: () => void;
-  initialTab?: TabValue;
-}
 
 // ============================================================================
 // Configuration
@@ -945,12 +941,11 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
 // Main Component
 // ============================================================================
 
-export default function ScanDetailsPage({
-  scanId,
-  onBack,
-  initialTab = "libraries",
-}: ScanDetailsPageProps) {
+export default function ScanDetailsPage() {
   const navigate = useNavigate();
+  const { scanId: scanIdParam, tab } = useParams<{ scanId: string; tab?: string }>();
+  const scanId = parseInt(scanIdParam || "0", 10);
+  const initialTab: TabValue = (tab as TabValue) || "libraries";
   const [scan, setScan] = useState<ScanResponse | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [apiCallFindings, setApiCallFindings] = useState<Finding[]>([]);
@@ -1266,31 +1261,38 @@ export default function ScanDetailsPage({
 
   if (isLoading && !scan) {
     return (
-      <Box sx={{ textAlign: "center" }}>
-        <Typography variant="body1" sx={{ color: "#667085" }}>
-          Loading scan details...
-        </Typography>
-      </Box>
+      <PageHeaderExtended title="Scan details">
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body1" sx={{ color: "#667085" }}>
+            Loading scan details...
+          </Typography>
+        </Box>
+      </PageHeaderExtended>
     );
   }
 
   if (!scan) {
     return (
-      <Box sx={{ textAlign: "center" }}>
-        <Typography variant="body1" sx={{ color: "#d92d20" }}>
-          Failed to load scan details
-        </Typography>
-      </Box>
+      <PageHeaderExtended title="Scan details">
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body1" sx={{ color: "#d92d20" }}>
+            Failed to load scan details
+          </Typography>
+        </Box>
+      </PageHeaderExtended>
     );
   }
 
   return (
-    <>
+    <PageHeaderExtended
+      title="Scan details"
+      description={`${scan.scan.repository_owner}/${scan.scan.repository_name}`}
+    >
       {/* Back Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
         <CustomizableButton
           text="Back to history"
-          onClick={onBack}
+          onClick={() => navigate("/ai-detection/history")}
           variant="text"
           startIcon={<ArrowLeft size={16} />}
           sx={{ mb: 3 }}
@@ -2821,6 +2823,6 @@ export default function ScanDetailsPage({
         repositoryName={`${scan.scan.repository_owner}/${scan.scan.repository_name}`}
         repositoryUrl={scan.scan.repository_url}
       />
-    </>
+    </PageHeaderExtended>
   );
 }

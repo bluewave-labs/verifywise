@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -31,7 +32,7 @@ import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import SearchBox from "../../components/Search/SearchBox";
@@ -40,6 +41,7 @@ import { useGroupByState, useTableGrouping } from "../../../application/hooks/us
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { getScans, deleteScan, getScanStatus } from "../../../application/repository/aiDetection.repository";
 import { Scan, ScansResponse, ScanStatus } from "../../../domain/ai-detection/types";
+import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
 
 const ACTIVE_STATUSES: ScanStatus[] = ["pending", "cloning", "scanning"];
 const POLL_INTERVAL_MS = 3000;
@@ -57,10 +59,6 @@ const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
-interface HistoryPageProps {
-  onScanClick: (scanId: number) => void;
-  onScanDeleted: () => void;
-}
 
 // Table columns configuration with sortable flag
 const TABLE_COLUMNS = [
@@ -186,8 +184,10 @@ const GROUP_BY_OPTIONS = [
   { id: "triggered_by", label: "Triggered by" },
 ];
 
-export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageProps) {
+export default function HistoryPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { refreshRecentScans } = useAIDetectionSidebarContext();
   const [scans, setScans] = useState<Scan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -358,7 +358,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
       await deleteScan(scanToDelete.id);
       setScans((prev) => prev.filter((s) => s.id !== scanToDelete.id));
       setTotal((prev) => prev - 1);
-      onScanDeleted();
+      refreshRecentScans();
       setAlert({
         variant: "success",
         body: `Scan for ${repoIdentifier} deleted.`,
@@ -617,7 +617,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
 
   if (!isLoading && scans.length === 0 && total === 0) {
     return (
-      <PageSubHeader
+      <PageHeaderExtended
         title="Scan history"
         description="View past repository scans and their results."
         helpArticlePath="ai-detection/history"
@@ -626,7 +626,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
           message="No scans yet. Start your first scan to detect AI/ML libraries in a repository."
           showBorder
         />
-      </PageSubHeader>
+      </PageHeaderExtended>
     );
   }
 
@@ -637,7 +637,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
   };
 
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="Scan history"
       description="View past repository scans and their results."
       helpArticlePath="ai-detection/history"
@@ -697,7 +697,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
                     key={scan.id}
                     onClick={() => {
                       if (scan.status === "completed" || scan.status === "failed") {
-                        onScanClick(scan.id);
+                        navigate(`/ai-detection/scans/${scan.id}`);
                       }
                     }}
                     sx={{
@@ -832,6 +832,6 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
           TitleFontSize={0}
         />
       )}
-    </PageSubHeader>
+    </PageHeaderExtended>
   );
 }

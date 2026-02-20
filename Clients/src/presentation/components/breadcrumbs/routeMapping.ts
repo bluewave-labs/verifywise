@@ -35,6 +35,11 @@ import {
   WorkflowIcon,
   Bot,
   Database,
+  FileSearch,
+  Search,
+  History,
+  Eye,
+  ShieldAlert,
 } from "lucide-react";
 
 /**
@@ -106,6 +111,23 @@ export const routeMapping: Record<string, string> = {
   "/framework/linked-models": "Linked models",
   "/framework/controls": "Controls and requirements",
   "/framework/settings": "Settings",
+
+  // AI Detection
+  "/ai-detection": "AI detection",
+  "/ai-detection/scan": "Scan repository",
+  "/ai-detection/history": "Scan history",
+  "/ai-detection/settings": "Settings",
+
+  // Shadow AI
+  "/shadow-ai": "Shadow AI",
+  "/shadow-ai/insights": "Insights",
+  "/shadow-ai/user-activity": "User activity",
+  "/shadow-ai/user-activity/users": "User activity",
+  "/shadow-ai/user-activity/departments": "User activity",
+  "/shadow-ai/tools": "AI tools",
+  "/shadow-ai/rules": "Rules",
+  "/shadow-ai/rules/alerts": "Rules",
+  "/shadow-ai/settings": "Settings",
 
   // Authentication
   "/login": "Sign in",
@@ -201,6 +223,23 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   //ApprovalWorkflow
   "/approval-workflows": () => React.createElement(WorkflowIcon, { size: 14, strokeWidth: 1.5 }),
 
+  // AI Detection
+  "/ai-detection": () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/scan": () => React.createElement(Search, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/history": () => React.createElement(History, { size: 14, strokeWidth: 1.5 }),
+  "/ai-detection/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
+  // Shadow AI
+  "/shadow-ai": () => React.createElement(Eye, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/insights": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/user-activity": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/user-activity/users": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/user-activity/departments": () => React.createElement(Users, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/tools": () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/rules": () => React.createElement(ShieldAlert, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/rules/alerts": () => React.createElement(ShieldAlert, { size: 14, strokeWidth: 1.5 }),
+  "/shadow-ai/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
 };
 
 /**
@@ -237,6 +276,16 @@ export const dynamicRoutePatterns = [
     pattern: /\/plugins\/[a-zA-Z0-9-]+\/manage/,
     label: "Plugin details",
     description: "Specific plugin management page",
+  },
+  {
+    pattern: /\/ai-detection\/scans\/\d+/,
+    label: "Scan details",
+    description: "Detailed view of specific scan results",
+  },
+  {
+    pattern: /\/shadow-ai\/tools\/\d+/,
+    label: "Tool details",
+    description: "Detailed view of specific AI tool",
   },
 ] as const;
 

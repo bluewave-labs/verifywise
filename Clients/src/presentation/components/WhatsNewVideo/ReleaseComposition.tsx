@@ -6,7 +6,7 @@ import { IntroScene } from "./scenes/IntroScene";
 import { FeatureScene } from "./scenes/FeatureScene";
 import { OutroScene } from "./scenes/OutroScene";
 import { COLORS, SCENE_DURATIONS } from "./styles";
-import { RELEASE_RELEASE_FEATURES } from "./releaseConfig";
+import { RELEASE_FEATURES } from "./releaseConfig";
 
 export const ReleaseComposition: React.FC = () => {
   const { fps, durationInFrames } = useVideoConfig();

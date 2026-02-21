@@ -430,10 +430,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           variant="body2"
                           sx={{
                             fontSize: 13,
-                            color: task.isOverdue
-                              ? "#dc2626"
+                            color: task.isOverdue && task.status !== TaskStatus.COMPLETED
+                              ? "error.main"
                               : "text.secondary",
-                            fontWeight: task.isOverdue ? 500 : 400,
+                            fontWeight: task.isOverdue && task.status !== TaskStatus.COMPLETED ? 500 : 400,
                           }}
                         >
                           {displayFormattedDate(task.due_date)}

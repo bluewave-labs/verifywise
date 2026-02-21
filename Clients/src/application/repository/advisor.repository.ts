@@ -20,31 +20,6 @@ export interface ConversationResponse {
   messages: AdvisorMessage[];
 }
 
-export const runAdvisorAPI = async (
-  data: { prompt: string },
-  llmKeyId?: number
-): Promise<ApiResponse<{ response: string | { markdown?: string; chartData?: unknown } }>> => {
-  try {
-    let url = `/advisor`;
-    if (llmKeyId !== undefined) {
-      url += `?llmKeyId=${llmKeyId}`;
-    }
-    const response = await apiServices.post(url, data);
-    return response as ApiResponse<{ response: string | { markdown?: string; chartData?: unknown } }>;
-  } catch (error: unknown) {
-    // Re-throw the error with the response data intact
-    const axiosError = error as { response?: { status: number; data: unknown } };
-    if (axiosError.response) {
-      throw {
-        ...axiosError,
-        status: axiosError.response.status,
-        data: axiosError.response.data,
-      };
-    }
-    throw error;
-  }
-}
-
 /**
  * Get conversation history for a specific domain
  */

@@ -43,12 +43,12 @@ type SortConfig = {
 };
 
 const columns = [
-  { id: "ucId", label: "Use Case ID", minWidth: 120, sortable: true },
+  { id: "ucId", label: "Use case ID", minWidth: 120, sortable: true },
   { id: "title", label: "Use case title", minWidth: 200, sortable: true },
-  { id: "risk", label: "AI Risk Level", minWidth: 130, sortable: true },
+  { id: "risk", label: "AI risk level", minWidth: 130, sortable: true },
   { id: "role", label: "Role", minWidth: 150, sortable: true },
-  { id: "startDate", label: "Start Date", minWidth: 120, sortable: true },
-  { id: "lastUpdated", label: "Last Updated", minWidth: 120, sortable: true },
+  { id: "startDate", label: "Start date", minWidth: 120, sortable: true },
+  { id: "lastUpdated", label: "Last updated", minWidth: 120, sortable: true },
   { id: "actions", label: "", minWidth: 80, sortable: false },
 ];
 
@@ -293,8 +293,8 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
           break;
 
         case "role":
-          aValue = a.type_of_high_risk_role.toLowerCase();
-          bValue = b.type_of_high_risk_role.toLowerCase();
+          aValue = (a.type_of_high_risk_role || "").toLowerCase();
+          bValue = (b.type_of_high_risk_role || "").toLowerCase();
           break;
 
         case "startDate":
@@ -440,7 +440,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                     sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
                 }}
               >
-                <Chip label={project.ai_risk_classification} />
+                <Chip label={project.ai_risk_classification || "—"} />
               </TableCell>
 
               <TableCell
@@ -452,7 +452,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                     sortConfig.key === "role" ? "#f5f5f5" : "inherit",
                 }}
               >
-                {project.type_of_high_risk_role.replace(/_/g, " ")}
+                {project.type_of_high_risk_role?.replace(/_/g, " ") || "—"}
               </TableCell>
               <TableCell
                 sx={{

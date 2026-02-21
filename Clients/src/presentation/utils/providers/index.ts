@@ -11,6 +11,7 @@ export interface ModelInfo {
   description?: string;
   inputCost?: number;  // Cost per 1M input tokens in USD
   outputCost?: number; // Cost per 1M output tokens in USD
+  recommended?: boolean;
 }
 
 export interface ProviderConfig {
@@ -59,7 +60,6 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   },
   "self-hosted": {
     provider: "self-hosted",
-    displayName: "Self-Hosted",
     models: [],
     ...PROVIDER_META["self-hosted"],
   },
@@ -69,6 +69,10 @@ export const getProviderList = (): ProviderConfig[] => Object.values(PROVIDERS);
 
 export const getModelsForProvider = (providerId: string): ModelInfo[] => {
   return PROVIDERS[providerId]?.models || [];
+};
+
+export const getRecommendedModel = (providerId: string): ModelInfo | undefined => {
+  return getModelsForProvider(providerId).find((m) => m.recommended);
 };
 
 export const getProviderMeta = (providerId: string) => PROVIDER_META[providerId];

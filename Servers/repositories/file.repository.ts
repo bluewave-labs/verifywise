@@ -627,6 +627,86 @@ export async function getFileAccessLogs(
   return logs as FileAccessLog[];
 }
 
+// ============================================================================
+// Full-text search on file content
+// ============================================================================
+
+export interface FileContentSearchOptions {
+  limit?: number;
+  offset?: number;
+}
+
+export interface FileSearchResult {
+  id: number;
+  filename: string;
+  mimetype: string;
+  size: number | null;
+  upload_date: Date;
+  uploaded_by: number;
+  snippet?: string;
+}
+
+/**
+ * Search organization-level files by extracted content using PostgreSQL FTS.
+ *
+ * @param orgId - Organization ID
+ * @param tenant - Tenant schema identifier
+ * @param queryText - User-entered search query
+ * @param options - Pagination and scoping options
+ */
+export async function searchFilesByContent(
+  orgId: number,
+  tenant: string,
+  queryText: string,
+  options: FileContentSearchOptions = {}
+): Promise<{ files: FileSearchResult[] }> {
+  validateTenant(tenant);
+
+  const { limit, offset } = options;
+
+  let query = `
+    SELECT
+      f.id,
+      f.filename,
+      f.type AS mimetype,
+      f.size,
+      f.uploaded_time AS upload_date,
+      f.uploaded_by,
+      -- Snippet is optional; if content_text is null we just return empty string
+      COALESCE(
+        ts_headline(
+          'english',
+          f.content_text,
+          plainto_tsquery('english', :q),
+          'MaxWords=35, MinWords=15'
+        ),
+        ''
+      ) AS snippet
+    FROM ${escapePgIdentifier(tenant)}.files f
+    WHERE
+      f.org_id = :orgId
+      AND f.project_id IS NULL
+      AND (f.source IS NULL OR f.source != 'policy_editor')
+      AND f.content_search IS NOT NULL
+      AND f.content_search @@ plainto_tsquery('english', :q)
+    ORDER BY ts_rank(f.content_search, plainto_tsquery('english', :q)) DESC, f.uploaded_time DESC
+  `;
+
+  if (limit !== undefined) {
+    query += ` LIMIT :limit`;
+  }
+  if (offset !== undefined) {
+    query += ` OFFSET :offset`;
+  }
+
+  const files = await sequelize.query(query, {
+    replacements: { orgId, q: queryText, limit, offset },
+    type: QueryTypes.SELECT,
+  });
+
+  return { files: files as FileSearchResult[] };
+}
+
 /**
  * Gets files associated with a specific model ID
  *
@@ -1158,7 +1238,7 @@ export async function getFilesPendingApproval(
 
 export type FrameworkType = 'eu_ai_act' | 'nist_ai' | 'iso_27001' | 'iso_42001' | string;
 export type EntityType = 'assessment' | 'subcontrol' | 'subclause' | 'annex_control' | 'annex_category' | string;
-export type LinkType = 'evidence' | 'feedback' | 'attachment' | 'reference';
+export type LinkType = 'evidence' | 'feedback' | 'attachment' | 'reference' | 'source_data';
 
 export interface FileEntityLink {
   id?: number;

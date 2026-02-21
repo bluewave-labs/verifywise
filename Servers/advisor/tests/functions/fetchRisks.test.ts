@@ -1,9 +1,9 @@
 import {
-  afterEach, 
-  beforeEach, 
-  describe, 
-  expect, 
-  it, 
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
   jest} from '@jest/globals';
 import * as riskUtils from "../../../utils/risk.utils";
 import { availableRiskTools } from "../../functions/riskFunctions";
@@ -15,11 +15,27 @@ import {
   mockFrameworkRisks,
 } from "../../mocks/mockRiskData";
 import { createMockTenant } from '../../mocks/mockTenant';
+import { IRisk } from "../../../domain.layer/interfaces/I.risk";
 
 const availableTools = {
   ...availableRiskTools,
   ...availableModelInventoryTools,
 };
+
+/** Helper: project a full IRisk to the lightweight shape returned by fetchRisks */
+const toProjection = (r: IRisk) => ({
+  id: r.id,
+  risk_name: r.risk_name,
+  risk_level: r.risk_level_autocalculated,
+  severity: r.severity,
+  likelihood: r.likelihood,
+  risk_category: r.risk_category,
+  mitigation_status: r.mitigation_status,
+  ai_lifecycle_phase: r.ai_lifecycle_phase,
+  deadline: r.deadline,
+  risk_owner: r.risk_owner,
+  current_risk_level: r.current_risk_level,
+});
 
 // Mock the utility modules
 jest.mock("../../../utils/risk.utils");
@@ -44,7 +60,7 @@ describe("Advisor Functions: fetchRisks", () => {
       const result = await fetchRisks({}, mockTenant);
 
       expect(riskUtils.getAllRisksQuery).toHaveBeenCalledWith(mockTenant, "active");
-      expect(result).toEqual(mockRisks);
+      expect(result).toEqual(mockRisks.map(toProjection));
       expect(result).toHaveLength(mockRisks.length);
     });
 
@@ -54,7 +70,7 @@ describe("Advisor Functions: fetchRisks", () => {
       const result = await fetchRisks({ projectId: 1 }, mockTenant);
 
       expect(riskUtils.getRisksByProjectQuery).toHaveBeenCalledWith(1, mockTenant, "active");
-      expect(result).toEqual(mockProjectRisks);
+      expect(result).toEqual(mockProjectRisks.map(toProjection));
     });
 
     it("should fetch risks by frameworkId", async () => {
@@ -63,7 +79,7 @@ describe("Advisor Functions: fetchRisks", () => {
       const result = await fetchRisks({ frameworkId: 1 }, mockTenant);
 
       expect(riskUtils.getRisksByFrameworkQuery).toHaveBeenCalledWith(1, mockTenant, "active");
-      expect(result).toEqual(mockFrameworkRisks);
+      expect(result).toEqual(mockFrameworkRisks.map(toProjection));
     });
 
     it("should return empty array when no risks found", async () => {
@@ -114,7 +130,7 @@ describe("Advisor Functions: fetchRisks", () => {
     it("should filter by risk level", async () => {
       const result = await fetchRisks({ riskLevel: "High risk" }, mockTenant);
 
-      expect(result.every((r: any) => r.risk_level_autocalculated === "High risk")).toBe(true);
+      expect(result.every((r: any) => r.risk_level === "High risk")).toBe(true);
       expect(result.length).toBeGreaterThan(0);
     });
 

@@ -55,6 +55,8 @@ export interface AddNewRiskFormCorePropsBase {
   users?: User[];
   usersLoading?: boolean;
   compactMode?: boolean;
+  /** Entity ID for change history tracking (edit mode only) */
+  entityId?: number;
 }
 
 // Note: AddNewRiskFormCoreProps with React MutableRefObject has been moved to:

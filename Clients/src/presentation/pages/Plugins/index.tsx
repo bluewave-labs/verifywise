@@ -2,9 +2,8 @@ import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Box, Stack, Typography, Collapse, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { Home, Puzzle, ChevronDown } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { ChevronDown } from "lucide-react";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
 import { SearchBox } from "../../components/Search";
@@ -13,7 +12,6 @@ import { usePluginInstallation } from "../../../application/hooks/usePluginInsta
 import { Plugin, PluginInstallationStatus } from "../../../domain/types/plugins";
 import Alert from "../../components/Alert";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { BreadcrumbItem } from "../../../domain/types/breadcrumbs.types";
 import Chip from "../../components/Chip";
 import { EmptyState } from "../../components/EmptyState";
 import { CATEGORIES } from "./categories";
@@ -70,21 +68,6 @@ const Plugins: React.FC = () => {
     }
   }, [location.pathname, refetch]);
 
-  // Custom breadcrumb items
-  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => [
-    {
-      label: "Dashboard",
-      path: "/",
-      icon: <Home size={14} strokeWidth={1.5} />,
-    },
-    {
-      label: "Plugins",
-      path: "/plugins",
-      disabled: true,
-      icon: <Puzzle size={14} strokeWidth={1.5} />,
-    },
-  ], []);
-
   const handleTabChange = useCallback(
     (_event: React.SyntheticEvent, newValue: string) => {
       setActiveTab(newValue);
@@ -102,7 +85,7 @@ const Plugins: React.FC = () => {
   const isFrameworkPlugin = useCallback((plugin: Plugin) => {
     return (
       (plugin.category as string) === "compliance" ||
-      plugin.tags.some(
+      (plugin.tags || []).some(
         (tag) =>
           tag.toLowerCase().includes("compliance") ||
           tag.toLowerCase().includes("framework")
@@ -119,7 +102,7 @@ const Plugins: React.FC = () => {
       (p) =>
         p.name.toLowerCase().includes(lowerQuery) ||
         p.description.toLowerCase().includes(lowerQuery) ||
-        p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery))
+        (p.tags || []).some((tag) => tag.toLowerCase().includes(lowerQuery))
     );
   }, [plugins, searchQuery, isFrameworkPlugin]);
 
@@ -255,14 +238,22 @@ const Plugins: React.FC = () => {
   }
 
   return (
-    <Stack className="vwhome" gap="16px">
-      <PageBreadcrumbs items={breadcrumbItems} autoGenerate={false} />
-
-      <PageHeader
-        title="Plugins"
-        description="Discover and manage plugins to extend VerifyWise functionality"
-      />
-
+    <PageHeaderExtended
+      title="Plugins"
+      description="Discover and manage plugins to extend VerifyWise functionality"
+      alert={
+        toast && toast.visible ? (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Alert
+              variant={toast.variant}
+              body={toast.body}
+              isToast={true}
+              onClick={handleCloseToast}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
       <TabContext value={activeTab}>
         <Box>
           <TabBar
@@ -505,19 +496,7 @@ const Plugins: React.FC = () => {
           </Stack>
         </TabPanel>
       </TabContext>
-
-      {/* Toast Notifications */}
-      {toast && toast.visible && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Alert
-            variant={toast.variant}
-            body={toast.body}
-            isToast={true}
-            onClick={handleCloseToast}
-          />
-        </Suspense>
-      )}
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

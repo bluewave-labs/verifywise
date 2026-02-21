@@ -17,12 +17,12 @@ const background = {
   main: "#FFFFFF",      // General background for forms, fields, etc.
   alt: "#FCFCFD",       // Alternative background
   modal: "#FCFCFD",     // Dedicated background for all modals
-  fill: "#F4F4F4",
+  fill: "#E6F0EC",
   accent: "#f9fafb",
 };
 
 const fontFamilyDefault =
-  "'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
+  "'Geist', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
 
 const shadow =
   "0px 4px 24px -4px rgba(16, 24, 40, 0.08), 0px 3px 3px -3px rgba(16, 24, 40, 0.03)";
@@ -41,31 +41,32 @@ const light = createTheme({
     },
     status: {
       info: {
-        text: text.primary,
-        main: text.tertiary,
-        bg: background.main,
-        light: background.main,
-        border: "#d0d5dd",
+        text: "#1565C0",
+        main: "#1565C0",
+        bg: "#E3F2FD",
+        light: "#BBDEFB",
+        border: "#BBDEFB",
       },
       success: {
-        text: "#079455",
-        main: "#17b26a",
-        light: "#d4f4e1",
-        bg: "#ecfdf3",
+        text: "#138A5E",
+        main: "#138A5E",
+        light: "#C8E6D0",
+        bg: "#E6F4EA",
+        border: "#C8E6D0",
       },
       error: {
-        text: "#f04438",
-        main: "#d32f2f",
-        light: "#fbd1d1",
-        bg: "#f9eced",
-        border: "#FDA29B",
+        text: "#D32F2F",
+        main: "#D32F2F",
+        light: "#F5B8B8",
+        bg: "#FFD6D6",
+        border: "#F5B8B8",
       },
       warning: {
-        text: "#DC6803",
-        main: "#fdb022",
-        light: "#ffecbc",
-        bg: "#fffcf5",
-        border: "#fec84b",
+        text: "#795548",
+        main: "#795548",
+        light: "#F5E6B8",
+        bg: "#FFF8E1",
+        border: "#F5E6B8",
       },
     },
     other: {

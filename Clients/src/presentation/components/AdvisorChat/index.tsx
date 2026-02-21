@@ -4,7 +4,7 @@ import { useAdvisorRuntime } from './useAdvisorRuntime';
 import { CustomThread } from './CustomThread';
 import { AdvisorDomain } from './advisorConfig';
 import { useAdvisorConversationSafe } from '../../../application/contexts/AdvisorConversation.context';
-import { useEffect, useState, useRef, useMemo, memo } from 'react';
+import { useEffect, useRef, useMemo, memo } from 'react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import { Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -86,8 +86,7 @@ const AdvisorChat = ({
   const navigate = useNavigate();
   const { userRoleName } = useAuth();
   const conversationContext = useAdvisorConversationSafe();
-  const [isReady, setIsReady] = useState(false);
-  const loadAttemptedRef = useRef<string | null>(null);
+  const loadAttemptedRef = useRef<Set<string>>(new Set());
 
   const isAdmin = userRoleName?.toLowerCase() === 'admin';
 
@@ -95,38 +94,18 @@ const AdvisorChat = ({
   const paperStyles = useMemo(() => createPaperStyles(theme), [theme]);
   const centeredBoxStyles = useMemo(() => createCenteredBoxStyles(theme), [theme]);
 
+  // Trigger conversation load when domain changes (fire-and-forget)
   useEffect(() => {
-    // Skip if no context or page
-    if (!conversationContext || !pageContext) {
-      setIsReady(true);
-      return;
-    }
+    if (!conversationContext || !pageContext) return;
+    if (conversationContext.isLoaded(pageContext)) return;
+    if (loadAttemptedRef.current.has(pageContext)) return;
 
-    // Check if already loaded - set ready immediately
-    if (conversationContext.isLoaded(pageContext)) {
-      setIsReady(true);
-      loadAttemptedRef.current = pageContext;
-      return;
-    }
-
-    // Prevent duplicate loads for the same domain
-    // Set isReady to true only when loading is complete
-    if (loadAttemptedRef.current === pageContext) {
-      if (conversationContext.isLoaded(pageContext)) {
-        setIsReady(true);
-      }
-      return;
-    }
-
-    const load = async () => {
-      setIsReady(false);
-      loadAttemptedRef.current = pageContext;
-      await conversationContext.loadConversation(pageContext);
-      setIsReady(true);
-    };
-
-    load();
+    loadAttemptedRef.current.add(pageContext);
+    conversationContext.loadConversation(pageContext);
   }, [conversationContext, pageContext]);
+
+  // Derive readiness from context state — no local isReady state to go stale
+  const isConversationReady = !conversationContext || !pageContext || conversationContext.isLoaded(pageContext);
 
   // Show message when no LLM keys are configured (only after loading completes)
   if (!isLoadingLLMKeys && hasLLMKeys === false) {
@@ -171,7 +150,7 @@ const AdvisorChat = ({
                   To use the AI advisor, you need to configure an LLM API key.{' '}
                   <Box
                     component="span"
-                    onClick={() => navigate('/settings/llm-keys')}
+                    onClick={() => navigate('/settings/apikeys')}
                     sx={{
                       color: 'primary.main',
                       cursor: 'pointer',
@@ -195,7 +174,7 @@ const AdvisorChat = ({
     );
   }
 
-  const isLoading = !isReady || conversationContext?.isLoading(pageContext);
+  const isLoading = !isConversationReady || conversationContext?.isLoading(pageContext);
 
   if (isLoading) {
     return (

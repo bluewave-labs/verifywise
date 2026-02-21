@@ -13,7 +13,7 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
-import PageHeaderExtended from "../../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 
 const Home = () => {
   const location = useLocation();
@@ -87,6 +87,7 @@ const Home = () => {
     <PageHeaderExtended
       title="Use cases"
       description="Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome."
+
       helpArticlePath="reporting/dashboard-analytics"
       tipBoxEntity="overview"
     >

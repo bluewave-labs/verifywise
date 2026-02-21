@@ -20,13 +20,15 @@ import {
 import {
   Trophy,
   Swords,
-  Zap,
   Target,
   Plus,
   X,
   Search,
   Info,
 } from "lucide-react";
+import { PageHeader } from "../../components/Layout/PageHeader";
+import HelperIcon from "../../components/HelperIcon";
+import TipBox from "../../components/TipBox";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StepperModal from "../../components/Modals/StepperModal";
 import Field from "../../components/Inputs/Field";
@@ -52,6 +54,7 @@ import {
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
 import { useNavigate } from "react-router-dom";
+import { palette } from "../../themes/palette";
 
 // Timing constants (in milliseconds)
 const POLLING_INTERVAL_MS = 5000;
@@ -533,79 +536,14 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
   }
 
   return (
-    <Box>
-      {/* Header with gradient background */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
-          borderRadius: "8px",
-          p: "16px",
-          mb: "16px",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Decorative elements */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: -20,
-            right: -20,
-            width: 150,
-            height: 150,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%)",
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: -30,
-            left: "30%",
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(167,139,250,0.3) 0%, transparent 70%)",
-          }}
-        />
-        
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: "relative", zIndex: 1 }}>
-          <Box sx={{ textAlign: "center", flex: 1, pt: "16px", pb: "16px" }}>
-            <Typography
-              sx={{
-                fontSize: 24,
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: "-0.02em",
-                mb: 1,
-              }}
-            >
-              LLM Arena
-            </Typography>
-            <Typography sx={{ fontSize: 14, color: "rgba(255,255,255,0.7)", maxWidth: 400, mx: "auto", mb: "16px" }}>
-              Pit your models against each other in head-to-head battles. Let the LLM judge decide the winner.
-            </Typography>
-            <CustomizableButton
-              variant="contained"
-              text="New Battle"
-              icon={<Zap size={18} />}
-              onClick={() => setCreateModalOpen(true)}
-              sx={{
-                background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                color: "#1e1b4b",
-                fontWeight: 600,
-                px: 6,
-                py: 1.5,
-                borderRadius: "4px",
-                boxShadow: "0 4px 14px rgba(251,191,36,0.4)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%)",
-                  boxShadow: "0 6px 20px rgba(251,191,36,0.5)",
-                },
-              }}
-            />
-          </Box>
-        </Stack>
+    <Stack sx={{ width: "100%" }}>
+      <PageHeader
+        title="LLM Arena"
+        description="Pit your models against each other in head-to-head battles. Let the LLM judge decide the winner."
+        rightContent={<HelperIcon articlePath="llm-evals/llm-arena" />}
+      />
+      <Box sx={{ mt: "18px" }}>
+        <TipBox entityName="evals-arena" />
       </Box>
 
       {/* Alert */}
@@ -618,71 +556,90 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       {/* Loading state */}
       {loading && comparisons.length === 0 ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress size={32} sx={{ color: "#6366f1" }} />
+          <CircularProgress size={32} sx={{ color: palette.accent.indigo.text }} />
         </Box>
       ) : comparisons.length === 0 ? (
         /* Empty state when no battles at all */
-        <Box
-          sx={{
-            border: "2px dashed #c7d2fe",
-            borderRadius: "8px",
-            p: "16px",
-            textAlign: "center",
-            backgroundColor: "#f5f3ff",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: 20,
-              left: 20,
-              opacity: 0.1,
-            }}
-          >
-            <Swords size={80} color="#6366f1" />
+        <>
+          {/* New battle button row */}
+          <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
+            <CustomizableButton
+              variant="contained"
+              text="New battle"
+              icon={<Swords size={16} />}
+              onClick={() => setCreateModalOpen(true)}
+              sx={{
+                backgroundColor: palette.brand.primary,
+                border: `1px solid ${palette.brand.primary}`,
+                gap: 2,
+                "&:hover": {
+                  backgroundColor: palette.brand.primaryHover,
+                },
+              }}
+            />
           </Box>
           <Box
             sx={{
-              position: "absolute",
-              bottom: 20,
-              right: 20,
-              opacity: 0.1,
+              border: `2px dashed ${palette.accent.indigo.border}`,
+              borderRadius: "8px",
+              p: "16px",
+              textAlign: "center",
+              backgroundColor: palette.accent.purple.bg,
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            <Trophy size={80} color="#6366f1" />
+            <Box
+              sx={{
+                position: "absolute",
+                top: 20,
+                left: 20,
+                opacity: 0.1,
+              }}
+            >
+              <Swords size={80} color={palette.accent.indigo.text} />
+            </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 20,
+                right: 20,
+                opacity: 0.1,
+              }}
+            >
+              <Trophy size={80} color={palette.accent.indigo.text} />
+            </Box>
+
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto",
+                mt: "16px",
+                mb: 3,
+                boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
+              }}
+            >
+              <Swords size={36} color={palette.background.main} />
+            </Box>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: palette.text.primary, mb: 1 }}>
+              No battles yet
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: palette.text.tertiary, maxWidth: 400, mx: "auto", mb: "16px" }}>
+              Create your first arena battle to pit different model versions against each other
+              and discover which one performs better.
+            </Typography>
           </Box>
-          
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto",
-              mt: "16px",
-              mb: 3,
-              boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
-            }}
-          >
-            <Swords size={36} color="#fff" />
-          </Box>
-          <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#1e1b4b", mb: 1 }}>
-            No battles yet
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mx: "auto", mb: "16px" }}>
-            Create your first arena battle to pit different model versions against each other
-            and discover which one performs better.
-          </Typography>
-        </Box>
+        </>
       ) : (
         /* Comparisons with toolbar */
         <>
-          {/* Filter/Group/Search Toolbar */}
+          {/* Filter/Group/Search Toolbar + New battle button */}
           <Stack
             direction="row"
             spacing={2}
@@ -711,7 +668,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Search size={16} color="#9ca3af" />
+                    <Search size={16} color={palette.text.disabled} />
                   </InputAdornment>
                 ),
               }}
@@ -722,11 +679,27 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   borderRadius: "6px",
                   fontSize: 13,
                   "& fieldset": {
-                    borderColor: "#d0d5dd",
+                    borderColor: palette.border.dark,
                   },
                   "&:hover fieldset": {
-                    borderColor: "#98a2b3",
+                    borderColor: palette.text.accent,
                   },
+                },
+              }}
+            />
+            <Box sx={{ flex: 1 }} />
+            <CustomizableButton
+              variant="contained"
+              text="New battle"
+              icon={<Swords size={16} />}
+              onClick={() => setCreateModalOpen(true)}
+              sx={{
+                backgroundColor: palette.brand.primary,
+                border: `1px solid ${palette.brand.primary}`,
+                gap: 2,
+                whiteSpace: "nowrap",
+                "&:hover": {
+                  backgroundColor: palette.brand.primaryHover,
                 },
               }}
             />
@@ -789,7 +762,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 onNavigateToSettings={() => navigate("/evals#settings")}
                 label="Judge model"
               />
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 1 }}>
+              <Typography sx={{ fontSize: 11, color: palette.text.disabled, mt: 1 }}>
                 The LLM that will compare and score the responses
               </Typography>
             </Box>
@@ -797,7 +770,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             {/* Evaluation Criteria */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} mb={1.5}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary }}>
                   Evaluation criteria
                 </Typography>
                 <VWTooltip
@@ -807,8 +780,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       <p>The judge model evaluates each response against all selected criteria and picks an overall winner.</p>
                       {EVALUATION_CRITERIA.map((c) => (
                         <Box key={c.id} sx={{ mb: 0.75 }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{c.name}</Typography>
-                          <Typography sx={{ fontSize: 13, opacity: 0.8, color: "#fff" }}>{c.description}</Typography>
+                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.background.main }}>{c.name}</Typography>
+                          <Typography sx={{ fontSize: 13, opacity: 0.8, color: palette.background.main }}>{c.description}</Typography>
                         </Box>
                       ))}
                     </>
@@ -817,7 +790,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   placement="right"
                 >
                   <Box sx={{ display: "flex", cursor: "help" }}>
-                    <Info size={14} color="#9ca3af" />
+                    <Info size={14} color={palette.text.disabled} />
                   </Box>
                 </VWTooltip>
               </Stack>
@@ -856,7 +829,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                         sx={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#374151",
+                          color: palette.text.secondary,
                         }}
                       >
                         {criteria.name}
@@ -867,7 +840,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               </Box>
 
               {newComparison.selectedCriteria.length === 0 && (
-                <Typography sx={{ fontSize: 12, color: "#ef4444", mt: 1.5, textAlign: "center" }}>
+                <Typography sx={{ fontSize: 12, color: palette.status.error.text, mt: 1.5, textAlign: "center" }}>
                   Please select at least one evaluation criterion
                 </Typography>
               )}
@@ -876,11 +849,11 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             {/* Dataset selector */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary }}>
                   Dataset
                 </Typography>
               </Stack>
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mb: 1 }}>
+              <Typography sx={{ fontSize: 11, color: palette.text.disabled, mb: 1 }}>
                 All contestants will be evaluated using this dataset
               </Typography>
               <GroupedSelect
@@ -893,8 +866,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 emptyText="No datasets found. Upload one in the Datasets tab."
                 groups={[
                   {
-                    label: "My Datasets",
-                    color: "#6366f1",
+                    label: "My datasets",
+                    color: palette.accent.indigo.text,
                     items: myDatasets.map((ds) => ({
                       value: ds.path,
                       label: ds.name,
@@ -902,8 +875,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     })),
                   },
                   {
-                    label: "Template Datasets",
-                    color: "#10b981",
+                    label: "Template datasets",
+                    color: palette.status.success.text,
                     items: templateDatasets.map((ds) => ({
                       value: ds.path,
                       label: ds.name,
@@ -919,15 +892,15 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: palette.text.secondary }}>
                   Contestants
                 </Typography>
                 <Chip
                   label={`${newComparison.contestants.length} players`}
                   size="small"
                   sx={{
-                    backgroundColor: "#f5f3ff",
-                    color: "#6366f1",
+                    backgroundColor: palette.accent.purple.bg,
+                    color: palette.accent.indigo.text,
                     fontWeight: 600,
                     fontSize: "11px",
                     height: 22,
@@ -942,7 +915,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 onClick={addContestant}
                 sx={{
                   background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                  color: "#fff",
+                  color: palette.background.main,
                   fontSize: 12,
                   py: 0.75,
                   pl: 2,
@@ -980,7 +953,6 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                     key={index}
                     sx={{
                       p: 3,
-                      pt: 3,
                       borderRadius: "4px",
                       border: "2px solid",
                       borderColor: colorScheme.border,
@@ -996,7 +968,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                           py: 0.75,
                           borderRadius: "8px",
                           background: colorScheme.gradient,
-                          color: "#fff",
+                          color: palette.background.main,
                           fontSize: 12,
                           fontWeight: 700,
                           letterSpacing: "0.3px",
@@ -1017,9 +989,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                           sx={{
                             width: 28,
                             height: 28,
-                            backgroundColor: "#fef2f2",
-                            color: "#dc2626",
-                            "&:hover": { backgroundColor: "#fee2e2" },
+                            backgroundColor: palette.status.error.bg,
+                            color: palette.status.error.text,
+                            "&:hover": { backgroundColor: palette.status.error.bg },
                           }}
                         >
                           <X size={14} />
@@ -1049,6 +1021,6 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
         )}
       </StepperModal>
 
-    </Box>
+    </Stack>
   );
 }

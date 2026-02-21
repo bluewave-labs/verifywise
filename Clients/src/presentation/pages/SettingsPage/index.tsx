@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Stack } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
@@ -13,10 +11,8 @@ import Features from "./Features/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
-import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
 import TabBar, { TabItem } from "../../components/TabBar";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
@@ -119,20 +115,13 @@ export default function ProfilePage() {
   };
 
   return (
-    <Stack className="vwhome">
-      <PageBreadcrumbs />
-      <PageHeader
-        title="Settings"
-        description="Manage your profile, security, team members, and application preferences."
-        rightContent={
-          <HelperIcon
-            articlePath="settings/user-management"
-            size="small"
-          />
-        }
-      />
-      <TipBox entityName="settings" />
+    <PageHeaderExtended
+      title="Settings"
+      description="Manage your profile, security, team members, and application preferences."
 
+      helpArticlePath="settings/user-management"
+      tipBoxEntity="settings"
+    >
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
@@ -229,6 +218,6 @@ export default function ProfilePage() {
           />
         )}
       </TabContext>
-    </Stack>
+    </PageHeaderExtended>
   );
 }

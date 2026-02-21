@@ -4,15 +4,16 @@ interface PageHeaderProps {
     title: string;
     description?: string;
     rightContent?: React.ReactNode;
+    titleFontFamily?: string;
 }
 
-const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
+export function PageHeader({ title, description, rightContent, titleFontFamily }: PageHeaderProps) {
     return (
         <Stack spacing={2}>
             {/* Title + description */}
             {title && (
               <Stack direction="row" alignItems="center" spacing={1} pt={2}>
-                <Typography variant="h5" fontWeight="600" fontSize={16}>
+                <Typography variant="h5" fontWeight="600" fontSize={20} sx={{ fontFamily: titleFontFamily || "'Red Hat Display', 'Geist', sans-serif" }}>
                     {title}
                 </Typography>
                 {rightContent}
@@ -26,6 +27,4 @@ const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
             )}
         </Stack>
     );
-};
-
-export default PageHeader;
+}

@@ -211,7 +211,8 @@ const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     // We keep filename as the title, but search across additional
     // metadata fields (description, review_status, expiry_date, tags)
     // so that files can be discovered by more than just their name.
-    searchColumns: ["filename", "description", "review_status", "expiry_date", "tags"],
+    // Also include content_text so Wise Search can match on extracted file contents.
+    searchColumns: ["filename", "description", "review_status", "expiry_date", "tags", "content_text"],
     titleColumn: "filename",
     icon: "Folder",
     route: (id) => `/file-manager?fileId=${id}`,
@@ -374,6 +375,7 @@ async function searchEntity(
         "review_status::text ILIKE :searchPattern",
         "expiry_date::text ILIKE :searchPattern",
         "tags::text ILIKE :searchPattern",
+        "content_text::text ILIKE :searchPattern",
       ];
       conditions.push(`(${fileSearchConditions.join(" OR ")})`);
     } else {

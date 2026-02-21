@@ -14,9 +14,7 @@ import { CirclePlus as AddCircleIcon, Flag } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";
 import {
@@ -33,7 +31,7 @@ import {
 import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
-import { vwhomeBody } from "../Home/1.0Home/style";
+
 import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 import PageTour from "../../components/PageTour";
@@ -46,9 +44,10 @@ import {
 } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
-import TipBox from "../../components/TipBox";
+
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import Alert from "../../components/Alert";
 import TabBar from "../../components/TabBar";
 import DeadlineView from "./DeadlineView";
@@ -639,11 +638,7 @@ useEffect(() => {
         return "Unassigned";
       case "due_date":
         return task.due_date
-          ? new Date(task.due_date).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
+          ? displayFormattedDate(task.due_date)
           : "No Due Date";
       default:
         return "Other";
@@ -665,7 +660,7 @@ useEffect(() => {
       { id: "status", label: "Status" },
       { id: "priority", label: "Priority" },
       { id: "assignees", label: "Assignees" },
-      { id: "due_date", label: "Due Date" },
+      { id: "due_date", label: "Due date" },
       { id: "creator", label: "Creator" },
       { id: "categories", label: "Categories" },
     ];
@@ -698,11 +693,7 @@ useEffect(() => {
         priority: task.priority || "-",
         assignees: assigneeNames,
         due_date: task.due_date
-          ? new Date(task.due_date).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
+          ? displayFormattedDate(task.due_date)
           : "-",
         creator: creatorName,
         categories: task.categories?.join(", ") || "-",
@@ -711,41 +702,44 @@ useEffect(() => {
   }, [filteredTasks, users]);
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
-
-      {/* Page Header */}
-      <Stack sx={vwhomeBody}>
-        <PageHeader
-          title="Task management"
-          description={
-            userRoleName === "Admin"
-              ? showMyTasksOnly
-                ? "Showing tasks you created or are assigned to. You can create and manage your tasks here."
-                : "Showing all tasks in your organization. You can create and manage tasks here."
-              : "Showing tasks you created or are assigned to. You can create and manage your tasks here."
-          }
-          rightContent={
-            <HelperIcon
-              articlePath="ai-governance/task-management"
-              size="small"
-            />
-          }
-        />
-      </Stack>
-
-      {/* Tips */}
-      <TipBox entityName="tasks" />
-
-      {/* Summary Cards */}
-      <Box data-joyride-id="task-summary-cards">
+    <PageHeaderExtended
+      title="Task management"
+      description={
+        userRoleName === "Admin"
+          ? showMyTasksOnly
+            ? "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+            : "Showing all tasks in your organization. You can create and manage tasks here."
+          : "Showing tasks you created or are assigned to. You can create and manage your tasks here."
+      }
+      helpArticlePath="ai-governance/task-management"
+      tipBoxEntity="tasks"
+      summaryCards={
         <TaskSummaryCards
           summary={summary}
           onCardClick={handleStatusCardClick}
           selectedStatus={selectedStatus}
         />
-      </Box>
-
+      }
+      summaryCardsJoyrideId="task-summary-cards"
+      alert={
+        alert ? (
+          <Fade in={showAlert} timeout={300}>
+            <Box sx={{ position: "fixed" }}>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body || ""}
+                isToast={true}
+                onClick={() => {
+                  setShowAlert(false);
+                  setTimeout(() => setAlert(null), 300);
+                }}
+              />
+            </Box>
+          </Fade>
+        ) : undefined
+      }
+    >
       {/* Tab Navigation */}
       <TabContext value={activeTab}>
         <TabBar
@@ -973,27 +967,9 @@ useEffect(() => {
       {/* Archive is handled by IconButton component to avoid double modals */}
       {/* Hard delete needs a second confirmation in Tasks page */}
 
-      {/* Notification Toast */}
-      {alert && (
-        <Fade in={showAlert} timeout={300}>
-          <Box sx={{ position: 'fixed' }}>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body || ""}
-              isToast={true}
-              onClick={() => {
-                setShowAlert(false);
-                setTimeout(() => setAlert(null), 300);
-              }}
-            />
-          </Box>
-        </Fade>
-      )}
-
       {/* Page Tour */}
       <PageTour steps={TasksSteps} run={activeTab === "list"} tourKey="tasks-tour" />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

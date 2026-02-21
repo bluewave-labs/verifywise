@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Box,
+  Stack,
   Typography,
   CircularProgress,
   Card,
   CardContent,
   useTheme,
-  Stack,
 } from "@mui/material";
 import { Play, Beaker, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
 import { cardStyles } from "../../themes";
@@ -25,10 +25,12 @@ import {
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
+import { palette } from "../../themes/palette";
 
 interface ProjectOverviewProps {
   projectId: string;
@@ -57,8 +59,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
       onMouseLeave={() => setIsHovered(false)}
       sx={{
         ...(cardStyles.base(theme) as Record<string, unknown>),
-        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #E5E7EB",
+        background: `linear-gradient(135deg, ${palette.background.main} 0%, ${palette.background.accent} 100%)`,
+        border: `1px solid ${palette.border.light}`,
         height: "100%",
         minHeight: "80px",
         position: "relative",
@@ -69,8 +71,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
         borderRadius: "8px",
         overflow: "hidden",
         "&:hover": {
-          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-          borderColor: "#D1D5DB",
+          background: `linear-gradient(135deg, ${palette.background.accent} 0%, ${palette.background.hover} 100%)`,
+          borderColor: palette.border.dark,
         },
       }}
     >
@@ -107,7 +109,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
           <Typography
             variant="body2"
             sx={{
-              color: "#6B7280",
+              color: palette.text.disabled,
               fontSize: "11px",
               fontWeight: 500,
               textTransform: "uppercase",
@@ -121,7 +123,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
             sx={{
               fontSize: "20px",
               fontWeight: 600,
-              color: "#111827",
+              color: palette.text.primary,
               lineHeight: 1.3,
             }}
           >
@@ -131,7 +133,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, Icon, subtitle }) => 
             <Typography
               sx={{
                 fontSize: "10px",
-                color: "#9CA3AF",
+                color: palette.text.disabled,
                 mt: 0.25,
                 fontWeight: 400,
               }}
@@ -377,20 +379,15 @@ export default function ProjectOverview({
   };
 
   return (
-    <Box sx={{ width: "100%", overflow: "hidden" }}>
-      {/* Header + description */}
-      <Stack spacing={1} mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Overview
-          </Typography>
-          <HelperIcon articlePath="llm-evals/llm-evals-overview" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
-        </Typography>
+    <Stack sx={{ width: "100%", overflow: "hidden" }}>
+      <PageHeader
+        title="Overview"
+        description="Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance."
+        rightContent={<HelperIcon articlePath="llm-evals/llm-evals-overview" />}
+      />
+      <Box sx={{ mt: "18px" }}>
         <TipBox entityName="evals-overview" />
-      </Stack>
+      </Box>
 
       {/* Header with New Experiment button */}
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
@@ -401,11 +398,11 @@ export default function ProjectOverview({
           icon={<Play size={16} />}
           isDisabled={!canCreateExperiment}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: palette.brand.primary,
+            border: `1px solid ${palette.brand.primary}`,
             gap: 2,
             "&:hover": {
-              backgroundColor: "#0f5a47",
+              backgroundColor: palette.brand.primaryHover,
             },
           }}
         />
@@ -466,15 +463,15 @@ export default function ProjectOverview({
 
         {!hasExperiments ? (
           <Box sx={{
-            border: "1px solid #d0d5dd",
+            border: `1px solid ${palette.border.dark}`,
             borderRadius: "4px",
-            backgroundColor: "#FFFFFF",
+            backgroundColor: palette.background.main,
             textAlign: "center",
             py: 4,
             px: 2,
           }}>
             <Box sx={{ mb: 2 }}>
-              <Beaker size={32} color="#9CA3AF" strokeWidth={1} />
+              <Beaker size={32} color={palette.text.disabled} strokeWidth={1} />
             </Box>
             <Typography
               variant="subtitle2"
@@ -496,20 +493,20 @@ export default function ProjectOverview({
               icon={<Play size={14} />}
               isDisabled={!canCreateExperiment}
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: palette.brand.primary,
+                border: `1px solid ${palette.brand.primary}`,
                 gap: 1,
                 fontSize: "12px",
                 height: "32px",
                 "&:hover": {
-                  backgroundColor: "#0f5a47",
+                  backgroundColor: palette.brand.primaryHover,
                 },
               }}
             />
           </Box>
         ) : (
           <EvaluationTable
-            columns={["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE"]}
+            columns={["EXPERIMENT NAME", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE"]}
             rows={recentExperimentsRows}
             page={0}
             setCurrentPagingation={() => {}}
@@ -530,6 +527,6 @@ export default function ProjectOverview({
           useCase={project.useCase as "chatbot" | "rag" | "agent"}
         />
       )}
-    </Box>
+    </Stack>
   );
 }

@@ -28,12 +28,14 @@ import {
 import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import ModelsTable, { type ModelRow } from "../../components/Table/ModelsTable";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import Field from "../../components/Inputs/Field";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
 import { PROVIDERS } from "../../utils/providers";
+import { palette } from "../../themes/palette";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -309,22 +311,17 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
     }, [newModel.accessMethod]);
 
     return (
-        <Box>
+        <Stack sx={{ width: "100%" }}>
             {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-            {/* Header + description */}
-            <Stack spacing={1} mb={4}>
-                <Box display="flex" alignItems="center" gap={1}>
-                    <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-                        Models
-                    </Typography>
-                    <HelperIcon articlePath="llm-evals/models" />
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-                    View and manage model configurations. These preferences are automatically saved when you run an experiment and auto-loaded for new experiments in the same project.
-                </Typography>
+            <PageHeader
+                title="Models"
+                description="View and manage model configurations. These preferences are automatically saved when you run an experiment and auto-loaded for new experiments in the same project."
+                rightContent={<HelperIcon articlePath="llm-evals/models" />}
+            />
+            <Box sx={{ mt: "18px" }}>
                 <TipBox entityName="evals-models" />
-            </Stack>
+            </Box>
 
             {/* Controls row */}
             <Stack
@@ -355,8 +352,8 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                     text="New model"
                     icon={<Plus size={16} />}
                     sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
+                        backgroundColor: palette.brand.primary,
+                        border: `1px solid ${palette.brand.primary}`,
                         gap: 2,
                     }}
                     onClick={handleAddModel}
@@ -385,7 +382,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                 onSubmit={handleConfirmDelete}
                 submitButtonText="Delete"
                 isSubmitting={isDeleting}
-                submitButtonColor="#c62828"
+                submitButtonColor={palette.status.error.text}
             />
 
             {/* Add Model Modal */}
@@ -397,13 +394,13 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                 onSubmit={handleSaveNewModel}
                 submitButtonText="Save Model"
                 isSubmitting={isSaving}
-                submitButtonColor="#13715B"
+                submitButtonColor={palette.brand.primary}
                 maxWidth="md"
             >
                 {loadingApiKeys ? (
                     <Box sx={{ py: 4, textAlign: "center" }}>
                         <CircularProgress size={24} />
-                        <Typography sx={{ mt: 1, fontSize: "13px", color: "#6B7280" }}>
+                        <Typography sx={{ mt: 1, fontSize: "13px", color: palette.text.tertiary }}>
                             Loading providers...
                         </Typography>
                     </Box>
@@ -411,7 +408,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                     <Stack spacing={4}>
                         {/* Provider Selection */}
                         <Box>
-                            <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                            <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: palette.text.secondary }}>
                                 Model provider
                             </Typography>
                             <Grid container spacing={1.5}>
@@ -432,14 +429,14 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                 sx={{
                                                     cursor: "pointer",
                                                     border: "1px solid",
-                                                    borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                                                    backgroundColor: "#FFFFFF",
+                                                    borderColor: isSelected ? palette.brand.primary : palette.border.dark,
+                                                    backgroundColor: palette.background.main,
                                                     boxShadow: "none",
                                                     transition: "all 0.2s ease",
                                                     position: "relative",
                                                     height: "100%",
                                                     "&:hover": {
-                                                        borderColor: "#13715B",
+                                                        borderColor: palette.brand.primary,
                                                         boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                                                     },
                                                 }}
@@ -463,7 +460,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                                 position: "absolute",
                                                                 top: 8,
                                                                 right: 8,
-                                                                backgroundColor: "#13715B",
+                                                                backgroundColor: palette.brand.primary,
                                                                 borderRadius: "50%",
                                                                 width: 20,
                                                                 height: 20,
@@ -472,7 +469,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                                 justifyContent: "center",
                                                             }}
                                                         >
-                                                            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                                            <Check size={12} color={palette.background.main} strokeWidth={3} />
                                                         </Box>
                                                     )}
 
@@ -497,7 +494,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                         sx={{
                                                             fontSize: "12px",
                                                             fontWeight: isSelected ? 600 : 500,
-                                                            color: isSelected ? "#13715B" : "#374151",
+                                                            color: isSelected ? palette.brand.primary : palette.text.secondary,
                                                             textAlign: "center",
                                                         }}
                                                     >
@@ -514,14 +511,14 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                         {/* Model Selection */}
                         {newModel.accessMethod && (
                             <Box>
-                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                                     Model
                                 </Typography>
 
                                 {newModel.accessMethod === "openrouter" ? (
                                     /* OpenRouter - Custom model input with suggestions */
                                     <Box>
-                                        <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                                        <Typography sx={{ fontSize: "11px", color: palette.text.tertiary, mb: 1.5 }}>
                                             OpenRouter supports any model. Enter the model ID or select from popular options.
                                         </Typography>
                                         <Field
@@ -530,7 +527,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                             onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
                                             placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
                                         />
-                                        <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                                        <Typography sx={{ fontSize: "11px", fontWeight: 600, color: palette.text.disabled, mt: 2, mb: 1, textTransform: "uppercase" }}>
                                             Popular Models
                                         </Typography>
                                         <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -548,12 +545,12 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                                     onClick={() => setNewModel((prev) => ({ ...prev, modelName: m.id }))}
                                                     sx={{
                                                         cursor: "pointer",
-                                                        backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "transparent",
-                                                        borderColor: newModel.modelName === m.id ? "#13715B" : "#E5E7EB",
-                                                        color: newModel.modelName === m.id ? "#13715B" : "#374151",
+                                                        backgroundColor: newModel.modelName === m.id ? palette.brand.primaryLight : "transparent",
+                                                        borderColor: newModel.modelName === m.id ? palette.brand.primary : palette.border.dark,
+                                                        color: newModel.modelName === m.id ? palette.brand.primary : palette.text.secondary,
                                                         "&:hover": {
-                                                            backgroundColor: newModel.modelName === m.id ? "#E8F5F1" : "#f9fafb",
-                                                            borderColor: "#13715B",
+                                                            backgroundColor: newModel.modelName === m.id ? palette.brand.primaryLight : palette.background.accent,
+                                                            borderColor: palette.brand.primary,
                                                         },
                                                     }}
                                                 />
@@ -563,7 +560,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                 ) : newModel.accessMethod === "ollama" || newModel.accessMethod === "custom" ? (
                                     /* Ollama/Custom - Text input */
                                     <Box>
-                                        <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                                        <Typography sx={{ fontSize: "11px", color: palette.text.tertiary, mb: 1.5 }}>
                                             {newModel.accessMethod === "ollama"
                                                 ? "Enter the name of your locally running Ollama model."
                                                 : "Enter the model identifier for your custom endpoint."}
@@ -576,7 +573,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                         />
                                         {newModel.accessMethod === "custom" && (
                                             <Box sx={{ mt: 2 }}>
-                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                                                     Endpoint URL
                                                 </Typography>
                                                 <Field
@@ -595,7 +592,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                             value={newModel.modelName}
                                             onChange={(e) => setNewModel((prev) => ({ ...prev, modelName: e.target.value }))}
                                             displayEmpty
-                                            sx={{ backgroundColor: "#fff" }}
+                                            sx={{ backgroundColor: palette.background.main }}
                                         >
                                             <MenuItem value="" disabled>
                                                 Select a model
@@ -622,17 +619,17 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                         {/* API Key - show configured status OR input field */}
                         {newModel.accessMethod && getModelProvider(newModel.accessMethod)?.needsApiKey && (
                             hasApiKey(newModel.accessMethod) ? (
-                                <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                                <Box sx={{ p: 1.5, backgroundColor: palette.status.success.bg, borderRadius: "8px", border: `1px solid ${palette.status.success.border}` }}>
                                     <Stack direction="row" alignItems="center" spacing={1}>
-                                        <Check size={16} color="#059669" />
-                                        <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                                        <Check size={16} color={palette.status.success.text} />
+                                        <Typography sx={{ fontSize: "12px", color: palette.status.success.text }}>
                                             API key configured — will be used for this model
                                         </Typography>
                                     </Stack>
                                 </Box>
                             ) : (
                                 <Box>
-                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                                         API Key
                                     </Typography>
                                     <Field
@@ -643,7 +640,7 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                                         placeholder={`Enter your ${MODEL_PROVIDERS.find(p => p.id === newModel.accessMethod)?.name || newModel.accessMethod} API key`}
                                         autoComplete="off"
                                     />
-                                    <Typography sx={{ fontSize: "11px", color: "#6b7280", mt: 0.5 }}>
+                                    <Typography sx={{ fontSize: "11px", color: palette.text.tertiary, mt: 0.5 }}>
                                         Your key will be saved securely for future experiments
                                     </Typography>
                                 </Box>
@@ -652,6 +649,6 @@ export default function ModelsPage({ orgId }: ModelsPageProps) {
                     </Stack>
                 )}
             </StandardModal>
-        </Box>
+        </Stack>
     );
 }

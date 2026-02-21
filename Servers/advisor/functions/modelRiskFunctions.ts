@@ -17,7 +17,7 @@ export interface FetchModelRisksParams {
 const fetchModelRisks = async (
   params: FetchModelRisksParams,
   tenant: string,
-): Promise<ModelRiskModel[]> => {
+): Promise<Partial<ModelRiskModel>[]> => {
   let risks: ModelRiskModel[] = [];
 
   try {
@@ -50,7 +50,18 @@ const fetchModelRisks = async (
       risks = risks.slice(0, params.limit);
     }
 
-    return risks;
+    // Return lightweight projections — exclude verbose text fields
+    return risks.map((r) => ({
+      id: r.id,
+      risk_name: r.risk_name,
+      risk_category: r.risk_category,
+      risk_level: r.risk_level,
+      status: r.status,
+      owner: r.owner,
+      target_date: r.target_date,
+      model_id: r.model_id,
+      created_at: r.created_at,
+    }));
   } catch (error) {
     logger.error("Error fetching model risks:", error);
     throw new Error(

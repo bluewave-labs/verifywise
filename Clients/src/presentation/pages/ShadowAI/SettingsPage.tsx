@@ -19,6 +19,7 @@ import {
   TableRow,
   TableCell,
   TableContainer,
+  useTheme,
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import { Trash2, Copy, Check, Pencil, Ban } from "lucide-react";
@@ -44,19 +45,18 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { useUserGuideSidebarContext } from "../../components/UserGuide";
-import TipBox from "../../components/TipBox";
+import { palette } from "../../themes/palette";
 
 const sectionTitleSx = {
   fontWeight: 600,
-  fontSize: 15,
+  fontSize: 16,
 };
 
 const docLinkSx = {
   fontSize: 13,
-  color: "#13715B",
+  color: palette.brand.primary,
   cursor: "pointer",
   textDecoration: "none",
   "&:hover": { textDecoration: "underline" },
@@ -84,28 +84,37 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <Stack gap="32px">
-      <PageHeader
-        title="Settings"
-        description="Manage API keys for syslog integration and configure syslog sources to feed network traffic data into Shadow AI detection."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/settings" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-settings" />
+    <PageHeaderExtended
+      title="Settings"
+      description="Manage API keys for syslog integration and configure syslog sources to feed network traffic data into Shadow AI detection."
+      helpArticlePath="shadow-ai/settings"
+      tipBoxEntity="shadow-ai-settings"
+    >
       <ApiKeysSection />
       <SyslogConfigSection />
       <DataFormatsSection />
       <RateLimitSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <DataRetentionSection settings={settings} loading={settingsLoading} onSettingsUpdate={setSettings} />
       <RiskScoreSection />
-    </Stack>
+    </PageHeaderExtended>
   );
 }
 
 // ─── API Keys Section ───────────────────────────────────────────────
 
+function useCardSx() {
+  const theme = useTheme();
+  return {
+    background: theme.palette.background.paper,
+    border: `1.5px solid ${theme.palette.border.light}`,
+    borderRadius: theme.shape.borderRadius,
+    p: theme.spacing(5, 6),
+    boxShadow: "none",
+  };
+}
+
 function ApiKeysSection() {
+  const cardSx = useCardSx();
   const { open: openGuide } = useUserGuideSidebarContext();
   const [loading, setLoading] = useState(true);
   const [keys, setKeys] = useState<IShadowAiApiKey[]>([]);
@@ -196,6 +205,7 @@ function ApiKeysSection() {
   };
 
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography sx={sectionTitleSx}>API keys</Typography>
@@ -203,8 +213,8 @@ function ApiKeysSection() {
           text="Create API key"
           variant="contained"
           sx={{
-            backgroundColor: "#13715B",
-            "&:hover": { backgroundColor: "#0F5A47" },
+            backgroundColor: palette.brand.primary,
+            "&:hover": { backgroundColor: palette.brand.primaryHover },
             height: 34,
             fontSize: 13,
           }}
@@ -212,7 +222,7 @@ function ApiKeysSection() {
         />
       </Stack>
 
-      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text }}>
         API keys are used to authenticate Shadow AI event ingestion from your
         network proxy, SIEM, or browser extension.{" "}
         <Typography
@@ -235,7 +245,7 @@ function ApiKeysSection() {
             <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
               API key created successfully
             </Typography>
-            <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+            <Typography sx={{ fontSize: 12, color: palette.status.default.text }}>
               Copy this key now. You won't be able to see it again.
             </Typography>
             <Stack direction="row" alignItems="center" gap="8px">
@@ -243,11 +253,11 @@ function ApiKeysSection() {
                 sx={{
                   fontFamily: "monospace",
                   fontSize: 12,
-                  backgroundColor: "#F3F4F6",
+                  backgroundColor: palette.background.hover,
                   px: 1.5,
                   py: 0.5,
                   borderRadius: "4px",
-                  border: "1px solid #d0d5dd",
+                  border: `1px solid ${palette.border.dark}`,
                   wordBreak: "break-all",
                   flex: 1,
                 }}
@@ -256,7 +266,7 @@ function ApiKeysSection() {
               </Box>
               <IconButton size="small" onClick={handleCopy}>
                 {copied ? (
-                  <Check size={14} color="#10B981" />
+                  <Check size={14} color={palette.status.success.text} />
                 ) : (
                   <Copy size={14} />
                 )}
@@ -273,11 +283,11 @@ function ApiKeysSection() {
           sx={{
             py: 4,
             textAlign: "center",
-            border: "1px dashed #d0d5dd",
+            border: `1px dashed ${palette.border.dark}`,
             borderRadius: "4px",
           }}
         >
-          <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+          <Typography sx={{ fontSize: 13, color: palette.text.disabled }}>
             No API keys created yet
           </Typography>
         </Box>
@@ -326,7 +336,7 @@ function ApiKeysSection() {
                       <IconButton
                         size="small"
                         onClick={() => setRevokeTarget(k)}
-                        sx={{ color: "#F59E0B" }}
+                        sx={{ color: palette.status.warning.text }}
                         title="Revoke key"
                       >
                         <Ban size={14} strokeWidth={1.5} />
@@ -335,7 +345,7 @@ function ApiKeysSection() {
                       <IconButton
                         size="small"
                         onClick={() => setDeleteTarget(k)}
-                        sx={{ color: "#DC2626" }}
+                        sx={{ color: palette.status.error.text }}
                         title="Delete key"
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
@@ -379,7 +389,7 @@ function ApiKeysSection() {
         description=""
         submitButtonText="Revoke"
         onSubmit={handleRevoke}
-        submitButtonColor="#DC2626"
+        submitButtonColor={palette.status.error.text}
         maxWidth="400px"
       >
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
@@ -396,7 +406,7 @@ function ApiKeysSection() {
         description=""
         submitButtonText="Delete"
         onSubmit={handleDelete}
-        submitButtonColor="#DC2626"
+        submitButtonColor={palette.status.error.text}
         maxWidth="400px"
       >
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
@@ -405,12 +415,14 @@ function ApiKeysSection() {
         </Typography>
       </StandardModal>
     </Stack>
+    </Box>
   );
 }
 
 // ─── Syslog Config Section ──────────────────────────────────────────
 
 function SyslogConfigSection() {
+  const cardSx = useCardSx();
   const { open: openGuide } = useUserGuideSidebarContext();
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState<IShadowAiSyslogConfig[]>([]);
@@ -506,6 +518,7 @@ function SyslogConfigSection() {
   };
 
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography sx={sectionTitleSx}>Syslog sources</Typography>
@@ -513,8 +526,8 @@ function SyslogConfigSection() {
           text="Add source"
           variant="contained"
           sx={{
-            backgroundColor: "#13715B",
-            "&:hover": { backgroundColor: "#0F5A47" },
+            backgroundColor: palette.brand.primary,
+            "&:hover": { backgroundColor: palette.brand.primaryHover },
             height: 34,
             fontSize: 13,
           }}
@@ -522,7 +535,7 @@ function SyslogConfigSection() {
         />
       </Stack>
 
-      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text }}>
         Configure syslog sources to ingest network traffic data from your proxy
         or firewall.{" "}
         <Typography
@@ -541,11 +554,11 @@ function SyslogConfigSection() {
           sx={{
             py: 4,
             textAlign: "center",
-            border: "1px dashed #d0d5dd",
+            border: `1px dashed ${palette.border.dark}`,
             borderRadius: "4px",
           }}
         >
-          <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+          <Typography sx={{ fontSize: 13, color: palette.text.disabled }}>
             No syslog sources configured
           </Typography>
         </Box>
@@ -595,14 +608,14 @@ function SyslogConfigSection() {
                       <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); openEdit(c); }}
-                        sx={{ color: "#6B7280" }}
+                        sx={{ color: palette.status.default.text }}
                       >
                         <Pencil size={14} strokeWidth={1.5} />
                       </IconButton>
                       <IconButton
                         size="small"
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}
-                        sx={{ color: "#DC2626" }}
+                        sx={{ color: palette.status.error.text }}
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
                       </IconButton>
@@ -693,7 +706,7 @@ function SyslogConfigSection() {
         description=""
         submitButtonText="Remove"
         onSubmit={handleDelete}
-        submitButtonColor="#DC2626"
+        submitButtonColor={palette.status.error.text}
         maxWidth="400px"
       >
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
@@ -701,6 +714,7 @@ function SyslogConfigSection() {
         </Typography>
       </StandardModal>
     </Stack>
+    </Box>
   );
 }
 
@@ -770,8 +784,8 @@ const FIELD_MAPPING = [
 const codeBoxSx = {
   fontFamily: "monospace",
   fontSize: 12,
-  backgroundColor: "#F9FAFB",
-  border: "1px solid #d0d5dd",
+  backgroundColor: palette.background.accent,
+  border: `1px solid ${palette.border.dark}`,
   borderRadius: "4px",
   p: 2,
   whiteSpace: "pre-wrap" as const,
@@ -780,11 +794,13 @@ const codeBoxSx = {
 };
 
 function DataFormatsSection() {
+  const cardSx = useCardSx();
   const { open: openGuide } = useUserGuideSidebarContext();
   return (
+    <Box sx={cardSx}>
     <Stack gap="16px">
       <Typography sx={sectionTitleSx}>Data formats</Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
         Reference for the exact data formats VerifyWise expects when ingesting
         Shadow AI events via the REST API or syslog forwarding.{" "}
         <Typography
@@ -800,7 +816,7 @@ function DataFormatsSection() {
       <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 1 }}>
         REST API event schema
       </Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
         Send events via{" "}
         <Typography component="span" sx={{ fontFamily: "monospace", fontSize: 12 }}>
           POST /api/v1/shadow-ai/events
@@ -843,7 +859,7 @@ function DataFormatsSection() {
       <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 2 }}>
         Syslog format examples
       </Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
         Syslog messages use RFC 3164 or 5424 framing. The PRI, timestamp, and
         hostname header are stripped automatically before parsing. Below are
         example log lines for each supported parser.
@@ -864,7 +880,7 @@ function DataFormatsSection() {
       <Typography sx={{ fontSize: 14, fontWeight: 600, mt: 2 }}>
         Field mapping
       </Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
         How each parser maps source fields to the normalized event schema:
       </Typography>
 
@@ -905,6 +921,7 @@ function DataFormatsSection() {
         </Table>
       </TableContainer>
     </Stack>
+    </Box>
   );
 }
 
@@ -948,14 +965,16 @@ function RateLimitSection({
     }
   };
 
+  const cardSx = useCardSx();
   const currentValue = settings?.rate_limit_max_events_per_hour ?? 0;
   const inputValue = rateLimit.trim() === "" ? 0 : parseInt(rateLimit, 10) || 0;
   const hasChanged = inputValue !== currentValue;
 
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Typography sx={sectionTitleSx}>Rate limiting</Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text }}>
         Limit the number of events that can be ingested per hour. Leave empty or
         set to 0 to allow unlimited ingestion.
       </Typography>
@@ -976,8 +995,8 @@ function RateLimitSection({
             variant="contained"
             isDisabled={!hasChanged || saving}
             sx={{
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0F5A47" },
+              backgroundColor: palette.brand.primary,
+              "&:hover": { backgroundColor: palette.brand.primaryHover },
               height: 34,
               fontSize: 13,
               mb: "2px",
@@ -988,16 +1007,17 @@ function RateLimitSection({
       )}
 
       {settings && currentValue > 0 && (
-        <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+        <Typography sx={{ fontSize: 12, color: palette.text.disabled }}>
           Currently limited to {currentValue.toLocaleString()} events/hour
         </Typography>
       )}
       {settings && currentValue === 0 && (
-        <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+        <Typography sx={{ fontSize: 12, color: palette.text.disabled }}>
           No rate limit applied
         </Typography>
       )}
     </Stack>
+    </Box>
   );
 }
 
@@ -1080,10 +1100,13 @@ function DataRetentionSection({
     },
   ];
 
+  const cardSx = useCardSx();
+
   return (
+    <Box sx={cardSx}>
     <Stack gap="12px">
       <Typography sx={sectionTitleSx}>Data retention</Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text }}>
         Configure how long Shadow AI data is retained. Set to 0 or leave empty
         to keep data indefinitely. Changes take effect on the next cleanup cycle.
       </Typography>
@@ -1101,7 +1124,7 @@ function DataRetentionSection({
                   onChange={(e) => field.setter(e.target.value.replace(/[^0-9]/g, ""))}
                   placeholder={`${field.defaultVal} (default)`}
                 />
-                <Typography sx={{ fontSize: 11, color: "#9CA3AF", mt: 0.5 }}>
+                <Typography sx={{ fontSize: 11, color: palette.text.disabled, mt: 0.5 }}>
                   {field.description}
                 </Typography>
               </Box>
@@ -1113,8 +1136,8 @@ function DataRetentionSection({
             variant="contained"
             isDisabled={!hasChanged || saving}
             sx={{
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0F5A47" },
+              backgroundColor: palette.brand.primary,
+              "&:hover": { backgroundColor: palette.brand.primaryHover },
               height: 34,
               fontSize: 13,
               alignSelf: "flex-start",
@@ -1124,6 +1147,7 @@ function DataRetentionSection({
         </Stack>
       )}
     </Stack>
+    </Box>
   );
 }
 
@@ -1137,10 +1161,12 @@ const RISK_WEIGHTS = [
 ];
 
 function RiskScoreSection() {
+  const cardSx = useCardSx();
   return (
+    <Box sx={cardSx}>
     <Stack gap="16px">
       <Typography sx={sectionTitleSx}>Risk score calculation</Typography>
-      <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
         Each AI tool receives a risk score from 0 to 100, recalculated nightly. The score is a weighted composite of four factors:
       </Typography>
       <Stack gap="8px">
@@ -1151,19 +1177,19 @@ function RiskScoreSection() {
             gap="12px"
             sx={{
               p: "12px 16px",
-              border: "1px solid #d0d5dd",
+              border: `1px solid ${palette.border.dark}`,
               borderRadius: "4px",
               alignItems: "flex-start",
             }}
           >
-            <Typography sx={{ fontSize: 13, fontWeight: 600, minWidth: 36, color: "#13715B" }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, minWidth: 36, color: palette.brand.primary }}>
               {w.weight}
             </Typography>
             <Stack gap="2px">
               <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                 {w.factor}
               </Typography>
-              <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+              <Typography sx={{ fontSize: 12, color: palette.status.default.text, lineHeight: 1.5 }}>
                 {w.description}
               </Typography>
             </Stack>
@@ -1171,5 +1197,6 @@ function RiskScoreSection() {
         ))}
       </Stack>
     </Stack>
+    </Box>
   );
 }

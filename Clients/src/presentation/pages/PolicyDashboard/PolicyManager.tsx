@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
@@ -22,6 +22,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -31,7 +32,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const hasProcessedUrlParam = useRef(false);
   const [policies, setPolicies] = useState<PolicyManagerModel[]>([]);
   const [flashRowId, setFlashRowId] = useState<number | null>(null);
 
@@ -80,10 +80,10 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // Handle policyId URL param to open edit modal from Wise Search
   useEffect(() => {
     const policyId = searchParams.get("policyId");
-    if (policyId && !hasProcessedUrlParam.current && policies.length > 0) {
-      hasProcessedUrlParam.current = true;
+    if (policyId && policies.length > 0) {
       // Use existing handleOpen function which sets selectedPolicy and opens modal
       handleOpen(parseInt(policyId, 10));
+      // Clear query params so this only runs once per navigation
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, policies, setSearchParams, handleOpen]);
@@ -339,9 +339,9 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         title: policy.title || '-',
         status: policy.status || '-',
         tags: policy.tags?.join(', ') || '-',
-        next_review: policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : '-',
+        next_review: policy.next_review_date ? displayFormattedDate(policy.next_review_date) : '-',
         author: authorName,
-        last_updated: policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : '-',
+        last_updated: policy.last_updated_at ? displayFormattedDate(policy.last_updated_at) : '-',
         updated_by: updatedByName,
       };
     });

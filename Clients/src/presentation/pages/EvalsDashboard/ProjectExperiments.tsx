@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
+import Select from "../../components/RiskVisualization/Inputs/Select";
 import { Play, Clock } from "lucide-react";
 import {
   getAllExperiments,
@@ -15,7 +16,7 @@ import NewExperimentModal from "./NewExperimentModal";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { useNavigate } from "react-router-dom";
 import EvaluationTable from "../../components/Table/EvaluationTable";
-import PerformanceChart from "./components/PerformanceChart";
+import PerformanceChart, { TIME_RANGE_OPTIONS, type TimeRange } from "./components/PerformanceChart";
 import type { IEvaluationRow } from "../../types/interfaces/i.table";
 import SearchBox from "../../components/Search/SearchBox";
 import { FilterBy, type FilterColumn } from "../../components/Table/FilterBy";
@@ -23,10 +24,12 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
+import { palette } from "../../themes/palette";
 
 interface ProjectExperimentsProps {
   projectId: string;
@@ -76,6 +79,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const [chartTimeRange, setChartTimeRange] = useState<TimeRange>("all");
   const prevRunningIdsRef = useRef<Set<string>>(new Set());
 
   // RBAC permissions
@@ -255,6 +259,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         // Add the new experiment to the list optimistically
         handleStarted({
           id: response.experiment.id,
+          name: nextName,
           config: payload.config as Record<string, unknown>,
           status: "running",
           created_at: new Date().toISOString(),
@@ -360,7 +365,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
     }
   };
 
-  const handleStarted = (exp: { id: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
+  const handleStarted = (exp: { id: string; name?: string; config: Record<string, unknown>; status: string; created_at?: string }) => {
     const cfg = exp.config as { 
       model?: { name?: string }; 
       judgeLlm?: { model?: string; provider?: string };
@@ -378,7 +383,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       ({
         id: exp.id,
         project_id: projectId,
-        name: cfg.model?.name || exp.id,
+        name: exp.name || exp.id,
         description: `Pending eval for ${cfg.model?.name || "model"}`,
         config: cfgForState,
         baseline_experiment_id: undefined,
@@ -479,7 +484,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   }, [experiments, filterData, searchTerm]);
 
   // Transform to table format
-  const tableColumns = ["EXPERIMENT ID", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
+  const tableColumns = ["EXPERIMENT NAME", "MODEL", "JUDGE/SCORER", "# PROMPTS", "DATASET", "DATE", "ACTION"];
 
   const tableRows: IEvaluationRow[] = filteredExperiments.map((exp) => {
     // Get dataset name from config - try multiple sources
@@ -575,7 +580,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
   });
 
   return (
-    <Box>
+    <Stack sx={{ width: "100%" }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
       {/* Rerun Confirmation Modal */}
@@ -584,7 +589,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           title="Rerun experiment"
           body={
             <Box>
-              <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6, mb: 2 }}>
+              <Typography sx={{ fontSize: "14px", color: palette.text.tertiary, lineHeight: 1.6, mb: 2 }}>
                 This will create a new experiment run using the same configuration as "{rerunConfirm.experiment.name}".
               </Typography>
               {rerunConfirm.promptCount > 0 && (
@@ -595,16 +600,16 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
                     gap: "8px",
                     p: "8px",
                     borderRadius: "4px",
-                    backgroundColor: "#F0FDF4",
-                    border: "1px solid #BBF7D0",
+                    backgroundColor: palette.status.success.bg,
+                    border: `1px solid ${palette.status.success.border}`,
                   }}
                 >
-                  <Clock size={16} color="#13715B" />
+                  <Clock size={16} color={palette.brand.primary} />
                   <Box>
-                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.brand.primary }}>
                       Estimated time: {getEstimatedTimeRange(rerunConfirm.promptCount)}
                     </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                    <Typography sx={{ fontSize: "11px", color: palette.status.success.text }}>
                       Based on {rerunConfirm.promptCount} prompt{rerunConfirm.promptCount !== 1 ? "s" : ""} from the original run
                     </Typography>
                   </Box>
@@ -630,7 +635,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         <ConfirmationModal
           title="API key may not be configured"
           body={
-            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: "14px", color: palette.text.tertiary, lineHeight: 1.6 }}>
               {apiKeyWarning.message}
               <br /><br />
               Do you want to run the experiment anyway?
@@ -649,36 +654,40 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         />
       )}
 
-      {/* Header + description */}
-      <Stack spacing={1} mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Experiments
-          </Typography>
-          <HelperIcon articlePath="llm-evals/running-experiments" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations.
-        </Typography>
+      <PageHeader
+        title="Experiments"
+        description="Experiments run evaluations on your models using datasets and scorers. Track performance metrics over time and compare different model configurations."
+        rightContent={<HelperIcon articlePath="llm-evals/running-experiments" />}
+      />
+      <Box sx={{ mt: "18px" }}>
         <TipBox entityName="evals-experiments" />
-      </Stack>
+      </Box>
 
       {/* Performance Chart */}
-      <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
+      <Card sx={{ marginBottom: "16px", border: `1px solid ${palette.border.dark}`, borderRadius: "4px", boxShadow: "none" }}>
         <CardContent sx={{ py: 2 }}>
           <Box mb={1}>
             <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600 }}>Performance tracking</Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "13px" }}>
-            Track metric scores across eval runs
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: "13px" }}>
+              Track metric scores across eval runs
+            </Typography>
+            <Select
+              id="chart-time-range"
+              value={chartTimeRange}
+              onChange={(e) => setChartTimeRange(e.target.value as TimeRange)}
+              items={TIME_RANGE_OPTIONS.map((opt) => ({ _id: opt.value, name: opt.label }))}
+              sx={{ minWidth: 130 }}
+            />
+          </Box>
 
           <Box sx={{ position: "relative" }}>
             <Box sx={{
               filter: experiments.length === 0 ? "blur(4px)" : "none",
               pointerEvents: experiments.length === 0 ? "none" : "auto",
             }}>
-              <PerformanceChart key={`chart-${chartRefreshKey}`} projectId={projectId} />
+              <PerformanceChart key={`chart-${chartRefreshKey}`} projectId={projectId} timeRange={chartTimeRange} />
             </Box>
             {experiments.length === 0 && (
               <Box
@@ -699,7 +708,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
                   sx={{
                     fontSize: "14px",
                     fontWeight: 500,
-                    color: "#374151",
+                    color: palette.text.secondary,
                     textAlign: "center",
                     px: 3,
                   }}
@@ -737,8 +746,8 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           text="New experiment"
           icon={<Play size={16} />}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: palette.brand.primary,
+            border: `1px solid ${palette.brand.primary}`,
             gap: 2,
           }}
           onClick={() => setNewEvalModalOpen(true)}
@@ -783,6 +792,6 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         onStarted={handleStarted}
         useCase={useCase}
       />
-    </Box>
+    </Stack>
   );
 }

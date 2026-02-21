@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box, Stack } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Box } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
-import HelperIcon from "../../components/HelperIcon";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
 import TabBar from "../../components/TabBar";
 import PageTour from "../../components/PageTour";
-import TipBox from "../../components/TipBox";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyManager.model";
 import {
   getAllPolicies,
@@ -24,6 +21,7 @@ const PolicyDashboard: React.FC = () => {
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const currentPath = location.pathname;
   const isPolicyTemplateTab = currentPath.includes("/policies/templates");
   const activeTab = isPolicyTemplateTab ? "templates" : "policies";
@@ -48,33 +46,25 @@ const PolicyDashboard: React.FC = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
+    <PageHeaderExtended
+      title="Policy manager"
+      description="Create and manage AI governance policies using pre-built templates or custom documentation to stay compliant and consistent."
+      helpArticlePath="policies/policy-management"
+      tipBoxEntity="policies"
+    >
       <TabContext value={activeTab}>
-        <PageBreadcrumbs />
-
-        <PageHeader
-          title="Policy manager"
-          description="Create and manage AI governance policies using pre-built templates or custom documentation to stay compliant and consistent."
-          rightContent={
-            <HelperIcon
-              articlePath="policies/policy-management"
-              size="small"
-            />
-          }
-        />
-        <TipBox entityName="policies" />
         <Box sx={{ mt: 2 }}>
           <TabBar
             tabs={[
               {
-                label: "Organizational Policies",
+                label: "Organizational policies",
                 value: "policies",
                 icon: "Shield",
                 count: policies.length,
                 tooltip: "Your organization's active policies",
               },
               {
-                label: "Policy Templates",
+                label: "Policy templates",
                 value: "templates",
                 icon: "ShieldHalf",
                 count: policyTemplates.length,
@@ -100,7 +90,7 @@ const PolicyDashboard: React.FC = () => {
           tourKey="policy-tour"
         />
       </TabContext>
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

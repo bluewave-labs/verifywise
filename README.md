@@ -72,6 +72,8 @@ We are democratizing AI best practices with a solution that can be hosted on-pre
   - AI literacy training registery
   - AI Advisor, AI-powered chat interface providing governance recommendations
   - AI Detection Module, which scans code repositories to identify AI-generated content.
+  - Shadow AI detection and risk management
+  - AI agent discovery
   - Activity history for each entity
   - Integration with MIT and IBM AI risk repository
   - Model inventory and model risks that keeps a list of models used and risks

@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -31,8 +32,7 @@ import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { GroupBy } from "../../components/Table/GroupBy";
 import SearchBox from "../../components/Search/SearchBox";
@@ -41,6 +41,8 @@ import { useGroupByState, useTableGrouping } from "../../../application/hooks/us
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { getScans, deleteScan, getScanStatus } from "../../../application/repository/aiDetection.repository";
 import { Scan, ScansResponse, ScanStatus } from "../../../domain/ai-detection/types";
+import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
+import { palette } from "../../themes/palette";
 
 const ACTIVE_STATUSES: ScanStatus[] = ["pending", "cloning", "scanning"];
 const POLL_INTERVAL_MS = 3000;
@@ -58,10 +60,6 @@ const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
-interface HistoryPageProps {
-  onScanClick: (scanId: number) => void;
-  onScanDeleted: () => void;
-}
 
 // Table columns configuration with sortable flag
 const TABLE_COLUMNS = [
@@ -97,7 +95,7 @@ const SortableTableHead: React.FC<{
                     cursor: "pointer",
                     userSelect: "none",
                     "&:hover": {
-                      backgroundColor: "#f0f0f0",
+                      backgroundColor: palette.background.hover,
                     },
                   }
                 : {}),
@@ -125,7 +123,7 @@ const SortableTableHead: React.FC<{
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                    color: sortConfig.key === column.id ? "primary.main" : palette.text.disabled,
                   }}
                 >
                   {sortConfig.key === column.id && sortConfig.direction === "asc" && (
@@ -187,8 +185,10 @@ const GROUP_BY_OPTIONS = [
   { id: "triggered_by", label: "Triggered by" },
 ];
 
-export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageProps) {
+export default function HistoryPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { refreshRecentScans } = useAIDetectionSidebarContext();
   const [scans, setScans] = useState<Scan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -359,7 +359,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
       await deleteScan(scanToDelete.id);
       setScans((prev) => prev.filter((s) => s.id !== scanToDelete.id));
       setTotal((prev) => prev - 1);
-      onScanDeleted();
+      refreshRecentScans();
       setAlert({
         variant: "success",
         body: `Scan for ${repoIdentifier} deleted.`,
@@ -541,8 +541,8 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
       label: "DURATION",
       render: (scan: Scan) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Clock size={14} color="#667085" />
-          <Typography variant="body2" sx={{ color: "#667085", fontFamily: "monospace" }}>
+          <Clock size={14} color={palette.text.tertiary} />
+          <Typography variant="body2" sx={{ color: palette.text.tertiary, fontFamily: "monospace" }}>
             {scan.status === "completed" ? formatDuration(scan.duration_ms) : "-"}
           </Typography>
         </Box>
@@ -597,7 +597,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
                   },
                 }}
               >
-                <Trash2 size={16} color="#d92d20" />
+                <Trash2 size={16} color={palette.status.error.text} />
               </IconButton>
             </Tooltip>
           )}
@@ -608,28 +608,32 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
 
   if (isLoading && scans.length === 0) {
     return (
-      <Box sx={{ textAlign: "center" }}>
-        <Typography variant="body1" sx={{ color: "#667085" }}>
-          Loading scan history...
-        </Typography>
-      </Box>
+      <PageHeaderExtended
+        title="Scan history"
+        description="View past repository scans and their results."
+        helpArticlePath="ai-detection/history"
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+            Loading scan history...
+          </Typography>
+        </Box>
+      </PageHeaderExtended>
     );
   }
 
   if (!isLoading && scans.length === 0 && total === 0) {
     return (
-      <>
-        <PageHeader
-          title="Scan history"
-          description="View past repository scans and their results."
-          rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
-        />
-
+      <PageHeaderExtended
+        title="Scan history"
+        description="View past repository scans and their results."
+        helpArticlePath="ai-detection/history"
+      >
         <EmptyState
           message="No scans yet. Start your first scan to detect AI/ML libraries in a repository."
           showBorder
         />
-      </>
+      </PageHeaderExtended>
     );
   }
 
@@ -640,25 +644,23 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
   };
 
   return (
-    <>
-      {/* Toast notification */}
-      {alert && (
-        <Suspense fallback={null}>
-          <Alert
-            variant={alert.variant}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
-
-      {/* Header */}
-      <PageHeader
-        title="Scan history"
-        description="View past repository scans and their results."
-        rightContent={<HelperIcon articlePath="ai-detection/history" size="small" />}
-      />
+    <PageHeaderExtended
+      title="Scan history"
+      description="View past repository scans and their results."
+      helpArticlePath="ai-detection/history"
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
 
       {/* Toolbar with Filter, Group, Search */}
       <Stack direction="row" gap={2} alignItems="center" sx={{ mb: 2 }}>
@@ -685,7 +687,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
         renderTable={(data, options) => (
           <TableContainer
             sx={{
-              backgroundColor: "#fff",
+              backgroundColor: palette.background.main,
               borderRadius: "4px",
               overflow: "hidden",
             }}
@@ -702,7 +704,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
                     key={scan.id}
                     onClick={() => {
                       if (scan.status === "completed" || scan.status === "failed") {
-                        onScanClick(scan.id);
+                        navigate(`/ai-detection/scans/${scan.id}`);
                       }
                     }}
                     sx={{
@@ -820,7 +822,7 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
           isOpen={deleteModalOpen}
           title="Delete scan?"
           body={
-            <Typography fontSize={13} color="#344054">
+            <Typography fontSize={13} color={palette.text.secondary}>
               Are you sure you want to delete the scan for{" "}
               <strong>
                 {scanToDelete.repository_owner}/{scanToDelete.repository_name}
@@ -837,6 +839,6 @@ export default function HistoryPage({ onScanClick, onScanDeleted }: HistoryPageP
           TitleFontSize={0}
         />
       )}
-    </>
+    </PageHeaderExtended>
   );
 }

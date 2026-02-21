@@ -1,4 +1,5 @@
 import Chip from "../../components/Chip";
+import { palette } from "../../themes/palette";
 
 export function getStatusChip(status: string) {
   switch (status) {
@@ -8,8 +9,8 @@ export function getStatusChip(status: string) {
           label="Completed"
           size="small"
           uppercase={false}
-          backgroundColor="#ECFDF5"
-          textColor="#065F46"
+          backgroundColor={palette.status.success.bg}
+          textColor={palette.status.success.text}
         />
       );
     case "running":
@@ -18,8 +19,8 @@ export function getStatusChip(status: string) {
           label="Running"
           size="small"
           uppercase={false}
-          backgroundColor="#EFF6FF"
-          textColor="#1E40AF"
+          backgroundColor={palette.status.info.bg}
+          textColor={palette.status.info.text}
         />
       );
     case "pending":
@@ -28,8 +29,8 @@ export function getStatusChip(status: string) {
           label="Pending"
           size="small"
           uppercase={false}
-          backgroundColor="#F9FAFB"
-          textColor="#374151"
+          backgroundColor={palette.background.accent}
+          textColor={palette.text.secondary}
         />
       );
     case "failed":
@@ -38,8 +39,8 @@ export function getStatusChip(status: string) {
           label="Failed"
           size="small"
           uppercase={false}
-          backgroundColor="#FEF2F2"
-          textColor="#991B1B"
+          backgroundColor={palette.status.error.bg}
+          textColor={palette.status.error.text}
         />
       );
     default:

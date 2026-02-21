@@ -41,11 +41,11 @@ commonAnnotations:
 
 # Images (can be used to override image tags)
 images:
-  - name: ghcr.io/bluewave-labs/verifywise-backend
+  - name: ghcr.io/verifywise-ai/verifywise-backend
     newTag: latest
-  - name: ghcr.io/bluewave-labs/verifywise-frontend
+  - name: ghcr.io/verifywise-ai/verifywise-frontend
     newTag: latest
-  - name: ghcr.io/bluewave-labs/verifywise-eval-server
+  - name: ghcr.io/verifywise-ai/verifywise-eval-server
     newTag: latest
 
 # ConfigMap generator (optional - alternative to using configmap-generated.yaml)

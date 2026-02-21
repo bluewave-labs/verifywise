@@ -18,8 +18,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import IconButton from "../../IconButton";
 import { FileIcon } from "../../FileIcon";
-import VersionBadge from "../../../pages/FileManager/components/VersionBadge";
-import StatusBadge from "../../../pages/FileManager/components/StatusBadge";
+import Chip from "../../Chip";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { deleteFileFromManager } from "../../../../application/repository/file.repository";
 import { FileModel } from "../../../../domain/models/Common/file/file.model";
@@ -40,8 +39,24 @@ type SortConfig = {
   direction: SortDirection;
 };
 
-const navigteToNewTab = (url: string) => {
+const navigateToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
+};
+
+/**
+ * Truncate a filename in the middle so the extension stays visible.
+ * e.g. "very-long-document-name-here.pdf" → "very-long-documen(...)e-here.pdf"
+ */
+const truncateFileName = (name: string, maxLength = 40): string => {
+  if (!name || name.length <= maxLength) return name;
+  const extIndex = name.lastIndexOf(".");
+  const ext = extIndex > 0 ? name.slice(extIndex) : "";
+  const baseName = extIndex > 0 ? name.slice(0, extIndex) : name;
+  const availableChars = maxLength - ext.length - 5; // 5 for "(...)""
+  if (availableChars <= 0) return name.slice(0, maxLength - 5) + "(...)" + ext;
+  const frontChars = Math.ceil(availableChars * 0.6);
+  const backChars = availableChars - frontChars;
+  return baseName.slice(0, frontChars) + "(...)" + baseName.slice(-backChars) + ext;
 };
 
 // Helper function to match column name with sort key
@@ -309,32 +324,32 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
     event.stopPropagation();
     switch (item.source) {
       case "Assessment tracker group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&topicId=${item.parentId}&questionId=${item.metaId}`
         );
         break;
       case "Compliance tracker group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`
         );
         break;
       case "Management system clauses group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-42001&clauseId=${item.parentId}&subClauseId=${item.metaId}`
         );
         break;
       case "Main clauses group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-27001&clause27001Id=${item.parentId}&subClause27001Id=${item.metaId}`
         );
         break;
       case "Reference controls group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexCategoryId=${item.metaId}`
         );
         break;
       case "Annex controls group":
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`
         );
         break;
@@ -407,10 +422,14 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                           display: "flex",
                           alignItems: "center",
                           gap: "8px",
+                          maxWidth: "360px",
                         }}
+                        title={row.fileName}
                       >
                         <FileIcon fileName={row.fileName} />
-                        {row.fileName}
+                        <span style={{ whiteSpace: "nowrap" }}>
+                          {truncateFileName(row.fileName)}
+                        </span>
                       </Box>
                     </TableCell>
                   )}
@@ -447,36 +466,55 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     </TableCell>
                   )}
                   {/* Source column */}
-                  {visibleColumnKeys.includes("source") && (
-                    <TableCell
-                      sx={{
-                        ...singleTheme.tableStyles.primary.body.cell,
-                        backgroundColor: getSortMatchForColumn(
-                          data.cols[colIndex++]?.name,
-                          sortConfig
-                        )
-                          ? "#f5f5f5"
-                          : "inherit",
-                      }}
-                    >
-                      <Box
+                  {visibleColumnKeys.includes("source") && (() => {
+                    const isLinked = [
+                      "Assessment tracker group",
+                      "Compliance tracker group",
+                      "Management system clauses group",
+                      "Main clauses group",
+                      "Reference controls group",
+                      "Annex controls group",
+                    ].includes(row.source || "");
+                    return (
+                      <TableCell
                         sx={{
-                          display: "flex",
-                          alignItems: "flex-end",
-                          gap: "4px",
-                          textDecoration: "underline",
-                          "& svg": { visibility: "hidden" },
-                          "&:hover": {
-                            cursor: "pointer",
-                            "& svg": { visibility: "visible" },
-                          },
+                          ...singleTheme.tableStyles.primary.body.cell,
+                          backgroundColor: getSortMatchForColumn(
+                            data.cols[colIndex++]?.name,
+                            sortConfig
+                          )
+                            ? "#f5f5f5"
+                            : "inherit",
                         }}
-                        onClick={(event) => handleRowClick(row, event)}
                       >
-                        {row.source}
-                      </Box>
-                    </TableCell>
-                  )}
+                        {isLinked ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "flex-end",
+                              gap: "4px",
+                              textDecoration: "underline",
+                              "& svg": { visibility: "hidden" },
+                              "&:hover": {
+                                cursor: "pointer",
+                                "& svg": { visibility: "visible" },
+                              },
+                            }}
+                            onClick={(event) => handleRowClick(row, event)}
+                          >
+                            {row.source}
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#98A2B3", fontSize: 13 }}
+                          >
+                            Not linked
+                          </Typography>
+                        )}
+                      </TableCell>
+                    );
+                  })()}
                   {/* Version column */}
                   {visibleColumnKeys.includes("version") && (
                     <TableCell
@@ -490,9 +528,16 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                           : "inherit",
                       }}
                     >
-                      <VersionBadge
-                        version={(row as any).version}
-                        reviewStatus={(row as any).reviewStatus}
+                      <Chip
+                        label={`v${(row as any).version || "1.0"}`}
+                        variant={
+                          (row as any).reviewStatus === "approved"
+                            ? "success"
+                            : (row as any).reviewStatus === "superseded"
+                              ? "default"
+                              : "info"
+                        }
+                        uppercase={false}
                       />
                     </TableCell>
                   )}
@@ -509,7 +554,10 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                           : "inherit",
                       }}
                     >
-                      <StatusBadge status={(row as any).reviewStatus} />
+                      <Chip
+                        label={((row as any).reviewStatus || "draft").replace(/_/g, " ").replace(/^\w/, (c: string) => c.toUpperCase())}
+                        uppercase={false}
+                      />
                     </TableCell>
                   )}
                   {/* Action column */}

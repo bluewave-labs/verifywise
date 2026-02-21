@@ -353,7 +353,7 @@ const IntegratedDashboard: React.FC = () => {
       )}
 
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb="16px">
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 400, fontSize: "20px" }}>
             <Box component="span" sx={{ color: COLORS.primary }}>
@@ -583,7 +583,11 @@ const IntegratedDashboard: React.FC = () => {
                 incidentMetrics?.recent?.forEach((incident: any) => {
                   allActivities.push({
                     id: `incident-${incident.id}`,
-                    title: incident.description || incident.incident_id,
+                    title: incident.description
+                      ? incident.description.length > 60
+                        ? incident.description.slice(0, 60) + "..."
+                        : incident.description
+                      : incident.incident_id,
                     timestamp: incident.updated_at || incident.created_at,
                     type: "Incident",
                   });
@@ -892,7 +896,11 @@ const IntegratedDashboard: React.FC = () => {
                 incidentMetrics?.recent?.forEach((incident: any) => {
                   allActivities.push({
                     id: `incident-${incident.id}`,
-                    title: incident.description || incident.incident_id,
+                    title: incident.description
+                      ? incident.description.length > 60
+                        ? incident.description.slice(0, 60) + "..."
+                        : incident.description
+                      : incident.incident_id,
                     timestamp: incident.updated_at || incident.created_at,
                     type: "Incident",
                   });

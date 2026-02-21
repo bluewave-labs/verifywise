@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Maximize2, Minimize2, X } from "lucide-react";
 import { colors, typography, spacing, border } from "./styles/theme";
 import { getLLMKeys } from "../../../application/repository/llmKeys.repository";
 import { LLMKeysModel } from "../../../domain/models/Common/llmKeys/llmKeys.model";
@@ -9,6 +9,8 @@ interface AdvisorHeaderProps {
   selectedLLMKeyId?: number;
   onLLMKeyChange?: (keyId: number) => void;
   onLLMKeysLoaded?: (hasKeys: boolean, isLoading: boolean) => void;
+  isEnlarged?: boolean;
+  onToggleEnlarge?: () => void;
 }
 
 const AdvisorHeader: FC<AdvisorHeaderProps> = ({
@@ -16,6 +18,8 @@ const AdvisorHeader: FC<AdvisorHeaderProps> = ({
   selectedLLMKeyId,
   onLLMKeyChange,
   onLLMKeysLoaded,
+  isEnlarged = false,
+  onToggleEnlarge,
 }) => {
   const [llmKeys, setLLMKeys] = useState<LLMKeysModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +89,7 @@ const AdvisorHeader: FC<AdvisorHeaderProps> = ({
             textOverflow: "ellipsis",
           }}
         >
-          Advisor
+          AI advisor
         </span>
 
         {/* Right side: LLM Key Selector and Actions */}
@@ -121,6 +125,33 @@ const AdvisorHeader: FC<AdvisorHeaderProps> = ({
                 </option>
               ))}
             </select>
+          )}
+
+          {/* Enlarge/Shrink button */}
+          {onToggleEnlarge && (
+            <button
+              onClick={onToggleEnlarge}
+              className="header-icon-button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 28,
+                height: 28,
+                backgroundColor: "transparent",
+                border: "none",
+                borderRadius: border.radius,
+                cursor: "pointer",
+                color: colors.text.secondary,
+              }}
+              title={isEnlarged ? "Shrink" : "Enlarge"}
+            >
+              {isEnlarged ? (
+                <Minimize2 size={14} strokeWidth={1.5} />
+              ) : (
+                <Maximize2 size={14} strokeWidth={1.5} />
+              )}
+            </button>
           )}
 
           {/* Close button */}

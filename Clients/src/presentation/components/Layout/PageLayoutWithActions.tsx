@@ -1,11 +1,11 @@
-import React from 'react';
-import { Box } from '@mui/material';
+import type { ReactNode } from 'react';
+import { Box, Typography } from '@mui/material';
 import { PageBreadcrumbs } from '../breadcrumbs/PageBreadcrumbs';
-import DashboardActionButtons from './DashboardActionButtons';
+import { DashboardActionButtons } from './DashboardActionButtons';
 import { BreadcrumbItem } from '../../types/interfaces/i.breadcrumbs';
 
 interface PageLayoutWithActionsProps {
-  children: React.ReactNode;
+  children: ReactNode;
   breadcrumbItems?: BreadcrumbItem[];
   showBreadcrumbs?: boolean;
   showActionButtons?: boolean;
@@ -15,7 +15,7 @@ interface PageLayoutWithActionsProps {
   showCurrentPage?: boolean;
 }
 
-const PageLayoutWithActions: React.FC<PageLayoutWithActionsProps> = ({
+export function PageLayoutWithActions({
   children,
   breadcrumbItems,
   showBreadcrumbs = true,
@@ -24,7 +24,7 @@ const PageLayoutWithActions: React.FC<PageLayoutWithActionsProps> = ({
   description,
   autoGenerateBreadcrumbs = true,
   showCurrentPage = true,
-}) => {
+}: PageLayoutWithActionsProps) {
   return (
     <Box sx={{ position: 'relative', width: '100%' }}>
       {showActionButtons && <DashboardActionButtons />}
@@ -39,28 +39,23 @@ const PageLayoutWithActions: React.FC<PageLayoutWithActionsProps> = ({
 
       {title && (
         <Box sx={{ mb: 3 }}>
-          <Box
-            component="h1"
+          <Typography
+            variant="h5"
             sx={{
-              fontSize: '24px',
               fontWeight: 600,
               color: 'text.primary',
               mb: 1,
             }}
           >
             {title}
-          </Box>
+          </Typography>
           {description && (
-            <Box
-              component="p"
-              sx={{
-                fontSize: '14px',
-                color: 'text.secondary',
-                m: 0,
-              }}
+            <Typography
+              variant="body2"
+              color="text.secondary"
             >
               {description}
-            </Box>
+            </Typography>
           )}
         </Box>
       )}
@@ -68,6 +63,4 @@ const PageLayoutWithActions: React.FC<PageLayoutWithActionsProps> = ({
       {children}
     </Box>
   );
-};
-
-export default PageLayoutWithActions;
+}

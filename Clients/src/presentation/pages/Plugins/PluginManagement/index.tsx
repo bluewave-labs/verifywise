@@ -30,7 +30,7 @@ import {
   Database as DatabaseIcon,
 } from "lucide-react";
 import { PageBreadcrumbs } from "../../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../../components/Layout/PageHeader";
+import { PageHeader } from "../../../components/Layout/PageHeader";
 import PluginSlot from "../../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../../domain/constants/pluginSlots";
 import { usePluginRegistry } from "../../../../application/contexts/PluginRegistry.context";
@@ -43,7 +43,7 @@ import { cardStyles } from "../../../themes/components";
 import ConfirmationModal from "../../../components/Dialogs/ConfirmationModal";
 import { BreadcrumbItem } from "../../../../domain/types/breadcrumbs.types";
 import { ENV_VARs } from "../../../../../env.vars";
-import { getConfigFields, ConfigField, MLFLOW_DEFAULT_CONFIG } from "./config-fields";
+import { getConfigFields, ConfigField } from "./config-fields";
 import {
   backButton,
   pluginIconPlaceholder,
@@ -179,13 +179,8 @@ const PluginManagement: React.FC = () => {
             installedAt: installation.installedAt,
           });
 
-          // Load existing configuration with defaults
-          const defaults: Record<string, string> = pluginKey === "mlflow" ? { ...MLFLOW_DEFAULT_CONFIG } : {};
-
-          setConfigData({
-            ...defaults,
-            ...(installation.configuration || {}),
-          });
+          // Load existing configuration
+          setConfigData(installation.configuration || {});
         } else {
           setPlugin(pluginData);
         }
@@ -640,7 +635,7 @@ const PluginManagement: React.FC = () => {
                     )}
 
                     {/* Plugin Configuration via PluginSlot */}
-                    {!connectingOAuth && pluginKey && getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(c => c.pluginKey === pluginKey) ? (
+                    {!connectingOAuth && pluginKey && getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(c => c.pluginKey === pluginKey) && (
                       <PluginSlot
                         id={PLUGIN_SLOTS.PLUGIN_CONFIG}
                         pluginKey={pluginKey}
@@ -661,7 +656,10 @@ const PluginManagement: React.FC = () => {
                           isTestingConnection,
                         }}
                       />
-                    ) : !connectingOAuth && (
+                    )}
+
+                    {/* Generic Configuration Form - only for plugins without custom config UI (that don't require configuration) */}
+                    {!connectingOAuth && pluginKey && !getComponentsForSlot(PLUGIN_SLOTS.PLUGIN_CONFIG).some(c => c.pluginKey === pluginKey) && !plugin.requiresConfiguration && (
                       <>
                         <Typography variant="body2" color="text.secondary" fontSize={13} sx={{ mb: 3 }}>
                           Configure {plugin.displayName} settings and preferences.

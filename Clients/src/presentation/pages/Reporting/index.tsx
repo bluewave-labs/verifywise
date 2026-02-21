@@ -1,5 +1,5 @@
 import { Suspense, lazy, useState, useCallback } from "react";
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 const GenerateReport = lazy(() => import("./GenerateReport"));
 const ReportLists = lazy(() => import("./Reports"));
 import PageTour from "../../components/PageTour";

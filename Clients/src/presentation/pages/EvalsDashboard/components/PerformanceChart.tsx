@@ -1,38 +1,28 @@
 import { useState, useEffect, useCallback } from "react";
-import { Box, Typography, Select, MenuItem, FormControl } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getAllExperiments, type Experiment } from "../../../../application/repository/deepEval.repository";
+import { palette } from "../../../themes/palette";
 
-interface PerformanceChartProps {
-  projectId: string;
-}
+export type TimeRange = "7d" | "30d" | "100d" | "all";
 
-type TimeRange = "7d" | "30d" | "100d" | "all";
-
-const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+export const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
   { value: "7d", label: "Last 7 days" },
   { value: "30d", label: "Last 30 days" },
   { value: "100d", label: "Last 100 days" },
   { value: "all", label: "All time" },
 ];
 
-// 15 distinct colors for the chart - no repetition
+interface PerformanceChartProps {
+  projectId: string;
+  timeRange: TimeRange;
+}
+
+
+// Chart colors from unified palette (8 solid + 7 with 60% opacity for 15 total)
 const CHART_COLORS = [
-  "#2563EB", // Blue
-  "#DC2626", // Red
-  "#16A34A", // Green
-  "#7C3AED", // Purple
-  "#EA580C", // Orange
-  "#0891B2", // Cyan
-  "#DB2777", // Pink
-  "#CA8A04", // Yellow
-  "#0D9488", // Teal
-  "#4F46E5", // Indigo
-  "#059669", // Emerald
-  "#9333EA", // Violet
-  "#C026D3", // Fuchsia
-  "#65A30D", // Lime
-  "#0284C7", // Sky
+  ...palette.chart,
+  ...palette.chart.slice(0, 7).map((c) => c + "99"),
 ];
 
 // Metric definitions - maps camelCase keys to labels
@@ -86,11 +76,10 @@ type ChartPoint = {
   [key: string]: number | string | string[] | null;
 };
 
-export default function PerformanceChart({ projectId }: PerformanceChartProps) {
+export default function PerformanceChart({ projectId, timeRange }: PerformanceChartProps) {
   const [data, setData] = useState<ChartPoint[]>([]);
   const [activeMetrics, setActiveMetrics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
   // Get cutoff date based on time range
   const getCutoffDate = useCallback((range: TimeRange): Date | null => {
@@ -187,7 +176,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     return (
       <Box textAlign="center" py={4}>
         <Typography variant="body2" color="text.secondary">
-          No completed experiments yet. Run experiments to see performance trends.
+          No completed experiments in this time range.
         </Typography>
       </Box>
     );
@@ -259,8 +248,8 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
     return (
       <Box
         sx={{
-          backgroundColor: "#fff",
-          border: "1px solid #E5E7EB",
+          backgroundColor: palette.background.main,
+          border: `1px solid ${palette.border.light}`,
           borderRadius: "8px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           padding: "12px",
@@ -298,7 +287,7 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
                   flexShrink: 0,
                 }}
               />
-              <Typography sx={{ fontSize: "12px", color: "#374151" }}>
+              <Typography sx={{ fontSize: "12px", color: palette.text.secondary }}>
                 {metricLabel} : <span style={{ fontWeight: 600 }}>{value}%</span>
               </Typography>
             </Box>
@@ -310,77 +299,42 @@ export default function PerformanceChart({ projectId }: PerformanceChartProps) {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Time range selector */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <FormControl size="small">
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-            sx={{
-              fontSize: "12px",
-              height: "28px",
-              "& .MuiSelect-select": {
-                py: 0.5,
-                px: 1.5,
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#E5E7EB",
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#D1D5DB",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#13715B",
-              },
-            }}
-          >
-            {TIME_RANGE_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: "12px" }}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Chart */}
     <Box sx={{
       width: "100%",
-      minHeight: 220,
-      height: dynamicHeight,
       "& *": { outline: "none !important" },
       "& *:focus": { outline: "none !important" },
     }}>
-        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height={Math.max(dynamicHeight, 220)} debounce={1}>
+        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 20 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
           <XAxis 
             dataKey="index"
             type="number"
             domain={data.length > 4 
-              ? [0, data.length - 1]  // No padding for 5+ experiments
-              : [-0.5, Math.max(data.length - 0.5, 1.5)]  // Padding for ≤4 experiments
+              ? [0, data.length - 1]
+              : [-0.5, Math.max(data.length - 0.5, 1.5)]
             }
             ticks={data.map((_, i) => i)}
             tickFormatter={formatXAxisTick}
-            tick={{ fontSize: 10, fill: "#6B7280" }}
-            axisLine={{ stroke: "#E5E7EB" }}
+            tick={{ fontSize: 10, fill: palette.text.disabled, dy: 10 }}
+            axisLine={{ stroke: palette.border.light }}
             interval={0}
-            angle={-20}
+            angle={-25}
             textAnchor="end"
-            height={40}
+            height={65}
+            tickMargin={10}
             allowDataOverflow={false}
           />
           <YAxis 
             domain={[0, 1]} 
-            tick={{ fontSize: 10, fill: "#6B7280" }}
-            axisLine={{ stroke: "#E5E7EB" }}
+            tick={{ fontSize: 10, fill: palette.text.disabled }}
+            axisLine={{ stroke: palette.border.light }}
             tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
             width={40}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
-            wrapperStyle={{ paddingTop: 12, fontSize: 11 }}
+            wrapperStyle={{ paddingTop: 12, fontSize: 13 }}
             formatter={(value: string) => {
               const metricDef = metricDefinitions[value as keyof typeof metricDefinitions];
               return metricDef?.label || formatMetricLabel(value);

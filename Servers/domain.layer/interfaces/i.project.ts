@@ -24,6 +24,7 @@ export interface IProjectAttributes {
   approval_workflow_id?: number;
   pending_frameworks?: number[];
   enable_ai_data_insertion?: boolean;
+  _source?: string; // Plugin source identifier (e.g., 'jira-assets')
 
   // Statistical fields
   doneSubcontrols?: number;

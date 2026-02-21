@@ -4,20 +4,17 @@ import { RefreshCw, CirclePlus } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getAllEntities } from "../../../application/repository/entity.repository";
-import PageHeader from "../../components/Layout/PageHeader";
 import AgentStatusCards from "./AgentStatusCards";
 import AgentTable, { AgentPrimitiveRow } from "./AgentTable";
 import ReviewAgentModal from "../../components/Modals/AgentDiscovery/ReviewAgentModal";
 import ManualAgentModal from "../../components/Modals/AgentDiscovery/ManualAgentModal";
 import {
-  agentMainStack,
   agentToastContainer,
   addAgentButton,
   syncButton,
 } from "./style";
 import { apiServices } from "../../../infrastructure/api/networkServices";
-import HelperIcon from "../../components/HelperIcon";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   FilterBy,
   FilterColumn,
@@ -63,6 +60,7 @@ const AgentDiscovery: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<AgentPrimitiveRow | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [editAgent, setEditAgent] = useState<AgentPrimitiveRow | null>(null);
 
   // Alert
   const [alert, setAlert] = useState<{
@@ -279,49 +277,53 @@ const AgentDiscovery: React.FC = () => {
 
   const handleManualSuccess = () => {
     setIsManualModalOpen(false);
+    setEditAgent(null);
     fetchAgents();
     fetchStats();
-    showAlertMessage("success", "Agent added successfully.");
+    showAlertMessage("success", editAgent ? "Agent updated successfully." : "Agent added successfully.");
+  };
+
+  const handleEditAgent = (agent: AgentPrimitiveRow) => {
+    setEditAgent(agent);
+    setIsManualModalOpen(true);
+  };
+
+  const handleDeleteAgent = async (agent: AgentPrimitiveRow) => {
+    try {
+      await apiServices.delete(`/agent-primitives/${agent.id}`);
+      fetchAgents();
+      fetchStats();
+      showAlertMessage("success", "Agent deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete agent:", error);
+      showAlertMessage("error", "Failed to delete agent.");
+    }
   };
 
   return (
-    <Stack sx={agentMainStack}>
-      <PageBreadcrumbs />
-
-      {/* Alert */}
-      <Fade in={showAlert}>
-        <Box sx={agentToastContainer}>
-          <Suspense fallback={null}>
-            {showAlert && alert && (
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast
-                onClick={() => setShowAlert(false)}
-              />
-            )}
-          </Suspense>
-        </Box>
-      </Fade>
-
-      {/* Page header */}
-      <Stack>
-        <PageHeader
-          title="Agent discovery"
-          description="Automatically discover and inventory AI agents across your organization. Review discovered agents, confirm or reject them, and link them to your model inventory for governance tracking."
-          rightContent={
-            <HelperIcon
-              articlePath="ai-governance/agent-discovery"
-              size="small"
-            />
-          }
-        />
-      </Stack>
-
-      {/* Status cards */}
-      <AgentStatusCards stats={stats} />
-
+    <PageHeaderExtended
+      title="Agent discovery"
+      description="Automatically discover and inventory AI agents across your organization. Review discovered agents, confirm or reject them, and link them to your model inventory for governance tracking."
+      helpArticlePath="ai-governance/agent-discovery"
+      summaryCards={<AgentStatusCards stats={stats} />}
+      alert={
+        showAlert && alert ? (
+          <Fade in={showAlert}>
+            <Box sx={agentToastContainer}>
+              <Suspense fallback={null}>
+                <Alert
+                  variant={alert.variant}
+                  title={alert.title}
+                  body={alert.body}
+                  isToast
+                  onClick={() => setShowAlert(false)}
+                />
+              </Suspense>
+            </Box>
+          </Fade>
+        ) : undefined
+      }
+    >
       {/* Controls row */}
       <Stack spacing={2}>
         <Stack
@@ -355,7 +357,7 @@ const AgentDiscovery: React.FC = () => {
               sx={syncButton}
               variant="outlined"
               onClick={handleSync}
-              disabled={isSyncing}
+              isDisabled={isSyncing}
               icon={
                 <RefreshCw
                   size={14}
@@ -386,6 +388,8 @@ const AgentDiscovery: React.FC = () => {
             agents={data}
             isLoading={isLoading}
             onRowClick={handleRowClick}
+            onEdit={handleEditAgent}
+            onDelete={handleDeleteAgent}
           />
         )}
       />
@@ -401,10 +405,14 @@ const AgentDiscovery: React.FC = () => {
       {/* Manual entry modal */}
       <ManualAgentModal
         isOpen={isManualModalOpen}
-        setIsOpen={setIsManualModalOpen}
+        setIsOpen={(open) => {
+          setIsManualModalOpen(open);
+          if (!open) setEditAgent(null);
+        }}
         onSuccess={handleManualSuccess}
+        agent={editAgent}
       />
-    </Stack>
+    </PageHeaderExtended>
   );
 };
 

@@ -44,10 +44,10 @@ export class ModelInventoryModel
   version!: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.INTEGER,
     allowNull: true,
   })
-  approver?: string;
+  approver?: number;
 
   @Column({
     type: DataType.TEXT,
@@ -407,7 +407,7 @@ export class ModelInventoryModel
       provider: data.provider || "",
       model: data.model || "",
       version: data.version || "",
-      approver: data.approver || "",
+      approver: data.approver || undefined,
       capabilities: Array.isArray(data.capabilities)
         ? data.capabilities.join(", ")
         : data.capabilities || "",

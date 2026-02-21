@@ -24,6 +24,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import TabBar from "../../components/TabBar";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
@@ -35,6 +36,7 @@ import {
   GitHubTokenStatus,
   GitHubTokenTestResult,
 } from "../../../application/repository/githubToken.repository";
+import { palette } from "../../themes/palette";
 
 interface ToastAlert {
   variant: "success" | "error" | "warning" | "info";
@@ -146,39 +148,46 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: 300,
-        }}
-      >
-        <CircularProgress size={32} />
-      </Box>
+      <PageHeaderExtended title="Settings" description="Configure integrations and tokens for AI detection scanning.">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 300,
+          }}
+        >
+          <CircularProgress size={32} />
+        </Box>
+      </PageHeaderExtended>
     );
   }
 
   return (
-    <>
-      {/* Toast notification */}
-      {alert && (
-        <Suspense fallback={null}>
-          <Alert
-            variant={alert.variant}
-            body={alert.body}
-            isToast={true}
-            onClick={() => setAlert(null)}
-          />
-        </Suspense>
-      )}
-
+    <PageHeaderExtended
+      title="Settings"
+      description="Configure integrations and tokens for AI detection scanning."
+      helpArticlePath="ai-detection/settings"
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
             {
               label: "GitHub integration",
               value: "github",
+              icon: "Github",
               tooltip: "Connect a GitHub token to scan private repositories",
             },
           ]}
@@ -190,7 +199,7 @@ export default function SettingsPage() {
           <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {/* Help Text */}
             <Box>
-              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>
                 To scan private repositories, you need a GitHub Personal Access
                 Token with <strong>repo</strong> scope (for private repos) or{" "}
                 <strong>public_repo</strong> scope (for public repos only).
@@ -205,7 +214,7 @@ export default function SettingsPage() {
                   alignItems: "center",
                   gap: 0.5,
                   fontSize: 13,
-                  color: "#13715B",
+                  color: palette.brand.primary,
                   textDecoration: "none",
                   mt: 0.5,
                   "&:hover": { textDecoration: "underline" },
@@ -231,11 +240,11 @@ export default function SettingsPage() {
               >
                 <Box sx={{ flex: 1 }}>
                   <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: "#13715B" }}
+                    sx={{ fontSize: 14, fontWeight: 500, color: palette.brand.primary }}
                   >
                     Token configured
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: "#6c757d" }}>
+                  <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
                     {tokenStatus.token_name || "GitHub Personal Access Token"}
                   </Typography>
                 </Box>
@@ -244,7 +253,7 @@ export default function SettingsPage() {
                   size="small"
                   onClick={handleDeleteToken}
                   isDisabled={isDeleting}
-                  sx={{ color: "#dc3545", minWidth: "auto", p: 1 }}
+                  sx={{ color: palette.status.error.text, minWidth: "auto", p: 1 }}
                 >
                   {isDeleting ? (
                     <CircularProgress size={16} />
@@ -310,6 +319,6 @@ export default function SettingsPage() {
           </Box>
         </TabPanel>
       </TabContext>
-    </>
+    </PageHeaderExtended>
   );
 }

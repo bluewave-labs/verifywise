@@ -52,9 +52,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import StandardModal from "../../components/Modals/StandardModal";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
-import TipBox from "../../components/TipBox";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   SelectorVertical,
   SortableColumn,
@@ -62,6 +60,7 @@ import {
   useSortedRows,
   SortableTableHead,
 } from "./constants";
+import { palette } from "../../themes/palette";
 
 const TRIGGER_LABELS: Record<ShadowAiTriggerType, string> = {
   new_tool_detected: "New tool detected",
@@ -76,7 +75,7 @@ type ViewMode = "rules" | "history";
 
 const ALERTS_PER_PAGE = 10;
 
-const TABS = [
+const BASE_TABS = [
   { label: "Rules", value: "rules", icon: "Bell" as const, tooltip: "Configure alerts for Shadow AI activity" },
   { label: "Alert history", value: "history", icon: "History" as const, tooltip: "Past alerts triggered by your rules" },
 ];
@@ -143,6 +142,11 @@ export default function RulesPage() {
 
   const sortedAlerts = useSortedRows(alerts, alertsSortConfig, getAlertValue);
 
+  const tabs = useMemo(() => BASE_TABS.map((tab) => ({
+    ...tab,
+    count: tab.value === "rules" ? rules.length : alertsTotal,
+  })), [rules.length, alertsTotal]);
+
   // Auto-dismiss toast
   useEffect(() => {
     if (toast) {
@@ -151,6 +155,26 @@ export default function RulesPage() {
     }
     return undefined;
   }, [toast]);
+
+  // Fetch counts for both tabs on mount
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchCounts = async () => {
+      try {
+        const [rulesData, alertsData] = await Promise.all([
+          getRules(),
+          getAlertHistory(1, 1),
+        ]);
+        if (controller.signal.aborted) return;
+        setRules(rulesData);
+        setAlertsTotal(alertsData.total);
+      } catch {
+        // counts will update when individual tabs load
+      }
+    };
+    fetchCounts();
+    return () => { controller.abort(); };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -316,31 +340,31 @@ export default function RulesPage() {
   const theme = useTheme();
 
   return (
-    <TabContext value={viewMode}>
-    <Stack gap="16px">
-      {toast && (
-        <Suspense fallback={null}>
-          <Alert
-            variant={toast.variant}
-            body={toast.body}
-            isToast={true}
-            onClick={() => setToast(null)}
-          />
-        </Suspense>
-      )}
-      <PageHeader
-        title="Rules"
-        description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/rules" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-rules" />
+    <PageHeaderExtended
+      title="Rules"
+      description="Configure alert rules to get notified about Shadow AI activity. Set triggers for new tool detection, usage thresholds, sensitive department usage, and more."
+
+      helpArticlePath="shadow-ai/rules"
+      tipBoxEntity="shadow-ai-rules"
+      alert={
+        toast ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={toast.variant}
+              body={toast.body}
+              isToast={true}
+              onClick={() => setToast(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
+    >
+      <TabContext value={viewMode}>
 
       {/* Controls */}
       <Stack sx={{ position: "relative" }}>
         <TabBar
-          tabs={TABS}
+          tabs={tabs}
           activeTab={viewMode}
           onChange={handleTabChange}
         />
@@ -349,8 +373,8 @@ export default function RulesPage() {
             text="Create rule"
             variant="contained"
             sx={{
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0F5A47" },
+              backgroundColor: palette.brand.primary,
+              "&:hover": { backgroundColor: palette.brand.primaryHover },
               height: 34,
               fontSize: 13,
               position: "absolute",
@@ -380,7 +404,7 @@ export default function RulesPage() {
                 elevation={0}
                 sx={{
                   p: "16px",
-                  border: "1px solid #d0d5dd",
+                  border: `1px solid ${palette.border.dark}`,
                   borderRadius: "4px",
                   opacity: rule.is_active ? 1 : 0.6,
                   transition: "opacity 0.2s ease",
@@ -414,20 +438,20 @@ export default function RulesPage() {
                       <IconButton
                         size="small"
                         onClick={() => setDeleteTarget(rule)}
-                        sx={{ color: "#DC2626" }}
+                        sx={{ color: palette.status.error.text }}
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
                       </IconButton>
                     </Stack>
                   </Stack>
                   {rule.description && (
-                    <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+                    <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
                       {rule.description}
                     </Typography>
                   )}
                   {/* Display trigger config summary */}
                   {rule.trigger_config && Object.keys(rule.trigger_config).length > 0 && (
-                    <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                    <Typography sx={{ fontSize: 12, color: palette.status.default.text }}>
                       {rule.trigger_type === "risk_score_exceeded" && rule.trigger_config.risk_score_min != null && (
                         <>Threshold: risk score &ge; {String(rule.trigger_config.risk_score_min)}</>
                       )}
@@ -442,7 +466,7 @@ export default function RulesPage() {
                   {/* Cooldown & notification */}
                   <Stack direction="row" alignItems="center" gap="8px" flexWrap="wrap">
                     {rule.cooldown_minutes != null && (
-                      <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                      <Typography sx={{ fontSize: 12, color: palette.text.disabled }}>
                         Cooldown: {rule.cooldown_minutes >= 1440
                           ? `${rule.cooldown_minutes / 1440}d`
                           : rule.cooldown_minutes >= 60
@@ -451,12 +475,12 @@ export default function RulesPage() {
                       </Typography>
                     )}
                     {rule.notification_user_ids && rule.notification_user_ids.length > 0 && (
-                      <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                      <Typography sx={{ fontSize: 12, color: palette.text.disabled }}>
                         {rule.cooldown_minutes != null ? "· " : ""}Notifies via in-app + email
                       </Typography>
                     )}
                   </Stack>
-                  <Typography sx={{ fontSize: 12, color: "#9CA3AF" }}>
+                  <Typography sx={{ fontSize: 12, color: palette.text.disabled }}>
                     Actions:{" "}
                     {Array.isArray(rule.actions)
                       ? rule.actions.map((a: { type: string }) => a.type.replace(/_/g, " ")).join(", ")
@@ -597,7 +621,7 @@ export default function RulesPage() {
         maxWidth="480px"
       >
         <Stack gap="16px">
-          <Typography sx={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+          <Typography sx={{ fontSize: 13, color: palette.status.default.text, lineHeight: 1.5 }}>
             Create a rule to receive alerts when specific Shadow AI activity is detected. Choose a trigger type and the system will notify you when the condition is met.
           </Typography>
           <Field
@@ -644,9 +668,9 @@ export default function RulesPage() {
                 placeholder="e.g., 70"
                 error={formErrors.riskScoreMin}
               />
-              <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: "#F9FAFB", borderRadius: "4px", border: "1px solid #E5E7EB" }}>
-                <Info size={14} strokeWidth={1.5} color="#6B7280" style={{ marginTop: 2, flexShrink: 0 }} />
-                <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+              <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: palette.background.accent, borderRadius: "4px", border: `1px solid ${palette.border.light}` }}>
+                <Info size={14} strokeWidth={1.5} color={palette.status.default.text} style={{ marginTop: 2, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 12, color: palette.status.default.text, lineHeight: 1.5 }}>
                   Risk score (0–100) is calculated nightly using a weighted formula: approval status (40%), data &amp; compliance policies (25%), usage volume (15%), and department sensitivity (20%). Unapproved tools with weak compliance posture in sensitive departments score highest.
                 </Typography>
               </Stack>
@@ -665,9 +689,9 @@ export default function RulesPage() {
                 placeholder="e.g., 100"
                 error={formErrors.usageThreshold}
               />
-              <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: "#F9FAFB", borderRadius: "4px", border: "1px solid #E5E7EB" }}>
-                <Info size={14} strokeWidth={1.5} color="#6B7280" style={{ marginTop: 2, flexShrink: 0 }} />
-                <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+              <Stack direction="row" alignItems="flex-start" gap="6px" sx={{ p: "8px 12px", bgcolor: palette.background.accent, borderRadius: "4px", border: `1px solid ${palette.border.light}` }}>
+                <Info size={14} strokeWidth={1.5} color={palette.status.default.text} style={{ marginTop: 2, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 12, color: palette.status.default.text, lineHeight: 1.5 }}>
                   This is the cumulative number of network events (API calls, page visits) recorded for a single AI tool across all users. For example, a threshold of 100 means the alert fires once a tool has been accessed 100 times total.
                 </Typography>
               </Stack>
@@ -739,7 +763,7 @@ export default function RulesPage() {
         description=""
         submitButtonText="Delete"
         onSubmit={handleDelete}
-        submitButtonColor="#DC2626"
+        submitButtonColor={palette.status.error.text}
         maxWidth="400px"
       >
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
@@ -747,7 +771,7 @@ export default function RulesPage() {
           preserved.
         </Typography>
       </StandardModal>
-    </Stack>
     </TabContext>
+    </PageHeaderExtended>
   );
 }

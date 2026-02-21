@@ -15,7 +15,7 @@ fastapi.log
 react.log
 .idea/
 .claude
-CLAUDE.md
+# CLAUDE.md
 .kombai
 .vscode
 agent.md

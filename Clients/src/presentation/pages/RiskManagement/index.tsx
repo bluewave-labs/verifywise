@@ -1,9 +1,9 @@
 import { Suspense, useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { Box, Stack, Popover, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box, Stack, Popover, Typography, IconButton } from "@mui/material";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { RisksCard } from "../../components/Cards/RisksCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import { BarChart3, ChevronDown, History as HistoryIcon } from "lucide-react"
+import { BarChart3, ChevronDown } from "lucide-react"
 import ibmLogo from "../../assets/ibm_logo.svg";
 import mitLogo from "../../assets/mit_logo.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
@@ -21,7 +21,7 @@ import AddNewRiskIBMModal from "../../components/AddNewRiskIBMForm";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import PageTour from "../../components/PageTour";
 import RiskManagementSteps from "./RiskManagementSteps";
 import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
@@ -32,7 +32,6 @@ import { useTableGrouping, useGroupByState } from "../../../application/hooks/us
 import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
-import { HistorySidebar } from "../../components/Common/HistorySidebar";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
@@ -58,9 +57,6 @@ import {
   aiRiskCardLogoStyle,
   aiRiskCardTitleStyle,
   aiRiskCardCaptionStyle,
-  historyToggleButtonStyle,
-  riskModalContentRowStyle,
-  riskModalFormContainerStyle,
 } from "./style";
 
 /**
@@ -128,7 +124,6 @@ const RiskManagement = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isAiRiskModalOpen, setIsAiRiskModalOpen] = useState(false);
   const [isSubmitting] = useState(false);
-  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
 
   // Refs for form submission
   const onSubmitRef = useRef<(() => void) | null>(null);
@@ -488,7 +483,6 @@ const RiskManagement = () => {
   const handleRiskModalClose = () => {
     setIsRiskModalOpen(false);
     setSelectedRow([]);
-    setIsHistorySidebarOpen(false);
   };
 
   const handleRiskModalSubmit = () => {
@@ -690,6 +684,7 @@ const RiskManagement = () => {
     <PageHeaderExtended
       title="Risk Management"
       description="Manage and monitor risks across all your projects"
+
       helpArticlePath="risk-management/risk-assessment"
       tipBoxEntity="risk-management"
       summaryCards={
@@ -975,44 +970,19 @@ const RiskManagement = () => {
           onSubmit={handleRiskModalSubmit}
           submitButtonText={selectedRow.length > 0 ? "Update" : "Save"}
           isSubmitting={isSubmitting}
-          maxWidth={isHistorySidebarOpen ? "1375px" : "1039px"}
-          headerActions={selectedRow.length > 0 ? (
-            <Tooltip title="View activity history" arrow>
-              <IconButton
-                onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
-                size="small"
-                sx={historyToggleButtonStyle(isHistorySidebarOpen)}
-              >
-                <HistoryIcon size={20} />
-              </IconButton>
-            </Tooltip>
-          ) : undefined}
+          maxWidth="1039px"
         >
-          <Stack
-            direction="row"
-            sx={riskModalContentRowStyle}
-          >
-            <Box sx={riskModalFormContainerStyle(isHistorySidebarOpen)}>
-              <AddNewRiskForm
-                closePopup={handleRiskModalClose}
-                popupStatus={selectedRow.length > 0 ? "edit" : "new"}
-                onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
-                onError={handleError}
-                onLoading={handleLoading}
-                users={users}
-                usersLoading={usersLoading}
-                onSubmitRef={onSubmitRef}
-                compactMode={isHistorySidebarOpen}
-              />
-            </Box>
-            {selectedRow.length > 0 && selectedRow[0]?.id && (
-              <HistorySidebar
-                entityType="risk"
-                entityId={selectedRow[0].id}
-                isOpen={isHistorySidebarOpen}
-              />
-            )}
-          </Stack>
+          <AddNewRiskForm
+            closePopup={handleRiskModalClose}
+            popupStatus={selectedRow.length > 0 ? "edit" : "new"}
+            onSuccess={selectedRow.length > 0 ? handleUpdate : handleSuccess}
+            onError={handleError}
+            onLoading={handleLoading}
+            users={users}
+            usersLoading={usersLoading}
+            onSubmitRef={onSubmitRef}
+            entityId={selectedRow.length > 0 ? selectedRow[0]?.id : undefined}
+          />
         </StandardModal>
       </Stack>
       <AddNewRiskMITModal
@@ -1060,8 +1030,8 @@ const RiskManagement = () => {
         availableParameters={[
           { value: "severity", label: "Severity" },
           { value: "likelihood", label: "Likelihood" },
-          { value: "mitigation_status", label: "Mitigation Status" },
-          { value: "risk_level", label: "Risk Level" },
+          { value: "mitigation_status", label: "Mitigation status" },
+          { value: "risk_level", label: "Risk level" },
         ]}
         defaultParameter="risk_level"
       />

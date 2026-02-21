@@ -14,12 +14,10 @@ import {
   Fade,
   Modal,
   Typography,
-  Button,
   useTheme,
   IconButton,
 } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import { CirclePlus as AddCircleOutlineIcon, BarChart3, Settings } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, BarChart3 } from "lucide-react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -34,14 +32,13 @@ import {
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
 import { getShareLinksForResource } from "../../../application/repository/share.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { useFeatureSettings } from "../../../application/hooks/useFeatureSettings";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import { PluginSlot } from "../../components/PluginSlot";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
-import LifecycleConfigEditor from "./components/LifecycleConfigEditor";
+// Note: LifecycleConfigEditor is now provided by the model-lifecycle plugin via plugin slots
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
@@ -54,7 +51,6 @@ import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
-import HelperIcon from "../../components/HelperIcon";
 import PageTour from "../../components/PageTour";
 import ModelInventorySteps from "./ModelInventorySteps";
 import {
@@ -66,10 +62,9 @@ import {
 } from "./style";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import TabContext from "@mui/lab/TabContext";
 import { SearchBox } from "../../components/Search";
-import TipBox from "../../components/TipBox";
 import TabBar from "../../components/TabBar";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { EvidenceHubModel } from "../../../domain/models/Common/evidenceHub/evidenceHub.model";
@@ -93,6 +88,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { palette } from "../../themes/palette";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -110,7 +106,7 @@ const ModelInventory: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNewModelInventoryModalOpen, setIsNewModelInventoryModalOpen] =
     useState(false);
-  const [isLifecycleConfigOpen, setIsLifecycleConfigOpen] = useState(false);
+  // Note: Lifecycle config is now provided by the model-lifecycle plugin via plugin slots
 
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
@@ -137,7 +133,6 @@ const ModelInventory: React.FC = () => {
 
 
   const { userRoleName } = useAuth();
-  const { featureSettings } = useFeatureSettings();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
   const theme = useTheme();
@@ -362,7 +357,7 @@ const ModelInventory: React.FC = () => {
         type: "select" as const,
         options: [
           { value: "Open", label: "Open" },
-          { value: "In Progress", label: "In Progress" },
+          { value: "In Progress", label: "In progress" },
           { value: "Resolved", label: "Resolved" },
           { value: "Accepted", label: "Accepted" },
         ],
@@ -483,53 +478,53 @@ const ModelInventory: React.FC = () => {
         label: "Evidence type",
         type: "select" as const,
         options: [
-          { value: "Model Card", label: "Model Card" },
-          { value: "Risk Assessment Report", label: "Risk Assessment Report" },
+          { value: "Model Card", label: "Model card" },
+          { value: "Risk Assessment Report", label: "Risk assessment report" },
           {
             value: "Bias and Fairness Report",
-            label: "Bias and Fairness Report",
+            label: "Bias and fairness report",
           },
           {
             value: "Security Assessment Report",
-            label: "Security Assessment Report",
+            label: "Security assessment report",
           },
           {
             value: "Data Protection Impact Assessment",
-            label: "Data Protection Impact Assessment",
+            label: "Data protection impact assessment",
           },
           {
             value: "Robustness and Stress Test Report",
-            label: "Robustness and Stress Test Report",
+            label: "Robustness and stress test report",
           },
           {
             value: "Evaluation Metrics Summary",
-            label: "Evaluation Metrics Summary",
+            label: "Evaluation metrics summary",
           },
-          { value: "Human Oversight Plan", label: "Human Oversight Plan" },
+          { value: "Human Oversight Plan", label: "Human oversight plan" },
           {
             value: "Post-Market Monitoring Plan",
-            label: "Post-Market Monitoring Plan",
+            label: "Post-market monitoring plan",
           },
-          { value: "Version Change Log", label: "Version Change Log" },
+          { value: "Version Change Log", label: "Version change log" },
           {
             value: "Third-Party Audit Report",
-            label: "Third-Party Audit Report",
+            label: "Third-party audit report",
           },
           {
             value: "Conformity Assessment Report",
-            label: "Conformity Assessment Report",
+            label: "Conformity assessment report",
           },
           {
             value: "Technical File / CE Documentation",
-            label: "Technical File / CE Documentation",
+            label: "Technical file / CE documentation",
           },
           {
             value: "Vendor Model Documentation",
-            label: "Vendor Model Documentation",
+            label: "Vendor model documentation",
           },
           {
             value: "Internal Approval Record",
-            label: "Internal Approval Record",
+            label: "Internal approval record",
           },
         ],
       },
@@ -725,9 +720,9 @@ const ModelInventory: React.FC = () => {
       { id: "model", label: "Model" },
       { id: "version", label: "Version" },
       { id: "approver", label: "Approver" },
-      { id: "security_assessment", label: "Security Assessment" },
+      { id: "security_assessment", label: "Security assessment" },
       { id: "status", label: "Status" },
-      { id: "status_date", label: "Status Date" },
+      { id: "status_date", label: "Status date" },
     ];
   }, []);
 
@@ -1031,9 +1026,9 @@ const ModelInventory: React.FC = () => {
 
   const handleViewModelDetails = useCallback(
     (id: string) => {
-      navigate(`/model-inventory/models/${id}`);
+      handleEditModelInventory(id);
     },
-    [navigate]
+    [handleEditModelInventory]
   );
 
   const handleEditEvidence = async (id: number) => {
@@ -1105,7 +1100,6 @@ const ModelInventory: React.FC = () => {
   ): Promise<string> => {
     // Prevent concurrent link creation
     if (isCreatingLink) {
-      console.log("Link creation already in progress, skipping...");
       return shareableLink;
     }
 
@@ -1147,9 +1141,7 @@ const ModelInventory: React.FC = () => {
             id: shareLinkId,
             is_enabled: true,
           });
-          console.log("Share link re-enabled successfully");
         } catch (error) {
-          console.error("Failed to re-enable share link:", error);
           // Revert the UI state if API call fails
           setIsShareEnabled(false);
           setAlert({
@@ -1169,9 +1161,7 @@ const ModelInventory: React.FC = () => {
           id: shareLinkId,
           is_enabled: false,
         });
-        console.log("Share link disabled successfully");
       } catch (error) {
-        console.error("Failed to disable share link:", error);
         // Revert the UI state if API call fails
         setIsShareEnabled(true);
         setAlert({
@@ -1224,54 +1214,30 @@ const ModelInventory: React.FC = () => {
 
     try {
       // Fetch ALL existing share links for this resource and disable them
-      console.log("Fetching all share links for model/0...");
       const existingLinksResponse: any = await getShareLinksForResource(
         "model",
         0
       );
       const existingLinks = existingLinksResponse?.data?.data || [];
 
-      console.log(
-        `Found ${existingLinks.length} existing share links:`,
-        existingLinks
-      );
-
       // Disable all existing links
       let disabledCount = 0;
       for (const link of existingLinks) {
-        console.log(
-          `Processing link ID ${link.id}: is_enabled=${link.is_enabled}, share_token=${link.share_token}`
-        );
-
         if (link.is_enabled) {
-          console.log(`Attempting to disable share link ID: ${link.id}`);
           try {
-            const updateResult = await updateShareMutation.mutateAsync({
+            await updateShareMutation.mutateAsync({
               id: link.id,
               is_enabled: false,
             });
-            console.log(
-              `Successfully disabled link ID ${link.id}. Update result:`,
-              updateResult
-            );
             disabledCount++;
           } catch (updateError) {
-            console.error(`Failed to disable link ID ${link.id}:`, updateError);
             throw updateError;
           }
-        } else {
-          console.log(`Link ID ${link.id} is already disabled, skipping`);
         }
       }
 
-      console.log(
-        `All previous links disabled. Total disabled: ${disabledCount}`
-      );
-
       // Create a new link
-      console.log("Creating new share link...");
-      const newLink = await generateShareableLink(shareSettings);
-      console.log("New share link created:", newLink);
+      await generateShareableLink(shareSettings);
 
       setAlert({
         variant: "success",
@@ -1287,7 +1253,7 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleOpenLink = (link: string) => {
-    console.log("Opening link:", link);
+    window.open(link, "_blank", "noopener,noreferrer");
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
@@ -1636,13 +1602,13 @@ const ModelInventory: React.FC = () => {
   // Export columns and data for Model Risks
   const modelRisksExportColumns = useMemo(() => {
     return [
-      { id: "risk_name", label: "Risk Name" },
-      { id: "model_name", label: "Model Name" },
+      { id: "risk_name", label: "Risk name" },
+      { id: "model_name", label: "Model name" },
       { id: "risk_category", label: "Category" },
-      { id: "risk_level", label: "Risk Level" },
+      { id: "risk_level", label: "Risk level" },
       { id: "status", label: "Status" },
       { id: "owner", label: "Owner" },
-      { id: "target_date", label: "Target Date" },
+      { id: "target_date", label: "Target date" },
     ];
   }, []);
 
@@ -1671,11 +1637,11 @@ const ModelInventory: React.FC = () => {
   // Export columns and data for Evidence Hub
   const evidenceHubExportColumns = useMemo(() => {
     return [
-      { id: "evidence_name", label: "Evidence Name" },
+      { id: "evidence_name", label: "Evidence name" },
       { id: "evidence_type", label: "Type" },
-      { id: "mapped_models", label: "Mapped Models" },
-      { id: "uploaded_by", label: "Uploaded By" },
-      { id: "uploaded_on", label: "Uploaded On" },
+      { id: "mapped_models", label: "Mapped models" },
+      { id: "uploaded_by", label: "Uploaded by" },
+      { id: "uploaded_on", label: "Uploaded on" },
       { id: "expiry_date", label: "Expiry" },
     ];
   }, []);
@@ -1761,7 +1727,6 @@ const ModelInventory: React.FC = () => {
       } else {
         // Create new Evidence
         const response = await createEvidenceHub("/evidenceHub", formData);
-        console.log("response", response);
 
         if (response?.data) {
           setEvidenceHubData((prev) => [...prev, response.data]);
@@ -1931,29 +1896,6 @@ const ModelInventory: React.FC = () => {
 
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
-      {/* <PageBreadcrumbs /> */}
-
-      <PageBreadcrumbs />
-
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
-            <Box mb={2}>
-              <Alert
-                variant={alert.variant}
-                title={alert.title}
-                body={alert.body}
-                isToast={true}
-                onClick={() => {
-                  setShowAlert(false);
-                  setTimeout(() => setAlert(null), 300);
-                }}
-              />
-            </Box>
-          </Fade>
-        </Suspense>
-      )}
-
       {/* Replace Share Link Confirmation Modal */}
       <Modal
         open={showReplaceConfirmation}
@@ -2004,81 +1946,76 @@ const ModelInventory: React.FC = () => {
             mt={theme.spacing(12)}
             justifyContent="flex-end"
           >
-            <Button
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
+            <CustomizableButton
               variant="text"
-              color="inherit"
+              text="Cancel"
               onClick={() => setShowReplaceConfirmation(false)}
               sx={{
                 width: 100,
-                textTransform: "capitalize",
                 fontSize: 13,
-                borderRadius: "4px",
+                color: "inherit",
                 "&:hover": {
-                  boxShadow: "none",
                   backgroundColor: "transparent",
                 },
               }}
-            >
-              Cancel
-            </Button>
-            <Button
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
+            />
+            <CustomizableButton
               variant="contained"
+              text="Replace Link"
               onClick={handleConfirmReplace}
               sx={{
                 width: 160,
                 fontSize: 13,
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                boxShadow: "none",
-                borderRadius: "4px",
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: "#0f5a48",
-                },
               }}
-            >
-              Replace Link
-            </Button>
+            />
           </Stack>
         </Stack>
       </Modal>
 
-      <Stack sx={mainStackStyle}>
-        <PageHeader
-          title="Model Inventory"
-          description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
-          rightContent={
-            <HelperIcon
-              articlePath="ai-governance/model-inventory"
-              size="small"
-            />
-          }
-        />
-        <TipBox entityName="model-inventory" />
-
-        {/* Summary Cards */}
-        {activeTab === "models" && (
-          <div data-joyride-id="model-summary-cards">
+      <PageHeaderExtended
+        title="Model Inventory"
+        description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
+        helpArticlePath="ai-governance/model-inventory"
+        tipBoxEntity="model-inventory"
+        summaryCards={
+          activeTab === "models" ? (
             <ModelInventorySummary
               summary={summary}
               onCardClick={handleStatusCardClick}
               selectedStatus={selectedStatus}
             />
-          </div>
-        )}
-        {activeTab === "model-risks" && (
-          <ModelRiskSummary
-            modelRisks={modelRisksData}
-            onCardClick={handleRiskLevelCardClick}
-            selectedRiskLevel={selectedRiskLevel}
-          />
-        )}
+          ) : activeTab === "model-risks" ? (
+            <ModelRiskSummary
+              modelRisks={modelRisksData}
+              onCardClick={handleRiskLevelCardClick}
+              selectedRiskLevel={selectedRiskLevel}
+            />
+          ) : null
+        }
+        summaryCardsJoyrideId={
+          activeTab === "models" ? "model-summary-cards" : undefined
+        }
+        alert={
+          alert && (
+            <Suspense fallback={<div>Loading...</div>}>
+              <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
+                <Box mb={2}>
+                  <Alert
+                    variant={alert.variant}
+                    title={alert.title}
+                    body={alert.body}
+                    isToast={true}
+                    onClick={() => {
+                      setShowAlert(false);
+                      setTimeout(() => setAlert(null), 300);
+                    }}
+                  />
+                </Box>
+              </Fade>
+            </Suspense>
+          )
+        }
+      >
         {/* Tab Bar */}
         <TabContext value={activeTab}>
           <Box sx={{ marginBottom: 3 }}>
@@ -2144,7 +2081,7 @@ const ModelInventory: React.FC = () => {
                     { id: "provider", label: "Provider" },
                     { id: "status", label: "Status" },
                     { id: "security_assessment", label: "Assessment" },
-                    { id: "hosting_provider", label: "Hosting Provider" },
+                    { id: "hosting_provider", label: "Hosting provider" },
                     { id: "approver", label: "Approver" },
                   ]}
                   onGroupChange={handleGroupChange}
@@ -2185,34 +2122,16 @@ const ModelInventory: React.FC = () => {
                     width: "34px",
                     padding: "8px",
                     borderRadius: "4px",
-                    border: "1px solid #e5e7eb",
-                    backgroundColor: "#ffffff",
+                    border: `1px solid ${palette.border.light}`,
+                    backgroundColor: palette.background.main,
                     "&:hover": {
-                      backgroundColor: "#f9fafb",
+                      backgroundColor: palette.background.accent,
                     },
                   }}
                 >
-                  <BarChart3 size={16} color="#344054" />
+                  <BarChart3 size={16} color={palette.text.secondary} />
                 </IconButton>
-                {userRoleName === "Admin" && featureSettings?.lifecycle_enabled && (
-                  <IconButton
-                    onClick={() => setIsLifecycleConfigOpen(true)}
-                    aria-label="Configure Lifecycle"
-                    sx={{
-                      height: "34px",
-                      width: "34px",
-                      padding: "8px",
-                      borderRadius: "4px",
-                      border: "1px solid #e5e7eb",
-                      backgroundColor: "#ffffff",
-                      "&:hover": {
-                        backgroundColor: "#f9fafb",
-                      },
-                    }}
-                  >
-                    <Settings size={16} color="#344054" />
-                  </IconButton>
-                )}
+                {/* Lifecycle config is now accessed via Plugin Settings page */}
                 <div data-joyride-id="add-model-button">
                   <CustomizableButton
                     variant="contained"
@@ -2417,7 +2336,6 @@ const ModelInventory: React.FC = () => {
             />
           </>
         )}
-      </Stack>
 
       {/* Analytics Drawer */}
       <AnalyticsDrawer
@@ -2499,6 +2417,7 @@ const ModelInventory: React.FC = () => {
             : undefined
         }
         isEdit={!!selectedModelRisk}
+        entityId={selectedModelRisk?.id}
       />
 
       <NewEvidenceHub
@@ -2532,11 +2451,8 @@ const ModelInventory: React.FC = () => {
         onOpenLink={handleOpenLink}
       />
 
-      {/* Lifecycle Config Editor (Admin only) */}
-      <LifecycleConfigEditor
-        open={isLifecycleConfigOpen}
-        onClose={() => setIsLifecycleConfigOpen(false)}
-      />
+      {/* Lifecycle Config is now provided by the model-lifecycle plugin */}
+      </PageHeaderExtended>
     </Stack>
   );
 };

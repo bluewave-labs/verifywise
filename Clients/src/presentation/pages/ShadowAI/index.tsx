@@ -60,7 +60,7 @@ export default function ShadowAIPage() {
           response.tools.map((t) => ({ id: t.id, name: t.name }))
         );
       } catch (error) {
-        console.error("Failed to load recent tools:", error);
+        // Error already handled by UI state
       }
     };
 

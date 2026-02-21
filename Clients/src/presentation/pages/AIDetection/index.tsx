@@ -78,7 +78,7 @@ export default function AIDetectionPage() {
       setHistoryCount(response.pagination.total);
       setRecentScans(response.scans.map(scanToRecentScan));
     } catch (error) {
-      console.error("Failed to load recent scans:", error);
+      // Error already handled by UI state
     }
   }, [setHistoryCount, setRecentScans]);
 

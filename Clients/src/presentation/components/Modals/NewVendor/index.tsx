@@ -1003,7 +1003,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             )}
           </TabContext>
         ) : (
-          {vendorDetailsPanel}
+          vendorDetailsPanel
         )}
       </StandardModal>
     </Stack>

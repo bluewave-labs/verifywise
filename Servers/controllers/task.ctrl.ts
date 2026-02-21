@@ -141,7 +141,15 @@ export async function createTask(req: Request, res: Response): Promise<any> {
             }
           }
         } catch (notifyError) {
-          console.error("Failed to send task assignment notifications:", notifyError);
+          await logFailure({
+            eventType: "Create",
+            description: `Failed to send task assignment notifications: ${notifyError}`,
+            functionName: "createTask",
+            fileName: "task.ctrl.ts",
+            error: notifyError as Error,
+            userId: req.userId!,
+            tenantId: req.tenantId!,
+          });
         }
       })();
     }
@@ -513,7 +521,15 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
               }
             }
           } catch (notifyError) {
-            console.error("Failed to send task assignment notifications:", notifyError);
+            await logFailure({
+              eventType: "Update",
+              description: `Failed to send task assignment notifications: ${notifyError}`,
+              functionName: "updateTaskById",
+              fileName: "task.ctrl.ts",
+              error: notifyError as Error,
+              userId: req.userId!,
+              tenantId: req.tenantId!,
+            });
           }
         })();
       }

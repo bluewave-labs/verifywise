@@ -8,6 +8,7 @@
 
 import { QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
+import logger from "../utils/logger/fileLogger";
 
 /**
  * User query result type for formatters
@@ -143,7 +144,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
         return `User #${value}`;
       } catch (error) {
         // Database error - log and return fallback
-        console.error("Error fetching user for ID", value, ":", error);
+        logger.error(`Error fetching user for ID ${value}: ${error}`);
         return `User #${value}`;
       }
     }
@@ -198,7 +199,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
       }
       return userIds.map((id) => `User #${id}`).join(", ");
     } catch (error) {
-      console.error("Error fetching users for IDs", userIds, ":", error);
+      logger.error(`Error fetching users for IDs ${JSON.stringify(userIds)}: ${error}`);
       return userIds.map((id) => `User #${id}`).join(", ");
     }
   },

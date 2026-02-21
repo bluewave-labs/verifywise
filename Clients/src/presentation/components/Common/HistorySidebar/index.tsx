@@ -5,8 +5,8 @@ import {
   CircularProgress,
   useTheme,
   Collapse,
-  Avatar,
 } from "@mui/material";
+import VWAvatar from "../../Avatar/VWAvatar";
 import React from "react";
 import { Clock } from "lucide-react";
 import {
@@ -252,7 +252,7 @@ export function HistorySidebar({
         <Typography
           sx={{
             fontSize: 11,
-            color: isOldValue ? "#B91C1C" : "#0D7C4F",
+            color: isOldValue ? theme.palette.error.dark : theme.palette.success.dark,
             fontWeight: 400,
             wordBreak: "break-word",
             textDecoration: isOldValue ? "line-through" : "none",
@@ -316,19 +316,19 @@ export function HistorySidebar({
       >
         {/* Header */}
         <Stack direction="row" gap="8px" alignItems="center" marginBottom="8px">
-          <Avatar
-            src={avatarUrls[firstEntry.changed_by_user_id] || undefined}
-            alt={userName}
+          <VWAvatar
+            user={{
+              firstname: firstEntry.user_name || userName,
+              lastname: firstEntry.user_surname || "",
+              pathToImage: avatarUrls[firstEntry.changed_by_user_id] || undefined,
+            }}
+            size="small"
             sx={{
               width: 28,
               height: 28,
-              backgroundColor: theme.palette.primary.main,
               fontSize: 11,
-              fontWeight: 600,
             }}
-          >
-            {userName.charAt(0).toUpperCase()}
-          </Avatar>
+          />
           <Box sx={{ flex: 1 }}>
             <Typography
               sx={{
@@ -395,7 +395,7 @@ export function HistorySidebar({
                   sx={{
                     padding: "4px 8px",
                     borderRadius: "4px",
-                    backgroundColor: "#F1F8F4",
+                    backgroundColor: theme.palette.success.bg,
                   }}
                 >
                   {renderTruncatedValue(entry.id, entry.new_value, "new")}
@@ -409,7 +409,7 @@ export function HistorySidebar({
                         flex: 1,
                         padding: "4px 8px",
                         borderRadius: "4px",
-                        backgroundColor: "#FEF2F2",
+                        backgroundColor: theme.palette.error.bg,
                       }}
                     >
                       {renderTruncatedValue(entry.id, entry.old_value, "old")}
@@ -438,7 +438,7 @@ export function HistorySidebar({
                         flex: 1,
                         padding: "4px 8px",
                         borderRadius: "4px",
-                        backgroundColor: "#F1F8F4",
+                        backgroundColor: theme.palette.success.bg,
                       }}
                     >
                       {renderTruncatedValue(entry.id, entry.new_value, "new")}
@@ -467,11 +467,11 @@ export function HistorySidebar({
         <Box
           sx={{
             flex: 1,
-            border: `1px solid #d0d5dd`,
+            border: `1px solid ${theme.palette.border.light}`,
             borderRadius: "4px",
             display: "flex",
             flexDirection: "column",
-            background: "linear-gradient(180deg, #FAFBFC 0%, #F8FAFB 100%)",
+            background: `linear-gradient(180deg, ${theme.palette.background.alt} 0%, ${theme.palette.background.main} 100%)`,
             overflow: "hidden",
             maxHeight: "450px",
           }}
@@ -481,7 +481,7 @@ export function HistorySidebar({
             sx={{
               padding: "16px",
               borderBottom: `1px solid ${theme.palette.divider}`,
-              background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
+              background: `linear-gradient(180deg, ${theme.palette.background.main} 0%, ${theme.palette.background.fill} 100%)`,
             }}
           >
             {creationInfo ? (
@@ -544,10 +544,10 @@ export function HistorySidebar({
                 borderRadius: "4px",
               },
               "&:hover::-webkit-scrollbar-thumb": {
-                background: "#C1C7CD",
+                background: theme.palette.border.dark,
               },
               "&::-webkit-scrollbar-thumb:hover": {
-                background: "#98A2B3",
+                background: theme.palette.text.secondary,
               },
               // Firefox scrollbar styling
               scrollbarWidth: "thin",
@@ -569,7 +569,7 @@ export function HistorySidebar({
                 padding: "0 24px",
               }}
             >
-              <Clock size={32} strokeWidth={1.5} color="#DC2626" opacity={0.6} />
+              <Clock size={32} strokeWidth={1.5} color={theme.palette.error.main} opacity={0.6} />
               <Typography
                 sx={{
                   fontSize: 13,
@@ -614,7 +614,7 @@ export function HistorySidebar({
                 padding: "0 24px",
               }}
             >
-              <Clock size={32} strokeWidth={1.5} color="#13715B" opacity={0.6} />
+              <Clock size={32} strokeWidth={1.5} color={theme.palette.primary.main} opacity={0.6} />
               <Typography
                 sx={{
                   fontSize: 13,

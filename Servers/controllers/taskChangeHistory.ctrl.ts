@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { getEntityChangeHistory } from "../utils/changeHistory.base.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 /**
  * Get change history for a specific task with pagination support
@@ -19,12 +23,13 @@ export async function getTaskChangeHistoryById(
   const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 500);
   const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
-  logStructured(
-    "processing",
-    `fetching change history for task id: ${taskId} (limit: ${limit}, offset: ${offset})`,
-    "getTaskChangeHistoryById",
-    "taskChangeHistory.ctrl.ts"
-  );
+  logProcessing({
+    description: `fetching change history for task id: ${taskId} (limit: ${limit}, offset: ${offset})`,
+    functionName: "getTaskChangeHistoryById",
+    fileName: "taskChangeHistory.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const result = await getEntityChangeHistory(
@@ -35,22 +40,26 @@ export async function getTaskChangeHistoryById(
       offset
     );
 
-    logStructured(
-      "successful",
-      `change history retrieved for task id: ${taskId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
-      "getTaskChangeHistoryById",
-      "taskChangeHistory.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Read",
+      description: `change history retrieved for task id: ${taskId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
+      functionName: "getTaskChangeHistoryById",
+      fileName: "taskChangeHistory.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200](result));
   } catch (error) {
-    logStructured(
-      "error",
-      "failed to retrieve change history",
-      "getTaskChangeHistoryById",
-      "taskChangeHistory.ctrl.ts"
-    );
-    logger.error("Error in getTaskChangeHistoryById:", error);
+    await logFailure({
+      eventType: "Read",
+      description: "failed to retrieve change history",
+      functionName: "getTaskChangeHistoryById",
+      fileName: "taskChangeHistory.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]("Failed to retrieve change history"));
   }
 }

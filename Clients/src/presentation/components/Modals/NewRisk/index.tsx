@@ -41,20 +41,9 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { HistorySidebar } from "../../Common/HistorySidebar";
 import { useVendorRiskChangeHistory } from "../../../../application/hooks/useVendorRiskChangeHistory";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { ExistingRisk } from "../../../../domain/interfaces/i.vendor";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
-interface ExistingRisk {
-  id?: number;
-  risk_description: string;
-  impact_description: string;
-  project_name?: string;
-  action_owner: string;
-  risk_severity: string;
-  likelihood: string;
-  risk_level: string;
-  action_plan: string;
-  vendor_id: string;
-}
 interface FormErrors {
   risk_description: string;
   impact_description: string;
@@ -594,7 +583,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             )}
           </TabContext>
         ) : (
-          {risksPanel}
+          risksPanel
         )}
       </StandardModal>
     </Stack>

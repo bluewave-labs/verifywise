@@ -9,7 +9,11 @@ import {
   deleteModelRiskByIdQuery,
 } from "../utils/modelRisk.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 import {
   recordEntityCreation,
   trackEntityChanges,
@@ -20,23 +24,25 @@ import {
 export async function getAllModelRisks(req: Request, res: Response) {
   const filter = (req.query.filter as "active" | "deleted" | "all") || "active";
 
-  logStructured(
-    "processing",
-    `starting getAllModelRisks with filter: ${filter}`,
-    "getAllModelRisks",
-    "modelRisk.ctrl.ts"
-  );
-  logger.debug(`🔍 Fetching all model risks with filter: ${filter}`);
+  logProcessing({
+    description: `starting getAllModelRisks with filter: ${filter}`,
+    functionName: "getAllModelRisks",
+    fileName: "modelRisk.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const modelRisks = await getAllModelRisksQuery(req.tenantId!, filter);
     if (modelRisks && modelRisks.length > 0) {
-      logStructured(
-        "successful",
-        "model risks found",
-        "getAllModelRisks",
-        "modelRisk.ctrl.ts"
-      );
+      await logSuccess({
+        eventType: "Read",
+        description: "model risks found",
+        functionName: "getAllModelRisks",
+        fileName: "modelRisk.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
       return res
         .status(200)
         .json(
@@ -46,21 +52,25 @@ export async function getAllModelRisks(req: Request, res: Response) {
         );
     }
 
-    logStructured(
-      "successful",
-      "no model risks found",
-      "getAllModelRisks",
-      "modelRisk.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Read",
+      description: "no model risks found",
+      functionName: "getAllModelRisks",
+      fileName: "modelRisk.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(200).json(STATUS_CODE[200]([]));
   } catch (error) {
-    logStructured(
-      "error",
-      `Failed to retrieve model risks: ${error}`,
-      "getAllModelRisks",
-      "modelRisk.ctrl.ts"
-    );
-    logger.error(`❌ Failed to retrieve model risks: ${error}`);
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve model risks: ${error}`,
+      functionName: "getAllModelRisks",
+      fileName: "modelRisk.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -69,53 +79,60 @@ export async function getModelRiskById(req: Request, res: Response) {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const modelRiskId = parseInt(id, 10);
 
-  logStructured(
-    "processing",
-    `fetching model risk by ID: ${id}`,
-    "getModelRiskById",
-    "modelRisk.ctrl.ts"
-  );
-  logger.debug(`🔍 Looking up model risk with ID: ${id}`);
+  logProcessing({
+    description: `fetching model risk by ID: ${id}`,
+    functionName: "getModelRiskById",
+    fileName: "modelRisk.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const modelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
     if (modelRisk) {
-      logStructured(
-        "successful",
-        `model risk found: ID ${id}`,
-        "getModelRiskById",
-        "modelRisk.ctrl.ts"
-      );
+      await logSuccess({
+        eventType: "Read",
+        description: `model risk found: ID ${id}`,
+        functionName: "getModelRiskById",
+        fileName: "modelRisk.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
       return res.status(200).json(STATUS_CODE[200](modelRisk.toSafeJSON()));
     }
 
-    logStructured(
-      "error",
-      `model risk not found: ID ${id}`,
-      "getModelRiskById",
-      "modelRisk.ctrl.ts"
-    );
+    await logFailure({
+      eventType: "Read",
+      description: `model risk not found: ID ${id}`,
+      functionName: "getModelRiskById",
+      fileName: "modelRisk.ctrl.ts",
+      error: new Error("Model risk not found"),
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(404).json(STATUS_CODE[404]("Model risk not found."));
   } catch (error) {
-    logStructured(
-      "error",
-      `Failed to retrieve model risk: ${error}`,
-      "getModelRiskById",
-      "modelRisk.ctrl.ts"
-    );
-    logger.error(`❌ Failed to retrieve model risk: ${error}`);
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve model risk: ${error}`,
+      functionName: "getModelRiskById",
+      fileName: "modelRisk.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function createNewModelRisk(req: Request, res: Response) {
-  logStructured(
-    "processing",
-    "creating new model risk",
-    "createNewModelRisk",
-    "modelRisk.ctrl.ts"
-  );
-  logger.debug("🆕 Creating new model risk");
+  logProcessing({
+    description: "creating new model risk",
+    functionName: "createNewModelRisk",
+    fileName: "modelRisk.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction: Transaction = await sequelize.transaction();
 
@@ -136,23 +153,26 @@ export async function createNewModelRisk(req: Request, res: Response) {
 
     await transaction.commit();
 
-    logStructured(
-      "successful",
-      `model risk created: ID ${modelRisk.id}`,
-      "createNewModelRisk",
-      "modelRisk.ctrl.ts"
-    );
-    logger.debug(`✅ Model risk created with ID: ${modelRisk.id}`);
+    await logSuccess({
+      eventType: "Create",
+      description: `model risk created: ID ${modelRisk.id}`,
+      functionName: "createNewModelRisk",
+      fileName: "modelRisk.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(201).json(STATUS_CODE[201](modelRisk.toSafeJSON()));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `Failed to create model risk: ${error}`,
-      "createNewModelRisk",
-      "modelRisk.ctrl.ts"
-    );
-    logger.error(`❌ Failed to create model risk: ${error}`);
+    await logFailure({
+      eventType: "Create",
+      description: `Failed to create model risk: ${error}`,
+      functionName: "createNewModelRisk",
+      fileName: "modelRisk.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(400).json(STATUS_CODE[400]((error as Error).message));
   }
 }
@@ -172,13 +192,13 @@ export async function updateModelRiskById(req: Request, res: Response) {
     // Continue without existing data if query fails
   }
 
-  logStructured(
-    "processing",
-    `updating model risk: ID ${id}`,
-    "updateModelRiskById",
-    "modelRisk.ctrl.ts"
-  );
-  logger.debug(`🔄 Updating model risk with ID: ${id}`);
+  logProcessing({
+    description: `updating model risk: ID ${id}`,
+    functionName: "updateModelRiskById",
+    fileName: "modelRisk.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction: Transaction = await sequelize.transaction();
 
@@ -186,17 +206,21 @@ export async function updateModelRiskById(req: Request, res: Response) {
     const modelRisk = await updateModelRiskByIdQuery(
       modelRiskId,
       req.body,
-      req.tenantId!
+      req.tenantId!,
+      transaction
     );
 
     if (!modelRisk) {
       await transaction.rollback();
-      logStructured(
-        "error",
-        `model risk not found for update: ID ${id}`,
-        "updateModelRiskById",
-        "modelRisk.ctrl.ts"
-      );
+      await logFailure({
+        eventType: "Update",
+        description: `model risk not found for update: ID ${id}`,
+        functionName: "updateModelRiskById",
+        fileName: "modelRisk.ctrl.ts",
+        error: new Error("Model risk not found"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
       return res.status(404).json(STATUS_CODE[404]("Model risk not found."));
     }
 
@@ -220,23 +244,26 @@ export async function updateModelRiskById(req: Request, res: Response) {
     }
 
     await transaction.commit();
-    logStructured(
-      "successful",
-      `model risk updated: ID ${id}`,
-      "updateModelRiskById",
-      "modelRisk.ctrl.ts"
-    );
-    logger.debug(`✅ Model risk updated with ID: ${id}`);
+    await logSuccess({
+      eventType: "Update",
+      description: `model risk updated: ID ${id}`,
+      functionName: "updateModelRiskById",
+      fileName: "modelRisk.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(200).json(STATUS_CODE[200](modelRisk.toSafeJSON()));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `Failed to update model risk: ${error}`,
-      "updateModelRiskById",
-      "modelRisk.ctrl.ts"
-    );
-    logger.error(`❌ Failed to update model risk: ${error}`);
+    await logFailure({
+      eventType: "Update",
+      description: `Failed to update model risk: ${error}`,
+      functionName: "updateModelRiskById",
+      fileName: "modelRisk.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(400).json(STATUS_CODE[400]((error as Error).message));
   }
 }
@@ -244,13 +271,13 @@ export async function updateModelRiskById(req: Request, res: Response) {
 export async function deleteModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
 
-  logStructured(
-    "processing",
-    `deleting model risk: ID ${id}`,
-    "deleteModelRiskById",
-    "modelRisk.ctrl.ts"
-  );
-  logger.debug(`🗑️ Deleting model risk with ID: ${id}`);
+  logProcessing({
+    description: `deleting model risk: ID ${id}`,
+    functionName: "deleteModelRiskById",
+    fileName: "modelRisk.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction: Transaction = await sequelize.transaction();
 
@@ -262,12 +289,15 @@ export async function deleteModelRiskById(req: Request, res: Response) {
 
     if (!success) {
       await transaction.rollback();
-      logStructured(
-        "error",
-        `model risk not found for deletion: ID ${id}`,
-        "deleteModelRiskById",
-        "modelRisk.ctrl.ts"
-      );
+      await logFailure({
+        eventType: "Delete",
+        description: `model risk not found for deletion: ID ${id}`,
+        functionName: "deleteModelRiskById",
+        fileName: "modelRisk.ctrl.ts",
+        error: new Error("Model risk not found"),
+        userId: req.userId!,
+        tenantId: req.tenantId!,
+      });
       return res.status(404).json(STATUS_CODE[404]("Model risk not found."));
     }
 
@@ -278,25 +308,28 @@ export async function deleteModelRiskById(req: Request, res: Response) {
     }
 
     await transaction.commit();
-    logStructured(
-      "successful",
-      `model risk deleted: ID ${id}`,
-      "deleteModelRiskById",
-      "modelRisk.ctrl.ts"
-    );
-    logger.debug(`✅ Model risk deleted with ID: ${id}`);
+    await logSuccess({
+      eventType: "Delete",
+      description: `model risk deleted: ID ${id}`,
+      functionName: "deleteModelRiskById",
+      fileName: "modelRisk.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res
       .status(200)
       .json(STATUS_CODE[200]("Model risk deleted successfully."));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `Failed to delete model risk: ${error}`,
-      "deleteModelRiskById",
-      "modelRisk.ctrl.ts"
-    );
-    logger.error(`❌ Failed to delete model risk: ${error}`);
+    await logFailure({
+      eventType: "Delete",
+      description: `Failed to delete model risk: ${error}`,
+      functionName: "deleteModelRiskById",
+      fileName: "modelRisk.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

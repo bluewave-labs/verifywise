@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { getEntityChangeHistory } from "../utils/changeHistory.base.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 /**
  * Get change history for a specific training with pagination support
@@ -19,12 +23,13 @@ export async function getTrainingChangeHistoryById(
   const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 100, 1), 500);
   const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
-  logStructured(
-    "processing",
-    `fetching change history for training id: ${trainingId} (limit: ${limit}, offset: ${offset})`,
-    "getTrainingChangeHistoryById",
-    "trainingChangeHistory.ctrl.ts"
-  );
+  logProcessing({
+    description: `fetching change history for training id: ${trainingId} (limit: ${limit}, offset: ${offset})`,
+    functionName: "getTrainingChangeHistoryById",
+    fileName: "trainingChangeHistory.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const result = await getEntityChangeHistory(
@@ -35,22 +40,26 @@ export async function getTrainingChangeHistoryById(
       offset
     );
 
-    logStructured(
-      "successful",
-      `change history retrieved for training id: ${trainingId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
-      "getTrainingChangeHistoryById",
-      "trainingChangeHistory.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Read",
+      description: `change history retrieved for training id: ${trainingId} (${result.data.length} entries, hasMore: ${result.hasMore})`,
+      functionName: "getTrainingChangeHistoryById",
+      fileName: "trainingChangeHistory.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200](result));
   } catch (error) {
-    logStructured(
-      "error",
-      "failed to retrieve change history",
-      "getTrainingChangeHistoryById",
-      "trainingChangeHistory.ctrl.ts"
-    );
-    logger.error("Error in getTrainingChangeHistoryById:", error);
+    await logFailure({
+      eventType: "Read",
+      description: "failed to retrieve change history",
+      functionName: "getTrainingChangeHistoryById",
+      fileName: "trainingChangeHistory.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]("Failed to retrieve change history"));
   }
 }

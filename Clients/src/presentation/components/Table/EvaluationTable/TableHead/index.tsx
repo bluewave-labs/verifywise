@@ -1,7 +1,7 @@
 import { TableHead, TableRow, TableCell, Box, Typography, useTheme } from "@mui/material";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
-import { palette } from "../../../../../themes/palette";
+import { palette } from "../../../../themes/palette";
 
 // Column width definitions for consistent spacing
 const columnWidths: Record<string, string> = {

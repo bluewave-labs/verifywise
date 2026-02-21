@@ -14,7 +14,7 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 import singleTheme from "../../../../themes/v1SingleTheme";
-import { palette } from "../../../../../themes/palette";
+import { palette } from "../../../../themes/palette";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import { CustomizableButton } from "../../../button/customizable-button";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";

@@ -1,5 +1,5 @@
 // Styles for EvaluationTable component
-import { palette } from "../../../../themes/palette";
+import { palette } from "../../../themes/palette";
 
 export const styles = {
   table: {

@@ -350,6 +350,7 @@ const CustomizablePolicyTable = ({
                       TablePaginationActions as React.ComponentType<any>
                     }
                     labelRowsPerPage="Rows per page"
+                    labelDisplayedRows={() => ""}
                     slotProps={{
                       select: {
                         MenuProps: {

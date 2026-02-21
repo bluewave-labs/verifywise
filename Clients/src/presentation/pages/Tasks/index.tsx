@@ -47,6 +47,7 @@ import { ExportMenu } from "../../components/Table/ExportMenu";
 
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import Alert from "../../components/Alert";
 import TabBar from "../../components/TabBar";
 import DeadlineView from "./DeadlineView";
@@ -598,11 +599,7 @@ const Tasks: React.FC = () => {
         return "Unassigned";
       case "due_date":
         return task.due_date
-          ? new Date(task.due_date).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
+          ? displayFormattedDate(task.due_date)
           : "No Due Date";
       default:
         return "Other";
@@ -657,11 +654,7 @@ const Tasks: React.FC = () => {
         priority: task.priority || "-",
         assignees: assigneeNames,
         due_date: task.due_date
-          ? new Date(task.due_date).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
+          ? displayFormattedDate(task.due_date)
           : "-",
         creator: creatorName,
         categories: task.categories?.join(", ") || "-",

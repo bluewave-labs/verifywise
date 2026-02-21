@@ -22,6 +22,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -338,9 +339,9 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         title: policy.title || '-',
         status: policy.status || '-',
         tags: policy.tags?.join(', ') || '-',
-        next_review: policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : '-',
+        next_review: policy.next_review_date ? displayFormattedDate(policy.next_review_date) : '-',
         author: authorName,
-        last_updated: policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : '-',
+        last_updated: policy.last_updated_at ? displayFormattedDate(policy.last_updated_at) : '-',
         updated_by: updatedByName,
       };
     });

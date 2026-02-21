@@ -42,6 +42,7 @@ import {
 } from "./style";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import { DatasetStatus, DataClassification } from "../../../domain/enums/dataset.enum";
 import Chip from "../../components/Chip";
 
@@ -338,7 +339,7 @@ const DatasetTable: React.FC<DatasetTableProps> = ({
                 </TableCell>
                 <TableCell>
                   {dataset.updated_at
-                    ? dayjs(dataset.updated_at).format("MMM D, YYYY")
+                    ? displayFormattedDate(dataset.updated_at)
                     : "-"}
                 </TableCell>
                 <TableCell

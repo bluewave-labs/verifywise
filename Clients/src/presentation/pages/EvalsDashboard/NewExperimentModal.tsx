@@ -1588,7 +1588,7 @@ export default function NewExperimentModal({
                       icon={<Database size={14} color={isSelected ? palette.accent.indigo.text : palette.text.disabled} />}
                       title={template.name}
                       description={template.desc}
-                      accentColor=palette.accent.indigo.text
+                      accentColor={palette.accent.indigo.text}
                       chip={typeChip}
                     />
                   );
@@ -1704,7 +1704,7 @@ export default function NewExperimentModal({
                   </Box>
                 ) : (
                   <Box sx={{ py: 4, textAlign: "center", border: `1px dashed ${palette.border.dark}`, borderRadius: "8px" }}>
-                    <Sparkles size={32} color=palette.border.dark style={{ marginBottom: 8 }} />
+                    <Sparkles size={32} color={palette.border.dark} style={{ marginBottom: 8 }} />
                     <Typography sx={{ fontSize: "14px", color: palette.text.tertiary, mb: 1 }}>
                       No custom scorers yet
                     </Typography>

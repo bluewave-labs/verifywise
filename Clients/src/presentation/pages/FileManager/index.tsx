@@ -218,23 +218,19 @@ const FileManager: React.FC = (): JSX.Element => {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Only sync on initial load, not on subsequent hook updates
-    if (!hasInitialized && !initialLoading && initialFilesData.length > 0) {
-      setFilesData(initialFilesData);
-      setLoadingFiles(false);
-      setFilesError(initialError);
-      setHasInitialized(true);
-    }
-    // If still loading initially, reflect that
-    if (!hasInitialized && initialLoading) {
+    if (hasInitialized) return;
+
+    // Still loading - reflect that
+    if (initialLoading) {
       setLoadingFiles(true);
+      return;
     }
-    // Handle initial error
-    if (!hasInitialized && !initialLoading && initialError) {
-      setFilesError(initialError);
-      setLoadingFiles(false);
-      setHasInitialized(true);
-    }
+
+    // Loading finished (success or error) - sync state and mark initialized
+    setFilesData(initialFilesData);
+    setFilesError(initialError);
+    setLoadingFiles(false);
+    setHasInitialized(true);
   }, [initialFilesData, initialLoading, initialError, hasInitialized]);
 
   // RBAC: Get user role for permission checks

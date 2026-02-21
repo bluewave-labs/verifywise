@@ -49,6 +49,7 @@ import {
   useSortedRows,
   SortableTableHead,
 } from "./constants";
+import { palette } from "../../themes/palette";
 
 interface UserDetailData {
   email: string;
@@ -311,13 +312,13 @@ export default function UserActivityPage() {
                 </Table>
               </TableContainer>
             ) : (
-              <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+              <Typography sx={{ fontSize: 13, color: palette.text.disabled }}>
                 No tool usage recorded
               </Typography>
             )}
           </Stack>
         ) : (
-          <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+          <Typography sx={{ fontSize: 13, color: palette.text.disabled }}>
             User not found
           </Typography>
         )}
@@ -386,7 +387,7 @@ export default function UserActivityPage() {
                     <Typography
                       sx={{
                         fontSize: 13,
-                        color: "#13715B",
+                        color: palette.brand.primary,
                       }}
                     >
                       {u.user_email}

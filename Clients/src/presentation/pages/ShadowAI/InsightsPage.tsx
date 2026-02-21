@@ -53,17 +53,9 @@ import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import ShadowAIOnboarding from "../../components/Modals/ShadowAIOnboarding";
 import { useNavigate } from "react-router-dom";
 import { PERIOD_OPTIONS } from "./constants";
+import { palette } from "../../themes/palette";
 
-const DEPT_COLORS = [
-  "#6366F1", // indigo
-  "#F59E0B", // amber
-  "#10B981", // emerald
-  "#EF4444", // red
-  "#8B5CF6", // purple
-  "#06B6D4", // cyan
-  "#EC4899", // pink
-  "#84CC16", // lime
-];
+const DEPT_COLORS = [...palette.chart];
 
 export default function InsightsPage() {
   const navigate = useNavigate();
@@ -182,14 +174,14 @@ export default function InsightsPage() {
                     justifyContent="space-between"
                   >
                     <Stack direction="row" alignItems="center" gap="12px">
-                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary }}>
                         {tool.risk_score ?? 0}
                       </Typography>
-                      <Typography sx={{ fontSize: 13, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 13, color: palette.text.secondary }}>
                         {tool.name}
                       </Typography>
                     </Stack>
-                    <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                    <Typography sx={{ fontSize: 12, color: palette.status.default.text }}>
                       {tool.total_events.toLocaleString()} events
                     </Typography>
                   </Stack>
@@ -251,7 +243,7 @@ export default function InsightsPage() {
                           flexShrink: 0,
                         }}
                       />
-                      <Typography sx={{ fontSize: 12, color: "#374151" }}>
+                      <Typography sx={{ fontSize: 12, color: palette.text.secondary }}>
                         {dept.department}
                       </Typography>
                     </Stack>
@@ -279,17 +271,17 @@ export default function InsightsPage() {
                     margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
                     barCategoryGap="20%"
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={palette.background.hover} horizontal={false} />
                     <XAxis
                       type="number"
-                      tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                      axisLine={{ stroke: "#e5e7eb" }}
+                      tick={{ fontSize: 11, fill: palette.text.disabled }}
+                      axisLine={{ stroke: palette.border.light }}
                       tickLine={false}
                     />
                     <YAxis
                       type="category"
                       dataKey="tool_name"
-                      tick={{ fontSize: 12, fill: "#374151" }}
+                      tick={{ fontSize: 12, fill: palette.text.secondary }}
                       width={90}
                       axisLine={false}
                       tickLine={false}
@@ -298,7 +290,7 @@ export default function InsightsPage() {
                       contentStyle={{
                         fontSize: 12,
                         borderRadius: 6,
-                        border: "1px solid #e5e7eb",
+                        border: `1px solid ${palette.border.light}`,
                         boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                       }}
                       formatter={(value: number | undefined) => [value != null ? value.toLocaleString() : value, "Events"]}
@@ -306,7 +298,7 @@ export default function InsightsPage() {
                     />
                     <Bar
                       dataKey="event_count"
-                      fill="#13715B"
+                      fill={palette.brand.primary}
                       radius={[0, 4, 4, 0]}
                       maxBarSize={28}
                     />
@@ -337,17 +329,17 @@ export default function InsightsPage() {
                   margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
                   barCategoryGap="20%"
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={palette.background.hover} horizontal={false} />
                   <XAxis
                     type="number"
-                    tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                    axisLine={{ stroke: "#e5e7eb" }}
+                    tick={{ fontSize: 11, fill: palette.text.disabled }}
+                    axisLine={{ stroke: palette.border.light }}
                     tickLine={false}
                   />
                   <YAxis
                     type="category"
                     dataKey="tool_name"
-                    tick={{ fontSize: 12, fill: "#374151" }}
+                    tick={{ fontSize: 12, fill: palette.text.secondary }}
                     width={90}
                     axisLine={false}
                     tickLine={false}
@@ -356,7 +348,7 @@ export default function InsightsPage() {
                     contentStyle={{
                       fontSize: 12,
                       borderRadius: 6,
-                      border: "1px solid #e5e7eb",
+                      border: `1px solid ${palette.border.light}`,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                     }}
                     formatter={(value: number | undefined) => [value != null ? value.toLocaleString() : value, "Users"]}
@@ -364,7 +356,7 @@ export default function InsightsPage() {
                   />
                   <Bar
                     dataKey="user_count"
-                    fill="#13715B"
+                    fill={palette.brand.primary}
                     radius={[0, 4, 4, 0]}
                     maxBarSize={28}
                   />
@@ -396,7 +388,7 @@ function NoChartData() {
         justifyContent: "center",
       }}
     >
-      <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+      <Typography sx={{ fontSize: 13, color: palette.text.disabled }}>
         No data available for this period
       </Typography>
     </Box>

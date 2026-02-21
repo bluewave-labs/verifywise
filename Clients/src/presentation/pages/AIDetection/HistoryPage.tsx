@@ -42,6 +42,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { getScans, deleteScan, getScanStatus } from "../../../application/repository/aiDetection.repository";
 import { Scan, ScansResponse, ScanStatus } from "../../../domain/ai-detection/types";
 import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
+import { palette } from "../../themes/palette";
 
 const ACTIVE_STATUSES: ScanStatus[] = ["pending", "cloning", "scanning"];
 const POLL_INTERVAL_MS = 3000;
@@ -94,7 +95,7 @@ const SortableTableHead: React.FC<{
                     cursor: "pointer",
                     userSelect: "none",
                     "&:hover": {
-                      backgroundColor: "#f0f0f0",
+                      backgroundColor: palette.background.hover,
                     },
                   }
                 : {}),
@@ -122,7 +123,7 @@ const SortableTableHead: React.FC<{
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                    color: sortConfig.key === column.id ? "primary.main" : palette.text.disabled,
                   }}
                 >
                   {sortConfig.key === column.id && sortConfig.direction === "asc" && (
@@ -540,8 +541,8 @@ export default function HistoryPage() {
       label: "DURATION",
       render: (scan: Scan) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Clock size={14} color="#667085" />
-          <Typography variant="body2" sx={{ color: "#667085", fontFamily: "monospace" }}>
+          <Clock size={14} color={palette.text.tertiary} />
+          <Typography variant="body2" sx={{ color: palette.text.tertiary, fontFamily: "monospace" }}>
             {scan.status === "completed" ? formatDuration(scan.duration_ms) : "-"}
           </Typography>
         </Box>
@@ -596,7 +597,7 @@ export default function HistoryPage() {
                   },
                 }}
               >
-                <Trash2 size={16} color="#d92d20" />
+                <Trash2 size={16} color={palette.status.error.text} />
               </IconButton>
             </Tooltip>
           )}
@@ -613,7 +614,7 @@ export default function HistoryPage() {
         helpArticlePath="ai-detection/history"
       >
         <Box sx={{ textAlign: "center" }}>
-          <Typography variant="body1" sx={{ color: "#667085" }}>
+          <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
             Loading scan history...
           </Typography>
         </Box>
@@ -686,7 +687,7 @@ export default function HistoryPage() {
         renderTable={(data, options) => (
           <TableContainer
             sx={{
-              backgroundColor: "#fff",
+              backgroundColor: palette.background.main,
               borderRadius: "4px",
               overflow: "hidden",
             }}
@@ -821,7 +822,7 @@ export default function HistoryPage() {
           isOpen={deleteModalOpen}
           title="Delete scan?"
           body={
-            <Typography fontSize={13} color="#344054">
+            <Typography fontSize={13} color={palette.text.secondary}>
               Are you sure you want to delete the scan for{" "}
               <strong>
                 {scanToDelete.repository_owner}/{scanToDelete.repository_name}

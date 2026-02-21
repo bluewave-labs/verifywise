@@ -41,6 +41,7 @@ import {
   ShadowAiToolStatus,
 } from "../../../domain/interfaces/i.shadowAi";
 import singleTheme from "../../themes/v1SingleTheme";
+import { palette } from "../../themes/palette";
 import { EmptyState } from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Select from "../../components/Inputs/Select";
@@ -72,19 +73,19 @@ const STATUS_CONFIG: Record<
   ShadowAiToolStatus,
   { label: string; color: string; bg: string }
 > = {
-  detected: { label: "Detected", color: "#3B82F6", bg: "#EFF6FF" },
-  under_review: { label: "Under review", color: "#F59E0B", bg: "#FFFBEB" },
-  approved: { label: "Approved", color: "#10B981", bg: "#ECFDF5" },
-  restricted: { label: "Restricted", color: "#F97316", bg: "#FFF7ED" },
-  blocked: { label: "Blocked", color: "#DC2626", bg: "#FEF2F2" },
-  dismissed: { label: "Dismissed", color: "#6B7280", bg: "#F9FAFB" },
+  detected: { label: "Detected", color: palette.status.info.text, bg: palette.status.info.bg },
+  under_review: { label: "Under review", color: palette.status.warning.text, bg: palette.status.warning.bg },
+  approved: { label: "Approved", color: palette.status.success.text, bg: palette.status.success.bg },
+  restricted: { label: "Restricted", color: palette.accent.orange.text, bg: palette.accent.orange.bg },
+  blocked: { label: "Blocked", color: palette.status.error.text, bg: palette.status.error.bg },
+  dismissed: { label: "Dismissed", color: palette.status.default.text, bg: palette.status.default.bg },
 };
 
 function ToolIcon({ vendor, size = 18 }: { vendor?: string; size?: number }) {
-  if (!vendor) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  if (!vendor) return <Bot size={size} strokeWidth={1.5} color={palette.text.disabled} />;
   const iconKey = VENDOR_ICON_MAP[vendor];
   const IconComponent = iconKey ? PROVIDER_ICONS[iconKey] : null;
-  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color={palette.text.disabled} />;
   return <IconComponent width={size} height={size} />;
 }
 
@@ -314,7 +315,7 @@ export default function AIToolsPage() {
 
             {/* Status change */}
             <Stack direction="row" alignItems="center" gap="8px">
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.secondary }}>
                 Status:
               </Typography>
               <Select
@@ -338,8 +339,8 @@ export default function AIToolsPage() {
                   text="Start governance"
                   variant="contained"
                   sx={{
-                    backgroundColor: "#13715B",
-                    "&:hover": { backgroundColor: "#0F5A47" },
+                    backgroundColor: palette.brand.primary,
+                    "&:hover": { backgroundColor: palette.brand.primaryHover },
                     height: 30,
                     fontSize: 12,
                   }}

@@ -7,7 +7,7 @@ export const pageHeaderSummaryCardsStyle = {
 
 // ApprovalButton styles
 export const approvalButtonStyle = {
-  background: '#F4F4F4',
+  background: palette.background.hover,
   color: palette.text.secondary,
   fontWeight: 500,
   fontSize: '13px',
@@ -21,7 +21,7 @@ export const approvalButtonStyle = {
 };
 
 export const approvalCountBadgeStyle = {
-  backgroundColor: '#CBCFD7',
+  backgroundColor: palette.border.dark,
   color: palette.text.secondary,
   px: '6px',
   py: '4px',

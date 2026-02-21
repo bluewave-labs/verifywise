@@ -45,6 +45,7 @@ import utc from "dayjs/plugin/utc";
 import { displayFormattedDate } from "../../tools/isoDateToString";
 import { DatasetStatus, DataClassification } from "../../../domain/enums/dataset.enum";
 import Chip from "../../components/Chip";
+import { palette } from "../../themes/palette";
 
 dayjs.extend(utc);
 
@@ -368,7 +369,7 @@ const DatasetTable: React.FC<DatasetTableProps> = ({
             <TableRow
               sx={{
                 ...tableFooterRowStyle(theme),
-                borderTop: "1px solid #d0d5dd",
+                borderTop: `1px solid ${palette.border.dark}`,
               }}
             >
               <TableCell

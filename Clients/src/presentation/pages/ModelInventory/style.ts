@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Theme, SxProps } from "@mui/material/styles";
+import { palette } from "../../themes/palette";
 
 // Main page styles (index.tsx)
 export const mainStackStyle = {
@@ -29,8 +30,8 @@ export const evidenceTypeFilterSelectStyle = {
 };
 
 export const addNewModelButtonStyle = {
-  backgroundColor: "#13715B",
-  border: "1px solid #13715B",
+  backgroundColor: palette.brand.primary,
+  border: `1px solid ${palette.brand.primary}`,
 };
 
 // Summary component styles (ModelInventorySummary.tsx)
@@ -79,9 +80,9 @@ export const capabilitiesChipContainerStyle = {
 export const capabilityChipStyle = {
   fontSize: 11,
   height: "20px",
-  backgroundColor: "#f5f5f5",
+  backgroundColor: palette.background.hover,
   borderRadius: 12,
-  color: "#666",
+  color: palette.text.tertiary,
   margin: 0,
   fontWeight: 500,
 };
@@ -89,41 +90,41 @@ export const capabilityChipStyle = {
 export const capabilityChipExtraStyle = {
   fontSize: 11,
   height: "20px",
-  backgroundColor: "#e0e0e0",
+  backgroundColor: palette.border.light,
   borderRadius: 12,
-  color: "#666",
+  color: palette.text.tertiary,
   margin: 0,
   fontWeight: 500,
 };
 
 export const tableRowHoverStyle = {
-  "&:hover": { backgroundColor: "#f5f5f5", cursor: "pointer" },
+  "&:hover": { backgroundColor: palette.background.hover, cursor: "pointer" },
 };
 
 export const tableRowDeletingStyle = {
   opacity: 0.6,
-  backgroundColor: "#f5f5f5",
+  backgroundColor: palette.background.hover,
 };
 
 export const loadingContainerStyle = (_: Theme) => ({
-  border: "1px solid #EEEEEE",
+  border: `1px solid ${palette.border.light}`,
   borderRadius: "4px",
   padding: "60px 20px",
   minHeight: 200,
 });
 
 export const emptyStateContainerStyle = (_: Theme) => ({
-  border: "1px solid #EEEEEE",
+  border: `1px solid ${palette.border.light}`,
   borderRadius: "4px",
   padding: "60px 20px 80px 20px",
   gap: "20px",
   minHeight: 200,
-  backgroundColor: "#FFFFFF", // Ensure white background
+  backgroundColor: palette.background.main,
 });
 
 export const emptyStateTextStyle = {
   fontSize: 13,
-  color: "#475467",
+  color: palette.text.tertiary,
   margin: 0,
   fontWeight: 400,
 };
@@ -204,10 +205,10 @@ export const searchBoxStyle =
   (theme: Theme) => ({
     display: "flex",
     alignItems: "center",
-    border: `1px solid ${theme.palette.border.dark}`, // adjust as needed
+    border: `1px solid ${theme.palette.border.dark}`,
     borderRadius: theme.shape.borderRadius,
     p: "1px 1px",
-    bgcolor: "#fff",
+    bgcolor: palette.background.main,
     width: isSearchBarVisible ? "50%" : "auto",
     transition: "all 0.3s ease",
     mb: 9,

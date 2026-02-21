@@ -38,6 +38,7 @@ import {
 } from "./style";
 import { singleTheme } from "../../themes";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
+import { palette } from "../../themes/palette";
 
 dayjs.extend(utc);
 
@@ -145,7 +146,7 @@ const SortableTableHead: React.FC<{
                     display: "flex",
                     alignItems: "center",
                     color:
-                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                      sortConfig.key === column.id ? "primary.main" : palette.text.disabled,
                   }}
                 >
                   {sortConfig.key === column.id &&

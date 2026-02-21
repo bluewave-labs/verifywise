@@ -23,6 +23,7 @@ import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import Toggle from "../../components/Inputs/Toggle";
 import useUsers from "../../../application/hooks/useUsers";
+import { palette } from "../../themes/palette";
 
 interface GovernanceWizardModalProps {
   isOpen: boolean;
@@ -115,7 +116,7 @@ export default function GovernanceWizardModal({
         )}
 
         {/* Model inventory info */}
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary }}>
           Model inventory
         </Typography>
         <Stack direction="row" gap="16px">
@@ -144,7 +145,7 @@ export default function GovernanceWizardModal({
         />
 
         {/* Governance owner */}
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary, mt: 1 }}>
           Governance owner
         </Typography>
         <Select
@@ -159,7 +160,7 @@ export default function GovernanceWizardModal({
         />
 
         {/* Risk assessment */}
-        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151", mt: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary, mt: 1 }}>
           Risk assessment (optional)
         </Typography>
         <Select
@@ -191,7 +192,7 @@ export default function GovernanceWizardModal({
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
               Start lifecycle review
             </Typography>
-            <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
+            <Typography sx={{ fontSize: 11, color: palette.text.disabled }}>
               Automatically create a lifecycle entry for this model
             </Typography>
           </Stack>

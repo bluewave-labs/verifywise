@@ -36,6 +36,7 @@ import {
   GitHubTokenStatus,
   GitHubTokenTestResult,
 } from "../../../application/repository/githubToken.repository";
+import { palette } from "../../themes/palette";
 
 interface ToastAlert {
   variant: "success" | "error" | "warning" | "info";
@@ -198,7 +199,7 @@ export default function SettingsPage() {
           <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {/* Help Text */}
             <Box>
-              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>
                 To scan private repositories, you need a GitHub Personal Access
                 Token with <strong>repo</strong> scope (for private repos) or{" "}
                 <strong>public_repo</strong> scope (for public repos only).
@@ -213,7 +214,7 @@ export default function SettingsPage() {
                   alignItems: "center",
                   gap: 0.5,
                   fontSize: 13,
-                  color: "#13715B",
+                  color: palette.brand.primary,
                   textDecoration: "none",
                   mt: 0.5,
                   "&:hover": { textDecoration: "underline" },
@@ -239,11 +240,11 @@ export default function SettingsPage() {
               >
                 <Box sx={{ flex: 1 }}>
                   <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: "#13715B" }}
+                    sx={{ fontSize: 14, fontWeight: 500, color: palette.brand.primary }}
                   >
                     Token configured
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: "#6c757d" }}>
+                  <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
                     {tokenStatus.token_name || "GitHub Personal Access Token"}
                   </Typography>
                 </Box>
@@ -252,7 +253,7 @@ export default function SettingsPage() {
                   size="small"
                   onClick={handleDeleteToken}
                   isDisabled={isDeleting}
-                  sx={{ color: "#dc3545", minWidth: "auto", p: 1 }}
+                  sx={{ color: palette.status.error.text, minWidth: "auto", p: 1 }}
                 >
                   {isDeleting ? (
                     <CircularProgress size={16} />

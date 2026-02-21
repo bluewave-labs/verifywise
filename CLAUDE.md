@@ -30,6 +30,16 @@ This document should always accurately represent the current state of the codeba
 
 ---
 
+## Related Repositories
+
+| Repository | Location | Purpose |
+|------------|----------|---------|
+| **plugin-marketplace** | `../plugin-marketplace` (sibling directory) | All plugins (30+), including framework plugins (SOC 2, GDPR, etc.), integration plugins (MLflow, Slack, Jira), and shared packages. See `plugin-marketplace/CLAUDE.md` for complete plugin development documentation. |
+
+> **Note:** Plugin source code is NOT in this repository. To create or modify plugins, work in the plugin-marketplace repo. Clone it as a sibling directory to verifywise.
+
+---
+
 ## Table of Contents
 
 ### Foundation
@@ -796,9 +806,41 @@ router.get("/", authenticateJWT, getAll);
 ### Overview
 
 Plugins extend VerifyWise functionality:
-- **Integration plugins**: Slack, MLflow, Azure AI
-- **Data plugins**: Risk Import
+- **Integration plugins**: Slack, MLflow, Azure AI, Jira Assets
+- **Data plugins**: Risk Import, Dataset Bulk Upload
 - **Framework plugins**: SOC 2, GDPR, HIPAA (compliance frameworks)
+
+### Plugin Marketplace Repository
+
+> **IMPORTANT:** Plugin source code lives in a separate repository:
+> - **Location:** `../plugin-marketplace` (sibling directory to verifywise)
+> - **Documentation:** See `plugin-marketplace/CLAUDE.md` for complete plugin development guide
+
+The plugin-marketplace repository contains:
+- `plugins.json` - Plugin registry manifest
+- `plugins/` - All plugin implementations (30+ plugins)
+- `packages/custom-framework-base/` - Shared backend for framework plugins
+- `packages/custom-framework-ui/` - Shared UI for framework plugins
+- `scripts/` - Build scripts
+
+**Key Commands (run in plugin-marketplace):**
+```bash
+npm run build:all                    # Build everything
+npm run build:framework-plugins      # Build all framework plugins
+npm run build:custom-framework-ui    # Build shared UI package
+```
+
+**After building, copy to core app:**
+```bash
+cp -r plugins/my-plugin /path/to/verifywise/Servers/temp/plugins/
+```
+
+### How Plugins Work
+
+1. **Registry**: Core app fetches `plugins.json` from plugin-marketplace
+2. **Loading**: Plugin code is downloaded to `Servers/temp/plugins/`
+3. **Execution**: Plugin routes are forwarded via `/api/plugins/:key/*`
+4. **UI**: Plugin UI bundles are loaded dynamically via `PluginSlot` component
 
 ### Frontend: Using PluginSlot
 

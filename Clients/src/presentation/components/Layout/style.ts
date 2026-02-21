@@ -21,7 +21,7 @@ export const approvalButtonStyle = {
 };
 
 export const approvalCountBadgeStyle = {
-  backgroundColor: palette.border.dark,
+  backgroundColor: palette.background.hover,
   color: palette.text.secondary,
   px: '6px',
   py: '4px',
@@ -49,19 +49,19 @@ export const actionButtonsStyles = {
     backgroundColor: 'transparent',
     color: palette.accent.primary.text,
     border: `1px solid ${palette.border.light}`,
-    '&:hover': { backgroundColor: `${palette.accent.primary.bg}`, borderColor: palette.accent.primary.border },
+    '&:hover': { backgroundColor: palette.accent.primary.bg, borderColor: palette.accent.primary.border },
   },
   integrations: {
     backgroundColor: 'transparent',
     color: palette.accent.purple.text,
     border: `1px solid ${palette.border.light}`,
-    '&:hover': { backgroundColor: `${palette.accent.purple.bg}`, borderColor: palette.accent.purple.border },
+    '&:hover': { backgroundColor: palette.accent.purple.bg, borderColor: palette.accent.purple.border },
     '&.Mui-disabled': { backgroundColor: 'transparent', color: palette.accent.purple.text, opacity: 0.5 },
   },
   automations: {
     backgroundColor: 'transparent',
     color: palette.accent.orange.text,
     border: `1px solid ${palette.border.light}`,
-    '&:hover': { backgroundColor: `${palette.accent.orange.bg}`, borderColor: palette.accent.orange.border },
+    '&:hover': { backgroundColor: palette.accent.orange.bg, borderColor: palette.accent.orange.border },
   },
 };

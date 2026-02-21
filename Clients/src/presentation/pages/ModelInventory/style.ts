@@ -90,7 +90,7 @@ export const capabilityChipStyle = {
 export const capabilityChipExtraStyle = {
   fontSize: 11,
   height: "20px",
-  backgroundColor: palette.border.light,
+  backgroundColor: palette.background.hover,
   borderRadius: 12,
   color: palette.text.tertiary,
   margin: 0,

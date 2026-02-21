@@ -19,6 +19,15 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { palette } from "../../themes/palette";
+import {
+  getExperiment,
+  getLogs,
+  updateExperiment,
+  createExperiment,
+  validateModel,
+  type Experiment,
+  type EvaluationLog,
+} from "../../../application/repository/deepEval.repository";
 
 // Preprocess LaTeX delimiters to work with remark-math
 const preprocessLatex = (text: string): string => {
@@ -136,15 +145,6 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
     </Box>
   );
 };
-import {
-  getExperiment,
-  getLogs,
-  updateExperiment,
-  createExperiment,
-  validateModel,
-  type Experiment,
-  type EvaluationLog,
-} from "../../../application/repository/deepEval.repository";
 
 interface ExperimentDetailContentProps {
   experimentId: string;

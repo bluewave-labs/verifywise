@@ -11,7 +11,7 @@ export const alertStyles = {
     main: "#138A5E",
     bg: "#E6F4EA",
     light: "#C8E6D0",
-    border: "#138A5E",
+    border: "#C8E6D0",
   },
   error: {
     text: "#D32F2F",

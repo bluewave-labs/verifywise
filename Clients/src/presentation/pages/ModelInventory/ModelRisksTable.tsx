@@ -323,7 +323,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
               >
                 <TableCell sx={{
                   ...getCellStyle(row),
-                  backgroundColor: sortConfig.key === "risk_name" ? palette.border.light : palette.background.accent,
+                  backgroundColor: sortConfig.key === "risk_name" ? palette.background.hover : "inherit",
                 }}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}

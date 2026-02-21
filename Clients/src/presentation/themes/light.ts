@@ -52,6 +52,7 @@ const light = createTheme({
         main: "#138A5E",
         light: "#C8E6D0",
         bg: "#E6F4EA",
+        border: "#C8E6D0",
       },
       error: {
         text: "#D32F2F",

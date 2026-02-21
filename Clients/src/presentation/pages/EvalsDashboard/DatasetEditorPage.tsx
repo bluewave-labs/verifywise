@@ -24,6 +24,7 @@ import { isSingleTurnPrompt, type SingleTurnPrompt } from "../../../application/
 import Alert from "../../components/Alert";
 import { ArrowLeft, ChevronDown, Save as SaveIcon, Plus, Trash2, Download, Copy, Check } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { palette } from "../../themes/palette";
 
 export default function DatasetEditorPage() {
   const { projectId } = useParams();
@@ -151,7 +152,7 @@ export default function DatasetEditorPage() {
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-        <CircularProgress sx={{ color: "#13715B" }} />
+        <CircularProgress sx={{ color: palette.brand.primary }} />
       </Box>
     );
   }
@@ -186,9 +187,9 @@ export default function DatasetEditorPage() {
             onClick={handleCopyJson}
             startIcon={copied ? <Check size={16} /> : <Copy size={16} />}
             sx={{
-              color: copied ? "#059669" : "#374151",
-              borderColor: copied ? "#059669" : "#E5E7EB",
-              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+              color: copied ? palette.status.success.text : palette.text.secondary,
+              borderColor: copied ? palette.status.success.text : palette.border.dark,
+              "&:hover": { borderColor: palette.text.disabled, backgroundColor: palette.background.accent },
             }}
           >
             {copied ? "Copied!" : "Copy JSON"}
@@ -198,9 +199,9 @@ export default function DatasetEditorPage() {
             onClick={handleDownload}
             startIcon={<Download size={16} />}
             sx={{
-              color: "#374151",
-              borderColor: "#E5E7EB",
-              "&:hover": { borderColor: "#9CA3AF", backgroundColor: "#F9FAFB" },
+              color: palette.text.secondary,
+              borderColor: palette.border.dark,
+              "&:hover": { borderColor: palette.text.disabled, backgroundColor: palette.background.accent },
             }}
           >
             Download
@@ -208,7 +209,7 @@ export default function DatasetEditorPage() {
           <Button
             variant="contained"
             disabled={!isValidToSave || saving || !datasetName.trim()}
-            sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }}
+            sx={{ bgcolor: palette.brand.primary, "&:hover": { bgcolor: palette.brand.primaryHover } }}
             startIcon={<SaveIcon size={16} />}
             onClick={handleSave}
           >
@@ -227,7 +228,7 @@ export default function DatasetEditorPage() {
           size="small"
           placeholder="Enter a descriptive name for this dataset"
         />
-        <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "13px" }}>
+        <Typography variant="body2" sx={{ color: palette.text.tertiary, fontSize: "13px" }}>
           Edit the prompts below, then click Save to create your dataset.
         </Typography>
       </Stack>
@@ -242,7 +243,7 @@ export default function DatasetEditorPage() {
               py: 4, 
               px: 2,
               borderStyle: "dashed",
-              borderColor: "#D1D5DB",
+              borderColor: palette.border.dark,
             }}
           >
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -253,9 +254,9 @@ export default function DatasetEditorPage() {
               startIcon={<Plus size={16} />}
               onClick={handleAddPrompt}
               sx={{
-                color: "#13715B",
-                borderColor: "#13715B",
-                "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#E8F5F1" },
+                color: palette.brand.primary,
+                borderColor: palette.brand.primary,
+                "&:hover": { borderColor: palette.brand.primaryHover, backgroundColor: palette.brand.primaryLight },
               }}
             >
               Add your first prompt
@@ -275,7 +276,7 @@ export default function DatasetEditorPage() {
                     <Typography 
                       sx={{ 
                         fontSize: "12px", 
-                        color: "#9CA3AF", 
+                        color: palette.text.disabled, 
                         ml: 1,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -294,8 +295,8 @@ export default function DatasetEditorPage() {
                     handleDeletePrompt(idx);
                   }}
                   sx={{ 
-                    color: "#9CA3AF",
-                    "&:hover": { color: "#EF4444", backgroundColor: "#FEE2E2" },
+                    color: palette.text.disabled,
+                    "&:hover": { color: palette.status.error.text, backgroundColor: palette.status.error.bg },
                   }}
                 >
                   <Trash2 size={14} />
@@ -306,7 +307,7 @@ export default function DatasetEditorPage() {
                   <Stack spacing={2}>
                     {/* Category */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Category</Typography>
+                      <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 0.5 }}>Category</Typography>
                       <TextField
                         size="small"
                         value={stp.category || ""}
@@ -322,7 +323,7 @@ export default function DatasetEditorPage() {
 
                     {/* Prompt */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Prompt *</Typography>
+                      <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 0.5 }}>Prompt *</Typography>
                       <TextField
                         size="small"
                         value={stp.prompt}
@@ -340,7 +341,7 @@ export default function DatasetEditorPage() {
 
                     {/* Expected output */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Expected output</Typography>
+                      <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 0.5 }}>Expected output</Typography>
                       <TextField
                         size="small"
                         value={stp.expected_output || ""}
@@ -358,7 +359,7 @@ export default function DatasetEditorPage() {
 
                     {/* Keywords */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Keywords</Typography>
+                      <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 0.5 }}>Keywords</Typography>
                       <TextField
                         size="small"
                         value={(stp.expected_keywords || []).join(", ")}
@@ -375,7 +376,7 @@ export default function DatasetEditorPage() {
 
                     {/* Retrieval context */}
                     <Box>
-                      <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.5 }}>Retrieval context</Typography>
+                      <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 0.5 }}>Retrieval context</Typography>
                       <TextField
                         size="small"
                         value={(stp.retrieval_context || []).join("\n")}
@@ -406,13 +407,13 @@ export default function DatasetEditorPage() {
             startIcon={<Plus size={16} />}
             onClick={handleAddPrompt}
             sx={{
-              color: "#13715B",
-              borderColor: "#E5E7EB",
+              color: palette.brand.primary,
+              borderColor: palette.border.dark,
               borderStyle: "dashed",
               py: 1.5,
-              "&:hover": { 
-                borderColor: "#13715B", 
-                backgroundColor: "#E8F5F1",
+              "&:hover": {
+                borderColor: palette.brand.primary,
+                backgroundColor: palette.brand.primaryLight,
                 borderStyle: "dashed",
               },
             }}

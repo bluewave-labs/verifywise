@@ -88,6 +88,7 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { palette } from "../../themes/palette";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -2121,14 +2122,14 @@ const ModelInventory: React.FC = () => {
                     width: "34px",
                     padding: "8px",
                     borderRadius: "4px",
-                    border: "1px solid #e5e7eb",
-                    backgroundColor: "#ffffff",
+                    border: `1px solid ${palette.border.light}`,
+                    backgroundColor: palette.background.main,
                     "&:hover": {
-                      backgroundColor: "#f9fafb",
+                      backgroundColor: palette.background.accent,
                     },
                   }}
                 >
-                  <BarChart3 size={16} color="#344054" />
+                  <BarChart3 size={16} color={palette.text.secondary} />
                 </IconButton>
                 {/* Lifecycle config is now accessed via Plugin Settings page */}
                 <div data-joyride-id="add-model-button">

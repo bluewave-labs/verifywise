@@ -2,6 +2,7 @@ import React from "react";
 import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { ModelRiskLevel } from "../../../domain/interfaces/i.modelRisk";
 import { ModelRiskSummaryProps } from "../../../domain/interfaces/i.modelInventory";
+import { palette } from "../../themes/palette";
 
 const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({
   modelRisks,
@@ -9,14 +10,14 @@ const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({
   selectedRiskLevel,
 }) => {
   const riskLevels = [
-    { key: ModelRiskLevel.LOW, label: "Low", color: "#4CAF50" },
-    { key: ModelRiskLevel.MEDIUM, label: "Medium", color: "#FF9800" },
-    { key: ModelRiskLevel.HIGH, label: "High", color: "#FF5722" },
-    { key: ModelRiskLevel.CRITICAL, label: "Critical", color: "#F44336" },
+    { key: ModelRiskLevel.LOW, label: "Low", color: palette.risk.low.text },
+    { key: ModelRiskLevel.MEDIUM, label: "Medium", color: palette.risk.medium.text },
+    { key: ModelRiskLevel.HIGH, label: "High", color: palette.risk.high.text },
+    { key: ModelRiskLevel.CRITICAL, label: "Critical", color: palette.risk.critical.text },
   ];
 
   const items: StatusTileItem[] = [
-    { key: "total", label: "Total", count: modelRisks.length, color: "#4B5563" },
+    { key: "total", label: "Total", count: modelRisks.length, color: palette.text.tertiary },
     ...riskLevels.map((level) => ({
       key: level.key,
       label: level.label,

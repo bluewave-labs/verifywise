@@ -52,6 +52,7 @@ import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum"
 import Chip from "../../components/Chip";
 import { VWLink } from "../../components/Link";
 import ModelRisksDialog from "../../components/ModelRisksDialog";
+import { palette } from "../../themes/palette";
 
 dayjs.extend(utc);
 
@@ -509,7 +510,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                         {riskCount} risk{riskCount !== 1 ? "s" : ""}
                       </VWLink>
                     ) : (
-                      <Typography variant="body2" sx={{ color: "#98A2B3" }}>
+                      <Typography variant="body2" sx={{ color: palette.text.disabled }}>
                         No risks
                       </Typography>
                     );

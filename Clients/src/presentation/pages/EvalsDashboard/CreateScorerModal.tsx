@@ -23,6 +23,7 @@ import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { PROVIDERS, getModelsForProvider } from "../../utils/providers";
 import { getAllLlmApiKeys, type LLMApiKey } from "../../../application/repository/deepEval.repository";
+import { palette } from "../../themes/palette";
 
 // Provider icons
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -244,7 +245,7 @@ function ModelSelector({
 
   return (
     <Box>
-      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#344054", mb: 0.75 }}>
+      <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: 0.75 }}>
         Model
       </Typography>
       <Box
@@ -257,25 +258,25 @@ function ModelSelector({
           px: 1.5,
           py: 1.25,
           border: "1px solid",
-          borderColor: open ? "#13715B" : "#e5e7eb",
+          borderColor: open ? palette.brand.primary : palette.border.dark,
           borderRadius: "8px",
-          backgroundColor: "#fff",
+          backgroundColor: palette.background.main,
           cursor: "pointer",
           transition: "all 0.15s ease",
           "&:hover": {
-            borderColor: "#d1d5db",
+            borderColor: palette.border.dark,
           },
         }}
       >
         <Stack direction="row" alignItems="center" spacing={1.5}>
           {renderProviderIcon(provider, 20)}
-          <Typography sx={{ fontSize: 13, color: (selectedModel || ((isOpenRouter || isSelfHosted) && model)) ? "#111827" : "#9ca3af" }}>
+          <Typography sx={{ fontSize: 13, color: (selectedModel || ((isOpenRouter || isSelfHosted) && model)) ? palette.text.primary : palette.text.disabled }}>
             {(isOpenRouter || isSelfHosted) && model ? model : (selectedModel?.name || "Select a model")}
           </Typography>
         </Stack>
         <ChevronDown
           size={16}
-          color="#6b7280"
+          color={palette.text.tertiary}
           style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
         />
       </Box>
@@ -295,12 +296,12 @@ function ModelSelector({
             sx={{
               mt: 0.5,
               borderRadius: "12px",
-              border: "1px solid #e5e7eb",
+              border: `1px solid ${palette.border.dark}`,
               overflow: "hidden",
             }}
           >
             {/* Search */}
-            <Box sx={{ p: 1.5, borderBottom: "1px solid #f3f4f6" }}>
+            <Box sx={{ p: 1.5, borderBottom: `1px solid ${palette.background.hover}` }}>
               <TextField
                 fullWidth
                 size="small"
@@ -312,7 +313,7 @@ function ModelSelector({
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Search size={16} color="#9ca3af" />
+                      <Search size={16} color={palette.text.disabled} />
                     </InputAdornment>
                   ),
                 }}
@@ -320,10 +321,10 @@ function ModelSelector({
                   "& .MuiOutlinedInput-root": {
                     fontSize: 13,
                     borderRadius: "8px",
-                    backgroundColor: "#f9fafb",
-                    "& fieldset": { borderColor: "#e5e7eb" },
-                    "&:hover fieldset": { borderColor: "#d1d5db" },
-                    "&.Mui-focused fieldset": { borderColor: "#13715B" },
+                    backgroundColor: palette.background.accent,
+                    "& fieldset": { borderColor: palette.border.dark },
+                    "&:hover fieldset": { borderColor: palette.border.dark },
+                    "&.Mui-focused fieldset": { borderColor: palette.brand.primary },
                   },
                 }}
               />
@@ -335,7 +336,7 @@ function ModelSelector({
               <Box
                 sx={{
                   width: 200,
-                  borderRight: "1px solid #f3f4f6",
+                  borderRight: `1px solid ${palette.background.hover}`,
                   overflowY: "auto",
                   display: "flex",
                   flexDirection: "column",
@@ -357,9 +358,9 @@ function ModelSelector({
                           height: 38,
                           minHeight: 38,
                           cursor: "pointer",
-                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
+                          backgroundColor: isSelected ? palette.brand.primaryLight : "transparent",
                           "&:hover": {
-                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
+                            backgroundColor: isSelected ? palette.brand.primaryLight : palette.background.accent,
                           },
                         }}
                       >
@@ -370,23 +371,23 @@ function ModelSelector({
                               sx={{
                                 fontSize: 13,
                                 fontWeight: isSelected ? 600 : 400,
-                                color: isSelected ? "#13715B" : "#374151",
+                                color: isSelected ? palette.brand.primary : palette.text.secondary,
                                 lineHeight: 1.2,
                               }}
                             >
                               {p.displayName}
                             </Typography>
                             {!providerHasKey && p.provider !== "self-hosted" && (
-                              <Typography sx={{ fontSize: 10, color: "#f59e0b", lineHeight: 1.2 }}>
+                              <Typography sx={{ fontSize: 10, color: palette.status.warning.text, lineHeight: 1.2 }}>
                                 No API key
                               </Typography>
                             )}
                           </Stack>
                         </Stack>
                         {isSelected ? (
-                          <Check size={14} color="#13715B" />
+                          <Check size={14} color={palette.brand.primary} />
                         ) : (
-                          <ChevronRight size={14} color="#9ca3af" />
+                          <ChevronRight size={14} color={palette.text.disabled} />
                         )}
                       </Box>
                     );
@@ -394,7 +395,7 @@ function ModelSelector({
                 </Box>
 
                 {/* Add provider button */}
-                <Box sx={{ p: 1.5, borderTop: "1px solid #f3f4f6" }}>
+                <Box sx={{ p: 1.5, borderTop: `1px solid ${palette.background.hover}` }}>
                   <Box
                     onClick={(e) => {
                       e.stopPropagation();
@@ -409,14 +410,14 @@ function ModelSelector({
                       py: 1,
                       borderRadius: "8px",
                       cursor: "pointer",
-                      backgroundColor: "#E8F5F1",
+                      backgroundColor: palette.brand.primaryLight,
                       "&:hover": {
-                        backgroundColor: "#D1EDE6",
+                        backgroundColor: palette.brand.primaryLight,
                       },
                     }}
                   >
-                    <Plus size={16} color="#13715B" />
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#13715B" }}>
+                    <Plus size={16} color={palette.brand.primary} />
+                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.brand.primary }}>
                       Add API key
                     </Typography>
                   </Box>
@@ -436,15 +437,15 @@ function ModelSelector({
                 {isSelfHosted ? (
                   /* Self-hosted model configuration */
                   <Box sx={{ p: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: 1 }}>
                       Self-Hosted Model Configuration
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}>
+                    <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 1.5 }}>
                       Connect to a locally running model server (Ollama, vLLM, etc.)
                     </Typography>
 
                     {/* Endpoint URL */}
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.secondary, mb: 0.5 }}>
                       Endpoint URL *
                     </Typography>
                     <TextField
@@ -466,7 +467,7 @@ function ModelSelector({
                     />
 
                     {/* Model Name */}
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.secondary, mb: 0.5 }}>
                       Model Name *
                     </Typography>
                     <TextField
@@ -494,7 +495,7 @@ function ModelSelector({
                     />
 
                     {/* API Key (optional) */}
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#374151", mb: 0.5 }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.secondary, mb: 0.5 }}>
                       API Key (optional)
                     </Typography>
                     <TextField
@@ -532,12 +533,12 @@ function ModelSelector({
                         py: 1,
                         borderRadius: "6px",
                         cursor: customModel.trim() && (endpointUrl || "").trim() ? "pointer" : "not-allowed",
-                        backgroundColor: customModel.trim() && (endpointUrl || "").trim() ? "#13715B" : "#e5e7eb",
-                        color: customModel.trim() && (endpointUrl || "").trim() ? "#fff" : "#9ca3af",
+                        backgroundColor: customModel.trim() && (endpointUrl || "").trim() ? palette.brand.primary : palette.border.dark,
+                        color: customModel.trim() && (endpointUrl || "").trim() ? palette.background.main : palette.text.disabled,
                         fontSize: 12,
                         fontWeight: 500,
                         "&:hover": {
-                          backgroundColor: customModel.trim() && (endpointUrl || "").trim() ? "#0f5f4c" : "#e5e7eb",
+                          backgroundColor: customModel.trim() && (endpointUrl || "").trim() ? palette.brand.primaryHover : palette.border.dark,
                         },
                       }}
                     >
@@ -554,7 +555,7 @@ function ModelSelector({
                           width: 48,
                           height: 48,
                           borderRadius: "12px",
-                          backgroundColor: "#fef3c7",
+                          backgroundColor: palette.status.warning.bg,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -562,12 +563,12 @@ function ModelSelector({
                           mb: 2,
                         }}
                       >
-                        <Key size={24} color="#f59e0b" />
+                        <Key size={24} color={palette.status.warning.text} />
                       </Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: palette.text.primary, mb: 0.5 }}>
                         API key required
                       </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+                      <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 2 }}>
                         Add an API key for {PROVIDERS[provider]?.displayName || provider} to use its models
                       </Typography>
                       <Box
@@ -584,12 +585,12 @@ function ModelSelector({
                           py: 1.5,
                           borderRadius: "8px",
                           cursor: "pointer",
-                          backgroundColor: "#13715B",
-                          color: "#fff",
+                          backgroundColor: palette.brand.primary,
+                          color: palette.background.main,
                           fontSize: 13,
                           fontWeight: 500,
                           "&:hover": {
-                            backgroundColor: "#0f5f4c",
+                            backgroundColor: palette.brand.primaryHover,
                           },
                         }}
                       >
@@ -601,10 +602,10 @@ function ModelSelector({
                 ) : isOpenRouter ? (
                   /* Custom model input for OpenRouter */
                   <Box sx={{ p: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", mb: 1 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: 1 }}>
                       Enter Model Name
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: "#6b7280", mb: 1.5 }}>
+                    <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 1.5 }}>
                       OpenRouter supports any model. Enter the model ID (e.g., anthropic/claude-3-opus)
                     </Typography>
                     <TextField
@@ -645,12 +646,12 @@ function ModelSelector({
                         py: 1,
                         borderRadius: "6px",
                         cursor: customModel.trim() ? "pointer" : "not-allowed",
-                        backgroundColor: customModel.trim() ? "#13715B" : "#e5e7eb",
-                        color: customModel.trim() ? "#fff" : "#9ca3af",
+                        backgroundColor: customModel.trim() ? palette.brand.primary : palette.border.dark,
+                        color: customModel.trim() ? palette.background.main : palette.text.disabled,
                         fontSize: 12,
                         fontWeight: 500,
                         "&:hover": {
-                          backgroundColor: customModel.trim() ? "#0f5f4c" : "#e5e7eb",
+                          backgroundColor: customModel.trim() ? palette.brand.primaryHover : palette.border.dark,
                         },
                       }}
                     >
@@ -659,7 +660,7 @@ function ModelSelector({
                     </Box>
                     
                     {/* Popular OpenRouter models */}
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.disabled, mt: 2, mb: 1, textTransform: "uppercase" }}>
                       Popular Models
                     </Typography>
                     {[
@@ -684,16 +685,16 @@ function ModelSelector({
                           py: 0.75,
                           borderRadius: "6px",
                           cursor: "pointer",
-                          backgroundColor: model === m.id ? "#E8F5F1" : "transparent",
+                          backgroundColor: model === m.id ? palette.brand.primaryLight : "transparent",
                           "&:hover": {
-                            backgroundColor: model === m.id ? "#E8F5F1" : "#f9fafb",
+                            backgroundColor: model === m.id ? palette.brand.primaryLight : palette.background.accent,
                           },
                         }}
                       >
-                        <Typography sx={{ fontSize: 12, fontWeight: model === m.id ? 600 : 400, color: model === m.id ? "#13715B" : "#374151" }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: model === m.id ? 600 : 400, color: model === m.id ? palette.brand.primary : palette.text.secondary }}>
                           {m.name}
                         </Typography>
-                        <Typography sx={{ fontSize: 10, color: "#9ca3af" }}>
+                        <Typography sx={{ fontSize: 10, color: palette.text.disabled }}>
                           {m.id}
                         </Typography>
                       </Box>
@@ -701,7 +702,7 @@ function ModelSelector({
                   </Box>
                 ) : filteredModels.length === 0 ? (
                   <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 3 }}>
-                    <Typography sx={{ fontSize: 13, color: "#9ca3af" }}>No models found</Typography>
+                    <Typography sx={{ fontSize: 13, color: palette.text.disabled }}>No models found</Typography>
                   </Box>
                 ) : (
                   filteredModels.map((m) => {
@@ -718,19 +719,19 @@ function ModelSelector({
                           pr: 1.5,
                           py: 1,
                           cursor: "pointer",
-                          backgroundColor: isSelected ? "#E8F5F1" : "transparent",
+                          backgroundColor: isSelected ? palette.brand.primaryLight : "transparent",
                           "&:hover": {
-                            backgroundColor: isSelected ? "#E8F5F1" : "#f9fafb",
+                            backgroundColor: isSelected ? palette.brand.primaryLight : palette.background.accent,
                           },
                         }}
                       >
-                        {isSelected && <Check size={16} color="#13715B" />}
+                        {isSelected && <Check size={16} color={palette.brand.primary} />}
                         {renderProviderIcon(provider, 20)}
                         <Typography
                           sx={{
                             fontSize: 13,
                             fontWeight: isSelected ? 600 : 400,
-                            color: isSelected ? "#13715B" : "#374151",
+                            color: isSelected ? palette.brand.primary : palette.text.secondary,
                           }}
                         >
                           {m.name}
@@ -1024,7 +1025,7 @@ export default function CreateScorerModal({
             {loadingProviders ? (
               <Box sx={{ display: "flex", alignItems: "center", height: 40 }}>
                 <CircularProgress size={20} />
-                <Typography sx={{ ml: 1, fontSize: "13px", color: "#6B7280" }}>
+                <Typography sx={{ ml: 1, fontSize: "13px", color: palette.text.tertiary }}>
                   Loading providers...
                 </Typography>
               </Box>
@@ -1059,19 +1060,19 @@ export default function CreateScorerModal({
                       gap: 0.75,
                       px: 1.5,
                       height: 38,
-                      border: "1px solid #d0d5dd",
+                      border: `1px solid ${palette.border.dark}`,
                       borderRadius: "8px",
                       cursor: "pointer",
-                      backgroundColor: paramsPopoverOpen ? "#F3F4F6" : "#fff",
+                      backgroundColor: paramsPopoverOpen ? palette.background.hover : palette.background.main,
                       transition: "all 0.15s ease",
                       "&:hover": {
-                        borderColor: "#9CA3AF",
-                        backgroundColor: "#FAFAFA",
+                        borderColor: palette.text.disabled,
+                        backgroundColor: palette.background.accent,
                       },
                     }}
                   >
-                    <Settings size={14} color="#6B7280" />
-                    <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>
+                    <Settings size={14} color={palette.text.tertiary} />
+                    <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                       Params
                     </Typography>
                   </Box>
@@ -1092,20 +1093,20 @@ export default function CreateScorerModal({
                         width: 280,
                         boxShadow: "0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)",
                         borderRadius: "4px",
-                        border: "1px solid #d0d5dd",
+                        border: `1px solid ${palette.border.dark}`,
                       }}
                     >
-                      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#374151", mb: 2 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: palette.text.secondary, mb: 2 }}>
                         Model parameters
                       </Typography>
                       <Stack spacing={2.5}>
                         {/* Temperature */}
                         <Box>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                            <Typography sx={{ fontSize: "12px", color: palette.text.tertiary }}>
                               Temperature
                             </Typography>
-                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
+                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: palette.text.secondary }}>
                               {config.modelParams.temperature.toFixed(1)}
                             </Typography>
                           </Stack>
@@ -1122,13 +1123,13 @@ export default function CreateScorerModal({
                             max={2}
                             step={0.1}
                             sx={{
-                              color: "#13715B",
+                              color: palette.brand.primary,
                               height: 4,
                               "& .MuiSlider-thumb": {
                                 width: 14,
                                 height: 14,
-                                backgroundColor: "#fff",
-                                border: "2px solid #13715B",
+                                backgroundColor: palette.background.main,
+                                border: `2px solid ${palette.brand.primary}`,
                               },
                               "& .MuiSlider-track": { border: "none" },
                             }}
@@ -1137,7 +1138,7 @@ export default function CreateScorerModal({
 
                         {/* Max Tokens */}
                         <Box>
-                          <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 0.75 }}>
+                          <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 0.75 }}>
                             Max tokens
                           </Typography>
                           <TextField
@@ -1156,9 +1157,9 @@ export default function CreateScorerModal({
                               "& .MuiOutlinedInput-root": {
                                 fontSize: "13px",
                                 height: 36,
-                                "& fieldset": { borderColor: "#d0d5dd" },
-                                "&:hover fieldset": { borderColor: "#D1D5DB" },
-                                "&.Mui-focused fieldset": { borderColor: "#13715B" },
+                                "& fieldset": { borderColor: palette.border.dark },
+                                "&:hover fieldset": { borderColor: palette.border.dark },
+                                "&.Mui-focused fieldset": { borderColor: palette.brand.primary },
                               },
                             }}
                           />
@@ -1167,10 +1168,10 @@ export default function CreateScorerModal({
                         {/* Top P */}
                         <Box>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                            <Typography sx={{ fontSize: "12px", color: "#6B7280" }}>
+                            <Typography sx={{ fontSize: "12px", color: palette.text.tertiary }}>
                               Top P
                             </Typography>
-                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: "#374151" }}>
+                            <Typography sx={{ fontSize: "12px", fontWeight: 500, color: palette.text.secondary }}>
                               {config.modelParams.topP.toFixed(2)}
                             </Typography>
                           </Stack>
@@ -1187,13 +1188,13 @@ export default function CreateScorerModal({
                             max={1}
                             step={0.05}
                             sx={{
-                              color: "#13715B",
+                              color: palette.brand.primary,
                               height: 4,
                               "& .MuiSlider-thumb": {
                                 width: 14,
                                 height: 14,
-                                backgroundColor: "#fff",
-                                border: "2px solid #13715B",
+                                backgroundColor: palette.background.main,
+                                border: `2px solid ${palette.brand.primary}`,
                               },
                               "& .MuiSlider-track": { border: "none" },
                             }}
@@ -1224,7 +1225,7 @@ export default function CreateScorerModal({
               <Box
                 key={index}
                 sx={{
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${palette.border.dark}`,
                   borderRadius: "8px",
                   overflow: "hidden",
                 }}
@@ -1236,8 +1237,8 @@ export default function CreateScorerModal({
                   sx={{
                     px: 1.5,
                     py: 0.75,
-                    backgroundColor: "#F9FAFB",
-                    borderBottom: "1px solid #E5E7EB",
+                    backgroundColor: palette.background.accent,
+                    borderBottom: `1px solid ${palette.border.dark}`,
                   }}
                 >
                   <MuiSelect
@@ -1265,7 +1266,7 @@ export default function CreateScorerModal({
                       onClick={() => handleRemoveMessage(index)}
                       sx={{ p: 0.5 }}
                     >
-                      <Trash2 size={14} color="#9CA3AF" />
+                      <Trash2 size={14} color={palette.text.disabled} />
                     </IconButton>
                   )}
                 </Stack>
@@ -1304,11 +1305,11 @@ export default function CreateScorerModal({
               onClick={handleAddMessage}
               sx={{
                 alignSelf: "flex-start",
-                color: "#13715B",
+                color: palette.brand.primary,
                 fontSize: "13px",
                 fontWeight: 600,
                 textTransform: "none",
-                "&:hover": { backgroundColor: "#E8F5F1" },
+                "&:hover": { backgroundColor: palette.brand.primaryLight },
               }}
             />
           </Stack>
@@ -1328,7 +1329,7 @@ export default function CreateScorerModal({
               Choice scores
             </Typography>
             <Typography
-              sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}
+              sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 2 }}
             >
               Choice scores are required when using LLM judge scorers. The
               model will be forced to choose one of the choices using a tool
@@ -1339,12 +1340,12 @@ export default function CreateScorerModal({
               {/* Header */}
               <Stack direction="row" spacing={2}>
                 <Typography
-                  sx={{ flex: 1, fontSize: "12px", color: "#6B7280" }}
+                  sx={{ flex: 1, fontSize: "12px", color: palette.text.tertiary }}
                 >
                   Choice
                 </Typography>
                 <Typography
-                  sx={{ width: 100, fontSize: "12px", color: "#6B7280", textAlign: "center" }}
+                  sx={{ width: 100, fontSize: "12px", color: palette.text.tertiary, textAlign: "center" }}
                 >
                   Score (0 to 1)
                 </Typography>
@@ -1380,8 +1381,8 @@ export default function CreateScorerModal({
                       size={16}
                       color={
                         config.choiceScores.length === 1
-                          ? "#D1D5DB"
-                          : "#9CA3AF"
+                          ? palette.border.dark
+                          : palette.text.disabled
                       }
                     />
                   </IconButton>
@@ -1395,11 +1396,11 @@ export default function CreateScorerModal({
                 onClick={handleAddChoiceScore}
                 sx={{
                   alignSelf: "flex-start",
-                  color: "#13715B",
+                  color: palette.brand.primary,
                   fontSize: "12px",
                   fontWeight: 600,
                   textTransform: "none",
-                  "&:hover": { backgroundColor: "#E8F5F1" },
+                  "&:hover": { backgroundColor: palette.brand.primaryLight },
                 }}
               />
             </Stack>
@@ -1419,7 +1420,7 @@ export default function CreateScorerModal({
             >
               Pass threshold
             </Typography>
-            <Typography sx={{ fontSize: "12px", color: "#6B7280", mb: 2 }}>
+            <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, mb: 2 }}>
               Optionally set a score threshold for passing (0 to 1)
             </Typography>
             <Stack direction="row" alignItems="center" spacing={2}>
@@ -1437,10 +1438,10 @@ export default function CreateScorerModal({
                 valueLabelDisplay="auto"
                 sx={{
                   flex: 1,
-                  color: "#13715B",
+                  color: palette.brand.primary,
                   "& .MuiSlider-thumb": {
-                    backgroundColor: "#fff",
-                    border: "2px solid #13715B",
+                    backgroundColor: palette.background.main,
+                    border: `2px solid ${palette.brand.primary}`,
                   },
                 }}
               />

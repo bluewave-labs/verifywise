@@ -1,6 +1,7 @@
 import { TableHead, TableRow, TableCell, Box, Typography, useTheme } from "@mui/material";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import singleTheme from "../../../../themes/v1SingleTheme";
+import { palette } from "../../../../themes/palette";
 
 // Column width definitions for consistent spacing
 const columnWidths: Record<string, string> = {
@@ -103,7 +104,7 @@ const TableHeader = ({ columns, sortConfig, onSort }: TableHeaderProps) => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      color: sortConfig?.key === sortKey ? "primary.main" : "#9CA3AF",
+                      color: sortConfig?.key === sortKey ? palette.brand.primary : palette.text.disabled,
                     }}
                   >
                     {sortConfig?.key === sortKey && sortConfig?.direction === "asc" && (

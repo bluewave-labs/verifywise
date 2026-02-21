@@ -29,6 +29,7 @@ import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
+import { palette } from "../../themes/palette";
 
 interface ProjectExperimentsProps {
   projectId: string;
@@ -588,7 +589,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           title="Rerun experiment"
           body={
             <Box>
-              <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6, mb: 2 }}>
+              <Typography sx={{ fontSize: "14px", color: palette.text.tertiary, lineHeight: 1.6, mb: 2 }}>
                 This will create a new experiment run using the same configuration as "{rerunConfirm.experiment.name}".
               </Typography>
               {rerunConfirm.promptCount > 0 && (
@@ -599,16 +600,16 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
                     gap: "8px",
                     p: "8px",
                     borderRadius: "4px",
-                    backgroundColor: "#F0FDF4",
-                    border: "1px solid #BBF7D0",
+                    backgroundColor: palette.status.success.bg,
+                    border: `1px solid ${palette.status.success.border}`,
                   }}
                 >
-                  <Clock size={16} color="#13715B" />
+                  <Clock size={16} color={palette.brand.primary} />
                   <Box>
-                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.brand.primary }}>
                       Estimated time: {getEstimatedTimeRange(rerunConfirm.promptCount)}
                     </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                    <Typography sx={{ fontSize: "11px", color: palette.status.success.text }}>
                       Based on {rerunConfirm.promptCount} prompt{rerunConfirm.promptCount !== 1 ? "s" : ""} from the original run
                     </Typography>
                   </Box>
@@ -634,7 +635,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
         <ConfirmationModal
           title="API key may not be configured"
           body={
-            <Typography sx={{ fontSize: "14px", color: "#475467", lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: "14px", color: palette.text.tertiary, lineHeight: 1.6 }}>
               {apiKeyWarning.message}
               <br /><br />
               Do you want to run the experiment anyway?
@@ -663,7 +664,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
       </Box>
 
       {/* Performance Chart */}
-      <Card sx={{ marginBottom: "16px", border: "1px solid #d0d5dd", borderRadius: "4px", boxShadow: "none" }}>
+      <Card sx={{ marginBottom: "16px", border: `1px solid ${palette.border.dark}`, borderRadius: "4px", boxShadow: "none" }}>
         <CardContent sx={{ py: 2 }}>
           <Box mb={1}>
             <Typography variant="h6" sx={{ fontSize: "14px", fontWeight: 600 }}>Performance tracking</Typography>
@@ -707,7 +708,7 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
                   sx={{
                     fontSize: "14px",
                     fontWeight: 500,
-                    color: "#374151",
+                    color: palette.text.secondary,
                     textAlign: "center",
                     px: 3,
                   }}
@@ -745,8 +746,8 @@ export default function ProjectExperiments({ projectId, orgId, onViewExperiment,
           text="New experiment"
           icon={<Play size={16} />}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: palette.brand.primary,
+            border: `1px solid ${palette.brand.primary}`,
             gap: 2,
           }}
           onClick={() => setNewEvalModalOpen(true)}

@@ -54,6 +54,7 @@ import {
   type LLMApiKey,
 } from "../../../application/repository/deepEval.repository";
 import { useNavigate } from "react-router-dom";
+import { palette } from "../../themes/palette";
 
 // Timing constants (in milliseconds)
 const POLLING_INTERVAL_MS = 5000;
@@ -555,7 +556,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
       {/* Loading state */}
       {loading && comparisons.length === 0 ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress size={32} sx={{ color: "#6366f1" }} />
+          <CircularProgress size={32} sx={{ color: palette.accent.indigo.text }} />
         </Box>
       ) : comparisons.length === 0 ? (
         /* Empty state when no battles at all */
@@ -568,22 +569,22 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               icon={<Swords size={16} />}
               onClick={() => setCreateModalOpen(true)}
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: palette.brand.primary,
+                border: `1px solid ${palette.brand.primary}`,
                 gap: 2,
                 "&:hover": {
-                  backgroundColor: "#0f5a47",
+                  backgroundColor: palette.brand.primaryHover,
                 },
               }}
             />
           </Box>
           <Box
             sx={{
-              border: "2px dashed #c7d2fe",
+              border: `2px dashed ${palette.accent.indigo.border}`,
               borderRadius: "8px",
               p: "16px",
               textAlign: "center",
-              backgroundColor: "#f5f3ff",
+              backgroundColor: palette.accent.purple.bg,
               position: "relative",
               overflow: "hidden",
             }}
@@ -596,7 +597,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 opacity: 0.1,
               }}
             >
-              <Swords size={80} color="#6366f1" />
+              <Swords size={80} color={palette.accent.indigo.text} />
             </Box>
             <Box
               sx={{
@@ -606,7 +607,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 opacity: 0.1,
               }}
             >
-              <Trophy size={80} color="#6366f1" />
+              <Trophy size={80} color={palette.accent.indigo.text} />
             </Box>
 
             <Box
@@ -624,12 +625,12 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 boxShadow: "0 8px 24px rgba(99,102,241,0.3)",
               }}
             >
-              <Swords size={36} color="#fff" />
+              <Swords size={36} color={palette.background.main} />
             </Box>
-            <Typography sx={{ fontSize: 20, fontWeight: 700, color: "#1e1b4b", mb: 1 }}>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: palette.text.primary, mb: 1 }}>
               No battles yet
             </Typography>
-            <Typography sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mx: "auto", mb: "16px" }}>
+            <Typography sx={{ fontSize: 14, color: palette.text.tertiary, maxWidth: 400, mx: "auto", mb: "16px" }}>
               Create your first arena battle to pit different model versions against each other
               and discover which one performs better.
             </Typography>
@@ -667,7 +668,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Search size={16} color="#9ca3af" />
+                    <Search size={16} color={palette.text.disabled} />
                   </InputAdornment>
                 ),
               }}
@@ -678,10 +679,10 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   borderRadius: "6px",
                   fontSize: 13,
                   "& fieldset": {
-                    borderColor: "#d0d5dd",
+                    borderColor: palette.border.dark,
                   },
                   "&:hover fieldset": {
-                    borderColor: "#98a2b3",
+                    borderColor: palette.text.accent,
                   },
                 },
               }}
@@ -693,12 +694,12 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               icon={<Swords size={16} />}
               onClick={() => setCreateModalOpen(true)}
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: palette.brand.primary,
+                border: `1px solid ${palette.brand.primary}`,
                 gap: 2,
                 whiteSpace: "nowrap",
                 "&:hover": {
-                  backgroundColor: "#0f5a47",
+                  backgroundColor: palette.brand.primaryHover,
                 },
               }}
             />
@@ -761,7 +762,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 onNavigateToSettings={() => navigate("/evals#settings")}
                 label="Judge model"
               />
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mt: 1 }}>
+              <Typography sx={{ fontSize: 11, color: palette.text.disabled, mt: 1 }}>
                 The LLM that will compare and score the responses
               </Typography>
             </Box>
@@ -769,7 +770,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             {/* Evaluation Criteria */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} mb={1.5}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary }}>
                   Evaluation criteria
                 </Typography>
                 <VWTooltip
@@ -779,8 +780,8 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                       <p>The judge model evaluates each response against all selected criteria and picks an overall winner.</p>
                       {EVALUATION_CRITERIA.map((c) => (
                         <Box key={c.id} sx={{ mb: 0.75 }}>
-                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{c.name}</Typography>
-                          <Typography sx={{ fontSize: 13, opacity: 0.8, color: "#fff" }}>{c.description}</Typography>
+                          <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.background.main }}>{c.name}</Typography>
+                          <Typography sx={{ fontSize: 13, opacity: 0.8, color: palette.background.main }}>{c.description}</Typography>
                         </Box>
                       ))}
                     </>
@@ -789,7 +790,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   placement="right"
                 >
                   <Box sx={{ display: "flex", cursor: "help" }}>
-                    <Info size={14} color="#9ca3af" />
+                    <Info size={14} color={palette.text.disabled} />
                   </Box>
                 </VWTooltip>
               </Stack>
@@ -828,7 +829,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                         sx={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#374151",
+                          color: palette.text.secondary,
                         }}
                       >
                         {criteria.name}
@@ -839,7 +840,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
               </Box>
 
               {newComparison.selectedCriteria.length === 0 && (
-                <Typography sx={{ fontSize: 12, color: "#ef4444", mt: 1.5, textAlign: "center" }}>
+                <Typography sx={{ fontSize: 12, color: palette.status.error.text, mt: 1.5, textAlign: "center" }}>
                   Please select at least one evaluation criterion
                 </Typography>
               )}
@@ -848,11 +849,11 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
             {/* Dataset selector */}
             <Box>
               <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#344054" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.text.secondary }}>
                   Dataset
                 </Typography>
               </Stack>
-              <Typography sx={{ fontSize: 11, color: "#9ca3af", mb: 1 }}>
+              <Typography sx={{ fontSize: 11, color: palette.text.disabled, mb: 1 }}>
                 All contestants will be evaluated using this dataset
               </Typography>
               <GroupedSelect
@@ -866,7 +867,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 groups={[
                   {
                     label: "My datasets",
-                    color: "#6366f1",
+                    color: palette.accent.indigo.text,
                     items: myDatasets.map((ds) => ({
                       value: ds.path,
                       label: ds.name,
@@ -875,7 +876,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                   },
                   {
                     label: "Template datasets",
-                    color: "#10b981",
+                    color: palette.status.success.text,
                     items: templateDatasets.map((ds) => ({
                       value: ds.path,
                       label: ds.name,
@@ -891,15 +892,15 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
           <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: palette.text.secondary }}>
                   Contestants
                 </Typography>
                 <Chip
                   label={`${newComparison.contestants.length} players`}
                   size="small"
                   sx={{
-                    backgroundColor: "#f5f3ff",
-                    color: "#6366f1",
+                    backgroundColor: palette.accent.purple.bg,
+                    color: palette.accent.indigo.text,
                     fontWeight: 600,
                     fontSize: "11px",
                     height: 22,
@@ -914,7 +915,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                 onClick={addContestant}
                 sx={{
                   background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                  color: "#fff",
+                  color: palette.background.main,
                   fontSize: 12,
                   py: 0.75,
                   pl: 2,
@@ -967,7 +968,7 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                           py: 0.75,
                           borderRadius: "8px",
                           background: colorScheme.gradient,
-                          color: "#fff",
+                          color: palette.background.main,
                           fontSize: 12,
                           fontWeight: 700,
                           letterSpacing: "0.3px",
@@ -988,9 +989,9 @@ export default function ArenaPage({ orgId }: ArenaPageProps) {
                           sx={{
                             width: 28,
                             height: 28,
-                            backgroundColor: "#fef2f2",
-                            color: "#dc2626",
-                            "&:hover": { backgroundColor: "#fee2e2" },
+                            backgroundColor: palette.status.error.bg,
+                            color: palette.status.error.text,
+                            "&:hover": { backgroundColor: palette.status.error.bg },
                           }}
                         >
                           <X size={14} />

@@ -18,6 +18,7 @@ import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import TabBar from "../../components/TabBar";
 import { TabContext } from "@mui/lab";
 import { getSelectStyles } from "../../utils/inputStyles";
+import { palette } from "../../themes/palette";
 
 type ListedDataset = {
   key: string;
@@ -409,12 +410,12 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
             onClick={() => setActiveSection("datasets")}
             sx={{
               cursor: "pointer",
-              backgroundColor: activeSection === "datasets" ? "#13715B" : "#F3F4F6",
-              color: activeSection === "datasets" ? "#FFFFFF" : "#374151",
+              backgroundColor: activeSection === "datasets" ? palette.brand.primary : palette.background.hover,
+              color: activeSection === "datasets" ? palette.background.main : palette.text.secondary,
               fontWeight: 500,
               fontSize: "13px",
               "&:hover": {
-                backgroundColor: activeSection === "datasets" ? "#0F5E4B" : "#E5E7EB",
+                backgroundColor: activeSection === "datasets" ? palette.brand.primaryHover : palette.border.dark,
               },
             }}
           />
@@ -423,12 +424,12 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
             onClick={() => setActiveSection("benchmarks")}
             sx={{
               cursor: "pointer",
-              backgroundColor: activeSection === "benchmarks" ? "#13715B" : "#F3F4F6",
-              color: activeSection === "benchmarks" ? "#FFFFFF" : "#374151",
+              backgroundColor: activeSection === "benchmarks" ? palette.brand.primary : palette.background.hover,
+              color: activeSection === "benchmarks" ? palette.background.main : palette.text.secondary,
               fontWeight: 500,
               fontSize: "13px",
               "&:hover": {
-                backgroundColor: activeSection === "benchmarks" ? "#0F5E4B" : "#E5E7EB",
+                backgroundColor: activeSection === "benchmarks" ? palette.brand.primaryHover : palette.border.dark,
               },
             }}
           />
@@ -504,16 +505,16 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                   p: 2.5,
                   width: 380,
                   borderRadius: 2,
-                  borderColor: "#E5E7EB",
+                  borderColor: palette.border.dark,
                   boxShadow: "none",
-                  backgroundColor: "#FFFFFF",
+                  backgroundColor: palette.background.main,
                   display: "flex",
                   flexDirection: "column",
                   gap: 1.5,
                   cursor: "pointer",
                   transition: "all 0.2s",
                   "&:hover": {
-                    borderColor: "#13715B",
+                    borderColor: palette.brand.primary,
                     boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                   },
                 }}
@@ -521,10 +522,10 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
               >
                 <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
                   <Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: "16px", color: "#111827" }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: "16px", color: palette.text.primary }}>
                       {benchmark.name}
                     </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "#6B7280", fontStyle: "italic" }}>
+                    <Typography sx={{ fontSize: "11px", color: palette.text.tertiary, fontStyle: "italic" }}>
                       {benchmark.fullName}
                     </Typography>
                   </Box>
@@ -536,24 +537,24 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                       fontSize: "10px",
                       fontWeight: 600,
                       backgroundColor:
-                        benchmark.difficulty === "Medium" ? "#FEF3C7" :
-                        benchmark.difficulty === "Hard" ? "#FEE2E2" :
-                        benchmark.difficulty === "Very Hard" ? "#F3E8FF" : "#E5E7EB",
+                        benchmark.difficulty === "Medium" ? palette.status.warning.bg :
+                        benchmark.difficulty === "Hard" ? palette.status.error.bg :
+                        benchmark.difficulty === "Very Hard" ? palette.accent.purple.bg : palette.border.dark,
                       color:
-                        benchmark.difficulty === "Medium" ? "#92400E" :
-                        benchmark.difficulty === "Hard" ? "#991B1B" :
-                        benchmark.difficulty === "Very Hard" ? "#6B21A8" : "#374151",
+                        benchmark.difficulty === "Medium" ? palette.status.warning.text :
+                        benchmark.difficulty === "Hard" ? palette.status.error.text :
+                        benchmark.difficulty === "Very Hard" ? palette.accent.purple.text : palette.text.secondary,
                       borderRadius: "4px",
                     }}
                   />
                 </Stack>
 
-                <Typography variant="body2" sx={{ fontSize: "12px", color: "#4B5563", lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ fontSize: "12px", color: palette.text.secondary, lineHeight: 1.6 }}>
                   {benchmark.description}
                 </Typography>
 
                 <Box>
-                  <Typography variant="body2" sx={{ fontSize: "11px", color: "#374151" }}>
+                  <Typography variant="body2" sx={{ fontSize: "11px", color: palette.text.secondary }}>
                     <strong>{benchmark.sampleCount.toLocaleString()}</strong> samples
                   </Typography>
                 </Box>
@@ -561,7 +562,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                 <Box>
                   <Typography
                     variant="caption"
-                    sx={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 600, color: "#6B7280", letterSpacing: "0.5px" }}
+                    sx={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 600, color: palette.text.tertiary, letterSpacing: "0.5px" }}
                   >
                     Tasks
                   </Typography>
@@ -575,13 +576,13 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                           height: 20,
                           fontSize: "10px",
                           borderRadius: "999px",
-                          backgroundColor: "#E0F2FE",
-                          color: "#0369A1",
+                          backgroundColor: palette.accent.blue.bg,
+                          color: palette.accent.blue.text,
                         }}
                       />
                     ))}
                     {benchmark.tasks.length > 3 && (
-                      <Typography variant="caption" sx={{ fontSize: "10px", color: "#6B7280" }}>
+                      <Typography variant="caption" sx={{ fontSize: "10px", color: palette.text.tertiary }}>
                         +{benchmark.tasks.length - 3} more
                       </Typography>
                     )}
@@ -591,7 +592,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                 <Box>
                   <Typography
                     variant="caption"
-                    sx={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 600, color: "#6B7280", letterSpacing: "0.5px" }}
+                    sx={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 600, color: palette.text.tertiary, letterSpacing: "0.5px" }}
                   >
                     Metrics
                   </Typography>
@@ -605,8 +606,8 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                           height: 20,
                           fontSize: "10px",
                           borderRadius: "999px",
-                          backgroundColor: "#D1FAE5",
-                          color: "#065F46",
+                          backgroundColor: palette.status.success.bg,
+                          color: palette.status.success.text,
                         }}
                       />
                     ))}
@@ -619,8 +620,8 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                   sx={{
                     mt: 1,
                     textTransform: "none",
-                    bgcolor: "#13715B",
-                    "&:hover": { bgcolor: "#0F5E4B" },
+                    bgcolor: palette.brand.primary,
+                    "&:hover": { bgcolor: palette.brand.primaryHover },
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -645,7 +646,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: "capitalize", fontSize: "13px", mb: 0.5 }}>
                   {uc} <VWChip label={String((groups[uc] || []).length)} size="small" variant="default" uppercase={false} />
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "12px", mb: 1 }}>
+                <Typography variant="body2" sx={{ color: palette.text.tertiary, fontSize: "12px", mb: 1 }}>
                   {descriptions[uc]}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
@@ -690,7 +691,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                       <IconButton size="small" onClick={() => setSelected(null)} title="Close viewer" aria-label="Close viewer">
                         <X size={16} />
                       </IconButton>
-                      <Button size="small" variant="contained" sx={{ bgcolor: "#13715B", "&:hover": { bgcolor: "#0F5E4B" } }} onClick={() => openEditor(selected.path, selected.name)}>
+                      <Button size="small" variant="contained" sx={{ bgcolor: palette.brand.primary, "&:hover": { bgcolor: palette.brand.primaryHover } }} onClick={() => openEditor(selected.path, selected.name)}>
                         Open in editor
                       </Button>
                     </Stack>
@@ -710,30 +711,30 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                               height: 18,
                               fontSize: "10px",
                                   bgcolor: stp.category?.toLowerCase().includes("coding")
-                                ? "#E6F4EF"
+                                ? palette.brand.primaryLight
                                     : stp.category?.toLowerCase().includes("math")
-                                ? "#E6F1FF"
+                                ? palette.accent.blue.bg
                                     : stp.category?.toLowerCase().includes("reason")
-                                ? "#FFF4E6"
-                                : "#F3F4F6",
+                                ? palette.accent.orange.bg
+                                : palette.background.hover,
                             }}
                           />
                         </Stack>
-                        <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap" }}>
+                        <Typography sx={{ fontSize: "12px", color: palette.text.primary, whiteSpace: "pre-wrap" }}>
                               {stp.prompt}
                         </Typography>
                             {stp.expected_output && (
-                          <Typography sx={{ mt: 0.75, fontSize: "12px", color: "#4B5563" }}>
+                          <Typography sx={{ mt: 0.75, fontSize: "12px", color: palette.text.secondary }}>
                                 <b>Expected:</b> {stp.expected_output}
                           </Typography>
                         )}
                             {Array.isArray(stp.expected_keywords) && stp.expected_keywords.length > 0 && (
-                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563" }}>
+                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: palette.text.secondary }}>
                                 <b>Keywords:</b> {stp.expected_keywords.join(", ")}
                           </Typography>
                         )}
                             {Array.isArray(stp.retrieval_context) && stp.retrieval_context.length > 0 && (
-                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: "#4B5563", whiteSpace: "pre-wrap" }}>
+                          <Typography sx={{ mt: 0.5, fontSize: "12px", color: palette.text.secondary, whiteSpace: "pre-wrap" }}>
                                 <b>Context:</b> {stp.retrieval_context.join("\n")}
                           </Typography>
                         )}
@@ -749,16 +750,16 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                               <Chip
                                 label={`${conv.turns?.length || 0} turns`}
                                 size="small"
-                                sx={{ height: 18, fontSize: "10px", bgcolor: "#E3F2FD" }}
+                                sx={{ height: 18, fontSize: "10px", bgcolor: palette.accent.blue.bg }}
                               />
                             </Stack>
                             {conv.scenario && (
-                              <Typography sx={{ fontSize: "12px", color: "#111827", whiteSpace: "pre-wrap", mb: 0.5 }}>
+                              <Typography sx={{ fontSize: "12px", color: palette.text.primary, whiteSpace: "pre-wrap", mb: 0.5 }}>
                                 <b>Scenario:</b> {conv.scenario}
                               </Typography>
                             )}
                             {conv.expected_outcome && (
-                              <Typography sx={{ fontSize: "12px", color: "#4B5563" }}>
+                              <Typography sx={{ fontSize: "12px", color: palette.text.secondary }}>
                                 <b>Expected outcome:</b> {conv.expected_outcome}
                               </Typography>
                             )}
@@ -770,7 +771,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                 </Paper>
               ) : (
                 <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Typography variant="body2" sx={{ color: "#6B7280" }}>
+                  <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
                     No prompts found for this dataset.
                   </Typography>
                 </Paper>
@@ -804,9 +805,9 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                               p: 2,
                               width: 380,
                               borderRadius: 2,
-                              borderColor: "#E5E7EB",
+                              borderColor: palette.border.dark,
                               boxShadow: "none",
-                              backgroundColor: "#FFFFFF",
+                              backgroundColor: palette.background.main,
                               display: "flex",
                               flexDirection: "column",
                               gap: 1,
@@ -819,7 +820,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                             {ds.description && (
                               <Typography
                                 variant="body2"
-                                sx={{ fontSize: "12px", color: "#4B5563", lineHeight: 1.6 }}
+                                sx={{ fontSize: "12px", color: palette.text.secondary, lineHeight: 1.6 }}
                               >
                                 {ds.description}
                               </Typography>
@@ -830,7 +831,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                               difficultyText) && (
                               <Typography
                                 variant="body2"
-                                sx={{ fontSize: "11px", color: "#4B5563" }}
+                                sx={{ fontSize: "11px", color: palette.text.secondary }}
                               >
                                 {ds.test_count !== undefined && (
                                   <strong>
@@ -861,7 +862,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                                     fontSize: "10px",
                                     textTransform: "uppercase",
                                     fontWeight: 600,
-                                    color: "#6B7280",
+                                    color: palette.text.tertiary,
                                     letterSpacing: "0.5px",
                                   }}
                                 >
@@ -877,15 +878,15 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                                         height: 20,
                                         fontSize: "10px",
                                         borderRadius: "999px",
-                                        backgroundColor: "#F3F4F6",
-                                        color: "#4B5563",
+                                        backgroundColor: palette.background.hover,
+                                        color: palette.text.secondary,
                                       }}
                                     />
                                   ))}
                                   {ds.categories.length > 4 && (
                                     <Typography
                                       variant="caption"
-                                      sx={{ fontSize: "10px", color: "#6B7280", ml: 0.5 }}
+                                      sx={{ fontSize: "10px", color: palette.text.tertiary, ml: 0.5 }}
                                     >
                                       +{ds.categories.length - 4} more
                                     </Typography>
@@ -900,8 +901,8 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                                 variant="contained"
                                 sx={{
                                   textTransform: "none",
-                                  bgcolor: "#13715B",
-                                  "&:hover": { bgcolor: "#0F5E4B" },
+                                  bgcolor: palette.brand.primary,
+                                  "&:hover": { bgcolor: palette.brand.primaryHover },
                                 }}
                                 onClick={() => {
                                   setSelected(ds);
@@ -920,8 +921,8 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
                                 variant="contained"
                                 sx={{
                                   textTransform: "none",
-                                  bgcolor: "#13715B",
-                                  "&:hover": { bgcolor: "#0F5E4B" },
+                                  bgcolor: palette.brand.primary,
+                                  "&:hover": { bgcolor: palette.brand.primaryHover },
                                 }}
                                 onClick={() => openEditor(ds.path, ds.name)}
                               >

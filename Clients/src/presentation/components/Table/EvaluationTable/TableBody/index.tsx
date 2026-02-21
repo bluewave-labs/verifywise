@@ -14,6 +14,7 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 import singleTheme from "../../../../themes/v1SingleTheme";
+import { palette } from "../../../../themes/palette";
 import ConfirmationModal from "../../../Dialogs/ConfirmationModal";
 import { CustomizableButton } from "../../../button/customizable-button";
 import { IEvaluationTableBodyProps, IEvaluationRow } from "../../../../types/interfaces/i.table";
@@ -96,7 +97,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
               ...singleTheme.tableStyles.primary.body.row,
               cursor: "pointer",
               "&:hover": {
-                backgroundColor: "#F9FAFB",
+                backgroundColor: palette.background.accent,
               },
             }}
           >
@@ -116,14 +117,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                     component={Loader2}
                     size={14}
                     sx={{
-                      color: "#ef6c00",
+                      color: palette.status.warning.text,
                       animation: `${spin} 1s linear infinite`,
                     }}
                   />
                   <Typography
                     sx={{
                       fontSize: 13,
-                      color: "#ef6c00",
+                      color: palette.status.warning.text,
                       fontWeight: 500,
                       animation: `${pulse} 1.5s ease-in-out infinite`,
                     }}
@@ -132,7 +133,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   </Typography>
                 </Box>
               ) : row.status === "Failed" ? (
-                <Typography sx={{ fontSize: 13, color: "#c62828", fontWeight: 500 }}>Failed</Typography>
+                <Typography sx={{ fontSize: 13, color: palette.status.error.text, fontWeight: 500 }}>Failed</Typography>
               ) : (
                 row.name || row.id
               )}
@@ -233,10 +234,10 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                   size="small"
                   onClick={(e) => handleMenuOpen(e, row)}
                   sx={{
-                    color: "#667085",
+                    color: palette.text.tertiary,
                     padding: "6px",
                     "&:hover": {
-                      backgroundColor: "#F3F4F6",
+                      backgroundColor: palette.background.hover,
                     },
                   }}
                 >
@@ -260,7 +261,7 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
           "& .MuiPopover-paper": {
             minWidth: 140,
             borderRadius: "4px",
-            border: "1px solid #d0d5dd",
+            border: `1px solid ${palette.border.dark}`,
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             overflow: "hidden",
             mt: 0.5,
@@ -279,14 +280,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: palette.text.secondary,
+                borderColor: palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  backgroundColor: palette.status.success.bg,
+                  borderColor: palette.brand.primary,
+                  color: palette.brand.primary,
                 },
               }}
             >
@@ -302,14 +303,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: palette.text.secondary,
+                borderColor: palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  backgroundColor: palette.status.success.bg,
+                  borderColor: palette.brand.primary,
+                  color: palette.brand.primary,
                 },
               }}
             >
@@ -325,14 +326,14 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#374151",
-                borderColor: "#d0d5dd",
+                color: palette.text.secondary,
+                borderColor: palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
-                  backgroundColor: "#F0FDF4",
-                  borderColor: "#13715B",
-                  color: "#13715B",
+                  backgroundColor: palette.status.success.bg,
+                  borderColor: palette.brand.primary,
+                  color: palette.brand.primary,
                 },
               }}
             >
@@ -348,13 +349,13 @@ const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
                 height: "34px",
                 fontSize: "13px",
                 fontWeight: 500,
-                color: "#DC2626",
-                borderColor: "#d0d5dd",
+                color: palette.status.error.text,
+                borderColor: palette.border.dark,
                 backgroundColor: "transparent",
                 justifyContent: "flex-start",
                 "&:hover": {
-                  backgroundColor: "#FEF2F2",
-                  borderColor: "#DC2626",
+                  backgroundColor: palette.status.error.bg,
+                  borderColor: palette.status.error.text,
                 },
               }}
             >

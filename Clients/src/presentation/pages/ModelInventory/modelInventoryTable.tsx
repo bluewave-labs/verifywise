@@ -47,6 +47,7 @@ import {
 } from "./style";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import Chip from "../../components/Chip";
 import { VWLink } from "../../components/Link";
@@ -533,9 +534,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   <TooltipCell
                     value={
                       modelInventory.status_date
-                        ? dayjs
-                            .utc(modelInventory.status_date)
-                            .format("YYYY-MM-DD")
+                        ? displayFormattedDate(modelInventory.status_date)
                         : "-"
                     }
                   />

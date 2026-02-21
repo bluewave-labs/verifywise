@@ -21,6 +21,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => <ChevronsUpDown size={16} {...props} />;
 import Chip from "../../components/Chip";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
 import { User } from "../../../domain/types/User";
 import { ModelRisksTableProps } from "../../../domain/interfaces/i.modelInventory";
@@ -116,7 +117,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString();
+      return displayFormattedDate(dateString);
     } catch {
       return dateString;
     }

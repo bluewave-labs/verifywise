@@ -21,6 +21,7 @@ import { EmptyState } from "../../components/EmptyState";
 import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import { singleTheme } from "../../themes";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
 import {
@@ -419,7 +420,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                   }}
                 >
                   {incident.occurred_date
-                    ? dayjs.utc(incident.occurred_date).format("YYYY-MM-DD")
+                    ? displayFormattedDate(incident.occurred_date)
                     : "-"}
                 </TableCell>
                 <TableCell

@@ -25,6 +25,7 @@ import { displayFormattedDate } from "../../tools/isoDateToString";
 import { IModelRisk } from "../../../domain/interfaces/i.modelRisk";
 import { User } from "../../../domain/types/User";
 import { ModelRisksTableProps } from "../../../domain/interfaces/i.modelInventory";
+import { palette } from "../../themes/palette";
 
 // LocalStorage key for sorting
 const MODEL_RISKS_SORTING_KEY = "verifywise_model_risks_sorting";
@@ -357,10 +358,10 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                         height: 8,
                         borderRadius: "50%",
                         backgroundColor:
-                          row.status === "Open" ? "#f04438" :
-                          row.status === "In Progress" ? "#f79009" :
-                          row.status === "Resolved" ? "#12b76a" :
-                          "#6b7280", // Accepted
+                          row.status === "Open" ? palette.status.error.text :
+                          row.status === "In Progress" ? palette.risk.medium.text :
+                          row.status === "Resolved" ? palette.status.success.text :
+                          palette.status.default.text, // Accepted
                       }}
                     />
                     <Typography sx={{ fontSize: 13 }}>

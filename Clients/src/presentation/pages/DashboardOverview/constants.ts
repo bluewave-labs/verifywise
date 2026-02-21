@@ -1,44 +1,46 @@
-// Dashboard color palette
+import { palette } from "../../themes/palette";
+
+// Dashboard color palette — sourced from unified palette
 export const COLORS = {
-  // Status colors
-  critical: "#DC2626",
-  high: "#EF4444",
-  medium: "#F59E0B",
-  low: "#10B981",
-  veryLow: "#22C55E",
+  // Risk levels
+  critical: palette.risk.critical.text,
+  high: palette.risk.high.text,
+  medium: palette.risk.medium.text,
+  low: palette.risk.low.text,
+  veryLow: palette.risk.veryLow.text,
 
   // State colors
-  completed: "#10B981",
-  approved: "#22C55E",
-  inProgress: "#F59E0B",
-  pending: "#9CA3AF",
-  draft: "#6B7280",
-  archived: "#9CA3AF",
+  completed: palette.status.success.text,
+  approved: palette.status.success.text,
+  inProgress: palette.status.warning.text,
+  pending: palette.status.default.text,
+  draft: palette.text.accent,
+  archived: palette.status.default.text,
 
   // Framework status colors
-  implemented: "#13715B",
-  awaitingReview: "#3B82F6",
-  awaitingApproval: "#8B5CF6",
-  needsRework: "#EA580C",
-  notStarted: "#9CA3AF",
+  implemented: palette.brand.primary,
+  awaitingReview: palette.status.info.text,
+  awaitingApproval: palette.accent.purple.text,
+  needsRework: palette.accent.orange.text,
+  notStarted: palette.status.default.text,
 
   // Incident colors
-  open: "#EF4444",
-  investigating: "#F59E0B",
-  mitigated: "#3B82F6",
-  closed: "#10B981",
+  open: palette.status.error.text,
+  investigating: palette.status.warning.text,
+  mitigated: palette.status.info.text,
+  closed: palette.status.success.text,
 
   // Model lifecycle colors
-  restricted: "#F97316",
-  blocked: "#EF4444",
+  restricted: palette.accent.orange.text,
+  blocked: palette.status.error.text,
 
   // UI colors
-  primary: "#13715B",
-  textPrimary: "#1F2937",
-  textSecondary: "#667085",
-  border: "#d0d5dd",
-  backgroundHover: "#E5E7EB",
-  backgroundLight: "#F3F4F6",
+  primary: palette.brand.primary,
+  textPrimary: palette.text.primary,
+  textSecondary: palette.text.tertiary,
+  border: palette.border.dark,
+  backgroundHover: palette.background.hover,
+  backgroundLight: palette.background.accent,
 } as const;
 
 // Common icon button styles for navigation arrows

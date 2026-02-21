@@ -16,6 +16,7 @@ export interface NewTrainingProps {
   onSuccess?: (data: TrainingRegistarDTO) => Promise<boolean>;
   initialData?: TrainingRegistarDTO;
   isEdit?: boolean;
+  entityId?: number;
 }
 
 /**

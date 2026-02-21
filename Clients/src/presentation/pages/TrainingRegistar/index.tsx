@@ -608,6 +608,7 @@ const Training: React.FC = () => {
           selectedTraining ? mapTrainingToFormData(selectedTraining) : undefined
         }
         isEdit={!!selectedTraining}
+        entityId={selectedTraining?.id ? Number(selectedTraining.id) : undefined}
       />
 
       <PageTour steps={TrainingSteps} run={true} tourKey="training-tour" />

@@ -8,6 +8,7 @@
 
 import { QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
+import logger from "../utils/logger/fileLogger";
 
 /**
  * User query result type for formatters
@@ -43,7 +44,11 @@ export type EntityType =
   | "policy"
   | "incident"
   | "file"
-  | "model_lifecycle";
+  | "model_lifecycle"
+  | "task"
+  | "training"
+  | "model_risk"
+  | "dataset";
 
 /**
  * Field formatter function type
@@ -60,18 +65,6 @@ export interface EntityConfig {
   fieldLabels: { [key: string]: string };
   fieldFormatters?: { [key: string]: FieldFormatter };
 }
-
-/**
- * System fields that should never be tracked
- */
-export const SYSTEM_FIELDS_TO_EXCLUDE = [
-  "id",
-  "created_at",
-  "updated_at",
-  "deleted_at",
-  "tenant",
-  "tenant_id",
-];
 
 /**
  * Generic field formatters that can be reused across entities
@@ -151,7 +144,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
         return `User #${value}`;
       } catch (error) {
         // Database error - log and return fallback
-        console.error("Error fetching user for ID", value, ":", error);
+        logger.error(`Error fetching user for ID ${value}: ${error}`);
         return `User #${value}`;
       }
     }
@@ -206,7 +199,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
       }
       return userIds.map((id) => `User #${id}`).join(", ");
     } catch (error) {
-      console.error("Error fetching users for IDs", userIds, ":", error);
+      logger.error(`Error fetching users for IDs ${JSON.stringify(userIds)}: ${error}`);
       return userIds.map((id) => `User #${id}`).join(", ");
     }
   },
@@ -243,23 +236,6 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
 
     return frameworkNames.length > 0 ? frameworkNames.join(", ") : "-";
   },
-};
-
-/**
- * Auto-format field name from snake_case to sentence case
- * Example: security_assessment -> Security assessment
- */
-export const autoFormatFieldName = (fieldName: string): string => {
-  return fieldName
-    .split("_")
-    .map((word, index) => {
-      // Capitalize only the first word
-      if (index === 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-      }
-      return word.toLowerCase();
-    })
-    .join(" ");
 };
 
 /**
@@ -636,6 +612,135 @@ export const ENTITY_CONFIGS: { [key in EntityType]: EntityConfig } = {
     },
     fieldFormatters: {
       value_json: GENERIC_FORMATTERS.text,
+    },
+  },
+
+  task: {
+    tableName: "task_change_history",
+    foreignKeyField: "task_id",
+    fieldsToTrack: [
+      "title",
+      "description",
+      "status",
+      "priority",
+      "due_date",
+      "categories",
+    ],
+    fieldLabels: {
+      title: "Title",
+      description: "Description",
+      status: "Status",
+      priority: "Priority",
+      due_date: "Due date",
+      categories: "Categories",
+    },
+    fieldFormatters: {
+      due_date: GENERIC_FORMATTERS.date,
+      categories: GENERIC_FORMATTERS.array,
+    },
+  },
+
+  training: {
+    tableName: "training_change_history",
+    foreignKeyField: "training_id",
+    fieldsToTrack: [
+      "training_name",
+      "duration",
+      "provider",
+      "department",
+      "status",
+      "people",
+      "description",
+    ],
+    fieldLabels: {
+      training_name: "Training name",
+      duration: "Duration",
+      provider: "Provider",
+      department: "Department",
+      status: "Status",
+      people: "Number of people",
+      description: "Description",
+    },
+  },
+
+  model_risk: {
+    tableName: "model_risk_change_history",
+    foreignKeyField: "model_risk_id",
+    fieldsToTrack: [
+      "risk_name",
+      "risk_category",
+      "risk_level",
+      "status",
+      "owner",
+      "target_date",
+      "description",
+      "mitigation_plan",
+      "impact",
+      "likelihood",
+      "model_id",
+    ],
+    fieldLabels: {
+      risk_name: "Risk name",
+      risk_category: "Risk category",
+      risk_level: "Risk level",
+      status: "Status",
+      owner: "Owner",
+      target_date: "Next review date",
+      description: "Description",
+      mitigation_plan: "Mitigation plan",
+      impact: "Impact",
+      likelihood: "Likelihood",
+      model_id: "Associated model",
+    },
+    fieldFormatters: {
+      target_date: GENERIC_FORMATTERS.date,
+    },
+  },
+
+  dataset: {
+    tableName: "dataset_change_histories",
+    foreignKeyField: "dataset_id",
+    fieldsToTrack: [
+      "name",
+      "description",
+      "version",
+      "owner",
+      "type",
+      "function",
+      "source",
+      "license",
+      "format",
+      "classification",
+      "contains_pii",
+      "pii_types",
+      "status",
+      "known_biases",
+      "bias_mitigation",
+      "collection_method",
+      "preprocessing_steps",
+    ],
+    fieldLabels: {
+      name: "Name",
+      description: "Description",
+      version: "Version",
+      owner: "Owner",
+      type: "Type",
+      function: "Function",
+      source: "Source",
+      license: "License",
+      format: "Format",
+      classification: "Classification",
+      contains_pii: "Contains PII",
+      pii_types: "PII types",
+      status: "Status",
+      known_biases: "Known biases",
+      bias_mitigation: "Bias mitigation",
+      collection_method: "Collection method",
+      preprocessing_steps: "Preprocessing steps",
+    },
+    fieldFormatters: {
+      contains_pii: GENERIC_FORMATTERS.boolean,
+      pii_types: GENERIC_FORMATTERS.array,
     },
   },
 };

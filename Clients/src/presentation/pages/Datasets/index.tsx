@@ -379,6 +379,7 @@ const Datasets: React.FC = () => {
             : undefined
         }
         isEdit={!!selectedDataset}
+        entityId={selectedDataset?.id}
       />
     </PageHeaderExtended>
   );

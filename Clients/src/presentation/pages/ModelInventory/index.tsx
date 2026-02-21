@@ -1141,7 +1141,6 @@ const ModelInventory: React.FC = () => {
             is_enabled: true,
           });
         } catch (error) {
-          console.error("Failed to re-enable share link:", error);
           // Revert the UI state if API call fails
           setIsShareEnabled(false);
           setAlert({
@@ -1162,7 +1161,6 @@ const ModelInventory: React.FC = () => {
           is_enabled: false,
         });
       } catch (error) {
-        console.error("Failed to disable share link:", error);
         // Revert the UI state if API call fails
         setIsShareEnabled(true);
         setAlert({
@@ -1232,7 +1230,6 @@ const ModelInventory: React.FC = () => {
             });
             disabledCount++;
           } catch (updateError) {
-            console.error(`Failed to disable link ID ${link.id}:`, updateError);
             throw updateError;
           }
         }
@@ -2419,6 +2416,7 @@ const ModelInventory: React.FC = () => {
             : undefined
         }
         isEdit={!!selectedModelRisk}
+        entityId={selectedModelRisk?.id}
       />
 
       <NewEvidenceHub

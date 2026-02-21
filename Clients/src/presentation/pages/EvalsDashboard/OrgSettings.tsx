@@ -9,6 +9,7 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 import Alert from "../../components/Alert";
 import { getAllLlmApiKeys, addLlmApiKey, deleteLlmApiKey } from "../../../application/repository/deepEval.repository";
 import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
+import { palette } from "../../themes/palette";
 
 interface SavedKey {
   provider: string;
@@ -378,7 +379,7 @@ export default function OrgSettings() {
                 <Typography
                   sx={{
                     fontSize: 11,
-                    color: "#059669",
+                    color: palette.status.success.text,
                     mt: 0.5,
                     ml: 0.5,
                   }}
@@ -408,9 +409,9 @@ export default function OrgSettings() {
                 isDisabled={!selectedProvider || !newApiKey.trim() || !!apiKeyError}
                 startIcon={<Plus size={16} />}
                 sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  "&:hover": { backgroundColor: "#0f5a47" },
+                  backgroundColor: palette.brand.primary,
+                  border: `1px solid ${palette.brand.primary}`,
+                  "&:hover": { backgroundColor: palette.brand.primaryHover },
                   "&:disabled": {
                     backgroundColor: theme.palette.action.disabledBackground,
                     color: theme.palette.action.disabled,

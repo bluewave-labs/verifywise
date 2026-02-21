@@ -25,6 +25,7 @@ import Field from "../../components/Inputs/Field";
 import Checkbox from "../../components/Inputs/Checkbox";
 import Alert from "../../components/Alert";
 import Chip from "../../components/Chip";
+import { palette } from "../../themes/palette";
 
 // Import provider logos
 import { ReactComponent as OpenAILogo } from "../../assets/icons/openai_logo.svg";
@@ -970,13 +971,13 @@ export default function NewExperimentModal({
             {loadingApiKeys ? (
               <Box sx={{ py: 4, textAlign: "center" }}>
                 <CircularProgress size={24} />
-                <Typography sx={{ mt: 1, fontSize: "13px", color: "#6B7280" }}>
+                <Typography sx={{ mt: 1, fontSize: "13px", color: palette.text.tertiary }}>
                   Loading providers...
                 </Typography>
               </Box>
             ) : (
               <Box>
-                <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+                <Typography sx={{ mb: 2.5, fontSize: "14px", fontWeight: 500, color: palette.text.secondary }}>
                   Model provider
                 </Typography>
                 <Grid container spacing={1.5}>
@@ -1002,14 +1003,14 @@ export default function NewExperimentModal({
                           sx={{
                             cursor: "pointer",
                             border: "1px solid",
-                            borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                            backgroundColor: "#FFFFFF",
+                            borderColor: isSelected ? palette.brand.primary : palette.border.dark,
+                            backgroundColor: palette.background.main,
                             boxShadow: "none",
                             transition: "all 0.2s ease",
                             position: "relative",
                             height: "100%",
                             "&:hover": {
-                              borderColor: "#13715B",
+                              borderColor: palette.brand.primary,
                               boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                             },
                           }}
@@ -1033,7 +1034,7 @@ export default function NewExperimentModal({
                                   position: "absolute",
                                   top: 8,
                                   right: 8,
-                                  backgroundColor: "#13715B",
+                                  backgroundColor: palette.brand.primary,
                                   borderRadius: "50%",
                                   width: 20,
                                   height: 20,
@@ -1042,7 +1043,7 @@ export default function NewExperimentModal({
                                   justifyContent: "center",
                                 }}
                               >
-                                <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                <Check size={12} color={palette.background.main} strokeWidth={3} />
                               </Box>
                             )}
 
@@ -1069,7 +1070,7 @@ export default function NewExperimentModal({
                               sx={{
                                 fontSize: "12px",
                                 fontWeight: isSelected ? 600 : 500,
-                                color: isSelected ? "#13715B" : "#374151",
+                                color: isSelected ? palette.brand.primary : palette.text.secondary,
                                 textAlign: "center",
                               }}
                             >
@@ -1092,10 +1093,10 @@ export default function NewExperimentModal({
                   {config.model.accessMethod === "openrouter" ? (
                     /* OpenRouter - Custom model input with suggestions */
                     <Box>
-                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                         Model
                       </Typography>
-                      <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                      <Typography sx={{ fontSize: "11px", color: palette.text.tertiary, mb: 1.5 }}>
                         OpenRouter supports any model. Enter the model ID or select from popular options.
                       </Typography>
                       <Field
@@ -1109,7 +1110,7 @@ export default function NewExperimentModal({
                         }
                         placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
                       />
-                      <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                      <Typography sx={{ fontSize: "11px", fontWeight: 600, color: palette.text.disabled, mt: 2, mb: 1, textTransform: "uppercase" }}>
                         Popular Models
                       </Typography>
                       <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -1132,12 +1133,12 @@ export default function NewExperimentModal({
                             }
                             sx={{
                               cursor: "pointer",
-                              backgroundColor: config.model.name === m.id ? "#E8F5F1" : "transparent",
-                              borderColor: config.model.name === m.id ? "#13715B" : "#E5E7EB",
-                              color: config.model.name === m.id ? "#13715B" : "#374151",
+                              backgroundColor: config.model.name === m.id ? palette.brand.primaryLight : "transparent",
+                              borderColor: config.model.name === m.id ? palette.brand.primary : palette.border.dark,
+                              color: config.model.name === m.id ? palette.brand.primary : palette.text.secondary,
                               "&:hover": {
-                                backgroundColor: config.model.name === m.id ? "#E8F5F1" : "#f9fafb",
-                                borderColor: "#13715B",
+                                backgroundColor: config.model.name === m.id ? palette.brand.primaryLight : palette.background.accent,
+                                borderColor: palette.brand.primary,
                               },
                             }}
                           />
@@ -1146,7 +1147,7 @@ export default function NewExperimentModal({
                     </Box>
                   ) : PROVIDERS[config.model.accessMethod] ? (
                     <Box>
-                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                         Model
                       </Typography>
                       <FormControl fullWidth size="small">
@@ -1162,18 +1163,18 @@ export default function NewExperimentModal({
                           sx={{
                             fontSize: "13px",
                             "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#E5E7EB",
+                              borderColor: palette.border.dark,
                             },
                             "&:hover .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#D1D5DB",
+                              borderColor: palette.border.dark,
                             },
                             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#13715B",
+                              borderColor: palette.brand.primary,
                             },
                           }}
                         >
                           <MenuItem value="" disabled>
-                            <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>
+                            <Typography sx={{ color: palette.text.disabled, fontSize: "13px" }}>
                               Select a model
                             </Typography>
                           </MenuItem>
@@ -1182,7 +1183,7 @@ export default function NewExperimentModal({
                               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
                                 <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
                                 {model.inputCost !== undefined && (
-                                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                  <Typography sx={{ fontSize: "11px", color: palette.text.disabled }}>
                                     ${model.inputCost}/1M in • ${model.outputCost}/1M out
                                   </Typography>
                                 )}
@@ -1206,7 +1207,7 @@ export default function NewExperimentModal({
                       if (showDropdown) {
                         return (
                           <Box>
-                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                            <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                               Model
                             </Typography>
                             <FormControl fullWidth size="small">
@@ -1224,27 +1225,27 @@ export default function NewExperimentModal({
                                 displayEmpty
                                 sx={{
                                   fontSize: "13px",
-                                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
-                                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
-                                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
+                                  "& .MuiOutlinedInput-notchedOutline": { borderColor: palette.border.dark },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: palette.border.dark },
+                                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: palette.brand.primary },
                                 }}
                               >
                                 <MenuItem value="" disabled>
-                                  <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>Select a model</Typography>
+                                  <Typography sx={{ color: palette.text.disabled, fontSize: "13px" }}>Select a model</Typography>
                                 </MenuItem>
                                 {providerSavedModels.map((model) => (
                                   <MenuItem key={model.id} value={model.id}>
                                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
                                       <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
                                       {model.description && (
-                                        <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{model.description}</Typography>
+                                        <Typography sx={{ fontSize: "11px", color: palette.text.disabled }}>{model.description}</Typography>
                                       )}
                                     </Stack>
                                   </MenuItem>
                                 ))}
                                 <Divider />
                                 <MenuItem value="__other__">
-                                  <Typography sx={{ fontSize: "13px", color: "#6B7280", fontStyle: "italic" }}>Other (type custom)</Typography>
+                                  <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, fontStyle: "italic" }}>Other (type custom)</Typography>
                                 </MenuItem>
                               </Select>
                             </FormControl>
@@ -1262,7 +1263,7 @@ export default function NewExperimentModal({
                                 setUseCustomModelName(false);
                                 setConfig((prev) => ({ ...prev, model: { ...prev.model, name: "" } }));
                               }}
-                              sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0, mb: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                              sx={{ textTransform: "none", fontSize: "11px", color: palette.text.tertiary, p: 0, mb: 0.5, minWidth: "auto", "&:hover": { color: palette.brand.primary } }}
                             >
                               &larr; Back to saved models
                             </Button>
@@ -1305,10 +1306,10 @@ export default function NewExperimentModal({
                   {/* Cloud providers: required. Custom / Self-hosted: optional */}
                   {(selectedModelProvider?.needsApiKey || config.model.accessMethod === "custom_api") && (
                     hasApiKey(config.model.accessMethod) ? (
-                      <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                      <Box sx={{ p: 1.5, backgroundColor: palette.status.success.bg, borderRadius: "8px", border: `1px solid ${palette.status.success.border}` }}>
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Check size={16} color="#059669" />
-                          <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                          <Check size={16} color={palette.status.success.text} />
+                          <Typography sx={{ fontSize: "12px", color: palette.status.success.text }}>
                             API key configured — will be saved for future experiments
                           </Typography>
                         </Stack>
@@ -1347,13 +1348,13 @@ export default function NewExperimentModal({
         return (
           <Stack spacing="16px">
             {/* Description */}
-            <Typography sx={{ fontSize: "13px", color: "#6B7280", lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, lineHeight: 1.5 }}>
               Choose a dataset containing prompts and expected outputs. Upload your own JSON file, select from saved datasets, or use a template.
             </Typography>
 
             {/* Option 1: Custom dataset */}
             <Box>
-              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: "8px" }}>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.disabled, textTransform: "uppercase", letterSpacing: "0.5px", mb: "8px" }}>
                 Option 1: Use custom dataset
               </Typography>
               {/* Upload Section - Compact drop zone */}
@@ -1365,12 +1366,12 @@ export default function NewExperimentModal({
                   gap: "8px",
                   p: "8px",
                   border: "1px dashed",
-                  borderColor: uploadingDataset ? "#13715B" : "#D1D5DB",
+                  borderColor: uploadingDataset ? palette.brand.primary : palette.border.dark,
                   borderRadius: "4px",
-                  backgroundColor: "#FAFAFA",
+                  backgroundColor: palette.background.accent,
                   cursor: uploadingDataset ? "wait" : "pointer",
                   transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#13715B", backgroundColor: "#F0FDF4" },
+                  "&:hover": { borderColor: palette.brand.primary, backgroundColor: palette.status.success.bg },
                 }}
               >
                 <Box
@@ -1378,20 +1379,20 @@ export default function NewExperimentModal({
                     width: 32,
                     height: 32,
                     borderRadius: "6px",
-                    backgroundColor: "#13715B",
+                    backgroundColor: palette.brand.primary,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
                   }}
                 >
-                  <Upload size={16} color="#FFFFFF" />
+                  <Upload size={16} color={palette.background.main} />
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151" }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary }}>
                     {uploadingDataset ? "Uploading..." : "Upload dataset"}
                   </Typography>
-                  <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                  <Typography sx={{ fontSize: "11px", color: palette.text.disabled }}>
                     JSON file with prompts and expected outputs
                   </Typography>
                 </Box>
@@ -1470,12 +1471,12 @@ export default function NewExperimentModal({
             {/* My Datasets Section */}
             {loadingUserDatasets ? (
               <Box sx={{ py: 2, textAlign: "center" }}>
-                <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your datasets...</Typography>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>Loading your datasets...</Typography>
               </Box>
             ) : userDatasets.length > 0 ? (
               <Box>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.disabled, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                     Option 2: Your datasets
                   </Typography>
                   <Button
@@ -1483,7 +1484,7 @@ export default function NewExperimentModal({
                     variant="text"
                     startIcon={<ExternalLink size={12} />}
                     onClick={() => window.open(`/evals/${projectId}#datasets`, "_blank")}
-                    sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                    sx={{ textTransform: "none", fontSize: "11px", color: palette.text.tertiary, p: 0.5, minWidth: "auto", "&:hover": { color: palette.brand.primary } }}
                   >
                     Manage
                   </Button>
@@ -1495,13 +1496,13 @@ export default function NewExperimentModal({
                     const isSimulated = dataset.turnType === "simulated";
                     const isEmpty = dataset.promptCount === 0;
                     const typeChip = isEmpty ? (
-                      <Chip label="Empty" backgroundColor="#FEE2E2" textColor="#DC2626" uppercase={false} />
+                      <Chip label="Empty" backgroundColor={palette.status.error.bg} textColor={palette.status.error.text} uppercase={false} />
                     ) : isMultiTurn ? (
-                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Multi-Turn"} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Multi-Turn"} backgroundColor={palette.accent.blue.bg} textColor={palette.accent.blue.text} uppercase={false} />
                     ) : isSimulated ? (
-                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Simulated"} backgroundColor="#F3E8FF" textColor="#7C3AED" uppercase={false} />
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Simulated"} backgroundColor={palette.accent.purple.bg} textColor={palette.accent.purple.text} uppercase={false} />
                     ) : (
-                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Single-Turn"} backgroundColor="#FEF3C7" textColor="#92400E" uppercase={false} />
+                      <Chip label={isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : "Single-Turn"} backgroundColor={palette.status.warning.bg} textColor={palette.status.warning.text} uppercase={false} />
                     );
                     return (
                       <SelectableCard
@@ -1521,7 +1522,7 @@ export default function NewExperimentModal({
                             setDatasetPrompts([]);
                           }
                         }}
-                        icon={<Database size={14} color={isEmpty ? "#DC2626" : isSelected ? "#13715B" : "#9CA3AF"} />}
+                        icon={<Database size={14} color={isEmpty ? palette.status.error.text : isSelected ? palette.brand.primary : palette.text.disabled} />}
                         title={dataset.name}
                         description={isEmpty ? "Cannot use empty dataset" : "Custom uploaded dataset"}
                         chip={typeChip}
@@ -1534,7 +1535,7 @@ export default function NewExperimentModal({
 
             {/* Template Datasets Section */}
             <Box>
-              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+              <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.disabled, textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                 Option 3: {config.taskType === "chatbot" ? "Chatbot" : config.taskType === "rag" ? "RAG" : "Agent"} templates
               </Typography>
               <Stack spacing="8px">
@@ -1564,9 +1565,9 @@ export default function NewExperimentModal({
                   const isSelected = selectedPresetPath === template.path && config.dataset.useBuiltin;
                   const chipLabel = isSelected && datasetPrompts.length > 0 ? `${datasetPrompts.length} prompts` : (template.type === "multi-turn" ? "Multi-Turn" : "Single-Turn");
                   const typeChip = template.type === "multi-turn" ? (
-                    <Chip label={chipLabel} backgroundColor="#E3F2FD" textColor="#1565C0" uppercase={false} />
+                    <Chip label={chipLabel} backgroundColor={palette.accent.blue.bg} textColor={palette.accent.blue.text} uppercase={false} />
                   ) : (
-                    <Chip label={chipLabel} backgroundColor="#FEF3C7" textColor="#92400E" uppercase={false} />
+                    <Chip label={chipLabel} backgroundColor={palette.status.warning.bg} textColor={palette.status.warning.text} uppercase={false} />
                   );
                   return (
                     <SelectableCard
@@ -1584,10 +1585,10 @@ export default function NewExperimentModal({
                           setDatasetPrompts([]);
                         }
                       }}
-                      icon={<Database size={14} color={isSelected ? "#6366F1" : "#9CA3AF"} />}
+                      icon={<Database size={14} color={isSelected ? palette.accent.indigo.text : palette.text.disabled} />}
                       title={template.name}
                       description={template.desc}
-                      accentColor="#6366F1"
+                      accentColor=palette.accent.indigo.text
                       chip={typeChip}
                     />
                   );
@@ -1609,7 +1610,7 @@ export default function NewExperimentModal({
                   setJudgeMode("scorer");
                   setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, provider: "" } }));
                 }}
-                icon={<Sparkles size={14} color={judgeMode === "scorer" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Sparkles size={14} color={judgeMode === "scorer" ? palette.brand.primary : palette.text.disabled} />}
                 title="Custom scorer only"
                 description="Use your own prompts for domain-specific evaluation"
               />
@@ -1619,14 +1620,14 @@ export default function NewExperimentModal({
                   setJudgeMode("standard");
                   setSelectedScorer(null);
                 }}
-                icon={<Settings size={14} color={judgeMode === "standard" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Settings size={14} color={judgeMode === "standard" ? palette.brand.primary : palette.text.disabled} />}
                 title="Standard judge only"
                 description="Use built-in metrics with fixed evaluation criteria"
               />
               <SelectableCard
                 isSelected={judgeMode === "both"}
                 onClick={() => setJudgeMode("both")}
-                icon={<Layers size={14} color={judgeMode === "both" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Layers size={14} color={judgeMode === "both" ? palette.brand.primary : palette.text.disabled} />}
                 title="Judge + scorer"
                 description="Use both built-in metrics and your custom scorers"
               />
@@ -1637,12 +1638,12 @@ export default function NewExperimentModal({
               <Box>
                 {loadingScorers ? (
                   <Box sx={{ py: 3, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: "13px", color: "#6B7280" }}>Loading your scorers...</Typography>
+                    <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>Loading your scorers...</Typography>
                   </Box>
                 ) : userScorers.length > 0 ? (
                   <Box>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                      <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.disabled, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                         Your Scorers
                       </Typography>
                       <Stack direction="row" spacing={1}>
@@ -1656,7 +1657,7 @@ export default function NewExperimentModal({
                               setSelectedScorerIds(userScorers.map(s => s.id));
                             }
                           }}
-                          sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                          sx={{ textTransform: "none", fontSize: "11px", color: palette.text.tertiary, p: 0.5, minWidth: "auto", "&:hover": { color: palette.brand.primary } }}
                         >
                           {selectedScorerIds.length === userScorers.length ? "Clear All" : "Select All"}
                         </Button>
@@ -1665,7 +1666,7 @@ export default function NewExperimentModal({
                           variant="text"
                           startIcon={<ExternalLink size={12} />}
                           onClick={() => window.open(`/evals/${projectId}#scorers`, "_blank")}
-                          sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                          sx={{ textTransform: "none", fontSize: "11px", color: palette.text.tertiary, p: 0.5, minWidth: "auto", "&:hover": { color: palette.brand.primary } }}
                         >
                           Manage
                         </Button>
@@ -1688,26 +1689,26 @@ export default function NewExperimentModal({
                                   : [...prev, scorer.id]
                               );
                             }}
-                            icon={<Sparkles size={14} color={isSelected ? "#13715B" : "#9CA3AF"} />}
+                            icon={<Sparkles size={14} color={isSelected ? palette.brand.primary : palette.text.disabled} />}
                             title={scorer.name}
                             description={`${modelName} • ${scorer.metricKey}`}
                           />
                         );
                       })}
                     </Stack>
-                    <FormHelperText sx={{ mt: 1, fontSize: "11px", color: "#6B7280" }}>
+                    <FormHelperText sx={{ mt: 1, fontSize: "11px", color: palette.text.tertiary }}>
                       {selectedScorerIds.length > 0
                         ? `${selectedScorerIds.length} scorer${selectedScorerIds.length > 1 ? 's' : ''} selected. Only these will run during evaluation.`
                         : "No scorers selected. All enabled scorers will run if none are selected."}
                     </FormHelperText>
                   </Box>
                 ) : (
-                  <Box sx={{ py: 4, textAlign: "center", border: "1px dashed #E5E7EB", borderRadius: "8px" }}>
-                    <Sparkles size={32} color="#D1D5DB" style={{ marginBottom: 8 }} />
-                    <Typography sx={{ fontSize: "14px", color: "#6B7280", mb: 1 }}>
+                  <Box sx={{ py: 4, textAlign: "center", border: `1px dashed ${palette.border.dark}`, borderRadius: "8px" }}>
+                    <Sparkles size={32} color=palette.border.dark style={{ marginBottom: 8 }} />
+                    <Typography sx={{ fontSize: "14px", color: palette.text.tertiary, mb: 1 }}>
                       No custom scorers yet
                     </Typography>
-                    <Typography sx={{ fontSize: "12px", color: "#9CA3AF", mb: 2 }}>
+                    <Typography sx={{ fontSize: "12px", color: palette.text.disabled, mb: 2 }}>
                       Create a scorer to use custom evaluation criteria
                     </Typography>
                     <Button
@@ -1718,9 +1719,9 @@ export default function NewExperimentModal({
                       sx={{
                         textTransform: "none",
                         fontSize: "12px",
-                        color: "#13715B",
-                        borderColor: "#13715B",
-                        "&:hover": { borderColor: "#0F5E4B", backgroundColor: "#F0FDF4" },
+                        color: palette.brand.primary,
+                        borderColor: palette.brand.primary,
+                        "&:hover": { borderColor: palette.brand.primaryHover, backgroundColor: palette.status.success.bg },
                       }}
                     >
                       Create Scorer
@@ -1734,7 +1735,7 @@ export default function NewExperimentModal({
             {judgeMode === "both" && (
               <Box sx={{ pt: 2 }}>
                 <Divider sx={{ mb: 2 }} />
-                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.disabled, textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                   Standard Judge Configuration
                 </Typography>
               </Box>
@@ -1744,7 +1745,7 @@ export default function NewExperimentModal({
             {(judgeMode === "standard" || judgeMode === "both") && (
               <>
                 {judgeMode === "standard" && (
-                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
+                  <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.disabled, textTransform: "uppercase", letterSpacing: "0.5px", mb: 1 }}>
                     Select a Provider
                   </Typography>
                 )}
@@ -1771,14 +1772,14 @@ export default function NewExperimentModal({
                             sx={{
                               cursor: "pointer",
                               border: "1px solid",
-                              borderColor: isSelected ? "#13715B" : "#E5E7EB",
-                              backgroundColor: "#FFFFFF",
+                              borderColor: isSelected ? palette.brand.primary : palette.border.dark,
+                              backgroundColor: palette.background.main,
                               boxShadow: "none",
                               transition: "all 0.2s ease",
                               position: "relative",
                               height: "100%",
                               "&:hover": {
-                                borderColor: "#13715B",
+                                borderColor: palette.brand.primary,
                                 boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
                               },
                             }}
@@ -1802,7 +1803,7 @@ export default function NewExperimentModal({
                                     position: "absolute",
                                     top: 8,
                                     right: 8,
-                                    backgroundColor: "#13715B",
+                                    backgroundColor: palette.brand.primary,
                                     borderRadius: "50%",
                                     width: 20,
                                     height: 20,
@@ -1811,7 +1812,7 @@ export default function NewExperimentModal({
                                     justifyContent: "center",
                                   }}
                                 >
-                                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                                  <Check size={12} color={palette.background.main} strokeWidth={3} />
                                 </Box>
                               )}
 
@@ -1838,7 +1839,7 @@ export default function NewExperimentModal({
                                 sx={{
                                   fontSize: "12px",
                                   fontWeight: 500,
-                                  color: "#374151",
+                                  color: palette.text.secondary,
                                   lineHeight: 1.3,
                                   mt: "auto",
                                 }}
@@ -1860,10 +1861,10 @@ export default function NewExperimentModal({
                       {config.judgeLlm.provider === "openrouter" ? (
                         /* OpenRouter - Custom model input with suggestions */
                         <Box>
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                             Model
                           </Typography>
-                          <Typography sx={{ fontSize: "11px", color: "#6b7280", mb: 1.5 }}>
+                          <Typography sx={{ fontSize: "11px", color: palette.text.tertiary, mb: 1.5 }}>
                             OpenRouter supports any model. Enter the model ID or select from popular options.
                           </Typography>
                           <Field
@@ -1877,7 +1878,7 @@ export default function NewExperimentModal({
                             }
                             placeholder="e.g., openai/gpt-4o, anthropic/claude-3-opus"
                           />
-                          <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#9ca3af", mt: 2, mb: 1, textTransform: "uppercase" }}>
+                          <Typography sx={{ fontSize: "11px", fontWeight: 600, color: palette.text.disabled, mt: 2, mb: 1, textTransform: "uppercase" }}>
                             Popular Models
                           </Typography>
                           <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -1900,12 +1901,12 @@ export default function NewExperimentModal({
                                 }
                                 sx={{
                                   cursor: "pointer",
-                                  backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "transparent",
-                                  borderColor: config.judgeLlm.model === m.id ? "#13715B" : "#E5E7EB",
-                                  color: config.judgeLlm.model === m.id ? "#13715B" : "#374151",
+                                  backgroundColor: config.judgeLlm.model === m.id ? palette.brand.primaryLight : "transparent",
+                                  borderColor: config.judgeLlm.model === m.id ? palette.brand.primary : palette.border.dark,
+                                  color: config.judgeLlm.model === m.id ? palette.brand.primary : palette.text.secondary,
                                   "&:hover": {
-                                    backgroundColor: config.judgeLlm.model === m.id ? "#E8F5F1" : "#f9fafb",
-                                    borderColor: "#13715B",
+                                    backgroundColor: config.judgeLlm.model === m.id ? palette.brand.primaryLight : palette.background.accent,
+                                    borderColor: palette.brand.primary,
                                   },
                                 }}
                               />
@@ -1914,7 +1915,7 @@ export default function NewExperimentModal({
                         </Box>
                       ) : PROVIDERS[config.judgeLlm.provider] ? (
                         <Box>
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                             Model
                           </Typography>
                           <FormControl fullWidth size="small">
@@ -1930,18 +1931,18 @@ export default function NewExperimentModal({
                               sx={{
                                 fontSize: "13px",
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#E5E7EB",
+                                  borderColor: palette.border.dark,
                                 },
                                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#D1D5DB",
+                                  borderColor: palette.border.dark,
                                 },
                                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#13715B",
+                                  borderColor: palette.brand.primary,
                                 },
                               }}
                             >
                               <MenuItem value="" disabled>
-                                <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>
+                                <Typography sx={{ color: palette.text.disabled, fontSize: "13px" }}>
                                   Select a model
                                 </Typography>
                               </MenuItem>
@@ -1950,7 +1951,7 @@ export default function NewExperimentModal({
                                   <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
                                     <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
                                     {model.inputCost !== undefined && (
-                                      <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                      <Typography sx={{ fontSize: "11px", color: palette.text.disabled }}>
                                         ${model.inputCost}/1M in
                                       </Typography>
                                     )}
@@ -1992,7 +1993,7 @@ export default function NewExperimentModal({
                               {/* Model: dropdown when saved models exist, else text input */}
                               {showJudgeDropdown ? (
                                 <Box>
-                                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#374151", mb: 1 }}>
+                                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary, mb: 1 }}>
                                     Model
                                   </Typography>
                                   <FormControl fullWidth size="small">
@@ -2010,27 +2011,27 @@ export default function NewExperimentModal({
                                       displayEmpty
                                       sx={{
                                         fontSize: "13px",
-                                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "#E5E7EB" },
-                                        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#D1D5DB" },
-                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
+                                        "& .MuiOutlinedInput-notchedOutline": { borderColor: palette.border.dark },
+                                        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: palette.border.dark },
+                                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: palette.brand.primary },
                                       }}
                                     >
                                       <MenuItem value="" disabled>
-                                        <Typography sx={{ color: "#9CA3AF", fontSize: "13px" }}>Select a model</Typography>
+                                        <Typography sx={{ color: palette.text.disabled, fontSize: "13px" }}>Select a model</Typography>
                                       </MenuItem>
                                       {judgeSaved.map((model) => (
                                         <MenuItem key={model.id} value={model.id}>
                                           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%" }}>
                                             <Typography sx={{ fontSize: "13px" }}>{model.name}</Typography>
                                             {model.description && (
-                                              <Typography sx={{ fontSize: "11px", color: "#9CA3AF" }}>{model.description}</Typography>
+                                              <Typography sx={{ fontSize: "11px", color: palette.text.disabled }}>{model.description}</Typography>
                                             )}
                                           </Stack>
                                         </MenuItem>
                                       ))}
                                       <Divider />
                                       <MenuItem value="__other__">
-                                        <Typography sx={{ fontSize: "13px", color: "#6B7280", fontStyle: "italic" }}>Other (type custom)</Typography>
+                                        <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, fontStyle: "italic" }}>Other (type custom)</Typography>
                                       </MenuItem>
                                     </Select>
                                   </FormControl>
@@ -2045,7 +2046,7 @@ export default function NewExperimentModal({
                                         setUseCustomJudgeModelName(false);
                                         setConfig((prev) => ({ ...prev, judgeLlm: { ...prev.judgeLlm, model: "" } }));
                                       }}
-                                      sx={{ textTransform: "none", fontSize: "11px", color: "#6B7280", p: 0, mb: 0.5, minWidth: "auto", "&:hover": { color: "#13715B" } }}
+                                      sx={{ textTransform: "none", fontSize: "11px", color: palette.text.tertiary, p: 0, mb: 0.5, minWidth: "auto", "&:hover": { color: palette.brand.primary } }}
                                     >
                                       &larr; Back to saved models
                                     </Button>
@@ -2085,10 +2086,10 @@ export default function NewExperimentModal({
                       {/* API Key - show configured status OR input field */}
                       {selectedProvider?.needsApiKey && (
                         hasApiKey(config.judgeLlm.provider) ? (
-                          <Box sx={{ p: 1.5, backgroundColor: "#F0FDF4", borderRadius: "8px", border: "1px solid #D1FAE5" }}>
+                          <Box sx={{ p: 1.5, backgroundColor: palette.status.success.bg, borderRadius: "8px", border: `1px solid ${palette.status.success.border}` }}>
                             <Stack direction="row" alignItems="center" spacing={1}>
-                              <Check size={16} color="#059669" />
-                              <Typography sx={{ fontSize: "12px", color: "#065F46" }}>
+                              <Check size={16} color={palette.status.success.text} />
+                              <Typography sx={{ fontSize: "12px", color: palette.status.success.text }}>
                                 API key configured — will be saved for future experiments
                               </Typography>
                             </Stack>
@@ -2153,12 +2154,12 @@ export default function NewExperimentModal({
                 sx={{
                   p: 4,
                   textAlign: "center",
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${palette.border.dark}`,
                   borderRadius: "8px",
-                  backgroundColor: "#F9FAFB",
+                  backgroundColor: palette.background.accent,
                 }}
               >
-                <Typography sx={{ fontSize: "15px", fontWeight: 600, color: "#374151", mb: 1 }}>
+                <Typography sx={{ fontSize: "15px", fontWeight: 600, color: palette.text.secondary, mb: 1 }}>
                   No metrics available
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400, mx: "auto" }}>
@@ -2173,19 +2174,19 @@ export default function NewExperimentModal({
                   sx={{
                     p: "8px",
                     borderRadius: "4px",
-                    backgroundColor: "#F0FDF4",
-                    border: "1px solid #BBF7D0",
+                    backgroundColor: palette.status.success.bg,
+                    border: `1px solid ${palette.status.success.border}`,
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
                   }}
                 >
-                  <Clock size={16} color="#13715B" />
+                  <Clock size={16} color={palette.brand.primary} />
                   <Box>
-                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                    <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.brand.primary }}>
                       Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
                     </Typography>
-                    <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                    <Typography sx={{ fontSize: "11px", color: palette.status.success.text }}>
                       Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
                     </Typography>
                   </Box>
@@ -2208,8 +2209,8 @@ export default function NewExperimentModal({
                   <Chip
                     label="Multi-turn dataset detected"
                     size="small"
-                    backgroundColor="#DBEAFE"
-                    textColor="#1E40AF"
+                    backgroundColor={palette.accent.blue.bg}
+                    textColor={palette.accent.blue.text}
                   />
                 </Box>
               )}
@@ -2222,15 +2223,15 @@ export default function NewExperimentModal({
                 disableGutters
                 elevation={0}
                 sx={{
-                  border: "1px solid #DBEAFE",
+                  border: `1px solid ${palette.accent.blue.bg}`,
                   borderRadius: "4px !important",
-                  backgroundColor: "#F0F9FF",
+                  backgroundColor: palette.accent.blue.bg,
                   "&:before": { display: "none" },
                   "&.Mui-expanded": { margin: 0 },
                 }}
               >
                 <AccordionSummary
-                  expandIcon={<ChevronDown size={18} color="#1E40AF" />}
+                  expandIcon={<ChevronDown size={18} color={palette.accent.blue.text} />}
                   sx={{
                     minHeight: 48,
                     px: "8px",
@@ -2239,10 +2240,10 @@ export default function NewExperimentModal({
                   }}
                 >
                   <Box>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#1E40AF" }}>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: palette.accent.blue.text }}>
                       Conversational Metrics
                     </Typography>
-                    <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: "#3B82F6" }}>
+                    <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: palette.accent.blue.text }}>
                       Designed for multi-turn conversation evaluation
                     </Typography>
                   </Box>
@@ -2308,11 +2309,11 @@ export default function NewExperimentModal({
 
             {/* Per-Turn Safety Metrics (for multi-turn) */}
             {isMultiTurnDataset && (
-              <Box sx={{ p: 2.5, border: "1px solid #FED7AA", borderRadius: "4px", backgroundColor: "#FFF7ED" }}>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#C2410C", mb: 0.5 }}>
+              <Box sx={{ p: 2.5, border: `1px solid ${palette.accent.orange.bg}`, borderRadius: "4px", backgroundColor: palette.accent.orange.bg }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: palette.accent.orange.text, mb: 0.5 }}>
                   Per-Turn Safety Metrics
                 </Typography>
-                <Typography variant="caption" sx={{ display: "block", mb: 2, color: "#EA580C" }}>
+                <Typography variant="caption" sx={{ display: "block", mb: 2, color: palette.accent.orange.text }}>
                   Bias and Toxicity will be evaluated on each assistant turn and aggregated
                 </Typography>
                 <Stack direction="row" spacing={4}>
@@ -2353,14 +2354,14 @@ export default function NewExperimentModal({
                 disableGutters
                 elevation={0}
                 sx={{
-                  border: "1px solid #E5E7EB",
+                  border: `1px solid ${palette.border.dark}`,
                   borderRadius: "4px !important",
                   "&:before": { display: "none" },
                   "&.Mui-expanded": { margin: 0 },
                 }}
               >
                 <AccordionSummary
-                  expandIcon={<ChevronDown size={18} color="#6B7280" />}
+                  expandIcon={<ChevronDown size={18} color={palette.text.tertiary} />}
                   sx={{
                     minHeight: 48,
                     px: "8px",
@@ -2369,7 +2370,7 @@ export default function NewExperimentModal({
                   }}
                 >
                   <Box>
-                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242" }}>
+                    <Typography sx={{ fontSize: "14px", fontWeight: 600, color: palette.text.secondary }}>
                       Universal Core Metrics
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
@@ -2443,7 +2444,7 @@ export default function NewExperimentModal({
             {/* RAG-Specific Metrics (single-turn only) */}
             {config.taskType === "rag" && !isMultiTurnDataset && (
               <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: palette.text.secondary, mb: 1.5 }}>
                   RAG Metrics
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
@@ -2501,18 +2502,18 @@ export default function NewExperimentModal({
             {/* Agent-Specific Metrics (single-turn only) */}
             {config.taskType === "agent" && !isMultiTurnDataset && (
               <Box>
-                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: "#424242", mb: 1.5 }}>
+                <Typography sx={{ fontSize: "14px", fontWeight: 600, color: palette.text.secondary, mb: 1.5 }}>
                   Agent Metrics
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
                   Comprehensive agent evaluation based on{" "}
-                  <a href="https://deepeval.com/docs/getting-started-agents" target="_blank" rel="noopener noreferrer" style={{ color: "#1976d2" }}>
+                  <a href="https://deepeval.com/docs/getting-started-agents" target="_blank" rel="noopener noreferrer" style={{ color: palette.accent.blue.text }}>
                     DeepEval Agent Evaluation
                   </a>
                 </Typography>
 
                 {/* Reasoning Layer */}
-                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.tertiary, mb: 1, mt: 2 }}>
                   🧠 Reasoning Layer
                 </Typography>
                 {Object.entries({
@@ -2555,7 +2556,7 @@ export default function NewExperimentModal({
                 ))}
 
                 {/* Action Layer */}
-                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.tertiary, mb: 1, mt: 2 }}>
                   🔧 Action Layer
                 </Typography>
                 {Object.entries({
@@ -2602,7 +2603,7 @@ export default function NewExperimentModal({
                 ))}
 
                 {/* Execution Layer */}
-                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#666", mb: 1, mt: 2 }}>
+                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: palette.text.tertiary, mb: 1, mt: 2 }}>
                   ✅ Execution Layer
                 </Typography>
                 {Object.entries({
@@ -2657,19 +2658,19 @@ export default function NewExperimentModal({
                   mt: "16px",
                   p: "8px",
                   borderRadius: "4px",
-                  backgroundColor: "#F0FDF4",
-                  border: "1px solid #BBF7D0",
+                  backgroundColor: palette.status.success.bg,
+                  border: `1px solid ${palette.status.success.border}`,
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
                 }}
               >
-                <Clock size={16} color="#13715B" />
+                <Clock size={16} color={palette.brand.primary} />
                 <Box>
-                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: "#13715B" }}>
+                  <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.brand.primary }}>
                     Estimated time: {getEstimatedTimeRange(datasetPrompts.length)}
                   </Typography>
-                  <Typography sx={{ fontSize: "11px", color: "#16A34A" }}>
+                  <Typography sx={{ fontSize: "11px", color: palette.status.success.text }}>
                     Based on {datasetPrompts.length} prompt{datasetPrompts.length !== 1 ? "s" : ""} in your dataset
                   </Typography>
                 </Box>
@@ -2770,22 +2771,22 @@ export default function NewExperimentModal({
               px: 1,
               py: 0.25,
               borderRadius: "4px",
-              backgroundColor: config.taskType === "agent" ? "#EDE9FE" : config.taskType === "rag" ? "#FEF3C7" : "#DCFCE7",
-              border: `1px solid ${config.taskType === "agent" ? "#C4B5FD" : config.taskType === "rag" ? "#FCD34D" : "#86EFAC"}`,
+              backgroundColor: config.taskType === "agent" ? palette.accent.purple.bg : config.taskType === "rag" ? palette.status.warning.bg : palette.status.success.bg,
+              border: `1px solid ${config.taskType === "agent" ? palette.accent.purple.text : config.taskType === "rag" ? palette.status.warning.text : palette.status.success.border}`,
             }}
           >
             {config.taskType === "agent" ? (
-              <Bot size={12} color="#7C3AED" />
+              <Bot size={12} color={palette.accent.purple.text} />
             ) : config.taskType === "rag" ? (
-              <FileSearch size={12} color="#D97706" />
+              <FileSearch size={12} color={palette.status.warning.text} />
             ) : (
-              <MessageSquare size={12} color="#16A34A" />
+              <MessageSquare size={12} color={palette.status.success.text} />
             )}
             <Typography
               sx={{
                 fontSize: "11px",
                 fontWeight: 600,
-                color: config.taskType === "agent" ? "#7C3AED" : config.taskType === "rag" ? "#D97706" : "#16A34A",
+                color: config.taskType === "agent" ? palette.accent.purple.text : config.taskType === "rag" ? palette.status.warning.text : palette.status.success.text,
                 textTransform: "capitalize",
               }}
             >

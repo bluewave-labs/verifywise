@@ -25,6 +25,7 @@ import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
+import { palette } from "../../themes/palette";
 
 export interface ProjectScorersProps {
   projectId: string;
@@ -379,8 +380,8 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
           text="New scorer"
           icon={<Plus size={16} />}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: palette.brand.primary,
+            border: `1px solid ${palette.brand.primary}`,
             gap: 2,
           }}
           onClick={handleCreateScorer}
@@ -424,7 +425,7 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
         onSubmit={handleConfirmDelete}
         submitButtonText="Delete"
         isSubmitting={isDeleting}
-        submitButtonColor="#c62828"
+        submitButtonColor={palette.status.error.text}
       />
 
       {/* New Comprehensive Scorer Modal */}

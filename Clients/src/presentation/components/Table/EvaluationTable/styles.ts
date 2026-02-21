@@ -1,15 +1,16 @@
 // Styles for EvaluationTable component
+import { palette } from "../../../../themes/palette";
 
 export const styles = {
   table: {
     minWidth: 650,
   },
   header: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: palette.background.accent,
   },
   row: {
     "&:nth-of-type(odd)": {
-      backgroundColor: "#fafafa",
+      backgroundColor: palette.background.accent,
     },
   },
 };
@@ -54,5 +55,5 @@ export const emptyData = {
   textAlign: "center" as const,
   padding: "40px 20px",
   border: "none",
-  backgroundColor: "#FFFFFF", // Ensure white background
+  backgroundColor: palette.background.main,
 };

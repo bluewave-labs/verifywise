@@ -44,6 +44,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import type { DeepEvalProject } from "./types";
 import { useAuth } from "../../../application/hooks/useAuth";
 import allowedRoles from "../../../application/constants/permissions";
+import { palette } from "../../themes/palette";
 
 const EVALS_PROJECTS_ROWS_PER_PAGE_KEY = "verifywise_evals_projects_rows_per_page";
 const EVALS_PROJECTS_SORTING_KEY = "verifywise_evals_projects_sorting";
@@ -441,8 +442,8 @@ export default function ProjectsList() {
               label={projects.length}
               size="small"
               sx={{
-                backgroundColor: "#e0e0e0",
-                color: "#424242",
+                backgroundColor: palette.status.default.bg,
+                color: palette.status.default.text,
                 fontWeight: 600,
                 fontSize: "11px",
                 height: "20px",
@@ -488,8 +489,8 @@ export default function ProjectsList() {
           icon={<Plus size={16} />}
           isDisabled={!canCreateProject}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: palette.brand.primary,
+            border: `1px solid ${palette.brand.primary}`,
             gap: 2,
           }}
         />
@@ -551,7 +552,7 @@ export default function ProjectsList() {
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            color: sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                            color: sortConfig.key === column.id ? "primary.main" : palette.text.disabled,
                             flexShrink: 0,
                           }}
                         >
@@ -574,7 +575,7 @@ export default function ProjectsList() {
                     ...singleTheme.tableStyles.primary.body.row,
                     cursor: "pointer",
                     "&:hover": {
-                      backgroundColor: "#F9FAFB",
+                      backgroundColor: palette.background.accent,
                     },
                   }}
                 >
@@ -583,7 +584,7 @@ export default function ProjectsList() {
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
-                      color: "#111827",
+                      color: palette.text.primary,
                       textAlign: "left",
                     }}
                   >
@@ -602,8 +603,8 @@ export default function ProjectsList() {
                       icon={project.useCase === "rag" ? <FileSearch size={12} /> : <MessageSquare size={12} />}
                       label={getUseCaseLabel(project.useCase)}
                       sx={{
-                        backgroundColor: project.useCase === "rag" ? "#E0F2FE" : "#F0FDF4",
-                        color: project.useCase === "rag" ? "#0369A1" : "#166534",
+                        backgroundColor: project.useCase === "rag" ? palette.accent.blue.bg : palette.status.success.bg,
+                        color: project.useCase === "rag" ? palette.accent.blue.text : palette.status.success.text,
                         fontWeight: 500,
                         fontSize: "12px",
                         height: "24px",
@@ -620,7 +621,7 @@ export default function ProjectsList() {
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
-                      color: "#6B7280",
+                      color: palette.text.tertiary,
                       textAlign: "center",
                       maxWidth: 200,
                       overflow: "hidden",
@@ -642,8 +643,8 @@ export default function ProjectsList() {
                       size="small"
                       label={runsByProject[project.id] ?? 0}
                       sx={{
-                        backgroundColor: "#F3F4F6",
-                        color: "#374151",
+                        backgroundColor: palette.background.hover,
+                        color: palette.text.secondary,
                         fontWeight: 500,
                         fontSize: "12px",
                         height: "22px",
@@ -657,7 +658,7 @@ export default function ProjectsList() {
                     sx={{
                       ...singleTheme.tableStyles.primary.body.cell,
                       fontSize: "13px",
-                      color: "#6B7280",
+                      color: palette.text.tertiary,
                       textAlign: "center",
                     }}
                   >
@@ -676,7 +677,7 @@ export default function ProjectsList() {
                         size="small"
                         onClick={(e) => handleMenuOpen(e, project)}
                         sx={{
-                          color: "#6B7280",
+                          color: palette.text.tertiary,
                           "&:hover": {
                             backgroundColor: "rgba(0, 0, 0, 0.04)",
                           },
@@ -791,7 +792,7 @@ export default function ProjectsList() {
           </MenuItem>
         )}
         {canDeleteProject && (
-          <MenuItem onClick={handleMenuDelete} sx={{ color: "#d32f2f" }}>
+          <MenuItem onClick={handleMenuDelete} sx={{ color: palette.status.error.text }}>
             Delete
           </MenuItem>
         )}
@@ -818,28 +819,28 @@ export default function ProjectsList() {
 
           {/* LLM Use Case - card selection */}
           <Box>
-            <Box sx={{ fontSize: "12px", color: "#374151", mb: "8px", fontWeight: 600 }}>
+            <Box sx={{ fontSize: "12px", color: palette.text.secondary, mb: "8px", fontWeight: 600 }}>
               LLM use case
             </Box>
             <Stack spacing="8px">
               <SelectableCard
                 isSelected={newProject.useCase === "rag"}
                 onClick={() => setNewProject({ ...newProject, useCase: "rag" })}
-                icon={<FileSearch size={16} color={newProject.useCase === "rag" ? "#13715B" : "#9CA3AF"} />}
+                icon={<FileSearch size={16} color={newProject.useCase === "rag" ? palette.brand.primary : palette.text.disabled} />}
                 title="RAG"
                 description="Evaluate retrieval-augmented generation: recall, precision, relevancy and faithfulness."
               />
               <SelectableCard
                 isSelected={newProject.useCase === "chatbot"}
                 onClick={() => setNewProject({ ...newProject, useCase: "chatbot" })}
-                icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? "#13715B" : "#9CA3AF"} />}
+                icon={<MessageSquare size={16} color={newProject.useCase === "chatbot" ? palette.brand.primary : palette.text.disabled} />}
                 title="Chatbots"
                 description="Evaluate conversational experiences for coherence, correctness and safety."
               />
               <SelectableCard
                 isSelected={newProject.useCase === "agent"}
                 onClick={() => setNewProject({ ...newProject, useCase: "agent" })}
-                icon={<Bot size={16} color={newProject.useCase === "agent" ? "#13715B" : "#9CA3AF"} />}
+                icon={<Bot size={16} color={newProject.useCase === "agent" ? palette.brand.primary : palette.text.disabled} />}
                 title="Agent"
                 description="Evaluate AI agents for planning, tool usage, and task completion."
               />
@@ -885,7 +886,7 @@ export default function ProjectsList() {
           isOpen={deleteModalOpen}
           title="Delete this project?"
           body={
-            <Typography fontSize={13} color="#344054">
+            <Typography fontSize={13} color={palette.text.secondary}>
               This will remove the project and its experiments. This action cannot be undone.
             </Typography>
           }

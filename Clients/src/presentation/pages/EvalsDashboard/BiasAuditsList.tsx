@@ -24,6 +24,7 @@ import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewBiasAuditModal from "./NewBiasAuditModal";
 import { getStatusChip, getModeChip, formatDate } from "./biasAuditHelpers";
 import singleTheme from "../../themes/v1SingleTheme";
+import { palette } from "../../themes/palette";
 import {
   listBiasAudits,
   deleteBiasAudit,
@@ -52,9 +53,9 @@ const columns = [
 function getResultSummary(audit: BiasAuditSummary) {
   if (audit.status !== "completed" || !audit.results) return "—";
   const flags = audit.results.flags_count;
-  if (flags === 0) return <Typography sx={{ fontSize: 13, color: "#065F46" }}>No flags</Typography>;
+  if (flags === 0) return <Typography sx={{ fontSize: 13, color: palette.status.success.text }}>No flags</Typography>;
   return (
-    <Typography sx={{ fontSize: 13, color: "#991B1B", fontWeight: 500 }}>
+    <Typography sx={{ fontSize: 13, color: palette.status.error.text, fontWeight: 500 }}>
       {flags} flag{flags !== 1 ? "s" : ""}
     </Typography>
   );
@@ -202,11 +203,11 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
           text="New bias audit"
           onClick={() => setModalOpen(true)}
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
+            backgroundColor: palette.brand.primary,
+            border: `1px solid ${palette.brand.primary}`,
             gap: 2,
             "&:hover": {
-              backgroundColor: "#0f5a47",
+              backgroundColor: palette.brand.primaryHover,
             },
           }}
         />
@@ -264,7 +265,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
                           {col.label}
                         </Typography>
                         {col.sortable && (
-                          <Box sx={{ display: "flex", alignItems: "center", color: isActive ? "primary.main" : "#9CA3AF" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", color: isActive ? "primary.main" : palette.text.disabled }}>
                             {isActive && sortConfig.direction === "asc" && <ChevronUp size={14} />}
                             {isActive && sortConfig.direction === "desc" && <ChevronDown size={14} />}
                             {!isActive && <ChevronsUpDown size={14} />}

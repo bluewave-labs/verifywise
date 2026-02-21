@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Box,
+  Stack,
   Typography,
   CircularProgress,
   Card,
   CardContent,
   useTheme,
-  Stack,
 } from "@mui/material";
 import { Play, Beaker, Activity, CheckCircle, Clock, Star, Coins, LucideIcon } from "lucide-react";
 import { cardStyles } from "../../themes";
@@ -25,6 +25,7 @@ import {
 import NewExperimentModal from "./NewExperimentModal";
 import type { DeepEvalProject } from "./types";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -377,20 +378,15 @@ export default function ProjectOverview({
   };
 
   return (
-    <Box sx={{ width: "100%", overflow: "hidden" }}>
-      {/* Header + description */}
-      <Stack spacing={1} mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Overview
-          </Typography>
-          <HelperIcon articlePath="llm-evals/llm-evals-overview" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance.
-        </Typography>
+    <Stack sx={{ width: "100%", overflow: "hidden" }}>
+      <PageHeader
+        title="Overview"
+        description="Monitor your project's evaluation performance, track key metrics, and view recent experiments at a glance."
+        rightContent={<HelperIcon articlePath="llm-evals/llm-evals-overview" />}
+      />
+      <Box sx={{ mt: "18px" }}>
         <TipBox entityName="evals-overview" />
-      </Stack>
+      </Box>
 
       {/* Header with New Experiment button */}
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
@@ -530,6 +526,6 @@ export default function ProjectOverview({
           useCase={project.useCase as "chatbot" | "rag" | "agent"}
         />
       )}
-    </Box>
+    </Stack>
   );
 }

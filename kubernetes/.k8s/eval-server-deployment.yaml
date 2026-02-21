@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: eval-server
-        image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
+        image: ghcr.io/verifywise-ai/verifywise-eval-server:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

@@ -13,6 +13,7 @@ import {
   keyframes,
 } from "@mui/material";
 import { MoreVertical, Eye, Trash2, Download, Copy, Loader2 } from "lucide-react";
+import Chip from "../../Chip";
 
 // Pulse animation for running text
 const pulse = keyframes`
@@ -131,14 +132,9 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
     setRowToDelete(null);
   };
 
-  // Contestant colors for visual distinction
-  const contestantColors = [
-    "#3b82f6", // blue
-    "#ef4444", // red
-    "#10b981", // green
-    "#f59e0b", // amber
-    "#8b5cf6", // purple
-    "#ec4899", // pink
+  // Contestant chip variants cycling through standard VW Chip variants
+  const contestantVariants: Array<"info" | "error" | "success" | "warning" | "default" | "high"> = [
+    "info", "error", "success", "warning", "high", "default",
   ];
 
   return (
@@ -187,22 +183,13 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
                 {row.contestants?.slice(0, 4).map((contestant, idx) => {
                   const name = getContestantName(contestant, idx);
                   return (
-                    <Box
+                    <Chip
                       key={`${name}-${idx}`}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        px: 1.25,
-                        py: 0.5,
-                        borderRadius: "6px",
-                        backgroundColor: `${contestantColors[idx % contestantColors.length]}20`,
-                        border: `1px solid ${contestantColors[idx % contestantColors.length]}50`,
-                      }}
-                    >
-                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: contestantColors[idx % contestantColors.length] }}>
-                        {name}
-                      </Typography>
-                    </Box>
+                      label={name}
+                      size="small"
+                      uppercase={false}
+                      variant={contestantVariants[idx % contestantVariants.length]}
+                    />
                   );
                 })}
                 {row.contestants?.length > 4 && (
@@ -235,21 +222,12 @@ const ArenaTableBody: React.FC<ArenaTableBodyProps> = ({
               }}
             >
               {row.status === "completed" && row.winner ? (
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: "6px",
-                    background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                    boxShadow: "0 2px 6px rgba(245,158,11,0.25)",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>
-                    {row.winner}
-                  </Typography>
-                </Box>
+                <Chip
+                  label={row.winner}
+                  size="small"
+                  uppercase={false}
+                  variant="success"
+                />
               ) : row.status === "running" || row.status === "pending" ? (
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.75 }}>
                   <Box

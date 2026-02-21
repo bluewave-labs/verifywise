@@ -164,13 +164,13 @@ const ProjectFrameworks = ({
 
   const euAIActStatusOptions = [
     { value: "waiting", label: "Waiting" },
-    { value: "in progress", label: "In Progress" },
+    { value: "in progress", label: "In progress" },
     { value: "done", label: "Done" },
   ];
 
   const euAIActAssessmentsOptions = [
     { value: "not started", label: "Not started" },
-    { value: "in progress", label: "In Progress" },
+    { value: "in progress", label: "In progress" },
     { value: "done", label: "Done" },
   ];
 

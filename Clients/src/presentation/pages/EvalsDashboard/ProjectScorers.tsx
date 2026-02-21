@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Box,
   Stack,
-  Typography,
 } from "@mui/material";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { Plus } from "lucide-react";
@@ -21,6 +20,7 @@ import Alert from "../../components/Alert";
 import StandardModal from "../../components/Modals/StandardModal";
 import CreateScorerModal, { type ScorerConfig } from "./CreateScorerModal";
 import ScorersTable, { type ScorerRow } from "../../components/Table/ScorersTable";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import TipBox from "../../components/TipBox";
 import { useAuth } from "../../../application/hooks/useAuth";
@@ -337,22 +337,17 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
   };
 
   return (
-    <Box>
+    <Stack sx={{ width: "100%" }}>
       {alert && <Alert variant={alert.variant} body={alert.body} />}
 
-      {/* Header + description */}
-      <Stack spacing={1} mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="h6" fontSize={15} fontWeight="600" color="#111827">
-            Scorers
-          </Typography>
-          <HelperIcon articlePath="llm-evals/configuring-scorers" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: "14px" }}>
-          Define custom LLM judges to evaluate model outputs using your own domain-specific criteria and prompts.
-        </Typography>
+      <PageHeader
+        title="Scorers"
+        description="Define custom LLM judges to evaluate model outputs using your own domain-specific criteria and prompts."
+        rightContent={<HelperIcon articlePath="llm-evals/configuring-scorers" />}
+      />
+      <Box sx={{ mt: "18px" }}>
         <TipBox entityName="evals-scorers" />
-      </Stack>
+      </Box>
 
       {/* Controls row */}
       <Stack
@@ -439,6 +434,6 @@ export default function ProjectScorers({ projectId, orgId }: ProjectScorersProps
         onSubmit={handleNewScorerSubmit}
         projectId={projectId}
       />
-    </Box>
+    </Stack>
   );
 }

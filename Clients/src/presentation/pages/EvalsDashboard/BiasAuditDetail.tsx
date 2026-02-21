@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Stack, Typography, Card, CardContent, CircularProgress, useTheme } from "@mui/material";
+import { Box, Stack, Typography, CircularProgress, useTheme } from "@mui/material";
 import Chip from "../../components/Chip";
-import { ArrowLeft, XCircle, Users, UserCheck, Percent, AlertTriangle, HelpCircle, LucideIcon } from "lucide-react";
-import { cardStyles } from "../../themes";
+import { ArrowLeft, XCircle, Users, UserCheck, Percent, AlertTriangle, HelpCircle } from "lucide-react";
+import { StatCard } from "../../components/Cards/StatCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getStatusChip, getModeChip } from "./biasAuditHelpers";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
@@ -19,89 +19,6 @@ interface BiasAuditDetailProps {
   onBack: () => void;
 }
 
-function StatCard({ title, value, Icon, highlight }: { title: string; value: string; Icon: LucideIcon; highlight?: boolean }) {
-  const theme = useTheme();
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <Card
-      elevation={0}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      sx={{
-        ...(cardStyles.base(theme) as Record<string, unknown>),
-        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #E5E7EB",
-        height: "100%",
-        minHeight: "80px",
-        position: "relative",
-        transition: "all 0.2s ease",
-        display: "flex",
-        flexDirection: "column",
-        boxSizing: "border-box",
-        borderRadius: "8px",
-        overflow: "hidden",
-        "&:hover": {
-          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-          borderColor: "#D1D5DB",
-        },
-      }}
-    >
-      <CardContent
-        sx={{
-          p: "14px 16px",
-          position: "relative",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          overflow: "hidden",
-          "&:last-child": { pb: "14px" },
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "-20px",
-            right: "-20px",
-            opacity: isHovered ? 0.06 : 0.03,
-            transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
-            zIndex: 0,
-            pointerEvents: "none",
-            transition: "opacity 0.2s ease, transform 0.3s ease",
-          }}
-        >
-          <Icon size={64} />
-        </Box>
-        <Box sx={{ position: "relative", zIndex: 1 }}>
-          <Typography
-            sx={{
-              color: "#6B7280",
-              fontSize: "11px",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              mb: 0.5,
-            }}
-          >
-            {title}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: "20px",
-              fontWeight: 600,
-              color: highlight ? "#B42318" : "#111827",
-              lineHeight: 1.3,
-            }}
-          >
-            {value}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-}
-
 function ResultsTable({ table, threshold: _threshold }: { table: CategoryTableResult; threshold: number }) {
   const theme = useTheme();
   const headerCellSx = {
@@ -109,13 +26,12 @@ function ResultsTable({ table, threshold: _threshold }: { table: CategoryTableRe
     fontWeight: 600,
     color: theme.palette.text.secondary,
     textAlign: "right" as const,
-    py: 1,
-    px: 2,
+    padding: "8px",
   };
 
   return (
     <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", mb: "16px", overflow: "hidden" }}>
-      <Box sx={{ px: 2, py: 1.5, backgroundColor: "#F9FAFB", borderBottom: `1px solid ${theme.palette.border.dark}` }}>
+      <Box sx={{ padding: "8px", backgroundColor: "#F9FAFB", borderBottom: `1px solid ${theme.palette.border.dark}` }}>
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>{table.title}</Typography>
         {table.highest_group && (
           <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
@@ -145,24 +61,24 @@ function ResultsTable({ table, threshold: _threshold }: { table: CategoryTableRe
                 backgroundColor: row.flagged ? "#FEF2F2" : theme.palette.background.paper,
               }}
             >
-              <Box component="td" sx={{ py: 1.25, px: 2 }}>
+              <Box component="td" sx={{ padding: "8px" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>{row.category_name}</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{row.applicant_count.toLocaleString()}</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{row.selected_count.toLocaleString()}</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{(row.selection_rate * 100).toFixed(1)}%</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: row.excluded ? "#98a2b3" : row.flagged ? "#B42318" : theme.palette.text.secondary, fontWeight: row.flagged ? 600 : 400 }}>
                   {row.excluded ? "Excluded (<2%)" : row.impact_ratio != null ? row.impact_ratio.toFixed(3) : "—"}
                 </Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 {row.excluded ? (
                   <Chip label="N/A" size="small" uppercase={false} backgroundColor="#F3F4F6" textColor="#6B7280" />
                 ) : row.flagged ? (

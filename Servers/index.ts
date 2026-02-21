@@ -161,17 +161,11 @@ try {
   app.use("/api/questions", questionRoutes);
   app.use("/api/autoDrivers", autoDriverRoutes);
   app.use("/api/assessments", assessmentRoutes);
-  // app.use("/api/controls", controlRoutes);
   app.use("/api/projectRisks", risksRoutes);
-  // app.use("/api/projectScopes", projectScopeRoutes);
-  // app.use("/api/subcontrols", subcontrolRoutes);
-  // app.use("/api/subtopics", subtopicRoutes);
-  // app.use("/api/topics", topicRoutes);
   app.use("/api/roles", roleRoutes);
   app.use("/api/files", fileRoutes);
   app.use("/api/mail", mailRoutes);
   app.use("/api/invitations", invitationRoutes);
-  // app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
   app.use("/api/eu-ai-act", euRouter); // **
   app.use("/api/organizations", organizationRoutes);

@@ -353,7 +353,7 @@ const IntegratedDashboard: React.FC = () => {
       )}
 
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb="16px">
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 400, fontSize: "20px" }}>
             <Box component="span" sx={{ color: COLORS.primary }}>

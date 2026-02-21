@@ -624,7 +624,7 @@ const Tasks: React.FC = () => {
       { id: "status", label: "Status" },
       { id: "priority", label: "Priority" },
       { id: "assignees", label: "Assignees" },
-      { id: "due_date", label: "Due Date" },
+      { id: "due_date", label: "Due date" },
       { id: "creator", label: "Creator" },
       { id: "categories", label: "Categories" },
     ];

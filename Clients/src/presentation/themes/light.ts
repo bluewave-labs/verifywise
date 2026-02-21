@@ -17,12 +17,12 @@ const background = {
   main: "#FFFFFF",      // General background for forms, fields, etc.
   alt: "#FCFCFD",       // Alternative background
   modal: "#FCFCFD",     // Dedicated background for all modals
-  fill: "#F4F4F4",
+  fill: "#E6F0EC",
   accent: "#f9fafb",
 };
 
 const fontFamilyDefault =
-  "'Geist', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
+  "'Geist', system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
 
 const shadow =
   "0px 4px 24px -4px rgba(16, 24, 40, 0.08), 0px 3px 3px -3px rgba(16, 24, 40, 0.03)";

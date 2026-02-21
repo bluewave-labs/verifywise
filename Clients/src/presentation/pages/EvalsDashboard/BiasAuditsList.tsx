@@ -18,6 +18,7 @@ import { Trash2, Eye, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-reac
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
 import { EmptyState } from "../../components/EmptyState";
+import { PageHeader } from "../../components/Layout/PageHeader";
 import HelperIcon from "../../components/HelperIcon";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import NewBiasAuditModal from "./NewBiasAuditModal";
@@ -85,7 +86,6 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [auditToDelete, setAuditToDelete] = useState<string | null>(null);
-  const [_deleting, setDeleting] = useState(false);
   const deletingRef = useRef(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -153,7 +153,6 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   const handleDelete = async () => {
     if (!auditToDelete || deletingRef.current) return;
     deletingRef.current = true;
-    setDeleting(true);
     try {
       await deleteBiasAudit(auditToDelete);
       setAudits((prev) => prev.filter((a) => a.id !== auditToDelete));
@@ -162,7 +161,6 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
       setError("Failed to delete audit. Please try again.");
     } finally {
       setAuditToDelete(null);
-      setDeleting(false);
       deletingRef.current = false;
     }
   };
@@ -187,30 +185,32 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
   }, [audits, searchQuery, sortConfig]);
 
   return (
-    <Box sx={{ width: "100%" }}>
-      {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Stack spacing={0.5}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography sx={{ fontSize: 15, fontWeight: 600, color: theme.palette.text.primary }}>Bias audits</Typography>
-            <HelperIcon articlePath="llm-evals/bias-audits" />
-          </Box>
-          <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
-            Run compliance-aware bias audits against demographic datasets
-          </Typography>
-        </Stack>
+    <Stack sx={{ width: "100%" }}>
+      <PageHeader
+        title="Bias audits"
+        description="Run compliance-aware bias audits against demographic datasets"
+        rightContent={<HelperIcon articlePath="llm-evals/bias-audits" />}
+      />
+
+      {/* Search + New bias audit button */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: "18px", mb: 3 }}>
+        <Box sx={{ maxWidth: 320 }}>
+          <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Search audits..." />
+        </Box>
         <CustomizableButton
           variant="contained"
           text="New bias audit"
           onClick={() => setModalOpen(true)}
-          sx={{ height: 34, fontSize: 13 }}
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+            "&:hover": {
+              backgroundColor: "#0f5a47",
+            },
+          }}
         />
       </Stack>
-
-      {/* Search */}
-      <Box sx={{ mb: 2, maxWidth: 320 }}>
-        <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Search audits..." />
-      </Box>
 
       {error && (
         <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2, fontSize: 13 }}>
@@ -337,7 +337,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
       {/* Delete Confirmation Modal */}
       {!!auditToDelete && (
         <ConfirmationModal
-          isOpen={!!auditToDelete}
+          isOpen
           title="Delete bias audit"
           body="Are you sure you want to delete this bias audit? This action cannot be undone."
           proceedText="Delete"
@@ -348,6 +348,6 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
           proceedButtonColor="error"
         />
       )}
-    </Box>
+    </Stack>
   );
 }

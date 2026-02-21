@@ -684,6 +684,7 @@ const RiskManagement = () => {
     <PageHeaderExtended
       title="Risk Management"
       description="Manage and monitor risks across all your projects"
+
       helpArticlePath="risk-management/risk-assessment"
       tipBoxEntity="risk-management"
       summaryCards={
@@ -1029,8 +1030,8 @@ const RiskManagement = () => {
         availableParameters={[
           { value: "severity", label: "Severity" },
           { value: "likelihood", label: "Likelihood" },
-          { value: "mitigation_status", label: "Mitigation Status" },
-          { value: "risk_level", label: "Risk Level" },
+          { value: "mitigation_status", label: "Mitigation status" },
+          { value: "risk_level", label: "Risk level" },
         ]}
         defaultParameter="risk_level"
       />

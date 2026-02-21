@@ -150,7 +150,7 @@ const AdvisorChat = ({
                   To use the AI advisor, you need to configure an LLM API key.{' '}
                   <Box
                     component="span"
-                    onClick={() => navigate('/settings/llm-keys')}
+                    onClick={() => navigate('/settings/apikeys')}
                     sx={{
                       color: 'primary.main',
                       cursor: 'pointer',

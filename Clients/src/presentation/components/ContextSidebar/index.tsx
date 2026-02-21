@@ -103,7 +103,7 @@ export function ContextSidebar({
 
       const handleAIDetectionTabChange = (newTab: string) => {
         if (newTab === "scan") {
-          navigate("/ai-detection");
+          navigate("/ai-detection/scan");
         } else if (newTab === "history") {
           navigate("/ai-detection/history");
         } else if (newTab === "settings") {
@@ -134,7 +134,7 @@ export function ContextSidebar({
 
       const handleShadowAiTabChange = (newTab: string) => {
         if (newTab === "insights") {
-          navigate("/shadow-ai");
+          navigate("/shadow-ai/insights");
         } else if (newTab === "users") {
           navigate("/shadow-ai/user-activity/users");
         } else {
@@ -149,7 +149,7 @@ export function ContextSidebar({
           toolsCount={shadowAiSidebarContext?.toolsCount ?? 0}
           alertsCount={shadowAiSidebarContext?.alertsCount ?? 0}
           recentTools={shadowAiSidebarContext?.recentTools ?? []}
-          onToolClick={shadowAiSidebarContext?.onToolClick}
+          onToolClick={(toolId) => navigate(`/shadow-ai/tools/${toolId}`)}
         />
       );
     }

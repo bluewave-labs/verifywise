@@ -31,15 +31,20 @@ const TabItem: React.FC<TabItemProps> = ({ label, icon, isActive, onClick }) => 
         justifyContent: 'center',
         padding: '16px 8px',
         cursor: 'pointer',
-        backgroundColor: isActive ? colors.background.white : 'transparent',
         borderLeft: isActive ? `2px solid ${colors.brand.primary}` : '2px solid transparent',
         borderBottom: `1px solid ${colors.border.default}`,
+        minHeight: 120,
+        boxSizing: 'border-box',
       }}
     >
       <div
+        className="tab-icon"
         style={{
           color: isActive ? colors.brand.primary : colors.text.muted,
           marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         {icon}
@@ -53,6 +58,7 @@ const TabItem: React.FC<TabItemProps> = ({ label, icon, isActive, onClick }) => 
           fontWeight: typography.fontWeight.normal,
           color: isActive ? colors.brand.primary : colors.text.muted,
           letterSpacing: '0.5px',
+          whiteSpace: 'nowrap',
         }}
       >
         {label}

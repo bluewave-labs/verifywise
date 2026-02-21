@@ -51,8 +51,8 @@ const TABLE_COLUMNS = [
     { id: "status", label: "TYPE", sortable: true },
     { id: "tags", label: "Tags", sortable: true },
     { id: "author", label: "Author", sortable: true },
-    { id: "last_updated", label: "Last Updated", sortable: true },
-    { id: "updated_by", label: "Updated By", sortable: true },
+    { id: "last_updated", label: "Last updated", sortable: true },
+    { id: "updated_by", label: "Updated by", sortable: true },
     { id: "actions", label: "", sortable: false },
 ];
 

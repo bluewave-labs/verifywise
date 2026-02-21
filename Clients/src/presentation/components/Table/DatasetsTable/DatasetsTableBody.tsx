@@ -3,7 +3,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
   IconButton,
   Typography,
   Menu,
@@ -11,6 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { MoreVertical } from "lucide-react";
+import Chip from "../../Chip";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { DatasetRow } from "./index";
 
@@ -132,25 +132,22 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                 {dataset.type ? (
                   <Chip
                     label={
-                      dataset.type === "single-turn" ? "Single-Turn" : 
-                      dataset.type === "multi-turn" ? "Multi-Turn" : 
-                      "🎭 Simulated"
+                      dataset.type === "single-turn" ? "Single-Turn" :
+                      dataset.type === "multi-turn" ? "Multi-Turn" :
+                      "Simulated"
                     }
                     size="small"
-                    sx={{
-                      height: "22px",
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "4px",
-                      backgroundColor: 
-                        dataset.type === "single-turn" ? "#FEF3C7" : 
-                        dataset.type === "multi-turn" ? "#E3F2FD" :
-                        "#F3E8FF",
-                      color: 
-                        dataset.type === "single-turn" ? "#92400E" : 
-                        dataset.type === "multi-turn" ? "#1565C0" :
-                        "#7C3AED",
-                    }}
+                    uppercase={false}
+                    backgroundColor={
+                      dataset.type === "single-turn" ? "#FEF3C7" :
+                      dataset.type === "multi-turn" ? "#E3F2FD" :
+                      "#F3E8FF"
+                    }
+                    textColor={
+                      dataset.type === "single-turn" ? "#92400E" :
+                      dataset.type === "multi-turn" ? "#1565C0" :
+                      "#7C3AED"
+                    }
                   />
                 ) : (
                   <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
@@ -169,22 +166,19 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   <Chip
                     label={dataset.useCase === "rag" ? "RAG" : dataset.useCase.charAt(0).toUpperCase() + dataset.useCase.slice(1)}
                     size="small"
-                    sx={{
-                      height: "22px",
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "4px",
-                      backgroundColor: 
-                        dataset.useCase === "chatbot" ? "#CCFBF1" :
-                        dataset.useCase === "rag" ? "#f3e5f5" :
-                        dataset.useCase === "agent" ? "#FEE2E2" :
-                        "#e0e0e0",
-                      color:
-                        dataset.useCase === "chatbot" ? "#0D9488" :
-                        dataset.useCase === "rag" ? "#7b1fa2" :
-                        dataset.useCase === "agent" ? "#DC2626" :
-                        "#616161",
-                    }}
+                    uppercase={false}
+                    backgroundColor={
+                      dataset.useCase === "chatbot" ? "#CCFBF1" :
+                      dataset.useCase === "rag" ? "#f3e5f5" :
+                      dataset.useCase === "agent" ? "#FEE2E2" :
+                      "#e0e0e0"
+                    }
+                    textColor={
+                      dataset.useCase === "chatbot" ? "#0D9488" :
+                      dataset.useCase === "rag" ? "#7b1fa2" :
+                      dataset.useCase === "agent" ? "#DC2626" :
+                      "#616161"
+                    }
                   />
                 ) : (
                   <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
@@ -205,14 +199,7 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   <Chip
                     label="Empty"
                     size="small"
-                    sx={{
-                      height: "22px",
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "4px",
-                      backgroundColor: "#FEE2E2",
-                      color: "#DC2626",
-                    }}
+                    variant="error"
                   />
                 ) : (
                   <Typography sx={{ fontSize: "13px", color: "#374151" }}>
@@ -235,28 +222,25 @@ const DatasetsTableBody: React.FC<DatasetsTableBodyProps> = ({
                   <Chip
                     label={metadata?.avgDifficulty ?? "Medium"}
                     size="small"
-                    sx={{
-                      height: "22px",
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "4px",
-                      backgroundColor:
-                        metadata?.avgDifficulty === "Easy"
-                          ? "#c8e6c9"
-                          : metadata?.avgDifficulty === "Medium"
-                          ? "#fff3e0"
-                          : metadata?.avgDifficulty === "Hard"
-                          ? "#ffebee"
-                          : "#e0e0e0",
-                      color:
-                        metadata?.avgDifficulty === "Easy"
-                          ? "#388e3c"
-                          : metadata?.avgDifficulty === "Medium"
-                          ? "#ef6c00"
-                          : metadata?.avgDifficulty === "Hard"
-                          ? "#c62828"
-                          : "#616161",
-                    }}
+                    uppercase={false}
+                    backgroundColor={
+                      metadata?.avgDifficulty === "Easy"
+                        ? "#c8e6c9"
+                        : metadata?.avgDifficulty === "Medium"
+                        ? "#fff3e0"
+                        : metadata?.avgDifficulty === "Hard"
+                        ? "#ffebee"
+                        : "#e0e0e0"
+                    }
+                    textColor={
+                      metadata?.avgDifficulty === "Easy"
+                        ? "#388e3c"
+                        : metadata?.avgDifficulty === "Medium"
+                        ? "#ef6c00"
+                        : metadata?.avgDifficulty === "Hard"
+                        ? "#c62828"
+                        : "#616161"
+                    }
                   />
                 )}
               </TableCell>

@@ -51,7 +51,7 @@ export default function ShadowAISidebar({
     },
     {
       id: "rules",
-      label: "Rules",
+      label: "Rules & alerts",
       value: "rules",
       icon: <ShieldAlert size={16} strokeWidth={1.5} />,
       count: alertsCount,

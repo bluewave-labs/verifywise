@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box, Stack, Typography, Chip, Paper, Divider, Button, CircularProgress, IconButton, Select, MenuItem, useTheme } from "@mui/material";
+import { Box, Stack, Typography, Paper, Divider, Button, CircularProgress, IconButton, Select, MenuItem, useTheme } from "@mui/material";
+import VWChip from "../../components/Chip";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   listDatasets,
@@ -642,7 +643,7 @@ export default function BuiltInDatasetsPage(_props: BuiltInEmbedProps) {
             {(["chatbot", "rag", "agent"] as const).map((uc) => (
               <Box key={uc} sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: "capitalize", fontSize: "13px", mb: 0.5 }}>
-                  {uc} <Chip size="small" label={(groups[uc] || []).length} sx={{ height: 18, fontSize: "10px", ml: 0.5 }} />
+                  {uc} <VWChip label={String((groups[uc] || []).length)} size="small" variant="default" uppercase={false} />
                 </Typography>
                 <Typography variant="body2" sx={{ color: "#6B7280", fontSize: "12px", mb: 1 }}>
                   {descriptions[uc]}

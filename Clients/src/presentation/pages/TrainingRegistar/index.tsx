@@ -463,7 +463,7 @@ const Training: React.FC = () => {
   // Define export columns for training table
   const exportColumns = useMemo(() => {
     return [
-      { id: "training_name", label: "Training Name" },
+      { id: "training_name", label: "Training name" },
       { id: "duration", label: "Duration" },
       { id: "provider", label: "Provider" },
       { id: "department", label: "Department" },

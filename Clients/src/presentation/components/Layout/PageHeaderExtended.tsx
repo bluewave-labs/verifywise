@@ -4,7 +4,7 @@ import { PageBreadcrumbs } from "../breadcrumbs/PageBreadcrumbs";
 import HelperIcon from "../HelperIcon";
 import { PageHeader } from "./PageHeader";
 import TipBox from "../TipBox";
-import { pageHeaderTitleSectionStyle, pageHeaderSummaryCardsStyle } from "./style";
+import { pageHeaderSummaryCardsStyle } from "./style";
 import { PageHeaderExtendedProps } from "src/presentation/types/interfaces/i.header";
 
 export function PageHeaderExtended({
@@ -17,24 +17,31 @@ export function PageHeaderExtended({
     children,
     alert,
     loadingToast,
+    titleFontFamily,
+    breadcrumbItems,
+    actionButton = null,
 }: PageHeaderExtendedProps) {
     return (
-        <Stack className="vwhome" gap={4}>
-            <PageBreadcrumbs />
+        <Stack className="vwhome" gap={0}>
+            <PageBreadcrumbs items={breadcrumbItems} sx={{ mb: 0, "& > hr": { mb: 0 } }} />
 
-            <Box sx={pageHeaderTitleSectionStyle}>
-                <PageHeader
-                    title={title}
-                    description={description}
+            <Box sx={{ mt: "16px" }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                    <PageHeader
+                        title={title}
+                        description={description}
+                        titleFontFamily={titleFontFamily}
                     rightContent={
-                        helpArticlePath ? (
-                            <HelperIcon articlePath={helpArticlePath} size="small" />
-                        ) : undefined
-                    }
-                />
+                            helpArticlePath ? (
+                                <HelperIcon articlePath={helpArticlePath} size="small" />
+                            ) : undefined
+                        }
+                    />
+                    {actionButton && <Box sx={{ flexShrink: 0 }}>{actionButton}</Box>}
+                </Stack>
             </Box>
 
-            <Stack gap="18px">
+            <Stack gap="18px" sx={{ mt: "18px" }}>
                 {tipBoxEntity && <TipBox entityName={tipBoxEntity} />}
 
                 {alert}

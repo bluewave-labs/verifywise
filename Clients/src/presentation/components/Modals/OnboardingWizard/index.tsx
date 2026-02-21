@@ -170,7 +170,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 <BadgeIcon size={18} color="#4ADE80" strokeWidth={2} />
                 <Typography
                   sx={{
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: 600,
                     color: "#4ADE80",
                     textTransform: "uppercase",
@@ -299,7 +299,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   )}
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: isActive ? 600 : isDone ? 500 : 400,
                       color: isDone
                         ? "#4ADE80"

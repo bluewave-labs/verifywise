@@ -344,7 +344,12 @@ const FileManager: React.FC = (): JSX.Element => {
 
     // Refresh metadata to get the complete file info including review_status
     fetchFilesWithMetadata();
-  }, [selectedFolder, fetchFilesWithMetadata]);
+
+    // If viewing a specific folder, refresh folder files so the upload appears immediately
+    if (typeof selectedFolder === "number") {
+      refreshFiles(selectedFolder);
+    }
+  }, [selectedFolder, fetchFilesWithMetadata, refreshFiles]);
 
   // Handle file deleted - optimistically remove from state
   const handleFileDeleted = useCallback((fileId: string) => {

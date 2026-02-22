@@ -92,6 +92,7 @@ import {
   deleteByPattern,
   CACHE_KEYS,
 } from "../utils/cache.utils";
+import { calculateAndStoreRiskScore } from "./aiDetection/riskScoring";
 
 // ============================================================================
 // Types
@@ -128,6 +129,25 @@ interface ScanProgressEntry {
  * Key: scanId, Value: progress state with timestamp
  */
 const scanProgressMap = new Map<number, ScanProgressEntry>();
+
+/**
+ * Update the linked repository's last_scan fields after scan completion
+ */
+async function updateLinkedRepositoryLastScan(
+  scanId: number,
+  scanStatus: string,
+  tenantId: string
+): Promise<void> {
+  try {
+    const scan = await getScanByIdQuery(scanId, tenantId);
+    if (scan?.repository_id) {
+      const { updateRepositoryLastScanQuery } = require("../utils/aiDetectionRepository.utils");
+      await updateRepositoryLastScanQuery(scan.repository_id, scanId, scanStatus, tenantId);
+    }
+  } catch (error) {
+    logger.error(`Failed to update repository last scan for scan ${scanId}:`, error);
+  }
+}
 
 /**
  * Clean up stale progress entries that are older than MAX_AGE
@@ -982,7 +1002,8 @@ function getThreatNameFromType(threatType: string): string {
  */
 export async function startScan(
   repositoryUrl: string,
-  ctx: IServiceContext
+  ctx: IServiceContext,
+  repoLinkOptions?: { repositoryId?: number; triggeredByType?: string }
 ): Promise<IScan> {
   // Parse and validate URL
   const { owner, repo } = parseGitHubUrl(repositoryUrl);
@@ -998,6 +1019,19 @@ export async function startScan(
     );
   }
 
+  // Auto-link to repository registry if not explicitly provided
+  let repositoryId = repoLinkOptions?.repositoryId ?? null;
+  let triggeredByType = repoLinkOptions?.triggeredByType ?? "manual";
+
+  if (!repositoryId) {
+    // Check if this repo is in the registry
+    const { getRepositoryByOwnerNameQuery } = require("../utils/aiDetectionRepository.utils");
+    const registeredRepo = await getRepositoryByOwnerNameQuery(owner, repo, ctx.tenantId);
+    if (registeredRepo) {
+      repositoryId = registeredRepo.id;
+    }
+  }
+
   // Create scan record
   const transaction = await sequelize.transaction();
   try {
@@ -1007,10 +1041,26 @@ export async function startScan(
       repository_name: repo,
       triggered_by: ctx.userId,
       status: "pending",
+      repository_id: repositoryId,
+      triggered_by_type: triggeredByType,
     };
 
-    const scan = await createScanQuery(scanInput, ctx.tenantId, transaction);
-    await transaction.commit();
+    let scan: IScan;
+    try {
+      scan = await createScanQuery(scanInput, ctx.tenantId, transaction);
+      await transaction.commit();
+    } catch (dbError: unknown) {
+      await transaction.rollback();
+      // Handle unique constraint violation from partial unique index
+      // (concurrent active scan for same repo)
+      const errMsg = dbError instanceof Error ? dbError.message : "";
+      if (errMsg.includes("unique_active_idx") || errMsg.includes("duplicate key")) {
+        throw new BusinessLogicException(
+          `A scan is already in progress for ${owner}/${repo}. Please wait for it to complete.`
+        );
+      }
+      throw dbError;
+    }
 
     // Check if we've hit the maximum concurrent scans limit
     if (scanProgressMap.size >= MAX_CONCURRENT_SCANS) {
@@ -1316,7 +1366,9 @@ async function executeScan(
 
         // Use displayName in the key since DB constraint is on (scan_id, name, provider)
         // This ensures proper deduplication matching the database unique constraint
-        const key = `${displayName}::${finding.pattern.provider}::${findingType}`;
+        // Include findingType to keep different types separate; batch insert dedup handles DB-level collisions
+        const normalizedProvider = finding.pattern.provider || "NULL";
+        const key = `${displayName}::${normalizedProvider}::${findingType}`;
         const existing = deduplicatedFindingsMap.get(key);
 
         if (existing) {
@@ -1387,7 +1439,8 @@ async function executeScan(
         // Deduplicate security findings by aggregating file paths
         const securityFindingsMap = new Map<string, ICreateModelSecurityFindingInput>();
         for (const finding of modelSecurityFindings) {
-          const key = `${finding.name}::${finding.provider}`;
+          const normalizedProvider = finding.provider || "NULL";
+          const key = `${finding.name}::${normalizedProvider}`;
           const existing = securityFindingsMap.get(key);
           if (existing) {
             // Merge file paths
@@ -1430,9 +1483,19 @@ async function executeScan(
       progressState.status = "completed";
       progressState.progress = 100;
 
+      // Update linked repository's last_scan fields
+      updateLinkedRepositoryLastScan(scanId, "completed", ctx.tenantId).catch((err) => {
+        logger.error(`Failed to update repository last scan for scan ${scanId}:`, err);
+      });
+
       // Invalidate stats cache after successful scan completion
       invalidateAIDetectionStatsCache(ctx.tenantId).catch(() => {
         // Silently ignore cache invalidation errors
+      });
+
+      // Calculate risk score (fire-and-forget)
+      calculateAndStoreRiskScore(scanId, `${owner}/${repo}`, ctx).catch((err) => {
+        logger.error(`Failed to calculate risk score for scan ${scanId}:`, err);
       });
     } catch (error) {
       await transaction.rollback();
@@ -1465,6 +1528,11 @@ async function executeScan(
     progressState.status = status;
     progressState.progress = 100;
     progressState.errorMessage = errorMessage;
+
+    // Update linked repository's last_scan fields on failure too
+    updateLinkedRepositoryLastScan(scanId, status, ctx.tenantId).catch((err) => {
+      logger.error(`Failed to update repository last scan for scan ${scanId}:`, err);
+    });
   } finally {
     // Clean up cloned repository
     if (clonedRepoPath) {
@@ -1553,6 +1621,12 @@ export async function getScan(
       duration_ms: scan.duration_ms || undefined,
       error_message: scan.error_message || undefined,
       triggered_by: scan.triggered_by_user,
+      risk_score: scan.risk_score != null ? parseFloat(String(scan.risk_score)) : null,
+      risk_score_grade: scan.risk_score_grade ?? null,
+      risk_score_details: scan.risk_score_details ?? null,
+      risk_score_calculated_at: scan.risk_score_calculated_at
+        ? (scan.risk_score_calculated_at as Date).toISOString()
+        : null,
       created_at: scan.created_at!.toISOString(),
     },
     summary,
@@ -1654,6 +1728,8 @@ export async function getScans(
       completed_at: s.completed_at?.toISOString(),
       duration_ms: s.duration_ms || undefined,
       triggered_by: s.triggered_by_user,
+      risk_score: s.risk_score != null ? parseFloat(String(s.risk_score)) : null,
+      risk_score_grade: s.risk_score_grade ?? null,
       created_at: s.created_at!.toISOString(),
     })),
     pagination: {

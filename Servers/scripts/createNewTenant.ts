@@ -2481,6 +2481,45 @@ export const createNewTenant = async (
     // ========================================
     console.log(`🔍 Creating AI Detection tables for tenant: ${tenantHash}`);
 
+    // Create ai_detection_repositories table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_repositories (
+        id SERIAL PRIMARY KEY,
+        repository_url VARCHAR(500) NOT NULL,
+        repository_owner VARCHAR(255) NOT NULL,
+        repository_name VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255),
+        default_branch VARCHAR(100) DEFAULT 'main',
+        github_token_id INTEGER,
+
+        schedule_enabled BOOLEAN DEFAULT FALSE,
+        schedule_frequency VARCHAR(20),
+        schedule_day_of_week INTEGER,
+        schedule_day_of_month INTEGER,
+        schedule_hour INTEGER DEFAULT 2,
+        schedule_minute INTEGER DEFAULT 0,
+
+        last_scan_id INTEGER,
+        last_scan_status VARCHAR(50),
+        last_scan_at TIMESTAMP WITH TIME ZONE,
+        next_scan_at TIMESTAMP WITH TIME ZONE,
+
+        is_enabled BOOLEAN DEFAULT TRUE,
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(repository_owner, repository_name)
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for ai_detection_repositories
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_repos_enabled_idx" ON "${tenantHash}".ai_detection_repositories(is_enabled);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_repos_schedule_idx" ON "${tenantHash}".ai_detection_repositories(schedule_enabled, next_scan_at);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_repos_created_at_idx" ON "${tenantHash}".ai_detection_repositories(created_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
     // Create ai_detection_scans table
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_scans (
@@ -2499,6 +2538,12 @@ export const createNewTenant = async (
         error_message TEXT,
         triggered_by INTEGER NOT NULL,
         cache_path VARCHAR(255),
+        repository_id INTEGER,
+        triggered_by_type VARCHAR(20) DEFAULT 'manual',
+        risk_score NUMERIC(5,2),
+        risk_score_grade VARCHAR(1),
+        risk_score_details JSONB,
+        risk_score_calculated_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );`,
@@ -2511,6 +2556,8 @@ export const createNewTenant = async (
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_triggered_by_idx" ON "${tenantHash}".ai_detection_scans(triggered_by);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_created_at_idx" ON "${tenantHash}".ai_detection_scans(created_at DESC);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_repo_idx" ON "${tenantHash}".ai_detection_scans(repository_owner, repository_name);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_repo_id_idx" ON "${tenantHash}".ai_detection_scans(repository_id);`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_unique_active_idx" ON "${tenantHash}".ai_detection_scans(repository_owner, repository_name) WHERE status IN ('pending', 'cloning', 'scanning');`,
     ].map((query) => sequelize.query(query, { transaction })));
 
     // Create ai_detection_findings table
@@ -2574,6 +2621,19 @@ export const createNewTenant = async (
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         last_used_at TIMESTAMP WITH TIME ZONE
+      );`,
+      { transaction }
+    );
+
+    // Create ai_detection_risk_scoring_config table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_risk_scoring_config (
+        id SERIAL PRIMARY KEY,
+        llm_enabled BOOLEAN DEFAULT FALSE,
+        llm_key_id INTEGER,
+        dimension_weights JSONB DEFAULT '{"data_sovereignty":0.20,"transparency":0.15,"security":0.15,"autonomy":0.15,"supply_chain":0.15,"license":0.10,"accuracy":0.10}',
+        updated_by INTEGER,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );`,
       { transaction }
     );

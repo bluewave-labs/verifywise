@@ -2,7 +2,7 @@ export * from "../services/slack/slackProducer";
 
 import { scheduleDailyNotification } from "../services/slack/slackProducer";
 import logger from "../utils/logger/fileLogger";
-import { scheduleReportNotification, scheduleVendorReviewDateNotification, schedulePMMHourlyCheck, scheduleShadowAiJobs, schedulePolicyDueSoonNotification, scheduleAgentDiscoverySync } from "../services/automations/automationProducer";
+import { scheduleReportNotification, scheduleVendorReviewDateNotification, schedulePMMHourlyCheck, scheduleShadowAiJobs, schedulePolicyDueSoonNotification, scheduleAgentDiscoverySync, scheduleAiDetectionScanCheck } from "../services/automations/automationProducer";
 
 export async function addAllJobs(): Promise<void> {
   await scheduleDailyNotification();
@@ -12,6 +12,7 @@ export async function addAllJobs(): Promise<void> {
   await schedulePMMHourlyCheck();
   await scheduleShadowAiJobs();
   await scheduleAgentDiscoverySync();
+  await scheduleAiDetectionScanCheck();
 }
 
 if (require.main === module) {

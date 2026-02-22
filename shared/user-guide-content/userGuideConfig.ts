@@ -194,8 +194,8 @@ export const collections: Collection[] = [
       },
       {
         id: 'history',
-        title: 'Scan history',
-        description: 'View and manage your scan history and audit trail.',
+        title: 'Scan results',
+        description: 'View and manage your scan results and audit trail.',
         keywords: ['history', 'scan', 'audit', 'trail', 'results', 'findings'],
       },
       {

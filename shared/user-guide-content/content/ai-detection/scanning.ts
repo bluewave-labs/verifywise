@@ -14,7 +14,7 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The scanner analyzes source files, dependency manifests, CI/CD workflows, container definitions, and model files to detect over 80 AI/ML frameworks and infrastructure patterns including OpenAI, TensorFlow, PyTorch, LangChain, and more. Results are stored for audit purposes and can be reviewed at any time from the scan history.',
+      text: 'The scanner analyzes source files, dependency manifests, CI/CD workflows, container definitions, and model files to detect over 80 AI/ML frameworks and infrastructure patterns including OpenAI, TensorFlow, PyTorch, LangChain, and more. Results are stored for audit purposes and can be reviewed at any time from the scan results.',
     },
     {
       type: 'heading',
@@ -464,7 +464,7 @@ export const scanningContent: ArticleContent = {
         {
           collectionId: 'ai-detection',
           articleId: 'history',
-          title: 'Scan history',
+          title: 'Scan results',
           description: 'View and manage past scan results',
         },
         {

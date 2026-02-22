@@ -8,7 +8,7 @@
  */
 
 import { useCallback } from "react";
-import { Search, History, Settings } from "lucide-react";
+import { Search, FolderGit2, History, Settings } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
   RecentSection,
@@ -25,6 +25,7 @@ interface AIDetectionSidebarProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   historyCount?: number;
+  repositoryCount?: number;
   recentScans?: RecentScan[];
   onScanClick?: (scanId: number) => void;
 }
@@ -33,6 +34,7 @@ export default function AIDetectionSidebar({
   activeTab,
   onTabChange,
   historyCount = 0,
+  repositoryCount = 0,
   recentScans = [],
   onScanClick,
 }: AIDetectionSidebarProps) {
@@ -49,8 +51,16 @@ export default function AIDetectionSidebar({
       disabled: false,
     },
     {
+      id: "repositories",
+      label: "Repositories",
+      value: "repositories",
+      icon: <FolderGit2 size={16} strokeWidth={1.5} />,
+      count: repositoryCount,
+      disabled: false,
+    },
+    {
       id: "history",
-      label: "History",
+      label: "Scan results",
       value: "history",
       icon: <History size={16} strokeWidth={1.5} />,
       count: historyCount,

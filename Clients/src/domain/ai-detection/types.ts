@@ -6,6 +6,8 @@
  * @module domain/ai-detection/types
  */
 
+import type { RiskGrade, RiskScoreDetails } from "./riskScoringTypes";
+
 // ============================================================================
 // Scan Types
 // ============================================================================
@@ -47,6 +49,12 @@ export interface Scan {
   duration_ms?: number;
   error_message?: string;
   triggered_by: TriggeredByUser;
+  repository_id?: number | null;
+  triggered_by_type?: string;
+  risk_score?: number | null;
+  risk_score_grade?: RiskGrade | null;
+  risk_score_details?: RiskScoreDetails | null;
+  risk_score_calculated_at?: string | null;
   created_at: string;
 }
 

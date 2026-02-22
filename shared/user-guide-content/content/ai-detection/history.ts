@@ -10,7 +10,7 @@ export const historyContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The scan history page maintains a complete record of all repository scans performed by your organization. Each scan record is preserved indefinitely for audit purposes, providing a defensible trail of AI governance activities.',
+      text: 'The scan results page maintains a complete record of all repository scans performed by your organization. Each scan record is preserved indefinitely for audit purposes, providing a defensible trail of AI governance activities.',
     },
     {
       type: 'heading',
@@ -40,8 +40,8 @@ export const historyContent: ArticleContent = {
     {
       type: 'image',
       src: '/images/user-guide/ai-detection-history.png',
-      alt: 'Scan history table showing past repository scans with status and findings',
-      caption: 'Complete scan history with repository, status, findings, and duration',
+      alt: 'Scan results table showing past repository scans with status and findings',
+      caption: 'Complete scan results with repository, status, findings, and duration',
     },
     {
       type: 'heading',
@@ -77,7 +77,7 @@ export const historyContent: ArticleContent = {
       type: 'heading',
       id: 'managing-history',
       level: 2,
-      text: 'Managing scan history',
+      text: 'Managing scan results',
     },
     {
       type: 'paragraph',
@@ -87,7 +87,7 @@ export const historyContent: ArticleContent = {
       type: 'callout',
       variant: 'tip',
       title: 'Audit trail',
-      text: 'For compliance purposes, maintain scan history as evidence of ongoing AI governance activities. Regular scanning demonstrates due diligence in monitoring AI usage.',
+      text: 'For compliance purposes, maintain scan results as evidence of ongoing AI governance activities. Regular scanning demonstrates due diligence in monitoring AI usage.',
     },
     {
       type: 'heading',
@@ -97,7 +97,7 @@ export const historyContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Use the status filter to show only scans with a specific status (Completed, Failed, etc.). The table supports pagination for organizations with extensive scan history.',
+      text: 'Use the status filter to show only scans with a specific status (Completed, Failed, etc.). The table supports pagination for organizations with extensive scan results.',
     },
     {
       type: 'heading',
@@ -107,7 +107,7 @@ export const historyContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'To rescan a previously analyzed repository, navigate to the scan details page and click **Rescan**. This creates a new scan record while preserving the original for comparison. Alternatively, start a new scan from the Scan page with the same repository URL.',
+      text: 'To rescan a previously analyzed repository, navigate to the scan results page and click **Rescan**. This creates a new scan record while preserving the original for comparison. Alternatively, start a new scan from the Scan page with the same repository URL.',
     },
     {
       type: 'callout',

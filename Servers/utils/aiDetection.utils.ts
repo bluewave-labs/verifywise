@@ -62,6 +62,8 @@ export async function createScanQuery(
       repository_name,
       status,
       triggered_by,
+      repository_id,
+      triggered_by_type,
       created_at,
       updated_at
     ) VALUES (
@@ -70,6 +72,8 @@ export async function createScanQuery(
       :repository_name,
       :status,
       :triggered_by,
+      :repository_id,
+      :triggered_by_type,
       NOW(),
       NOW()
     )
@@ -83,6 +87,8 @@ export async function createScanQuery(
       repository_name: input.repository_name,
       status: input.status || "pending",
       triggered_by: input.triggered_by,
+      repository_id: input.repository_id || null,
+      triggered_by_type: input.triggered_by_type || "manual",
     },
     transaction,
   });
@@ -235,17 +241,25 @@ export async function getScansListQuery(
   tenantId: string,
   page: number = 1,
   limit: number = 20,
-  status?: ScanStatus
+  status?: ScanStatus,
+  repositoryId?: number
 ): Promise<{ scans: (IScan & { triggered_by_user: { id: number; name: string; surname?: string } })[]; total: number }> {
   validateTenantId(tenantId);
   const offset = (page - 1) * limit;
   const replacements: Record<string, unknown> = { limit, offset };
-  let whereClause = "";
+  const conditions: string[] = [];
 
   if (status) {
-    whereClause = "WHERE s.status = :status";
+    conditions.push("s.status = :status");
     replacements.status = status;
   }
+
+  if (repositoryId !== undefined) {
+    conditions.push("s.repository_id = :repositoryId");
+    replacements.repositoryId = repositoryId;
+  }
+
+  const whereClause = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
 
   const countQuery = `
     SELECT COUNT(*) as total
@@ -427,9 +441,11 @@ export async function createFindingsBatchQuery(
 
   // Final deduplication safety check - PostgreSQL ON CONFLICT fails if same row appears twice in batch
   // Key is (scan_id, name, provider) - must match the unique constraint
+  // Normalize provider to handle undefined/null/"" consistently
   const deduplicatedMap = new Map<string, ICreateFindingInput>();
   for (const input of inputs) {
-    const key = `${input.scan_id}::${input.name}::${input.provider}`;
+    const normalizedProvider = input.provider || "NULL";
+    const key = `${input.scan_id}::${input.name}::${normalizedProvider}`;
     const existing = deduplicatedMap.get(key);
     if (existing) {
       // Merge file paths
@@ -548,8 +564,27 @@ export async function createModelSecurityFindingsBatchQuery(
   validateTenantId(tenantId);
   if (inputs.length === 0) return 0;
 
+  // Deduplication safety check - PostgreSQL ON CONFLICT fails if same row appears twice in batch
+  // Key is (scan_id, name, provider) - must match the unique constraint
+  const deduplicatedMap = new Map<string, ICreateModelSecurityFindingInput>();
+  for (const input of inputs) {
+    const normalizedProvider = input.provider || "NULL";
+    const key = `${input.scan_id}::${input.name}::${normalizedProvider}`;
+    const existing = deduplicatedMap.get(key);
+    if (existing) {
+      // Merge file paths
+      const existingPaths = existing.file_paths || [];
+      const newPaths = input.file_paths || [];
+      existing.file_paths = [...existingPaths, ...newPaths];
+      existing.file_count = existing.file_paths.length;
+    } else {
+      deduplicatedMap.set(key, { ...input });
+    }
+  }
+  const deduplicatedInputs = Array.from(deduplicatedMap.values());
+
   // Use single INSERT with multiple VALUES
-  const values = inputs.map((_input, index) => {
+  const values = deduplicatedInputs.map((_input, index) => {
     return "("+
       ":scan_id_" + index + ", " +
       ":finding_type_" + index + ", " +
@@ -574,7 +609,7 @@ export async function createModelSecurityFindingsBatchQuery(
   });
 
   const replacements: Record<string, unknown> = {};
-  inputs.forEach((input, index) => {
+  deduplicatedInputs.forEach((input, index) => {
     replacements["scan_id_" + index] = input.scan_id;
     replacements["finding_type_" + index] = input.finding_type;
     replacements["category_" + index] = input.category;
@@ -595,7 +630,7 @@ export async function createModelSecurityFindingsBatchQuery(
     replacements["module_name_" + index] = input.module_name;
   });
 
-  const query = 
+  const query =
     'INSERT INTO "' + tenantId + '".ai_detection_findings (' +
       "scan_id, finding_type, category, name, provider, confidence, " +
       "description, documentation_url, file_count, file_paths, " +
@@ -612,7 +647,7 @@ export async function createModelSecurityFindingsBatchQuery(
     transaction,
   });
 
-  return inputs.length;
+  return deduplicatedInputs.length;
 }
 export async function getFindingsForScanQuery(
   scanId: number,
@@ -1190,4 +1225,40 @@ export async function getAIDetectionStatsQuery(
       })
     ),
   };
+}
+
+// ============================================================================
+// Stale Scan Recovery
+// ============================================================================
+
+/**
+ * Mark scans stuck in active states for longer than the timeout as failed.
+ * This handles cases where the server crashed/restarted mid-scan, leaving
+ * scans permanently stuck in pending/cloning/scanning status.
+ *
+ * @param tenantId - Tenant schema hash
+ * @param timeoutMinutes - Minutes after which an active scan is considered stale (default: 30)
+ * @returns Number of scans marked as failed
+ */
+export async function markStaleScansFailed(
+  tenantId: string,
+  timeoutMinutes: number = 30
+): Promise<number> {
+  validateTenantId(tenantId);
+
+  const results = await sequelize.query<{ id: number }>(
+    `UPDATE "${tenantId}".ai_detection_scans
+     SET status = 'failed',
+         error_message = 'Scan timed out after ' || CAST(:timeoutMinutes AS TEXT) || ' minutes (server may have restarted)',
+         updated_at = NOW()
+     WHERE status IN ('pending', 'cloning', 'scanning')
+       AND updated_at < NOW() - INTERVAL '1 minute' * :timeoutMinutes
+     RETURNING id`,
+    {
+      replacements: { timeoutMinutes },
+      type: QueryTypes.SELECT,
+    }
+  );
+
+  return results.length;
 }

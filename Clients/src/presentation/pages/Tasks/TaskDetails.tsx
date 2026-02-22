@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
     Card,
     CardContent,
@@ -17,8 +17,10 @@ import { getTaskById, updateTask } from "../../../application/repository/task.re
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { TaskPriority } from "../../../domain/enums/task.enum";
 import useUsers from "../../../application/hooks/useUsers";
+import { useTaskMappings } from "../../../application/hooks/useTaskMappings";
 import { Layers, Home, File, Columns } from "lucide-react";
 import CreateTask from "../../components/Modals/CreateTask";
+import EditTaskMappingsModal from "../../components/Modals/EditTaskMappings";
 import Alert from "../../components/Alert";
 import { ICreateTaskFormValues } from "../../../domain/interfaces/i.task";
 import dayjs from "dayjs";
@@ -41,7 +43,7 @@ const PRIORITY_STYLE_MAP: Record<string, { bg: string; text: string }> = {
 /* ================= CHIP STYLES ================= */
 const getChipStyle = (type: string, value?: string) => {
     switch (type) {
-        case "useCase":
+        case "usecase":
             return {
                 backgroundColor: "#E1F5FE",
                 color: "#0277BD",
@@ -121,7 +123,7 @@ const getChipStyle = (type: string, value?: string) => {
 
 const getMappingIcon = (type: string) => {
     switch (type) {
-        case "useCase":
+        case "usecase":
             return <Columns size={16} />;
         case "model":
             return <Layers size={16} />;
@@ -135,50 +137,90 @@ const getMappingIcon = (type: string) => {
 };
 
 /* ================= RIGHT PANEL SECTION ================= */
-const MappingSection = ({ title, items, type }: any) => (
-    <Stack spacing={1} mb={4}>
-        {/* Title and count */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography fontSize={12} fontWeight={600}>
-                {title}
-            </Typography>
+const MappingSection = ({ title, items, type, isLoading }: any) => {
+    // Show loading state
+    if (isLoading) {
+        return (
+            <Stack spacing={1} mb={4}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography fontSize={12} fontWeight={600}>
+                        {title}
+                    </Typography>
+                    <CircularProgress size={16} />
+                </Stack>
+            </Stack>
+        );
+    }
 
-            <Box
-                sx={{
-                    backgroundColor: "#F2F4F7",
-                    px: "8px",
-                    borderRadius: 1,
-                    minWidth: 24,
-                    textAlign: "center",
-                }}
-            >
-                {items.length}
-            </Box>
-        </Stack>
+    if (!items || items.length === 0) {
+        return (
+            <Stack spacing={1} mb={4}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography fontSize={12} fontWeight={600}>
+                        {title}
+                    </Typography>
+                    <Box
+                        sx={{
+                            backgroundColor: "#F2F4F7",
+                            px: "8px",
+                            borderRadius: 1,
+                            minWidth: 24,
+                            textAlign: "center",
+                        }}
+                    >
+                        0
+                    </Box>
+                </Stack>
+                <Typography fontSize={12} color="textSecondary">
+                    No items selected
+                </Typography>
+            </Stack>
+        );
+    }
 
-        {/* Chips in row with wrap */}
-        <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            columnGap={2}
-            rowGap={1}
-        >
-            {items.map((item: string, i: number) => (
-                <Chip
-                    key={i}
-                    label={item}
-                    size="small"
-                    icon={getMappingIcon(type)}
+    return (
+        <Stack spacing={1} mb={4}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography fontSize={12} fontWeight={600}>
+                    {title}
+                </Typography>
+
+                <Box
                     sx={{
-                        ...getChipStyle(type, item),
-                        height: 28,
+                        backgroundColor: "#F2F4F7",
+                        px: "8px",
+                        borderRadius: 1,
+                        minWidth: 24,
+                        textAlign: "center",
                     }}
-                />
-            ))}
+                >
+                    {items.length}
+                </Box>
+            </Stack>
+
+            <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                columnGap={2}
+                rowGap={1}
+            >
+                {items.map((item: string, i: number) => (
+                    <Chip
+                        key={i}
+                        label={item}
+                        size="small"
+                        icon={getMappingIcon(type)}
+                        sx={{
+                            ...getChipStyle(type),
+                            height: 28,
+                        }}
+                    />
+                ))}
+            </Stack>
         </Stack>
-    </Stack>
-);
+    );
+};
 
 /* ================= MAIN COMPONENT ================= */
 const TaskDetails: React.FC = () => {
@@ -189,6 +231,7 @@ const TaskDetails: React.FC = () => {
     const [task, setTask] = useState<TaskModel | null>(null);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isEditMappingsModalOpen, setIsEditMappingsModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
     // Alert state for notifications
@@ -200,6 +243,12 @@ const TaskDetails: React.FC = () => {
     const [showAlert, setShowAlert] = useState(false);
 
     const { users } = useUsers();
+    
+    // NEW: Fetch mapping master data
+    const { 
+        isLoading: mappingLoading,
+        mapIdsToNames,
+    } = useTaskMappings();
 
     // Fetch task on mount or when id changes
     useEffect(() => {
@@ -225,9 +274,25 @@ const TaskDetails: React.FC = () => {
         fetchTask();
     }, [id]);
 
+    // NEW: Memoize mapped display names
+    const mappedNames = useMemo(() => {
+        if (!task) return {};
+        return {
+            useCases: mapIdsToNames(task.use_cases, "useCaseMap"),
+            models: mapIdsToNames(task.models, "modelMap"),
+            frameworks: mapIdsToNames(task.frameworks, "frameworkMap"),
+            vendors: mapIdsToNames(task.vendors, "vendorMap"),
+        };
+    }, [task, mapIdsToNames]);
+
     // Handle Edit Task button click
     const handleEditTaskClick = useCallback(() => {
         setIsEditModalOpen(true);
+    }, []); 
+
+    // Handle Edit Mappings button click
+    const handleEditMappingsClick = useCallback(() => {
+        setIsEditMappingsModalOpen(true);
     }, []);
 
     // Handle task update from modal
@@ -237,18 +302,17 @@ const TaskDetails: React.FC = () => {
 
             try {
                 setIsUpdating(true);
-                
-                // Convert assignees from user objects back to IDs for API
+
                 const updatePayload = {
                     ...formData,
+                    due_date: formData.due_date 
+                    ? new Date(dayjs(formData.due_date).toISOString())
+                    : undefined,
                     assignees: formData.assignees.map((assignee: any) =>
                         typeof assignee === "object" && "id" in assignee
                             ? assignee.id
                             : assignee
                     ),
-                    due_date: formData.due_date 
-                    ? new Date(dayjs(formData.due_date).toISOString())
-                    : undefined,
                 };
 
                 const response = await updateTask({
@@ -257,13 +321,9 @@ const TaskDetails: React.FC = () => {
                 });
 
                 if (response?.data) {
-                    // Update local state with new task data
                     setTask(response.data);
-
-                    // Close modal
                     setIsEditModalOpen(false);
 
-                    // Show success alert
                     setAlert({
                         variant: "success",
                         title: "Task updated successfully",
@@ -271,14 +331,11 @@ const TaskDetails: React.FC = () => {
                     });
                     setShowAlert(true);
 
-                    // Auto-hide alert after 4 seconds
                     setTimeout(() => {
                         setShowAlert(false);
                         setTimeout(() => setAlert(null), 300);
                     }, 4000);
 
-                    // Emit event to notify parent Tasks page of update
-                    // This allows the parent page to update its task list without refetching
                     window.dispatchEvent(
                         new CustomEvent("taskUpdated", {
                             detail: { taskId: task.id, updatedTask: response.data },
@@ -304,6 +361,57 @@ const TaskDetails: React.FC = () => {
         [task?.id]
     );
 
+    // Handle mappings update from modal
+    // const handleMappingsUpdate = useCallback((updatedTask: TaskModel) => {
+    //     setTask(updatedTask);
+
+    //     console.log("Updated task after mappings change:", updatedTask);
+
+    //     setAlert({
+    //         variant: "success",
+    //         title: "Mappings updated successfully",
+    //         body: "Task mappings have been saved.",
+    //     });
+    //     setShowAlert(true);
+
+    //     setTimeout(() => {
+    //         setShowAlert(false);
+    //         setTimeout(() => setAlert(null), 300);
+    //     }, 4000);
+
+    //     // Emit event to notify parent Tasks page
+    //     window.dispatchEvent(
+    //         new CustomEvent("taskUpdated", {
+    //             detail: { taskId: updatedTask.id, updatedTask },
+    //         })
+    //     );
+    // }, []);
+
+    // ✅ FIX: Ensure task state is properly updated with new mappings
+const handleMappingsUpdate = useCallback((updatedTask: TaskModel) => {
+    // ✅ Update local state with the new task (including mapping fields)
+    setTask(updatedTask);
+
+    setAlert({
+        variant: "success",
+        title: "Mappings updated successfully",
+        body: "Task mappings have been saved.",
+    });
+    setShowAlert(true);
+
+    setTimeout(() => {
+        setShowAlert(false);
+        setTimeout(() => setAlert(null), 300);
+    }, 4000);
+
+    // Emit event to notify parent Tasks page
+    window.dispatchEvent(
+        new CustomEvent("taskUpdated", {
+            detail: { taskId: updatedTask.id, updatedTask },
+        })
+    );
+}, []);
+
     // Handle back navigation
     const handleBackClick = useCallback(() => {
         navigate(-1);
@@ -311,14 +419,6 @@ const TaskDetails: React.FC = () => {
 
     if (loading) return <CircularProgress />;
     if (!task) return <Typography>No task found</Typography>;
-
-    const useCases = [
-        "Customer churn prediction",
-        "Risk assessment automation",
-    ];
-    const models = ["Churn-Predictor-v2.3"];
-    const frameworks = ["EU AI Act", "ISO 42001"];
-    const vendors = ["AWS SageMaker"];
 
     return (
         <Box
@@ -408,124 +508,74 @@ const TaskDetails: React.FC = () => {
                                         alignItems="center"
                                     >
                                         {/* Assignee initials */}
-                                        {task.assignees &&
-                                            task.assignees.length > 0 && (
-                                                <Stack
-                                                    direction="row"
-                                                    spacing={0.5}
-                                                    sx={{ gap: "4px" }}
-                                                >
-                                                    {task.assignees
-                                                        .slice(0, 3)
-                                                        .map(
-                                                            (
-                                                                assigneeId,
-                                                                idx
-                                                            ) => {
-                                                                const user =
-                                                                    users.find(
-                                                                        (u) =>
-                                                                            u.id ===
-                                                                            Number(
-                                                                                assigneeId
-                                                                            )
-                                                                    );
-                                                                const initials =
-                                                                    user
-                                                                        ? `${user.name.charAt(
-                                                                              0
-                                                                          )}${user.surname.charAt(
-                                                                              0
-                                                                          )}`.toUpperCase()
-                                                                        : "?";
+                                        {task.assignees && task.assignees.length > 0 && (
+                                            <Stack direction="row" spacing={0.5} sx={{ gap: "4px" }}>
+                                                {task.assignees.slice(0, 3).map((assigneeId, idx) => {
+                                                    const user = users.find((u) => u.id === Number(assigneeId));
+                                                    const initials = user
+                                                        ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
+                                                        : "?";
 
-                                                                return (
-                                                                    <Box
-                                                                        key={
-                                                                            idx
-                                                                        }
-                                                                        sx={{
-                                                                            width: 28,
-                                                                            height: 28,
-                                                                            borderRadius:
-                                                                                "50%",
-                                                                            backgroundColor:
-                                                                                "#064E3B",
-                                                                            display:
-                                                                                "flex",
-                                                                            alignItems:
-                                                                                "center",
-                                                                            justifyContent:
-                                                                                "center",
-                                                                            fontSize: 11,
-                                                                            fontWeight: 500,
-                                                                            color: "#fff",
-                                                                            border: "2px solid #fff",
-                                                                        }}
-                                                                    >
-                                                                        {
-                                                                            initials
-                                                                        }
-                                                                    </Box>
-                                                                );
-                                                            }
-                                                        )}
-
-                                                    {/* +N for extra */}
-                                                    {task.assignees.length >
-                                                        3 && (
+                                                    return (
                                                         <Box
+                                                            key={idx}
                                                             sx={{
                                                                 width: 28,
                                                                 height: 28,
-                                                                borderRadius:
-                                                                    "50%",
-                                                                backgroundColor:
-                                                                    "#e5e7eb",
+                                                                borderRadius: "50%",
+                                                                backgroundColor: "#064E3B",
                                                                 display: "flex",
-                                                                alignItems:
-                                                                    "center",
-                                                                justifyContent:
-                                                                    "center",
-                                                                fontSize: 10,
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                fontSize: 11,
                                                                 fontWeight: 500,
-                                                                color: "#6b7280",
+                                                                color: "#fff",
                                                                 border: "2px solid #fff",
                                                             }}
                                                         >
-                                                            +
-                                                            {task.assignees
-                                                                .length - 3}
+                                                            {initials}
                                                         </Box>
-                                                    )}
-                                                </Stack>
-                                            )}
+                                                    );
+                                                })}
+
+                                                {/* +N for extra */}
+                                                {task.assignees.length > 3 && (
+                                                    <Box
+                                                        sx={{
+                                                            width: 28,
+                                                            height: 28,
+                                                            borderRadius: "50%",
+                                                            backgroundColor: "#e5e7eb",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: 10,
+                                                            fontWeight: 500,
+                                                            color: "#6b7280",
+                                                            border: "2px solid #fff",
+                                                        }}
+                                                    >
+                                                        +{task.assignees.length - 3}
+                                                    </Box>
+                                                )}
+                                            </Stack>
+                                        )}
 
                                         {/* Assignee names */}
                                         <Typography
                                             sx={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                color: theme.palette.text
-                                                    .secondary,
+                                                color: theme.palette.text.secondary,
                                             }}
                                         >
                                             {task?.assignees?.length
                                                 ? task.assignees
-                                                      .map((assigneeId) => {
-                                                          const user =
-                                                              users.find(
-                                                                  (u) =>
-                                                                      u.id ===
-                                                                      Number(
-                                                                          assigneeId
-                                                                      )
-                                                              );
-                                                          return user
-                                                              ? `${user.name} ${user.surname}`
-                                                              : "Unknown";
-                                                      })
-                                                      .join(", ")
+                                                    .map((assigneeId) => {
+                                                        const user = users.find((u) => u.id === Number(assigneeId));
+                                                        return user ? `${user.name} ${user.surname}` : "Unknown";
+                                                    })
+                                                    .join(", ")
                                                 : "Unassigned"}
                                         </Typography>
                                     </Stack>
@@ -668,12 +718,12 @@ const TaskDetails: React.FC = () => {
                                 backgroundColor: theme.palette.background.alt,
                             }}
                         >
-                            <Stack
-                                direction="row"
-                                justifyContent="flex-end"
-                                spacing="16px"
-                            >
-                                <Button variant="contained" size="small">
+                            <Stack direction="row" justifyContent="flex-end" spacing="16px">
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={handleEditMappingsClick}
+                                >
                                     Edit mappings
                                 </Button>
                             </Stack>
@@ -685,26 +735,30 @@ const TaskDetails: React.FC = () => {
                             <Stack spacing="24px">
                                 <MappingSection
                                     title="USE CASES"
-                                    items={useCases}
-                                    type="useCase"
+                                    items={mappedNames.useCases}
+                                    type="usecase"
+                                    isLoading={mappingLoading}
                                 />
                                 <Divider />
                                 <MappingSection
                                     title="MODELS"
-                                    items={models}
+                                    items={mappedNames.models}
                                     type="model"
+                                    isLoading={mappingLoading}
                                 />
                                 <Divider />
                                 <MappingSection
                                     title="FRAMEWORKS"
-                                    items={frameworks}
+                                    items={mappedNames.frameworks}
                                     type="framework"
+                                    isLoading={mappingLoading}
                                 />
                                 <Divider />
                                 <MappingSection
                                     title="VENDORS"
-                                    items={vendors}
+                                    items={mappedNames.vendors}
                                     type="vendor"
+                                    isLoading={mappingLoading}
                                 />
                             </Stack>
                         </Box>
@@ -748,7 +802,7 @@ const TaskDetails: React.FC = () => {
                 </Typography>
             </Box>
 
-            {/* Edit Task Modal - Renders with current task data */}
+            {/* Edit Task Modal */}
             {task && (
                 <CreateTask
                     isOpen={isEditModalOpen}
@@ -756,6 +810,16 @@ const TaskDetails: React.FC = () => {
                     onSuccess={handleTaskUpdate}
                     initialData={task}
                     mode="edit"
+                />
+            )}
+
+            {/* Edit Mappings Modal */}
+            {task && (
+                <EditTaskMappingsModal
+                    isOpen={isEditMappingsModalOpen}
+                    setIsOpen={setIsEditMappingsModalOpen}
+                    task={task}
+                    onSuccess={handleMappingsUpdate}
                 />
             )}
 

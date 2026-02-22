@@ -11,6 +11,11 @@ export interface ITask {
   priority: TaskPriority;
   status: TaskStatus;
   categories?: string[];
+  // NEW: Task mapping fields
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
   is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;

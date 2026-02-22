@@ -11,6 +11,10 @@ export class TaskModel implements ITask {
   priority: TaskPriority;
   status: TaskStatus;
   categories?: string[];
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
   created_at?: Date;
   updated_at?: Date;
   creator_name?: string;
@@ -27,6 +31,11 @@ export class TaskModel implements ITask {
     this.priority = data?.priority ?? TaskPriority.MEDIUM;
     this.status = data?.status ?? TaskStatus.OPEN;
     this.categories = data?.categories ?? [];
+     // NEW: Initialize mapping fields
+     this.use_cases = data?.use_cases ?? [];
+     this.models = data?.models ?? [];
+     this.frameworks = data?.frameworks ?? [];
+     this.vendors = data?.vendors ?? [];
     this.created_at = data?.created_at ?? new Date();
     this.updated_at = data?.updated_at ?? new Date();
     this.creator_name = data?.creator_name ?? "";

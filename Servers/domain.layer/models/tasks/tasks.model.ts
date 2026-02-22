@@ -100,6 +100,35 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   })
   categories?: string[];
 
+  // NEW: Task mapping fields
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    defaultValue: [],
+  })
+  use_cases?: number[];
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    defaultValue: [],
+  })
+  models?: number[];
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    defaultValue: [],
+  })
+  frameworks?: number[];
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    defaultValue: [],
+  })
+  vendors?: number[];
+
   @Column({
     type: DataType.DATE,
     allowNull: false,
@@ -125,6 +154,10 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     priority?: TaskPriority;
     status?: TaskStatus;
     categories?: string[];
+    use_cases?: number[];
+    models?: number[];
+    frameworks?: number[];
+    vendors?: number[];
     is_deleted?: boolean;
   }): Promise<void> {
     if (updateData.title !== undefined) {
@@ -144,6 +177,18 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     }
     if (updateData.categories !== undefined) {
       this.categories = updateData.categories;
+    }
+    if (updateData.use_cases !== undefined) {
+      this.use_cases = updateData.use_cases;
+    }
+    if (updateData.models !== undefined) {
+      this.models = updateData.models;
+    }
+    if (updateData.frameworks !== undefined) {
+      this.frameworks = updateData.frameworks;
+    }
+    if (updateData.vendors !== undefined) {
+      this.vendors = updateData.vendors;
     }
 
     // Validate updated data before persisting
@@ -252,6 +297,47 @@ export class TasksModel extends Model<TasksModel> implements ITask {
         );
       }
     }
+
+    // Validate mapping fields (use_cases, models, frameworks, vendors)
+    this.validateMappingField("use_cases", this.use_cases);
+    this.validateMappingField("models", this.models);
+    this.validateMappingField("frameworks", this.frameworks);
+    this.validateMappingField("vendors", this.vendors);
+  }
+
+  /**
+   * Validate mapping field (use_cases, models, frameworks, vendors)
+   */
+  private validateMappingField(fieldName: string, fieldValue: number[] | undefined): void {
+    if (fieldValue === undefined || fieldValue === null) {
+      return;
+    }
+
+    if (!Array.isArray(fieldValue)) {
+      throw new ValidationException(
+        `${fieldName} must be an array of IDs`,
+        fieldName,
+        fieldValue
+      );
+    }
+
+    if (fieldValue.length > 100) {
+      throw new ValidationException(
+        `Maximum 100 ${fieldName} allowed`,
+        fieldName,
+        fieldValue
+      );
+    }
+
+    for (const id of fieldValue) {
+      if (!numberValidation(id, 1)) {
+        throw new ValidationException(
+          `Each ID in ${fieldName} must be a positive integer`,
+          fieldName,
+          id
+        );
+      }
+    }
   }
 
   /**
@@ -297,6 +383,10 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       priority: this.priority,
       status: this.status,
       categories: this.categories,
+      use_cases: this.use_cases || [],
+      models: this.models || [],
+      frameworks: this.frameworks || [],
+      vendors: this.vendors || [],
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
       isOverdue: this.isOverdue(),

@@ -88,6 +88,11 @@ export function mapTaskResponseDTOToInterface(dto: TaskResponseDTO): ITask {
     priority: mapPriority(dto.priority),
     status: mapStatus(dto.status),
     categories: dto.categories || [],
+    // NEW: Add mapping fields
+    use_cases: dto.use_cases || [],
+    models: dto.models || [],
+    frameworks: dto.frameworks || [],
+    vendors: dto.vendors || [],
     created_at: dto.created_at ? new Date(dto.created_at) : undefined,
     updated_at: dto.updated_at ? new Date(dto.updated_at) : undefined,
     creator_name: dto.creator_name,
@@ -177,6 +182,11 @@ export function mapTaskToUpdateDTO(task: Partial<ITask>): UpdateTaskDTO {
     priority: task.priority,
     status: task.status,
     categories: task.categories,
+     // NEW: Add mapping fields
+     use_cases: task.use_cases,
+     models: task.models,
+     frameworks: task.frameworks,
+     vendors: task.vendors,
     assignees: task.assignees?.map(a => a.user_id),
   };
 }

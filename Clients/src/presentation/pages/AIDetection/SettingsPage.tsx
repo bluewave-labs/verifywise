@@ -14,6 +14,8 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
+  Slider,
+  SelectChangeEvent,
 } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
@@ -22,7 +24,11 @@ import {
   EyeOff,
   Trash2,
   ExternalLink,
+  Info,
+  RotateCcw,
 } from "lucide-react";
+import Toggle from "../../components/Inputs/Toggle";
+import Select from "../../components/Inputs/Select";
 import TabBar from "../../components/TabBar";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import Field from "../../components/Inputs/Field";
@@ -36,6 +42,20 @@ import {
   GitHubTokenStatus,
   GitHubTokenTestResult,
 } from "../../../application/repository/githubToken.repository";
+import {
+  getRiskScoringConfig,
+  updateRiskScoringConfig,
+} from "../../../application/repository/aiDetection.repository";
+import { getLLMKeys } from "../../../application/repository/llmKeys.repository";
+import { LLMKeysModel } from "../../../domain/models/Common/llmKeys/llmKeys.model";
+import {
+  DimensionKey,
+  RiskScoringConfig,
+  DIMENSION_LABELS,
+  DIMENSION_DESCRIPTIONS,
+  DIMENSION_ORDER,
+  DEFAULT_DIMENSION_WEIGHTS,
+} from "../../../domain/ai-detection/riskScoringTypes";
 import { palette } from "../../themes/palette";
 
 interface ToastAlert {
@@ -55,6 +75,17 @@ export default function SettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [alert, setAlert] = useState<ToastAlert | null>(null);
 
+  // Risk scoring state
+  const [riskConfig, setRiskConfig] = useState<RiskScoringConfig | null>(null);
+  const [riskConfigLoading, setRiskConfigLoading] = useState(false);
+  const [riskConfigSaving, setRiskConfigSaving] = useState(false);
+  const [llmEnabled, setLlmEnabled] = useState(false);
+  const [llmKeyId, setLlmKeyId] = useState<number | null>(null);
+  const [dimensionWeights, setDimensionWeights] = useState<Record<DimensionKey, number>>(
+    { ...DEFAULT_DIMENSION_WEIGHTS }
+  );
+  const [llmKeys, setLlmKeys] = useState<LLMKeysModel[]>([]);
+
   // Load token status on mount
   const loadTokenStatus = useCallback(async () => {
     try {
@@ -72,6 +103,32 @@ export default function SettingsPage() {
   useEffect(() => {
     loadTokenStatus();
   }, [loadTokenStatus]);
+
+  // Load risk scoring config and LLM keys
+  const loadRiskConfig = useCallback(async () => {
+    setRiskConfigLoading(true);
+    try {
+      const [config, keysResponse] = await Promise.all([
+        getRiskScoringConfig(),
+        getLLMKeys(),
+      ]);
+      setRiskConfig(config);
+      setLlmEnabled(config.llm_enabled);
+      setLlmKeyId(config.llm_key_id);
+      setDimensionWeights(config.dimension_weights);
+
+      const keys = keysResponse?.data?.data || keysResponse?.data || [];
+      setLlmKeys(Array.isArray(keys) ? keys : []);
+    } catch (err) {
+      console.error("Failed to load risk scoring config:", err);
+    } finally {
+      setRiskConfigLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRiskConfig();
+  }, [loadRiskConfig]);
 
   // Auto-dismiss toast after 3 seconds
   useEffect(() => {
@@ -146,6 +203,43 @@ export default function SettingsPage() {
     }
   };
 
+  // Risk scoring handlers
+  const handleWeightChange = (key: DimensionKey, newValue: number) => {
+    setDimensionWeights((prev) => ({ ...prev, [key]: newValue }));
+  };
+
+  const handleResetWeights = () => {
+    setDimensionWeights({ ...DEFAULT_DIMENSION_WEIGHTS });
+  };
+
+  const weightsTotal = Object.values(dimensionWeights).reduce((sum, w) => sum + w, 0);
+  const weightsValid = Math.abs(weightsTotal - 1.0) < 0.02;
+
+  const handleSaveRiskConfig = async () => {
+    if (!weightsValid) {
+      setAlert({ variant: "error", body: "Dimension weights must sum to 100%" });
+      return;
+    }
+    if (llmEnabled && !llmKeyId) {
+      setAlert({ variant: "error", body: "Please select an LLM key or disable LLM analysis" });
+      return;
+    }
+    setRiskConfigSaving(true);
+    try {
+      const updated = await updateRiskScoringConfig({
+        llm_enabled: llmEnabled,
+        llm_key_id: llmEnabled ? llmKeyId : null,
+        dimension_weights: dimensionWeights,
+      });
+      setRiskConfig(updated);
+      setAlert({ variant: "success", body: "Risk scoring settings saved" });
+    } catch (err) {
+      setAlert({ variant: "error", body: err instanceof Error ? err.message : "Failed to save" });
+    } finally {
+      setRiskConfigSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <PageHeaderExtended title="Settings" description="Configure integrations and tokens for AI detection scanning.">
@@ -189,6 +283,12 @@ export default function SettingsPage() {
               value: "github",
               icon: "Github",
               tooltip: "Connect a GitHub token to scan private repositories",
+            },
+            {
+              label: "Risk scoring",
+              value: "risk-scoring",
+              icon: "Shield",
+              tooltip: "Configure AI Governance Risk Score settings",
             },
           ]}
           activeTab={activeTab}
@@ -317,6 +417,158 @@ export default function SettingsPage() {
               </CustomizableButton>
             </Box>
           </Box>
+        </TabPanel>
+        <TabPanel value="risk-scoring" sx={{ p: 0, pt: "8px" }}>
+          {riskConfigLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* LLM-enhanced analysis toggle */}
+              <Box
+                sx={{
+                  border: `1px solid ${palette.border.dark}`,
+                  borderRadius: "4px",
+                  p: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: palette.text.primary }}>
+                  LLM-enhanced analysis
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography sx={{ fontSize: 13, color: palette.text.secondary }}>
+                      Use an LLM to provide contextual narrative, cross-finding correlation, and
+                      actionable recommendations alongside rule-based scoring.
+                    </Typography>
+                  </Box>
+                  <Toggle
+                    checked={llmEnabled}
+                    onChange={(e) => setLlmEnabled(e.target.checked)}
+                    size="small"
+                  />
+                </Box>
+
+                {llmEnabled && (
+                  <Box>
+                    <Select
+                      id="llm-key-select"
+                      label="LLM provider"
+                      placeholder="Select an LLM key"
+                      value={llmKeyId ?? ""}
+                      items={llmKeys.map((key) => ({
+                        _id: key.id,
+                        name: `${key.name} — ${key.model}`,
+                      }))}
+                      onChange={(e: SelectChangeEvent<string | number>) =>
+                        setLlmKeyId(e.target.value ? Number(e.target.value) : null)
+                      }
+                      sx={{ maxWidth: 360 }}
+                    />
+                    {llmKeys.length === 0 && (
+                      <Box sx={{ display: "flex", alignItems: "center", gap: "8px", mt: "8px" }}>
+                        <Info size={12} color={palette.text.accent} strokeWidth={1.5} />
+                        <Typography sx={{ fontSize: 12, color: palette.text.accent }}>
+                          Configure LLM keys in Settings → Organization → LLM keys
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Dimension weights */}
+              <Box
+                sx={{
+                  border: `1px solid ${palette.border.dark}`,
+                  borderRadius: "4px",
+                  p: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: palette.text.primary }}>
+                    Dimension weights
+                  </Typography>
+                  <CustomizableButton
+                    variant="text"
+                    size="small"
+                    onClick={handleResetWeights}
+                    sx={{ fontSize: 12, textTransform: "none", minWidth: "auto" }}
+                  >
+                    <RotateCcw size={12} style={{ marginRight: 4 }} />
+                    Reset to defaults
+                  </CustomizableButton>
+                </Box>
+
+                {DIMENSION_ORDER.map((key) => {
+                  const pct = Math.round(dimensionWeights[key] * 100);
+                  return (
+                    <Box key={key}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Box>
+                          <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
+                            {DIMENSION_LABELS[key]}
+                          </Typography>
+                          <Typography sx={{ fontSize: 13, color: palette.text.accent }}>
+                            {DIMENSION_DESCRIPTIONS[key]}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary, fontFamily: "monospace", flexShrink: 0 }}>
+                          {pct}%
+                        </Typography>
+                      </Box>
+                      <Slider
+                        value={pct}
+                        onChange={(_, val) => handleWeightChange(key, (val as number) / 100)}
+                        min={0}
+                        max={100}
+                        step={1}
+                        size="small"
+                        sx={{
+                          color: palette.brand.primary,
+                          height: 4,
+                          "& .MuiSlider-thumb": {
+                            width: 14,
+                            height: 14,
+                          },
+                        }}
+                      />
+                    </Box>
+                  );
+                })}
+
+                <Box sx={{ display: "flex", justifyContent: "space-between", pt: "8px", borderTop: `1px solid ${palette.border.light}` }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: weightsValid ? palette.text.secondary : palette.status.error.text }}>
+                    Total: {Math.round(weightsTotal * 100)}%
+                  </Typography>
+                  {!weightsValid && (
+                    <Typography sx={{ fontSize: 12, color: palette.status.error.text }}>
+                      Weights must sum to 100%
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Save button */}
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <CustomizableButton
+                  variant="contained"
+                  onClick={handleSaveRiskConfig}
+                  isDisabled={riskConfigSaving || !weightsValid}
+                  loading={riskConfigSaving}
+                >
+                  Save
+                </CustomizableButton>
+              </Box>
+            </Box>
+          )}
         </TabPanel>
       </TabContext>
     </PageHeaderExtended>

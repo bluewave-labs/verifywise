@@ -72,6 +72,7 @@ import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
 import aiDetectionRoutes from "./routes/aiDetection.route";
+import aiDetectionRepositoryRoutes from "./routes/aiDetectionRepository.route";
 import githubIntegrationRoutes from "./routes/githubIntegration.route";
 import notificationRoutes from "./routes/notification.route";
 import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
@@ -228,6 +229,7 @@ try {
   app.use("/api/approval-workflows", approvalWorkflowRoutes);
   app.use("/api/approval-requests", approvalRequestRoutes);
   app.use("/api/ai-detection", aiDetectionRoutes);
+  app.use("/api/ai-detection/repositories", aiDetectionRepositoryRoutes);
   app.use("/api/integrations/github", githubIntegrationRoutes);
   app.use("/api/notifications", notificationRoutes);
   app.use("/api/pmm", postMarketMonitoringRoutes);

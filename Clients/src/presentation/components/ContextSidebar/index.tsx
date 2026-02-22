@@ -93,17 +93,21 @@ export function ContextSidebar({
       );
     case "ai-detection": {
       // Get active tab from URL path for ai-detection
-      const aiDetectionTab = location.pathname.includes("/ai-detection/history")
-        ? "history"
-        : location.pathname.includes("/ai-detection/settings")
-          ? "settings"
-          : location.pathname.includes("/ai-detection/scans/")
-            ? "history"
-            : "scan";
+      const aiDetectionTab = location.pathname.includes("/ai-detection/repositories")
+        ? "repositories"
+        : location.pathname.includes("/ai-detection/history")
+          ? "history"
+          : location.pathname.includes("/ai-detection/settings")
+            ? "settings"
+            : location.pathname.includes("/ai-detection/scans/")
+              ? "history"
+              : "scan";
 
       const handleAIDetectionTabChange = (newTab: string) => {
         if (newTab === "scan") {
           navigate("/ai-detection/scan");
+        } else if (newTab === "repositories") {
+          navigate("/ai-detection/repositories");
         } else if (newTab === "history") {
           navigate("/ai-detection/history");
         } else if (newTab === "settings") {
@@ -116,6 +120,7 @@ export function ContextSidebar({
           activeTab={aiDetectionTab}
           onTabChange={handleAIDetectionTabChange}
           historyCount={aiDetectionSidebarContext?.historyCount ?? 0}
+          repositoryCount={aiDetectionSidebarContext?.repositoryCount ?? 0}
           recentScans={aiDetectionSidebarContext?.recentScans ?? []}
           onScanClick={(scanId) => navigate(`/ai-detection/scans/${scanId}`)}
         />

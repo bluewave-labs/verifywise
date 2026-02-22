@@ -46,6 +46,7 @@ import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import ScanPage from "../../presentation/pages/AIDetection/ScanPage";
 import HistoryPage from "../../presentation/pages/AIDetection/HistoryPage";
 import AIDetectionSettingsPage from "../../presentation/pages/AIDetection/SettingsPage";
+import RepositoriesPage from "../../presentation/pages/AIDetection/RepositoriesPage";
 import ScanDetailsPage from "../../presentation/pages/AIDetection/ScanDetailsPage";
 import InsightsPage from "../../presentation/pages/ShadowAI/InsightsPage";
 import UserActivityPage from "../../presentation/pages/ShadowAI/UserActivityPage";
@@ -122,6 +123,7 @@ export const createRoutes = (
     <Route path="/approval-workflows" element={<ApprovalWorkflows />} />
     <Route path="/ai-detection" element={<Navigate to="/ai-detection/scan" replace />} />
     <Route path="/ai-detection/scan" element={<ScanPage />} />
+    <Route path="/ai-detection/repositories" element={<RepositoriesPage />} />
     <Route path="/ai-detection/history" element={<HistoryPage />} />
     <Route path="/ai-detection/settings" element={<AIDetectionSettingsPage />} />
     <Route path="/ai-detection/scans/:scanId" element={<ScanDetailsPage />} />

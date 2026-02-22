@@ -7,7 +7,7 @@
  * @module pages/AIDetection/ScanDetailsPage
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Box, Typography, Collapse, IconButton, Tooltip, Popover } from "@mui/material";
 import { TabContext } from "@mui/lab";
@@ -21,17 +21,25 @@ import {
   Info,
   Package,
   AlertCircle,
+  AlertTriangle,
   Eye,
   ThumbsUp,
   Flag,
   MoreHorizontal,
   Download,
-  Network,
   Scale,
   FileText,
+  Cpu,
+  FileSearch,
+  RefreshCw,
+  Plus,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
+import Alert from "../../components/Alert";
 import Chip from "../../components/Chip";
+import { StatCard } from "../../components/Cards/StatCard";
 import TabBar from "../../components/TabBar";
 import { VWLink } from "../../components/Link";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
@@ -57,7 +65,9 @@ import {
   updateFindingGovernanceStatus,
   exportAIBOM,
   getComplianceMapping,
+  recalculateRiskScore,
 } from "../../../application/repository/aiDetection.repository";
+import { RiskScoreCard } from "./components/RiskScoreCard";
 import {
   ScanResponse,
   Finding,
@@ -70,8 +80,21 @@ import {
   ComplianceMappingResponse,
   ComplianceCategory,
 } from "../../../domain/ai-detection/types";
+import {
+  SuggestedRisk,
+  DIMENSION_LABELS,
+  DimensionKey,
+} from "../../../domain/ai-detection/riskScoringTypes";
+import type { RiskFormValues, MitigationFormValues } from "../../../domain/types/riskForm.types";
 import { formatDistanceToNow } from "date-fns";
 import AIDepGraphModal from "../../components/AIDepGraphModal";
+import AddNewRiskForm from "../../components/AddNewRiskForm";
+import StandardModal from "../../components/Modals/StandardModal";
+import useUsers from "../../../application/hooks/useUsers";
+import {
+  riskCategoryItems,
+  aiLifecyclePhase,
+} from "../../components/AddNewRiskForm/projectRiskValue";
 import { palette } from "../../themes/palette";
 
 type TabValue =
@@ -458,9 +481,10 @@ interface FindingRowProps {
   repositoryName: string;
   scanId: number;
   onGovernanceChange?: (findingId: number, status: GovernanceStatus | null) => void;
+  onStatusMessage?: (variant: "success" | "error", body: string) => void;
 }
 
-function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovernanceChange }: FindingRowProps) {
+function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovernanceChange, onStatusMessage }: FindingRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [governanceAnchor, setGovernanceAnchor] = useState<HTMLElement | null>(null);
   const [localStatus, setLocalStatus] = useState<GovernanceStatus | null>(finding.governance_status || null);
@@ -490,9 +514,12 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
       await updateFindingGovernanceStatus(scanId, finding.id, newStatus);
       setLocalStatus(newStatus);
       onGovernanceChange?.(finding.id, newStatus);
+      const statusLabel = newStatus ? GOVERNANCE_STATUS_CONFIG[newStatus].label : "unreviewed";
+      onStatusMessage?.("success", `Status updated to ${statusLabel}`);
     } catch {
-      // Revert to original status on failure - UI already reflects the local state
+      // Revert to original status on failure
       setLocalStatus(finding.governance_status || null);
+      onStatusMessage?.("error", "Failed to update governance status");
     } finally {
       setIsUpdating(false);
     }
@@ -939,6 +966,64 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
 }
 
 // ============================================================================
+// Suggested Risk Helpers
+// ============================================================================
+
+const DIMENSION_CHIP_COLORS: Record<DimensionKey, { text: string; bg: string }> = {
+  data_sovereignty: { text: palette.accent.indigo.text, bg: palette.accent.indigo.bg },
+  transparency: { text: palette.accent.blue.text, bg: palette.accent.blue.bg },
+  security: { text: palette.accent.pink.text, bg: palette.accent.pink.bg },
+  autonomy: { text: palette.accent.purple.text, bg: palette.accent.purple.bg },
+  supply_chain: { text: palette.accent.orange.text, bg: palette.accent.orange.bg },
+};
+
+function mapCategoryNamesToIds(names: string[]): number[] {
+  return names
+    .map((name) => riskCategoryItems.find((item) => item.name === name)?._id)
+    .filter((id): id is number => id !== undefined);
+}
+
+function mapPhaseNameToId(name: string): number {
+  return aiLifecyclePhase.find((item) => item.name === name)?._id ?? 0;
+}
+
+function getRiskLevelLabel(likelihood: number, severity: number): { text: string; color: string } {
+  const score = likelihood * severity;
+  if (score >= 20) return { text: "Very high risk", color: palette.risk.critical.text };
+  if (score >= 12) return { text: "High risk", color: palette.risk.high.text };
+  if (score >= 6) return { text: "Medium risk", color: palette.risk.medium.text };
+  if (score >= 3) return { text: "Low risk", color: palette.risk.low.text };
+  return { text: "Very low risk", color: palette.status.success.text };
+}
+
+function mapSuggestionToRiskForm(s: SuggestedRisk): RiskFormValues {
+  return {
+    riskName: s.risk_name,
+    actionOwner: 0,
+    aiLifecyclePhase: mapPhaseNameToId(s.ai_lifecycle_phase),
+    riskDescription: s.risk_description,
+    riskCategory: mapCategoryNamesToIds(s.risk_category),
+    potentialImpact: s.impact,
+    assessmentMapping: 0,
+    controlsMapping: 0,
+    likelihood: s.likelihood,
+    riskSeverity: s.severity,
+    riskLevel: 0,
+    reviewNotes: s.finding_refs.length > 0
+      ? `Suggested by AI scan analysis. Related findings: ${s.finding_refs.join(", ")}`
+      : "Suggested by AI scan analysis.",
+    applicableProjects: [],
+    applicableFrameworks: [],
+  };
+}
+
+function mapSuggestionToMitigationForm(s: SuggestedRisk): Partial<MitigationFormValues> {
+  return {
+    mitigationPlan: s.mitigation_plan,
+  };
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -998,6 +1083,79 @@ export default function ScanDetailsPage() {
   const [complianceData, setComplianceData] = useState<ComplianceMappingResponse | null>(null);
   const [complianceLoading, setComplianceLoading] = useState(false);
   const [expandedChecklist, setExpandedChecklist] = useState<Set<string>>(new Set());
+  const [isRecalculating, setIsRecalculating] = useState(false);
+
+  // Suggested risk modal state
+  const [isSuggestedRiskModalOpen, setIsSuggestedRiskModalOpen] = useState(false);
+  const [selectedSuggestedRisk, setSelectedSuggestedRisk] = useState<RiskFormValues | null>(null);
+  const [selectedSuggestedMitigation, setSelectedSuggestedMitigation] = useState<Partial<MitigationFormValues> | null>(null);
+  const suggestedRiskSubmitRef = useRef<(() => void) | null>(null);
+  const { users, loading: usersLoading } = useUsers();
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<number>>(new Set());
+  const [removingSuggestions, setRemovingSuggestions] = useState<Set<number>>(new Set());
+  const [ignoreMenuAnchor, setIgnoreMenuAnchor] = useState<{ el: HTMLElement; index: number } | null>(null);
+  const [showSuggestedRisks, setShowSuggestedRisks] = useState(false);
+  const addedSuggestionIndexRef = useRef<number | null>(null);
+
+  // Toast alert state
+  const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const showAlert = (variant: "success" | "error", body: string) => {
+    setAlert({ variant, body });
+    setTimeout(() => setAlert(null), 3000);
+  };
+
+  // Suggested risk handlers
+  const smoothRemoveSuggestion = useCallback((index: number) => {
+    setRemovingSuggestions((prev) => new Set(prev).add(index));
+    setTimeout(() => {
+      setDismissedSuggestions((prev) => new Set(prev).add(index));
+      setRemovingSuggestions((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }, 300);
+  }, []);
+
+  const handleAddSuggestedRisk = (suggestion: SuggestedRisk, index: number) => {
+    addedSuggestionIndexRef.current = index;
+    setSelectedSuggestedRisk(mapSuggestionToRiskForm(suggestion));
+    setSelectedSuggestedMitigation(mapSuggestionToMitigationForm(suggestion));
+    setIsSuggestedRiskModalOpen(true);
+  };
+
+  const handleSuggestedRiskModalClose = () => {
+    setIsSuggestedRiskModalOpen(false);
+    setSelectedSuggestedRisk(null);
+    setSelectedSuggestedMitigation(null);
+    addedSuggestionIndexRef.current = null;
+  };
+
+  const handleSuggestedRiskSubmit = () => {
+    if (suggestedRiskSubmitRef.current) {
+      suggestedRiskSubmitRef.current();
+    }
+  };
+
+  const handleSuggestedRiskSuccess = () => {
+    showAlert("success", "Risk added to risk register");
+    const idx = addedSuggestionIndexRef.current;
+    handleSuggestedRiskModalClose();
+    if (idx !== null) {
+      smoothRemoveSuggestion(idx);
+    }
+  };
+
+  const handleSuggestedRiskError = (message: string) => {
+    showAlert("error", message || "Failed to add risk");
+  };
+
+  const handleIgnoreSuggestion = (reason: string) => {
+    if (ignoreMenuAnchor) {
+      smoothRemoveSuggestion(ignoreMenuAnchor.index);
+      setIgnoreMenuAnchor(null);
+    }
+  };
 
   // Initial load - only loads scan data
   useEffect(() => {
@@ -1252,9 +1410,9 @@ export default function ScanDetailsPage() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      showAlert("success", "AI-BOM exported successfully");
     } catch {
-      // Export failed - could show error toast here
-      console.error("Failed to export AI-BOM");
+      showAlert("error", "Failed to export AI-BOM");
     } finally {
       setIsExporting(false);
     }
@@ -1288,6 +1446,18 @@ export default function ScanDetailsPage() {
     <PageHeaderExtended
       title="Scan details"
       description={`${scan.scan.repository_owner}/${scan.scan.repository_name}`}
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
     >
       {/* Back Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
@@ -1336,14 +1506,27 @@ export default function ScanDetailsPage() {
 
         {/* Action Buttons */}
         {scan.scan.status === "completed" && (
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Tooltip title="View AI dependency graph" arrow placement="top">
+          <Box sx={{ display: "flex", gap: "8px" }}>
+            <Tooltip title="Recalculate risk score" arrow placement="top">
               <span>
                 <CustomizableButton
-                  text="View graph"
-                  onClick={() => setShowDepGraph(true)}
+                  text="Recalculate score"
+                  onClick={async () => {
+                    setIsRecalculating(true);
+                    try {
+                      const result = await recalculateRiskScore(scanId);
+                      const updated = await getScan(scanId);
+                      setScan(updated);
+                      showAlert("success", `Risk score updated: ${result.score} (${result.grade})`);
+                    } catch {
+                      showAlert("error", "Failed to recalculate risk score");
+                    } finally {
+                      setIsRecalculating(false);
+                    }
+                  }}
                   variant="outlined"
-                  startIcon={<Network size={16} />}
+                  startIcon={<RefreshCw size={16} />}
+                  isDisabled={isRecalculating}
                   sx={{ height: 34 }}
                 />
               </span>
@@ -1389,6 +1572,233 @@ export default function ScanDetailsPage() {
           </Box>
         </Box>
       )}
+
+      {/* Risk Score Card - only for completed scans */}
+      {scan.scan.status === "completed" && (
+        <RiskScoreCard
+          score={scan.scan.risk_score ?? null}
+          grade={scan.scan.risk_score_grade ?? null}
+          details={scan.scan.risk_score_details ?? null}
+          calculatedAt={scan.scan.risk_score_calculated_at ?? null}
+          isRecalculating={isRecalculating}
+        />
+      )}
+
+      {/* Suggested Risks - only when LLM suggestions exist */}
+      {scan.scan.status === "completed" &&
+        scan.scan.risk_score_details?.llm_suggested_risks &&
+        scan.scan.risk_score_details.llm_suggested_risks.length > 0 &&
+        scan.scan.risk_score_details.llm_suggested_risks.some((_, i) => !dismissedSuggestions.has(i)) && (
+        <Box
+          sx={{
+            background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
+            border: `1px solid ${palette.border.light}`,
+            borderRadius: "8px",
+            p: "14px 16px",
+          }}
+        >
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", "&:hover": { opacity: 0.8 } }}
+            onClick={() => setShowSuggestedRisks(!showSuggestedRisks)}
+          >
+            {showSuggestedRisks ? (
+              <ChevronDown size={14} strokeWidth={1.5} color={palette.text.accent} />
+            ) : (
+              <ChevronRight size={14} strokeWidth={1.5} color={palette.text.accent} />
+            )}
+            <Sparkles size={12} color={palette.accent.purple.text} strokeWidth={1.5} />
+            <Typography sx={{ fontSize: 13, color: palette.text.secondary, fontWeight: 500 }}>Suggested risks</Typography>
+          </Box>
+          <Collapse in={showSuggestedRisks}>
+            <Box sx={{ mt: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              {scan.scan.risk_score_details.llm_suggested_risks.map((suggestion, index) => {
+                if (dismissedSuggestions.has(index)) return null;
+
+                const isRemoving = removingSuggestions.has(index);
+                const riskLevel = getRiskLevelLabel(suggestion.likelihood, suggestion.severity);
+                const dimColors = DIMENSION_CHIP_COLORS[suggestion.dimension] || DIMENSION_CHIP_COLORS.security;
+                const dimLabel = DIMENSION_LABELS[suggestion.dimension] || suggestion.dimension;
+
+                return (
+                  <Box
+                    key={index}
+                    sx={{
+                      border: `1px solid ${palette.border.light}`,
+                      borderRadius: "4px",
+                      p: "8px",
+                      backgroundColor: palette.background.main,
+                      "&:hover": { borderColor: palette.border.dark },
+                      transition: "opacity 300ms ease, max-height 300ms ease, padding 300ms ease, margin 300ms ease",
+                      opacity: isRemoving ? 0 : 1,
+                      maxHeight: isRemoving ? 0 : 300,
+                      overflow: "hidden",
+                      ...(isRemoving && { p: 0, border: "none", mb: 0 }),
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px" }}>
+                      <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                          <Typography sx={{ fontSize: "14px", fontWeight: 600, color: palette.text.primary }}>
+                            {suggestion.risk_name}
+                          </Typography>
+                          <Chip
+                            label={dimLabel}
+                            backgroundColor={dimColors.bg}
+                            textColor={dimColors.text}
+                            uppercase={false}
+                            size="small"
+                          />
+                          <Chip
+                            label={riskLevel.text}
+                            size="small"
+                          />
+                        </Box>
+                        <Typography
+                          sx={{
+                            fontSize: "13px",
+                            color: palette.text.secondary,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {suggestion.risk_description}
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          {suggestion.risk_category.map((cat) => (
+                            <Chip
+                              key={cat}
+                              label={cat}
+                              variant="default"
+                              uppercase={false}
+                              size="small"
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                        <CustomizableButton
+                          text="Ignore"
+                          variant="text"
+                          onClick={(e: React.MouseEvent<HTMLElement>) => setIgnoreMenuAnchor({ el: e.currentTarget, index })}
+                          sx={{
+                            whiteSpace: "nowrap",
+                            height: "34px",
+                            fontSize: "13px",
+                            color: palette.text.tertiary,
+                          }}
+                        />
+                        <CustomizableButton
+                          text="Add to risk register"
+                          variant="outlined"
+                          startIcon={<Plus size={14} strokeWidth={1.5} />}
+                          onClick={() => handleAddSuggestedRisk(suggestion, index)}
+                          sx={{
+                            whiteSpace: "nowrap",
+                            height: "34px",
+                            fontSize: "13px",
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Collapse>
+
+          {/* Ignore reason popover */}
+          <Popover
+            open={Boolean(ignoreMenuAnchor)}
+            anchorEl={ignoreMenuAnchor?.el}
+            onClose={() => setIgnoreMenuAnchor(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 0.5,
+                  borderRadius: "4px",
+                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  border: `1px solid ${palette.border.light}`,
+                },
+              },
+            }}
+          >
+            <Box sx={{ p: 1, minWidth: 200 }}>
+              <Box
+                onClick={() => handleIgnoreSuggestion("already_added")}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  p: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: palette.background.hover },
+                }}
+              >
+                <Typography sx={{ fontSize: "13px", color: palette.text.primary }}>
+                  This has already been added before
+                </Typography>
+              </Box>
+              <Box
+                onClick={() => handleIgnoreSuggestion("not_real_risk")}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  p: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: palette.background.hover },
+                }}
+              >
+                <Typography sx={{ fontSize: "13px", color: palette.text.primary }}>
+                  This is not a real risk
+                </Typography>
+              </Box>
+            </Box>
+          </Popover>
+        </Box>
+      )}
+
+      {/* Suggested Risk Modal */}
+      <StandardModal
+        isOpen={isSuggestedRiskModalOpen && !!selectedSuggestedRisk}
+        onClose={handleSuggestedRiskModalClose}
+        title="Add suggested risk to register"
+        description="Review and edit the AI-suggested risk before saving."
+        onSubmit={handleSuggestedRiskSubmit}
+        submitButtonText="Save"
+        maxWidth="1039px"
+      >
+        <AddNewRiskForm
+          closePopup={handleSuggestedRiskModalClose}
+          popupStatus="new"
+          onSuccess={handleSuggestedRiskSuccess}
+          onError={handleSuggestedRiskError}
+          initialRiskValues={selectedSuggestedRisk || undefined}
+          initialMitigationValues={selectedSuggestedMitigation ? {
+            mitigationStatus: 1,
+            mitigationPlan: selectedSuggestedMitigation.mitigationPlan || "",
+            currentRiskLevel: 0,
+            implementationStrategy: "",
+            deadline: "",
+            doc: "",
+            likelihood: selectedSuggestedRisk?.likelihood || 0,
+            riskSeverity: selectedSuggestedRisk?.riskSeverity || 0,
+            approver: 0,
+            approvalStatus: 0,
+            dateOfAssessment: "",
+            recommendations: "",
+          } : undefined}
+          users={users}
+          usersLoading={usersLoading}
+          onSubmitRef={suggestedRiskSubmitRef}
+        />
+      </StandardModal>
 
       {/* Tabs */}
       <TabContext value={activeTab}>
@@ -1470,98 +1880,37 @@ export default function ScanDetailsPage() {
                 mb: "8px",
               }}
             >
-              <Box
-                sx={{
-                  backgroundColor: palette.background.main,
-                  border: `1px solid ${palette.border.dark}`,
-                  borderRadius: "4px",
-                  p: 2,
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
+              <StatCard
+                title="Total findings"
+                value={scan.summary.total}
+                Icon={Cpu}
+                active={confidenceFilter === null}
                 onClick={() => setConfidenceFilter(null)}
-              >
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 600,
-                    color: confidenceFilter === null ? palette.brand.primary : palette.text.primary,
-                  }}
-                >
-                  {scan.summary.total}
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
-                  Total findings
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  backgroundColor: palette.status.error.bg,
-                  border: `1px solid ${palette.status.error.border}`,
-                  borderRadius: "4px",
-                  p: 2,
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-                onClick={() =>
-                  setConfidenceFilter((f) => (f === "high" ? null : "high"))
-                }
-              >
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 600,
-                    color: confidenceFilter === "high" ? palette.status.error.text : palette.text.primary,
-                  }}
-                >
-                  {scan.summary.by_confidence.high}
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
-                  High confidence
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  backgroundColor: palette.status.warning.bg,
-                  border: `1px solid ${palette.status.warning.border}`,
-                  borderRadius: "4px",
-                  p: 2,
-                  textAlign: "center",
-                  cursor: "pointer",
-                }}
-                onClick={() =>
-                  setConfidenceFilter((f) => (f === "medium" ? null : "medium"))
-                }
-              >
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 600,
-                    color: confidenceFilter === "medium" ? palette.status.warning.text : palette.text.primary,
-                  }}
-                >
-                  {scan.summary.by_confidence.medium}
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
-                  Medium confidence
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  backgroundColor: palette.background.main,
-                  border: `1px solid ${palette.border.dark}`,
-                  borderRadius: "4px",
-                  p: 2,
-                  textAlign: "center",
-                }}
-              >
-                <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                  {scan.scan.files_scanned}
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
-                  Files scanned
-                </Typography>
-              </Box>
+                tooltip="Total AI/ML detections found in this scan"
+              />
+              <StatCard
+                title="High confidence"
+                value={scan.summary.by_confidence.high}
+                Icon={AlertCircle}
+                highlight={!confidenceFilter}
+                active={confidenceFilter === "high"}
+                onClick={() => setConfidenceFilter((f) => (f === "high" ? null : "high"))}
+                tooltip="Findings with high detection confidence"
+              />
+              <StatCard
+                title="Medium confidence"
+                value={scan.summary.by_confidence.medium}
+                Icon={AlertTriangle}
+                active={confidenceFilter === "medium"}
+                onClick={() => setConfidenceFilter((f) => (f === "medium" ? null : "medium"))}
+                tooltip="Findings with medium detection confidence"
+              />
+              <StatCard
+                title="Files scanned"
+                value={scan.scan.files_scanned}
+                Icon={FileSearch}
+                tooltip="Total number of source files analyzed"
+              />
             </Box>
 
             {/* Findings List */}
@@ -1595,6 +1944,7 @@ export default function ScanDetailsPage() {
                       repositoryOwner={scan.scan.repository_owner}
                       repositoryName={scan.scan.repository_name}
                       scanId={scanId}
+                      onStatusMessage={showAlert}
                     />
                   ))}
 

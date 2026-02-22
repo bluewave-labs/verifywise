@@ -41,6 +41,12 @@ export interface IScan {
   error_message?: string;
   triggered_by: number;
   cache_path?: string;
+  repository_id?: number | null;
+  triggered_by_type?: string;
+  risk_score?: number | null;
+  risk_score_grade?: string | null;
+  risk_score_details?: Record<string, unknown> | null;
+  risk_score_calculated_at?: Date | null;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -54,6 +60,8 @@ export interface ICreateScanInput {
   repository_name: string;
   status?: ScanStatus;
   triggered_by: number;
+  repository_id?: number | null;
+  triggered_by_type?: string;
 }
 
 /**
@@ -240,6 +248,10 @@ export interface IScanResponse {
     duration_ms?: number;
     error_message?: string;
     triggered_by: ITriggeredByUser;
+    risk_score?: number | null;
+    risk_score_grade?: string | null;
+    risk_score_details?: Record<string, unknown> | null;
+    risk_score_calculated_at?: string | null;
     created_at: string;
   };
   summary: IScanSummary;
@@ -315,6 +327,8 @@ export interface IScanListItem {
   completed_at?: string;
   duration_ms?: number;
   triggered_by: ITriggeredByUser;
+  risk_score?: number | null;
+  risk_score_grade?: string | null;
   created_at: string;
 }
 

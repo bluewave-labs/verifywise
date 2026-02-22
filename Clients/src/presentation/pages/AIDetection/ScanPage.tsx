@@ -7,7 +7,7 @@
  * @module pages/AIDetection/ScanPage
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
 import {
   Box,
   Typography,
@@ -15,7 +15,6 @@ import {
   CircularProgress,
   InputAdornment,
   Skeleton,
-  Tooltip,
 } from "@mui/material";
 import {
   Search,
@@ -29,12 +28,13 @@ import {
   Library,
   Webhook,
   ShieldAlert,
-  Info,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Field from "../../components/Inputs/Field";
+import Alert from "../../components/Alert";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
+import { StatCard } from "../../components/Cards/StatCard";
 import AIDetectionOnboarding from "../../components/Modals/AIDetectionOnboarding";
 import {
   startScan,
@@ -54,105 +54,6 @@ import { palette } from "../../themes/palette";
 
 type ScanState = "idle" | "scanning" | "completed" | "failed";
 
-// Stat card component matching Evals ProjectOverview style
-interface StatCardProps {
-  title: string;
-  value: number | string;
-  Icon: React.ComponentType<{ size?: number | string }>;
-  subtitle?: string;
-  tooltip?: string;
-}
-
-function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <Box
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      sx={{
-        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: `1px solid ${palette.border.light}`,
-        borderRadius: "8px",
-        p: "16px",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        overflow: "hidden",
-        minHeight: "80px",
-        transition: "all 0.2s ease",
-        boxSizing: "border-box",
-        "&:hover": {
-          background: `linear-gradient(135deg, ${palette.background.accent} 0%, #F1F5F9 100%)`,
-          borderColor: palette.border.dark,
-        },
-      }}
-    >
-      {/* Background Icon */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "-20px",
-          right: "-20px",
-          opacity: isHovered ? 0.06 : 0.03,
-          transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
-          zIndex: 0,
-          pointerEvents: "none",
-          transition: "opacity 0.2s ease, transform 0.3s ease",
-        }}
-      >
-        <Icon size={64} />
-      </Box>
-
-      {/* Content */}
-      <Box sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: 0.5 }}>
-          <Typography
-            sx={{
-              color: palette.status.default.text,
-              fontSize: "11px",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-            }}
-          >
-            {title}
-          </Typography>
-          {tooltip && (
-            <Tooltip title={tooltip} arrow placement="top">
-              <Box sx={{ display: "flex", alignItems: "center", cursor: "help", ml: "2px" }}>
-                <Info size={14} color={palette.text.disabled} />
-              </Box>
-            </Tooltip>
-          )}
-        </Box>
-        <Typography
-          sx={{
-            fontSize: "20px",
-            fontWeight: 600,
-            color: palette.text.primary,
-            lineHeight: 1.3,
-          }}
-        >
-          {value}
-        </Typography>
-        {subtitle && (
-          <Typography
-            sx={{
-              fontSize: "10px",
-              color: palette.text.disabled,
-              mt: 0.25,
-              fontWeight: 400,
-            }}
-          >
-            {subtitle}
-          </Typography>
-        )}
-      </Box>
-    </Box>
-  );
-}
-
 export default function ScanPage() {
   const navigate = useNavigate();
   const { refreshRecentScans } = useAIDetectionSidebarContext();
@@ -167,6 +68,13 @@ export default function ScanPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentScanIdRef = useRef<number | null>(null);
+
+  // Toast alert state
+  const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const showAlert = (variant: "success" | "error", body: string) => {
+    setAlert({ variant, body });
+    setTimeout(() => setAlert(null), 3000);
+  };
 
   // Fetch stats on mount
   useEffect(() => {
@@ -215,9 +123,11 @@ export default function ScanPage() {
             setResult(scanResult);
             setScanState("completed");
             refreshRecentScans();
+            showAlert("success", `Scan completed for ${activeScan.repository_owner}/${activeScan.repository_name}`);
           } else if (finalStatus.status === "failed") {
             setScanState("failed");
             setError(finalStatus.error_message || "Scan failed");
+            showAlert("error", `Scan failed for ${activeScan.repository_owner}/${activeScan.repository_name}`);
           } else if (finalStatus.status === "cancelled") {
             setScanState("idle");
           }
@@ -307,11 +217,14 @@ export default function ScanPage() {
         setResult(scanResult);
         setScanState("completed");
         refreshRecentScans();
+        showAlert("success", "Scan completed successfully");
       } else if (finalStatus.status === "failed") {
         setScanState("failed");
         setError(finalStatus.error_message || "Scan failed");
+        showAlert("error", finalStatus.error_message || "Scan failed");
       } else if (finalStatus.status === "cancelled") {
         setScanState("idle");
+        showAlert("success", "Scan cancelled");
       }
     } catch (err) {
       if (err instanceof Error && err.message.includes("aborted")) {
@@ -319,7 +232,9 @@ export default function ScanPage() {
         return;
       }
       setScanState("failed");
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMsg = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMsg);
+      showAlert("error", errorMsg);
     }
   }, [repositoryUrl, refreshRecentScans]);
 
@@ -340,6 +255,7 @@ export default function ScanPage() {
     currentScanIdRef.current = null;
     setScanState("idle");
     setProgress(null);
+    showAlert("success", "Scan cancelled");
   }, []);
 
   const handleReset = useCallback(() => {
@@ -355,6 +271,18 @@ export default function ScanPage() {
       title="Scan repository"
       description="Enter a public GitHub repository URL to detect AI/ML libraries and frameworks."
       helpArticlePath="ai-detection/scanning"
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
     >
 
       {/* Statistics Cards - 6 cards in 3x2 grid (only show if there are scans) */}

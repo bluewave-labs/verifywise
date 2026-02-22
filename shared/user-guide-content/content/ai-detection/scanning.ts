@@ -405,11 +405,12 @@ export const scanningContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Completed scans offer two additional features for analysis and reporting:',
+      text: 'Completed scans offer several features for analysis and reporting:',
     },
     {
       type: 'bullet-list',
       items: [
+        { bold: 'Risk scoring', text: 'Calculate an AI Governance Risk Score (AGRS) that evaluates findings across five risk dimensions. Optionally enable LLM-enhanced analysis for narrative summaries, recommendations, and suggested risks that can be added to your risk register.' },
         { bold: 'View graph', text: 'Opens an interactive dependency graph showing relationships between AI components. Nodes represent findings and edges show inferred dependencies based on shared files and providers.' },
         { bold: 'Export AI-BOM', text: 'Downloads the scan results as an AI Bill of Materials (AI-BOM) in JSON format. The AI-BOM follows a CycloneDX-inspired structure and includes all detected components, their providers, risk levels, and file locations.' },
       ],
@@ -463,9 +464,21 @@ export const scanningContent: ArticleContent = {
       items: [
         {
           collectionId: 'ai-detection',
+          articleId: 'risk-scoring',
+          title: 'Risk scoring',
+          description: 'Understanding the AI Governance Risk Score and suggested risks',
+        },
+        {
+          collectionId: 'ai-detection',
           articleId: 'history',
           title: 'Scan results',
           description: 'View and manage past scan results',
+        },
+        {
+          collectionId: 'ai-detection',
+          articleId: 'repositories',
+          title: 'Repositories',
+          description: 'Register and schedule repository scans',
         },
         {
           collectionId: 'compliance',

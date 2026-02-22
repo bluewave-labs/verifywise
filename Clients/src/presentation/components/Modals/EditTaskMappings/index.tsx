@@ -100,8 +100,6 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
                 getAllEntities({ routeUrl: "/modelInventory" }),
             ]);
 
-            console.log("Fetched api data:", {modelsRes, projectsRes, frameworksRes, vendorsRes});
-
             // Transform project data
             const projects = (projectsRes?.data?.projects || projectsRes?.data || []).map(
                 (p: any) => ({
@@ -161,52 +159,6 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
         setIsOpen(false);
         setError(null);
     }, [setIsOpen]);
-
-    // const handleSubmit = useCallback(async () => {
-    //     if (!task?.id) return;
-
-    //     try {
-    //         setIsSubmitting(true);
-    //         setError(null);
-
-    //         // Combine all mappings into categories array
-    //         const combinedCategories = [
-    //             ...mappings.use_cases.map((id) => `usecase_${id}`),
-    //             ...mappings.models.map((id) => `model_${id}`),
-    //             ...mappings.frameworks.map((id) => `framework_${id}`),
-    //             ...mappings.vendors.map((id) => `vendor_${id}`),
-    //         ];
-
-    //         console.log("Submitting update with categories:", combinedCategories);
-
-    //         // Prepare update payload
-    //         const updatePayload = {
-    //             ...task,
-    //             categories: combinedCategories,
-    //         };
-
-    //         // Call update API
-    //         const response = await updateTask({
-    //             id: task.id,
-    //             body: updatePayload,
-    //         });
-
-    //         if (response?.data) {
-    //             // Call success callback
-    //             if (onSuccess) {
-    //                 onSuccess(response.data);
-    //             }
-
-    //             // Close modal
-    //             handleClose();
-    //         }
-    //     } catch (err) {
-    //         console.error("Error updating task mappings:", err);
-    //         setError("Failed to update mappings. Please try again.");
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-    // }, [task, mappings, onSuccess, handleClose]);
 
     // Replace the entire handleSubmit function:
 

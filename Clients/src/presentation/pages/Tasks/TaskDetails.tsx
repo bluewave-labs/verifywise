@@ -362,34 +362,11 @@ const TaskDetails: React.FC = () => {
     );
 
     // Handle mappings update from modal
-    // const handleMappingsUpdate = useCallback((updatedTask: TaskModel) => {
-    //     setTask(updatedTask);
+   
 
-    //     console.log("Updated task after mappings change:", updatedTask);
-
-    //     setAlert({
-    //         variant: "success",
-    //         title: "Mappings updated successfully",
-    //         body: "Task mappings have been saved.",
-    //     });
-    //     setShowAlert(true);
-
-    //     setTimeout(() => {
-    //         setShowAlert(false);
-    //         setTimeout(() => setAlert(null), 300);
-    //     }, 4000);
-
-    //     // Emit event to notify parent Tasks page
-    //     window.dispatchEvent(
-    //         new CustomEvent("taskUpdated", {
-    //             detail: { taskId: updatedTask.id, updatedTask },
-    //         })
-    //     );
-    // }, []);
-
-    // ✅ FIX: Ensure task state is properly updated with new mappings
+    // FIX: Ensure task state is properly updated with new mappings
 const handleMappingsUpdate = useCallback((updatedTask: TaskModel) => {
-    // ✅ Update local state with the new task (including mapping fields)
+    //  Update local state with the new task (including mapping fields)
     setTask(updatedTask);
 
     setAlert({

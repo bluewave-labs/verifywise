@@ -557,25 +557,40 @@ export const updateTaskByIdQuery = async (
   }
 
   const updateTask: QueryReplacements = {};
-  const setClause = [
+
+  // FIX: include mapping fields in allowed set
+  const updatableFields: Array<keyof ITask> = [
     "title",
     "description",
     "due_date",
     "priority",
     "status",
     "categories",
-  ]
+    "use_cases",
+    "models",
+    "frameworks",
+    "vendors",
+  ];
+
+  const jsonbFields: Array<keyof ITask> = [
+    "categories",
+    "use_cases",
+    "models",
+    "frameworks",
+    "vendors",
+  ];
+
+  const setClause = updatableFields
     .filter((f) => {
-      if (task[f as keyof ITask] !== undefined) {
-        updateTask[f as keyof ITask] =
-          f === "categories"
-            ? JSON.stringify(task[f as keyof ITask])
-            : task[f as keyof ITask];
+      if (task[f] !== undefined) {
+        updateTask[f as string] = jsonbFields.includes(f)
+          ? JSON.stringify(task[f])
+          : task[f];
         return true;
       }
       return false;
     })
-    .map((f) => `${f} = :${f}`)
+    .map((f) => `${String(f)} = :${String(f)}`)
     .join(", ");
 
   if (!setClause) {

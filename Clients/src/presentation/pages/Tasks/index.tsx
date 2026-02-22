@@ -53,6 +53,8 @@ import TabBar from "../../components/TabBar";
 import DeadlineView from "./DeadlineView";
 import { toggleLabelStyle, toggleContainerStyle } from "./style";
 import { TASK_PRIORITY_OPTIONS, PRIORITY_DISPLAY_MAP, PRIORITY_COLOR_MAP } from "../../constants/priorityOptions";
+import { useNavigate } from "react-router-dom";
+
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -100,6 +102,8 @@ const Tasks: React.FC = () => {
     const saved = localStorage.getItem("verifywise_tasks_view_tab");
     return saved || "list";
   });
+
+  const navigate = useNavigate();
 
   // Save tab preference to localStorage
   useEffect(() => {
@@ -340,7 +344,17 @@ const Tasks: React.FC = () => {
           title: "Task created successfully",
           body: "Your new task has been added.",
         });
-        setTimeout(() => setAlert(null), 4000);
+
+        setShowAlert(true);
+         // Auto-hide alert after 4 seconds
+         setTimeout(() => {
+          setShowAlert(false);
+          setTimeout(() => setAlert(null), 300);
+      }, 4000);
+
+        setTimeout(() => {
+          navigate(`/tasks/${response.data.id}`);
+        }, 300);
       }
     } catch (error) {
       console.error("Error creating task:", error);
@@ -354,8 +368,33 @@ const Tasks: React.FC = () => {
   };
 
   const handleEditTask = (task: ITask) => {
-    setEditingTask(task);
+    navigate(`/tasks/${task.id}`);
   };
+
+useEffect(() => {
+  const handleTaskUpdated = (event: CustomEvent) => {
+      const { taskId, updatedTask } = event.detail;
+      
+      // Update the tasks list with the updated task
+      setTasks((prev) =>
+          prev.map((task) => (task.id === taskId ? updatedTask : task))
+      );
+
+      // Flash the updated row if visible
+      setFlashRowId(taskId);
+      setTimeout(() => {
+          setFlashRowId(null);
+      }, 3000);
+  };
+
+  // Listen for custom event from TaskDetails page
+  window.addEventListener("taskUpdated", handleTaskUpdated as EventListener);
+
+  return () => {
+      window.removeEventListener("taskUpdated", handleTaskUpdated as EventListener);
+  };
+}, []);
+  
 
   // Archive handler - called from IconButton's modal confirmation
   const handleArchiveTask = async (taskId: number) => {

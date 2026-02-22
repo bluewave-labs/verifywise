@@ -80,9 +80,11 @@ export const createNewTaskQuery = async (
 ): Promise<TasksModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".tasks (
-        title, description, creator_id, organization_id, due_date, priority, status, categories, is_demo
+        title, description, creator_id, organization_id, due_date, priority, status, categories, 
+        use_cases, models, frameworks, vendors, is_demo
       ) VALUES (
-        :title, :description, :creator_id, :organization_id, :due_date, :priority, :status, :categories, :is_demo
+        :title, :description, :creator_id, :organization_id, :due_date, :priority, :status, :categories, 
+        :use_cases, :models, :frameworks, :vendors, :is_demo
       ) RETURNING *`,
     {
       replacements: {
@@ -94,6 +96,10 @@ export const createNewTaskQuery = async (
         priority: task.priority || TaskPriority.MEDIUM,
         status: task.status || TaskStatus.OPEN,
         categories: JSON.stringify(task.categories || []),
+        use_cases: JSON.stringify(task.use_cases || []),
+        models: JSON.stringify(task.models || []),
+        frameworks: JSON.stringify(task.frameworks || []),
+        vendors: JSON.stringify(task.vendors || []),
         is_demo: task.is_demo || false,
       },
       model: TasksModel,
@@ -551,25 +557,40 @@ export const updateTaskByIdQuery = async (
   }
 
   const updateTask: QueryReplacements = {};
-  const setClause = [
+
+  // FIX: include mapping fields in allowed set
+  const updatableFields: Array<keyof ITask> = [
     "title",
     "description",
     "due_date",
     "priority",
     "status",
     "categories",
-  ]
+    "use_cases",
+    "models",
+    "frameworks",
+    "vendors",
+  ];
+
+  const jsonbFields: Array<keyof ITask> = [
+    "categories",
+    "use_cases",
+    "models",
+    "frameworks",
+    "vendors",
+  ];
+
+  const setClause = updatableFields
     .filter((f) => {
-      if (task[f as keyof ITask] !== undefined) {
-        updateTask[f as keyof ITask] =
-          f === "categories"
-            ? JSON.stringify(task[f as keyof ITask])
-            : task[f as keyof ITask];
+      if (task[f] !== undefined) {
+        updateTask[f as string] = jsonbFields.includes(f)
+          ? JSON.stringify(task[f])
+          : task[f];
         return true;
       }
       return false;
     })
-    .map((f) => `${f} = :${f}`)
+    .map((f) => `${String(f)} = :${String(f)}`)
     .join(", ");
 
   if (!setClause) {

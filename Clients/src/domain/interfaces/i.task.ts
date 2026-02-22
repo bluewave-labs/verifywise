@@ -10,6 +10,10 @@ export interface ITask {
   priority: TaskPriority;
   status: TaskStatus;
   categories?: string[];
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
   created_at?: Date;
   updated_at?: Date;
   creator_name?: string;
@@ -53,6 +57,10 @@ export interface ICreateTaskFormValues {
     email: string;
   }>;
   categories: string[];
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
 }
 
 // Note: ICreateTaskProps and ICreateTaskFormErrors have been moved to: presentation/types/interfaces/i.task.ts

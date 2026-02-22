@@ -30,6 +30,11 @@ export interface TaskResponseDTO {
   priority: string; // TaskPriority enum as string
   status: string; // TaskStatus enum as string
   categories?: string[];
+  // NEW: Mapping fields
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
   created_at?: string; // ISO date string from API
   updated_at?: string; // ISO date string from API
   creator_name?: string;
@@ -63,6 +68,11 @@ export interface CreateTaskDTO {
   priority: string; // TaskPriority enum as string
   status: string; // TaskStatus enum as string
   categories?: string[];
+  // NEW: Mapping fields
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
   assignees?: number[]; // Array of user IDs
 }
 
@@ -77,6 +87,11 @@ export interface UpdateTaskDTO {
   priority?: string;
   status?: string;
   categories?: string[];
+  // NEW: Mapping fields
+  use_cases?: number[];
+  models?: number[];
+  frameworks?: number[];
+  vendors?: number[];
   assignees?: number[];
 }
 

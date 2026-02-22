@@ -56,7 +56,27 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       status,
       categories,
       assignees,
+      // NEW: Mapping fields
+      use_cases,
+      models,
+      frameworks,
+      vendors,
     } = req.body;
+
+    // Validate mapping fields
+    if (use_cases && !Array.isArray(use_cases)) {
+      return res.status(400).json({ message: "use_cases must be an array of IDs" });
+    }
+    if (models && !Array.isArray(models)) {
+      return res.status(400).json({ message: "models must be an array of IDs" });
+    }
+    if (frameworks && !Array.isArray(frameworks)) {
+      return res.status(400).json({ message: "frameworks must be an array of IDs" });
+    }
+    if (vendors && !Array.isArray(vendors)) {
+      return res.status(400).json({ message: "vendors must be an array of IDs" });
+    }
+
 
     // Create task with current user as creator
     const taskData: ITask = {
@@ -68,6 +88,11 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       priority: priority || TaskPriority.MEDIUM,
       status: status || TaskStatus.OPEN,
       categories: categories || [],
+       // NEW: Include mapping fields
+       use_cases: use_cases || [],
+       models: models || [],
+       frameworks: frameworks || [],
+       vendors: vendors || [],
     };
 
     const task = await createNewTaskQuery(
@@ -425,7 +450,26 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       status,
       categories,
       assignees,
+       // NEW: Mapping fields
+       use_cases,
+       models,
+       frameworks,
+       vendors,
     } = req.body;
+
+    // Validate mapping fields
+    if (use_cases && !Array.isArray(use_cases)) {
+      return res.status(400).json({ message: "use_cases must be an array of IDs" });
+    }
+    if (models && !Array.isArray(models)) {
+      return res.status(400).json({ message: "models must be an array of IDs" });
+    }
+    if (frameworks && !Array.isArray(frameworks)) {
+      return res.status(400).json({ message: "frameworks must be an array of IDs" });
+    }
+    if (vendors && !Array.isArray(vendors)) {
+      return res.status(400).json({ message: "vendors must be an array of IDs" });
+    }
 
     // Only include fields that are being updated
     if (title !== undefined) updateData.title = title;
@@ -435,6 +479,11 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     if (priority !== undefined) updateData.priority = priority;
     if (status !== undefined) updateData.status = status;
     if (categories !== undefined) updateData.categories = categories;
+    // NEW: Include mapping field updates
+    if (use_cases !== undefined) updateData.use_cases = use_cases;
+    if (models !== undefined) updateData.models = models;
+    if (frameworks !== undefined) updateData.frameworks = frameworks;
+    if (vendors !== undefined) updateData.vendors = vendors;
 
     const updatedTask = await updateTaskByIdQuery(
       {

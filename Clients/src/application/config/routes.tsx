@@ -55,6 +55,7 @@ import RulesPage from "../../presentation/pages/ShadowAI/RulesPage";
 import ShadowAISettingsPage from "../../presentation/pages/ShadowAI/SettingsPage";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
+import TaskDetails from "../../presentation/pages/Tasks/TaskDetails";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -117,6 +118,7 @@ export const createRoutes = (
     <Route path="/model-inventory/:pluginTab" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
+    <Route path="/tasks/:id" element={<TaskDetails />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
     <Route path="/agent-discovery" element={<AgentDiscovery />} />

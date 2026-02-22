@@ -37,6 +37,10 @@ import {
   sendSubmissionRejectedEmail,
 } from "../services/intakeFormEmail.service";
 
+/** Safely extract a single string from req.params (which may be string | string[]). */
+const paramStr = (val: string | string[]): string =>
+  Array.isArray(val) ? val[0] : val;
+
 // ============================================================================
 // INTAKE FORM CONTROLLERS (Admin - Authenticated)
 // ============================================================================
@@ -71,7 +75,7 @@ export async function getAllIntakeForms(req: Request, res: Response) {
  * Get intake form by ID
  */
 export async function getIntakeFormById(req: Request, res: Response) {
-  const formId = parseInt(req.params.id);
+  const formId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -169,7 +173,7 @@ export async function createIntakeForm(req: Request, res: Response) {
  * Update intake form
  */
 export async function updateIntakeForm(req: Request, res: Response) {
-  const formId = parseInt(req.params.id);
+  const formId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -233,7 +237,7 @@ export async function updateIntakeForm(req: Request, res: Response) {
  * Delete intake form (only drafts)
  */
 export async function deleteIntakeForm(req: Request, res: Response) {
-  const formId = parseInt(req.params.id);
+  const formId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -285,7 +289,7 @@ export async function deleteIntakeForm(req: Request, res: Response) {
  * Archive intake form
  */
 export async function archiveIntakeForm(req: Request, res: Response) {
-  const formId = parseInt(req.params.id);
+  const formId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -362,7 +366,7 @@ export async function getPendingSubmissions(req: Request, res: Response) {
  * Get submissions for a specific form
  */
 export async function getFormSubmissions(req: Request, res: Response) {
-  const formId = parseInt(req.params.id);
+  const formId = parseInt(paramStr(req.params.id));
   const status = req.query.status as IntakeSubmissionStatus | undefined;
 
   logStructured(
@@ -391,7 +395,7 @@ export async function getFormSubmissions(req: Request, res: Response) {
  * Get submission by ID
  */
 export async function getSubmissionById(req: Request, res: Response) {
-  const submissionId = parseInt(req.params.id);
+  const submissionId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -450,7 +454,7 @@ export async function getSubmissionStats(req: Request, res: Response) {
  * Approve submission
  */
 export async function approveSubmission(req: Request, res: Response) {
-  const submissionId = parseInt(req.params.id);
+  const submissionId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -566,7 +570,7 @@ export async function approveSubmission(req: Request, res: Response) {
  * Reject submission
  */
 export async function rejectSubmission(req: Request, res: Response) {
-  const submissionId = parseInt(req.params.id);
+  const submissionId = parseInt(paramStr(req.params.id));
 
   logStructured(
     "processing",
@@ -669,7 +673,8 @@ export async function rejectSubmission(req: Request, res: Response) {
  * Get public form by slug (unauthenticated)
  */
 export async function getPublicForm(req: Request, res: Response) {
-  const { tenantSlug, formSlug } = req.params;
+  const tenantSlug = paramStr(req.params.tenantSlug);
+  const formSlug = paramStr(req.params.formSlug);
   const isPreview = req.query.preview === "true";
   const resubmissionToken = req.query.token as string | undefined;
 
@@ -762,7 +767,8 @@ export async function getPublicForm(req: Request, res: Response) {
  * Submit public form (unauthenticated)
  */
 export async function submitPublicForm(req: Request, res: Response) {
-  const { tenantSlug, formSlug } = req.params;
+  const tenantSlug = paramStr(req.params.tenantSlug);
+  const formSlug = paramStr(req.params.formSlug);
 
   logStructured(
     "processing",
@@ -963,7 +969,7 @@ function mapSubmissionToModelInventory(data: Record<string, unknown>): Partial<M
     provider: (data["model.provider"] as string) || "",
     model: (data["model.model"] as string) || "",
     version: (data["model.version"] as string) || "",
-    approver: (data["model.approver"] as string) || "",
+    approver: data["model.approver"] ? Number(data["model.approver"]) : undefined,
     capabilities: (data["model.capabilities"] as string) || "",
     security_assessment: (data["model.security_assessment"] as boolean) || false,
     reference_link: (data["model.reference_link"] as string) || "",

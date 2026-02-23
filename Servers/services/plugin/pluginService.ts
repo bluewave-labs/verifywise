@@ -197,7 +197,7 @@ export class PluginService {
         p.isPublished &&
         (p.name.toLowerCase().includes(lowerQuery) ||
           p.description.toLowerCase().includes(lowerQuery) ||
-          p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)));
+          (p.tags || []).some((tag) => tag.toLowerCase().includes(lowerQuery)));
 
       // Include built-in plugins in search results
       const builtinMatches = (getBuiltinPlugins() as Plugin[]).filter(matchFilter);

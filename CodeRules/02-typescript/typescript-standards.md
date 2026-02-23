@@ -176,36 +176,47 @@ type UserKeys = keyof User;
 ### Naming Conventions
 
 ```typescript
-// Do NOT prefix interfaces with 'I'
-// Bad
-interface IUser { }
-interface IUserService { }
-
-// Good
+// Both styles are acceptable in the codebase
+// Preferred for new code - no prefix
 interface User { }
 interface UserService { }
 
-// Type aliases are also not prefixed
+// Also acceptable - 'I' prefix (widely used in existing code)
+interface IChipProps { }
+interface IRiskFormValues { }
+interface IProjectRisk { }
+
+// Type aliases are not prefixed
 type UserId = string;
 type UserRole = 'admin' | 'user' | 'guest';
 ```
 
+> **Note:** Do not refactor existing `I`-prefixed interfaces. Both styles coexist.
+
 ## Null and Undefined
 
-### Prefer `undefined` Over `null`
+### When to Use Each
 
 ```typescript
-// Prefer undefined for optional values
+// Use undefined for optional props and config
 interface Config {
   timeout?: number; // undefined if not set
   retries?: number;
 }
 
-// Use null when explicitly representing "no value"
+// Use null with useState for "no value yet" (standard pattern)
+const [user, setUser] = useState<User | null>(null);
+const [error, setError] = useState<string | null>(null);
+const [selectedId, setSelectedId] = useState<number | null>(null);
+
+// Use null when explicitly representing "no value" in data
 interface SearchResult {
   user: User | null; // explicitly searched but not found
 }
 ```
+
+> **Note:** `useState<T | null>(null)` is the standard pattern throughout the codebase
+> for state that starts empty and is later populated. Use `undefined` for optional props.
 
 ### Optional Chaining and Nullish Coalescing
 
@@ -241,28 +252,42 @@ if (!element) {
 
 ## Enums vs Union Types
 
-Prefer union types over enums for better type inference and tree-shaking.
+Both enums and union types are used in the codebase. Choose based on the use case.
 
 ```typescript
-// Avoid: enums have runtime overhead
-enum Status {
-  Pending = 'pending',
-  Active = 'active',
-  Inactive = 'inactive',
-}
-
-// Prefer: union types
+// Union types - good for simple string literals
 type Status = 'pending' | 'active' | 'inactive';
 
-// If you need the values as an array
+// Const array + derived type - when you need runtime values
 const STATUSES = ['pending', 'active', 'inactive'] as const;
 type Status = (typeof STATUSES)[number];
+
+// Enums - acceptable for semantic string enums with clear domain meaning
+enum PluginInstallationStatus {
+  INSTALLED = "installed",
+  PENDING = "pending",
+  FAILED = "failed",
+}
+
+enum FileSource {
+  MANUAL = "Manual",
+  REPORTING = "Reporting",
+  POLICY = "Policy",
+}
 ```
 
 ### When to Use Enums
 
 ```typescript
-// Acceptable: numeric enums for bit flags
+// Good: semantic domain enums with meaningful string values
+enum UserRole {
+  Admin = 'admin',
+  Reviewer = 'reviewer',
+  Editor = 'editor',
+  Auditor = 'auditor',
+}
+
+// Good: numeric enums for bit flags
 enum Permissions {
   None = 0,
   Read = 1 << 0,
@@ -270,8 +295,6 @@ enum Permissions {
   Execute = 1 << 2,
   All = Read | Write | Execute,
 }
-
-const userPerms = Permissions.Read | Permissions.Write;
 ```
 
 ## Function Types
@@ -469,7 +492,8 @@ type UserEndpoint = `/api/users/${number}`;
 | Use interfaces | For object shapes that might be extended |
 | Use types | For unions, intersections, and utilities |
 | Explicit returns | Add return types to exported functions |
-| Prefer `undefined` | Over `null` for optional values |
+| `null` for useState | `useState<T | null>(null)` for empty-then-populated state |
+| `undefined` for props | Optional props use `?` syntax |
 | Use type guards | Instead of type assertions |
 | Use discriminated unions | For type-safe variants |
 

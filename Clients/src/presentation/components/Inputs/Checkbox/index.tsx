@@ -21,8 +21,32 @@ import {
 } from "@mui/material";
 import "./index.css";
 
-import { Square } from "lucide-react";
 import { CheckboxProps } from "../../../types/widget.types";
+
+// Soft unchecked square icon with thin border
+function SoftSquare({ size = 24 }: { size?: number }) {
+  const theme = useTheme();
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="3.5"
+        y="3.5"
+        width="17"
+        height="17"
+        rx="2"
+        stroke={theme.palette.text.accent}
+        strokeWidth="1"
+        fill="none"
+      />
+    </svg>
+  );
+}
 
 // Custom filled checkbox icon matching Lucide's Square dimensions
 function FilledCheckSquare({ size = 24 }: { size?: number }) {
@@ -39,7 +63,7 @@ function FilledCheckSquare({ size = 24 }: { size?: number }) {
       <path
         d="M9 12l2 2 4-4"
         stroke="white"
-        strokeWidth="2.5"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -70,7 +94,7 @@ function Checkbox({
       disableRipple
       checked={isChecked}
       checkedIcon={<FilledCheckSquare size={16} />}
-      icon={<Square size={16} />}
+      icon={<SoftSquare size={16} />}
       value={value}
       onChange={onChange}
       onClick={onClick}

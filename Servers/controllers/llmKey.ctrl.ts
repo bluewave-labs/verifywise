@@ -18,10 +18,23 @@ import { ILLMKey, LLMProvider } from "../domain.layer/interfaces/i.llmKey";
 
 const fileName = "llmKey.ctrl.ts";
 
+/**
+ * Validate that custom_headers is a plain object with string keys and string values.
+ */
+function isValidCustomHeaders(
+  headers: unknown
+): headers is Record<string, string> {
+  if (typeof headers !== "object" || headers === null || Array.isArray(headers))
+    return false;
+  return Object.entries(headers).every(
+    ([k, v]) => typeof k === "string" && typeof v === "string"
+  );
+}
+
 export const getLLMKeys = async (req: Request, res: Response) => {
   const functionName = "getLLMKeys";
 
-  logger.debug(`🛠️ Fetching LLM Keys`);
+  logger.debug(`Fetching LLM Keys`);
   logStructured(
     "processing",
     `starting LLM Keys fetch`,
@@ -36,7 +49,7 @@ export const getLLMKeys = async (req: Request, res: Response) => {
       functionName,
       fileName,
     );
-    logger.debug(`✅ Fetched ${llmKeys.length} LLM Keys`);
+    logger.debug(`Fetched ${llmKeys.length} LLM Keys`);
     return res.status(200).json(STATUS_CODE[200](llmKeys));
   } catch (error) {
     logStructured(
@@ -51,7 +64,7 @@ export const getLLMKeys = async (req: Request, res: Response) => {
       req.userId!,
       req.tenantId!
     );
-    logger.error("❌ Error in getLLMKeys:", error);
+    logger.error("Error in getLLMKeys:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };
@@ -59,13 +72,13 @@ export const getLLMKeys = async (req: Request, res: Response) => {
 export const getLLMKey = async (req: Request, res: Response) => {
   const functionName = "getLLMKey";
 
-  logger.debug(`🛠️ Fetching LLM Keys`);
+  logger.debug(`Fetching LLM Keys`);
   logStructured("processing", `starting LLM Key fetch`, functionName, fileName);
   try {
     const name = req.params.name as string;
     const llmKey = await getLLMKeyQuery(req.tenantId!, name);
     logStructured("successful", `fetched LLM Key`, functionName, fileName);
-    logger.debug(`✅ Fetched LLM Key with name: ${name}`);
+    logger.debug(`Fetched LLM Key with name: ${name}`);
     return res.status(200).json(STATUS_CODE[200](llmKey));
   } catch (error) {
     logStructured(
@@ -80,7 +93,7 @@ export const getLLMKey = async (req: Request, res: Response) => {
       req.userId!,
       req.tenantId!
     );
-    logger.error("❌ Error in getLLMKey:", error);
+    logger.error("Error in getLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };
@@ -89,7 +102,7 @@ export const createLLMKey = async (req: Request, res: Response) => {
   const functionName = "createLLMKey";
 
   const transaction = await sequelize.transaction();
-  const { name, key, model } = req.body;
+  const { name, key, model, url: userUrl, custom_headers } = req.body;
 
   if (!name || typeof name !== "string" || !key || typeof key !== "string") {
     await transaction.rollback();
@@ -103,9 +116,33 @@ export const createLLMKey = async (req: Request, res: Response) => {
       .status(400)
       .json(
         STATUS_CODE[400](
-          "Invalid provider name. Must be one of: Anthropic, OpenAI, OpenRouter",
+          "Invalid provider name. Must be one of: Anthropic, OpenAI, OpenRouter, Custom",
         ),
       );
+  }
+
+  // For Custom provider, URL is required
+  if (name === "Custom") {
+    if (!userUrl || typeof userUrl !== "string") {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Endpoint URL is required for Custom provider"));
+    }
+  }
+
+  // Validate custom_headers if provided
+  if (custom_headers !== undefined && custom_headers !== null) {
+    if (!isValidCustomHeaders(custom_headers)) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(
+          STATUS_CODE[400](
+            "custom_headers must be an object with string keys and string values"
+          )
+        );
+    }
   }
 
   logStructured(
@@ -114,16 +151,18 @@ export const createLLMKey = async (req: Request, res: Response) => {
     functionName,
     fileName,
   );
-  logger.debug(`🛠️ Creating LLM Key: ${name}`);
+  logger.debug(`Creating LLM Key: ${name}`);
   try {
-    // Auto-populate URL based on provider name
-    const url = getLLMProviderUrl(name as LLMProvider);
+    // For Custom provider, use user-provided URL; otherwise auto-populate
+    const url =
+      name === "Custom" ? userUrl : getLLMProviderUrl(name as LLMProvider);
 
     const data: ILLMKey = {
       name: name as LLMProvider,
       key,
       url,
       model,
+      custom_headers: custom_headers || null,
     };
     const llmKey = await createLLMKeyQuery(data, req.tenantId!, transaction);
     logStructured(
@@ -132,7 +171,7 @@ export const createLLMKey = async (req: Request, res: Response) => {
       functionName,
       fileName,
     );
-    logger.debug(`✅ Created LLM Key: ${llmKey.id}`);
+    logger.debug(`Created LLM Key: ${llmKey.id}`);
 
     await transaction.commit();
     return res.status(201).json(STATUS_CODE[201](llmKey));
@@ -175,7 +214,7 @@ export const createLLMKey = async (req: Request, res: Response) => {
       req.userId!,
       req.tenantId!
     );
-    logger.error("❌ Error in createLLMKey:", error);
+    logger.error("Error in createLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };
@@ -184,7 +223,7 @@ export const updateLLMKey = async (req: Request, res: Response) => {
   const functionName = "updateLLMKey";
 
   const transaction = await sequelize.transaction();
-  const { name, key, model } = req.body;
+  const { name, key, model, url: userUrl, custom_headers } = req.body;
   const id = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
   // Validate that name is a valid LLM provider if provided
@@ -194,9 +233,33 @@ export const updateLLMKey = async (req: Request, res: Response) => {
       .status(400)
       .json(
         STATUS_CODE[400](
-          "Invalid provider name. Must be one of: Anthropic, OpenAI, OpenRouter",
+          "Invalid provider name. Must be one of: Anthropic, OpenAI, OpenRouter, Custom",
         ),
       );
+  }
+
+  // For Custom provider, URL is required
+  if (name === "Custom" && userUrl !== undefined) {
+    if (typeof userUrl !== "string" || !userUrl) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Endpoint URL is required for Custom provider"));
+    }
+  }
+
+  // Validate custom_headers if provided
+  if (custom_headers !== undefined && custom_headers !== null) {
+    if (!isValidCustomHeaders(custom_headers)) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(
+          STATUS_CODE[400](
+            "custom_headers must be an object with string keys and string values"
+          )
+        );
+    }
   }
 
   logStructured(
@@ -205,16 +268,22 @@ export const updateLLMKey = async (req: Request, res: Response) => {
     functionName,
     fileName,
   );
-  logger.debug(`🛠️ Updating LLM Key: ${name}`);
+  logger.debug(`Updating LLM Key: ${name}`);
   try {
-    // Auto-populate URL based on provider name if name is being updated
-    const url = name ? getLLMProviderUrl(name as LLMProvider) : undefined;
+    // For Custom provider, use user-provided URL; otherwise auto-populate
+    let url: string | undefined;
+    if (name === "Custom") {
+      url = userUrl;
+    } else if (name) {
+      url = getLLMProviderUrl(name as LLMProvider);
+    }
 
     const data: Partial<ILLMKey> = {
       ...(name && { name: name as LLMProvider }),
       ...(key && { key }),
-      ...(url && { url }),
+      ...(url !== undefined && { url }),
       ...(model && { model }),
+      ...(custom_headers !== undefined && { custom_headers: custom_headers || null }),
     };
     const llmKey = await updateLLMKeyByIdQuery(
       id,
@@ -230,7 +299,7 @@ export const updateLLMKey = async (req: Request, res: Response) => {
         functionName,
         fileName,
       );
-      logger.debug(`✅ updated LLM Key: ${id}`);
+      logger.debug(`updated LLM Key: ${id}`);
 
       await transaction.commit();
       return res.status(200).json(STATUS_CODE[200](llmKey));
@@ -284,7 +353,7 @@ export const updateLLMKey = async (req: Request, res: Response) => {
       req.userId!,
       req.tenantId!
     );
-    logger.error("❌ Error in updateLLMKey:", error);
+    logger.error("Error in updateLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };
@@ -293,7 +362,7 @@ export const deleteLLMKey = async (req: Request, res: Response) => {
   const functionName = "deleteLLMKey";
 
   const { id } = req.params;
-  logger.debug(`🛠️ Deleting LLM Key: ${id}`);
+  logger.debug(`Deleting LLM Key: ${id}`);
   logStructured(
     "processing",
     `starting LLM Key deletion for ${id}`,
@@ -321,7 +390,7 @@ export const deleteLLMKey = async (req: Request, res: Response) => {
       functionName,
       fileName,
     );
-    logger.debug(`✅ Deleted LLM Key: ${id}`);
+    logger.debug(`Deleted LLM Key: ${id}`);
     return res
       .status(200)
       .json(STATUS_CODE[200]({ message: "LLM Key deleted successfully" }));
@@ -333,7 +402,7 @@ export const deleteLLMKey = async (req: Request, res: Response) => {
       req.userId!,
       req.tenantId!
     );
-    logger.error("❌ Error in deleteLLMKey:", error);
+    logger.error("Error in deleteLLMKey:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };

@@ -1,7 +1,7 @@
-export type LLMProviderId = "anthropic" | "openai" | "openrouter";
+export type LLMProviderId = "anthropic" | "openai" | "openrouter" | "custom";
 
 // Display names for providers (used in forms and UI)
-export type LLMProviderName = "Anthropic" | "OpenAI" | "OpenRouter";
+export type LLMProviderName = "Anthropic" | "OpenAI" | "OpenRouter" | "Custom";
 
 interface LLMKeysData {
   id: number;
@@ -9,6 +9,7 @@ interface LLMKeysData {
   key: string;
   url?: string | null;
   model: string;
+  custom_headers?: Record<string, string> | null;
   created_at?: string;
 }
 
@@ -16,6 +17,8 @@ export interface LLMKeysFormData {
   name: LLMProviderName;
   key: string;
   model: string;
+  url?: string | null;
+  custom_headers?: Record<string, string> | null;
 }
 
 export interface LLMProviderConfig {
@@ -32,6 +35,7 @@ export class LLMKeysModel {
   key!: string;
   url?: string | null;
   model!: string;
+  custom_headers?: Record<string, string> | null;
   created_at?: string;
 
   constructor(data: LLMKeysData) {
@@ -40,6 +44,7 @@ export class LLMKeysModel {
     this.key = data.key;
     this.url = data.url;
     this.model = data.model;
+    this.custom_headers = data.custom_headers;
     this.created_at = data.created_at;
   }
 
@@ -79,6 +84,13 @@ export class LLMKeysModel {
       keyPrefix: "sk-or-",
       keyPlaceholder: "sk-or-v1-...",
       apiKeyUrl: "https://openrouter.ai/keys",
+    },
+    {
+      id: "custom",
+      name: "Custom",
+      keyPrefix: "",
+      keyPlaceholder: "Enter your API key",
+      apiKeyUrl: "",
     },
   ];
 

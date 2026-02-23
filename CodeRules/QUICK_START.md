@@ -86,34 +86,53 @@ export function UserCard({ userId, onUpdate }: Props) {
 ### Express Controller Pattern
 
 ```typescript
-export const getUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+import { Request, Response } from "express";
+import { STATUS_CODE } from "../utils/statusCode.utils";
+import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+
+export async function getEntity(req: Request, res: Response): Promise<any> {
+  logProcessing({
+    description: "starting getEntity",
+    functionName: "getEntity",
+    fileName: "entity.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
   try {
     const { id } = req.params;
+    const tenantId = req.tenantId!;
 
-    // Validate input
-    if (!isValidUUID(id)) {
-      res.status(400).json({ error: 'Invalid user ID' });
-      return;
+    const entity = await getEntityByIdQuery(id, tenantId);
+
+    if (!entity) {
+      return res.status(404).json(STATUS_CODE[404]({ message: "Not found" }));
     }
 
-    // Business logic
-    const user = await userService.findById(id);
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved entity",
+      functionName: "getEntity",
+      fileName: "entity.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
-    if (!user) {
-      res.status(404).json({ error: 'User not found' });
-      return;
-    }
-
-    // Success response
-    res.status(200).json({ data: user });
+    return res.status(200).json(STATUS_CODE[200](entity));
   } catch (error) {
-    next(error);
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve entity",
+      functionName: "getEntity",
+      fileName: "entity.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
-};
+}
 ```
 
 ### Python/FastAPI Pattern

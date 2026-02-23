@@ -822,7 +822,7 @@ export function IntakeFormBuilder() {
                                 <Radio
                                   size="small"
                                   sx={{
-                                    color: theme.palette.border.dark,
+                                    color: theme.palette.text.accent,
                                     "&.Mui-checked": {
                                       color: theme.palette.primary.main,
                                     },
@@ -848,7 +848,7 @@ export function IntakeFormBuilder() {
                                 <Radio
                                   size="small"
                                   sx={{
-                                    color: theme.palette.border.dark,
+                                    color: theme.palette.text.accent,
                                     "&.Mui-checked": {
                                       color: theme.palette.primary.main,
                                     },

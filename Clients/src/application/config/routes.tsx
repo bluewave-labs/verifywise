@@ -40,6 +40,7 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
+
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
 import WizardShowcase from "../../presentation/pages/WizardShowcase";

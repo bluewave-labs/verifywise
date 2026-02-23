@@ -44,8 +44,8 @@ export interface Plugin {
   isBuiltIn?: boolean;
   requiresConfiguration: boolean;
   installationType: string;
-  features: PluginFeature[];
-  tags: string[];
+  features?: PluginFeature[];
+  tags?: string[];
   pluginPath?: string;
   entryPoint?: string;
   // Installation-specific fields (when fetching installed plugins)

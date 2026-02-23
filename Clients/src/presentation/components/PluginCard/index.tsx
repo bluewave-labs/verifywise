@@ -292,7 +292,7 @@ const PluginCard: React.FC<PluginCardProps> = ({
 
           {/* Plugin Features */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: "8px" }}>
-            {plugin.features.slice(0, 2).map((feature, index) => (
+            {(plugin.features || []).slice(0, 2).map((feature, index) => (
               <Chip
                 key={index}
                 size="small"

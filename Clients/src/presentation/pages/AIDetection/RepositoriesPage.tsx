@@ -382,7 +382,7 @@ export default function RepositoriesPage() {
     >
       {/* Error state */}
       {error && (
-        <Alert variant="error" title={error} />
+        <Alert variant="error" title="Error" body={error} />
       )}
 
       {/* Table — always shown, with empty state inside when no repos */}
@@ -458,15 +458,19 @@ export default function RepositoriesPage() {
 
                     {/* Schedule */}
                     <TableCell sx={bodyCellStyle}>
-                      <Chip
-                        label={formatSchedule(repo)}
-                        variant={repo.schedule_enabled ? "info" : "default"}
+                      <Box
+                        component="span"
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           handleEditSchedule(repo);
                         }}
-                        sx={{ fontSize: "12px", cursor: "pointer" }}
-                      />
+                        sx={{ cursor: "pointer" }}
+                      >
+                        <Chip
+                          label={formatSchedule(repo)}
+                          variant={repo.schedule_enabled ? "info" : "default"}
+                        />
+                      </Box>
                     </TableCell>
 
                     {/* Last scan */}
@@ -480,7 +484,6 @@ export default function RepositoriesPage() {
                             <Chip
                               label={repo.last_scan_status}
                               variant={getStatusChipColor(repo.last_scan_status)}
-                              sx={{ fontSize: "11px" }}
                             />
                           )}
                         </Stack>
@@ -510,7 +513,7 @@ export default function RepositoriesPage() {
                                   size="small"
                                   onClick={() => handleScanNow(repo)}
                                   disabled={isScanning}
-                                  sx={{ color: isScanning ? palette.text.accent : palette.primary }}
+                                  sx={{ color: isScanning ? palette.text.accent : palette.brand.primary }}
                                 >
                                   {isScanning ? (
                                     <Loader2 size={15} strokeWidth={1.5} style={{ animation: `${spin} 1s linear infinite` }} />
@@ -592,12 +595,19 @@ export default function RepositoriesPage() {
       {/* Delete Confirmation */}
       <ConfirmationModal
         isOpen={!!deleteTarget && !scanningRepoIds.has(deleteTarget.id)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        onProceed={handleDelete}
         title={`Delete "${deleteTarget?.repository_owner}/${deleteTarget?.repository_name}"?`}
-        description="This will remove the repository from monitoring. Existing scan history will not be deleted."
-        confirmButtonText="Delete"
-        isConfirming={isDeleting}
+        body={
+          <Typography fontSize={13}>
+            This will remove the repository from monitoring. Existing scan history will not be deleted.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Delete"
+        proceedButtonColor="error"
+        proceedButtonVariant="contained"
+        isLoading={isDeleting}
       />
     </PageHeaderExtended>
   );

@@ -167,7 +167,7 @@ export default function AddRepositoryModal({
             value={repositoryUrl}
             onChange={(e) => setRepositoryUrl(e.target.value)}
             disabled={isEditing}
-            required
+            isRequired
           />
 
           <Stack direction="row" spacing={4}>

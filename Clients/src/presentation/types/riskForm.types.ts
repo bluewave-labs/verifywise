@@ -4,8 +4,6 @@ import {
   AddNewRiskFormCorePropsBase,
   IRiskLevelCoreProps,
   IRiskLevelFormValues,
-  IRiskFormValues,
-  IRiskFormErrors,
 } from "../../domain/types/riskForm.types";
 
 // Re-export domain types for convenience

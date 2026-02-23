@@ -34,7 +34,6 @@ import {
   RefreshCw,
   Plus,
   Sparkles,
-  X,
 } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
@@ -1150,7 +1149,7 @@ export default function ScanDetailsPage() {
     showAlert("error", message || "Failed to add risk");
   };
 
-  const handleIgnoreSuggestion = (reason: string) => {
+  const handleIgnoreSuggestion = (_reason: string) => {
     if (ignoreMenuAnchor) {
       smoothRemoveSuggestion(ignoreMenuAnchor.index);
       setIgnoreMenuAnchor(null);

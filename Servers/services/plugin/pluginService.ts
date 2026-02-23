@@ -197,7 +197,7 @@ export class PluginService {
         p.isPublished &&
         (p.name.toLowerCase().includes(lowerQuery) ||
           p.description.toLowerCase().includes(lowerQuery) ||
-          p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)));
+          (p.tags || []).some((tag) => tag.toLowerCase().includes(lowerQuery)));
 
       // Include built-in plugins in search results
       const builtinMatches = (getBuiltinPlugins() as Plugin[]).filter(matchFilter);
@@ -692,11 +692,13 @@ export class PluginService {
 
       const data = response.data as PluginMarketplace;
 
-      // Transform relative iconUrl paths to full URLs
+      // Transform relative iconUrl paths to full URLs and normalize optional array fields
       data.plugins = data.plugins.map((plugin) => {
         if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
           plugin.iconUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}`;
         }
+        plugin.tags = plugin.tags || [];
+        plugin.features = plugin.features || [];
         return plugin;
       });
 

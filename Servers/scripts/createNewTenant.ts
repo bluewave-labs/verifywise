@@ -2450,8 +2450,15 @@ export const createNewTenant = async (
     ].map((query) => sequelize.query(query, { transaction })));
 
     // Create llm_keys table for LLM API key management
-    // Note: Requires global ENUM type enum_llm_keys_provider to exist
-    // This is created by migration 20251126220719-create-llm-keys-table.js
+    // Ensure the global ENUM type exists (includes 'Custom' provider)
+    await sequelize.query(
+      `DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_llm_keys_provider') THEN
+          CREATE TYPE enum_llm_keys_provider AS ENUM ('Anthropic', 'OpenAI', 'OpenRouter', 'Custom');
+        END IF;
+      END $$;`,
+      { transaction }
+    );
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_keys (
         id SERIAL PRIMARY KEY,
@@ -2459,6 +2466,7 @@ export const createNewTenant = async (
         name enum_llm_keys_provider NOT NULL,
         url TEXT,
         model TEXT NOT NULL,
+        custom_headers JSONB DEFAULT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );`,
       { transaction }

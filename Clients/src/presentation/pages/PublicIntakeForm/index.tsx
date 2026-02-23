@@ -206,8 +206,9 @@ export function PublicIntakeForm() {
     setEmailError(null);
 
     // Validate captcha
-    if (!captchaValue.trim()) {
-      setCaptchaError("Please solve the math problem");
+    const captchaNum = Number(captchaValue.trim());
+    if (!captchaValue.trim() || isNaN(captchaNum)) {
+      setCaptchaError("Please enter a valid number");
       return;
     }
 
@@ -220,7 +221,7 @@ export function PublicIntakeForm() {
         submitterEmail,
         submitterName: submitterName || undefined,
         captchaToken,
-        captchaAnswer: parseInt(captchaValue),
+        captchaAnswer: captchaNum,
         resubmissionToken,
       };
 

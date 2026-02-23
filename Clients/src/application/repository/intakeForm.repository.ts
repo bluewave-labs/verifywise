@@ -277,41 +277,6 @@ export async function getPendingSubmissions(
 }
 
 /**
- * Get submission stats
- */
-export async function getSubmissionStats(
-  signal?: AbortSignal
-): Promise<{
-  data: {
-    total: number;
-    pending: number;
-    approved: number;
-    rejected: number;
-    byRiskTier: Record<string, number>;
-  };
-}> {
-  const response = await apiServices.get(`${BASE_URL}/submissions/stats`, { signal });
-  return response.data;
-}
-
-/**
- * Get submissions for a specific form
- */
-export async function getFormSubmissions(
-  formId: number,
-  params: { page?: number; limit?: number } = {},
-  signal?: AbortSignal
-): Promise<{ data: IntakeSubmission[]; pagination?: { total: number; page: number; limit: number } }> {
-  const queryParams = new URLSearchParams();
-  if (params.page) queryParams.append("page", String(params.page));
-  if (params.limit) queryParams.append("limit", String(params.limit));
-
-  const url = `${BASE_URL}/forms/${formId}/submissions${queryParams.toString() ? `?${queryParams}` : ""}`;
-  const response = await apiServices.get(url, { signal });
-  return response.data;
-}
-
-/**
  * Get submission preview (risk assessment + entity preview) for approval flow
  */
 export async function getSubmissionPreview(
@@ -349,26 +314,6 @@ export async function approveSubmission(
   const response = await apiServices.post(
     `${BASE_URL}/submissions/${submissionId}/approve`,
     data || {},
-    { signal }
-  );
-  return response.data;
-}
-
-/**
- * Override risk assessment for a submission
- */
-export async function overrideSubmissionRisk(
-  submissionId: number,
-  data: {
-    tier: string;
-    dimensionOverrides?: Record<string, number>;
-    justification: string;
-  },
-  signal?: AbortSignal
-): Promise<{ data: IntakeSubmission }> {
-  const response = await apiServices.patch(
-    `${BASE_URL}/submissions/${submissionId}/risk-override`,
-    data,
     { signal }
   );
   return response.data;
@@ -481,48 +426,6 @@ export async function getPublicFormById(
 }> {
   const queryParams = resubmissionToken ? `?token=${resubmissionToken}` : "";
   const response = await apiServices.get(`${BASE_URL}/public/by-id/${publicId}${queryParams}`);
-  return response.data;
-}
-
-// ============================================================================
-// LLM Features API (Admin)
-// ============================================================================
-
-/**
- * Get LLM-suggested questions for a form
- */
-export async function getSuggestedQuestions(
-  data: {
-    entityType: IntakeEntityType;
-    context?: string;
-    llmKeyId: number;
-  },
-  signal?: AbortSignal
-): Promise<{
-  data: Array<{
-    label: string;
-    fieldType: string;
-    category: string;
-    guidanceText?: string;
-    options?: FieldOption[];
-  }>;
-}> {
-  const response = await apiServices.post(`${BASE_URL}/forms/suggested-questions`, data, { signal });
-  return response.data;
-}
-
-/**
- * Generate guidance text for a field using LLM
- */
-export async function generateFieldGuidance(
-  data: {
-    fieldLabel: string;
-    entityType: IntakeEntityType;
-    llmKeyId: number;
-  },
-  signal?: AbortSignal
-): Promise<{ data: { guidanceText: string } }> {
-  const response = await apiServices.post(`${BASE_URL}/forms/field-guidance`, data, { signal });
   return response.data;
 }
 

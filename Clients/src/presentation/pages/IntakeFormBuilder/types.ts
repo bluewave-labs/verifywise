@@ -290,26 +290,6 @@ export const PALETTE_ITEMS: PaletteItem[] = [
 ];
 
 /**
- * Drag-and-drop context types
- */
-export interface DragData {
-  type: "palette" | "canvas";
-  field?: FormField;
-  paletteItem?: PaletteItem;
-}
-
-/**
- * Form builder state
- */
-export interface FormBuilderState {
-  form: IntakeForm;
-  selectedFieldId: string | null;
-  isDirty: boolean;
-  isSaving: boolean;
-  errors: Record<string, string>;
-}
-
-/**
  * Generate unique field ID
  */
 export function generateFieldId(): string {

@@ -423,6 +423,16 @@ export async function updateIntakeForm(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Invalid form status"));
     }
 
+    if (entityType && !Object.values(IntakeEntityType).includes(entityType)) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]("Invalid entity type"));
+    }
+
+    if (riskTierSystem && !["generic", "eu_ai_act", "nist"].includes(riskTierSystem)) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]("Invalid risk tier system"));
+    }
+
     const form = await updateIntakeFormQuery(
       formId,
       {
@@ -1207,15 +1217,20 @@ export async function getPublicFormByPublicId(req: Request, res: Response) {
       }>(resubmissionToken);
 
       if (decoded && decoded.submissionId && decoded.formId === form.id) {
-        const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.tenantHash);
-        if (
-          previousSubmission &&
-          previousSubmission.status !== IntakeSubmissionStatus.APPROVED &&
-          previousSubmission.submitterEmail === decoded.email
-        ) {
-          previousData = previousSubmission.data as Record<string, unknown>;
-          previousSubmitterName = previousSubmission.submitterName;
-          previousSubmitterEmail = previousSubmission.submitterEmail;
+        // Check token expiry (7 days)
+        const tokenAge = Date.now() - (decoded.timestamp || 0);
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        if (tokenAge <= SEVEN_DAYS_MS) {
+          const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.tenantHash);
+          if (
+            previousSubmission &&
+            previousSubmission.status !== IntakeSubmissionStatus.APPROVED &&
+            previousSubmission.submitterEmail === decoded.email
+          ) {
+            previousData = previousSubmission.data as Record<string, unknown>;
+            previousSubmitterName = previousSubmission.submitterName;
+            previousSubmitterEmail = previousSubmission.submitterEmail;
+          }
         }
       }
     }
@@ -1312,7 +1327,7 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
     }
 
-    // Handle resubmission
+    // Handle resubmission (7-day expiry on resubmission tokens)
     let originalSubmissionId: number | undefined;
     if (resubmissionToken) {
       const decoded = verifySignedToken<{
@@ -1323,6 +1338,14 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
       }>(resubmissionToken);
 
       if (decoded && decoded.submissionId) {
+        const tokenAge = Date.now() - (decoded.timestamp || 0);
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        if (tokenAge > SEVEN_DAYS_MS) {
+          return res.status(400).json(STATUS_CODE[400]("Resubmission link has expired. Please request a new one."));
+        }
+        if (decoded.email !== submitterEmail) {
+          return res.status(400).json(STATUS_CODE[400]("Email does not match the original submission."));
+        }
         originalSubmissionId = decoded.submissionId;
       }
     }
@@ -1446,15 +1469,20 @@ export async function getPublicForm(req: Request, res: Response) {
       }>(resubmissionToken);
 
       if (decoded && decoded.submissionId && decoded.formId === form.id) {
-        const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.hash);
-        if (
-          previousSubmission &&
-          previousSubmission.status !== IntakeSubmissionStatus.APPROVED &&
-          previousSubmission.submitterEmail === decoded.email
-        ) {
-          previousData = previousSubmission.data as Record<string, unknown>;
-          previousSubmitterName = previousSubmission.submitterName;
-          previousSubmitterEmail = previousSubmission.submitterEmail;
+        // Check token expiry (7 days)
+        const tokenAge = Date.now() - (decoded.timestamp || 0);
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        if (tokenAge <= SEVEN_DAYS_MS) {
+          const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.hash);
+          if (
+            previousSubmission &&
+            previousSubmission.status !== IntakeSubmissionStatus.APPROVED &&
+            previousSubmission.submitterEmail === decoded.email
+          ) {
+            previousData = previousSubmission.data as Record<string, unknown>;
+            previousSubmitterName = previousSubmission.submitterName;
+            previousSubmitterEmail = previousSubmission.submitterEmail;
+          }
         }
       }
     }
@@ -1553,6 +1581,7 @@ export async function submitPublicForm(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
     }
 
+    // Handle resubmission (7-day expiry on resubmission tokens)
     let originalSubmissionId: number | undefined;
     if (resubmissionToken) {
       const decoded = verifySignedToken<{
@@ -1563,6 +1592,14 @@ export async function submitPublicForm(req: Request, res: Response) {
       }>(resubmissionToken);
 
       if (decoded && decoded.submissionId) {
+        const tokenAge = Date.now() - (decoded.timestamp || 0);
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        if (tokenAge > SEVEN_DAYS_MS) {
+          return res.status(400).json(STATUS_CODE[400]("Resubmission link has expired. Please request a new one."));
+        }
+        if (decoded.email !== submitterEmail) {
+          return res.status(400).json(STATUS_CODE[400]("Email does not match the original submission."));
+        }
         originalSubmissionId = decoded.submissionId;
       }
     }

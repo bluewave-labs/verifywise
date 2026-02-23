@@ -63,6 +63,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 
 function formatDate(date: Date | string): string {
   const d = new Date(date);
+  if (isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -73,8 +74,6 @@ function formatDate(date: Date | string): string {
 const ENTITY_LABELS: Record<string, string> = {
   [IntakeEntityType.MODEL]: "Model inventory",
   [IntakeEntityType.USE_CASE]: "Use case",
-  model: "Model inventory",
-  use_case: "Use case",
 };
 
 // ============================================================================
@@ -248,6 +247,7 @@ export function IntakeFormsListPage() {
   };
 
   const getRange = () => {
+    if (filteredForms.length === 0) return "0 - 0";
     const start = page * rowsPerPage + 1;
     const end = Math.min((page + 1) * rowsPerPage, filteredForms.length);
     return `${start} - ${end}`;
@@ -294,8 +294,9 @@ export function IntakeFormsListPage() {
   const handleCopyLink = () => {
     if (selectedForm?.publicId) {
       const link = `${window.location.origin}/${selectedForm.publicId}/use-case-form-intake`;
-      navigator.clipboard.writeText(link);
-      setSnackbar({ open: true, message: "Link copied to clipboard", severity: "success" });
+      navigator.clipboard.writeText(link)
+        .then(() => setSnackbar({ open: true, message: "Link copied to clipboard", severity: "success" }))
+        .catch(() => setSnackbar({ open: true, message: "Failed to copy link", severity: "error" }));
     } else {
       setSnackbar({ open: true, message: "Publish the form first to generate a shareable link", severity: "error" });
     }

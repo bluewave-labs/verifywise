@@ -3381,7 +3381,7 @@ export const createNewTenant = async (
         submit_button_text VARCHAR(100) DEFAULT 'Submit',
         status VARCHAR(20) NOT NULL DEFAULT 'draft',
         ttl_expires_at TIMESTAMPTZ,
-        public_id VARCHAR(8) UNIQUE,
+        public_id VARCHAR(16) UNIQUE,
         recipients JSONB DEFAULT '[]',
         risk_tier_system VARCHAR(20) DEFAULT 'generic',
         risk_assessment_config JSONB,
@@ -3433,6 +3433,7 @@ export const createNewTenant = async (
       `CREATE INDEX IF NOT EXISTS idx_intake_submissions_submitter_email ON "${tenantHash}".intake_submissions(submitter_email);`,
       `CREATE INDEX IF NOT EXISTS idx_intake_submissions_entity ON "${tenantHash}".intake_submissions(entity_type, entity_id);`,
       `CREATE INDEX IF NOT EXISTS idx_intake_submissions_created_at ON "${tenantHash}".intake_submissions(created_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_ip_address ON "${tenantHash}".intake_submissions(ip_address, created_at DESC);`,
     ].map((query) => sequelize.query(query, { transaction })));
 
   } catch (error) {

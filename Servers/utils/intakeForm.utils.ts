@@ -165,7 +165,7 @@ export const createIntakeFormQuery = async (
 ): Promise<IIntakeForm> => {
   const slug = data.slug || generateSlug(data.name);
   const uniqueSlug = await ensureUniqueSlug(slug, tenant, transaction);
-  const publicId = crypto.randomBytes(4).toString("hex");
+  const publicId = crypto.randomBytes(8).toString("hex");
 
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".intake_forms
@@ -309,16 +309,16 @@ export const deleteIntakeFormQuery = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<boolean> => {
-  await sequelize.query(
+  const result = await sequelize.query(
     `DELETE FROM "${tenant}".intake_forms
     WHERE id = :id AND status = :status`,
     {
       replacements: { id, status: IntakeFormStatus.DRAFT },
-      type: QueryTypes.DELETE,
       transaction,
     }
   );
-  return true;
+  const rowCount = (result as any)[1] ?? 0;
+  return rowCount > 0;
 };
 
 /**
@@ -367,25 +367,27 @@ export const archiveExpiredFormsQuery = async (
 // ============================================================================
 
 /**
- * Get all submissions for a form
+ * Get submissions for a form (paginated, default limit 200)
  */
 export const getSubmissionsByFormIdQuery = async (
   formId: number,
   tenant: string,
-  status?: IntakeSubmissionStatus
+  status?: IntakeSubmissionStatus,
+  limit: number = 200,
+  offset: number = 0
 ): Promise<IIntakeSubmission[]> => {
   let query = `SELECT ${SUBMISSION_SELECT_COLUMNS}
   FROM "${tenant}".intake_submissions
   WHERE form_id = :formId`;
 
-  const replacements: Record<string, unknown> = { formId };
+  const replacements: Record<string, unknown> = { formId, limit, offset };
 
   if (status) {
     query += " AND status = :status";
     replacements.status = status;
   }
 
-  query += " ORDER BY created_at DESC";
+  query += " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
 
   const submissions = await sequelize.query(query, {
     replacements,
@@ -396,7 +398,7 @@ export const getSubmissionsByFormIdQuery = async (
 };
 
 /**
- * Get all pending submissions for a tenant (for dashboard)
+ * Get pending submissions for a tenant (for dashboard, capped at 500)
  */
 export const getPendingSubmissionsQuery = async (
   tenant: string
@@ -416,7 +418,8 @@ export const getPendingSubmissionsQuery = async (
     FROM "${tenant}".intake_submissions s
     JOIN "${tenant}".intake_forms f ON s.form_id = f.id
     WHERE s.status = :status
-    ORDER BY s.created_at DESC`,
+    ORDER BY s.created_at DESC
+    LIMIT 500`,
     {
       replacements: { status: IntakeSubmissionStatus.PENDING },
       type: QueryTypes.SELECT,
@@ -454,14 +457,10 @@ export const createSubmissionQuery = async (
   tenant: string,
   transaction?: Transaction
 ): Promise<IIntakeSubmission> => {
-  // If this is a resubmission, get the resubmission count
-  let resubmissionCount = 0;
-  if (data.originalSubmissionId) {
-    const original = await getSubmissionByIdQuery(data.originalSubmissionId, tenant);
-    if (original) {
-      resubmissionCount = original.resubmissionCount + 1;
-    }
-  }
+  // Use atomic subquery for resubmission count to avoid read-then-write race condition
+  const resubmissionCountExpr = data.originalSubmissionId
+    ? `COALESCE((SELECT resubmission_count + 1 FROM "${tenant}".intake_submissions WHERE id = :originalSubmissionId FOR UPDATE), 0)`
+    : "0";
 
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".intake_submissions
@@ -469,7 +468,7 @@ export const createSubmissionQuery = async (
        original_submission_id, resubmission_count, ip_address, created_at, updated_at)
     VALUES
       (:formId, :submitterEmail, :submitterName, :data, :entityType, :status,
-       :originalSubmissionId, :resubmissionCount, :ipAddress, NOW(), NOW())
+       :originalSubmissionId, ${resubmissionCountExpr}, :ipAddress, NOW(), NOW())
     RETURNING ${SUBMISSION_SELECT_COLUMNS}`,
     {
       replacements: {
@@ -480,7 +479,6 @@ export const createSubmissionQuery = async (
         entityType: data.entityType,
         status: IntakeSubmissionStatus.PENDING,
         originalSubmissionId: data.originalSubmissionId || null,
-        resubmissionCount,
         ipAddress: data.ipAddress || null,
       },
       type: QueryTypes.SELECT,
@@ -787,8 +785,8 @@ export async function getUsersByIds(
 export async function getTenantByPublicId(
   publicId: string
 ): Promise<{ tenantHash: string; orgId: number } | null> {
-  // Validate publicId format (8-char hex string) to prevent injection
-  if (!/^[a-f0-9]{8}$/i.test(publicId)) {
+  // Validate publicId format (8 or 16 char hex string) to prevent injection
+  if (!/^[a-f0-9]{8,16}$/i.test(publicId)) {
     return null;
   }
 
@@ -808,16 +806,16 @@ export async function getTenantByPublicId(
   for (const org of orgs) {
     const hash = getTenantHash(org.id);
     tenantMap.set(org.id, hash);
-    // Use parameterized value via string literal since publicId is already validated
+    // Schema names are derived from getTenantHash (trusted), publicId uses parameterized replacement
     unionParts.push(
-      `SELECT ${org.id} as org_id FROM "${hash}".intake_forms WHERE public_id = '${publicId}' LIMIT 1`
+      `SELECT ${org.id} as org_id FROM "${hash}".intake_forms WHERE public_id = :publicId LIMIT 1`
     );
   }
 
   try {
     const result = await sequelize.query(
       `${unionParts.join(" UNION ALL ")} LIMIT 1`,
-      { type: QueryTypes.SELECT }
+      { replacements: { publicId }, type: QueryTypes.SELECT }
     ) as Array<{ org_id: number }>;
 
     if (result.length > 0) {

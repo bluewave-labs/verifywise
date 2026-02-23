@@ -33,9 +33,8 @@ export function MathCaptcha({ value, onChange, error, refreshTrigger }: MathCapt
         setToken(response.data.token);
         onChangeRef.current("", response.data.token);
       }
-    } catch (err) {
-      console.error("Failed to load captcha:", err);
-      setQuestion("Error loading captcha");
+    } catch {
+      setQuestion("Error loading captcha — click refresh to retry");
     } finally {
       setIsLoading(false);
     }

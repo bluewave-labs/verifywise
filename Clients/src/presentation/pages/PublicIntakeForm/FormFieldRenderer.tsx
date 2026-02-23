@@ -104,9 +104,10 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                 maxLength: field.validation?.maxLength
                   ? { value: field.validation.maxLength, message: `Maximum ${field.validation.maxLength} characters` }
                   : undefined,
-                pattern: field.validation?.pattern && safeRegExp(field.validation.pattern)
-                  ? { value: safeRegExp(field.validation.pattern)!, message: field.validation.patternMessage || "Invalid format" }
-                  : undefined,
+                pattern: (() => {
+                  const regex = field.validation?.pattern ? safeRegExp(field.validation.pattern) : null;
+                  return regex ? { value: regex, message: field.validation?.patternMessage || "Invalid format" } : undefined;
+                })(),
               }}
               render={({ field: fieldProps }) => (
                 <Field

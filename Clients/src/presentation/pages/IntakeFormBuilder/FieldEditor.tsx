@@ -141,7 +141,9 @@ export function FieldEditor({ field, entityType, usedEntityMappings = [], onChan
   const [localField, setLocalField] = useState<FormField>(field);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // Clear pending debounce when field changes to prevent stale updates
   useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     setLocalField(field);
   }, [field]);
 

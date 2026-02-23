@@ -69,9 +69,7 @@ export interface FormDesignSettings {
   colorTheme: string;
   backgroundColor: string;
   logoUrl: string;
-  headerStyle: "banner" | "minimal";
   fontFamily: string;
-  textDirection: "ltr" | "rtl";
 }
 
 /**
@@ -83,9 +81,7 @@ export const DEFAULT_DESIGN_SETTINGS: FormDesignSettings = {
   colorTheme: "#13715B",
   backgroundColor: "#fafafa",
   logoUrl: "",
-  headerStyle: "banner",
   fontFamily: "Inter",
-  textDirection: "ltr",
 };
 
 /**

@@ -63,8 +63,8 @@ function GradientBanner({
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
-        px: { xs: 3, sm: 4 },
-        pb: 3,
+        px: "32px",
+        pb: "32px",
       }}
     >
       {children}
@@ -331,17 +331,16 @@ export function PublicIntakeForm() {
       : ds.alignment === "right"
         ? { ml: "auto", mr: 0 }
         : { mx: "auto" };
-  const bannerHeight = ds.headerStyle === "minimal" ? 140 : 220;
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
         backgroundColor: ds.backgroundColor,
-        py: { xs: 3, sm: 5 },
-        px: 2,
+        pt: "64px",
+        pb: { xs: 3, sm: 5 },
+        px: { xs: 2, sm: 8 },
         fontFamily: `'${ds.fontFamily}', sans-serif`,
-        direction: ds.textDirection,
       }}
     >
       <Box sx={{ maxWidth, ...formMargin }}>
@@ -355,14 +354,13 @@ export function PublicIntakeForm() {
           }}
         >
           {/* Banner */}
-          <GradientBanner height={bannerHeight} colorTheme={ds.colorTheme}>
+          <GradientBanner height={160} colorTheme={ds.colorTheme}>
             <Typography
               sx={{
                 color: "#fff",
                 fontSize: "28px",
                 fontWeight: 700,
                 lineHeight: 1.2,
-                mb: "64px",
               }}
             >
               {formData.name}
@@ -433,20 +431,6 @@ export function PublicIntakeForm() {
               </Box>
             )}
 
-            {/* Form fields */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-              {sortedFields.map((field) => (
-                <FormFieldRenderer
-                  key={field.id}
-                  field={field}
-                  control={control}
-                  errors={errors}
-                />
-              ))}
-            </Box>
-
-            <Box sx={{ my: 4, borderTop: "1px solid #e2e8f0" }} />
-
             {/* Contact info section */}
             <Typography
               sx={{
@@ -502,6 +486,20 @@ export function PublicIntakeForm() {
                   },
                 }}
               />
+            </Box>
+
+            <Box sx={{ my: 4, borderTop: "1px solid #e2e8f0" }} />
+
+            {/* Form fields */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              {sortedFields.map((field) => (
+                <FormFieldRenderer
+                  key={field.id}
+                  field={field}
+                  control={control}
+                  errors={errors}
+                />
+              ))}
             </Box>
 
             {/* Captcha */}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Typography, Divider, useTheme } from "@mui/material";
+import { Box, Typography, Divider, Tooltip, useTheme } from "@mui/material";
 import {
   AlignLeft,
   AlignCenter,
@@ -7,11 +7,9 @@ import {
   Columns2,
   Columns3,
   Palette,
-  Image,
   Type,
   ChevronRight,
   ChevronDown,
-  ArrowLeftRight,
 } from "lucide-react";
 import Select from "../../components/Inputs/Select";
 import { FormDesignSettings, DEFAULT_DESIGN_SETTINGS } from "./types";
@@ -57,30 +55,31 @@ function IconToggleButton({
 }) {
   const theme = useTheme();
   return (
-    <Box
-      onClick={onClick}
-      title={title}
-      sx={{
-        width: 36,
-        height: 32,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "4px",
-        cursor: "pointer",
-        border: active ? `1.5px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
-        backgroundColor: active ? theme.palette.background.fill : theme.palette.background.main,
-        color: active ? theme.palette.primary.main : theme.palette.text.tertiary,
-        transition: "all 0.15s ease",
-        "&:hover": {
-          borderColor: active ? theme.palette.primary.main : theme.palette.text.accent,
-          backgroundColor: active ? theme.palette.background.fill : theme.palette.background.accent,
-        },
-        ...sxOverride,
-      }}
-    >
-      {children}
-    </Box>
+    <Tooltip title={title} arrow placement="top">
+      <Box
+        onClick={onClick}
+        sx={{
+          width: 36,
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "4px",
+          cursor: "pointer",
+          border: active ? `1.5px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
+          backgroundColor: active ? theme.palette.background.fill : theme.palette.background.main,
+          color: active ? theme.palette.primary.main : theme.palette.text.tertiary,
+          transition: "all 0.15s ease",
+          "&:hover": {
+            borderColor: active ? theme.palette.primary.main : theme.palette.text.accent,
+            backgroundColor: active ? theme.palette.background.fill : theme.palette.background.accent,
+          },
+          ...sxOverride,
+        }}
+      >
+        {children}
+      </Box>
+    </Tooltip>
   );
 }
 
@@ -377,88 +376,6 @@ export function DesignPanel({ settings, onChange }: DesignPanelProps) {
             />
           )}
 
-          {/* Logo & header */}
-          <CustomizeRow
-            icon={<Image size={14} color={theme.palette.text.tertiary} />}
-            label="Header"
-            preview={
-              <Typography sx={{ fontSize: "11px", color: theme.palette.other.icon }}>
-                {s.headerStyle === "banner" ? "Banner" : "Minimal"}
-              </Typography>
-            }
-            expanded={expandedSection === "header"}
-            onClick={() => toggleSection("header")}
-          />
-          {expandedSection === "header" && (
-            <Box sx={{ px: "4px", pb: "8px" }}>
-              <Typography
-                sx={{ fontSize: "11px", color: theme.palette.other.icon, mb: "6px" }}
-              >
-                Header style
-              </Typography>
-              <Box sx={{ display: "flex", gap: "6px" }}>
-                <Box
-                  onClick={() => update({ headerStyle: "banner" })}
-                  sx={{
-                    flex: 1,
-                    height: 48,
-                    borderRadius: "6px",
-                    border:
-                      s.headerStyle === "banner"
-                        ? `2px solid ${theme.palette.primary.main}`
-                        : `1px solid ${theme.palette.border.dark}`,
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    "&:hover": { borderColor: theme.palette.primary.main },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      height: "55%",
-                      backgroundColor: s.colorTheme,
-                    }}
-                  />
-                  <Box sx={{ flex: 1, backgroundColor: theme.palette.background.main }} />
-                </Box>
-                <Box
-                  onClick={() => update({ headerStyle: "minimal" })}
-                  sx={{
-                    flex: 1,
-                    height: 48,
-                    borderRadius: "6px",
-                    border:
-                      s.headerStyle === "minimal"
-                        ? `2px solid ${theme.palette.primary.main}`
-                        : `1px solid ${theme.palette.border.dark}`,
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    "&:hover": { borderColor: theme.palette.primary.main },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      height: "25%",
-                      backgroundColor: s.colorTheme,
-                    }}
-                  />
-                  <Box sx={{ flex: 1, backgroundColor: theme.palette.background.main }} />
-                </Box>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mt: "4px" }}>
-                <Typography sx={{ fontSize: "10px", color: theme.palette.text.accent }}>
-                  Banner
-                </Typography>
-                <Typography sx={{ fontSize: "10px", color: theme.palette.text.accent }}>
-                  Minimal
-                </Typography>
-              </Box>
-            </Box>
-          )}
-
           {/* Font */}
           <CustomizeRow
             icon={<Type size={14} color={theme.palette.text.tertiary} />}
@@ -490,55 +407,6 @@ export function DesignPanel({ settings, onChange }: DesignPanelProps) {
           )}
         </Box>
 
-        <Divider sx={{ borderColor: theme.palette.border.light }} />
-
-        {/* Text direction */}
-        <Box>
-          <Typography
-            sx={{ fontSize: "11px", fontWeight: 600, color: theme.palette.text.tertiary, mb: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}
-          >
-            Text direction
-          </Typography>
-          <Box sx={{ display: "flex", gap: "6px" }}>
-            {(["ltr", "rtl"] as const).map((dir) => {
-              const active = s.textDirection === dir;
-              return (
-                <Box
-                  key={dir}
-                  onClick={() => update({ textDirection: dir })}
-                  title={dir === "ltr" ? "Left to right" : "Right to left"}
-                  sx={{
-                    width: 72,
-                    height: 36,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    border: active ? `1.5px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
-                    backgroundColor: active ? theme.palette.background.fill : theme.palette.background.main,
-                    color: active ? theme.palette.primary.main : theme.palette.text.tertiary,
-                    transition: "all 0.15s ease",
-                    "&:hover": {
-                      borderColor: active ? theme.palette.primary.main : theme.palette.text.accent,
-                      backgroundColor: active ? theme.palette.background.fill : theme.palette.background.accent,
-                    },
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <ArrowLeftRight
-                      size={16}
-                      style={dir === "rtl" ? { transform: "scaleX(-1)" } : undefined}
-                    />
-                    <Typography sx={{ fontSize: "12px", fontWeight: 600 }}>
-                      {dir.toUpperCase()}
-                    </Typography>
-                  </Box>
-                </Box>
-              );
-            })}
-          </Box>
-        </Box>
       </Box>
     </Box>
   );

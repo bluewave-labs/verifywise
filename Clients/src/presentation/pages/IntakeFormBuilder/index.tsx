@@ -473,26 +473,27 @@ export function IntakeFormBuilder() {
                     minWidth: 0,
                   }}
                 >
-                  <Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <Chip label={form.status} uppercase={false} />
-                      {isDirty && (
-                        <Typography
-                          sx={{ color: theme.palette.text.accent, fontSize: "11px" }}
-                        >
-                          Unsaved
-                        </Typography>
-                      )}
-                    </Box>
-                    <Typography sx={{ fontSize: "11px", color: theme.palette.other.icon, mt: "2px" }}>
-                      {form.entityType === IntakeEntityType.USE_CASE ? "Use case" : "Model inventory"}
-                    </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <Chip label={form.status} uppercase={false} />
+                    <Chip
+                      label={form.entityType === IntakeEntityType.USE_CASE ? "Type: AI use case" : "Type: Model inventory"}
+                      uppercase={false}
+                      backgroundColor="#E3F2FD"
+                      textColor="#1565C0"
+                    />
+                    {isDirty && (
+                      <Typography
+                        sx={{ color: theme.palette.text.accent, fontSize: "11px" }}
+                      >
+                        Unsaved
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
 
@@ -763,25 +764,36 @@ export function IntakeFormBuilder() {
                           gap: "20px",
                         }}
                       >
-                        <CustomizableMultiSelect
-                          label="Recipients"
-                          value={form.recipients || []}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            const ids = (Array.isArray(val) ? val : [val]).map(Number);
-                            setForm((prev) => ({ ...prev, recipients: ids }));
-                            setIsDirty(true);
-                          }}
-                          items={orgUsers.map((u) => ({
-                            _id: u.id,
-                            name: [u.name, u.surname].filter(Boolean).join(" "),
-                            email: u.email,
-                          }))}
-                          placeholder="Select recipients"
-                          sx={{
-                            fontSize: "12px",
-                          }}
-                        />
+                        <Box>
+                          <CustomizableMultiSelect
+                            label="Recipients"
+                            value={form.recipients || []}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const ids = (Array.isArray(val) ? val : [val]).map(Number);
+                              setForm((prev) => ({ ...prev, recipients: ids }));
+                              setIsDirty(true);
+                            }}
+                            items={orgUsers.map((u) => ({
+                              _id: u.id,
+                              name: [u.name, u.surname].filter(Boolean).join(" "),
+                              email: u.email,
+                            }))}
+                            placeholder="Select recipients"
+                            sx={{
+                              fontSize: "12px",
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              fontSize: "11px",
+                              color: theme.palette.text.accent,
+                              mt: "4px",
+                            }}
+                          >
+                            Submission responses will be emailed to selected recipients
+                          </Typography>
+                        </Box>
 
                         <Box>
                           <Typography

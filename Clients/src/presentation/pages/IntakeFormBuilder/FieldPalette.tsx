@@ -60,10 +60,17 @@ function ClickablePaletteItem({ item, onAdd }: ClickablePaletteItemProps) {
         "&:hover": {
           borderColor: theme.palette.primary.main,
           backgroundColor: theme.palette.background.fill,
+          "& .palette-icon svg": {
+            color: `${theme.palette.primary.main} !important`,
+            stroke: `${theme.palette.primary.main} !important`,
+            animation: "icon-shake 400ms ease-in-out",
+          },
         },
       }}
     >
-      <IconComponent size={18} color={theme.palette.primary.main} style={{ flexShrink: 0 }} />
+      <Box className="palette-icon" sx={{ display: "flex", flexShrink: 0 }}>
+        <IconComponent size={16} strokeWidth={1.5} color={theme.palette.text.tertiary} />
+      </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography sx={{ fontWeight: 500, color: theme.palette.text.primary, fontSize: "13px", lineHeight: 1.3 }}>
           {item.label}

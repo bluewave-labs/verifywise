@@ -15,6 +15,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode, FC } from "react";
 import { getActiveScan, getScans, getScanStatus } from "../repository/aiDetection.repository";
+import { getRepositoryCount } from "../repository/aiDetectionRepository.repository";
 import { ScanStatus, ScansResponse } from "../../domain/ai-detection/types";
 
 interface RecentScan {
@@ -34,9 +35,11 @@ interface AIDetectionSidebarContextType {
   setActiveTab: (tab: string) => void;
   historyCount: number;
   setHistoryCount: (count: number) => void;
+  repositoryCount: number;
   recentScans: RecentScan[];
   setRecentScans: (scans: RecentScan[]) => void;
   refreshRecentScans: () => void;
+  refreshRepositoryCount: () => void;
   // Global notification state
   scanNotification: ScanNotification | null;
   clearScanNotification: () => void;
@@ -52,6 +55,7 @@ const ACTIVE_SCAN_POLL_INTERVAL_MS = 2000; // Poll faster when tracking active s
 export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState("scan");
   const [historyCount, setHistoryCount] = useState(0);
+  const [repositoryCount, setRepositoryCount] = useState(0);
   const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
   const [scanNotification, setScanNotification] = useState<ScanNotification | null>(null);
 
@@ -130,6 +134,16 @@ export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ childr
     };
   }, [trackedScan]);
 
+  // Load repository count for sidebar badge
+  const refreshRepositoryCount = useCallback(async () => {
+    try {
+      const count = await getRepositoryCount();
+      setRepositoryCount(count);
+    } catch (error) {
+      console.error("Failed to load repository count:", error);
+    }
+  }, []);
+
   // Load recent scans for sidebar on mount
   const refreshRecentScans = useCallback(async () => {
     try {
@@ -148,7 +162,8 @@ export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     refreshRecentScans();
-  }, [refreshRecentScans]);
+    refreshRepositoryCount();
+  }, [refreshRecentScans, refreshRepositoryCount]);
 
   // On mount, check once for any active scan (e.g., page refresh during scan)
   useEffect(() => {
@@ -177,9 +192,11 @@ export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ childr
         setActiveTab,
         historyCount,
         setHistoryCount,
+        repositoryCount,
         recentScans,
         setRecentScans,
         refreshRecentScans,
+        refreshRepositoryCount,
         scanNotification,
         clearScanNotification,
         startTrackingScan,

@@ -43,18 +43,23 @@ export function usePlugins(category?: string) {
           ])
         );
 
-        // Merge installation status into marketplace plugins
+        // Merge installation status into marketplace plugins, normalizing optional array fields
         const mergedPlugins = marketplacePlugins.map((plugin) => {
+          const normalized = {
+            ...plugin,
+            tags: plugin.tags || [],
+            features: plugin.features || [],
+          };
           const installation = installedMap.get(plugin.key);
           if (installation) {
             return {
-              ...plugin,
+              ...normalized,
               installationId: installation.installationId,
               installationStatus: installation.status as PluginInstallationStatus,
               installedAt: installation.installedAt,
             };
           }
-          return plugin;
+          return normalized;
         });
 
         setPlugins(mergedPlugins);

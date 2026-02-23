@@ -1,37 +1,26 @@
 import { Box, Typography } from "@mui/material";
 import { Controller, Control, FieldErrors } from "react-hook-form";
-import { Info } from "lucide-react";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import Checkbox from "../../components/Inputs/Checkbox";
 import { FormField } from "../IntakeFormBuilder/types";
 
 /**
- * Renders a field label row with an optional guidance tooltip icon
+ * Renders a field label
  */
 function FieldLabel({
   label,
-  guidanceText,
   required,
 }: {
   label: string;
-  guidanceText?: string;
   required?: boolean;
 }) {
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: "6px" }}>
+    <Box sx={{ mb: "6px" }}>
       <Typography sx={{ fontSize: "14px", color: "#334155", fontWeight: 500 }}>
         {label}
         {required && <span style={{ color: "#ef4444" }}> *</span>}
       </Typography>
-      {guidanceText && (
-        <span
-          title={guidanceText}
-          style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
-        >
-          <Info size={14} strokeWidth={1.5} color="#838c99" />
-        </span>
-      )}
     </Box>
   );
 }
@@ -46,6 +35,25 @@ function safeRegExp(pattern: string): RegExp | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Guidance text displayed directly under the input element
+ */
+function GuidanceText({ text }: { text?: string }) {
+  if (!text) return null;
+  return (
+    <Typography
+      sx={{
+        fontSize: "12px",
+        color: "#94a3b8",
+        mt: "4px",
+        lineHeight: 1.4,
+      }}
+    >
+      {text}
+    </Typography>
+  );
 }
 
 /**
@@ -91,7 +99,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
       case "url":
         return (
           <>
-            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <FieldLabel label={field.label} required={isRequired} />
             <Controller
               name={field.id}
               control={control}
@@ -110,15 +118,18 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                 })(),
               }}
               render={({ field: fieldProps }) => (
-                <Field
-                  id={`field-${field.id}`}
-                  label=""
-                  {...fieldProps}
-                  placeholder={field.placeholder}
-                  type={field.type === "email" ? "email" : field.type === "url" ? "url" : "text"}
-                  error={!!error}
-                  helperText={errorMessage || field.helpText}
-                />
+                <>
+                  <Field
+                    id={`field-${field.id}`}
+                    label=""
+                    {...fieldProps}
+                    placeholder={field.placeholder}
+                    type={field.type === "email" ? "email" : field.type === "url" ? "url" : "text"}
+                    error={!!error}
+                    helperText={errorMessage || field.helpText}
+                  />
+                  <GuidanceText text={field.guidanceText} />
+                </>
               )}
             />
           </>
@@ -127,7 +138,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
       case "textarea":
         return (
           <>
-            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <FieldLabel label={field.label} required={isRequired} />
             <Controller
               name={field.id}
               control={control}
@@ -142,15 +153,18 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                   : undefined,
               }}
               render={({ field: fieldProps }) => (
-                <Field
-                  id={`field-${field.id}`}
-                  label=""
-                  {...fieldProps}
-                  placeholder={field.placeholder}
-                  rows={4}
-                  error={!!error}
-                  helperText={errorMessage || field.helpText}
-                />
+                <>
+                  <Field
+                    id={`field-${field.id}`}
+                    label=""
+                    {...fieldProps}
+                    placeholder={field.placeholder}
+                    rows={4}
+                    error={!!error}
+                    helperText={errorMessage || field.helpText}
+                  />
+                  <GuidanceText text={field.guidanceText} />
+                </>
               )}
             />
           </>
@@ -159,7 +173,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
       case "number":
         return (
           <>
-            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <FieldLabel label={field.label} required={isRequired} />
             <Controller
               name={field.id}
               control={control}
@@ -174,15 +188,18 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                   : undefined,
               }}
               render={({ field: fieldProps }) => (
-                <Field
-                  id={`field-${field.id}`}
-                  label=""
-                  {...fieldProps}
-                  type="number"
-                  placeholder={field.placeholder}
-                  error={!!error}
-                  helperText={errorMessage || field.helpText}
-                />
+                <>
+                  <Field
+                    id={`field-${field.id}`}
+                    label=""
+                    {...fieldProps}
+                    type="number"
+                    placeholder={field.placeholder}
+                    error={!!error}
+                    helperText={errorMessage || field.helpText}
+                  />
+                  <GuidanceText text={field.guidanceText} />
+                </>
               )}
             />
           </>
@@ -191,7 +208,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
       case "date":
         return (
           <>
-            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <FieldLabel label={field.label} required={isRequired} />
             <Controller
               name={field.id}
               control={control}
@@ -200,14 +217,17 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                 required: isRequired ? "This field is required" : false,
               }}
               render={({ field: fieldProps }) => (
-                <Field
-                  id={`field-${field.id}`}
-                  label=""
-                  {...fieldProps}
-                  type="date"
-                  error={!!error}
-                  helperText={errorMessage || field.helpText}
-                />
+                <>
+                  <Field
+                    id={`field-${field.id}`}
+                    label=""
+                    {...fieldProps}
+                    type="date"
+                    error={!!error}
+                    helperText={errorMessage || field.helpText}
+                  />
+                  <GuidanceText text={field.guidanceText} />
+                </>
               )}
             />
           </>
@@ -216,7 +236,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
       case "select":
         return (
           <>
-            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <FieldLabel label={field.label} required={isRequired} />
             <Controller
               name={field.id}
               control={control}
@@ -245,6 +265,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                       },
                     }}
                   />
+                  <GuidanceText text={field.guidanceText} />
                   <HelperText text={!errorMessage ? field.helpText : undefined} />
                 </Box>
               )}
@@ -255,7 +276,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
       case "multiselect":
         return (
           <>
-            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <FieldLabel label={field.label} required={isRequired} />
             <Controller
               name={field.id}
               control={control}
@@ -352,6 +373,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                         );
                       })}
                     </Box>
+                    <GuidanceText text={field.guidanceText} />
                     <HelperText text={errorMessage || field.helpText} isError={!!error} />
                   </Box>
                 );
@@ -371,23 +393,14 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
             }}
             render={({ field: fieldProps }) => (
               <Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <Checkbox
-                    id={`field-${field.id}`}
-                    isChecked={!!fieldProps.value}
-                    value={field.id}
-                    onChange={(e) => fieldProps.onChange((e.target as HTMLInputElement).checked)}
-                    label={isRequired ? `${field.label} *` : field.label}
-                  />
-                  {field.guidanceText && (
-                    <span
-                      title={field.guidanceText}
-                      style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
-                    >
-                      <Info size={14} strokeWidth={1.5} color="#838c99" />
-                    </span>
-                  )}
-                </Box>
+                <Checkbox
+                  id={`field-${field.id}`}
+                  isChecked={!!fieldProps.value}
+                  value={field.id}
+                  onChange={(e) => fieldProps.onChange((e.target as HTMLInputElement).checked)}
+                  label={isRequired ? `${field.label} *` : field.label}
+                />
+                <GuidanceText text={field.guidanceText} />
                 <HelperText text={errorMessage || field.helpText} isError={!!error} />
               </Box>
             )}

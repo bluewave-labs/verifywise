@@ -54,11 +54,11 @@ function ClickablePaletteItem({ item, onAdd }: ClickablePaletteItemProps) {
         alignItems: "center",
         gap: "8px",
         borderRadius: "4px",
-        border: `1px solid ${theme.palette.border.dark}`,
+        border: `1px solid ${theme.palette.border.light}`,
         backgroundColor: theme.palette.background.main,
         transition: "all 0.15s ease",
         "&:hover": {
-          borderColor: theme.palette.primary.main,
+          borderColor: `${theme.palette.primary.main}80`,
           backgroundColor: theme.palette.background.fill,
           "& .palette-icon svg": {
             color: `${theme.palette.primary.main} !important`,

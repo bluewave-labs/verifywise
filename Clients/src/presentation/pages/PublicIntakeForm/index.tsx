@@ -503,7 +503,7 @@ export function PublicIntakeForm() {
             </Box>
 
             {/* Captcha */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mt: "32px", mb: "32px" }}>
               <MathCaptcha
                 value={captchaValue}
                 onChange={handleCaptchaChange}

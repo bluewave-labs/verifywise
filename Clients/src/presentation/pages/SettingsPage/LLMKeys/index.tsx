@@ -628,7 +628,7 @@ const LLMKeys = () => {
             <Box
               sx={{
                 display: "flex",
-                gap: 1.5,
+                gap: "8px",
                 mt: 1,
               }}
             >
@@ -644,10 +644,10 @@ const LLMKeys = () => {
                     gap: 1,
                     padding: "12px 8px",
                     borderRadius: "4px",
-                    border: "1px solid",
+                    border: "0.5px solid",
                     borderColor: formData.name === provider.name
                       ? "#13715B"
-                      : "#d0d5dd",
+                      : "#eaecf0",
                     backgroundColor: formData.name === provider.name
                       ? "#f0fdf4"
                       : "#ffffff",
@@ -792,11 +792,11 @@ const LLMKeys = () => {
               <Typography sx={{ fontSize: 11, color: "#666666", mb: 1.5 }}>
                 Optional HTTP headers sent with every request (e.g., HTTP-Referer, X-Title, Helicone-Auth)
               </Typography>
-              <Stack spacing={1.5}>
+              <Stack spacing="8px">
                 {headerRows.map((row, index) => (
                   <Box
                     key={index}
-                    sx={{ display: "flex", gap: 1, alignItems: "center" }}
+                    sx={{ display: "flex", gap: "8px", alignItems: "center" }}
                   >
                     <Box sx={{ flex: 1 }}>
                       <Field

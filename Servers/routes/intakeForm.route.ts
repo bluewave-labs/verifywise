@@ -33,31 +33,33 @@ import {
 } from "../controllers/intakeForm.ctrl";
 
 // ============================================================================
-// ADMIN ROUTES (Authenticated)
+// ADMIN / EDITOR ROUTES (Authenticated)
 // ============================================================================
 
-// Intake Forms — Admin only for write operations
+const WRITE_ROLES = ["Admin", "Editor"];
+
+// Intake Forms — Admin & Editor for write operations
 router.get("/forms", authenticateJWT, getAllIntakeForms);
 router.get("/forms/:id", authenticateJWT, getIntakeFormById);
-router.post("/forms", authenticateJWT, authorize(["Admin"]), createIntakeForm);
-router.patch("/forms/:id", authenticateJWT, authorize(["Admin"]), updateIntakeForm);
-router.delete("/forms/:id", authenticateJWT, authorize(["Admin"]), deleteIntakeForm);
-router.post("/forms/:id/archive", authenticateJWT, authorize(["Admin"]), archiveIntakeForm);
+router.post("/forms", authenticateJWT, authorize(WRITE_ROLES), createIntakeForm);
+router.patch("/forms/:id", authenticateJWT, authorize(WRITE_ROLES), updateIntakeForm);
+router.delete("/forms/:id", authenticateJWT, authorize(WRITE_ROLES), deleteIntakeForm);
+router.post("/forms/:id/archive", authenticateJWT, authorize(WRITE_ROLES), archiveIntakeForm);
 router.get("/forms/:id/preview", authenticateJWT, previewForm);
 
-// LLM features — Admin only
-router.post("/forms/suggested-questions", authenticateJWT, authorize(["Admin"]), getLLMSuggestedQuestions);
-router.post("/forms/field-guidance", authenticateJWT, authorize(["Admin"]), getFieldGuidance);
+// LLM features — Admin & Editor
+router.post("/forms/suggested-questions", authenticateJWT, authorize(WRITE_ROLES), getLLMSuggestedQuestions);
+router.post("/forms/field-guidance", authenticateJWT, authorize(WRITE_ROLES), getFieldGuidance);
 
 // Submissions
 router.get("/submissions", authenticateJWT, getPendingSubmissions);
 router.get("/submissions/stats", authenticateJWT, getSubmissionStats);
 router.get("/submissions/:id", authenticateJWT, getSubmissionById);
 router.get("/submissions/:id/preview", authenticateJWT, getSubmissionPreview);
-router.patch("/submissions/:id/risk-override", authenticateJWT, authorize(["Admin"]), overrideSubmissionRisk);
+router.patch("/submissions/:id/risk-override", authenticateJWT, authorize(WRITE_ROLES), overrideSubmissionRisk);
 router.get("/forms/:id/submissions", authenticateJWT, getFormSubmissions);
-router.post("/submissions/:id/approve", authenticateJWT, authorize(["Admin"]), approveSubmission);
-router.post("/submissions/:id/reject", authenticateJWT, authorize(["Admin"]), rejectSubmission);
+router.post("/submissions/:id/approve", authenticateJWT, authorize(WRITE_ROLES), approveSubmission);
+router.post("/submissions/:id/reject", authenticateJWT, authorize(WRITE_ROLES), rejectSubmission);
 
 // ============================================================================
 // PUBLIC ROUTES (Unauthenticated, rate-limited)

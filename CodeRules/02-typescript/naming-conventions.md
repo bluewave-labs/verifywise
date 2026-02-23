@@ -10,14 +10,15 @@ Consistent naming conventions improve code readability and maintainability acros
 | Functions | camelCase | `getUserData`, `calculateTotal` |
 | Components | PascalCase | `UserProfile`, `DataTable` |
 | Classes | PascalCase | `UserService`, `DatabaseConnection` |
-| Interfaces | PascalCase | `User`, `ApiResponse` |
+| Interfaces | PascalCase | `User`, `ApiResponse`, `IChipProps` |
 | Types | PascalCase | `UserId`, `HttpMethod` |
 | Constants | UPPER_SNAKE_CASE | `MAX_RETRIES`, `API_BASE_URL` |
 | Enums | PascalCase | `UserRole`, `HttpStatus` |
 | Enum Members | PascalCase | `UserRole.Admin` |
-| Files (Components) | PascalCase | `UserProfile.tsx` |
+| Files (Components) | `ComponentName/index.tsx` | `PluginCard/index.tsx`, `IconButton/index.tsx` |
 | Files (Utilities) | camelCase | `formatDate.ts` |
-| Folders | kebab-case | `user-management`, `api-client` |
+| Folders (Components) | PascalCase | `PluginCard/`, `IconButton/` |
+| Folders (Utilities) | camelCase | `hooks/`, `utils/`, `redux/` |
 | CSS Classes | kebab-case | `user-profile-card` |
 | Database Tables | snake_case | `user_profiles` |
 | Database Columns | snake_case | `created_at` |
@@ -237,7 +238,7 @@ class IUserService { }       // I prefix
 ### Interfaces
 
 ```typescript
-// Good - no 'I' prefix
+// Good - PascalCase
 interface User {
   id: string;
   name: string;
@@ -253,10 +254,17 @@ interface ButtonProps {
   onClick: () => void;
 }
 
+// Also acceptable - 'I' prefix is used extensively in the codebase
+interface IChipProps { }
+interface IRiskFormValues { }
+
 // Bad
-interface IUser { }          // I prefix
 interface UserInterface { }  // redundant suffix
 ```
+
+> **Note:** The codebase uses the `I` prefix convention widely (e.g., `IChipProps`,
+> `IRiskFormValues`, `IProjectRisk`). Both prefixed and unprefixed styles are acceptable;
+> prefer no prefix for new code, but do not refactor existing `I`-prefixed interfaces.
 
 ### Types
 
@@ -303,9 +311,11 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
+// Also acceptable - I prefix with Props suffix
+interface IUserCardProps { }
+
 // Bad
-interface UserCardParameters { }  // Use Props
-interface IUserCardProps { }      // No I prefix
+interface UserCardParameters { }  // Use Props, not Parameters
 ```
 
 ## Files and Folders
@@ -313,10 +323,10 @@ interface IUserCardProps { }      // No I prefix
 ### File Names
 
 ```typescript
-// Components - PascalCase
-UserProfile.tsx
-DataTable.tsx
-NavigationMenu.tsx
+// Components - PascalCase folder with index.tsx
+PluginCard/index.tsx
+IconButton/index.tsx
+DataTable/index.tsx
 
 // Hooks - camelCase with 'use' prefix
 useUser.ts
@@ -346,22 +356,26 @@ useUser.test.ts
 
 ### Folder Names
 
-Use kebab-case for folders.
+Use PascalCase for component folders and camelCase for utility/infrastructure folders.
 
 ```
 src/
-├── components/
-│   ├── user-profile/
-│   ├── data-table/
-│   └── navigation-menu/
-├── hooks/
-├── services/
-│   ├── api-client/
-│   └── auth-service/
-├── utils/
-│   ├── date-formatting/
-│   └── validation/
-└── types/
+├── presentation/
+│   └── components/
+│       ├── PluginCard/
+│       │   └── index.tsx       # Main component
+│       ├── IconButton/
+│       │   └── index.tsx
+│       └── DataTable/
+│           └── index.tsx
+├── application/
+│   ├── hooks/
+│   ├── redux/
+│   └── repository/
+├── domain/
+│   └── entities/
+└── infrastructure/
+    └── api/
 ```
 
 ## Database
@@ -493,10 +507,10 @@ class UserService {
 - [ ] Constants use UPPER_SNAKE_CASE
 - [ ] Functions use camelCase with action verbs
 - [ ] Classes and interfaces use PascalCase
-- [ ] No `I` prefix on interfaces
+- [ ] `I` prefix on interfaces is acceptable; prefer no prefix for new code
 - [ ] Components use PascalCase
-- [ ] Files match their export naming
-- [ ] Folders use kebab-case
+- [ ] Component files use `ComponentName/index.tsx` pattern
+- [ ] Component folders use PascalCase; utility folders use camelCase
 - [ ] Database tables/columns use snake_case
 - [ ] Abbreviations treated as words (Http not HTTP)
 

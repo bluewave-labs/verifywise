@@ -72,6 +72,7 @@ import policyLinkedObjects from "./routes/policyLinkedObjects.route";
 import approvalWorkflowRoutes from "./routes/approvalWorkflow.route";
 import approvalRequestRoutes from "./routes/approvalRequest.route";
 import aiDetectionRoutes from "./routes/aiDetection.route";
+import aiDetectionRepositoryRoutes from "./routes/aiDetectionRepository.route";
 import githubIntegrationRoutes from "./routes/githubIntegration.route";
 import notificationRoutes from "./routes/notification.route";
 import postMarketMonitoringRoutes from "./routes/postMarketMonitoring.route";
@@ -81,6 +82,7 @@ import shadowAiRoutes from "./routes/shadowAi.route";
 import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import invitationRoutes from "./routes/invitation.route";
+import intakeFormRoutes from "./routes/intakeForm.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 import { addAgentDiscoveryTables } from "./scripts/addAgentDiscoveryTables";
 
@@ -228,6 +230,7 @@ try {
   app.use("/api/approval-workflows", approvalWorkflowRoutes);
   app.use("/api/approval-requests", approvalRequestRoutes);
   app.use("/api/ai-detection", aiDetectionRoutes);
+  app.use("/api/ai-detection/repositories", aiDetectionRepositoryRoutes);
   app.use("/api/integrations/github", githubIntegrationRoutes);
   app.use("/api/notifications", notificationRoutes);
   app.use("/api/pmm", postMarketMonitoringRoutes);
@@ -237,6 +240,7 @@ try {
   app.use("/api/shadow-ai", shadowAiRoutes);
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
   app.use("/api/agent-primitives", agentDiscoveryRoutes);
+  app.use("/api/intake", intakeFormRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

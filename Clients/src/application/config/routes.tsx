@@ -40,12 +40,14 @@ import IntegratedDashboard from "../../presentation/pages/DashboardOverview/Inte
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
+
 import ApprovalWorkflows from "../../presentation/pages/ApprovalWorkflows";
 import ReactFlowDemo from "../../presentation/pages/ReactFlowDemo";
 import WizardShowcase from "../../presentation/pages/WizardShowcase";
 import ScanPage from "../../presentation/pages/AIDetection/ScanPage";
 import HistoryPage from "../../presentation/pages/AIDetection/HistoryPage";
 import AIDetectionSettingsPage from "../../presentation/pages/AIDetection/SettingsPage";
+import RepositoriesPage from "../../presentation/pages/AIDetection/RepositoriesPage";
 import ScanDetailsPage from "../../presentation/pages/AIDetection/ScanDetailsPage";
 import InsightsPage from "../../presentation/pages/ShadowAI/InsightsPage";
 import UserActivityPage from "../../presentation/pages/ShadowAI/UserActivityPage";
@@ -55,6 +57,10 @@ import ShadowAISettingsPage from "../../presentation/pages/ShadowAI/SettingsPage
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 import TaskDetails from "../../presentation/pages/Tasks/TaskDetails";
+import IntakeFormsListPage from "../../presentation/pages/IntakeFormBuilder/IntakeFormsListPage";
+import IntakeFormBuilder from "../../presentation/pages/IntakeFormBuilder";
+import PublicIntakeForm from "../../presentation/pages/PublicIntakeForm";
+import SubmissionSuccess from "../../presentation/pages/PublicIntakeForm/SubmissionSuccess";
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -124,6 +130,7 @@ export const createRoutes = (
     <Route path="/approval-workflows" element={<ApprovalWorkflows />} />
     <Route path="/ai-detection" element={<Navigate to="/ai-detection/scan" replace />} />
     <Route path="/ai-detection/scan" element={<ScanPage />} />
+    <Route path="/ai-detection/repositories" element={<RepositoriesPage />} />
     <Route path="/ai-detection/history" element={<HistoryPage />} />
     <Route path="/ai-detection/settings" element={<AIDetectionSettingsPage />} />
     <Route path="/ai-detection/scans/:scanId" element={<ScanDetailsPage />} />
@@ -140,6 +147,11 @@ export const createRoutes = (
     <Route path="/shadow-ai/settings" element={<ShadowAISettingsPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
+    <Route path="/intake-forms" element={<IntakeFormsListPage />}>
+      <Route index element={<IntakeFormsListPage />} />
+      <Route path="submissions" element={<IntakeFormsListPage />} />
+    </Route>
+    <Route path="/intake-forms/:formId/edit" element={<IntakeFormBuilder />} />
   </Route>,
   <Route
     key="admin-reg"
@@ -184,8 +196,14 @@ export const createRoutes = (
 // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
   <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
+  // Public intake form routes (no authentication required)
+  // New URL format: /{publicId}/use-case-form-intake
+  <Route key="publicIntakeFormById" path="/:publicId/use-case-form-intake" element={<PublicIntakeForm />} />,
+  <Route key="publicIntakeFormByIdSuccess" path="/:publicId/use-case-form-intake/success" element={<SubmissionSuccess />} />,
+  // Legacy URL format: /intake/{tenantSlug}/{formSlug}
+  <Route key="publicIntakeForm" path="/intake/:tenantSlug/:formSlug" element={<PublicIntakeForm />} />,
+  <Route key="publicIntakeFormSuccess" path="/intake/:tenantSlug/:formSlug/success" element={<SubmissionSuccess />} />,
   // Style Guide - Development only
   ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
-  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

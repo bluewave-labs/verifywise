@@ -44,6 +44,22 @@ import { Scan, ScansResponse, ScanStatus } from "../../../domain/ai-detection/ty
 import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
 import { palette } from "../../themes/palette";
 
+function getGradeColor(grade: string | null | undefined): string {
+  switch (grade) {
+    case "A":
+    case "B":
+      return palette.status.success.text;
+    case "C":
+      return palette.status.warning.text;
+    case "D":
+      return "#E65100";
+    case "F":
+      return palette.status.error.text;
+    default:
+      return palette.text.accent;
+  }
+}
+
 const ACTIVE_STATUSES: ScanStatus[] = ["pending", "cloning", "scanning"];
 const POLL_INTERVAL_MS = 3000;
 
@@ -65,6 +81,7 @@ const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
 const TABLE_COLUMNS = [
   { id: "repository", label: "REPOSITORY", sortable: true },
   { id: "status", label: "STATUS", sortable: true },
+  { id: "risk_score", label: "RISK SCORE", sortable: true },
   { id: "findings", label: "FINDINGS", sortable: true },
   { id: "files", label: "FILES SCANNED", sortable: true },
   { id: "duration", label: "DURATION", sortable: true },
@@ -445,6 +462,10 @@ export default function HistoryPage() {
           aValue = getStatusOrder(a.status);
           bValue = getStatusOrder(b.status);
           break;
+        case "risk_score":
+          aValue = a.risk_score ?? -1;
+          bValue = b.risk_score ?? -1;
+          break;
         case "findings":
           aValue = a.findings_count ?? 0;
           bValue = b.findings_count ?? 0;
@@ -517,6 +538,41 @@ export default function HistoryPage() {
       render: (scan: Scan) => (
         <Chip label={STATUS_CONFIG[scan.status]} size="small" />
       ),
+    },
+    {
+      id: "risk_score",
+      label: "RISK SCORE",
+      render: (scan: Scan) => {
+        if (scan.status !== "completed" || scan.risk_score == null) {
+          return (
+            <Typography variant="body2" sx={{ color: palette.text.accent }}>
+              -
+            </Typography>
+          );
+        }
+        const grade = scan.risk_score_grade;
+        const color = getGradeColor(grade);
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+            <Box
+              sx={{
+                px: 0.75,
+                py: 0.25,
+                borderRadius: "4px",
+                backgroundColor: `${color}14`,
+                border: `1px solid ${color}30`,
+              }}
+            >
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color, lineHeight: 1.4 }}>
+                {grade}
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: "monospace" }}>
+              {Math.round(scan.risk_score)}
+            </Typography>
+          </Box>
+        );
+      },
     },
     {
       id: "findings",
@@ -609,13 +665,13 @@ export default function HistoryPage() {
   if (isLoading && scans.length === 0) {
     return (
       <PageHeaderExtended
-        title="Scan history"
+        title="Scan results"
         description="View past repository scans and their results."
         helpArticlePath="ai-detection/history"
       >
         <Box sx={{ textAlign: "center" }}>
           <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
-            Loading scan history...
+            Loading scan results...
           </Typography>
         </Box>
       </PageHeaderExtended>
@@ -625,7 +681,7 @@ export default function HistoryPage() {
   if (!isLoading && scans.length === 0 && total === 0) {
     return (
       <PageHeaderExtended
-        title="Scan history"
+        title="Scan results"
         description="View past repository scans and their results."
         helpArticlePath="ai-detection/history"
       >
@@ -645,7 +701,7 @@ export default function HistoryPage() {
 
   return (
     <PageHeaderExtended
-      title="Scan history"
+      title="Scan results"
       description="View past repository scans and their results."
       helpArticlePath="ai-detection/history"
       alert={

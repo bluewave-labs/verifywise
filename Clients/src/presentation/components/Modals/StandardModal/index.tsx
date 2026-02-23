@@ -170,7 +170,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
       <Stack
         sx={{
           width: maxWidth,
-          minWidth: "600px",
+          minWidth: `min(600px, ${maxWidth})`,
           maxWidth: "calc(100vw - 48px)",
           maxHeight: "calc(100vh - 48px)",
           backgroundColor: "#FFFFFF",

@@ -184,7 +184,7 @@ export const collections: Collection[] = [
     title: 'AI Detection',
     description: 'Scan repositories to discover AI/ML libraries, CI/CD pipelines, container images, and detect shadow AI in your codebase.',
     icon: 'ScanSearch',
-    articleCount: 3,
+    articleCount: 5,
     articles: [
       {
         id: 'scanning',
@@ -193,16 +193,28 @@ export const collections: Collection[] = [
         keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai', 'docker', 'github actions', 'mcp', 'cicd', 'container'],
       },
       {
+        id: 'risk-scoring',
+        title: 'Risk scoring',
+        description: 'Understand the AI Governance Risk Score, LLM-enhanced analysis, and suggested risks.',
+        keywords: ['risk', 'score', 'grade', 'agrs', 'dimension', 'llm', 'analysis', 'suggested', 'governance'],
+      },
+      {
+        id: 'repositories',
+        title: 'Repositories',
+        description: 'Register repositories and configure automated scanning schedules.',
+        keywords: ['repository', 'schedule', 'automated', 'daily', 'weekly', 'monthly', 'monitor'],
+      },
+      {
         id: 'history',
-        title: 'Scan history',
-        description: 'View and manage your scan history and audit trail.',
+        title: 'Scan results',
+        description: 'View and manage your scan results and audit trail.',
         keywords: ['history', 'scan', 'audit', 'trail', 'results', 'findings'],
       },
       {
         id: 'settings',
         title: 'AI Detection settings',
-        description: 'Configure GitHub tokens and integrations for AI detection scanning.',
-        keywords: ['settings', 'github', 'token', 'integration', 'private', 'repository', 'access'],
+        description: 'Configure GitHub tokens, LLM analysis, and dimension weights.',
+        keywords: ['settings', 'github', 'token', 'integration', 'private', 'repository', 'access', 'llm', 'weights'],
       },
     ],
   },

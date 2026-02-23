@@ -1,16 +1,16 @@
 import { Theme } from "@mui/material";
 
 export const getToggleStyles = (theme: Theme) => ({
-  width: 36,
-  height: 22,
-  padding: '2px 0',
-  marginRight: 2,
+  width: 34,
+  height: 18,
+  padding: 0,
   display: 'flex',
   alignItems: 'center',
   '& .MuiSwitch-switchBase': {
-    padding: 2,
+    padding: 0,
+    margin: '2px',
     '&.Mui-checked': {
-      transform: 'translateX(14px)',
+      transform: 'translateX(16px)',
       color: '#fff',
       '& + .MuiSwitch-track': {
         backgroundColor: '#13715B',
@@ -20,19 +20,18 @@ export const getToggleStyles = (theme: Theme) => ({
     },
   },
   '& .MuiSwitch-thumb': {
-    boxShadow: '0 2px 4px 0 rgb(0 35 11 / 20%)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
     width: 14,
     height: 14,
-    borderRadius: '4px !important',
+    borderRadius: '50%',
     backgroundColor: '#fff',
-    margin: 0,
   },
   '& .MuiSwitch-track': {
-    borderRadius: '4px !important',
-    backgroundColor: theme.palette.border.light,
+    borderRadius: 9,
+    backgroundColor: theme.palette.border.dark,
     opacity: 1,
     transition: theme.transitions.create(['background-color'], {
       duration: 200,
     }),
-  }
+  },
 });

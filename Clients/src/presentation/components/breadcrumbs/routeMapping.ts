@@ -40,6 +40,8 @@ import {
   History,
   Eye,
   ShieldAlert,
+  ClipboardList,
+  Inbox,
 } from "lucide-react";
 
 /**
@@ -129,6 +131,10 @@ export const routeMapping: Record<string, string> = {
   "/shadow-ai/rules": "Rules",
   "/shadow-ai/rules/alerts": "Alert history",
   "/shadow-ai/settings": "Settings",
+
+  // Intake forms
+  "/intake-forms": "Intake forms",
+  "/intake-forms/submissions": "Submissions",
 
   // Authentication
   "/login": "Sign in",
@@ -231,6 +237,10 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/ai-detection/scans": () => React.createElement(History, { size: 14, strokeWidth: 1.5 }),
   "/ai-detection/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
+  // Intake forms
+  "/intake-forms": () => React.createElement(ClipboardList, { size: 14, strokeWidth: 1.5 }),
+  "/intake-forms/submissions": () => React.createElement(Inbox, { size: 14, strokeWidth: 1.5 }),
+
   // Shadow AI
   "/shadow-ai": () => React.createElement(Eye, { size: 14, strokeWidth: 1.5 }),
   "/shadow-ai/insights": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
@@ -289,6 +299,12 @@ export const dynamicRoutePatterns = [
     label: "Tool details",
     description: "Detailed view of specific AI tool",
     icon: () => React.createElement(Bot, { size: 14, strokeWidth: 1.5 }),
+  },
+  {
+    pattern: /\/intake-forms\/\w+\/edit/,
+    label: "Form builder",
+    description: "Edit intake form",
+    icon: () => React.createElement(ClipboardList, { size: 14, strokeWidth: 1.5 }),
   },
 ];
 

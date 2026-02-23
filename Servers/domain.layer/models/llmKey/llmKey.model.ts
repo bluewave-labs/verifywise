@@ -19,7 +19,7 @@ export class LLMKeyModel extends Model<LLMKeyModel> implements ILLMKey {
   key!: string;
 
   @Column({
-    type: DataType.ENUM("Anthropic", "OpenAI", "OpenRouter"),
+    type: DataType.ENUM("Anthropic", "OpenAI", "OpenRouter", "Custom"),
     allowNull: false,
   })
   name!: LLMProvider;
@@ -35,6 +35,13 @@ export class LLMKeyModel extends Model<LLMKeyModel> implements ILLMKey {
     allowNull: false,
   })
   model!: string;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    defaultValue: null,
+  })
+  custom_headers!: Record<string, string> | null;
 
   @Column({
     type: DataType.DATE,

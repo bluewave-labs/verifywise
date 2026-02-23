@@ -1,0 +1,33 @@
+<!-- adminName, formName, submitterName, submitterEmail, submissionId, entityType, reviewLink -->
+<mjml>
+  <mj-head>
+    <mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,500"></mj-font>
+    <mj-attributes>
+      <mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
+      <mj-text font-weight="300" font-size="14px" color="#616161" line-height="24px"></mj-text>
+      <mj-section padding="0px"></mj-section>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column width="100%">
+        <mj-text>
+          <p>Hello {{adminName}},</p>
+          <p>
+            A new submission has been received for <strong>{{formName}}</strong> and is awaiting your review.
+          </p>
+          <p>
+            <strong>Submission details:</strong><br>
+            Reference: #{{submissionId}}<br>
+            Entity type: {{entityType}}<br>
+            Submitted by: {{submitterName}} ({{submitterEmail}})
+          </p>
+          <p>
+            <a href="{{reviewLink}}">Review this submission</a>
+          </p>
+          <p>Thank you.</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

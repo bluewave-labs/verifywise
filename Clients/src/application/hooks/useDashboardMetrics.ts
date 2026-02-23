@@ -3,7 +3,7 @@ import { getAllEntities, getEntityById } from "../repository/entity.repository";
 import type { ProgressStep } from "../../presentation/components/StepProgressDialog";
 
 // Cache configuration
-const CACHE_KEY = "dashboard_metrics_cache";
+export const CACHE_KEY = "dashboard_metrics_cache";
 const CACHE_TTL_MS = 30 * 1000; // 30 seconds - data is considered fresh
 const STALE_TTL_MS = 5 * 60 * 1000; // 5 minutes - data can still be shown while revalidating
 
@@ -68,6 +68,14 @@ const setCachedValue = <T>(key: keyof MetricsCache, data: T): void => {
   const cache = getCache();
   cache[key] = { data, timestamp: Date.now() };
   setCache(cache);
+};
+
+/**
+ * Check if any cached dashboard metrics exist in localStorage.
+ * Used by IntegratedDashboard to decide whether to show the progress dialog.
+ */
+export const hasDashboardCache = (): boolean => {
+  return Object.keys(getCache()).length > 0;
 };
 
 // Types for the additional dashboard metrics

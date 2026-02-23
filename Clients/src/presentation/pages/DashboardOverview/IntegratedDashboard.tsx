@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import { useDashboard } from "../../../application/hooks/useDashboard";
-import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
+import { useDashboardMetrics, hasDashboardCache } from "../../../application/hooks/useDashboardMetrics";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getUserById } from "../../../application/repository/user.repository";
 import { getTimeBasedGreeting } from "../../../application/utils/greetings";
@@ -62,8 +62,6 @@ type DashboardView = "executive" | "operations";
 
 const DASHBOARD_VIEW_KEY = "dashboard_view_preference";
 
-const CACHE_KEY = "dashboard_metrics_cache";
-
 const IntegratedDashboard: React.FC = () => {
   const theme = useTheme();
   const navigateSearch = useNavigateSearch();
@@ -72,14 +70,7 @@ const IntegratedDashboard: React.FC = () => {
   const [contentReady, setContentReady] = useState(false);
 
   // Check if there is any cached dashboard metrics data
-  const hasAnyCache = useMemo(() => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      return cached ? Object.keys(JSON.parse(cached)).length > 0 : false;
-    } catch {
-      return false;
-    }
-  }, []);
+  const hasAnyCache = useMemo(() => hasDashboardCache(), []);
 
   // Dashboard view state with localStorage persistence
   const [dashboardView, setDashboardView] = useState<DashboardView>(() => {

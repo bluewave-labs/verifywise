@@ -80,6 +80,58 @@ export class IntakeFormModel extends Model<IntakeFormModel> implements IIntakeFo
   ttlExpiresAt!: Date | null;
 
   @Column({
+    type: DataType.STRING(8),
+    allowNull: true,
+    unique: true,
+    field: "public_id",
+  })
+  publicId!: string | null;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: false,
+    defaultValue: [],
+  })
+  recipients!: number[];
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+    defaultValue: "generic",
+    field: "risk_tier_system",
+  })
+  riskTierSystem!: string;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    field: "risk_assessment_config",
+  })
+  riskAssessmentConfig!: Record<string, unknown> | null;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+    field: "llm_key_id",
+  })
+  llmKeyId!: number | null;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: "suggested_questions_enabled",
+  })
+  suggestedQuestionsEnabled!: boolean;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    field: "design_settings",
+  })
+  designSettings!: Record<string, unknown> | null;
+
+  @Column({
     type: DataType.INTEGER,
     allowNull: false,
     field: "created_by",
@@ -193,6 +245,8 @@ export class IntakeFormModel extends Model<IntakeFormModel> implements IIntakeFo
       entityType: this.entityType,
       schema: this.schema,
       submitButtonText: this.submitButtonText,
+      publicId: this.publicId,
+      designSettings: this.designSettings,
     };
   }
 
@@ -210,6 +264,13 @@ export class IntakeFormModel extends Model<IntakeFormModel> implements IIntakeFo
       submitButtonText: this.submitButtonText,
       status: this.status,
       ttlExpiresAt: this.ttlExpiresAt,
+      publicId: this.publicId,
+      recipients: this.recipients,
+      riskTierSystem: this.riskTierSystem,
+      riskAssessmentConfig: this.riskAssessmentConfig,
+      llmKeyId: this.llmKeyId,
+      suggestedQuestionsEnabled: this.suggestedQuestionsEnabled,
+      designSettings: this.designSettings,
       createdBy: this.createdBy,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

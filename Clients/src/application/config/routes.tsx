@@ -54,8 +54,8 @@ import RulesPage from "../../presentation/pages/ShadowAI/RulesPage";
 import ShadowAISettingsPage from "../../presentation/pages/ShadowAI/SettingsPage";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
-import IntakeFormBuilder from "../../presentation/pages/IntakeFormBuilder";
 import IntakeFormsListPage from "../../presentation/pages/IntakeFormBuilder/IntakeFormsListPage";
+import IntakeFormBuilder from "../../presentation/pages/IntakeFormBuilder";
 import PublicIntakeForm from "../../presentation/pages/PublicIntakeForm";
 import SubmissionSuccess from "../../presentation/pages/PublicIntakeForm/SubmissionSuccess";
 
@@ -142,8 +142,10 @@ export const createRoutes = (
     <Route path="/shadow-ai/settings" element={<ShadowAISettingsPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
-    <Route path="/intake-forms" element={<IntakeFormsListPage />} />
-    <Route path="/intake-forms/new" element={<IntakeFormBuilder />} />
+    <Route path="/intake-forms" element={<IntakeFormsListPage />}>
+      <Route index element={<IntakeFormsListPage />} />
+      <Route path="submissions" element={<IntakeFormsListPage />} />
+    </Route>
     <Route path="/intake-forms/:formId/edit" element={<IntakeFormBuilder />} />
   </Route>,
   <Route
@@ -190,10 +192,13 @@ export const createRoutes = (
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
   <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   // Public intake form routes (no authentication required)
+  // New URL format: /{publicId}/use-case-form-intake
+  <Route key="publicIntakeFormById" path="/:publicId/use-case-form-intake" element={<PublicIntakeForm />} />,
+  <Route key="publicIntakeFormByIdSuccess" path="/:publicId/use-case-form-intake/success" element={<SubmissionSuccess />} />,
+  // Legacy URL format: /intake/{tenantSlug}/{formSlug}
   <Route key="publicIntakeForm" path="/intake/:tenantSlug/:formSlug" element={<PublicIntakeForm />} />,
   <Route key="publicIntakeFormSuccess" path="/intake/:tenantSlug/:formSlug/success" element={<SubmissionSuccess />} />,
   // Style Guide - Development only
   ...(isDev ? [<Route key="style-guide" path="/style-guide/:section?" element={<StyleGuide />} />] : []),
-  <Route key="sharedView" path="/shared/:resourceType/:token" element={<SharedView />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

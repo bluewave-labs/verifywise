@@ -5,6 +5,8 @@ import {
   IIntakeSubmission,
   IntakeSubmissionData,
   ICreateIntakeSubmissionInput,
+  IRiskAssessment,
+  IRiskOverride,
 } from "../../interfaces/i.intakeSubmission";
 import { ValidationException } from "../../exceptions/custom.exception";
 
@@ -116,6 +118,27 @@ export class IntakeSubmissionModel
     field: "ip_address",
   })
   ipAddress!: string | null;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    field: "risk_assessment",
+  })
+  riskAssessment!: IRiskAssessment | null;
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: true,
+    field: "risk_tier",
+  })
+  riskTier!: string | null;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    field: "risk_override",
+  })
+  riskOverride!: IRiskOverride | null;
 
   @Column({
     type: DataType.DATE,
@@ -239,6 +262,9 @@ export class IntakeSubmissionModel
       originalSubmissionId: this.originalSubmissionId,
       resubmissionCount: this.resubmissionCount,
       ipAddress: this.ipAddress,
+      riskAssessment: this.riskAssessment,
+      riskTier: this.riskTier,
+      riskOverride: this.riskOverride,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

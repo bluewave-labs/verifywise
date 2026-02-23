@@ -1,7 +1,7 @@
 import { useState, useMemo, memo, useCallback, useEffect, type ReactNode } from 'react';
 import { Stack, IconButton, Box } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Zap, WorkflowIcon, Package } from 'lucide-react';
+import { Search, Zap, WorkflowIcon, Package, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../../application/hooks/useAuth';
 import VWTooltip from '../VWTooltip';
 import RequestorApprovalModal from '../Modals/RequestorApprovalModal';
@@ -173,6 +173,25 @@ export const DashboardActionButtons = memo(function DashboardActionButtons({
             sx={{ ...baseStyles, ...actionButtonsStyles.approval_workflows }}
           >
             <WorkflowIcon size={16} strokeWidth={2} />
+          </IconButton>
+        </span>
+      </VWTooltip>
+      }
+
+      {/* Intake forms */}
+      {isAdmin && <VWTooltip
+        header="Intake forms"
+        content={"Create and manage intake forms for external submissions."}
+        placement="bottom"
+        maxWidth={200}
+      >
+        <span>
+          <IconButton
+            size="small"
+            onClick={() => navigate('/intake-forms')}
+            sx={{ ...baseStyles, ...actionButtonsStyles.approval_workflows }}
+          >
+            <ClipboardList size={16} strokeWidth={2} />
           </IconButton>
         </span>
       </VWTooltip>

@@ -3369,6 +3369,72 @@ export const createNewTenant = async (
       `CREATE INDEX IF NOT EXISTS idx_model_risk_change_history_risk_changed ON "${tenantHash}".model_risk_change_history(model_risk_id, changed_at DESC);`,
     ].map((query) => sequelize.query(query, { transaction })));
 
+    // ── Intake Forms ──────────────────────────────────────────────────
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".intake_forms (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        schema JSONB NOT NULL DEFAULT '{"version":"1.0","fields":[]}',
+        submit_button_text VARCHAR(100) DEFAULT 'Submit',
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        ttl_expires_at TIMESTAMPTZ,
+        public_id VARCHAR(8) UNIQUE,
+        recipients JSONB DEFAULT '[]',
+        risk_tier_system VARCHAR(20) DEFAULT 'generic',
+        risk_assessment_config JSONB,
+        llm_key_id INTEGER,
+        suggested_questions_enabled BOOLEAN DEFAULT false,
+        design_settings JSONB,
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(slug)
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_status ON "${tenantHash}".intake_forms(status);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_entity_type ON "${tenantHash}".intake_forms(entity_type);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_slug ON "${tenantHash}".intake_forms(slug);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_public_id ON "${tenantHash}".intake_forms(public_id);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // ── Intake Submissions ────────────────────────────────────────────
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".intake_submissions (
+        id SERIAL PRIMARY KEY,
+        form_id INTEGER NOT NULL REFERENCES "${tenantHash}".intake_forms(id) ON DELETE CASCADE,
+        submitter_email VARCHAR(255) NOT NULL,
+        submitter_name VARCHAR(255) NOT NULL,
+        data JSONB NOT NULL DEFAULT '{}',
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id INTEGER,
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        rejection_reason TEXT,
+        reviewed_by INTEGER,
+        reviewed_at TIMESTAMPTZ,
+        original_submission_id INTEGER REFERENCES "${tenantHash}".intake_submissions(id) ON DELETE SET NULL,
+        resubmission_count INTEGER NOT NULL DEFAULT 0,
+        ip_address VARCHAR(45),
+        risk_assessment JSONB,
+        risk_tier VARCHAR(20),
+        risk_override JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_form_id ON "${tenantHash}".intake_submissions(form_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_status ON "${tenantHash}".intake_submissions(status);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_submitter_email ON "${tenantHash}".intake_submissions(submitter_email);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_entity ON "${tenantHash}".intake_submissions(entity_type, entity_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_created_at ON "${tenantHash}".intake_submissions(created_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
   } catch (error) {
     throw error;
   }

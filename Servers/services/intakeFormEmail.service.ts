@@ -4,6 +4,7 @@ import { IntakeEntityType } from "../domain.layer/enums/intake-entity-type.enum"
 import { sequelize } from "../database/db";
 import { QueryTypes } from "sequelize";
 import logger from "../utils/logger/fileLogger";
+import { getUsersByIds } from "../utils/intakeForm.utils";
 
 /**
  * Get entity type display name
@@ -20,15 +21,19 @@ function getEntityTypeDisplayName(entityType: IntakeEntityType): string {
 }
 
 /**
- * Get admin users for a tenant
+ * Get admin users for an organization (fallback when no per-form recipients)
  */
-async function getAdminUsersForTenant(tenantHash: string): Promise<Array<{ id: number; name: string; email: string }>> {
+async function getAdminUsersForOrganization(organizationId: number): Promise<Array<{ id: number; name: string; email: string }>> {
   try {
     const admins = await sequelize.query(
       `SELECT u.id, u.name, u.email
-       FROM "${tenantHash}".users u
-       WHERE u.role = 'admin' OR u.role = 'owner'`,
-      { type: QueryTypes.SELECT }
+       FROM public.users u
+       JOIN public.roles r ON u.role_id = r.id
+       WHERE r.name = 'Admin' AND u.organization_id = :organizationId`,
+      {
+        replacements: { organizationId },
+        type: QueryTypes.SELECT,
+      }
     );
     return admins as Array<{ id: number; name: string; email: string }>;
   } catch (error) {
@@ -46,6 +51,24 @@ function buildFrontendUrl(path: string): string {
 }
 
 /**
+ * Build resubmit link using new URL format (publicId) or legacy format
+ */
+function buildResubmitLink(
+  resubmissionToken: string,
+  publicId?: string,
+  tenantSlug?: string,
+  formSlug?: string
+): string {
+  if (publicId) {
+    return buildFrontendUrl(`/${publicId}/use-case-form-intake?token=${resubmissionToken}`);
+  }
+  if (tenantSlug && formSlug) {
+    return buildFrontendUrl(`/intake/${tenantSlug}/${formSlug}?token=${resubmissionToken}`);
+  }
+  return buildFrontendUrl(`/intake-forms`);
+}
+
+/**
  * Send confirmation email to submitter after form submission
  */
 export async function sendSubmissionReceivedEmail(
@@ -54,11 +77,12 @@ export async function sendSubmissionReceivedEmail(
   formName: string,
   submissionId: number,
   resubmissionToken: string,
-  tenantSlug: string,
-  formSlug: string
+  publicId?: string,
+  tenantSlug?: string,
+  formSlug?: string
 ): Promise<void> {
   try {
-    const resubmitLink = buildFrontendUrl(`/intake/${tenantSlug}/${formSlug}?token=${resubmissionToken}`);
+    const resubmitLink = buildResubmitLink(resubmissionToken, publicId, tenantSlug, formSlug);
 
     await sendEmail(
       submitterEmail,
@@ -75,15 +99,15 @@ export async function sendSubmissionReceivedEmail(
     logger.info(`Submission received email sent to ${submitterEmail} for submission #${submissionId}`);
   } catch (error) {
     logger.error("Failed to send submission received email:", error);
-    // Don't throw - email failure shouldn't break the submission flow
   }
 }
 
 /**
- * Send notification email to admins when a new submission is received
+ * Send notification email to designated recipients (or org admins as fallback)
+ * Accepts either an array of user IDs or an organization ID for fallback
  */
 export async function sendNewSubmissionAdminNotification(
-  tenantHash: string,
+  recipientsOrOrgId: number[] | number,
   formName: string,
   submitterName: string,
   submitterEmail: string,
@@ -91,24 +115,32 @@ export async function sendNewSubmissionAdminNotification(
   entityType: IntakeEntityType
 ): Promise<void> {
   try {
-    const admins = await getAdminUsersForTenant(tenantHash);
+    let recipients: Array<{ id: number; name: string; email: string }>;
 
-    if (admins.length === 0) {
-      logger.warn(`No admin users found for tenant ${tenantHash} to notify about submission #${submissionId}`);
+    if (Array.isArray(recipientsOrOrgId)) {
+      // Per-form recipients (user IDs)
+      recipients = await getUsersByIds(recipientsOrOrgId);
+    } else {
+      // Fallback: org admins
+      recipients = await getAdminUsersForOrganization(recipientsOrOrgId);
+    }
+
+    if (recipients.length === 0) {
+      logger.warn(`No recipients found for submission #${submissionId} notification`);
       return;
     }
 
     const reviewLink = buildFrontendUrl(`/intake-forms`);
     const entityTypeDisplay = getEntityTypeDisplayName(entityType);
 
-    for (const admin of admins) {
+    for (const recipient of recipients) {
       try {
         await sendEmail(
-          admin.email,
+          recipient.email,
           `New submission pending review: ${formName}`,
           EMAIL_TEMPLATES.INTAKE_NEW_SUBMISSION_ADMIN,
           {
-            adminName: admin.name || admin.email.split("@")[0],
+            adminName: recipient.name || recipient.email.split("@")[0],
             formName,
             submitterName: submitterName || submitterEmail.split("@")[0],
             submitterEmail,
@@ -118,7 +150,7 @@ export async function sendNewSubmissionAdminNotification(
           }
         );
       } catch (error) {
-        logger.error(`Failed to send admin notification to ${admin.email}:`, error);
+        logger.error(`Failed to send admin notification to ${recipient.email}:`, error);
       }
     }
 
@@ -169,11 +201,12 @@ export async function sendSubmissionRejectedEmail(
   submissionId: number,
   rejectionReason: string,
   resubmissionToken: string,
-  tenantSlug: string,
-  formSlug: string
+  publicId: string,
+  tenantSlug?: string,
+  formSlug?: string
 ): Promise<void> {
   try {
-    const resubmitLink = buildFrontendUrl(`/intake/${tenantSlug}/${formSlug}?token=${resubmissionToken}`);
+    const resubmitLink = buildResubmitLink(resubmissionToken, publicId, tenantSlug, formSlug);
 
     await sendEmail(
       submitterEmail,

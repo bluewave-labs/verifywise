@@ -1,6 +1,8 @@
 import express from "express";
 const router = express.Router();
 import authenticateJWT from "../middleware/auth.middleware";
+import authorize from "../middleware/accessControl.middleware";
+import { generalApiLimiter } from "../middleware/rateLimit.middleware";
 import {
   // Intake form controllers (admin)
   getAllIntakeForms,
@@ -9,6 +11,7 @@ import {
   updateIntakeForm,
   deleteIntakeForm,
   archiveIntakeForm,
+  previewForm,
   // Submission controllers (admin)
   getPendingSubmissions,
   getFormSubmissions,
@@ -16,9 +19,16 @@ import {
   getSubmissionStats,
   approveSubmission,
   rejectSubmission,
+  getSubmissionPreview,
+  overrideSubmissionRisk,
+  // LLM feature controllers (admin)
+  getLLMSuggestedQuestions,
+  getFieldGuidance,
   // Public controllers (unauthenticated)
   getPublicForm,
   submitPublicForm,
+  getPublicFormByPublicId,
+  submitPublicFormByPublicId,
   getCaptcha,
 } from "../controllers/intakeForm.ctrl";
 
@@ -26,33 +36,42 @@ import {
 // ADMIN ROUTES (Authenticated)
 // ============================================================================
 
-// Intake Forms
+// Intake Forms — Admin only for write operations
 router.get("/forms", authenticateJWT, getAllIntakeForms);
 router.get("/forms/:id", authenticateJWT, getIntakeFormById);
-router.post("/forms", authenticateJWT, createIntakeForm);
-router.patch("/forms/:id", authenticateJWT, updateIntakeForm);
-router.delete("/forms/:id", authenticateJWT, deleteIntakeForm);
-router.post("/forms/:id/archive", authenticateJWT, archiveIntakeForm);
+router.post("/forms", authenticateJWT, authorize(["Admin"]), createIntakeForm);
+router.patch("/forms/:id", authenticateJWT, authorize(["Admin"]), updateIntakeForm);
+router.delete("/forms/:id", authenticateJWT, authorize(["Admin"]), deleteIntakeForm);
+router.post("/forms/:id/archive", authenticateJWT, authorize(["Admin"]), archiveIntakeForm);
+router.get("/forms/:id/preview", authenticateJWT, previewForm);
+
+// LLM features — Admin only
+router.post("/forms/suggested-questions", authenticateJWT, authorize(["Admin"]), getLLMSuggestedQuestions);
+router.post("/forms/field-guidance", authenticateJWT, authorize(["Admin"]), getFieldGuidance);
 
 // Submissions
 router.get("/submissions", authenticateJWT, getPendingSubmissions);
 router.get("/submissions/stats", authenticateJWT, getSubmissionStats);
 router.get("/submissions/:id", authenticateJWT, getSubmissionById);
+router.get("/submissions/:id/preview", authenticateJWT, getSubmissionPreview);
+router.patch("/submissions/:id/risk-override", authenticateJWT, authorize(["Admin"]), overrideSubmissionRisk);
 router.get("/forms/:id/submissions", authenticateJWT, getFormSubmissions);
-router.post("/submissions/:id/approve", authenticateJWT, approveSubmission);
-router.post("/submissions/:id/reject", authenticateJWT, rejectSubmission);
+router.post("/submissions/:id/approve", authenticateJWT, authorize(["Admin"]), approveSubmission);
+router.post("/submissions/:id/reject", authenticateJWT, authorize(["Admin"]), rejectSubmission);
 
 // ============================================================================
-// PUBLIC ROUTES (Unauthenticated)
+// PUBLIC ROUTES (Unauthenticated, rate-limited)
 // ============================================================================
 
 // Get CAPTCHA question
-router.get("/public/captcha", getCaptcha);
+router.get("/public/captcha", generalApiLimiter, getCaptcha);
 
-// Get public form
-router.get("/public/:tenantSlug/:formSlug", getPublicForm);
+// New URL format: /{publicId}/use-case-form-intake
+router.get("/public/by-id/:publicId", generalApiLimiter, getPublicFormByPublicId);
+router.post("/public/by-id/:publicId", generalApiLimiter, submitPublicFormByPublicId);
 
-// Submit public form
-router.post("/public/:tenantSlug/:formSlug", submitPublicForm);
+// Legacy URL format: /{tenantSlug}/{formSlug}
+router.get("/public/:tenantSlug/:formSlug", generalApiLimiter, getPublicForm);
+router.post("/public/:tenantSlug/:formSlug", generalApiLimiter, submitPublicForm);
 
 export default router;

@@ -1,110 +1,155 @@
 import { useState, useCallback, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Button,
+  Stack,
+  Tooltip,
   CircularProgress,
   Snackbar,
   Alert,
-  IconButton,
-  Tooltip,
-  Chip,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Collapse,
+  useTheme,
 } from "@mui/material";
 import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
-import { ArrowLeft, Save, Send, Archive, Eye, Copy } from "lucide-react";
-import { FieldPalette } from "./FieldPalette";
-import { FormCanvas } from "./FormCanvas";
-import { FieldEditor } from "./FieldEditor";
-import { FieldCard } from "./FieldCard";
-import {
-  FormField,
-  IntakeForm,
-  PaletteItem,
-  createFieldFromPalette,
-  createEmptyForm,
-  generateFieldId,
-  generateSlug,
-} from "./types";
-import { IntakeFormStatus, IntakeEntityType } from "../../../domain/intake/enums";
+  Save,
+  Send,
+  Archive,
+  Eye,
+  Copy,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  Pencil,
+  PaintBucket,
+} from "lucide-react";
 import {
   getIntakeForm,
   createIntakeForm,
   updateIntakeForm,
+  IntakeFormStatus,
+  IntakeEntityType,
 } from "../../../application/repository/intakeForm.repository";
+import CustomAxios from "../../../infrastructure/api/customAxios";
+import { LLMKeysModel } from "../../../domain/models/Common/llmKeys/llmKeys.model";
+import { FieldPalette, SuggestedQuestionsPanel } from "./FieldPalette";
+import { FormCanvas } from "./FormCanvas";
+import { FieldEditor } from "./FieldEditor";
+import { DesignPanel } from "./DesignPanel";
+import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
+import {
+  FormField,
+  FormDesignSettings,
+  IntakeForm,
+  createEmptyForm,
+  generateFieldId,
+  generateSlug,
+  DEFAULT_DESIGN_SETTINGS,
+} from "./types";
+import { CustomizableButton } from "../../components/button/customizable-button";
+import StandardModal from "../../components/Modals/StandardModal";
+import Select from "../../components/Inputs/Select";
+import Checkbox from "../../components/Inputs/Checkbox";
+import Chip from "../../components/Chip";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 
-/**
- * Intake form builder page component
- */
+// ============================================================================
+// Helpers
+// ============================================================================
+
+function arrayMove<T>(arr: T[], from: number, to: number): T[] {
+  const result = [...arr];
+  const [item] = result.splice(from, 1);
+  result.splice(to, 0, item);
+  return result;
+}
+
+// ============================================================================
+// Main component
+// ============================================================================
+
 export function IntakeFormBuilder() {
   const { formId } = useParams<{ formId?: string }>();
   const navigate = useNavigate();
-  const isEditing = Boolean(formId);
+  const [searchParams] = useSearchParams();
+  const theme = useTheme();
 
-  // State
+  // --- Builder state ---
+  const isEditing = Boolean(formId) && formId !== "new";
+  const [builderMode, setBuilderMode] = useState<"edit" | "design">("edit");
   const [form, setForm] = useState<IntakeForm>(createEmptyForm());
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
-  const [activeDragItem, setActiveDragItem] = useState<FormField | PaletteItem | null>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [isLoading, setIsLoading] = useState(isEditing);
+  const [isLoadingForm, setIsLoadingForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [llmKeys, setLlmKeys] = useState<LLMKeysModel[]>([]);
+  const [formSettingsOpen, setFormSettingsOpen] = useState(true);
+  const [orgUsers, setOrgUsers] = useState<
+    Array<{ id: number; name: string; surname?: string; email: string }>
+  >([]);
+  const [fieldToDelete, setFieldToDelete] = useState<string | null>(null);
+  const [deleteFieldModalOpen, setDeleteFieldModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
     severity: "success" | "error" | "info";
   }>({ open: false, message: "", severity: "info" });
 
-  // Sensors for drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
+  // ============================================================================
+  // Data loading
+  // ============================================================================
 
-  // Load form if editing
+  // Load single form for the builder
   useEffect(() => {
-    if (formId) {
-      loadForm(parseInt(formId));
+    if (isEditing && formId) {
+      setIsLoadingForm(true);
+      getIntakeForm(parseInt(formId))
+        .then((response) => {
+          if (response.data) setForm(response.data);
+        })
+        .catch(() => {
+          setSnackbar({
+            open: true,
+            message: "Failed to load form",
+            severity: "error",
+          });
+        })
+        .finally(() => setIsLoadingForm(false));
+    } else if (formId === "new") {
+      const entityTypeParam = searchParams.get("entityType");
+      const entityType = entityTypeParam === IntakeEntityType.MODEL
+        ? IntakeEntityType.MODEL
+        : IntakeEntityType.USE_CASE;
+      setForm(createEmptyForm(entityType));
+      setSelectedFieldId(null);
+      setIsDirty(false);
     }
-  }, [formId]);
+  }, [formId, isEditing, searchParams]);
 
-  const loadForm = async (id: number) => {
-    setIsLoading(true);
-    try {
-      const response = await getIntakeForm(id);
-      if (response.data) {
-        setForm(response.data);
-      }
-    } catch (error) {
-      console.error("Failed to load form:", error);
-      setSnackbar({
-        open: true,
-        message: "Failed to load form",
-        severity: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Load LLM keys & users (once)
+  useEffect(() => {
+    CustomAxios.get("/llm-keys")
+      .then((res) => {
+        const data = res.data?.data ?? res.data ?? [];
+        setLlmKeys(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {});
+    CustomAxios.get("/users")
+      .then((res) => {
+        const users = res.data?.data || res.data || [];
+        setOrgUsers(Array.isArray(users) ? users : []);
+      })
+      .catch(() => {});
+  }, []);
 
-  // Form field operations
+  // ============================================================================
+  // Builder handlers
+  // ============================================================================
+
   const updateForm = useCallback((updates: Partial<IntakeForm>) => {
     setForm((prev) => ({ ...prev, ...updates }));
     setIsDirty(true);
@@ -126,152 +171,138 @@ export function IntakeFormBuilder() {
   const addField = useCallback((field: FormField) => {
     setForm((prev) => ({
       ...prev,
-      schema: {
-        ...prev.schema,
-        fields: [...prev.schema.fields, field],
-      },
+      schema: { ...prev.schema, fields: [...prev.schema.fields, field] },
     }));
     setIsDirty(true);
     setSelectedFieldId(field.id);
   }, []);
 
-  const deleteField = useCallback((fieldId: string) => {
+  const requestDeleteField = useCallback((fId: string) => {
+    setFieldToDelete(fId);
+    setDeleteFieldModalOpen(true);
+  }, []);
+
+  const confirmDeleteField = useCallback(() => {
+    if (!fieldToDelete) return;
     setForm((prev) => ({
       ...prev,
       schema: {
         ...prev.schema,
-        fields: prev.schema.fields.filter((f) => f.id !== fieldId),
+        fields: prev.schema.fields.filter((f) => f.id !== fieldToDelete),
       },
     }));
     setIsDirty(true);
-    if (selectedFieldId === fieldId) {
-      setSelectedFieldId(null);
-    }
-  }, [selectedFieldId]);
+    if (selectedFieldId === fieldToDelete) setSelectedFieldId(null);
+    setFieldToDelete(null);
+    setDeleteFieldModalOpen(false);
+  }, [fieldToDelete, selectedFieldId]);
 
-  const duplicateField = useCallback((field: FormField) => {
-    const newField: FormField = {
-      ...field,
-      id: generateFieldId(),
-      label: `${field.label} (copy)`,
-      order: form.schema.fields.length,
-    };
-    addField(newField);
-  }, [form.schema.fields.length, addField]);
+  const duplicateField = useCallback(
+    (field: FormField) => {
+      const newField: FormField = {
+        ...field,
+        id: generateFieldId(),
+        label: `${field.label} (copy)`,
+        order: form.schema.fields.length,
+      };
+      addField(newField);
+    },
+    [form.schema.fields.length, addField]
+  );
 
-  const reorderFields = useCallback((oldIndex: number, newIndex: number) => {
-    setForm((prev) => ({
-      ...prev,
-      schema: {
-        ...prev.schema,
-        fields: arrayMove(prev.schema.fields, oldIndex, newIndex).map((f, i) => ({
-          ...f,
-          order: i,
-        })),
-      },
-    }));
+  const moveFieldUp = useCallback((fId: string) => {
+    setForm((prev) => {
+      const index = prev.schema.fields.findIndex((f) => f.id === fId);
+      if (index <= 0) return prev;
+      return {
+        ...prev,
+        schema: {
+          ...prev.schema,
+          fields: arrayMove(prev.schema.fields, index, index - 1).map(
+            (f, i) => ({ ...f, order: i })
+          ),
+        },
+      };
+    });
     setIsDirty(true);
   }, []);
 
-  // Drag and drop handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const data = active.data.current as { type: string; field?: FormField; paletteItem?: PaletteItem };
+  const moveFieldDown = useCallback((fId: string) => {
+    setForm((prev) => {
+      const index = prev.schema.fields.findIndex((f) => f.id === fId);
+      if (index === -1 || index >= prev.schema.fields.length - 1) return prev;
+      return {
+        ...prev,
+        schema: {
+          ...prev.schema,
+          fields: arrayMove(prev.schema.fields, index, index + 1).map(
+            (f, i) => ({ ...f, order: i })
+          ),
+        },
+      };
+    });
+    setIsDirty(true);
+  }, []);
 
-    if (data.type === "palette" && data.paletteItem) {
-      setActiveDragItem(data.paletteItem);
-    } else if (data.type === "canvas" && data.field) {
-      setActiveDragItem(data.field);
-    }
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveDragItem(null);
-
-    if (!over) return;
-
-    const activeData = active.data.current as { type: string; field?: FormField; paletteItem?: PaletteItem };
-
-    // Adding new field from palette
-    if (activeData.type === "palette" && activeData.paletteItem) {
-      const newField = createFieldFromPalette(
-        activeData.paletteItem,
-        form.schema.fields.length
-      );
-      addField(newField);
-      return;
-    }
-
-    // Reordering existing fields
-    if (activeData.type === "canvas" && activeData.field) {
-      const oldIndex = form.schema.fields.findIndex((f) => f.id === active.id);
-      const overData = over.data.current as { type: string; field?: FormField } | undefined;
-
-      let newIndex: number;
-      if (overData?.type === "canvas" && overData.field) {
-        newIndex = form.schema.fields.findIndex((f) => f.id === over.id);
-      } else {
-        // Dropped on canvas drop zone
-        newIndex = form.schema.fields.length - 1;
-      }
-
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        reorderFields(oldIndex, newIndex);
-      }
-    }
-  };
-
-  // Save form
-  const handleSave = async () => {
+  const handleSave = async (): Promise<number | null> => {
     if (!form.name.trim()) {
       setSnackbar({
         open: true,
         message: "Form name is required",
         severity: "error",
       });
-      return;
+      return null;
     }
-
     setIsSaving(true);
     try {
       const formData = {
         ...form,
         slug: form.slug || generateSlug(form.name),
+        recipients: form.recipients ?? [],
+        riskTierSystem: form.riskTierSystem ?? "generic",
+        llmKeyId: form.llmKeyId ?? null,
+        suggestedQuestionsEnabled: form.suggestedQuestionsEnabled ?? false,
       };
-
       if (isEditing && formId) {
-        await updateIntakeForm(parseInt(formId), formData);
+        const response = await updateIntakeForm(parseInt(formId), formData);
+        const updatedData = response.data;
+        if (updatedData) {
+          setForm((prev) => ({ ...prev, ...updatedData }));
+        }
         setSnackbar({
           open: true,
           message: "Form saved successfully",
           severity: "success",
         });
+        setIsDirty(false);
+        return parseInt(formId);
       } else {
         const response = await createIntakeForm(formData);
         if (response.data?.id) {
+          setForm((prev) => ({ ...prev, ...response.data }));
           navigate(`/intake-forms/${response.data.id}/edit`, { replace: true });
           setSnackbar({
             open: true,
             message: "Form created successfully",
             severity: "success",
           });
+          setIsDirty(false);
+          return response.data.id;
         }
       }
-      setIsDirty(false);
-    } catch (error) {
-      console.error("Failed to save form:", error);
+      return null;
+    } catch {
       setSnackbar({
         open: true,
         message: "Failed to save form",
         severity: "error",
       });
+      return null;
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Publish form
   const handlePublish = async () => {
     if (form.schema.fields.length === 0) {
       setSnackbar({
@@ -281,20 +312,23 @@ export function IntakeFormBuilder() {
       });
       return;
     }
-
     try {
-      await handleSave();
-      if (formId) {
-        await updateIntakeForm(parseInt(formId), { status: IntakeFormStatus.ACTIVE });
-        setForm((prev) => ({ ...prev, status: IntakeFormStatus.ACTIVE }));
+      const savedId = await handleSave();
+      if (savedId) {
+        const publishResponse = await updateIntakeForm(savedId, { status: IntakeFormStatus.ACTIVE });
+        const publishedData = publishResponse.data;
+        setForm((prev) => ({
+          ...prev,
+          status: IntakeFormStatus.ACTIVE,
+          ...(publishedData?.publicId ? { publicId: publishedData.publicId } : {}),
+        }));
         setSnackbar({
           open: true,
           message: "Form published successfully",
           severity: "success",
         });
       }
-    } catch (error) {
-      console.error("Failed to publish form:", error);
+    } catch {
       setSnackbar({
         open: true,
         message: "Failed to publish form",
@@ -303,20 +337,19 @@ export function IntakeFormBuilder() {
     }
   };
 
-  // Archive form
-  const handleArchive = async () => {
-    if (!formId) return;
-
+  const handleArchiveBuilder = async () => {
+    if (!formId || formId === "new") return;
     try {
-      await updateIntakeForm(parseInt(formId), { status: IntakeFormStatus.ARCHIVED });
+      await updateIntakeForm(parseInt(formId), {
+        status: IntakeFormStatus.ARCHIVED,
+      });
       setForm((prev) => ({ ...prev, status: IntakeFormStatus.ARCHIVED }));
       setSnackbar({
         open: true,
         message: "Form archived successfully",
         severity: "success",
       });
-    } catch (error) {
-      console.error("Failed to archive form:", error);
+    } catch {
       setSnackbar({
         open: true,
         message: "Failed to archive form",
@@ -325,10 +358,18 @@ export function IntakeFormBuilder() {
     }
   };
 
-  // Copy form link
-  const handleCopyLink = () => {
-    const link = `${window.location.origin}/intake/${form.slug}`;
-    navigator.clipboard.writeText(link);
+  const handleCopyBuilderLink = () => {
+    const publicId = form.publicId;
+    if (!publicId) {
+      setSnackbar({
+        open: true,
+        message: "Publish the form first to generate a shareable link",
+        severity: "error",
+      });
+      return;
+    }
+    const link = `${window.location.origin}/${publicId}/use-case-form-intake`;
+    navigator.clipboard.writeText(link).catch(() => {});
     setSnackbar({
       open: true,
       message: "Form link copied to clipboard",
@@ -336,279 +377,612 @@ export function IntakeFormBuilder() {
     });
   };
 
-  const selectedField = form.schema.fields.find((f) => f.id === selectedFieldId);
+  const handlePreviewBuilder = () => {
+    const publicId = form.publicId;
+    if (publicId) window.open(`/${publicId}/use-case-form-intake`, "_blank");
+  };
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress sx={{ color: "#13715B" }} />
-      </Box>
-    );
-  }
+  // ============================================================================
+  // Derived values
+  // ============================================================================
+
+  const selectedField = form.schema.fields.find(
+    (f) => f.id === selectedFieldId
+  );
+  const fieldToDeleteLabel = fieldToDelete
+    ? form.schema.fields.find((f) => f.id === fieldToDelete)?.label ||
+      "this field"
+    : "this field";
+
+  const llmKeyItems = [
+    { _id: "", name: "None" },
+    ...llmKeys.map((key) => ({
+      _id: String(key.id),
+      name: `${key.name} — ${key.model}`,
+    })),
+  ];
+
+  // ============================================================================
+  // Render
+  // ============================================================================
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-        {/* Header */}
+    <Stack className="vwhome" gap="16px">
+      <PageBreadcrumbs
+        items={[
+          {
+            label: "Intake forms",
+            path: "/intake-forms",
+            icon: <ClipboardList size={14} strokeWidth={1.5} />,
+          },
+          {
+            label: isEditing
+              ? form.name || "Edit form"
+              : formId === "new"
+                ? "New form"
+                : "Builder",
+            icon: <ClipboardList size={14} strokeWidth={1.5} />,
+          },
+        ]}
+      />
+
+      <Box sx={{ height: "calc(100vh - 100px)" }}>
         <Box
           sx={{
+            height: "100%",
+            backgroundColor: theme.palette.background.main,
+            borderRadius: theme.shape.borderRadius,
+            border: `1px solid ${theme.palette.border.dark}`,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            p: 2,
-            borderBottom: "1px solid #d0d5dd",
-            backgroundColor: "#fff",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <IconButton onClick={() => navigate("/intake-forms")} sx={{ p: 0.5 }}>
-              <ArrowLeft size={20} />
-            </IconButton>
-            <Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <TextField
-                  placeholder="Form name"
-                  value={form.name}
-                  onChange={(e) => updateForm({ name: e.target.value })}
-                  variant="standard"
-                  sx={{
-                    "& .MuiInput-root": {
-                      fontSize: "18px",
-                      fontWeight: 600,
-                      "&:before": { borderBottom: "none" },
-                      "&:hover:before": { borderBottom: "1px solid #d0d5dd !important" },
-                    },
-                  }}
-                />
-                <Chip
-                  label={form.status}
-                  size="small"
-                  sx={{
-                    height: 22,
-                    fontSize: "11px",
-                    textTransform: "capitalize",
-                    backgroundColor:
-                      form.status === IntakeFormStatus.ACTIVE
-                        ? "#dcfce7"
-                        : form.status === IntakeFormStatus.ARCHIVED
-                        ? "#f3f4f6"
-                        : "#fef3c7",
-                    color:
-                      form.status === IntakeFormStatus.ACTIVE
-                        ? "#16a34a"
-                        : form.status === IntakeFormStatus.ARCHIVED
-                        ? "#6b7280"
-                        : "#d97706",
-                  }}
-                />
-                {isDirty && (
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "#9ca3af", fontSize: "11px" }}
-                  >
-                    Unsaved changes
-                  </Typography>
-                )}
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 0.5 }}>
-                <FormControl size="small" sx={{ minWidth: 150 }}>
-                  <InputLabel sx={{ fontSize: "12px" }}>Entity type</InputLabel>
-                  <Select
-                    value={form.entityType}
-                    onChange={(e) =>
-                      updateForm({ entityType: e.target.value as IntakeEntityType })
-                    }
-                    label="Entity type"
-                    sx={{
-                      fontSize: "12px",
-                      height: 28,
-                      "& fieldset": { borderColor: "#d0d5dd" },
-                    }}
-                  >
-                    <MenuItem value={IntakeEntityType.MODEL}>Model inventory</MenuItem>
-                    <MenuItem value={IntakeEntityType.USE_CASE}>Use case</MenuItem>
-                  </Select>
-                </FormControl>
-                <TextField
-                  placeholder="Form description"
-                  value={form.description}
-                  onChange={(e) => updateForm({ description: e.target.value })}
-                  size="small"
-                  sx={{
-                    width: 300,
-                    "& .MuiOutlinedInput-root": {
-                      fontSize: "12px",
-                      height: 28,
-                      "& fieldset": { borderColor: "#d0d5dd" },
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {form.status === IntakeFormStatus.ACTIVE && (
-              <>
-                <Tooltip title="Copy form link">
-                  <IconButton onClick={handleCopyLink} size="small">
-                    <Copy size={18} />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Preview form">
-                  <IconButton
-                    onClick={() => window.open(`/intake/${form.slug}`, "_blank")}
-                    size="small"
-                  >
-                    <Eye size={18} />
-                  </IconButton>
-                </Tooltip>
-              </>
-            )}
-            {form.status === IntakeFormStatus.ACTIVE && (
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<Archive size={16} />}
-                onClick={handleArchive}
-                sx={{
-                  height: 34,
-                  borderColor: "#d0d5dd",
-                  color: "#6b7280",
-                  textTransform: "none",
-                  fontSize: "13px",
-                  "&:hover": {
-                    borderColor: "#9ca3af",
-                    backgroundColor: "#f9fafb",
-                  },
-                }}
-              >
-                Archive
-              </Button>
-            )}
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={isSaving ? <CircularProgress size={14} /> : <Save size={16} />}
-              onClick={handleSave}
-              disabled={isSaving || !isDirty}
-              sx={{
-                height: 34,
-                borderColor: "#d0d5dd",
-                color: "#1f2937",
-                textTransform: "none",
-                fontSize: "13px",
-                "&:hover": {
-                  borderColor: "#13715B",
-                  backgroundColor: "#f0fdf4",
-                },
-              }}
-            >
-              Save
-            </Button>
-            {form.status !== IntakeFormStatus.ACTIVE && (
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<Send size={16} />}
-                onClick={handlePublish}
-                disabled={isSaving}
-                sx={{
-                  height: 34,
-                  backgroundColor: "#13715B",
-                  textTransform: "none",
-                  fontSize: "13px",
-                  "&:hover": {
-                    backgroundColor: "#0f5c49",
-                  },
-                }}
-              >
-                Publish
-              </Button>
-            )}
-          </Box>
-        </Box>
-
-        {/* Main content */}
-        <Box sx={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          <FieldPalette disabled={form.status === IntakeFormStatus.ARCHIVED} />
-          <FormCanvas
-            fields={form.schema.fields}
-            selectedFieldId={selectedFieldId}
-            onSelectField={setSelectedFieldId}
-            onDeleteField={deleteField}
-            onDuplicateField={duplicateField}
-            formName={form.name}
-            formDescription={form.description}
-          />
-          {selectedField && (
-            <FieldEditor
-              field={selectedField}
-              entityType={form.entityType}
-              onChange={updateField}
-              onClose={() => setSelectedFieldId(null)}
-            />
-          )}
-        </Box>
-
-        {/* Drag overlay */}
-        <DragOverlay>
-          {activeDragItem && "type" in activeDragItem && (
+          {isLoadingForm ? (
             <Box
               sx={{
-                p: 2,
-                backgroundColor: "#fff",
-                border: "2px solid #13715B",
-                borderRadius: "4px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                opacity: 0.9,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flex: 1,
               }}
             >
-              <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                {activeDragItem.label}
-              </Typography>
+              <CircularProgress sx={{ color: theme.palette.primary.main }} />
             </Box>
-          )}
-          {activeDragItem && "id" in activeDragItem && (
-            <FieldCard
-              field={activeDragItem}
-              isSelected={false}
-              onSelect={() => {}}
-              onDelete={() => {}}
-              onDuplicate={() => {}}
-            />
-          )}
-        </DragOverlay>
+          ) : (
+            <>
+              {/* Builder header */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderBottom: `1px solid ${theme.palette.border.dark}`,
+                  backgroundColor: theme.palette.background.main,
+                  flexShrink: 0,
+                  position: "relative",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    minWidth: 0,
+                  }}
+                >
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <Chip label={form.status} uppercase={false} />
+                      {isDirty && (
+                        <Typography
+                          sx={{ color: theme.palette.text.accent, fontSize: "11px" }}
+                        >
+                          Unsaved
+                        </Typography>
+                      )}
+                    </Box>
+                    <Typography sx={{ fontSize: "11px", color: theme.palette.other.icon, mt: "2px" }}>
+                      {form.entityType === IntakeEntityType.USE_CASE ? "Use case" : "Model inventory"}
+                    </Typography>
+                  </Box>
+                </Box>
 
-        {/* Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            severity={snackbar.severity}
-            onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+                {/* Centered Edit / Design toggle */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                    display: "flex",
+                    border: `1px solid ${theme.palette.border.dark}`,
+                    borderRadius: "6px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    onClick={() => setBuilderMode("edit")}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      px: "12px",
+                      py: "5px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      userSelect: "none",
+                      backgroundColor: builderMode === "edit" ? theme.palette.primary.main : theme.palette.background.main,
+                      color: builderMode === "edit" ? theme.palette.background.main : theme.palette.text.secondary,
+                      transition: "all 0.15s ease",
+                      "&:hover": {
+                        backgroundColor: builderMode === "edit" ? "#0F5A47" : theme.palette.background.accent,
+                      },
+                    }}
+                  >
+                    <Pencil size={13} />
+                    Edit
+                  </Box>
+                  <Box
+                    onClick={() => setBuilderMode("design")}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      px: "12px",
+                      py: "5px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      userSelect: "none",
+                      borderLeft: `1px solid ${theme.palette.border.dark}`,
+                      backgroundColor: builderMode === "design" ? theme.palette.primary.main : theme.palette.background.main,
+                      color: builderMode === "design" ? theme.palette.background.main : theme.palette.text.secondary,
+                      transition: "all 0.15s ease",
+                      "&:hover": {
+                        backgroundColor: builderMode === "design" ? "#0F5A47" : theme.palette.background.accent,
+                      },
+                    }}
+                  >
+                    <PaintBucket size={13} />
+                    Design
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    flexShrink: 0,
+                  }}
+                >
+                  {form.status === IntakeFormStatus.ACTIVE && (
+                    <>
+                      <Tooltip title="Copy link">
+                        <Box
+                          onClick={handleCopyBuilderLink}
+                          sx={{
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            p: 0.5,
+                            borderRadius: "4px",
+                            "&:hover": { backgroundColor: theme.palette.background.accent },
+                          }}
+                        >
+                          <Copy size={15} color={theme.palette.text.tertiary} />
+                        </Box>
+                      </Tooltip>
+                      <Tooltip title="Preview">
+                        <Box
+                          onClick={handlePreviewBuilder}
+                          sx={{
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            p: 0.5,
+                            borderRadius: "4px",
+                            "&:hover": { backgroundColor: theme.palette.background.accent },
+                          }}
+                        >
+                          <Eye size={15} color={theme.palette.text.tertiary} />
+                        </Box>
+                      </Tooltip>
+                    </>
+                  )}
+                  {form.status === IntakeFormStatus.ACTIVE && (
+                    <CustomizableButton
+                      variant="outlined"
+                      onClick={handleArchiveBuilder}
+                      icon={<Archive size={14} />}
+                      text="Archive"
+                      sx={{
+                        height: 34,
+                        fontSize: "13px",
+                        borderColor: theme.palette.border.dark,
+                        color: theme.palette.text.secondary,
+                        "&:hover": {
+                          borderColor: theme.palette.text.accent,
+                          backgroundColor: theme.palette.background.accent,
+                        },
+                      }}
+                    />
+                  )}
+                  <CustomizableButton
+                    variant="outlined"
+                    onClick={handleSave}
+                    isDisabled={isSaving || !isDirty || form.status === IntakeFormStatus.ARCHIVED}
+                    loading={isSaving}
+                    icon={<Save size={14} />}
+                    text="Save"
+                    sx={{
+                      height: 34,
+                      fontSize: "13px",
+                      borderColor: theme.palette.border.dark,
+                      color: theme.palette.text.secondary,
+                      "&:hover": {
+                        borderColor: theme.palette.text.accent,
+                        backgroundColor: theme.palette.background.accent,
+                      },
+                    }}
+                  />
+                  {form.status !== IntakeFormStatus.ACTIVE && form.status !== IntakeFormStatus.ARCHIVED && (
+                    <CustomizableButton
+                      variant="contained"
+                      onClick={handlePublish}
+                      isDisabled={isSaving}
+                      icon={<Send size={14} />}
+                      text="Publish"
+                      sx={{
+                        height: 34,
+                        fontSize: "13px",
+                        backgroundColor: theme.palette.primary.main,
+                        "&:hover": { backgroundColor: "#0F5A47" },
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
+
+              {/* Builder content */}
+              <Box sx={{ display: "flex", flex: 1, overflow: "hidden" }}>
+                <FieldPalette
+                  disabled={form.status === IntakeFormStatus.ARCHIVED}
+                  fieldCount={form.schema.fields.length}
+                  onAddField={addField}
+                />
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    minWidth: 0,
+                    overflow: "hidden",
+                  }}
+                >
+                  <FormCanvas
+                    fields={form.schema.fields}
+                    selectedFieldId={selectedFieldId}
+                    onSelectField={setSelectedFieldId}
+                    onDeleteField={requestDeleteField}
+                    onDuplicateField={duplicateField}
+                    onMoveUp={moveFieldUp}
+                    onMoveDown={moveFieldDown}
+                    formName={form.name}
+                    formDescription={form.description}
+                    onNameChange={(name) => updateForm({ name })}
+                    onDescriptionChange={(description) => updateForm({ description })}
+                  />
+                  <SuggestedQuestionsPanel
+                    fieldCount={form.schema.fields.length}
+                    onAdd={addField}
+                  />
+                </Box>
+                {builderMode === "design" ? (
+                  <DesignPanel
+                    settings={form.designSettings ?? DEFAULT_DESIGN_SETTINGS}
+                    onChange={(designSettings) => {
+                      updateForm({ designSettings });
+                    }}
+                  />
+                ) : selectedField ? (
+                  <FieldEditor
+                    field={selectedField}
+                    entityType={form.entityType}
+                    usedEntityMappings={form.schema.fields
+                      .filter((f) => f.id !== selectedField.id && f.entityFieldMapping)
+                      .map((f) => f.entityFieldMapping!)}
+                    onChange={updateField}
+                    onClose={() => setSelectedFieldId(null)}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: 280,
+                      borderLeft: `1px solid ${theme.palette.border.dark}`,
+                      backgroundColor: theme.palette.background.main,
+                      overflowY: "auto",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Box
+                      onClick={() => setFormSettingsOpen((prev) => !prev)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        px: "8px",
+                        py: "8px",
+                        cursor: "pointer",
+                        borderBottom: `1px solid ${theme.palette.border.dark}`,
+                        userSelect: "none",
+                        "&:hover": { backgroundColor: theme.palette.background.accent },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Settings size={15} color={theme.palette.text.tertiary} />
+                        <Typography
+                          sx={{
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: theme.palette.text.primary,
+                          }}
+                        >
+                          Form settings
+                        </Typography>
+                      </Box>
+                      {formSettingsOpen ? (
+                        <ChevronDown size={15} color={theme.palette.text.tertiary} />
+                      ) : (
+                        <ChevronRight size={15} color={theme.palette.text.tertiary} />
+                      )}
+                    </Box>
+
+                    <Collapse in={formSettingsOpen}>
+                      <Box
+                        sx={{
+                          p: "8px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "20px",
+                        }}
+                      >
+                        <CustomizableMultiSelect
+                          label="Recipients"
+                          value={form.recipients || []}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const ids = (Array.isArray(val) ? val : [val]).map(Number);
+                            setForm((prev) => ({ ...prev, recipients: ids }));
+                            setIsDirty(true);
+                          }}
+                          items={orgUsers.map((u) => ({
+                            _id: u.id,
+                            name: [u.name, u.surname].filter(Boolean).join(" "),
+                            email: u.email,
+                          }))}
+                          placeholder="Select recipients"
+                          sx={{
+                            fontSize: "12px",
+                          }}
+                        />
+
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              color: theme.palette.text.secondary,
+                              mb: "4px",
+                            }}
+                          >
+                            Risk tier system
+                          </Typography>
+                          <RadioGroup
+                            value={form.riskTierSystem ?? "generic"}
+                            onChange={(e) =>
+                              updateForm({
+                                riskTierSystem: e.target.value,
+                              })
+                            }
+                            sx={{ pl: "16px", gap: "8px" }}
+                          >
+                            <FormControlLabel
+                              value="generic"
+                              sx={{ mr: 0 }}
+                              control={
+                                <Radio
+                                  size="small"
+                                  sx={{
+                                    color: theme.palette.border.dark,
+                                    "&.Mui-checked": {
+                                      color: theme.palette.primary.main,
+                                    },
+                                    p: 0.5,
+                                  }}
+                                />
+                              }
+                              label={
+                                <Typography
+                                  sx={{
+                                    fontSize: "12px",
+                                    color: theme.palette.text.secondary,
+                                  }}
+                                >
+                                  Generic (Low / Med / High / Critical)
+                                </Typography>
+                              }
+                            />
+                            <FormControlLabel
+                              value="eu_ai_act"
+                              sx={{ mr: 0 }}
+                              control={
+                                <Radio
+                                  size="small"
+                                  sx={{
+                                    color: theme.palette.border.dark,
+                                    "&.Mui-checked": {
+                                      color: theme.palette.primary.main,
+                                    },
+                                    p: 0.5,
+                                  }}
+                                />
+                              }
+                              label={
+                                <Typography
+                                  sx={{
+                                    fontSize: "12px",
+                                    color: theme.palette.text.secondary,
+                                  }}
+                                >
+                                  EU AI Act (Minimal / Limited / High /
+                                  Unacceptable)
+                                </Typography>
+                              }
+                            />
+                          </RadioGroup>
+                        </Box>
+
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              color: theme.palette.text.secondary,
+                              mb: "4px",
+                            }}
+                          >
+                            LLM key
+                          </Typography>
+                          <Select
+                            id="llm-key"
+                            label=""
+                            value={
+                              form.llmKeyId ? String(form.llmKeyId) : ""
+                            }
+                            onChange={(e) =>
+                              updateForm({
+                                llmKeyId:
+                                  e.target.value === ""
+                                    ? null
+                                    : Number(e.target.value),
+                              })
+                            }
+                            items={llmKeyItems}
+                            sx={{
+                              "& .MuiOutlinedInput-root": {
+                                height: 34,
+                                fontSize: "12px",
+                              },
+                            }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "4px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            updateForm({
+                              suggestedQuestionsEnabled:
+                                !form.suggestedQuestionsEnabled,
+                            })
+                          }
+                        >
+                          <Checkbox
+                            id="suggested-questions"
+                            isChecked={
+                              form.suggestedQuestionsEnabled ?? false
+                            }
+                            value="suggestedQuestionsEnabled"
+                            onChange={() =>
+                              updateForm({
+                                suggestedQuestionsEnabled:
+                                  !form.suggestedQuestionsEnabled,
+                              })
+                            }
+                            size="small"
+                            label=""
+                            sx={{ p: 0, mt: "1px", flexShrink: 0 }}
+                          />
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: theme.palette.text.secondary,
+                              }}
+                            >
+                              Suggested questions
+                            </Typography>
+                            <Typography
+                              sx={{ fontSize: "11px", color: theme.palette.text.accent }}
+                            >
+                              Show AI-suggested questions to form submitters
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Collapse>
+                  </Box>
+                )}
+              </Box>
+            </>
+          )}
+        </Box>
       </Box>
-    </DndContext>
+
+      {/* Delete field modal */}
+      <StandardModal
+        title="Delete field"
+        description={`Are you sure you want to delete "${fieldToDeleteLabel}"? This action cannot be undone.`}
+        isOpen={deleteFieldModalOpen}
+        onClose={() => {
+          setDeleteFieldModalOpen(false);
+          setFieldToDelete(null);
+        }}
+        onSubmit={confirmDeleteField}
+        submitButtonText="Delete"
+        submitButtonColor="#c62828"
+        maxWidth="440px"
+        fitContent
+      />
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Stack>
   );
 }
 

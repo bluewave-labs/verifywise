@@ -8,6 +8,39 @@ import { IntakeEntityType } from "../enums/intake-entity-type.enum";
 export type IntakeSubmissionData = Record<string, unknown>;
 
 /**
+ * Risk dimension score
+ */
+export interface IRiskDimension {
+  key: string;
+  label: string;
+  weight: number;
+  score: number;
+  signals: string[];
+}
+
+/**
+ * Risk assessment result stored on submission
+ */
+export interface IRiskAssessment {
+  dimensions: IRiskDimension[];
+  overallScore: number;
+  tier: string;
+  tierSystem: string;
+  llmEnhanced: boolean;
+}
+
+/**
+ * Risk override by admin
+ */
+export interface IRiskOverride {
+  tier: string;
+  dimensionOverrides: Record<string, number>;
+  justification: string;
+  overriddenBy: number;
+  overriddenAt: string;
+}
+
+/**
  * Intake submission entity
  */
 export interface IIntakeSubmission {
@@ -25,6 +58,9 @@ export interface IIntakeSubmission {
   originalSubmissionId: number | null;
   resubmissionCount: number;
   ipAddress: string | null;
+  riskAssessment: IRiskAssessment | null;
+  riskTier: string | null;
+  riskOverride: IRiskOverride | null;
   createdAt: Date;
   updatedAt: Date;
 }

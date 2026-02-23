@@ -1,21 +1,10 @@
-import { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  Switch,
-  FormControlLabel,
-  Select,
-  MenuItem,
-  IconButton,
-  Tooltip,
-  Divider,
-  Button,
-  Stack,
-  FormControl,
-  InputLabel,
-} from "@mui/material";
-import { X, Plus, Trash2, GripVertical } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Box, Typography, Tooltip, Divider, useTheme } from "@mui/material";
+import { X, Plus, Trash2 } from "lucide-react";
+import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
+import Checkbox from "../../components/Inputs/Checkbox";
+import { CustomizableButton } from "../../components/button/customizable-button";
 import {
   FormField,
   FieldOption,
@@ -25,9 +14,6 @@ import {
 } from "./types";
 import { IntakeEntityType } from "../../../domain/intake/enums";
 
-/**
- * Field type labels
- */
 const FIELD_TYPE_LABELS: Record<FieldType, string> = {
   text: "Short text",
   textarea: "Long text",
@@ -40,15 +26,13 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
   checkbox: "Checkbox",
 };
 
-/**
- * Options editor for select/multiselect fields
- */
 interface OptionsEditorProps {
   options: FieldOption[];
   onChange: (options: FieldOption[]) => void;
 }
 
 function OptionsEditor({ options, onChange }: OptionsEditorProps) {
+  const theme = useTheme();
   const handleAddOption = () => {
     const newOption: FieldOption = {
       label: `Option ${options.length + 1}`,
@@ -58,6 +42,7 @@ function OptionsEditor({ options, onChange }: OptionsEditorProps) {
   };
 
   const handleRemoveOption = (index: number) => {
+    if (options.length <= 1) return;
     const newOptions = options.filter((_, i) => i !== index);
     onChange(newOptions);
   };
@@ -70,116 +55,128 @@ function OptionsEditor({ options, onChange }: OptionsEditorProps) {
 
   return (
     <Box>
-      <Typography
-        variant="subtitle2"
-        sx={{ fontWeight: 600, color: "#1f2937", fontSize: "13px", mb: 1 }}
-      >
+      <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "13px", mb: "8px" }}>
         Options
       </Typography>
-      <Stack spacing={1}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {options.map((option, index) => (
           <Box
             key={index}
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 1,
-              p: 1,
-              backgroundColor: "#f9fafb",
+              gap: "8px",
+              p: "8px",
+              backgroundColor: theme.palette.background.accent,
               borderRadius: "4px",
-              border: "1px solid #e5e7eb",
+              border: `1px solid ${theme.palette.border.dark}`,
             }}
           >
-            <GripVertical size={16} color="#9ca3af" />
-            <TextField
-              size="small"
-              placeholder="Label"
-              value={option.label}
-              onChange={(e) => handleUpdateOption(index, "label", e.target.value)}
-              sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  fontSize: "13px",
-                  "& fieldset": { borderColor: "#d0d5dd" },
-                },
-              }}
-            />
-            <TextField
-              size="small"
-              placeholder="Value"
-              value={option.value}
-              onChange={(e) => handleUpdateOption(index, "value", e.target.value)}
-              sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  fontSize: "13px",
-                  "& fieldset": { borderColor: "#d0d5dd" },
-                },
-              }}
-            />
-            <IconButton
-              size="small"
-              onClick={() => handleRemoveOption(index)}
-              disabled={options.length <= 1}
-              sx={{
-                p: 0.5,
-                color: "#6b7280",
-                "&:hover": { color: "#ef4444" },
-              }}
-            >
-              <Trash2 size={16} />
-            </IconButton>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                id={`option-label-${index}`}
+                label=""
+                placeholder="Label"
+                value={option.label}
+                onChange={(e) => handleUpdateOption(index, "label", e.target.value)}
+                sx={{ "& .MuiOutlinedInput-root": { height: 32, fontSize: "13px" } }}
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Field
+                id={`option-value-${index}`}
+                label=""
+                placeholder="Value"
+                value={option.value}
+                onChange={(e) => handleUpdateOption(index, "value", e.target.value)}
+                sx={{ "& .MuiOutlinedInput-root": { height: 32, fontSize: "13px" } }}
+              />
+            </Box>
+            <Tooltip title={options.length <= 1 ? "" : "Remove option"}>
+              <Box
+                onClick={() => handleRemoveOption(index)}
+                sx={{
+                  cursor: options.length <= 1 ? "default" : "pointer",
+                  opacity: options.length <= 1 ? 0.3 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  p: "4px",
+                  borderRadius: "4px",
+                  "&:hover": options.length > 1 ? { backgroundColor: theme.palette.status.error.bg } : {},
+                }}
+              >
+                <Trash2 size={14} color={options.length <= 1 ? theme.palette.text.accent : theme.palette.status.error.text} />
+              </Box>
+            </Tooltip>
           </Box>
         ))}
-      </Stack>
-      <Button
-        startIcon={<Plus size={14} />}
+      </Box>
+      <CustomizableButton
+        variant="text"
         onClick={handleAddOption}
-        size="small"
         sx={{
-          mt: 1,
-          color: "#13715B",
-          textTransform: "none",
+          mt: "8px",
+          height: 30,
           fontSize: "12px",
-          "&:hover": { backgroundColor: "#f0fdf4" },
+          color: theme.palette.primary.main,
+          "&:hover": { backgroundColor: theme.palette.background.fill },
         }}
       >
-        Add option
-      </Button>
+        <Plus size={14} style={{ marginRight: 4 }} /> Add option
+      </CustomizableButton>
     </Box>
   );
 }
 
-/**
- * Field editor component - edits field properties
- */
 interface FieldEditorProps {
   field: FormField;
   entityType: IntakeEntityType;
+  usedEntityMappings?: string[];
   onChange: (field: FormField) => void;
   onClose: () => void;
 }
 
-export function FieldEditor({ field, entityType, onChange, onClose }: FieldEditorProps) {
+export function FieldEditor({ field, entityType, usedEntityMappings = [], onChange, onClose }: FieldEditorProps) {
+  const theme = useTheme();
   const [localField, setLocalField] = useState<FormField>(field);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     setLocalField(field);
   }, [field]);
 
+  // Flush pending debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
+
+  const debouncedOnChange = useCallback(
+    (updated: FormField) => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
+        onChange(updated);
+      }, 300);
+    },
+    [onChange]
+  );
+
   const handleChange = <K extends keyof FormField>(key: K, value: FormField[K]) => {
     const updated = { ...localField, [key]: value };
     setLocalField(updated);
-    onChange(updated);
+    debouncedOnChange(updated);
   };
 
-  const handleValidationChange = (key: string, value: boolean | number | string) => {
-    const updated = {
-      ...localField,
-      validation: { ...localField.validation, [key]: value },
-    };
+  const handleValidationChange = (key: string, value: boolean | number | string | undefined) => {
+    const validation = { ...localField.validation, [key]: value };
+    // Remove undefined keys to keep the object clean
+    if (value === undefined) {
+      delete (validation as Record<string, unknown>)[key];
+    }
+    const updated = { ...localField, validation };
     setLocalField(updated);
-    onChange(updated);
+    debouncedOnChange(updated);
   };
 
   const entityMappings = ENTITY_FIELD_MAPPINGS[entityType] || [];
@@ -191,15 +188,26 @@ export function FieldEditor({ field, entityType, onChange, onClose }: FieldEdito
   const showMinMax = localField.type === "number";
   const showMinMaxLength = localField.type === "text" || localField.type === "textarea";
 
+  const mappingItems = [
+    { _id: "", name: "None" },
+    ...compatibleMappings
+      .filter((m: EntityFieldMapping) =>
+        // Allow the current field's own mapping, exclude mappings used by other fields
+        m.field === localField.entityFieldMapping || !usedEntityMappings.includes(m.field)
+      )
+      .map((m: EntityFieldMapping) => ({ _id: m.field, name: m.label })),
+  ];
+
   return (
     <Box
       sx={{
         width: 320,
         height: "100%",
-        borderLeft: "1px solid #d0d5dd",
-        backgroundColor: "#fff",
+        borderLeft: `1px solid ${theme.palette.border.dark}`,
+        backgroundColor: theme.palette.background.main,
         display: "flex",
         flexDirection: "column",
+        flexShrink: 0,
       }}
     >
       {/* Header */}
@@ -208,95 +216,89 @@ export function FieldEditor({ field, entityType, onChange, onClose }: FieldEdito
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          p: 2,
-          borderBottom: "1px solid #d0d5dd",
+          p: "8px",
+          borderBottom: `1px solid ${theme.palette.border.dark}`,
         }}
       >
         <Box>
-          <Typography
-            variant="subtitle2"
-            sx={{ fontWeight: 600, color: "#1f2937", fontSize: "14px" }}
-          >
+          <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "14px" }}>
             Field settings
           </Typography>
-          <Typography variant="caption" sx={{ color: "#6b7280", fontSize: "12px" }}>
+          <Typography sx={{ color: theme.palette.other.icon, fontSize: "12px" }}>
             {FIELD_TYPE_LABELS[localField.type]}
           </Typography>
         </Box>
         <Tooltip title="Close editor">
-          <IconButton size="small" onClick={onClose} sx={{ p: 0.5 }}>
-            <X size={18} />
-          </IconButton>
+          <Box
+            onClick={onClose}
+            sx={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              p: "4px",
+              borderRadius: "4px",
+              "&:hover": { backgroundColor: theme.palette.background.accent },
+            }}
+          >
+            <X size={18} color={theme.palette.other.icon} />
+          </Box>
         </Tooltip>
       </Box>
 
       {/* Content */}
-      <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-        <Stack spacing={2.5}>
+      <Box sx={{ flex: 1, overflowY: "auto", p: "8px" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Basic settings */}
           <Box>
             <Typography
-              variant="overline"
               sx={{
                 fontWeight: 600,
-                color: "#6b7280",
+                color: theme.palette.other.icon,
                 fontSize: "10px",
                 letterSpacing: "0.5px",
-                display: "block",
-                mb: 1.5,
+                textTransform: "uppercase",
+                mb: "12px",
               }}
             >
               Basic settings
             </Typography>
-            <Stack spacing={2}>
-              <TextField
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <Field
+                id="field-label"
                 label="Label"
-                size="small"
-                fullWidth
                 value={localField.label}
                 onChange={(e) => handleChange("label", e.target.value)}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    "& fieldset": { borderColor: "#d0d5dd" },
-                  },
-                  "& .MuiInputLabel-root": { fontSize: "13px" },
-                }}
               />
-              <TextField
+              <Field
+                id="field-placeholder"
                 label="Placeholder"
-                size="small"
-                fullWidth
                 value={localField.placeholder || ""}
                 onChange={(e) => handleChange("placeholder", e.target.value)}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    "& fieldset": { borderColor: "#d0d5dd" },
-                  },
-                  "& .MuiInputLabel-root": { fontSize: "13px" },
-                }}
               />
-              <TextField
+              <Field
+                id="field-helptext"
                 label="Help text"
-                size="small"
-                fullWidth
-                multiline
-                rows={2}
                 value={localField.helpText || ""}
                 onChange={(e) => handleChange("helpText", e.target.value)}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    "& fieldset": { borderColor: "#d0d5dd" },
-                  },
-                  "& .MuiInputLabel-root": { fontSize: "13px" },
-                }}
+                rows={2}
               />
-            </Stack>
+              <Box>
+                <Field
+                  id="field-guidance"
+                  label="Guidance text"
+                  placeholder="Explain why this field matters for governance..."
+                  value={localField.guidanceText || ""}
+                  onChange={(e) => handleChange("guidanceText", e.target.value)}
+                  rows={2}
+                />
+                <Typography sx={{ fontSize: "11px", color: theme.palette.other.icon, mt: "4px" }}>
+                  Shown as a tooltip next to the field label on the public form
+                </Typography>
+              </Box>
+            </Box>
           </Box>
 
-          <Divider />
+          <Divider sx={{ borderColor: theme.palette.border.dark }} />
 
           {/* Options for select/multiselect */}
           {showOptions && (
@@ -305,182 +307,122 @@ export function FieldEditor({ field, entityType, onChange, onClose }: FieldEdito
                 options={localField.options || []}
                 onChange={(options) => handleChange("options", options)}
               />
-              <Divider />
+              <Divider sx={{ borderColor: theme.palette.border.dark }} />
             </>
           )}
 
           {/* Validation settings */}
           <Box>
             <Typography
-              variant="overline"
               sx={{
                 fontWeight: 600,
-                color: "#6b7280",
+                color: theme.palette.other.icon,
                 fontSize: "10px",
                 letterSpacing: "0.5px",
-                display: "block",
-                mb: 1.5,
+                textTransform: "uppercase",
+                mb: "12px",
               }}
             >
               Validation
             </Typography>
-            <Stack spacing={2}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={localField.validation?.required || false}
-                    onChange={(e) => handleValidationChange("required", e.target.checked)}
-                    size="small"
-                    sx={{
-                      "& .MuiSwitch-switchBase.Mui-checked": {
-                        color: "#13715B",
-                      },
-                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                        backgroundColor: "#13715B",
-                      },
-                    }}
-                  />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <Checkbox
+                id="field-required"
+                label="Required field"
+                isChecked={localField.validation?.required || false}
+                value="required"
+                onChange={() =>
+                  handleValidationChange("required", !localField.validation?.required)
                 }
-                label={
-                  <Typography sx={{ fontSize: "13px", color: "#1f2937" }}>
-                    Required field
-                  </Typography>
-                }
+                size="small"
               />
 
               {showMinMaxLength && (
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <TextField
+                <Box sx={{ display: "flex", gap: "8px", minWidth: 0 }}>
+                  <Field
+                    id="field-minlength"
                     label="Min length"
                     type="number"
-                    size="small"
-                    value={localField.validation?.minLength || ""}
-                    onChange={(e) =>
-                      handleValidationChange("minLength", parseInt(e.target.value) || 0)
-                    }
-                    sx={{
-                      flex: 1,
-                      "& .MuiOutlinedInput-root": {
-                        fontSize: "13px",
-                        "& fieldset": { borderColor: "#d0d5dd" },
-                      },
-                      "& .MuiInputLabel-root": { fontSize: "13px" },
+                    value={String(localField.validation?.minLength || "")}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      handleValidationChange("minLength", v === "" ? undefined : parseInt(v));
                     }}
+                    sx={{ flex: 1, minWidth: 0 }}
                   />
-                  <TextField
+                  <Field
+                    id="field-maxlength"
                     label="Max length"
                     type="number"
-                    size="small"
-                    value={localField.validation?.maxLength || ""}
-                    onChange={(e) =>
-                      handleValidationChange("maxLength", parseInt(e.target.value) || 0)
-                    }
-                    sx={{
-                      flex: 1,
-                      "& .MuiOutlinedInput-root": {
-                        fontSize: "13px",
-                        "& fieldset": { borderColor: "#d0d5dd" },
-                      },
-                      "& .MuiInputLabel-root": { fontSize: "13px" },
+                    value={String(localField.validation?.maxLength || "")}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      handleValidationChange("maxLength", v === "" ? undefined : parseInt(v));
                     }}
+                    sx={{ flex: 1, minWidth: 0 }}
                   />
                 </Box>
               )}
 
               {showMinMax && (
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <TextField
+                <Box sx={{ display: "flex", gap: "8px", minWidth: 0 }}>
+                  <Field
+                    id="field-min"
                     label="Min value"
                     type="number"
-                    size="small"
-                    value={localField.validation?.min || ""}
-                    onChange={(e) =>
-                      handleValidationChange("min", parseInt(e.target.value) || 0)
-                    }
-                    sx={{
-                      flex: 1,
-                      "& .MuiOutlinedInput-root": {
-                        fontSize: "13px",
-                        "& fieldset": { borderColor: "#d0d5dd" },
-                      },
-                      "& .MuiInputLabel-root": { fontSize: "13px" },
+                    value={String(localField.validation?.min || "")}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      handleValidationChange("min", v === "" ? undefined : parseInt(v));
                     }}
+                    sx={{ flex: 1, minWidth: 0 }}
                   />
-                  <TextField
+                  <Field
+                    id="field-max"
                     label="Max value"
                     type="number"
-                    size="small"
-                    value={localField.validation?.max || ""}
-                    onChange={(e) =>
-                      handleValidationChange("max", parseInt(e.target.value) || 0)
-                    }
-                    sx={{
-                      flex: 1,
-                      "& .MuiOutlinedInput-root": {
-                        fontSize: "13px",
-                        "& fieldset": { borderColor: "#d0d5dd" },
-                      },
-                      "& .MuiInputLabel-root": { fontSize: "13px" },
+                    value={String(localField.validation?.max || "")}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      handleValidationChange("max", v === "" ? undefined : parseInt(v));
                     }}
+                    sx={{ flex: 1, minWidth: 0 }}
                   />
                 </Box>
               )}
-            </Stack>
+            </Box>
           </Box>
 
-          <Divider />
+          <Divider sx={{ borderColor: theme.palette.border.dark }} />
 
           {/* Entity field mapping */}
           <Box>
             <Typography
-              variant="overline"
               sx={{
                 fontWeight: 600,
-                color: "#6b7280",
+                color: theme.palette.other.icon,
                 fontSize: "10px",
                 letterSpacing: "0.5px",
-                display: "block",
-                mb: 1.5,
+                textTransform: "uppercase",
+                mb: "12px",
               }}
             >
               Entity mapping
             </Typography>
-            <FormControl fullWidth size="small">
-              <InputLabel sx={{ fontSize: "13px" }}>Map to entity field</InputLabel>
-              <Select
-                value={localField.entityFieldMapping || ""}
-                onChange={(e) => handleChange("entityFieldMapping", e.target.value)}
-                label="Map to entity field"
-                sx={{
-                  fontSize: "13px",
-                  "& fieldset": { borderColor: "#d0d5dd" },
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {compatibleMappings.map((mapping: EntityFieldMapping) => (
-                  <MenuItem key={mapping.field} value={mapping.field}>
-                    <Box>
-                      <Typography sx={{ fontSize: "13px" }}>{mapping.label}</Typography>
-                      <Typography sx={{ fontSize: "11px", color: "#6b7280" }}>
-                        {mapping.description}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Select
+              id="entity-mapping"
+              label="Map to entity field"
+              value={localField.entityFieldMapping || ""}
+              onChange={(e) => handleChange("entityFieldMapping", String(e.target.value))}
+              items={mappingItems}
+            />
             {compatibleMappings.length === 0 && (
-              <Typography
-                variant="caption"
-                sx={{ color: "#9ca3af", fontSize: "11px", mt: 0.5, display: "block" }}
-              >
+              <Typography sx={{ color: theme.palette.text.accent, fontSize: "11px", mt: "4px" }}>
                 No compatible entity fields for this field type
               </Typography>
             )}
           </Box>
-        </Stack>
+        </Box>
       </Box>
     </Box>
   );

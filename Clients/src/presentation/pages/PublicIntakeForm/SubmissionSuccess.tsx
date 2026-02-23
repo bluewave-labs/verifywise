@@ -1,11 +1,9 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Box, Typography, Paper, Button } from "@mui/material";
-import { CheckCircle, Copy, Edit } from "lucide-react";
-import { useState } from "react";
+import { Box, Typography } from "@mui/material";
+import { Check, Edit, Hash, Clock } from "lucide-react";
+import { useEffect } from "react";
+import { CustomizableButton } from "../../components/button/customizable-button";
 
-/**
- * Submission state passed from PublicIntakeForm
- */
 interface SubmissionState {
   submissionId: number;
   resubmissionToken: string;
@@ -13,185 +11,157 @@ interface SubmissionState {
   submitterEmail: string;
 }
 
-/**
- * Success page shown after form submission
- */
 export function SubmissionSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { tenantSlug, formSlug } = useParams<{ tenantSlug: string; formSlug: string }>();
+  const { publicId, tenantSlug, formSlug } = useParams<{
+    publicId?: string;
+    tenantSlug?: string;
+    formSlug?: string;
+  }>();
   const state = location.state as SubmissionState | null;
-  const [copied, setCopied] = useState(false);
 
-  // If no state, redirect to form
-  if (!state) {
-    if (tenantSlug && formSlug) {
-      navigate(`/intake/${tenantSlug}/${formSlug}`);
+  const isNewFormat = !!publicId;
+
+  useEffect(() => {
+    if (!state) {
+      if (isNewFormat) {
+        navigate(`/${publicId}/use-case-form-intake`, { replace: true });
+      } else if (tenantSlug && formSlug) {
+        navigate(`/intake/${tenantSlug}/${formSlug}`, { replace: true });
+      }
     }
+  }, [state, isNewFormat, publicId, tenantSlug, formSlug, navigate]);
+
+  if (!state) {
     return null;
   }
 
-  const resubmitUrl = `${window.location.origin}/intake/${tenantSlug}/${formSlug}?token=${state.resubmissionToken}`;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(resubmitUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleEditSubmission = () => {
-    navigate(`/intake/${tenantSlug}/${formSlug}?token=${state.resubmissionToken}`);
+    if (isNewFormat) {
+      navigate(`/${publicId}/use-case-form-intake?token=${state.resubmissionToken}`);
+    } else {
+      navigate(`/intake/${tenantSlug}/${formSlug}?token=${state.resubmissionToken}`);
+    }
   };
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#f3f4f6",
+        backgroundColor: "#fafafa",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        p: 3,
+        py: 4,
+        px: 2,
       }}
     >
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          maxWidth: 500,
-          textAlign: "center",
-          border: "1px solid #d0d5dd",
-          borderRadius: "8px",
-          backgroundColor: "#fff",
-        }}
-      >
-        {/* Success icon */}
+      <Box sx={{ width: "100%", maxWidth: 440 }}>
+        {/* Ticket top */}
         <Box
           sx={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            backgroundColor: "#dcfce7",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mx: "auto",
-            mb: 3,
+            backgroundColor: "#fff",
+            borderRadius: "16px 16px 0 0",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            p: 4,
+            textAlign: "center",
           }}
         >
-          <CheckCircle size={48} color="#16a34a" />
+          <Box sx={{
+            width: 56, height: 56, borderRadius: "14px",
+            background: "linear-gradient(135deg, #6b7280, #9ca3af)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            mx: "auto", mb: 3,
+          }}>
+            <Check size={32} color="#fff" strokeWidth={3} />
+          </Box>
+
+          <Typography sx={{ fontSize: "22px", fontWeight: 700, color: "#1e293b", mb: 1 }}>
+            Submission received
+          </Typography>
+          <Typography sx={{ fontSize: "14px", color: "#94a3b8", mb: 0 }}>
+            {state.formName}
+          </Typography>
         </Box>
 
-        {/* Title */}
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 600, color: "#1f2937", mb: 1.5 }}
-        >
-          Submission received
-        </Typography>
+        {/* Tear line with circles */}
+        <Box sx={{ position: "relative", height: 24, backgroundColor: "transparent" }}>
+          <Box sx={{
+            position: "absolute", left: -12, top: "50%", transform: "translateY(-50%)",
+            width: 24, height: 24, borderRadius: "50%", backgroundColor: "#fafafa",
+          }} />
+          <Box sx={{
+            position: "absolute", right: -12, top: "50%", transform: "translateY(-50%)",
+            width: 24, height: 24, borderRadius: "50%", backgroundColor: "#fafafa",
+          }} />
+          <Box sx={{
+            position: "absolute", left: 12, right: 12, top: "50%",
+            borderTop: "2px dashed #e2e8f0",
+          }} />
+        </Box>
 
-        {/* Description */}
-        <Typography
-          sx={{ color: "#6b7280", fontSize: "14px", mb: 3 }}
-        >
-          Thank you for submitting <strong>{state.formName}</strong>. We've sent a confirmation to{" "}
-          <strong>{state.submitterEmail}</strong>.
-        </Typography>
-
-        {/* What's next */}
+        {/* Ticket bottom */}
         <Box
           sx={{
-            backgroundColor: "#f9fafb",
-            borderRadius: "8px",
-            p: 2.5,
-            mb: 3,
-            textAlign: "left",
+            backgroundColor: "#fff",
+            borderRadius: "0 0 16px 16px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            p: 4,
+            pt: 2,
           }}
         >
-          <Typography
-            sx={{ fontWeight: 600, color: "#1f2937", fontSize: "14px", mb: 1.5 }}
-          >
-            What happens next?
-          </Typography>
-          <Box component="ul" sx={{ m: 0, pl: 2.5, color: "#6b7280", fontSize: "13px" }}>
-            <li style={{ marginBottom: "8px" }}>
-              Your submission is now pending review by the team
-            </li>
-            <li style={{ marginBottom: "8px" }}>
-              You'll receive an email when your submission is approved or if we need more information
-            </li>
-            <li>
-              You can edit and resubmit using the link below until a decision is made
-            </li>
+          {/* Details rows */}
+          {[
+            { label: "Reference", value: `#${state.submissionId}`, icon: <Hash size={13} color="#94a3b8" /> },
+            { label: "Email", value: state.submitterEmail },
+            { label: "Status", value: "Pending review", color: "#f59e0b", icon: <Clock size={13} color="#f59e0b" /> },
+          ].map((row, i) => (
+            <Box
+              key={i}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                py: "10px",
+                borderBottom: i < 2 ? "1px solid #f1f5f9" : "none",
+              }}
+            >
+              <Typography sx={{ fontSize: "13px", color: "#94a3b8" }}>{row.label}</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                {row.icon}
+                <Typography sx={{
+                  fontSize: "13px", fontWeight: 600,
+                  color: row.color || "#1e293b",
+                  maxWidth: 220, textAlign: "right", wordBreak: "break-all",
+                }}>
+                  {row.value}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+
+          <Box sx={{ mt: 3 }}>
+            <CustomizableButton
+              variant="contained"
+              onClick={handleEditSubmission}
+              startIcon={<Edit size={15} />}
+              text="Edit and resubmit"
+              sx={{
+                width: "100%", height: 44, backgroundColor: "#13715B",
+                fontSize: "13px", fontWeight: 600, borderRadius: "8px", textTransform: "none",
+                boxShadow: "none",
+                "&:hover": { backgroundColor: "#0F5A47" },
+              }}
+            />
           </Box>
         </Box>
 
-        {/* Reference number */}
-        <Box
-          sx={{
-            backgroundColor: "#f0fdf4",
-            borderRadius: "4px",
-            p: 2,
-            mb: 3,
-          }}
-        >
-          <Typography sx={{ color: "#6b7280", fontSize: "12px", mb: 0.5 }}>
-            Reference number
-          </Typography>
-          <Typography sx={{ fontWeight: 600, color: "#1f2937", fontSize: "18px" }}>
-            #{state.submissionId}
-          </Typography>
-        </Box>
-
-        {/* Actions */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-          <Button
-            variant="outlined"
-            startIcon={<Edit size={16} />}
-            onClick={handleEditSubmission}
-            sx={{
-              height: 40,
-              borderColor: "#d0d5dd",
-              color: "#1f2937",
-              textTransform: "none",
-              fontSize: "13px",
-              "&:hover": {
-                borderColor: "#13715B",
-                backgroundColor: "#f0fdf4",
-              },
-            }}
-          >
-            Edit and resubmit
-          </Button>
-          <Button
-            variant="text"
-            startIcon={<Copy size={16} />}
-            onClick={handleCopyLink}
-            sx={{
-              height: 40,
-              color: "#6b7280",
-              textTransform: "none",
-              fontSize: "13px",
-              "&:hover": {
-                backgroundColor: "#f9fafb",
-              },
-            }}
-          >
-            {copied ? "Link copied!" : "Copy resubmission link"}
-          </Button>
-        </Box>
-
-        {/* Footer */}
-        <Typography
-          sx={{
-            color: "#9ca3af",
-            fontSize: "12px",
-            mt: 3,
-          }}
-        >
+        <Typography sx={{ textAlign: "center", color: "#cbd5e1", fontSize: "12px", mt: 4 }}>
           Powered by VerifyWise
         </Typography>
-      </Paper>
+      </Box>
     </Box>
   );
 }

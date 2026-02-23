@@ -1,24 +1,28 @@
 import { Request, Response } from "express";
+import { createHmac, timingSafeEqual } from "crypto";
 import { sequelize } from "../database/db";
 import {
   getAllIntakeFormsQuery,
   getIntakeFormByIdQuery,
-  getIntakeFormBySlugQuery,
   getActivePublicFormQuery,
+  getFormByPublicIdQuery,
   createIntakeFormQuery,
   updateIntakeFormQuery,
   deleteIntakeFormQuery,
   archiveIntakeFormQuery,
-  getSubmissionsByFormIdQuery,
   getPendingSubmissionsQuery,
   getSubmissionByIdQuery,
+  getSubmissionsByFormIdQuery,
   createSubmissionQuery,
   approveSubmissionQuery,
   rejectSubmissionQuery,
   getSubmissionStatsQuery,
   checkRateLimitQuery,
   getTenantHashBySlug,
-  getTenantSlugByHash,
+  getTenantSlugById,
+  updateSubmissionRiskQuery,
+  updateSubmissionRiskOverrideQuery,
+  getTenantByPublicId,
 } from "../utils/intakeForm.utils";
 import { createNewModelInventoryQuery } from "../utils/modelInventory.utils";
 import { createNewProjectQuery } from "../utils/project.utils";
@@ -28,18 +32,201 @@ import { IntakeEntityType } from "../domain.layer/enums/intake-entity-type.enum"
 import { ModelInventoryStatus } from "../domain.layer/enums/model-inventory-status.enum";
 import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
+import { IIntakeFormSchema } from "../domain.layer/interfaces/i.intakeForm";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import logger, { logStructured } from "../utils/logger/fileLogger";
+import logger from "../utils/logger/fileLogger";
+import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import {
   sendSubmissionReceivedEmail,
   sendNewSubmissionAdminNotification,
   sendSubmissionApprovedEmail,
   sendSubmissionRejectedEmail,
 } from "../services/intakeFormEmail.service";
+import { calculateSubmissionRisk } from "../services/intakeRiskScoring.service";
+import {
+  generateSuggestedQuestions,
+  generateFieldGuidance,
+} from "../services/intakeLLM.service";
 
 /** Safely extract a single string from req.params (which may be string | string[]). */
 const paramStr = (val: string | string[]): string =>
   Array.isArray(val) ? val[0] : val;
+
+/** Secret key for signing CAPTCHA and resubmission tokens. */
+const TOKEN_SECRET = process.env.JWT_SECRET || process.env.ENCRYPTION_KEY;
+if (!TOKEN_SECRET) {
+  throw new Error("JWT_SECRET or ENCRYPTION_KEY must be set for intake form token signing");
+}
+
+/** Create an HMAC-signed token from a payload object. */
+function createSignedToken(payload: Record<string, unknown>): string {
+  const data = JSON.stringify(payload);
+  const signature = createHmac("sha256", TOKEN_SECRET!).update(data).digest("hex");
+  return Buffer.from(JSON.stringify({ data, signature })).toString("base64");
+}
+
+/** Verify and decode an HMAC-signed token. Returns null if invalid. */
+function verifySignedToken<T = Record<string, unknown>>(token: string): T | null {
+  try {
+    const { data, signature } = JSON.parse(Buffer.from(token, "base64").toString());
+    const expectedSignature = createHmac("sha256", TOKEN_SECRET!).update(data).digest("hex");
+    // Use timing-safe comparison to prevent timing attacks
+    const sigBuf = Buffer.from(signature, "hex");
+    const expectedBuf = Buffer.from(expectedSignature, "hex");
+    if (sigBuf.length !== expectedBuf.length || !timingSafeEqual(sigBuf, expectedBuf)) {
+      return null;
+    }
+    return JSON.parse(data) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** Parse and validate an integer ID parameter. Returns NaN for invalid values. */
+function parseId(param: string | string[]): number {
+  return parseInt(paramStr(param), 10);
+}
+
+// ============================================================================
+// SERVER-SIDE FORM DATA VALIDATION
+// ============================================================================
+
+/**
+ * Validate submitted form data against the form schema.
+ * Returns an array of error messages (empty if valid).
+ */
+function validateFormData(
+  formData: Record<string, unknown>,
+  schema: IIntakeFormSchema
+): string[] {
+  const errors: string[] = [];
+
+  for (const field of schema.fields) {
+    const value = formData[field.id];
+    const isEmpty = value === undefined || value === null || value === "";
+
+    // Required check
+    if (field.required && isEmpty) {
+      errors.push(`"${field.label}" is required`);
+      continue;
+    }
+
+    // Skip validation for empty optional fields
+    if (isEmpty) continue;
+
+    // Type-specific validation
+    switch (field.type) {
+      case "email": {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (typeof value !== "string" || !emailRegex.test(value)) {
+          errors.push(`"${field.label}" must be a valid email address`);
+        }
+        break;
+      }
+      case "url": {
+        if (typeof value !== "string") {
+          errors.push(`"${field.label}" must be a valid URL`);
+        } else {
+          try {
+            new URL(value);
+          } catch {
+            errors.push(`"${field.label}" must be a valid URL`);
+          }
+        }
+        break;
+      }
+      case "number": {
+        const num = Number(value);
+        if (isNaN(num)) {
+          errors.push(`"${field.label}" must be a number`);
+        } else if (field.validation) {
+          if (field.validation.min !== undefined && num < field.validation.min) {
+            errors.push(`"${field.label}" must be at least ${field.validation.min}`);
+          }
+          if (field.validation.max !== undefined && num > field.validation.max) {
+            errors.push(`"${field.label}" must be at most ${field.validation.max}`);
+          }
+        }
+        break;
+      }
+      case "text":
+      case "textarea": {
+        if (typeof value !== "string") {
+          errors.push(`"${field.label}" must be text`);
+        } else if (field.validation) {
+          if (field.validation.minLength !== undefined && value.length < field.validation.minLength) {
+            errors.push(`"${field.label}" must be at least ${field.validation.minLength} characters`);
+          }
+          if (field.validation.maxLength !== undefined && value.length > field.validation.maxLength) {
+            errors.push(`"${field.label}" must be at most ${field.validation.maxLength} characters`);
+          }
+        }
+        break;
+      }
+      case "select": {
+        if (typeof value !== "string") {
+          errors.push(`"${field.label}" must be a single selection`);
+        } else if (field.options && field.options.length > 0) {
+          const validValues = field.options.map((o) => o.value);
+          if (!validValues.includes(value)) {
+            errors.push(`"${field.label}" has an invalid selection`);
+          }
+        }
+        break;
+      }
+      case "multiselect": {
+        if (!Array.isArray(value)) {
+          errors.push(`"${field.label}" must be an array of selections`);
+        } else if (field.options && field.options.length > 0) {
+          const validValues = field.options.map((o) => o.value);
+          for (const v of value) {
+            if (!validValues.includes(v as string)) {
+              errors.push(`"${field.label}" contains an invalid selection`);
+              break;
+            }
+          }
+        }
+        break;
+      }
+      case "checkbox": {
+        if (typeof value !== "boolean") {
+          errors.push(`"${field.label}" must be true or false`);
+        }
+        break;
+      }
+      case "date": {
+        if (typeof value !== "string" || isNaN(Date.parse(value))) {
+          errors.push(`"${field.label}" must be a valid date`);
+        }
+        break;
+      }
+    }
+  }
+
+  return errors;
+}
+
+// ============================================================================
+// ENTITY DATA MAPPING (fixes hardcoded mapper bug)
+// ============================================================================
+
+/**
+ * Build entity data from submission using entityFieldMapping from schema fields.
+ * This replaces the old mapSubmissionToProject / mapSubmissionToModelInventory
+ * which used hardcoded keys like `data["project.project_title"]`.
+ */
+function buildEntityDataFromSubmission(
+  submissionData: Record<string, unknown>,
+  formSchema: IIntakeFormSchema
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const field of formSchema.fields) {
+    if (field.entityFieldMapping && submissionData[field.id] !== undefined) {
+      result[field.entityFieldMapping] = submissionData[field.id];
+    }
+  }
+  return result;
+}
 
 // ============================================================================
 // INTAKE FORM CONTROLLERS (Admin - Authenticated)
@@ -49,24 +236,27 @@ const paramStr = (val: string | string[]): string =>
  * Get all intake forms for the tenant
  */
 export async function getAllIntakeForms(req: Request, res: Response) {
-  logStructured(
-    "processing",
-    "starting getAllIntakeForms",
-    "getAllIntakeForms",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: "starting getAllIntakeForms",
+    functionName: "getAllIntakeForms",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const forms = await getAllIntakeFormsQuery(req.tenantId!);
     return res.status(200).json(STATUS_CODE[200](forms));
   } catch (error) {
-    logStructured(
-      "error",
-      "failed to retrieve intake forms",
-      "getAllIntakeForms",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getAllIntakeForms:", error);
+    await logFailure({
+      eventType: "Read",
+      description: "failed to retrieve intake forms",
+      functionName: "getAllIntakeForms",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -75,14 +265,18 @@ export async function getAllIntakeForms(req: Request, res: Response) {
  * Get intake form by ID
  */
 export async function getIntakeFormById(req: Request, res: Response) {
-  const formId = parseInt(paramStr(req.params.id));
+  const formId = parseId(req.params.id);
+  if (isNaN(formId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid form ID"));
+  }
 
-  logStructured(
-    "processing",
-    `fetching intake form by id: ${formId}`,
-    "getIntakeFormById",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `fetching intake form by id: ${formId}`,
+    functionName: "getIntakeFormById",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const form = await getIntakeFormByIdQuery(formId, req.tenantId!);
@@ -93,13 +287,15 @@ export async function getIntakeFormById(req: Request, res: Response) {
 
     return res.status(200).json(STATUS_CODE[200](form));
   } catch (error) {
-    logStructured(
-      "error",
-      `failed to retrieve intake form: ${formId}`,
-      "getIntakeFormById",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getIntakeFormById:", error);
+    await logFailure({
+      eventType: "Read",
+      description: `failed to retrieve intake form: ${formId}`,
+      functionName: "getIntakeFormById",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -108,26 +304,36 @@ export async function getIntakeFormById(req: Request, res: Response) {
  * Create new intake form
  */
 export async function createIntakeForm(req: Request, res: Response) {
-  logStructured(
-    "processing",
-    "creating new intake form",
-    "createIntakeForm",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: "creating new intake form",
+    functionName: "createIntakeForm",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction = await sequelize.transaction();
 
   try {
-    const { name, description, slug, entityType, schema, submitButtonText, status, ttlExpiresAt } = req.body;
+    const {
+      name, description, slug, entityType, schema, submitButtonText,
+      status, ttlExpiresAt, recipients, riskTierSystem, riskAssessmentConfig,
+      llmKeyId, suggestedQuestionsEnabled, designSettings,
+    } = req.body;
 
-    if (!name || !description || !entityType) {
+    if (!name || !entityType) {
       await transaction.rollback();
-      return res.status(400).json(STATUS_CODE[400]("Name, description, and entity type are required"));
+      return res.status(400).json(STATUS_CODE[400]("Name and entity type are required"));
     }
 
     if (!Object.values(IntakeEntityType).includes(entityType)) {
       await transaction.rollback();
       return res.status(400).json(STATUS_CODE[400]("Invalid entity type"));
+    }
+
+    if (status && !Object.values(IntakeFormStatus).includes(status)) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]("Invalid form status"));
     }
 
     const form = await createIntakeFormQuery(
@@ -140,6 +346,12 @@ export async function createIntakeForm(req: Request, res: Response) {
         submitButtonText,
         status,
         ttlExpiresAt: ttlExpiresAt ? new Date(ttlExpiresAt) : null,
+        recipients,
+        riskTierSystem,
+        riskAssessmentConfig,
+        llmKeyId,
+        suggestedQuestionsEnabled,
+        designSettings,
         createdBy: req.userId!,
       },
       req.tenantId!,
@@ -148,23 +360,27 @@ export async function createIntakeForm(req: Request, res: Response) {
 
     await transaction.commit();
 
-    logStructured(
-      "successful",
-      `intake form created: ${form.id}`,
-      "createIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Create",
+      description: `intake form created: ${form.id}`,
+      functionName: "createIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(201).json(STATUS_CODE[201](form));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      "failed to create intake form",
-      "createIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in createIntakeForm:", error);
+    await logFailure({
+      eventType: "Create",
+      description: "failed to create intake form",
+      functionName: "createIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -173,14 +389,18 @@ export async function createIntakeForm(req: Request, res: Response) {
  * Update intake form
  */
 export async function updateIntakeForm(req: Request, res: Response) {
-  const formId = parseInt(paramStr(req.params.id));
+  const formId = parseId(req.params.id);
+  if (isNaN(formId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid form ID"));
+  }
 
-  logStructured(
-    "processing",
-    `updating intake form: ${formId}`,
-    "updateIntakeForm",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `updating intake form: ${formId}`,
+    functionName: "updateIntakeForm",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction = await sequelize.transaction();
 
@@ -192,7 +412,16 @@ export async function updateIntakeForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Intake form not found"));
     }
 
-    const { name, description, slug, entityType, schema, submitButtonText, status, ttlExpiresAt } = req.body;
+    const {
+      name, description, slug, entityType, schema, submitButtonText,
+      status, ttlExpiresAt, recipients, riskTierSystem, riskAssessmentConfig,
+      llmKeyId, suggestedQuestionsEnabled, designSettings,
+    } = req.body;
+
+    if (status && !Object.values(IntakeFormStatus).includes(status)) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]("Invalid form status"));
+    }
 
     const form = await updateIntakeFormQuery(
       formId,
@@ -205,6 +434,12 @@ export async function updateIntakeForm(req: Request, res: Response) {
         submitButtonText,
         status,
         ttlExpiresAt: ttlExpiresAt ? new Date(ttlExpiresAt) : undefined,
+        recipients,
+        riskTierSystem,
+        riskAssessmentConfig,
+        llmKeyId,
+        suggestedQuestionsEnabled,
+        designSettings,
       },
       req.tenantId!,
       transaction
@@ -212,23 +447,27 @@ export async function updateIntakeForm(req: Request, res: Response) {
 
     await transaction.commit();
 
-    logStructured(
-      "successful",
-      `intake form updated: ${formId}`,
-      "updateIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Update",
+      description: `intake form updated: ${formId}`,
+      functionName: "updateIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200](form));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to update intake form: ${formId}`,
-      "updateIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in updateIntakeForm:", error);
+    await logFailure({
+      eventType: "Update",
+      description: `failed to update intake form: ${formId}`,
+      functionName: "updateIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -237,14 +476,18 @@ export async function updateIntakeForm(req: Request, res: Response) {
  * Delete intake form (only drafts)
  */
 export async function deleteIntakeForm(req: Request, res: Response) {
-  const formId = parseInt(paramStr(req.params.id));
+  const formId = parseId(req.params.id);
+  if (isNaN(formId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid form ID"));
+  }
 
-  logStructured(
-    "processing",
-    `deleting intake form: ${formId}`,
-    "deleteIntakeForm",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `deleting intake form: ${formId}`,
+    functionName: "deleteIntakeForm",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction = await sequelize.transaction();
 
@@ -264,23 +507,27 @@ export async function deleteIntakeForm(req: Request, res: Response) {
     await deleteIntakeFormQuery(formId, req.tenantId!, transaction);
     await transaction.commit();
 
-    logStructured(
-      "successful",
-      `intake form deleted: ${formId}`,
-      "deleteIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Delete",
+      description: `intake form deleted: ${formId}`,
+      functionName: "deleteIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200]({ message: "Form deleted successfully" }));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to delete intake form: ${formId}`,
-      "deleteIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in deleteIntakeForm:", error);
+    await logFailure({
+      eventType: "Delete",
+      description: `failed to delete intake form: ${formId}`,
+      functionName: "deleteIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -289,14 +536,18 @@ export async function deleteIntakeForm(req: Request, res: Response) {
  * Archive intake form
  */
 export async function archiveIntakeForm(req: Request, res: Response) {
-  const formId = parseInt(paramStr(req.params.id));
+  const formId = parseId(req.params.id);
+  if (isNaN(formId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid form ID"));
+  }
 
-  logStructured(
-    "processing",
-    `archiving intake form: ${formId}`,
-    "archiveIntakeForm",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `archiving intake form: ${formId}`,
+    functionName: "archiveIntakeForm",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction = await sequelize.transaction();
 
@@ -311,23 +562,27 @@ export async function archiveIntakeForm(req: Request, res: Response) {
     const form = await archiveIntakeFormQuery(formId, req.tenantId!, transaction);
     await transaction.commit();
 
-    logStructured(
-      "successful",
-      `intake form archived: ${formId}`,
-      "archiveIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Update",
+      description: `intake form archived: ${formId}`,
+      functionName: "archiveIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200](form));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to archive intake form: ${formId}`,
-      "archiveIntakeForm",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in archiveIntakeForm:", error);
+    await logFailure({
+      eventType: "Update",
+      description: `failed to archive intake form: ${formId}`,
+      functionName: "archiveIntakeForm",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -340,24 +595,27 @@ export async function archiveIntakeForm(req: Request, res: Response) {
  * Get all pending submissions (dashboard)
  */
 export async function getPendingSubmissions(req: Request, res: Response) {
-  logStructured(
-    "processing",
-    "fetching pending submissions",
-    "getPendingSubmissions",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: "fetching pending submissions",
+    functionName: "getPendingSubmissions",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const submissions = await getPendingSubmissionsQuery(req.tenantId!);
     return res.status(200).json(STATUS_CODE[200](submissions));
   } catch (error) {
-    logStructured(
-      "error",
-      "failed to retrieve pending submissions",
-      "getPendingSubmissions",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getPendingSubmissions:", error);
+    await logFailure({
+      eventType: "Read",
+      description: "failed to retrieve pending submissions",
+      functionName: "getPendingSubmissions",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -366,27 +624,33 @@ export async function getPendingSubmissions(req: Request, res: Response) {
  * Get submissions for a specific form
  */
 export async function getFormSubmissions(req: Request, res: Response) {
-  const formId = parseInt(paramStr(req.params.id));
+  const formId = parseId(req.params.id);
+  if (isNaN(formId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid form ID"));
+  }
   const status = req.query.status as IntakeSubmissionStatus | undefined;
 
-  logStructured(
-    "processing",
-    `fetching submissions for form: ${formId}`,
-    "getFormSubmissions",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `fetching submissions for form: ${formId}`,
+    functionName: "getFormSubmissions",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const submissions = await getSubmissionsByFormIdQuery(formId, req.tenantId!, status);
     return res.status(200).json(STATUS_CODE[200](submissions));
   } catch (error) {
-    logStructured(
-      "error",
-      `failed to retrieve submissions for form: ${formId}`,
-      "getFormSubmissions",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getFormSubmissions:", error);
+    await logFailure({
+      eventType: "Read",
+      description: `failed to retrieve submissions for form: ${formId}`,
+      functionName: "getFormSubmissions",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -395,14 +659,18 @@ export async function getFormSubmissions(req: Request, res: Response) {
  * Get submission by ID
  */
 export async function getSubmissionById(req: Request, res: Response) {
-  const submissionId = parseInt(paramStr(req.params.id));
+  const submissionId = parseId(req.params.id);
+  if (isNaN(submissionId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid submission ID"));
+  }
 
-  logStructured(
-    "processing",
-    `fetching submission: ${submissionId}`,
-    "getSubmissionById",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `fetching submission: ${submissionId}`,
+    functionName: "getSubmissionById",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
@@ -413,13 +681,15 @@ export async function getSubmissionById(req: Request, res: Response) {
 
     return res.status(200).json(STATUS_CODE[200](submission));
   } catch (error) {
-    logStructured(
-      "error",
-      `failed to retrieve submission: ${submissionId}`,
-      "getSubmissionById",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getSubmissionById:", error);
+    await logFailure({
+      eventType: "Read",
+      description: `failed to retrieve submission: ${submissionId}`,
+      functionName: "getSubmissionById",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -428,40 +698,140 @@ export async function getSubmissionById(req: Request, res: Response) {
  * Get submission stats (dashboard)
  */
 export async function getSubmissionStats(req: Request, res: Response) {
-  logStructured(
-    "processing",
-    "fetching submission stats",
-    "getSubmissionStats",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: "fetching submission stats",
+    functionName: "getSubmissionStats",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   try {
     const stats = await getSubmissionStatsQuery(req.tenantId!);
     return res.status(200).json(STATUS_CODE[200](stats));
   } catch (error) {
-    logStructured(
-      "error",
-      "failed to retrieve submission stats",
-      "getSubmissionStats",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getSubmissionStats:", error);
+    await logFailure({
+      eventType: "Read",
+      description: "failed to retrieve submission stats",
+      functionName: "getSubmissionStats",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 /**
- * Approve submission
+ * Get submission preview for approval flow
+ */
+export async function getSubmissionPreview(req: Request, res: Response) {
+  const submissionId = parseId(req.params.id);
+  if (isNaN(submissionId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid submission ID"));
+  }
+
+  try {
+    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
+    if (!submission) {
+      return res.status(404).json(STATUS_CODE[404]("Submission not found"));
+    }
+
+    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
+    if (!form) {
+      return res.status(404).json(STATUS_CODE[404]("Form not found"));
+    }
+
+    // Build entity preview from submission data using field mappings
+    const entityData = buildEntityDataFromSubmission(
+      submission.data as Record<string, unknown>,
+      form.schema
+    );
+
+    return res.status(200).json(STATUS_CODE[200]({
+      submission,
+      form: {
+        id: form.id,
+        name: form.name,
+        entityType: form.entityType,
+        schema: form.schema,
+        riskTierSystem: form.riskTierSystem,
+      },
+      riskAssessment: submission.riskAssessment,
+      riskTier: submission.riskTier,
+      riskOverride: submission.riskOverride,
+      entityPreview: entityData,
+    }));
+  } catch (error) {
+    logger.error("Error in getSubmissionPreview:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Override submission risk assessment
+ */
+export async function overrideSubmissionRisk(req: Request, res: Response) {
+  const submissionId = parseId(req.params.id);
+  if (isNaN(submissionId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid submission ID"));
+  }
+
+  try {
+    const { tier, dimensionOverrides, justification } = req.body;
+
+    if (!tier || !justification) {
+      return res.status(400).json(STATUS_CODE[400]("Tier and justification are required"));
+    }
+
+    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
+    if (!submission) {
+      return res.status(404).json(STATUS_CODE[404]("Submission not found"));
+    }
+
+    const override = {
+      tier,
+      dimensionOverrides: dimensionOverrides || {},
+      justification,
+      overriddenBy: req.userId!,
+      overriddenAt: new Date().toISOString(),
+    };
+
+    await updateSubmissionRiskOverrideQuery(submissionId, override, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Update",
+      description: `risk override applied to submission: ${submissionId}`,
+      functionName: "overrideSubmissionRisk",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200]({ message: "Risk override applied", override }));
+  } catch (error) {
+    logger.error("Error in overrideSubmissionRisk:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Approve submission — now accepts optional confirmedEntityData and riskOverride
  */
 export async function approveSubmission(req: Request, res: Response) {
-  const submissionId = parseInt(paramStr(req.params.id));
+  const submissionId = parseId(req.params.id);
+  if (isNaN(submissionId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid submission ID"));
+  }
 
-  logStructured(
-    "processing",
-    `approving submission: ${submissionId}`,
-    "approveSubmission",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `approving submission: ${submissionId}`,
+    functionName: "approveSubmission",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction = await sequelize.transaction();
 
@@ -478,14 +848,49 @@ export async function approveSubmission(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Only pending submissions can be approved"));
     }
 
+    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
+    if (!form) {
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404](
+        "The form associated with this submission no longer exists. Cannot create entity."
+      ));
+    }
+    const formName = form.name;
+
+    // Use confirmed entity data from admin if provided, otherwise build from mapping
+    const { confirmedEntityData, riskOverride } = req.body;
+    const entityData = confirmedEntityData ||
+      buildEntityDataFromSubmission(submission.data as Record<string, unknown>, form.schema);
+
+    // Apply risk override if provided
+    if (riskOverride && riskOverride.tier && riskOverride.justification) {
+      await updateSubmissionRiskOverrideQuery(
+        submissionId,
+        {
+          ...riskOverride,
+          overriddenBy: req.userId!,
+          overriddenAt: new Date().toISOString(),
+        },
+        req.tenantId!,
+        transaction
+      );
+    }
+
     // Create the entity based on entity type
     let entityId: number;
 
     if (submission.entityType === IntakeEntityType.MODEL) {
-      // Create model inventory entry with PENDING status
-      const modelData = mapSubmissionToModelInventory(submission.data);
       const model = ModelInventoryModel.createNewModelInventory({
-        ...modelData,
+        provider: (entityData.provider as string) || "",
+        model: (entityData.model as string) || "",
+        version: (entityData.version as string) || "",
+        approver: entityData.approver ? Number(entityData.approver) : undefined,
+        capabilities: (entityData.capabilities as string) || "",
+        security_assessment: (entityData.security_assessment as boolean) || false,
+        reference_link: (entityData.reference_link as string) || "",
+        biases: (entityData.biases as string) || "",
+        limitations: (entityData.limitations as string) || "",
+        hosting_provider: (entityData.hosting_provider as string) || "",
         status: ModelInventoryStatus.PENDING,
       });
 
@@ -498,19 +903,18 @@ export async function approveSubmission(req: Request, res: Response) {
       );
       entityId = createdModel.id!;
     } else if (submission.entityType === IntakeEntityType.USE_CASE) {
-      // Create use case (project) entry
-      const projectData = mapSubmissionToProject(submission.data);
       const createdProject = await createNewProjectQuery(
         {
-          project_title: (projectData.project_title as string) || "",
-          description: (projectData.description as string) || "",
+          project_title: (entityData.project_title as string) || "",
+          description: (entityData.description as string) || "",
           start_date: new Date(),
-          goal: (projectData.description as string) || "",
+          goal: (entityData.goal as string) || (entityData.description as string) || "",
           owner: req.userId!,
+          ai_risk_classification: (entityData.ai_risk_classification as string || "") as any,
           status: ProjectStatus.UNDER_REVIEW,
         },
-        [], // members
-        [], // frameworks
+        [],
+        [],
         req.tenantId!,
         req.userId!,
         transaction
@@ -521,7 +925,6 @@ export async function approveSubmission(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Unsupported entity type"));
     }
 
-    // Update submission with entity ID and approval status
     const updatedSubmission = await approveSubmissionQuery(
       submissionId,
       entityId,
@@ -532,11 +935,6 @@ export async function approveSubmission(req: Request, res: Response) {
 
     await transaction.commit();
 
-    // Get form name for email
-    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
-    const formName = form?.name || "Unknown Form";
-
-    // Send approval email to submitter (async, don't block response)
     sendSubmissionApprovedEmail(
       submission.submitterEmail,
       submission.submitterName,
@@ -545,23 +943,27 @@ export async function approveSubmission(req: Request, res: Response) {
       submission.entityType
     ).catch((err) => logger.error("Failed to send approval email:", err));
 
-    logStructured(
-      "successful",
-      `submission approved: ${submissionId}, entity created: ${entityId}`,
-      "approveSubmission",
-      "intakeForm.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Update",
+      description: `submission approved: ${submissionId}, entity created: ${entityId}`,
+      functionName: "approveSubmission",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200](updatedSubmission));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to approve submission: ${submissionId}`,
-      "approveSubmission",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in approveSubmission:", error);
+    await logFailure({
+      eventType: "Update",
+      description: `failed to approve submission: ${submissionId}`,
+      functionName: "approveSubmission",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -570,19 +972,22 @@ export async function approveSubmission(req: Request, res: Response) {
  * Reject submission
  */
 export async function rejectSubmission(req: Request, res: Response) {
-  const submissionId = parseInt(paramStr(req.params.id));
+  const submissionId = parseId(req.params.id);
+  if (isNaN(submissionId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid submission ID"));
+  }
 
-  logStructured(
-    "processing",
-    `rejecting submission: ${submissionId}`,
-    "rejectSubmission",
-    "intakeForm.ctrl.ts"
-  );
+  logProcessing({
+    description: `rejecting submission: ${submissionId}`,
+    functionName: "rejectSubmission",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
 
   const transaction = await sequelize.transaction();
 
   try {
-    // Accept both 'reason' and 'rejectionReason' for flexibility
     const rejectionReason = req.body.rejectionReason || req.body.reason;
 
     if (!rejectionReason || !rejectionReason.trim()) {
@@ -612,24 +1017,22 @@ export async function rejectSubmission(req: Request, res: Response) {
 
     await transaction.commit();
 
-    // Get form details and tenant slug for resubmission link
     const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
     const formName = form?.name || "Unknown Form";
+    const formPublicId = form?.publicId;
+    const tenantSlug = await getTenantSlugById(req.organizationId!);
     const formSlug = form?.slug || "";
 
-    // Get tenant slug from organization ID
-    // Extract org ID from tenant hash (req.tenantId is the hash)
-    const tenantSlug = await getTenantSlugByHash(req.tenantId!);
-
-    // Generate resubmission token
-    const resubmissionToken = Buffer.from(JSON.stringify({
+    // Generate HMAC-signed resubmission token
+    const resubmissionToken = createSignedToken({
       submissionId: submission.id,
       formId: submission.formId,
+      email: submission.submitterEmail,
       timestamp: Date.now(),
-    })).toString("base64");
+    });
 
-    // Send rejection email to submitter (async, don't block response)
-    if (tenantSlug && formSlug) {
+    // Use new URL format if publicId available, fall back to old format
+    if (formPublicId || (tenantSlug && formSlug)) {
       sendSubmissionRejectedEmail(
         submission.submitterEmail,
         submission.submitterName,
@@ -637,30 +1040,97 @@ export async function rejectSubmission(req: Request, res: Response) {
         submissionId,
         rejectionReason,
         resubmissionToken,
-        tenantSlug,
+        formPublicId || "",
+        tenantSlug || "",
         formSlug
       ).catch((err) => logger.error("Failed to send rejection email:", err));
     } else {
-      logger.warn(`Could not send rejection email for submission #${submissionId}: missing tenant slug or form slug`);
+      logger.warn(`Could not send rejection email for submission #${submissionId}: missing routing info`);
     }
 
-    logStructured(
-      "successful",
-      `submission rejected: ${submissionId}`,
-      "rejectSubmission",
-      "intakeForm.ctrl.ts"
-    );
+    await logSuccess({
+      eventType: "Update",
+      description: `submission rejected: ${submissionId}`,
+      functionName: "rejectSubmission",
+      fileName: "intakeForm.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
 
     return res.status(200).json(STATUS_CODE[200](updatedSubmission));
   } catch (error) {
     await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to reject submission: ${submissionId}`,
-      "rejectSubmission",
-      "intakeForm.ctrl.ts"
+    await logFailure({
+      eventType: "Update",
+      description: `failed to reject submission: ${submissionId}`,
+      functionName: "rejectSubmission",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+// ============================================================================
+// LLM FEATURE CONTROLLERS (Admin - Authenticated)
+// ============================================================================
+
+/**
+ * Get LLM-suggested questions
+ */
+export async function getLLMSuggestedQuestions(req: Request, res: Response) {
+  try {
+    const { entityType, context, llmKeyId } = req.body;
+
+    if (!llmKeyId) {
+      return res.status(400).json(STATUS_CODE[400]("LLM key ID is required"));
+    }
+
+    const questions = await generateSuggestedQuestions(
+      entityType || "use_case",
+      context || "",
+      llmKeyId,
+      req.tenantId!
     );
-    logger.error("Error in rejectSubmission:", error);
+
+    if (!questions) {
+      return res.status(500).json(STATUS_CODE[500]("Failed to generate questions"));
+    }
+
+    return res.status(200).json(STATUS_CODE[200](questions));
+  } catch (error) {
+    logger.error("Error in getLLMSuggestedQuestions:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Generate field guidance text
+ */
+export async function getFieldGuidance(req: Request, res: Response) {
+  try {
+    const { fieldLabel, entityType, llmKeyId } = req.body;
+
+    if (!fieldLabel || !llmKeyId) {
+      return res.status(400).json(STATUS_CODE[400]("Field label and LLM key ID are required"));
+    }
+
+    const guidanceText = await generateFieldGuidance(
+      fieldLabel,
+      entityType || "use_case",
+      llmKeyId,
+      req.tenantId!
+    );
+
+    if (!guidanceText) {
+      return res.status(500).json(STATUS_CODE[500]("Failed to generate guidance"));
+    }
+
+    return res.status(200).json(STATUS_CODE[200]({ guidanceText }));
+  } catch (error) {
+    logger.error("Error in getFieldGuidance:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -670,72 +1140,83 @@ export async function rejectSubmission(req: Request, res: Response) {
 // ============================================================================
 
 /**
- * Get public form by slug (unauthenticated)
+ * Preview form by ID (authenticated - admin only)
  */
-export async function getPublicForm(req: Request, res: Response) {
-  const tenantSlug = paramStr(req.params.tenantSlug);
-  const formSlug = paramStr(req.params.formSlug);
-  const isPreview = req.query.preview === "true";
-  const resubmissionToken = req.query.token as string | undefined;
-
-  logStructured(
-    "processing",
-    `fetching public form: ${tenantSlug}/${formSlug}`,
-    "getPublicForm",
-    "intakeForm.ctrl.ts"
-  );
+export async function previewForm(req: Request, res: Response) {
+  const formId = parseId(req.params.id);
+  if (isNaN(formId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid form ID"));
+  }
 
   try {
-    // Get tenant hash from slug
-    const tenantInfo = await getTenantHashBySlug(tenantSlug);
+    const form = await getIntakeFormByIdQuery(formId, req.tenantId!);
 
+    if (!form) {
+      return res.status(404).json(STATUS_CODE[404]("Form not found"));
+    }
+
+    return res.status(200).json(STATUS_CODE[200]({
+      form: {
+        id: form.id,
+        name: form.name,
+        description: form.description,
+        slug: form.slug,
+        entityType: form.entityType,
+        schema: form.schema,
+        submitButtonText: form.submitButtonText,
+        publicId: form.publicId,
+        designSettings: form.designSettings ?? null,
+      },
+      isPreview: true,
+    }));
+  } catch (error) {
+    logger.error("Error in previewForm:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get public form by public ID (new URL format, unauthenticated)
+ */
+export async function getPublicFormByPublicId(req: Request, res: Response) {
+  const publicId = paramStr(req.params.publicId);
+  const resubmissionToken = req.query.token as string | undefined;
+
+  try {
+    // Resolve tenant from publicId
+    const tenantInfo = await getTenantByPublicId(publicId);
     if (!tenantInfo) {
-      return res.status(404).json(STATUS_CODE[404]("Organization not found"));
+      return res.status(404).json(STATUS_CODE[404]("Form not found"));
     }
 
-    // Get the form
-    if (isPreview) {
-      // For preview, get the full form (requires admin, but we check in middleware)
-      const form = await getIntakeFormBySlugQuery(formSlug, tenantInfo.hash);
-
-      if (!form) {
-        return res.status(404).json(STATUS_CODE[404]("Form not found"));
-      }
-
-      return res.status(200).json(STATUS_CODE[200]({
-        form: {
-          id: form.id,
-          name: form.name,
-          description: form.description,
-          slug: form.slug,
-          entityType: form.entityType,
-          schema: form.schema,
-          submitButtonText: form.submitButtonText,
-        },
-        isPreview: true,
-      }));
-    }
-
-    // For public access, only return active and non-expired forms
-    const form = await getActivePublicFormQuery(formSlug, tenantInfo.hash);
-
+    const form = await getFormByPublicIdQuery(publicId, tenantInfo.tenantHash);
     if (!form) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
-    // Check for resubmission token to get previous data
+    // Check for resubmission token
     let previousData: Record<string, unknown> | undefined;
+    let previousSubmitterName: string | undefined;
+    let previousSubmitterEmail: string | undefined;
     if (resubmissionToken) {
-      try {
-        const decoded = JSON.parse(Buffer.from(resubmissionToken, "base64").toString());
-        if (decoded.submissionId && decoded.formId === form.id) {
-          const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.hash);
-          if (previousSubmission && previousSubmission.status !== IntakeSubmissionStatus.APPROVED) {
-            previousData = previousSubmission.data as Record<string, unknown>;
-          }
+      const decoded = verifySignedToken<{
+        submissionId: number;
+        formId: number;
+        email: string;
+        timestamp: number;
+      }>(resubmissionToken);
+
+      if (decoded && decoded.submissionId && decoded.formId === form.id) {
+        const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.tenantHash);
+        if (
+          previousSubmission &&
+          previousSubmission.status !== IntakeSubmissionStatus.APPROVED &&
+          previousSubmission.submitterEmail === decoded.email
+        ) {
+          previousData = previousSubmission.data as Record<string, unknown>;
+          previousSubmitterName = previousSubmission.submitterName;
+          previousSubmitterEmail = previousSubmission.submitterEmail;
         }
-      } catch {
-        // Invalid token, ignore
       }
     }
 
@@ -748,54 +1229,279 @@ export async function getPublicForm(req: Request, res: Response) {
         entityType: form.entityType,
         schema: form.schema,
         submitButtonText: form.submitButtonText,
+        publicId: form.publicId,
+        designSettings: form.designSettings ?? null,
       },
       previousData,
+      previousSubmitterName,
+      previousSubmitterEmail,
     }));
   } catch (error) {
-    logStructured(
-      "error",
-      `failed to retrieve public form: ${tenantSlug}/${formSlug}`,
-      "getPublicForm",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in getPublicForm:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    logger.error(`Error in getPublicFormByPublicId: ${publicId}`, error);
+    return res.status(500).json(STATUS_CODE[500]("An error occurred while loading the form. Please try again."));
   }
 }
 
 /**
- * Submit public form (unauthenticated)
+ * Submit public form by public ID (new URL format, unauthenticated)
  */
-export async function submitPublicForm(req: Request, res: Response) {
-  const tenantSlug = paramStr(req.params.tenantSlug);
-  const formSlug = paramStr(req.params.formSlug);
-
-  logStructured(
-    "processing",
-    `submitting public form: ${tenantSlug}/${formSlug}`,
-    "submitPublicForm",
-    "intakeForm.ctrl.ts"
-  );
+export async function submitPublicFormByPublicId(req: Request, res: Response) {
+  const publicId = paramStr(req.params.publicId);
 
   try {
-    // Get tenant hash from slug
+    const tenantInfo = await getTenantByPublicId(publicId);
+    if (!tenantInfo) {
+      return res.status(404).json(STATUS_CODE[404]("Form not found"));
+    }
+
+    const clientIp = req.ip || req.headers["x-forwarded-for"]?.toString().split(",")[0] || "unknown";
+    const withinLimit = await checkRateLimitQuery(clientIp, tenantInfo.tenantHash);
+
+    if (!withinLimit) {
+      return res.status(429).json(STATUS_CODE[429]("Too many submissions. Please try again later."));
+    }
+
+    const form = await getFormByPublicIdQuery(publicId, tenantInfo.tenantHash);
+    if (!form) {
+      return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
+    }
+
+    const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
+
+    if (!submitterEmail || !formData) {
+      return res.status(400).json(STATUS_CODE[400]("Submitter email and form data are required"));
+    }
+
+    if (typeof formData !== "object" || Array.isArray(formData)) {
+      return res.status(400).json(STATUS_CODE[400]("Form data must be an object"));
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submitterEmail)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
+    }
+
+    // Validate form data against schema
+    const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.tenantHash);
+    if (fullFormForValidation?.schema) {
+      const validationErrors = validateFormData(formData, fullFormForValidation.schema);
+      if (validationErrors.length > 0) {
+        return res.status(400).json(STATUS_CODE[400]({
+          message: "Form validation failed",
+          errors: validationErrors,
+        }));
+      }
+    }
+
+    // Validate CAPTCHA
+    if (!captchaToken || captchaAnswer === undefined) {
+      return res.status(400).json(STATUS_CODE[400]("CAPTCHA verification required"));
+    }
+
+    const captchaPayload = verifySignedToken<{ answer: number; timestamp: number }>(captchaToken);
+    if (!captchaPayload) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid CAPTCHA token"));
+    }
+
+    const tokenAge = Date.now() - captchaPayload.timestamp;
+    if (tokenAge > 5 * 60 * 1000) {
+      return res.status(400).json(STATUS_CODE[400]("CAPTCHA expired. Please refresh and try again."));
+    }
+
+    if (Number(captchaPayload.answer) !== Number(captchaAnswer)) {
+      return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
+    }
+
+    // Handle resubmission
+    let originalSubmissionId: number | undefined;
+    if (resubmissionToken) {
+      const decoded = verifySignedToken<{
+        submissionId: number;
+        formId: number;
+        email: string;
+        timestamp: number;
+      }>(resubmissionToken);
+
+      if (decoded && decoded.submissionId) {
+        originalSubmissionId = decoded.submissionId;
+      }
+    }
+
+    const transaction = await sequelize.transaction();
+
+    try {
+      const submission = await createSubmissionQuery(
+        {
+          formId: form.id,
+          submitterEmail,
+          submitterName: submitterName || submitterEmail.split("@")[0],
+          data: formData,
+          entityType: form.entityType,
+          originalSubmissionId,
+          ipAddress: clientIp,
+        },
+        tenantInfo.tenantHash,
+        transaction
+      );
+
+      await transaction.commit();
+
+      // Generate resubmission token
+      const newResubmissionToken = createSignedToken({
+        submissionId: submission.id,
+        formId: form.id,
+        email: submitterEmail,
+        timestamp: Date.now(),
+      });
+
+      const submissionName = submitterName || submitterEmail.split("@")[0];
+
+      // Send confirmation email to submitter
+      sendSubmissionReceivedEmail(
+        submitterEmail,
+        submissionName,
+        form.name,
+        submission.id,
+        newResubmissionToken,
+        publicId
+      ).catch((err) => logger.error("Failed to send submission received email:", err));
+
+      // Get full form with recipients to send notifications
+      const fullForm = await getIntakeFormByIdQuery(form.id, tenantInfo.tenantHash);
+      const recipientIds = (fullForm?.recipients as number[]) || [];
+
+      if (recipientIds.length > 0) {
+        sendNewSubmissionAdminNotification(
+          recipientIds,
+          form.name,
+          submissionName,
+          submitterEmail,
+          submission.id,
+          form.entityType
+        ).catch((err) => logger.error("Failed to send admin notification:", err));
+      } else {
+        logger.warn(`No recipients configured for form ${form.id}, skipping admin notification`);
+      }
+
+      // Trigger async risk scoring
+      if (fullForm) {
+        calculateSubmissionRisk(
+          formData,
+          fullForm.schema,
+          fullForm.riskTierSystem || "generic",
+          fullForm.llmKeyId,
+          tenantInfo.tenantHash
+        )
+          .then((result) =>
+            updateSubmissionRiskQuery(submission.id, result, tenantInfo.tenantHash)
+          )
+          .catch((err) => logger.error("Risk scoring failed:", err));
+      }
+
+      return res.status(201).json(STATUS_CODE[201]({
+        message: "Form submitted successfully. You will receive an email when your submission is reviewed.",
+        submissionId: submission.id,
+        resubmissionToken: newResubmissionToken,
+      }));
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  } catch (error) {
+    logger.error(`Error in submitPublicFormByPublicId: ${publicId}`, error);
+    return res.status(500).json(STATUS_CODE[500]("An error occurred while submitting the form. Please try again."));
+  }
+}
+
+/**
+ * Get public form by slug (legacy URL format, unauthenticated)
+ */
+export async function getPublicForm(req: Request, res: Response) {
+  const tenantSlug = paramStr(req.params.tenantSlug);
+  const formSlug = paramStr(req.params.formSlug);
+  const resubmissionToken = req.query.token as string | undefined;
+
+  try {
     const tenantInfo = await getTenantHashBySlug(tenantSlug);
 
     if (!tenantInfo) {
       return res.status(404).json(STATUS_CODE[404]("Organization not found"));
     }
 
-    // Get client IP for rate limiting
-    const clientIp = req.ip || req.headers["x-forwarded-for"]?.toString().split(",")[0] || "unknown";
+    const form = await getActivePublicFormQuery(formSlug, tenantInfo.hash);
 
-    // Check rate limit
+    if (!form) {
+      return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
+    }
+
+    let previousData: Record<string, unknown> | undefined;
+    let previousSubmitterName: string | undefined;
+    let previousSubmitterEmail: string | undefined;
+    if (resubmissionToken) {
+      const decoded = verifySignedToken<{
+        submissionId: number;
+        formId: number;
+        email: string;
+        timestamp: number;
+      }>(resubmissionToken);
+
+      if (decoded && decoded.submissionId && decoded.formId === form.id) {
+        const previousSubmission = await getSubmissionByIdQuery(decoded.submissionId, tenantInfo.hash);
+        if (
+          previousSubmission &&
+          previousSubmission.status !== IntakeSubmissionStatus.APPROVED &&
+          previousSubmission.submitterEmail === decoded.email
+        ) {
+          previousData = previousSubmission.data as Record<string, unknown>;
+          previousSubmitterName = previousSubmission.submitterName;
+          previousSubmitterEmail = previousSubmission.submitterEmail;
+        }
+      }
+    }
+
+    return res.status(200).json(STATUS_CODE[200]({
+      form: {
+        id: form.id,
+        name: form.name,
+        description: form.description,
+        slug: form.slug,
+        entityType: form.entityType,
+        schema: form.schema,
+        submitButtonText: form.submitButtonText,
+        publicId: form.publicId,
+        designSettings: form.designSettings ?? null,
+      },
+      previousData,
+      previousSubmitterName,
+      previousSubmitterEmail,
+    }));
+  } catch (error) {
+    logger.error(`Error in getPublicForm: ${tenantSlug}/${formSlug}`, error);
+    return res.status(500).json(STATUS_CODE[500]("An error occurred while loading the form. Please try again."));
+  }
+}
+
+/**
+ * Submit public form (legacy URL format, unauthenticated)
+ */
+export async function submitPublicForm(req: Request, res: Response) {
+  const tenantSlug = paramStr(req.params.tenantSlug);
+  const formSlug = paramStr(req.params.formSlug);
+
+  try {
+    const tenantInfo = await getTenantHashBySlug(tenantSlug);
+
+    if (!tenantInfo) {
+      return res.status(404).json(STATUS_CODE[404]("Organization not found"));
+    }
+
+    const clientIp = req.ip || req.headers["x-forwarded-for"]?.toString().split(",")[0] || "unknown";
     const withinLimit = await checkRateLimitQuery(clientIp, tenantInfo.hash);
 
     if (!withinLimit) {
       return res.status(429).json(STATUS_CODE[429]("Too many submissions. Please try again later."));
     }
 
-    // Get the form
     const form = await getActivePublicFormQuery(formSlug, tenantInfo.hash);
 
     if (!form) {
@@ -804,50 +1510,63 @@ export async function submitPublicForm(req: Request, res: Response) {
 
     const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
 
-    // Validate required fields
     if (!submitterEmail || !formData) {
       return res.status(400).json(STATUS_CODE[400]("Submitter email and form data are required"));
     }
 
-    // Validate email format
+    if (typeof formData !== "object" || Array.isArray(formData)) {
+      return res.status(400).json(STATUS_CODE[400]("Form data must be an object"));
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(submitterEmail)) {
       return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
     }
 
-    // Validate CAPTCHA
+    // Validate form data against schema
+    const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.hash);
+    if (fullFormForValidation?.schema) {
+      const validationErrors = validateFormData(formData, fullFormForValidation.schema);
+      if (validationErrors.length > 0) {
+        return res.status(400).json(STATUS_CODE[400]({
+          message: "Form validation failed",
+          errors: validationErrors,
+        }));
+      }
+    }
+
     if (!captchaToken || captchaAnswer === undefined) {
       return res.status(400).json(STATUS_CODE[400]("CAPTCHA verification required"));
     }
 
-    try {
-      const decoded = JSON.parse(Buffer.from(captchaToken, "base64").toString());
-      const tokenAge = Date.now() - decoded.timestamp;
-
-      // Token expires after 5 minutes
-      if (tokenAge > 5 * 60 * 1000) {
-        return res.status(400).json(STATUS_CODE[400]("CAPTCHA expired. Please refresh and try again."));
-      }
-
-      if (decoded.answer !== captchaAnswer) {
-        return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
-      }
-    } catch {
+    const captchaPayload = verifySignedToken<{ answer: number; timestamp: number }>(captchaToken);
+    if (!captchaPayload) {
       return res.status(400).json(STATUS_CODE[400]("Invalid CAPTCHA token"));
     }
 
-    // Handle resubmission - find original submission by token
+    const tokenAge = Date.now() - captchaPayload.timestamp;
+    if (tokenAge > 5 * 60 * 1000) {
+      return res.status(400).json(STATUS_CODE[400]("CAPTCHA expired. Please refresh and try again."));
+    }
+
+    if (Number(captchaPayload.answer) !== Number(captchaAnswer)) {
+      return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
+    }
+
     let originalSubmissionId: number | undefined;
     if (resubmissionToken) {
-      try {
-        const decoded = JSON.parse(Buffer.from(resubmissionToken, "base64").toString());
+      const decoded = verifySignedToken<{
+        submissionId: number;
+        formId: number;
+        email: string;
+        timestamp: number;
+      }>(resubmissionToken);
+
+      if (decoded && decoded.submissionId) {
         originalSubmissionId = decoded.submissionId;
-      } catch {
-        // Invalid token, ignore and treat as new submission
       }
     }
 
-    // Create submission
     const transaction = await sequelize.transaction();
 
     try {
@@ -867,43 +1586,68 @@ export async function submitPublicForm(req: Request, res: Response) {
 
       await transaction.commit();
 
-      // Generate resubmission token
-      const newResubmissionToken = Buffer.from(JSON.stringify({
+      const newResubmissionToken = createSignedToken({
         submissionId: submission.id,
         formId: form.id,
+        email: submitterEmail,
         timestamp: Date.now(),
-      })).toString("base64");
+      });
 
-      // Send email notifications (async, don't block response)
       const submissionName = submitterName || submitterEmail.split("@")[0];
 
-      // Send confirmation to submitter
+      // Use publicId for emails if available
+      const formPublicId = form.publicId;
+
       sendSubmissionReceivedEmail(
         submitterEmail,
         submissionName,
         form.name,
         submission.id,
         newResubmissionToken,
+        formPublicId || "",
         tenantSlug,
         formSlug
       ).catch((err) => logger.error("Failed to send submission received email:", err));
 
-      // Send notification to admins
-      sendNewSubmissionAdminNotification(
-        tenantInfo.hash,
-        form.name,
-        submissionName,
-        submitterEmail,
-        submission.id,
-        form.entityType
-      ).catch((err) => logger.error("Failed to send admin notification:", err));
+      // Use per-form recipients
+      const fullForm = await getIntakeFormByIdQuery(form.id, tenantInfo.hash);
+      const recipientIds = (fullForm?.recipients as number[]) || [];
 
-      logStructured(
-        "successful",
-        `submission created: ${submission.id}`,
-        "submitPublicForm",
-        "intakeForm.ctrl.ts"
-      );
+      if (recipientIds.length > 0) {
+        sendNewSubmissionAdminNotification(
+          recipientIds,
+          form.name,
+          submissionName,
+          submitterEmail,
+          submission.id,
+          form.entityType
+        ).catch((err) => logger.error("Failed to send admin notification:", err));
+      } else {
+        // Fallback to org admins
+        sendNewSubmissionAdminNotification(
+          tenantInfo.id,
+          form.name,
+          submissionName,
+          submitterEmail,
+          submission.id,
+          form.entityType
+        ).catch((err) => logger.error("Failed to send admin notification:", err));
+      }
+
+      // Trigger async risk scoring
+      if (fullForm) {
+        calculateSubmissionRisk(
+          formData,
+          fullForm.schema,
+          fullForm.riskTierSystem || "generic",
+          fullForm.llmKeyId,
+          tenantInfo.hash
+        )
+          .then((result) =>
+            updateSubmissionRiskQuery(submission.id, result, tenantInfo.hash)
+          )
+          .catch((err) => logger.error("Risk scoring failed:", err));
+      }
 
       return res.status(201).json(STATUS_CODE[201]({
         message: "Form submitted successfully. You will receive an email when your submission is reviewed.",
@@ -915,14 +1659,8 @@ export async function submitPublicForm(req: Request, res: Response) {
       throw error;
     }
   } catch (error) {
-    logStructured(
-      "error",
-      `failed to submit public form: ${tenantSlug}/${formSlug}`,
-      "submitPublicForm",
-      "intakeForm.ctrl.ts"
-    );
-    logger.error("Error in submitPublicForm:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    logger.error(`Error in submitPublicForm: ${tenantSlug}/${formSlug}`, error);
+    return res.status(500).json(STATUS_CODE[500]("An error occurred while submitting the form. Please try again."));
   }
 }
 
@@ -930,7 +1668,6 @@ export async function submitPublicForm(req: Request, res: Response) {
  * Get CAPTCHA question (unauthenticated)
  */
 export async function getCaptcha(_req: Request, res: Response) {
-  // Generate simple math question
   const num1 = Math.floor(Math.random() * 10) + 1;
   const num2 = Math.floor(Math.random() * 10) + 1;
   const operators = ["+", "-"] as const;
@@ -943,48 +1680,13 @@ export async function getCaptcha(_req: Request, res: Response) {
     answer = num1 + num2;
     question = `${num1} + ${num2}`;
   } else {
-    // Ensure positive result for subtraction
     const larger = Math.max(num1, num2);
     const smaller = Math.min(num1, num2);
     answer = larger - smaller;
     question = `${larger} - ${smaller}`;
   }
 
-  // Create a simple token that encodes the expected answer
-  // In production, use proper encryption/signing
-  const token = Buffer.from(JSON.stringify({ answer, timestamp: Date.now() })).toString("base64");
+  const token = createSignedToken({ answer, timestamp: Date.now() });
 
   return res.status(200).json(STATUS_CODE[200]({ question, token }));
-}
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Map submission data to model inventory fields
- */
-function mapSubmissionToModelInventory(data: Record<string, unknown>): Partial<ModelInventoryModel> {
-  return {
-    provider: (data["model.provider"] as string) || "",
-    model: (data["model.model"] as string) || "",
-    version: (data["model.version"] as string) || "",
-    approver: data["model.approver"] ? Number(data["model.approver"]) : undefined,
-    capabilities: (data["model.capabilities"] as string) || "",
-    security_assessment: (data["model.security_assessment"] as boolean) || false,
-    reference_link: (data["model.reference_link"] as string) || "",
-    biases: (data["model.biases"] as string) || "",
-    limitations: (data["model.limitations"] as string) || "",
-    hosting_provider: (data["model.hosting_provider"] as string) || "",
-  };
-}
-
-/**
- * Map submission data to project fields
- */
-function mapSubmissionToProject(data: Record<string, unknown>): Record<string, unknown> {
-  return {
-    project_title: (data["project.project_title"] as string) || "",
-    description: (data["project.description"] as string) || "",
-  };
 }

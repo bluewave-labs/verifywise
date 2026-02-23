@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { Box, Typography, TextField, IconButton, Tooltip } from "@mui/material";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Box, Typography } from "@mui/material";
 import { RefreshCw } from "lucide-react";
+import Field from "../../components/Inputs/Field";
 import { getCaptcha } from "../../../application/repository/intakeForm.repository";
 
 /**
@@ -10,15 +11,18 @@ interface MathCaptchaProps {
   value: string;
   onChange: (value: string, token: string) => void;
   error?: string;
+  refreshTrigger?: number;
 }
 
 /**
  * Math CAPTCHA component for spam prevention
  */
-export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
+export function MathCaptcha({ value, onChange, error, refreshTrigger }: MathCaptchaProps) {
   const [question, setQuestion] = useState<string>("");
   const [token, setToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   const loadCaptcha = useCallback(async () => {
     setIsLoading(true);
@@ -27,7 +31,7 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
       if (response.data) {
         setQuestion(response.data.question);
         setToken(response.data.token);
-        onChange("", response.data.token);
+        onChangeRef.current("", response.data.token);
       }
     } catch (err) {
       console.error("Failed to load captcha:", err);
@@ -35,50 +39,56 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [onChange]);
+  }, []);
 
   useEffect(() => {
     loadCaptcha();
   }, [loadCaptcha]);
 
+  // Auto-refresh when refreshTrigger changes (e.g., after failed submission)
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      loadCaptcha();
+    }
+  }, [refreshTrigger, loadCaptcha]);
+
   const handleRefresh = () => {
     loadCaptcha();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onChange(e.target.value, token);
   };
 
   return (
     <Box
       sx={{
-        p: 2,
-        backgroundColor: "#f9fafb",
-        borderRadius: "4px",
-        border: error ? "1px solid #ef4444" : "1px solid #d0d5dd",
+        p: 2.5,
+        backgroundColor: "#f8fafc",
+        borderRadius: "8px",
+        border: error ? "1px solid #ef4444" : "1px solid #e2e8f0",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-        <Typography
-          variant="body2"
-          sx={{ fontWeight: 500, color: "#1f2937", fontSize: "13px" }}
-        >
+        <Typography sx={{ fontWeight: 500, color: "#1f2937", fontSize: "13px" }}>
           Security check
         </Typography>
-        <Tooltip title="Get new question">
-          <IconButton
-            size="small"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            sx={{
-              p: 0.5,
-              color: "#6b7280",
-              "&:hover": { color: "#13715B" },
-            }}
-          >
-            <RefreshCw size={18} />
-          </IconButton>
-        </Tooltip>
+        <Box
+          title="Get new question"
+          onClick={isLoading ? undefined : handleRefresh}
+          sx={{
+            cursor: isLoading ? "default" : "pointer",
+            opacity: isLoading ? 0.5 : 1,
+            display: "flex",
+            alignItems: "center",
+            p: "4px",
+            borderRadius: "6px",
+            color: "#6b7280",
+            "&:hover": isLoading ? {} : { color: "#13715B", backgroundColor: "#f0fdf4" },
+          }}
+        >
+          <RefreshCw size={16} strokeWidth={1.5} />
+        </Box>
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -90,8 +100,8 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
             backgroundColor: "#fff",
             px: 2,
             py: 1,
-            borderRadius: "4px",
-            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            border: "1px solid #e2e8f0",
             minWidth: 120,
             textAlign: "center",
           }}
@@ -99,12 +109,13 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
           {isLoading ? "Loading..." : question}
         </Typography>
         <Typography sx={{ fontSize: "16px", color: "#6b7280" }}>=</Typography>
-        <TextField
+        <Field
+          id="captcha-answer"
+          label=""
           value={value}
           onChange={handleChange}
           placeholder="?"
           type="number"
-          size="small"
           disabled={isLoading}
           error={!!error}
           sx={{
@@ -112,30 +123,19 @@ export function MathCaptcha({ value, onChange, error }: MathCaptchaProps) {
             "& .MuiOutlinedInput-root": {
               fontSize: "16px",
               fontWeight: 600,
-              textAlign: "center",
-              "& fieldset": { borderColor: "#d0d5dd" },
-              "&:hover fieldset": { borderColor: "#9ca3af" },
-              "&.Mui-focused fieldset": { borderColor: "#13715B" },
-              "&.Mui-error fieldset": { borderColor: "#ef4444" },
             },
-            "& input": {
-              textAlign: "center",
-            },
+            "& input": { textAlign: "center" },
           }}
         />
       </Box>
 
       {error && (
-        <Typography
-          sx={{ color: "#ef4444", fontSize: "12px", mt: 1 }}
-        >
+        <Typography sx={{ color: "#ef4444", fontSize: "12px", mt: 1 }}>
           {error}
         </Typography>
       )}
 
-      <Typography
-        sx={{ color: "#9ca3af", fontSize: "11px", mt: 1.5 }}
-      >
+      <Typography sx={{ color: "#9ca3af", fontSize: "11px", mt: 1.5 }}>
         Please solve this simple math problem to verify you are human
       </Typography>
     </Box>

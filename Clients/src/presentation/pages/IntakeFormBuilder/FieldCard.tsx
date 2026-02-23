@@ -1,40 +1,27 @@
-import { Box, Typography, IconButton, Tooltip, Chip } from "@mui/material";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical,
+  Box,
+  Typography,
+  IconButton,
+  Tooltip,
+  Select as MuiSelect,
+  MenuItem,
+  FormControl,
+  FormControlLabel,
+  Checkbox as MuiCheckbox,
+  OutlinedInput,
+  FormHelperText,
+  useTheme,
+} from "@mui/material";
+import {
   Trash2,
   Copy,
-  Type,
-  FileText,
-  Mail,
-  Link,
-  Hash,
-  Calendar,
+  ChevronUp,
   ChevronDown,
-  ListChecks,
-  CheckSquare,
+  Info,
 } from "lucide-react";
+import Field from "../../components/Inputs/Field";
 import { FormField, FieldType } from "./types";
 
-/**
- * Icon mapping for field types
- */
-const ICON_MAP: Record<FieldType, React.ElementType> = {
-  text: Type,
-  textarea: FileText,
-  email: Mail,
-  url: Link,
-  number: Hash,
-  date: Calendar,
-  select: ChevronDown,
-  multiselect: ListChecks,
-  checkbox: CheckSquare,
-};
-
-/**
- * Label mapping for field types
- */
 const TYPE_LABELS: Record<FieldType, string> = {
   text: "Short text",
   textarea: "Long text",
@@ -47,47 +34,254 @@ const TYPE_LABELS: Record<FieldType, string> = {
   checkbox: "Checkbox",
 };
 
-/**
- * Field card component - displays a field in the canvas
- */
 interface FieldCardProps {
   field: FormField;
   isSelected: boolean;
+  isFirst: boolean;
+  isLast: boolean;
   onSelect: (fieldId: string) => void;
   onDelete: (fieldId: string) => void;
   onDuplicate: (field: FormField) => void;
+  onMoveUp: (fieldId: string) => void;
+  onMoveDown: (fieldId: string) => void;
+}
+
+/**
+ * Renders a field label with optional required asterisk and guidance tooltip
+ */
+function PreviewFieldLabel({
+  label,
+  guidanceText,
+  required,
+}: {
+  label: string;
+  guidanceText?: string;
+  required?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: "4px" }}>
+      <Typography sx={{ fontSize: "13px", color: theme.palette.text.secondary, fontWeight: 500 }}>
+        {label}
+        {required && <span style={{ color: theme.palette.status.error.text }}> *</span>}
+      </Typography>
+      {guidanceText && (
+        <Tooltip title={guidanceText} placement="top" arrow>
+          <span style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}>
+            <Info size={14} strokeWidth={1.5} color={theme.palette.text.accent} />
+          </span>
+        </Tooltip>
+      )}
+    </Box>
+  );
+}
+
+/**
+ * Renders a static (non-functional) preview of a form field matching how it looks
+ * in the actual public form.
+ */
+function FieldPreview({ field }: { field: FormField }) {
+  const theme = useTheme();
+  const isRequired = field.validation?.required;
+
+  switch (field.type) {
+    case "text":
+    case "email":
+    case "url":
+      return (
+        <>
+          <PreviewFieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+          <Field
+            id={`preview-${field.id}`}
+            label=""
+            value=""
+            placeholder={field.placeholder}
+            type={field.type === "email" ? "email" : field.type === "url" ? "url" : "text"}
+            disabled
+          />
+          {field.helpText && (
+            <Typography sx={{ color: theme.palette.other.icon, fontSize: "11px", mt: "2px" }}>
+              {field.helpText}
+            </Typography>
+          )}
+        </>
+      );
+
+    case "textarea":
+      return (
+        <>
+          <PreviewFieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+          <Field
+            id={`preview-${field.id}`}
+            label=""
+            value=""
+            placeholder={field.placeholder}
+            type="description"
+            rows={3}
+            disabled
+          />
+          {field.helpText && (
+            <Typography sx={{ color: theme.palette.other.icon, fontSize: "11px", mt: "2px" }}>
+              {field.helpText}
+            </Typography>
+          )}
+        </>
+      );
+
+    case "number":
+      return (
+        <>
+          <PreviewFieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+          <Field
+            id={`preview-${field.id}`}
+            label=""
+            value=""
+            placeholder={field.placeholder || "0"}
+            type="number"
+            disabled
+          />
+          {field.helpText && (
+            <Typography sx={{ color: theme.palette.other.icon, fontSize: "11px", mt: "2px" }}>
+              {field.helpText}
+            </Typography>
+          )}
+        </>
+      );
+
+    case "date":
+      return (
+        <>
+          <PreviewFieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+          <Field
+            id={`preview-${field.id}`}
+            label=""
+            value=""
+            type="date"
+            disabled
+          />
+          {field.helpText && (
+            <Typography sx={{ color: theme.palette.other.icon, fontSize: "11px", mt: "2px" }}>
+              {field.helpText}
+            </Typography>
+          )}
+        </>
+      );
+
+    case "select":
+      return (
+        <>
+          <PreviewFieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+          <FormControl fullWidth disabled>
+            <MuiSelect
+              value=""
+              displayEmpty
+              sx={{
+                fontSize: "13px",
+                borderRadius: "4px",
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: theme.palette.border.dark },
+              }}
+            >
+              <MenuItem value="" disabled>
+                <em style={{ color: theme.palette.text.accent }}>Select an option</em>
+              </MenuItem>
+              {field.options?.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </MuiSelect>
+            {field.helpText && (
+              <FormHelperText>{field.helpText}</FormHelperText>
+            )}
+          </FormControl>
+        </>
+      );
+
+    case "multiselect":
+      return (
+        <>
+          <PreviewFieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+          <FormControl fullWidth disabled>
+            <MuiSelect
+              multiple
+              value={[]}
+              input={<OutlinedInput />}
+              displayEmpty
+              renderValue={() => (
+                <em style={{ color: theme.palette.text.accent }}>Select options</em>
+              )}
+              sx={{
+                fontSize: "13px",
+                borderRadius: "4px",
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: theme.palette.border.dark },
+              }}
+            >
+              {field.options?.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </MuiSelect>
+            {field.helpText && (
+              <FormHelperText>{field.helpText}</FormHelperText>
+            )}
+          </FormControl>
+        </>
+      );
+
+    case "checkbox":
+      return (
+        <Box>
+          <FormControlLabel
+            disabled
+            control={
+              <MuiCheckbox
+                checked={false}
+                sx={{
+                  color: theme.palette.border.dark,
+                  "&.Mui-checked": { color: theme.palette.primary.main },
+                }}
+              />
+            }
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <Typography sx={{ fontSize: "13px", color: theme.palette.text.secondary }}>
+                  {field.label}
+                  {isRequired && <span style={{ color: theme.palette.status.error.text }}> *</span>}
+                </Typography>
+                {field.guidanceText && (
+                  <Tooltip title={field.guidanceText} placement="top" arrow>
+                    <span style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}>
+                      <Info size={14} strokeWidth={1.5} color={theme.palette.text.accent} />
+                    </span>
+                  </Tooltip>
+                )}
+              </Box>
+            }
+          />
+          {field.helpText && (
+            <FormHelperText sx={{ ml: 4 }}>{field.helpText}</FormHelperText>
+          )}
+        </Box>
+      );
+
+    default:
+      return null;
+  }
 }
 
 export function FieldCard({
   field,
   isSelected,
+  isFirst,
+  isLast,
   onSelect,
   onDelete,
   onDuplicate,
+  onMoveUp,
+  onMoveDown,
 }: FieldCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: field.id,
-    data: {
-      type: "canvas",
-      field,
-    },
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1000 : 1,
-  };
-
-  const IconComponent = ICON_MAP[field.type] || Type;
+  const theme = useTheme();
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,164 +298,151 @@ export function FieldCard({
     onDuplicate(field);
   };
 
+  const handleMoveUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMoveUp(field.id);
+  };
+
+  const handleMoveDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMoveDown(field.id);
+  };
+
   return (
     <Box
-      ref={setNodeRef}
-      style={style}
       onClick={handleClick}
       sx={{
-        display: "flex",
-        alignItems: "stretch",
-        backgroundColor: isSelected ? "#f0fdf4" : "#fff",
-        border: isSelected ? "2px solid #13715B" : "1px solid #d0d5dd",
+        position: "relative",
+        backgroundColor: theme.palette.background.main,
+        border: isSelected ? `1px solid ${theme.palette.border.dark}` : "1px solid transparent",
         borderRadius: "4px",
-        overflow: "hidden",
         cursor: "pointer",
-        transition: "all 0.2s ease",
+        transition: "border-color 0.15s ease",
+        p: "15px",
         "&:hover": {
-          borderColor: "#13715B",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-          "& .field-actions": {
-            opacity: 1,
-          },
+          borderColor: theme.palette.border.dark,
+          "& .field-actions": { opacity: 1 },
         },
       }}
     >
-      {/* Drag handle */}
-      <Box
-        {...attributes}
-        {...listeners}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 1,
-          backgroundColor: isSelected ? "#dcfce7" : "#f9fafb",
-          borderRight: "1px solid #d0d5dd",
-          cursor: "grab",
-          "&:active": {
-            cursor: "grabbing",
-          },
-        }}
-      >
-        <GripVertical size={20} color="#9ca3af" />
+      {/* WYSIWYG field preview */}
+      <Box sx={{ pointerEvents: "none" }}>
+        <FieldPreview field={field} />
       </Box>
 
-      {/* Field content */}
-      <Box sx={{ flex: 1, p: 2, minWidth: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
-          <IconComponent size={20} color="#13715B" style={{ marginTop: 2 }} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  color: "#1f2937",
-                  fontSize: "14px",
-                }}
-              >
-                {field.label}
-              </Typography>
-              {field.validation?.required && (
-                <Typography
-                  component="span"
-                  sx={{ color: "#ef4444", fontSize: "14px" }}
-                >
-                  *
-                </Typography>
-              )}
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Chip
-                label={TYPE_LABELS[field.type]}
-                size="small"
-                sx={{
-                  height: 20,
-                  fontSize: "11px",
-                  backgroundColor: "#f3f4f6",
-                  color: "#6b7280",
-                  "& .MuiChip-label": {
-                    px: 1,
-                  },
-                }}
-              />
-              {field.entityFieldMapping && (
-                <Chip
-                  label={`Maps to: ${field.entityFieldMapping}`}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "11px",
-                    backgroundColor: "#dbeafe",
-                    color: "#1d4ed8",
-                    "& .MuiChip-label": {
-                      px: 1,
-                    },
-                  }}
-                />
-              )}
-            </Box>
-            {field.helpText && (
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "#9ca3af",
-                  fontSize: "12px",
-                  display: "block",
-                  mt: 0.5,
-                }}
-              >
-                {field.helpText}
-              </Typography>
-            )}
+      {/* Metadata badges — shown only when selected */}
+      {isSelected && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: "6px", mt: "8px", flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              height: 20,
+              px: "6px",
+              borderRadius: "4px",
+              backgroundColor: theme.palette.background.accent,
+              fontSize: "11px",
+              color: theme.palette.other.icon,
+            }}
+          >
+            {TYPE_LABELS[field.type]}
           </Box>
+          {field.entityFieldMapping && (
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                height: 20,
+                px: "6px",
+                borderRadius: "4px",
+                backgroundColor: "#dbeafe",
+                fontSize: "11px",
+                color: "#1d4ed8",
+              }}
+            >
+              Maps to: {field.entityFieldMapping}
+            </Box>
+          )}
         </Box>
-      </Box>
+      )}
 
-      {/* Actions */}
+      {/* Action toolbar — appears on hover/selection */}
       <Box
         className="field-actions"
         sx={{
+          position: "absolute",
+          top: 4,
+          right: 4,
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          gap: 0.5,
-          px: 1,
+          alignItems: "center",
+          gap: "2px",
+          backgroundColor: theme.palette.background.main,
+          border: `1px solid ${theme.palette.border.dark}`,
+          borderRadius: "4px",
+          px: "2px",
+          py: "1px",
           opacity: isSelected ? 1 : 0,
-          transition: "opacity 0.2s ease",
+          transition: "opacity 0.15s ease",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         }}
       >
-        <Tooltip title="Duplicate field" placement="left">
+        <Tooltip title="Move up" placement="top">
+          <span>
+            <IconButton
+              size="small"
+              disabled={isFirst}
+              onClick={handleMoveUp}
+              sx={{
+                p: "3px",
+                color: isFirst ? theme.palette.border.dark : theme.palette.other.icon,
+                "&:hover": { color: theme.palette.primary.main, backgroundColor: theme.palette.background.fill },
+              }}
+            >
+              <ChevronUp size={14} />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Move down" placement="top">
+          <span>
+            <IconButton
+              size="small"
+              disabled={isLast}
+              onClick={handleMoveDown}
+              sx={{
+                p: "3px",
+                color: isLast ? theme.palette.border.dark : theme.palette.other.icon,
+                "&:hover": { color: theme.palette.primary.main, backgroundColor: theme.palette.background.fill },
+              }}
+            >
+              <ChevronDown size={14} />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Box sx={{ width: "1px", height: 16, backgroundColor: theme.palette.border.dark, mx: "1px" }} />
+        <Tooltip title="Duplicate" placement="top">
           <IconButton
             size="small"
             onClick={handleDuplicate}
             sx={{
-              p: 0.5,
-              color: "#6b7280",
-              "&:hover": {
-                color: "#13715B",
-                backgroundColor: "#f0fdf4",
-              },
+              p: "3px",
+              color: theme.palette.other.icon,
+              "&:hover": { color: theme.palette.primary.main, backgroundColor: theme.palette.background.fill },
             }}
           >
-            <Copy size={16} />
+            <Copy size={14} />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Delete field" placement="left">
+        <Tooltip title="Delete" placement="top">
           <IconButton
             size="small"
             onClick={handleDelete}
             sx={{
-              p: 0.5,
-              color: "#6b7280",
-              "&:hover": {
-                color: "#ef4444",
-                backgroundColor: "#fef2f2",
-              },
+              p: "3px",
+              color: theme.palette.other.icon,
+              "&:hover": { color: theme.palette.status.error.text, backgroundColor: theme.palette.status.error.bg },
             }}
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           </IconButton>
         </Tooltip>
       </Box>

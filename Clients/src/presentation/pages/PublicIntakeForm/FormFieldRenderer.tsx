@@ -1,19 +1,71 @@
-import {
-  Box,
-  Typography,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  FormControlLabel,
-  Checkbox,
-  FormHelperText,
-  Chip,
-  OutlinedInput,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { Controller, Control, FieldErrors } from "react-hook-form";
-import { FormField } from "../../IntakeFormBuilder/types";
+import { Info } from "lucide-react";
+import Field from "../../components/Inputs/Field";
+import Select from "../../components/Inputs/Select";
+import Checkbox from "../../components/Inputs/Checkbox";
+import { FormField } from "../IntakeFormBuilder/types";
+
+/**
+ * Renders a field label row with an optional guidance tooltip icon
+ */
+function FieldLabel({
+  label,
+  guidanceText,
+  required,
+}: {
+  label: string;
+  guidanceText?: string;
+  required?: boolean;
+}) {
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: "6px" }}>
+      <Typography sx={{ fontSize: "14px", color: "#334155", fontWeight: 500 }}>
+        {label}
+        {required && <span style={{ color: "#ef4444" }}> *</span>}
+      </Typography>
+      {guidanceText && (
+        <span
+          title={guidanceText}
+          style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
+        >
+          <Info size={14} strokeWidth={1.5} color="#838c99" />
+        </span>
+      )}
+    </Box>
+  );
+}
+
+/**
+ * Safely create a RegExp from a pattern string, returning null if invalid or too long
+ */
+function safeRegExp(pattern: string): RegExp | null {
+  if (pattern.length > 500) return null;
+  try {
+    return new RegExp(pattern);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Helper text displayed below fields
+ */
+function HelperText({ text, isError }: { text?: string; isError?: boolean }) {
+  if (!text) return null;
+  return (
+    <Typography
+      sx={{
+        fontSize: "12px",
+        color: isError ? "#ef4444" : "#94a3b8",
+        mt: "4px",
+        lineHeight: 1.4,
+      }}
+    >
+      {text}
+    </Typography>
+  );
+}
 
 /**
  * Props for FormFieldRenderer
@@ -32,237 +84,279 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
   const errorMessage = error?.message as string | undefined;
   const isRequired = field.validation?.required;
 
-  const commonSx = {
-    "& .MuiOutlinedInput-root": {
-      fontSize: "14px",
-      borderRadius: "4px",
-      "& fieldset": { borderColor: "#d0d5dd" },
-      "&:hover fieldset": { borderColor: "#9ca3af" },
-      "&.Mui-focused fieldset": { borderColor: "#13715B" },
-      "&.Mui-error fieldset": { borderColor: "#ef4444" },
-    },
-    "& .MuiInputLabel-root": {
-      fontSize: "14px",
-      "&.Mui-focused": { color: "#13715B" },
-      "&.Mui-error": { color: "#ef4444" },
-    },
-  };
-
   const renderField = () => {
     switch (field.type) {
       case "text":
       case "email":
       case "url":
         return (
-          <Controller
-            name={field.id}
-            control={control}
-            defaultValue={field.defaultValue || ""}
-            rules={{
-              required: isRequired ? "This field is required" : false,
-              minLength: field.validation?.minLength
-                ? { value: field.validation.minLength, message: `Minimum ${field.validation.minLength} characters` }
-                : undefined,
-              maxLength: field.validation?.maxLength
-                ? { value: field.validation.maxLength, message: `Maximum ${field.validation.maxLength} characters` }
-                : undefined,
-              pattern: field.validation?.pattern
-                ? { value: new RegExp(field.validation.pattern), message: field.validation.patternMessage || "Invalid format" }
-                : undefined,
-            }}
-            render={({ field: fieldProps }) => (
-              <TextField
-                {...fieldProps}
-                fullWidth
-                label={field.label}
-                placeholder={field.placeholder}
-                type={field.type === "email" ? "email" : field.type === "url" ? "url" : "text"}
-                error={!!error}
-                helperText={errorMessage || field.helpText}
-                required={isRequired}
-                sx={commonSx}
-              />
-            )}
-          />
+          <>
+            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <Controller
+              name={field.id}
+              control={control}
+              defaultValue={field.defaultValue || ""}
+              rules={{
+                required: isRequired ? "This field is required" : false,
+                minLength: field.validation?.minLength
+                  ? { value: field.validation.minLength, message: `Minimum ${field.validation.minLength} characters` }
+                  : undefined,
+                maxLength: field.validation?.maxLength
+                  ? { value: field.validation.maxLength, message: `Maximum ${field.validation.maxLength} characters` }
+                  : undefined,
+                pattern: field.validation?.pattern && safeRegExp(field.validation.pattern)
+                  ? { value: safeRegExp(field.validation.pattern)!, message: field.validation.patternMessage || "Invalid format" }
+                  : undefined,
+              }}
+              render={({ field: fieldProps }) => (
+                <Field
+                  id={`field-${field.id}`}
+                  label=""
+                  {...fieldProps}
+                  placeholder={field.placeholder}
+                  type={field.type === "email" ? "email" : field.type === "url" ? "url" : "text"}
+                  error={!!error}
+                  helperText={errorMessage || field.helpText}
+                />
+              )}
+            />
+          </>
         );
 
       case "textarea":
         return (
-          <Controller
-            name={field.id}
-            control={control}
-            defaultValue={field.defaultValue || ""}
-            rules={{
-              required: isRequired ? "This field is required" : false,
-              minLength: field.validation?.minLength
-                ? { value: field.validation.minLength, message: `Minimum ${field.validation.minLength} characters` }
-                : undefined,
-              maxLength: field.validation?.maxLength
-                ? { value: field.validation.maxLength, message: `Maximum ${field.validation.maxLength} characters` }
-                : undefined,
-            }}
-            render={({ field: fieldProps }) => (
-              <TextField
-                {...fieldProps}
-                fullWidth
-                multiline
-                rows={4}
-                label={field.label}
-                placeholder={field.placeholder}
-                error={!!error}
-                helperText={errorMessage || field.helpText}
-                required={isRequired}
-                sx={commonSx}
-              />
-            )}
-          />
+          <>
+            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <Controller
+              name={field.id}
+              control={control}
+              defaultValue={field.defaultValue || ""}
+              rules={{
+                required: isRequired ? "This field is required" : false,
+                minLength: field.validation?.minLength
+                  ? { value: field.validation.minLength, message: `Minimum ${field.validation.minLength} characters` }
+                  : undefined,
+                maxLength: field.validation?.maxLength
+                  ? { value: field.validation.maxLength, message: `Maximum ${field.validation.maxLength} characters` }
+                  : undefined,
+              }}
+              render={({ field: fieldProps }) => (
+                <Field
+                  id={`field-${field.id}`}
+                  label=""
+                  {...fieldProps}
+                  placeholder={field.placeholder}
+                  rows={4}
+                  error={!!error}
+                  helperText={errorMessage || field.helpText}
+                />
+              )}
+            />
+          </>
         );
 
       case "number":
         return (
-          <Controller
-            name={field.id}
-            control={control}
-            defaultValue={field.defaultValue || ""}
-            rules={{
-              required: isRequired ? "This field is required" : false,
-              min: field.validation?.min !== undefined
-                ? { value: field.validation.min, message: `Minimum value is ${field.validation.min}` }
-                : undefined,
-              max: field.validation?.max !== undefined
-                ? { value: field.validation.max, message: `Maximum value is ${field.validation.max}` }
-                : undefined,
-            }}
-            render={({ field: fieldProps }) => (
-              <TextField
-                {...fieldProps}
-                fullWidth
-                type="number"
-                label={field.label}
-                placeholder={field.placeholder}
-                error={!!error}
-                helperText={errorMessage || field.helpText}
-                required={isRequired}
-                sx={commonSx}
-              />
-            )}
-          />
+          <>
+            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <Controller
+              name={field.id}
+              control={control}
+              defaultValue={field.defaultValue || ""}
+              rules={{
+                required: isRequired ? "This field is required" : false,
+                min: field.validation?.min !== undefined
+                  ? { value: field.validation.min, message: `Minimum value is ${field.validation.min}` }
+                  : undefined,
+                max: field.validation?.max !== undefined
+                  ? { value: field.validation.max, message: `Maximum value is ${field.validation.max}` }
+                  : undefined,
+              }}
+              render={({ field: fieldProps }) => (
+                <Field
+                  id={`field-${field.id}`}
+                  label=""
+                  {...fieldProps}
+                  type="number"
+                  placeholder={field.placeholder}
+                  error={!!error}
+                  helperText={errorMessage || field.helpText}
+                />
+              )}
+            />
+          </>
         );
 
       case "date":
         return (
-          <Controller
-            name={field.id}
-            control={control}
-            defaultValue={field.defaultValue || ""}
-            rules={{
-              required: isRequired ? "This field is required" : false,
-            }}
-            render={({ field: fieldProps }) => (
-              <TextField
-                {...fieldProps}
-                fullWidth
-                type="date"
-                label={field.label}
-                error={!!error}
-                helperText={errorMessage || field.helpText}
-                required={isRequired}
-                InputLabelProps={{ shrink: true }}
-                sx={commonSx}
-              />
-            )}
-          />
+          <>
+            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <Controller
+              name={field.id}
+              control={control}
+              defaultValue={field.defaultValue || ""}
+              rules={{
+                required: isRequired ? "This field is required" : false,
+              }}
+              render={({ field: fieldProps }) => (
+                <Field
+                  id={`field-${field.id}`}
+                  label=""
+                  {...fieldProps}
+                  type="date"
+                  error={!!error}
+                  helperText={errorMessage || field.helpText}
+                />
+              )}
+            />
+          </>
         );
 
       case "select":
         return (
-          <Controller
-            name={field.id}
-            control={control}
-            defaultValue={field.defaultValue || ""}
-            rules={{
-              required: isRequired ? "This field is required" : false,
-            }}
-            render={({ field: fieldProps }) => (
-              <FormControl fullWidth error={!!error} required={isRequired}>
-                <InputLabel sx={{ fontSize: "14px", "&.Mui-focused": { color: "#13715B" } }}>
-                  {field.label}
-                </InputLabel>
-                <Select
-                  {...fieldProps}
-                  label={field.label}
-                  sx={{
-                    fontSize: "14px",
-                    borderRadius: "4px",
-                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#d0d5dd" },
-                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9ca3af" },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
-                  }}
-                >
-                  {field.options?.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>{errorMessage || field.helpText}</FormHelperText>
-              </FormControl>
-            )}
-          />
+          <>
+            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <Controller
+              name={field.id}
+              control={control}
+              defaultValue={field.defaultValue || ""}
+              rules={{
+                required: isRequired ? "This field is required" : false,
+              }}
+              render={({ field: fieldProps }) => (
+                <Box>
+                  <Select
+                    id={`field-${field.id}`}
+                    label=""
+                    placeholder="Select an option"
+                    value={fieldProps.value as string}
+                    onChange={(e) => fieldProps.onChange(e.target.value)}
+                    items={(field.options || []).map((opt) => ({
+                      _id: opt.value,
+                      name: opt.label,
+                    }))}
+                    error={errorMessage}
+                    sx={{
+                      width: "100%",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "8px",
+                        fontSize: "15px",
+                      },
+                    }}
+                  />
+                  <HelperText text={!errorMessage ? field.helpText : undefined} />
+                </Box>
+              )}
+            />
+          </>
         );
 
       case "multiselect":
         return (
-          <Controller
-            name={field.id}
-            control={control}
-            defaultValue={field.defaultValue || []}
-            rules={{
-              required: isRequired ? "This field is required" : false,
-            }}
-            render={({ field: fieldProps }) => (
-              <FormControl fullWidth error={!!error} required={isRequired}>
-                <InputLabel sx={{ fontSize: "14px", "&.Mui-focused": { color: "#13715B" } }}>
-                  {field.label}
-                </InputLabel>
-                <Select
-                  {...fieldProps}
-                  multiple
-                  label={field.label}
-                  input={<OutlinedInput label={field.label} />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {(selected as string[]).map((value) => {
-                        const option = field.options?.find((o) => o.value === value);
+          <>
+            <FieldLabel label={field.label} guidanceText={field.guidanceText} required={isRequired} />
+            <Controller
+              name={field.id}
+              control={control}
+              defaultValue={field.defaultValue || []}
+              rules={{
+                required: isRequired ? "This field is required" : false,
+              }}
+              render={({ field: fieldProps }) => {
+                const selectedArr = (fieldProps.value as string[]) || [];
+                return (
+                  <Box>
+                    {/* Selected chips */}
+                    {selectedArr.length > 0 && (
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px", mb: "8px" }}>
+                        {selectedArr.map((val) => {
+                          const option = field.options?.find((o) => o.value === val);
+                          return (
+                            <Box
+                              key={val}
+                              sx={{
+                                height: 24,
+                                px: "10px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                fontSize: "12px",
+                                backgroundColor: "#f0fdf4",
+                                color: "#334155",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "12px",
+                                gap: "4px",
+                              }}
+                            >
+                              {option?.label || val}
+                              <span
+                                onClick={() => {
+                                  fieldProps.onChange(selectedArr.filter((v) => v !== val));
+                                }}
+                                style={{ cursor: "pointer", color: "#94a3b8", marginLeft: "2px" }}
+                              >
+                                ×
+                              </span>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    )}
+                    {/* Options list */}
+                    <Box
+                      sx={{
+                        border: error ? "1px solid #ef4444" : "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        maxHeight: 200,
+                        overflowY: "auto",
+                      }}
+                    >
+                      {(field.options || []).map((option) => {
+                        const isChecked = selectedArr.includes(option.value);
                         return (
-                          <Chip
-                            key={value}
-                            label={option?.label || value}
-                            size="small"
-                            sx={{ height: 24, fontSize: "12px" }}
-                          />
+                          <Box
+                            key={option.value}
+                            onClick={() => {
+                              if (isChecked) {
+                                fieldProps.onChange(selectedArr.filter((v) => v !== option.value));
+                              } else {
+                                fieldProps.onChange([...selectedArr, option.value]);
+                              }
+                            }}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              px: "12px",
+                              py: "8px",
+                              cursor: "pointer",
+                              backgroundColor: isChecked ? "#f0fdf4" : "transparent",
+                              "&:hover": {
+                                backgroundColor: isChecked ? "#dcfce7" : "#f8fafc",
+                              },
+                              borderBottom: "1px solid #f1f5f9",
+                              "&:last-child": { borderBottom: "none" },
+                            }}
+                          >
+                            <Checkbox
+                              id={`field-${field.id}-${option.value}`}
+                              isChecked={isChecked}
+                              value={option.value}
+                              onChange={() => {}}
+                              size="small"
+                            />
+                            <Typography sx={{ fontSize: "14px", color: "#334155" }}>
+                              {option.label}
+                            </Typography>
+                          </Box>
                         );
                       })}
                     </Box>
-                  )}
-                  sx={{
-                    fontSize: "14px",
-                    borderRadius: "4px",
-                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "#d0d5dd" },
-                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#9ca3af" },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#13715B" },
-                  }}
-                >
-                  {field.options?.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>{errorMessage || field.helpText}</FormHelperText>
-              </FormControl>
-            )}
-          />
+                    <HelperText text={errorMessage || field.helpText} isError={!!error} />
+                  </Box>
+                );
+              }}
+            />
+          </>
         );
 
       case "checkbox":
@@ -276,29 +370,24 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
             }}
             render={({ field: fieldProps }) => (
               <Box>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...fieldProps}
-                      checked={!!fieldProps.value}
-                      sx={{
-                        color: "#d0d5dd",
-                        "&.Mui-checked": { color: "#13715B" },
-                      }}
-                    />
-                  }
-                  label={
-                    <Typography sx={{ fontSize: "14px", color: "#1f2937" }}>
-                      {field.label}
-                      {isRequired && <span style={{ color: "#ef4444" }}> *</span>}
-                    </Typography>
-                  }
-                />
-                {(errorMessage || field.helpText) && (
-                  <FormHelperText error={!!error} sx={{ ml: 4 }}>
-                    {errorMessage || field.helpText}
-                  </FormHelperText>
-                )}
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Checkbox
+                    id={`field-${field.id}`}
+                    isChecked={!!fieldProps.value}
+                    value={field.id}
+                    onChange={(e) => fieldProps.onChange((e.target as HTMLInputElement).checked)}
+                    label={isRequired ? `${field.label} *` : field.label}
+                  />
+                  {field.guidanceText && (
+                    <span
+                      title={field.guidanceText}
+                      style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
+                    >
+                      <Info size={14} strokeWidth={1.5} color="#838c99" />
+                    </span>
+                  )}
+                </Box>
+                <HelperText text={errorMessage || field.helpText} isError={!!error} />
               </Box>
             )}
           />
@@ -309,7 +398,7 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
     }
   };
 
-  return <Box sx={{ mb: 2.5 }}>{renderField()}</Box>;
+  return <Box>{renderField()}</Box>;
 }
 
 export default FormFieldRenderer;

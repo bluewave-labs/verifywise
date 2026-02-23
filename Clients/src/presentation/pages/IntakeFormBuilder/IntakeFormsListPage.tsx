@@ -1,54 +1,66 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
-  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  TableFooter,
+  TablePagination,
   Paper,
   IconButton,
-  Chip,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  TextField,
-  Tabs,
-  Tab,
+  Snackbar,
+  Alert,
+  Stack,
+  useTheme,
 } from "@mui/material";
+import TabContext from "@mui/lab/TabContext";
+import TabBar from "../../components/TabBar";
 import {
   Plus,
-  MoreVertical,
+  Settings,
   Edit,
   Trash2,
   Archive,
   Eye,
   Copy,
-  ClipboardList,
+  FolderTree,
+  ListIcon,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   getAllIntakeForms,
   deleteIntakeForm,
   archiveIntakeForm,
+  getPendingSubmissions,
   IntakeForm,
+  IntakeSubmission,
   IntakeFormStatus,
   IntakeEntityType,
 } from "../../../application/repository/intakeForm.repository";
+import { SubmissionPreviewModal } from "./SubmissionPreviewModal";
+import { CustomizableButton } from "../../components/button/customizable-button";
+import StandardModal from "../../components/Modals/StandardModal";
+import Chip from "../../components/Chip";
+import { EmptyState } from "../../components/EmptyState";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
+import SearchBox from "../../components/Search/SearchBox";
+import TablePaginationActions from "../../components/TablePagination";
+import singleTheme from "../../themes/v1SingleTheme";
 
-/**
- * Format date for display
- */
+// ============================================================================
+// Helpers
+// ============================================================================
+
 function formatDate(date: Date | string): string {
   const d = new Date(date);
   return d.toLocaleDateString("en-US", {
@@ -58,68 +70,201 @@ function formatDate(date: Date | string): string {
   });
 }
 
-/**
- * Status chip colors
- */
-const STATUS_COLORS: Record<IntakeFormStatus, { bg: string; color: string }> = {
-  [IntakeFormStatus.DRAFT]: { bg: "#fef3c7", color: "#d97706" },
-  [IntakeFormStatus.ACTIVE]: { bg: "#dcfce7", color: "#16a34a" },
-  [IntakeFormStatus.ARCHIVED]: { bg: "#f3f4f6", color: "#6b7280" },
-};
-
-/**
- * Entity type labels
- */
-const ENTITY_LABELS: Record<IntakeEntityType, string> = {
+const ENTITY_LABELS: Record<string, string> = {
   [IntakeEntityType.MODEL]: "Model inventory",
   [IntakeEntityType.USE_CASE]: "Use case",
+  model: "Model inventory",
+  use_case: "Use case",
 };
 
-/**
- * Intake forms list page component
- */
+// ============================================================================
+// Risk tier chip
+// ============================================================================
+
+function RiskTierChip({ submission }: { submission: IntakeSubmission }) {
+  const theme = useTheme();
+  if (!submission.riskTier && !submission.riskAssessment) {
+    return <CircularProgress size={14} sx={{ color: theme.palette.text.accent }} />;
+  }
+  const tier = (
+    submission.riskTier ||
+    submission.riskAssessment?.tier ||
+    ""
+  ).toLowerCase();
+  if (!tier) return <Chip label="Pending" />;
+  const label = tier.charAt(0).toUpperCase() + tier.slice(1);
+  return <Chip label={label} />;
+}
+
+// ============================================================================
+// Table header cell style
+// ============================================================================
+
+// headerCellSx is defined inside the component to access theme
+
+// ============================================================================
+// Pagination helpers
+// ============================================================================
+
+const INTAKE_FORMS_ROWS_PER_PAGE_KEY = "verifywise_intake_forms_rows_per_page";
+
+const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <ChevronsUpDown size={16} {...props} />
+);
+
+// ============================================================================
+// Main component
+// ============================================================================
+
 export function IntakeFormsListPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
 
-  // State
+  const headerCellSx = {
+    fontWeight: 600,
+    fontSize: "12px",
+    color: theme.palette.other.icon,
+    textTransform: "uppercase" as const,
+  };
+
+  // Main tab derived from URL path
+  const mainTab = location.pathname.includes("/intake-forms/submissions")
+    ? "submissions"
+    : "forms";
+
+  // --- Forms state ---
   const [forms, setForms] = useState<IntakeForm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<IntakeFormStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // --- Pagination state ---
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(INTAKE_FORMS_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : 10;
+  });
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedForm, setSelectedForm] = useState<IntakeForm | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "info";
+  }>({ open: false, message: "", severity: "info" });
 
-  // Load forms
+  // --- Create form dialog state ---
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedEntityType, setSelectedEntityType] = useState<IntakeEntityType>(IntakeEntityType.USE_CASE);
+
+  // --- Submissions state ---
+  const [submissions, setSubmissions] = useState<IntakeSubmission[]>([]);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+  const [submissionsSearch, setSubmissionsSearch] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
+
+  // ============================================================================
+  // Data loading
+  // ============================================================================
+
   const loadForms = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: { status?: IntakeFormStatus } = {};
-      if (activeTab !== "all") {
-        params.status = activeTab;
-      }
-      const response = await getAllIntakeForms(params);
-      setForms(response.data.forms || []);
-    } catch (error) {
-      console.error("Failed to load forms:", error);
+      // Always load all forms so status tab counts remain accurate
+      const response = await getAllIntakeForms({});
+      const data = response.data;
+      setForms(Array.isArray(data) ? data : (data as { forms?: IntakeForm[] })?.forms || []);
+    } catch {
+      setSnackbar({ open: true, message: "Failed to load forms", severity: "error" });
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab]);
+  }, []);
 
   useEffect(() => {
     loadForms();
   }, [loadForms]);
 
+  const loadSubmissions = useCallback(async () => {
+    setIsLoadingSubmissions(true);
+    try {
+      const response = await getPendingSubmissions();
+      setSubmissions(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setSnackbar({ open: true, message: "Failed to load submissions", severity: "error" });
+    } finally {
+      setIsLoadingSubmissions(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mainTab === "submissions") {
+      loadSubmissions();
+      // Also load forms so we can resolve form names in submissions table
+      if (forms.length === 0) loadForms();
+    }
+  }, [mainTab, loadSubmissions]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Filter forms by search query
-  const filteredForms = forms.filter(
-    (form) =>
-      form.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      form.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredForms = forms.filter((form) => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return (
+        form.name.toLowerCase().includes(q) ||
+        form.description.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
+  // Pagination helpers
+  const paginatedForms = filteredForms.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
-  // Menu handlers
+  const handleChangePage = (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const newVal = parseInt(event.target.value, 10);
+    setRowsPerPage(newVal);
+    setPage(0);
+    localStorage.setItem(INTAKE_FORMS_ROWS_PER_PAGE_KEY, newVal.toString());
+  };
+
+  // Reset page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setPage(0);
+  };
+
+  const getRange = () => {
+    const start = page * rowsPerPage + 1;
+    const end = Math.min((page + 1) * rowsPerPage, filteredForms.length);
+    return `${start} - ${end}`;
+  };
+
+  // Filter submissions by search
+  const filteredSubmissions = submissions.filter(
+    (s) =>
+      !submissionsSearch ||
+      (s.submitterName || "").toLowerCase().includes(submissionsSearch.toLowerCase()) ||
+      s.submitterEmail.toLowerCase().includes(submissionsSearch.toLowerCase())
+  );
+
+  // ============================================================================
+  // Form action handlers
+  // ============================================================================
+
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, form: IntakeForm) => {
     event.stopPropagation();
     setMenuAnchor(event.currentTarget);
@@ -130,7 +275,6 @@ export function IntakeFormsListPage() {
     setMenuAnchor(null);
   };
 
-  // Actions
   const handleEdit = () => {
     if (selectedForm) {
       navigate(`/intake-forms/${selectedForm.id}/edit`);
@@ -139,16 +283,21 @@ export function IntakeFormsListPage() {
   };
 
   const handlePreview = () => {
-    if (selectedForm) {
-      window.open(`/intake/preview/${selectedForm.slug}`, "_blank");
+    if (selectedForm?.publicId) {
+      window.open(`/${selectedForm.publicId}/use-case-form-intake`, "_blank");
+    } else {
+      setSnackbar({ open: true, message: "Publish the form first to generate a preview link", severity: "error" });
     }
     handleMenuClose();
   };
 
   const handleCopyLink = () => {
-    if (selectedForm) {
-      const link = `${window.location.origin}/intake/${selectedForm.slug}`;
+    if (selectedForm?.publicId) {
+      const link = `${window.location.origin}/${selectedForm.publicId}/use-case-form-intake`;
       navigator.clipboard.writeText(link);
+      setSnackbar({ open: true, message: "Link copied to clipboard", severity: "success" });
+    } else {
+      setSnackbar({ open: true, message: "Publish the form first to generate a shareable link", severity: "error" });
     }
     handleMenuClose();
   };
@@ -158,15 +307,16 @@ export function IntakeFormsListPage() {
       try {
         await archiveIntakeForm(selectedForm.id);
         loadForms();
-      } catch (error) {
-        console.error("Failed to archive form:", error);
+        setSnackbar({ open: true, message: "Form archived", severity: "success" });
+      } catch {
+        setSnackbar({ open: true, message: "Failed to archive form", severity: "error" });
       }
     }
     handleMenuClose();
   };
 
   const handleDeleteClick = () => {
-    setDeleteDialogOpen(true);
+    setDeleteModalOpen(true);
     handleMenuClose();
   };
 
@@ -176,11 +326,12 @@ export function IntakeFormsListPage() {
       try {
         await deleteIntakeForm(selectedForm.id);
         loadForms();
-      } catch (error) {
-        console.error("Failed to delete form:", error);
+        setSnackbar({ open: true, message: "Form deleted", severity: "success" });
+      } catch {
+        setSnackbar({ open: true, message: "Failed to delete form", severity: "error" });
       } finally {
         setIsDeleting(false);
-        setDeleteDialogOpen(false);
+        setDeleteModalOpen(false);
         setSelectedForm(null);
       }
     }
@@ -190,247 +341,377 @@ export function IntakeFormsListPage() {
     navigate(`/intake-forms/${form.id}/edit`);
   };
 
+  // ============================================================================
+  // Render
+  // ============================================================================
+
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 3,
-        }}
-      >
-        <Box>
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 600, color: "#1f2937", fontSize: "20px" }}
-          >
-            Intake forms
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: "#6b7280", fontSize: "13px", mt: 0.5 }}
-          >
-            Create and manage intake forms for external submissions
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Plus size={16} />}
-          onClick={() => navigate("/intake-forms/new")}
-          sx={{
-            height: 34,
-            backgroundColor: "#13715B",
-            textTransform: "none",
-            fontSize: "13px",
-            "&:hover": { backgroundColor: "#0f5c49" },
-          }}
-        >
-          Create form
-        </Button>
-      </Box>
-
-      {/* Filters */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Tabs
-          value={activeTab}
-          onChange={(_, value) => setActiveTab(value)}
-          sx={{
-            "& .MuiTab-root": {
-              textTransform: "none",
-              fontSize: "13px",
-              minWidth: "auto",
-              px: 2,
+    <PageHeaderExtended
+      title="Intake forms"
+      description="Create and manage intake forms for external submissions"
+    >
+      {/* Main tabs: Forms / Submissions */}
+      <TabContext value={mainTab}>
+        <TabBar
+          tabs={[
+            {
+              label: "Forms",
+              value: "forms",
+              icon: "FileText",
+              count: forms.length,
+              isLoading: isLoading,
             },
-            "& .Mui-selected": { color: "#13715B" },
-            "& .MuiTabs-indicator": { backgroundColor: "#13715B" },
-          }}
-        >
-          <Tab label="All" value="all" />
-          <Tab label="Active" value={IntakeFormStatus.ACTIVE} />
-          <Tab label="Draft" value={IntakeFormStatus.DRAFT} />
-          <Tab label="Archived" value={IntakeFormStatus.ARCHIVED} />
-        </Tabs>
-        <TextField
-          placeholder="Search forms..."
-          size="small"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{
-            width: 250,
-            "& .MuiOutlinedInput-root": {
-              fontSize: "13px",
-              "& fieldset": { borderColor: "#d0d5dd" },
+            {
+              label: "Submissions",
+              value: "submissions",
+              icon: "Inbox",
+              count: submissions.length,
+              isLoading: isLoadingSubmissions,
             },
-          }}
+          ]}
+          activeTab={mainTab}
+          onChange={(_, value) =>
+            navigate(value === "submissions" ? "/intake-forms/submissions" : "/intake-forms")
+          }
         />
-      </Box>
+      </TabContext>
 
-      {/* Table */}
-      {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress sx={{ color: "#13715B" }} />
-        </Box>
-      ) : filteredForms.length === 0 ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 6,
-            textAlign: "center",
-            border: "1px solid #d0d5dd",
-            borderRadius: "8px",
-          }}
-        >
-          <ClipboardList size={48} color="#9ca3af" style={{ marginBottom: 16 }} />
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, color: "#1f2937", mb: 1, fontSize: "16px" }}
+      {/* ================================================================ */}
+      {/* Forms tab                                                        */}
+      {/* ================================================================ */}
+      {mainTab === "forms" && (
+        <>
+          {/* Search + Create form button */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ mb: "8px" }}
           >
-            No forms found
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: "#6b7280", mb: 3, fontSize: "13px" }}
-          >
-            {searchQuery
-              ? "Try adjusting your search query"
-              : "Create your first intake form to get started"}
-          </Typography>
-          {!searchQuery && (
-            <Button
+            <SearchBox
+              placeholder="Search forms..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              fullWidth={false}
+            />
+            <CustomizableButton
               variant="contained"
-              startIcon={<Plus size={16} />}
-              onClick={() => navigate("/intake-forms/new")}
+              onClick={() => setCreateDialogOpen(true)}
               sx={{
                 height: 34,
-                backgroundColor: "#13715B",
-                textTransform: "none",
                 fontSize: "13px",
-                "&:hover": { backgroundColor: "#0f5c49" },
+                backgroundColor: theme.palette.primary.main,
+                "&:hover": { backgroundColor: "#0F5A47" },
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              Create form
-            </Button>
-          )}
-        </Paper>
-      ) : (
-        <TableContainer
-          component={Paper}
-          elevation={0}
-          sx={{ border: "1px solid #d0d5dd", borderRadius: "8px" }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#6b7280" }}>
-                  Form name
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#6b7280" }}>
-                  Entity type
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#6b7280" }}>
-                  Status
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#6b7280" }}>
-                  Fields
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#6b7280" }}>
-                  Created
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: "12px", color: "#6b7280" }}>
-                  Updated
-                </TableCell>
-                <TableCell sx={{ width: 48 }} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredForms.map((form) => (
-                <TableRow
-                  key={form.id}
-                  onClick={() => handleRowClick(form)}
-                  sx={{
-                    cursor: "pointer",
-                    "&:hover": { backgroundColor: "#f9fafb" },
-                  }}
-                >
-                  <TableCell>
-                    <Box>
-                      <Typography
-                        sx={{ fontWeight: 500, fontSize: "13px", color: "#1f2937" }}
-                      >
-                        {form.name}
-                      </Typography>
-                      {form.description && (
-                        <Typography
-                          sx={{
-                            fontSize: "12px",
-                            color: "#6b7280",
-                            maxWidth: 300,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {form.description}
-                        </Typography>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ fontSize: "13px", color: "#1f2937" }}>
-                      {ENTITY_LABELS[form.entityType]}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={form.status}
-                      size="small"
+              <Plus size={14} /> Create form
+            </CustomizableButton>
+          </Stack>
+
+          {/* Table */}
+          {isLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress sx={{ color: theme.palette.primary.main }} />
+            </Box>
+          ) : filteredForms.length === 0 ? (
+            <EmptyState
+              message={
+                searchQuery
+                  ? "No forms match your search. Try adjusting your query."
+                  : "Create your first intake form to get started."
+              }
+              showBorder
+            />
+          ) : (
+            <TableContainer
+              component={Paper}
+              elevation={0}
+              sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px" }}
+            >
+              <Table sx={singleTheme.tableStyles.primary.frame}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: theme.palette.background.accent }}>
+                    <TableCell sx={headerCellSx}>Form name</TableCell>
+                    <TableCell sx={headerCellSx}>Entity type</TableCell>
+                    <TableCell sx={headerCellSx}>Status</TableCell>
+                    <TableCell sx={headerCellSx}>Fields</TableCell>
+                    <TableCell sx={headerCellSx}>Created</TableCell>
+                    <TableCell sx={headerCellSx}>Updated</TableCell>
+                    <TableCell sx={{ width: 48 }} />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedForms.map((form) => (
+                    <TableRow
+                      key={form.id}
+                      onClick={() => handleRowClick(form)}
                       sx={{
-                        height: 22,
-                        fontSize: "11px",
-                        textTransform: "capitalize",
-                        backgroundColor: STATUS_COLORS[form.status].bg,
-                        color: STATUS_COLORS[form.status].color,
+                        cursor: "pointer",
+                        "&:hover": { backgroundColor: theme.palette.background.accent },
+                      }}
+                    >
+                      <TableCell>
+                        <Box>
+                          <Typography
+                            sx={{ fontWeight: 500, fontSize: "13px", color: theme.palette.text.primary }}
+                          >
+                            {form.name}
+                          </Typography>
+                          {form.description && (
+                            <Typography
+                              sx={{
+                                fontSize: "12px",
+                                color: theme.palette.other.icon,
+                                maxWidth: 300,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {form.description}
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
+                          {ENTITY_LABELS[form.entityType] || form.entityType}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={form.status} />
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
+                          {form.schema?.fields?.length || 0}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
+                          {formatDate(form.createdAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
+                          {form.updatedAt ? formatDate(form.updatedAt) : "\u2014"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <IconButton
+                          disableRipple={
+                            theme.components?.IconButton?.defaultProps?.disableRipple
+                          }
+                          sx={singleTheme.iconButtons}
+                          onClick={(e) => handleMenuOpen(e, form)}
+                        >
+                          <Settings size={20} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root.MuiTableCell-footer": {
+                        paddingX: theme.spacing(8),
+                        paddingY: theme.spacing(4),
+                      },
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        paddingX: theme.spacing(2),
+                        fontSize: 12,
+                        opacity: 0.7,
+                      }}
+                    >
+                      Showing {getRange()} of {filteredForms.length} form(s)
+                    </TableCell>
+                    <TablePagination
+                      count={filteredForms.length}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      rowsPerPage={rowsPerPage}
+                      rowsPerPageOptions={[5, 10, 15, 25]}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      ActionsComponent={(props) => (
+                        <TablePaginationActions {...props} />
+                      )}
+                      labelRowsPerPage="Rows per page"
+                      labelDisplayedRows={({ page: p, count }) =>
+                        `Page ${p + 1} of ${Math.max(
+                          0,
+                          Math.ceil(count / rowsPerPage)
+                        )}`
+                      }
+                      slotProps={{
+                        select: {
+                          MenuProps: {
+                            keepMounted: true,
+                            PaperProps: {
+                              className: "pagination-dropdown",
+                              sx: {
+                                mt: 0,
+                                mb: theme.spacing(2),
+                              },
+                            },
+                            transformOrigin: {
+                              vertical: "bottom",
+                              horizontal: "left",
+                            },
+                            anchorOrigin: {
+                              vertical: "top",
+                              horizontal: "left",
+                            },
+                            sx: { mt: theme.spacing(-2) },
+                          },
+                          inputProps: { id: "pagination-dropdown" },
+                          IconComponent: SelectorVertical,
+                          sx: {
+                            ml: theme.spacing(4),
+                            mr: theme.spacing(12),
+                            minWidth: theme.spacing(20),
+                            textAlign: "left",
+                            "&.Mui-focused > div": {
+                              backgroundColor: theme.palette.background.main,
+                            },
+                          },
+                        },
+                      }}
+                      sx={{
+                        mt: theme.spacing(6),
+                        color: theme.palette.text.secondary,
+                        "& .MuiSelect-icon": {
+                          width: "24px",
+                          height: "fit-content",
+                        },
+                        "& .MuiSelect-select": {
+                          width: theme.spacing(10),
+                          borderRadius: theme.shape.borderRadius,
+                          border: `1px solid ${theme.palette.border.light}`,
+                          padding: theme.spacing(4),
+                        },
                       }}
                     />
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ fontSize: "13px", color: "#1f2937" }}>
-                      {form.schema?.fields?.length || 0}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ fontSize: "13px", color: "#6b7280" }}>
-                      {formatDate(form.createdAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ fontSize: "13px", color: "#6b7280" }}>
-                      {formatDate(form.updatedAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, form)}
-                      sx={{ p: 0.5 }}
-                    >
-                      <MoreVertical size={18} />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </TableContainer>
+          )}
+        </>
+      )}
+
+      {/* ================================================================ */}
+      {/* Submissions tab                                                  */}
+      {/* ================================================================ */}
+      {mainTab === "submissions" && (
+        <>
+          {/* Search */}
+          <Stack direction="row" justifyContent="flex-end" alignItems="center">
+            <SearchBox
+              placeholder="Search submissions..."
+              value={submissionsSearch}
+              onChange={setSubmissionsSearch}
+              fullWidth={false}
+            />
+          </Stack>
+
+          {/* Submissions table */}
+          {isLoadingSubmissions ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress sx={{ color: theme.palette.primary.main }} />
+            </Box>
+          ) : filteredSubmissions.length === 0 ? (
+            <EmptyState
+              message="Submissions will appear here when external users fill in your published forms."
+              showBorder
+            />
+          ) : (
+            <TableContainer
+              component={Paper}
+              elevation={0}
+              sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px" }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: theme.palette.background.accent }}>
+                    <TableCell sx={headerCellSx}>Submitter</TableCell>
+                    <TableCell sx={headerCellSx}>Form</TableCell>
+                    <TableCell sx={headerCellSx}>Status</TableCell>
+                    <TableCell sx={headerCellSx}>Risk tier</TableCell>
+                    <TableCell sx={headerCellSx}>Submitted</TableCell>
+                    <TableCell sx={{ width: 100 }} />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredSubmissions.map((submission) => {
+                    const matchingForm = forms.find((f) => f.id === submission.formId);
+                    return (
+                      <TableRow
+                        key={submission.id}
+                        sx={{ "&:hover": { backgroundColor: theme.palette.background.accent } }}
+                      >
+                        <TableCell>
+                          <Typography
+                            sx={{ fontWeight: 500, fontSize: "13px", color: theme.palette.text.primary }}
+                          >
+                            {submission.submitterName || submission.submitterEmail}
+                          </Typography>
+                          {submission.submitterName && (
+                            <Typography sx={{ fontSize: "12px", color: theme.palette.other.icon }}>
+                              {submission.submitterEmail}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
+                            {matchingForm?.name || `Form #${submission.formId}`}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={submission.status} />
+                        </TableCell>
+                        <TableCell>
+                          <RiskTierChip submission={submission} />
+                        </TableCell>
+                        <TableCell>
+                          <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
+                            {formatDate(submission.createdAt)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <CustomizableButton
+                            variant="outlined"
+                            onClick={() => {
+                              setSelectedSubmissionId(submission.id);
+                              setPreviewOpen(true);
+                            }}
+                            sx={{
+                              height: 28,
+                              fontSize: "12px",
+                              borderColor: theme.palette.border.dark,
+                              color: theme.palette.text.secondary,
+                              "&:hover": {
+                                borderColor: theme.palette.primary.main,
+                                backgroundColor: theme.palette.background.fill,
+                              },
+                            }}
+                          >
+                            Review
+                          </CustomizableButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </>
       )}
 
       {/* Actions menu */}
@@ -481,9 +762,9 @@ export function IntakeFormsListPage() {
             </MenuItem>
           </>
         )}
-        <MenuItem onClick={handleDeleteClick} sx={{ color: "#ef4444" }}>
+        <MenuItem onClick={handleDeleteClick} sx={{ color: theme.palette.status.error.text }}>
           <ListItemIcon>
-            <Trash2 size={18} color="#ef4444" />
+            <Trash2 size={18} color={theme.palette.status.error.text} />
           </ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
             Delete
@@ -491,48 +772,118 @@ export function IntakeFormsListPage() {
         </MenuItem>
       </Menu>
 
-      {/* Delete confirmation dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{ sx: { borderRadius: "8px", maxWidth: 400 } }}
+      {/* Create form dialog — choose entity type */}
+      <StandardModal
+        title="Create new form"
+        description="What type of entity will this form create?"
+        isOpen={createDialogOpen}
+        onClose={() => {
+          setCreateDialogOpen(false);
+          setSelectedEntityType(IntakeEntityType.USE_CASE);
+        }}
+        onSubmit={() => {
+          setCreateDialogOpen(false);
+          navigate(`/intake-forms/new/edit?entityType=${selectedEntityType}`);
+          setSelectedEntityType(IntakeEntityType.USE_CASE);
+        }}
+        submitButtonText="Continue"
+        maxWidth="440px"
+        fitContent
       >
-        <DialogTitle sx={{ fontSize: "16px", fontWeight: 600 }}>
-          Delete form
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ fontSize: "13px" }}>
-            Are you sure you want to delete "{selectedForm?.name}"? This action cannot
-            be undone and all submissions will be lost.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
-          <Button
-            onClick={() => setDeleteDialogOpen(false)}
-            sx={{
-              textTransform: "none",
-              fontSize: "13px",
-              color: "#6b7280",
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            disabled={isDeleting}
-            variant="contained"
-            sx={{
-              textTransform: "none",
-              fontSize: "13px",
-              backgroundColor: "#ef4444",
-              "&:hover": { backgroundColor: "#dc2626" },
-            }}
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        <Stack gap="12px">
+          {[
+            {
+              type: IntakeEntityType.USE_CASE,
+              label: "Use case",
+              description: "Collect information about an AI use case or project",
+              icon: <FolderTree size={20} strokeWidth={1.5} color={selectedEntityType === IntakeEntityType.USE_CASE ? theme.palette.primary.main : theme.palette.other.icon} />,
+            },
+            {
+              type: IntakeEntityType.MODEL,
+              label: "Model inventory",
+              description: "Collect information about an AI model",
+              icon: <ListIcon size={20} strokeWidth={1.5} color={selectedEntityType === IntakeEntityType.MODEL ? theme.palette.primary.main : theme.palette.other.icon} />,
+            },
+          ].map((option) => (
+            <Box
+              key={option.type}
+              onClick={() => setSelectedEntityType(option.type)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                p: "12px",
+                border: selectedEntityType === option.type ? `1px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.dark}`,
+                borderRadius: "4px",
+                cursor: "pointer",
+                backgroundColor: selectedEntityType === option.type ? theme.palette.background.fill : theme.palette.background.main,
+                transition: "all 0.15s ease",
+                "&:hover": {
+                  borderColor: selectedEntityType === option.type ? theme.palette.primary.main : theme.palette.text.accent,
+                },
+              }}
+            >
+              <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                {option.icon}
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: "13px", fontWeight: 600, color: theme.palette.text.secondary }}>
+                  {option.label}
+                </Typography>
+                <Typography sx={{ fontSize: "12px", color: theme.palette.other.icon }}>
+                  {option.description}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Stack>
+      </StandardModal>
+
+      {/* Delete confirmation modal */}
+      <StandardModal
+        title="Delete form"
+        description={`Are you sure you want to delete "${selectedForm?.name}"? This action cannot be undone and all submissions will be lost.`}
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedForm(null);
+        }}
+        onSubmit={handleDeleteConfirm}
+        submitButtonText={isDeleting ? "Deleting..." : "Delete"}
+        submitButtonColor="#c62828"
+        isSubmitting={isDeleting}
+        fitContent
+      />
+
+      {/* Submission preview modal */}
+      <SubmissionPreviewModal
+        isOpen={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false);
+          setSelectedSubmissionId(null);
+        }}
+        submissionId={selectedSubmissionId}
+        onApproved={() => {
+          loadSubmissions();
+        }}
+      />
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </PageHeaderExtended>
   );
 }
 

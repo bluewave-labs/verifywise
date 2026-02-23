@@ -1,17 +1,11 @@
-import { Box, Typography, Paper } from "@mui/material";
-import { useDroppable } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Box, Typography, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Plus, Check, X } from "lucide-react";
 import { FormField } from "./types";
 import { FieldCard } from "./FieldCard";
 
-/**
- * Empty state component
- */
 function EmptyState() {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -27,75 +21,304 @@ function EmptyState() {
     >
       <Box
         sx={{
-          width: 80,
-          height: 80,
+          width: 64,
+          height: 64,
           borderRadius: "50%",
-          backgroundColor: "#f3f4f6",
+          backgroundColor: theme.palette.background.accent,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           mb: 2,
         }}
       >
-        <Plus size={40} color="#9ca3af" />
+        <Plus size={32} color={theme.palette.text.accent} />
       </Box>
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 600,
-          color: "#1f2937",
-          mb: 1,
-          fontSize: "16px",
-        }}
-      >
+      <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "15px" }}>
         Start building your form
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={{
-          color: "#6b7280",
-          maxWidth: 300,
-          fontSize: "13px",
-        }}
-      >
-        Drag and drop fields from the palette on the left to create your intake form
       </Typography>
     </Box>
   );
 }
 
 /**
- * Drop indicator component
+ * Inline-editable form title with hover bounding box and Save/Cancel buttons
  */
-function DropIndicator() {
+function EditableFormTitle({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (name: string) => void;
+}) {
+  const theme = useTheme();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    onChange(draft);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft(value);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === "Escape") {
+      handleCancel();
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Untitled form"
+          style={{
+            fontSize: "18px",
+            fontWeight: 600,
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: "4px",
+            padding: "4px 8px",
+            outline: "none",
+            fontFamily: "inherit",
+            width: "100%",
+            maxWidth: 400,
+            backgroundColor: theme.palette.background.main,
+          }}
+        />
+        <Tooltip title="Save" placement="top">
+          <IconButton
+            size="small"
+            onClick={handleSave}
+            sx={{
+              p: "4px",
+              color: theme.palette.background.main,
+              backgroundColor: theme.palette.primary.main,
+              borderRadius: "4px",
+              "&:hover": { backgroundColor: "#0F5A47" },
+            }}
+          >
+            <Check size={14} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Cancel" placement="top">
+          <IconButton
+            size="small"
+            onClick={handleCancel}
+            sx={{
+              p: "4px",
+              color: theme.palette.other.icon,
+              backgroundColor: theme.palette.background.accent,
+              borderRadius: "4px",
+              "&:hover": { backgroundColor: theme.palette.border.light },
+            }}
+          >
+            <X size={14} />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  }
+
   return (
     <Box
+      onClick={(e) => {
+        e.stopPropagation();
+        setIsEditing(true);
+      }}
       sx={{
-        height: 4,
-        backgroundColor: "#13715B",
-        borderRadius: 2,
-        my: 1,
-        animation: "pulse 1.5s ease-in-out infinite",
-        "@keyframes pulse": {
-          "0%, 100%": { opacity: 0.5 },
-          "50%": { opacity: 1 },
+        display: "inline-flex",
+        alignItems: "center",
+        borderRadius: "4px",
+        border: "1px solid transparent",
+        px: "8px",
+        py: "4px",
+        mx: "-8px",
+        cursor: "text",
+        transition: "border-color 0.15s ease, background-color 0.15s ease",
+        "&:hover": {
+          borderColor: theme.palette.border.dark,
+          backgroundColor: theme.palette.background.accent,
         },
       }}
-    />
+    >
+      <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "18px" }}>
+        {value || "Untitled form"}
+      </Typography>
+    </Box>
   );
 }
 
 /**
- * Form canvas component - displays and manages form fields
+ * Inline-editable form description with hover bounding box and Save/Cancel buttons
  */
+function EditableFormDescription({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (description: string) => void;
+}) {
+  const theme = useTheme();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      // Place cursor at end
+      const len = inputRef.current.value.length;
+      inputRef.current.setSelectionRange(len, len);
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    onChange(draft);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft(value);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === "Escape") {
+      handleCancel();
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: "6px", mt: "4px" }}>
+        <textarea
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add a description..."
+          rows={2}
+          style={{
+            fontSize: "13px",
+            color: theme.palette.other.icon,
+            border: `1px solid ${theme.palette.primary.main}`,
+            borderRadius: "4px",
+            padding: "4px 8px",
+            outline: "none",
+            fontFamily: "inherit",
+            width: "100%",
+            maxWidth: 500,
+            backgroundColor: theme.palette.background.main,
+            resize: "vertical",
+            lineHeight: "1.5",
+          }}
+        />
+        <Tooltip title="Save" placement="top">
+          <IconButton
+            size="small"
+            onClick={handleSave}
+            sx={{
+              p: "4px",
+              color: theme.palette.background.main,
+              backgroundColor: theme.palette.primary.main,
+              borderRadius: "4px",
+              "&:hover": { backgroundColor: "#0F5A47" },
+            }}
+          >
+            <Check size={14} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Cancel" placement="top">
+          <IconButton
+            size="small"
+            onClick={handleCancel}
+            sx={{
+              p: "4px",
+              color: theme.palette.other.icon,
+              backgroundColor: theme.palette.background.accent,
+              borderRadius: "4px",
+              "&:hover": { backgroundColor: theme.palette.border.light },
+            }}
+          >
+            <X size={14} />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      onClick={(e) => {
+        e.stopPropagation();
+        setIsEditing(true);
+      }}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        borderRadius: "4px",
+        border: "1px solid transparent",
+        px: "8px",
+        py: "2px",
+        mx: "-8px",
+        mt: "4px",
+        cursor: "text",
+        transition: "border-color 0.15s ease, background-color 0.15s ease",
+        "&:hover": {
+          borderColor: theme.palette.border.dark,
+          backgroundColor: theme.palette.background.accent,
+        },
+      }}
+    >
+      <Typography sx={{ color: theme.palette.other.icon, fontSize: "13px" }}>
+        {value || "Add a description..."}
+      </Typography>
+    </Box>
+  );
+}
+
 interface FormCanvasProps {
   fields: FormField[];
   selectedFieldId: string | null;
   onSelectField: (fieldId: string | null) => void;
   onDeleteField: (fieldId: string) => void;
   onDuplicateField: (field: FormField) => void;
+  onMoveUp: (fieldId: string) => void;
+  onMoveDown: (fieldId: string) => void;
   formName: string;
   formDescription: string;
+  onNameChange?: (name: string) => void;
+  onDescriptionChange?: (description: string) => void;
 }
 
 export function FormCanvas({
@@ -104,13 +327,14 @@ export function FormCanvas({
   onSelectField,
   onDeleteField,
   onDuplicateField,
+  onMoveUp,
+  onMoveDown,
   formName,
   formDescription,
+  onNameChange,
+  onDescriptionChange,
 }: FormCanvasProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: "canvas-drop-zone",
-  });
-
+  const theme = useTheme();
   const handleCanvasClick = () => {
     onSelectField(null);
   };
@@ -121,103 +345,84 @@ export function FormCanvas({
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#f3f4f6",
+        backgroundColor: theme.palette.background.accent,
         overflow: "hidden",
       }}
     >
-      {/* Canvas header */}
-      <Box
-        sx={{
-          p: 2,
-          borderBottom: "1px solid #d0d5dd",
-          backgroundColor: "#fff",
-        }}
-      >
-        <Typography
-          variant="caption"
-          sx={{
-            color: "#6b7280",
-            fontSize: "11px",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            display: "block",
-            mb: 0.5,
-          }}
-        >
-          Form preview
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            color: "#1f2937",
-            fontSize: "16px",
-          }}
-        >
-          {formName || "Untitled form"}
-        </Typography>
-        {formDescription && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: "#6b7280",
-              fontSize: "13px",
-              mt: 0.5,
-            }}
-          >
-            {formDescription}
-          </Typography>
-        )}
-      </Box>
-
       {/* Canvas content */}
       <Box
-        ref={setNodeRef}
         onClick={handleCanvasClick}
-        sx={{
-          flex: 1,
-          overflowY: "auto",
-          p: 3,
-        }}
+        sx={{ flex: 1, overflowY: "auto", p: 3, minWidth: 0 }}
       >
-        <Paper
-          elevation={0}
+        <Box
           sx={{
             maxWidth: 700,
             mx: "auto",
-            minHeight: fields.length === 0 ? 400 : "auto",
-            backgroundColor: "#fff",
-            border: isOver ? "2px dashed #13715B" : "1px solid #d0d5dd",
-            borderRadius: "8px",
-            transition: "all 0.2s ease",
+            mt: "16px",
+            backgroundColor: theme.palette.background.main,
+            border: `1px solid ${theme.palette.border.dark}`,
+            borderRadius: "4px",
+            minHeight: 400,
           }}
         >
+          {/* Form header — editable title + description */}
+          <Box
+            sx={{
+              px: "24px",
+              pt: "24px",
+              pb: "16px",
+              borderBottom: fields.length > 0 ? `1px solid ${theme.palette.border.light}` : "none",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {onNameChange ? (
+              <EditableFormTitle value={formName} onChange={onNameChange} />
+            ) : (
+              <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: "18px" }}>
+                {formName || "Untitled form"}
+              </Typography>
+            )}
+            {onDescriptionChange ? (
+              <EditableFormDescription value={formDescription} onChange={onDescriptionChange} />
+            ) : (
+              formDescription && (
+                <Typography sx={{ color: theme.palette.other.icon, fontSize: "13px", mt: "4px" }}>
+                  {formDescription}
+                </Typography>
+              )
+            )}
+          </Box>
+
           {fields.length === 0 ? (
             <EmptyState />
           ) : (
-            <Box sx={{ p: 2 }}>
-              {isOver && fields.length > 0 && <DropIndicator />}
-              <SortableContext
-                items={fields.map((f) => f.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                  {fields.map((field) => (
-                    <FieldCard
-                      key={field.id}
-                      field={field}
-                      isSelected={selectedFieldId === field.id}
-                      onSelect={onSelectField}
-                      onDelete={onDeleteField}
-                      onDuplicate={onDuplicateField}
-                    />
-                  ))}
-                </Box>
-              </SortableContext>
-              {isOver && <DropIndicator />}
+            <Box
+              sx={{
+                px: "24px",
+                py: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              {fields.map((field, index) => (
+                <FieldCard
+                  key={field.id}
+                  field={field}
+                  isSelected={selectedFieldId === field.id}
+                  isFirst={index === 0}
+                  isLast={index === fields.length - 1}
+                  onSelect={onSelectField}
+                  onDelete={onDeleteField}
+                  onDuplicate={onDuplicateField}
+                  onMoveUp={onMoveUp}
+                  onMoveDown={onMoveDown}
+                />
+              ))}
             </Box>
           )}
-        </Paper>
+        </Box>
       </Box>
     </Box>
   );

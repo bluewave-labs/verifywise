@@ -11,7 +11,6 @@ import {
   TableRow,
   TableFooter,
   TablePagination,
-  Paper,
   IconButton,
   Menu,
   MenuItem,
@@ -56,6 +55,13 @@ import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import SearchBox from "../../components/Search/SearchBox";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
+import {
+  tableFooterRowStyle,
+  showingTextCellStyle,
+  paginationStyle,
+  paginationMenuProps,
+  paginationSelectStyle,
+} from "../ModelInventory/style";
 
 // ============================================================================
 // Helpers
@@ -119,13 +125,6 @@ export function IntakeFormsListPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-
-  const headerCellSx = {
-    fontWeight: 600,
-    fontSize: "12px",
-    color: theme.palette.other.icon,
-    textTransform: "uppercase" as const,
-  };
 
   // Main tab derived from URL path
   const mainTab = location.pathname.includes("/intake-forms/submissions")
@@ -427,21 +426,17 @@ export function IntakeFormsListPage() {
               showBorder
             />
           ) : (
-            <TableContainer
-              component={Paper}
-              elevation={0}
-              sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px" }}
-            >
+            <TableContainer sx={{ overflowX: "auto" }}>
               <Table sx={singleTheme.tableStyles.primary.frame}>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: theme.palette.background.accent }}>
-                    <TableCell sx={headerCellSx}>Form name</TableCell>
-                    <TableCell sx={headerCellSx}>Entity type</TableCell>
-                    <TableCell sx={headerCellSx}>Status</TableCell>
-                    <TableCell sx={headerCellSx}>Fields</TableCell>
-                    <TableCell sx={headerCellSx}>Created</TableCell>
-                    <TableCell sx={headerCellSx}>Updated</TableCell>
-                    <TableCell sx={{ width: 48 }} />
+                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Form name</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Entity type</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Status</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Fields</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Created</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Updated</TableCell>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: 48, minWidth: 48 }} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -449,12 +444,9 @@ export function IntakeFormsListPage() {
                     <TableRow
                       key={form.id}
                       onClick={() => handleRowClick(form)}
-                      sx={{
-                        cursor: "pointer",
-                        "&:hover": { backgroundColor: theme.palette.background.accent },
-                      }}
+                      sx={singleTheme.tableStyles.primary.body.row}
                     >
-                      <TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Box>
                           <Typography
                             sx={{ fontWeight: 500, fontSize: "13px", color: theme.palette.text.primary }}
@@ -465,7 +457,7 @@ export function IntakeFormsListPage() {
                             <Typography
                               sx={{
                                 fontSize: "12px",
-                                color: theme.palette.other.icon,
+                                color: theme.palette.text.accent,
                                 maxWidth: 300,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -477,30 +469,30 @@ export function IntakeFormsListPage() {
                           )}
                         </Box>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
                           {ENTITY_LABELS[form.entityType] || form.entityType}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Chip label={form.status} />
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                         <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
                           {form.schema?.fields?.length || 0}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>
                           {formatDate(form.createdAt)}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                        <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>
                           {form.updatedAt ? formatDate(form.updatedAt) : "\u2014"}
                         </Typography>
                       </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell sx={singleTheme.tableStyles.primary.body.cell} onClick={(e) => e.stopPropagation()}>
                         <IconButton
                           disableRipple={
                             theme.components?.IconButton?.defaultProps?.disableRipple
@@ -515,21 +507,8 @@ export function IntakeFormsListPage() {
                   ))}
                 </TableBody>
                 <TableFooter>
-                  <TableRow
-                    sx={{
-                      "& .MuiTableCell-root.MuiTableCell-footer": {
-                        paddingX: theme.spacing(8),
-                        paddingY: theme.spacing(4),
-                      },
-                    }}
-                  >
-                    <TableCell
-                      sx={{
-                        paddingX: theme.spacing(2),
-                        fontSize: 12,
-                        opacity: 0.7,
-                      }}
-                    >
+                  <TableRow sx={tableFooterRowStyle(theme)}>
+                    <TableCell sx={showingTextCellStyle(theme)}>
                       Showing {getRange()} of {filteredForms.length} form(s)
                     </TableCell>
                     <TablePagination
@@ -551,52 +530,13 @@ export function IntakeFormsListPage() {
                       }
                       slotProps={{
                         select: {
-                          MenuProps: {
-                            keepMounted: true,
-                            PaperProps: {
-                              className: "pagination-dropdown",
-                              sx: {
-                                mt: 0,
-                                mb: theme.spacing(2),
-                              },
-                            },
-                            transformOrigin: {
-                              vertical: "bottom",
-                              horizontal: "left",
-                            },
-                            anchorOrigin: {
-                              vertical: "top",
-                              horizontal: "left",
-                            },
-                            sx: { mt: theme.spacing(-2) },
-                          },
+                          MenuProps: paginationMenuProps(theme),
                           inputProps: { id: "pagination-dropdown" },
                           IconComponent: SelectorVertical,
-                          sx: {
-                            ml: theme.spacing(4),
-                            mr: theme.spacing(12),
-                            minWidth: theme.spacing(20),
-                            textAlign: "left",
-                            "&.Mui-focused > div": {
-                              backgroundColor: theme.palette.background.main,
-                            },
-                          },
+                          sx: paginationSelectStyle(theme),
                         },
                       }}
-                      sx={{
-                        mt: theme.spacing(6),
-                        color: theme.palette.text.secondary,
-                        "& .MuiSelect-icon": {
-                          width: "24px",
-                          height: "fit-content",
-                        },
-                        "& .MuiSelect-select": {
-                          width: theme.spacing(10),
-                          borderRadius: theme.shape.borderRadius,
-                          border: `1px solid ${theme.palette.border.light}`,
-                          padding: theme.spacing(4),
-                        },
-                      }}
+                      sx={paginationStyle(theme)}
                     />
                   </TableRow>
                 </TableFooter>
@@ -632,20 +572,16 @@ export function IntakeFormsListPage() {
               showBorder
             />
           ) : (
-            <TableContainer
-              component={Paper}
-              elevation={0}
-              sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px" }}
-            >
-              <Table>
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table sx={singleTheme.tableStyles.primary.frame}>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: theme.palette.background.accent }}>
-                    <TableCell sx={headerCellSx}>Submitter</TableCell>
-                    <TableCell sx={headerCellSx}>Form</TableCell>
-                    <TableCell sx={headerCellSx}>Status</TableCell>
-                    <TableCell sx={headerCellSx}>Risk tier</TableCell>
-                    <TableCell sx={headerCellSx}>Submitted</TableCell>
-                    <TableCell sx={{ width: 100 }} />
+                  <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Submitter</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Form</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Status</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Risk tier</TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Submitted</TableCell>
+                    <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: 100, minWidth: 100 }} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -654,37 +590,37 @@ export function IntakeFormsListPage() {
                     return (
                       <TableRow
                         key={submission.id}
-                        sx={{ "&:hover": { backgroundColor: theme.palette.background.accent } }}
+                        sx={singleTheme.tableStyles.primary.body.row}
                       >
-                        <TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Typography
                             sx={{ fontWeight: 500, fontSize: "13px", color: theme.palette.text.primary }}
                           >
                             {submission.submitterName || submission.submitterEmail}
                           </Typography>
                           {submission.submitterName && (
-                            <Typography sx={{ fontSize: "12px", color: theme.palette.other.icon }}>
+                            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                               {submission.submitterEmail}
                             </Typography>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Typography sx={{ fontSize: "13px", color: theme.palette.text.primary }}>
                             {matchingForm?.name || `Form #${submission.formId}`}
                           </Typography>
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Chip label={submission.status} />
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <RiskTierChip submission={submission} />
                         </TableCell>
-                        <TableCell>
-                          <Typography sx={{ fontSize: "13px", color: theme.palette.other.icon }}>
+                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                          <Typography sx={{ fontSize: "13px", color: theme.palette.text.accent }}>
                             {formatDate(submission.createdAt)}
                           </Typography>
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <CustomizableButton
                             variant="outlined"
                             onClick={() => {

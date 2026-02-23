@@ -10,10 +10,12 @@ A one-page condensed reference for VerifyWise development standards. For detaile
 |---------|------------|---------|
 | Variables & Functions | camelCase | `getUserData`, `isValid` |
 | Components & Classes | PascalCase | `UserProfile`, `AuthService` |
+| Interfaces | PascalCase (optional `I` prefix) | `UserProps`, `IChipProps` |
 | Constants | UPPER_SNAKE_CASE | `MAX_RETRIES`, `API_BASE_URL` |
-| Files (Components) | PascalCase | `UserProfile.tsx` |
+| Files (Components) | `ComponentName/index.tsx` | `PluginCard/index.tsx` |
 | Files (Utilities) | camelCase | `formatDate.ts` |
-| CSS Classes | kebab-case | `user-profile-card` |
+| Folders (Components) | PascalCase | `PluginCard/`, `IconButton/` |
+| Folders (Utilities) | camelCase | `hooks/`, `redux/` |
 | Database Tables | snake_case | `user_profiles` |
 | Python Variables | snake_case | `user_name`, `get_user_data` |
 

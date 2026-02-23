@@ -28,11 +28,12 @@ export function formatDate(isoDate: string): string {
  * @param {string} isoDate - The ISO date string to be converted.
  * @returns {string} The formatted date string in the format (default: DD-MM-YYYY).
  */
-export const displayFormattedDate = (isoDate: string): string => {
-  
-  if (!isoDate || !/^\d{4}-\d{2}-\d{2}/.test(isoDate)) {
-    console.warn("Invalid ISO date format:", isoDate);
-    return isoDate;
+export const displayFormattedDate = (isoDate: string | Date): string => {
+  const dateStr = isoDate instanceof Date ? isoDate.toISOString() : isoDate;
+
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    console.warn("Invalid ISO date format:", dateStr);
+    return String(dateStr);
   }
 
   let dateFormat = UserDateFormat.DD_MM_YYYY_DASH;
@@ -46,7 +47,7 @@ export const displayFormattedDate = (isoDate: string): string => {
     console.warn("Failed to read date format preference, using default:", error);
   }
 
-  const formattedDate = dayjs(isoDate).format(dateFormat);
+  const formattedDate = dayjs(dateStr).format(dateFormat);
   return formattedDate;
 }
 /**

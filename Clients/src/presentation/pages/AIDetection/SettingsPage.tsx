@@ -76,7 +76,7 @@ export default function SettingsPage() {
   const [alert, setAlert] = useState<ToastAlert | null>(null);
 
   // Risk scoring state
-  const [riskConfig, setRiskConfig] = useState<RiskScoringConfig | null>(null);
+  const [_riskConfig, setRiskConfig] = useState<RiskScoringConfig | null>(null);
   const [riskConfigLoading, setRiskConfigLoading] = useState(false);
   const [riskConfigSaving, setRiskConfigSaving] = useState(false);
   const [llmEnabled, setLlmEnabled] = useState(false);

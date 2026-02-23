@@ -87,21 +87,46 @@ After all four steps are complete, print:
 
 ```
 
-Review my components inside the following paths with every single file in it:
+This is the feedback message I have from a user:
+“
+I can't seem to log an issue against the plugins marketplace: https://github.com/verifywise-ai/plugin-marketplace/issues
 
-1. C:\Workspace\verifywise\Clients\src\presentation\components\Layout
-2. C:\Workspace\verifywise\Clients\src\presentation\components\Link
-3. C:\Workspace\verifywise\Clients\src\presentation\components\LinkedModelsView
-4. C:\Workspace\verifywise\Clients\src\presentation\components\LinkedRisks
-5. C:\Workspace\verifywise\Clients\src\presentation\components\LogLine
+So, I guess I'll paste here.  While trying to deploy the docker image, the plugins page will not load (blank screen), but does pull back the correct plugin info from the backend.
 
-Analyze them and make sure they are following "Coding Standards" from "C:\Workspace\verifywise\CodeRules".
+With the help of Claude, here's a bit of debugging info for your tracking (please confirm accuracy):
+
+Root Cause
+The plugins dataset-bulk-upload and model-lifecycle in the marketplace JSON don't have a tags field. When the frontend's isFrameworkPlugin() callback runs inside the useMemo → filter chain, it calls .some() on plugin.tags, which is undefined. Although the code uses (plugin.tags || []).some(...), the crash still occurs — likely because the actual frontend build has a slightly different code path or the minified code doesn't match the source exactly.
+
+Options
+File an issue/PR on the verifywise-ai/plugin-marketplace repo to add tags: [] to the dataset-bulk-upload and model-lifecycle plugin entries. This is the proper fix.
+
+File an issue/PR on the verifywise-ai/verifywise repo to make the backend normalize the data (add tags: [] default when missing), or make the frontend more defensive.
+
+Workaround: If you have a fork or can host a corrected plugins.json, you could point PLUGIN_MARKETPLACE_URL to your corrected version.
+
+Also for a feature request...  it would be nice to include the ability to keep the official martketplace, as well as add one or more custom marketplaces.  For the custom marketplace, a GitHub fine-grained PAT would be nice to access private repositories. Similar to your /ai-detection/settings configuration.
+”
+
+The following GitHub link is the Pull request that is trying to resolve this issue:
+https://github.com/verifywise-ai/verifywise/pull/3398
+https://github.com/verifywise-ai/verifywise/pull/3398/changes
+
+Please review the Pull Request from the link and also my codebase inside the followings:
+Frontend: C:\Workspace\verifywise\Clients\src
+Backend: C:\Workspace\verifywise\Servers
+
+And perform and in-depth analyze to see if my implemented solution is enough or and and potentially any possible additional actions for it.
 
 Plan out and strategize your implementation and make sure you break your implementation to as many "meaningful git commits" as possible.
 
 Git commit:
 1. `git add .`
 2. `git commit -m <message>`
+
+before jumping into any possible or required implementation, please get back to me fisrt.
+
+Any questions?
 
 ```
 

@@ -159,6 +159,24 @@ async def get_user(
     return user
 ```
 
+## Design System Quick Reference
+
+| Element | Standard |
+|---------|----------|
+| **Primary color** | `#13715B` |
+| **Font family** | Geist |
+| **Base font size** | 13px |
+| **Spacing base** | 2px (`theme.spacing(4)` = 8px) |
+| **Border radius** | 4px |
+| **Border color** | `#d0d5dd` |
+| **Button height** | 34px, sentence case |
+| **Icon library** | lucide-react (NOT @mui/icons-material) |
+| **Icon sizes** | 14px (tables), 16px (buttons), 18px (nav), 20-24px (headers) |
+| **Shadows** | Borders on cards; shadows only on floating elements |
+| **Text case** | Sentence case everywhere (never Title Case or ALL CAPS) |
+
+See [Design System](./09-design-system/) for full documentation.
+
 ## PR Checklist (Abbreviated)
 
 Before submitting a PR, ensure:

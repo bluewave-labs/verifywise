@@ -82,6 +82,20 @@ Development workflow and collaboration guidelines.
 - [PR Guidelines](./08-workflow/pr-guidelines.md) - Pull request best practices
 - [Documentation](./08-workflow/documentation.md) - JSDoc, docstrings, component docs
 
+### 9. Design System
+Visual design standards extracted from the VerifyWise StyleGuide.
+
+- [Colors](./09-design-system/colors.md) - Full color palette with theme tokens
+- [Typography](./09-design-system/typography.md) - Font sizes, weights, line heights
+- [Spacing](./09-design-system/spacing.md) - 2px base unit, layout mixins
+- [Icons](./09-design-system/icons.md) - lucide-react library, standard sizes
+- [Shadows, Animations & Z-Index](./09-design-system/shadows-animations-layers.md) - Elevation, transitions, layering
+- [Breakpoints](./09-design-system/breakpoints.md) - Responsive design patterns
+- [Component Patterns](./09-design-system/component-patterns.md) - Buttons, forms, tables, modals
+- [Do's and Don'ts](./09-design-system/dos-and-donts.md) - Quick reference design rules
+- [Accessibility](./09-design-system/accessibility.md) - WCAG AA compliance guidelines
+- [Common Patterns](./09-design-system/common-patterns.md) - Reusable code patterns
+
 ### Checklists
 Quick reference checklists for common tasks.
 

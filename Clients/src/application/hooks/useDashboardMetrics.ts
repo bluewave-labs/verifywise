@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getAllEntities, getEntityById } from "../repository/entity.repository";
+import type { ProgressStep } from "../../presentation/components/StepProgressDialog";
 
 // Cache configuration
 const CACHE_KEY = "dashboard_metrics_cache";
@@ -16,7 +17,6 @@ interface MetricsCache {
   evidenceMetrics?: CacheEntry<any>;
   vendorRiskMetrics?: CacheEntry<any>;
   vendorMetrics?: CacheEntry<any>;
-  usersMetrics?: CacheEntry<any>;
   policyMetrics?: CacheEntry<any>;
   incidentMetrics?: CacheEntry<any>;
   modelRiskMetrics?: CacheEntry<any>;
@@ -131,17 +131,6 @@ export interface VendorMetrics {
     status: string;
   }>;
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
-}
-
-export interface UsersMetrics {
-  total: number;
-  recent: Array<{
-    id: number;
-    name: string;
-    email: string;
-    created_at: string;
-    role: string;
-  }>;
 }
 
 export interface PolicyMetrics {
@@ -307,6 +296,15 @@ export interface OrganizationalFrameworkData {
   };
 }
 
+// Progress step definitions for loading dialog
+const PROGRESS_STEPS: ProgressStep[] = [
+  { label: "Loading risks and evidence...", progress: 15 },
+  { label: "Loading vendors, policies, and incidents...", progress: 40 },
+  { label: "Loading models and training data...", progress: 60 },
+  { label: "Loading compliance frameworks...", progress: 80 },
+  { label: "Calculating governance scores...", progress: 100 },
+];
+
 // Main hook for dashboard metrics
 export const useDashboardMetrics = () => {
   // Initialize state from cache for instant display
@@ -321,9 +319,6 @@ export const useDashboardMetrics = () => {
   );
   const [vendorMetrics, setVendorMetrics] = useState<VendorMetrics | null>(
     () => getCachedValue<VendorMetrics>("vendorMetrics").data
-  );
-  const [usersMetrics, setUsersMetrics] = useState<UsersMetrics | null>(
-    () => getCachedValue<UsersMetrics>("usersMetrics").data
   );
   const [policyMetrics, setPolicyMetrics] = useState<PolicyMetrics | null>(
     () => getCachedValue<PolicyMetrics>("policyMetrics").data
@@ -364,6 +359,7 @@ export const useDashboardMetrics = () => {
   const [loading, setLoading] = useState(false);
   const [isRevalidating, setIsRevalidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progressStep, setProgressStep] = useState(0);
 
   // Fetch risk metrics - using /projectRisks endpoint (same as Risk Management page)
   const fetchRiskMetrics = useCallback(async () => {
@@ -543,40 +539,6 @@ export const useDashboardMetrics = () => {
       setCachedValue("vendorMetrics", vendorMetrics);
     } catch {
       setVendorMetrics(null);
-    }
-  }, []);
-
-  // Fetch users metrics
-  const fetchUsersMetrics = useCallback(async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/users" });
-
-      // Handle the API response structure
-      const usersData = response.data || response.users || response;
-      const usersArray = Array.isArray(usersData) ? usersData : [];
-
-      const usersMetrics = {
-        total: usersArray.length,
-        recent: usersArray.slice(0, 5).map((user: any, index: number) => ({
-          id: user.id || index + 1,
-          name:
-            `${user.first_name || user.firstName || ""} ${
-              user.last_name || user.lastName || ""
-            }`.trim() ||
-            user.name ||
-            user.username ||
-            "User",
-          email: user.email || "No email",
-          created_at:
-            user.created_at || user.createdAt || new Date().toISOString(),
-          role: user.role || user.user_role || "User",
-        })),
-      };
-
-      setUsersMetrics(usersMetrics);
-      setCachedValue("usersMetrics", usersMetrics);
-    } catch {
-      setUsersMetrics(null);
     }
   }, []);
 
@@ -846,43 +808,6 @@ export const useDashboardMetrics = () => {
     }
   }, [taskMetrics]);
 
-  // Fetch use case metrics - for Recent Activity
-  const fetchUseCaseMetrics = useCallback(async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/projects" });
-      const projectsData = response.data || response;
-      const projectsArray = Array.isArray(projectsData) ? projectsData : [];
-
-      // Filter out organizational projects (use cases are non-organizational projects)
-      const useCases = projectsArray.filter((project: any) => !project.is_organizational);
-
-      const metrics = {
-        total: useCases.length,
-        recent: useCases
-          .filter((project: any) => project.created_at || project.createdAt || project.last_updated)
-          .sort((a: any, b: any) => {
-            // Sort by most recent activity (prefer last_updated, fall back to created_at)
-            const dateA = new Date(a.last_updated || a.created_at || a.createdAt);
-            const dateB = new Date(b.last_updated || b.created_at || b.createdAt);
-            return dateB.getTime() - dateA.getTime();
-          })
-          .slice(0, 5)
-          .map((project: any, index: number) => ({
-            id: project.id || index + 1,
-            title: project.project_title || project.name || "Untitled Use Case",
-            status: project.status || "Active",
-            created_at: project.created_at || project.createdAt,
-            last_updated: project.last_updated,
-          })),
-      };
-      setUseCaseMetrics(metrics);
-      setCachedValue("useCaseMetrics", metrics);
-    } catch (err) {
-      console.warn("Failed to fetch use case metrics:", err);
-      if (!useCaseMetrics) setUseCaseMetrics(null);
-    }
-  }, [useCaseMetrics]);
-
   // Fetch governance score metrics - for AI Governance Score card
   const fetchGovernanceScoreMetrics = useCallback(async () => {
     try {
@@ -934,29 +859,28 @@ export const useDashboardMetrics = () => {
     }
   }, [governanceScoreMetrics]);
 
-  // Fetch evidence hub metrics - for Evidence Coverage card
-  const fetchEvidenceHubMetrics = useCallback(async () => {
+  // Merged model metrics: fetches /modelInventory once, computes both
+  // evidenceHubMetrics and modelLifecycleMetrics from the same data
+  const fetchModelMetrics = useCallback(async () => {
     try {
       const [evidenceResponse, modelsResponse] = await Promise.all([
         getAllEntities({ routeUrl: "/evidenceHub" }),
         getAllEntities({ routeUrl: "/modelInventory" }),
       ]);
 
-      const evidenceData = evidenceResponse.data || evidenceResponse;
-      const evidenceArray = Array.isArray(evidenceData) ? evidenceData : [];
-
       const modelsData = modelsResponse.data || modelsResponse;
       const modelsArray = Array.isArray(modelsData) ? modelsData : [];
 
-      // Count total files across all evidence
+      // --- Evidence Hub metrics ---
+      const evidenceData = evidenceResponse.data || evidenceResponse;
+      const evidenceArray = Array.isArray(evidenceData) ? evidenceData : [];
+
       let totalFiles = 0;
       const modelsWithEvidence = new Set<number>();
 
       evidenceArray.forEach((evidence: any) => {
         const files = evidence.evidence_files || [];
         totalFiles += files.length;
-
-        // Track which models have evidence
         const mappedModels = evidence.mapped_model_ids || [];
         mappedModels.forEach((modelId: number) => modelsWithEvidence.add(modelId));
       });
@@ -966,28 +890,17 @@ export const useDashboardMetrics = () => {
         ? Math.round((modelsWithEvidence.size / totalModels) * 100)
         : 0;
 
-      const metrics = {
+      const ehMetrics = {
         total: evidenceArray.length,
         totalFiles,
         modelsWithEvidence: modelsWithEvidence.size,
         totalModels,
         coveragePercentage,
       };
-      setEvidenceHubMetrics(metrics);
-      setCachedValue("evidenceHubMetrics", metrics);
-    } catch (err) {
-      console.warn("Failed to fetch evidence hub metrics:", err);
-      if (!evidenceHubMetrics) setEvidenceHubMetrics(null);
-    }
-  }, [evidenceHubMetrics]);
+      setEvidenceHubMetrics(ehMetrics);
+      setCachedValue("evidenceHubMetrics", ehMetrics);
 
-  // Fetch model lifecycle metrics - for Model Lifecycle card
-  const fetchModelLifecycleMetrics = useCallback(async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/modelInventory" });
-      const modelsData = response.data || response;
-      const modelsArray = Array.isArray(modelsData) ? modelsData : [];
-
+      // --- Model Lifecycle metrics ---
       const distribution = { pending: 0, approved: 0, restricted: 0, blocked: 0 };
 
       modelsArray.forEach((model: any) => {
@@ -1006,29 +919,56 @@ export const useDashboardMetrics = () => {
         }
       });
 
-      const metrics = {
+      const mlMetrics = {
         total: modelsArray.length,
         distribution,
       };
-      setModelLifecycleMetrics(metrics);
-      setCachedValue("modelLifecycleMetrics", metrics);
+      setModelLifecycleMetrics(mlMetrics);
+      setCachedValue("modelLifecycleMetrics", mlMetrics);
     } catch (err) {
-      console.warn("Failed to fetch model lifecycle metrics:", err);
+      console.warn("Failed to fetch model metrics:", err);
+      if (!evidenceHubMetrics) setEvidenceHubMetrics(null);
       if (!modelLifecycleMetrics) setModelLifecycleMetrics(null);
     }
-  }, [modelLifecycleMetrics]);
+  }, [evidenceHubMetrics, modelLifecycleMetrics]);
 
-  // Fetch organizational frameworks status for StatusBreakdownCard
-  const fetchOrganizationalFrameworks = useCallback(async () => {
+  // Merged project metrics: fetches /projects once, computes both
+  // useCaseMetrics and organizationalFrameworks from the same data
+  const fetchProjectMetrics = useCallback(async () => {
     try {
-      // First, get all projects and find the organizational one
       const projectsResponse = await getAllEntities({ routeUrl: "/projects" });
       const projectsData = projectsResponse.data || projectsResponse;
       const projectsArray = Array.isArray(projectsData) ? projectsData : [];
 
+      // --- Use Case metrics (non-organizational projects) ---
+      const useCases = projectsArray.filter((project: any) => !project.is_organizational);
+
+      const ucMetrics = {
+        total: useCases.length,
+        recent: useCases
+          .filter((project: any) => project.created_at || project.createdAt || project.last_updated)
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.last_updated || a.created_at || a.createdAt);
+            const dateB = new Date(b.last_updated || b.created_at || b.createdAt);
+            return dateB.getTime() - dateA.getTime();
+          })
+          .slice(0, 5)
+          .map((project: any, index: number) => ({
+            id: project.id || index + 1,
+            title: project.project_title || project.name || "Untitled Use Case",
+            status: project.status || "Active",
+            created_at: project.created_at || project.createdAt,
+            last_updated: project.last_updated,
+          })),
+      };
+      setUseCaseMetrics(ucMetrics);
+      setCachedValue("useCaseMetrics", ucMetrics);
+
+      // --- Organizational Frameworks ---
       const orgProject = projectsArray.find((p: any) => p.is_organizational === true);
       if (!orgProject || !orgProject.framework || orgProject.framework.length === 0) {
         setOrganizationalFrameworks([]);
+        setCachedValue("organizationalFrameworks", []);
         return;
       }
 
@@ -1037,15 +977,14 @@ export const useDashboardMetrics = () => {
       const allFrameworks = frameworksResponse.data || frameworksResponse || [];
 
       // Build framework data for each enabled framework
-      const frameworksData: OrganizationalFrameworkData[] = [];
-
-      for (const projectFramework of orgProject.framework) {
+      // Collect all sub-call promises and run in parallel
+      const frameworkPromises = orgProject.framework.map(async (projectFramework: any) => {
         const frameworkId = Number(projectFramework.framework_id);
         const projectFrameworkId = projectFramework.project_framework_id || frameworkId;
 
         // Find framework details
         const frameworkInfo = allFrameworks.find((f: any) => Number(f.id) === frameworkId);
-        if (!frameworkInfo) continue;
+        if (!frameworkInfo) return null;
 
         const frameworkName = frameworkInfo.name || `Framework ${frameworkId}`;
         const isISO27001 = frameworkName.toLowerCase().includes("iso 27001");
@@ -1059,7 +998,6 @@ export const useDashboardMetrics = () => {
         };
 
         if (isNISTAIRMF) {
-          // Fetch NIST status breakdown
           try {
             const statusRes = await getEntityById({ routeUrl: `/nist-ai-rmf/status-breakdown` });
             if (statusRes?.data) {
@@ -1077,59 +1015,61 @@ export const useDashboardMetrics = () => {
             // NIST status fetch failed, skip
           }
         } else if (isISO27001) {
-          // Fetch ISO 27001 clause and annex progress
-          try {
-            const clauseRes = await getEntityById({ routeUrl: `/iso-27001/clauses/progress/${projectFrameworkId}` });
-            if (clauseRes?.data) {
-              data.clauseProgress = {
-                totalSubclauses: clauseRes.data.totalSubclauses || 0,
-                doneSubclauses: clauseRes.data.doneSubclauses || 0,
-              };
-            }
-          } catch {
+          // Fetch clause and annex progress in parallel
+          const [clauseRes, annexRes] = await Promise.allSettled([
+            getEntityById({ routeUrl: `/iso-27001/clauses/progress/${projectFrameworkId}` }),
+            getEntityById({ routeUrl: `/iso-27001/annexes/progress/${projectFrameworkId}` }),
+          ]);
+
+          if (clauseRes.status === "fulfilled" && clauseRes.value?.data) {
+            data.clauseProgress = {
+              totalSubclauses: clauseRes.value.data.totalSubclauses || 0,
+              doneSubclauses: clauseRes.value.data.doneSubclauses || 0,
+            };
+          } else {
             data.clauseProgress = { totalSubclauses: 0, doneSubclauses: 0 };
           }
 
-          try {
-            const annexRes = await getEntityById({ routeUrl: `/iso-27001/annexes/progress/${projectFrameworkId}` });
-            if (annexRes?.data) {
-              data.annexProgress = {
-                totalAnnexControls: annexRes.data.totalAnnexControls || 0,
-                doneAnnexControls: annexRes.data.doneAnnexControls || 0,
-              };
-            }
-          } catch {
+          if (annexRes.status === "fulfilled" && annexRes.value?.data) {
+            data.annexProgress = {
+              totalAnnexControls: annexRes.value.data.totalAnnexControls || 0,
+              doneAnnexControls: annexRes.value.data.doneAnnexControls || 0,
+            };
+          } else {
             data.annexProgress = { totalAnnexControls: 0, doneAnnexControls: 0 };
           }
         } else if (isISO42001) {
-          // Fetch ISO 42001 clause and annex progress
-          try {
-            const clauseRes = await getEntityById({ routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}` });
-            if (clauseRes?.data) {
-              data.clauseProgress = {
-                totalSubclauses: clauseRes.data.totalSubclauses || 0,
-                doneSubclauses: clauseRes.data.doneSubclauses || 0,
-              };
-            }
-          } catch {
+          // Fetch clause and annex progress in parallel
+          const [clauseRes, annexRes] = await Promise.allSettled([
+            getEntityById({ routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}` }),
+            getEntityById({ routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId}` }),
+          ]);
+
+          if (clauseRes.status === "fulfilled" && clauseRes.value?.data) {
+            data.clauseProgress = {
+              totalSubclauses: clauseRes.value.data.totalSubclauses || 0,
+              doneSubclauses: clauseRes.value.data.doneSubclauses || 0,
+            };
+          } else {
             data.clauseProgress = { totalSubclauses: 0, doneSubclauses: 0 };
           }
 
-          try {
-            const annexRes = await getEntityById({ routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId}` });
-            if (annexRes?.data) {
-              data.annexProgress = {
-                totalAnnexcategories: annexRes.data.totalAnnexcategories || 0,
-                doneAnnexcategories: annexRes.data.doneAnnexcategories || 0,
-              };
-            }
-          } catch {
+          if (annexRes.status === "fulfilled" && annexRes.value?.data) {
+            data.annexProgress = {
+              totalAnnexcategories: annexRes.value.data.totalAnnexcategories || 0,
+              doneAnnexcategories: annexRes.value.data.doneAnnexcategories || 0,
+            };
+          } else {
             data.annexProgress = { totalAnnexcategories: 0, doneAnnexcategories: 0 };
           }
         }
 
-        frameworksData.push(data);
-      }
+        return data;
+      });
+
+      // Run all framework sub-calls in parallel
+      const frameworkResults = await Promise.all(frameworkPromises);
+      const frameworksData = frameworkResults.filter(Boolean) as OrganizationalFrameworkData[];
 
       // Sort: ISO 42001 first, then ISO 27001, then NIST AI RMF
       frameworksData.sort((a, b) => {
@@ -1148,10 +1088,11 @@ export const useDashboardMetrics = () => {
       setOrganizationalFrameworks(frameworksData);
       setCachedValue("organizationalFrameworks", frameworksData);
     } catch {
-      console.warn("Failed to fetch organizational frameworks");
+      console.warn("Failed to fetch project metrics");
+      if (!useCaseMetrics) setUseCaseMetrics(null);
       setOrganizationalFrameworks([]);
     }
-  }, []);
+  }, [useCaseMetrics]);
 
   // Check if we have fresh cached data (skip network if so)
   const shouldSkipFetch = useCallback(() => {
@@ -1173,9 +1114,11 @@ export const useDashboardMetrics = () => {
     });
   }, []);
 
+  // Use ref for fetchAllMetrics to avoid infinite re-render loops from useCallback deps
+  const fetchAllMetricsRef = useRef<(forceRefresh?: boolean) => Promise<void>>();
+
   // Fetch all dashboard metrics safely with stale-while-revalidate
-  // Note: fetchPolicyMetrics also sets policyStatusMetrics (deduped)
-  // Note: fetchIncidentMetrics also sets incidentStatusMetrics (deduped)
+  // Grouped into 5 sequential stages for progress tracking
   const fetchAllMetrics = useCallback(async (forceRefresh = false) => {
     // If we have fresh cache and not forcing refresh, skip fetch
     if (!forceRefresh && shouldSkipFetch()) {
@@ -1193,54 +1136,45 @@ export const useDashboardMetrics = () => {
     }
 
     setError(null);
+    setProgressStep(0);
 
     try {
-      // Fetch each metric individually and catch errors
-      // 15 API calls (reduced by deduplicating policy and incident endpoints)
-      const results = await Promise.allSettled([
+      // Group 1: Core - risks, evidence files
+      await Promise.allSettled([
         fetchRiskMetrics(),
         fetchEvidenceMetrics(),
+      ]);
+      setProgressStep(1);
+
+      // Group 2: Vendors & policies
+      await Promise.allSettled([
         fetchVendorRiskMetrics(),
         fetchVendorMetrics(),
-        fetchUsersMetrics(),
-        fetchPolicyMetrics(),      // Also sets policyStatusMetrics
-        fetchIncidentMetrics(),    // Also sets incidentStatusMetrics
+        fetchPolicyMetrics(),
+        fetchIncidentMetrics(),
+      ]);
+      setProgressStep(2);
+
+      // Group 3: Models - merged model metrics (evidenceHub + modelLifecycle), model risks, training
+      await Promise.allSettled([
+        fetchModelMetrics(),
         fetchModelRiskMetrics(),
         fetchTrainingMetrics(),
-        fetchEvidenceHubMetrics(),
-        fetchModelLifecycleMetrics(),
-        fetchOrganizationalFrameworks(),
-        fetchTaskMetrics(),
-        fetchUseCaseMetrics(),
-        fetchGovernanceScoreMetrics(),
       ]);
+      setProgressStep(3);
 
-      // Log which ones failed (only in development)
-      if (process.env.NODE_ENV === "development") {
-        results.forEach((result, index) => {
-          const metricNames = [
-            "riskMetrics",
-            "evidenceMetrics",
-            "vendorRiskMetrics",
-            "vendorMetrics",
-            "usersMetrics",
-            "policyMetrics (+policyStatusMetrics)",
-            "incidentMetrics (+incidentStatusMetrics)",
-            "modelRiskMetrics",
-            "trainingMetrics",
-            "evidenceHubMetrics",
-            "modelLifecycleMetrics",
-            "organizationalFrameworks",
-            "taskMetrics",
-            "useCaseMetrics",
-            "governanceScoreMetrics",
-          ];
+      // Group 4: Frameworks - merged project metrics (useCases + orgFrameworks)
+      await Promise.allSettled([
+        fetchProjectMetrics(),
+      ]);
+      setProgressStep(4);
 
-          if (result.status === "rejected") {
-            console.warn(`Failed to fetch ${metricNames[index]}:`, result.reason);
-          }
-        });
-      }
+      // Group 5: Scores - governance score, tasks
+      await Promise.allSettled([
+        fetchGovernanceScoreMetrics(),
+        fetchTaskMetrics(),
+      ]);
+      setProgressStep(5);
     } catch (err) {
       setError("Failed to fetch dashboard metrics");
       console.error("Error fetching dashboard metrics:", err);
@@ -1254,23 +1188,23 @@ export const useDashboardMetrics = () => {
     fetchEvidenceMetrics,
     fetchVendorRiskMetrics,
     fetchVendorMetrics,
-    fetchUsersMetrics,
     fetchPolicyMetrics,
     fetchIncidentMetrics,
+    fetchModelMetrics,
     fetchModelRiskMetrics,
     fetchTrainingMetrics,
-    fetchEvidenceHubMetrics,
-    fetchModelLifecycleMetrics,
-    fetchOrganizationalFrameworks,
-    fetchTaskMetrics,
-    fetchUseCaseMetrics,
+    fetchProjectMetrics,
     fetchGovernanceScoreMetrics,
+    fetchTaskMetrics,
   ]);
+
+  fetchAllMetricsRef.current = fetchAllMetrics;
 
   // Initialize data on mount
   useEffect(() => {
-    fetchAllMetrics();
-  }, [fetchAllMetrics]);
+    fetchAllMetricsRef.current?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     // Data
@@ -1278,7 +1212,6 @@ export const useDashboardMetrics = () => {
     evidenceMetrics,
     vendorRiskMetrics,
     vendorMetrics,
-    usersMetrics,
     policyMetrics,
     incidentMetrics,
     modelRiskMetrics,
@@ -1297,22 +1230,23 @@ export const useDashboardMetrics = () => {
     isRevalidating,
     error,
 
+    // Progress
+    progressStep,
+    progressSteps: PROGRESS_STEPS,
+
     // Actions
     fetchAllMetrics,
     fetchRiskMetrics,
     fetchEvidenceMetrics,
     fetchVendorRiskMetrics,
     fetchVendorMetrics,
-    fetchUsersMetrics,
     fetchPolicyMetrics,      // Also refreshes policyStatusMetrics
     fetchIncidentMetrics,    // Also refreshes incidentStatusMetrics
     fetchModelRiskMetrics,
     fetchTrainingMetrics,
-    fetchEvidenceHubMetrics,
-    fetchModelLifecycleMetrics,
-    fetchOrganizationalFrameworks,
-    fetchTaskMetrics,
-    fetchUseCaseMetrics,
+    fetchModelMetrics,       // Replaces fetchEvidenceHubMetrics + fetchModelLifecycleMetrics
+    fetchProjectMetrics,     // Replaces fetchUseCaseMetrics + fetchOrganizationalFrameworks
     fetchGovernanceScoreMetrics,
+    fetchTaskMetrics,
   };
 };

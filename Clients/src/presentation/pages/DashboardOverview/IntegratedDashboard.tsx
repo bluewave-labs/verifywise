@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Box,
   Typography,
   Stack,
-  CircularProgress,
   IconButton,
   useTheme,
   Fade,
@@ -47,6 +46,7 @@ import UseCasesTable from "../../components/Table/UseCasesTable";
 import { EmptyStateMessage } from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";
 import { ButtonToggle } from "../../components/button-toggle";
+import { StepProgressDialog } from "../../components/StepProgressDialog";
 import { OrganizationalFrameworkData } from "../../../application/hooks/useDashboardMetrics";
 import {
   COLORS,
@@ -62,43 +62,24 @@ type DashboardView = "executive" | "operations";
 
 const DASHBOARD_VIEW_KEY = "dashboard_view_preference";
 
-// Delay before showing loading indicator (ms)
-const LOADING_DELAY_MS = 300;
+const CACHE_KEY = "dashboard_metrics_cache";
 
 const IntegratedDashboard: React.FC = () => {
   const theme = useTheme();
   const navigateSearch = useNavigateSearch();
-  const { dashboard, loading, fetchDashboard } = useDashboard();
+  const { dashboard, loading: dashboardLoading, fetchDashboard } = useDashboard();
 
-  // Delayed loading state - only show spinner after LOADING_DELAY_MS
-  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   const [contentReady, setContentReady] = useState(false);
-  const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle delayed loading indicator
-  useEffect(() => {
-    if (loading) {
-      // Start timer to show loading indicator after delay
-      loadingTimerRef.current = setTimeout(() => {
-        setShowLoadingIndicator(true);
-      }, LOADING_DELAY_MS);
-    } else {
-      // Clear timer and hide loading indicator
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
-      }
-      setShowLoadingIndicator(false);
-      // Mark content as ready for fade-in
-      setContentReady(true);
+  // Check if there is any cached dashboard metrics data
+  const hasAnyCache = useMemo(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      return cached ? Object.keys(JSON.parse(cached)).length > 0 : false;
+    } catch {
+      return false;
     }
-
-    return () => {
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current);
-      }
-    };
-  }, [loading]);
+  }, []);
 
   // Dashboard view state with localStorage persistence
   const [dashboardView, setDashboardView] = useState<DashboardView>(() => {
@@ -127,7 +108,19 @@ const IntegratedDashboard: React.FC = () => {
     taskMetrics,
     useCaseMetrics,
     governanceScoreMetrics,
+    loading: metricsLoading,
+    progressStep,
+    progressSteps,
   } = useDashboardMetrics();
+
+  const loading = dashboardLoading || metricsLoading;
+
+  // Mark content ready once loading completes
+  useEffect(() => {
+    if (!loading) {
+      setContentReady(true);
+    }
+  }, [loading]);
 
   const { userToken, userId } = useAuth();
 
@@ -313,26 +306,19 @@ const IntegratedDashboard: React.FC = () => {
     }));
   }, []);
 
-  // Show loading indicator only after delay threshold
-  if (loading && showLoadingIndicator) {
+  // Show step progress dialog on cold loads (no cache)
+  if (loading && !hasAnyCache) {
     return (
-      <Fade in={true} timeout={200}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "50vh",
-          }}
-        >
-          <CircularProgress />
-          <Typography sx={{ ml: 2 }}>Loading dashboard...</Typography>
-        </Box>
-      </Fade>
+      <StepProgressDialog
+        open={true}
+        title="Loading dashboard"
+        steps={progressSteps}
+        currentStep={progressStep}
+      />
     );
   }
 
-  // Don't render anything while loading (before delay threshold)
+  // Don't render anything while loading (before content is ready)
   if (loading) {
     return null;
   }

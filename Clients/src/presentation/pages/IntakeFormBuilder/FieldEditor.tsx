@@ -203,7 +203,7 @@ export function FieldEditor({ field, entityType, usedEntityMappings = [], onChan
   return (
     <Box
       sx={{
-        width: 320,
+        width: 325,
         height: "100%",
         borderLeft: `1px solid ${theme.palette.border.dark}`,
         backgroundColor: theme.palette.background.main,

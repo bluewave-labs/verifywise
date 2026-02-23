@@ -708,7 +708,7 @@ export function IntakeFormBuilder() {
                 ) : (
                   <Box
                     sx={{
-                      width: 280,
+                      width: 325,
                       borderLeft: `1px solid ${theme.palette.border.dark}`,
                       backgroundColor: theme.palette.background.main,
                       overflowY: "auto",

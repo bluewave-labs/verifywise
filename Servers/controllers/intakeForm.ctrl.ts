@@ -31,6 +31,7 @@ import { IntakeSubmissionStatus } from "../domain.layer/enums/intake-submission-
 import { IntakeEntityType } from "../domain.layer/enums/intake-entity-type.enum";
 import { ModelInventoryStatus } from "../domain.layer/enums/model-inventory-status.enum";
 import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
+import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
 import { IIntakeFormSchema } from "../domain.layer/interfaces/i.intakeForm";
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -56,6 +57,22 @@ const paramStr = (val: string | string[]): string =>
 const TOKEN_SECRET = process.env.JWT_SECRET || process.env.ENCRYPTION_KEY;
 if (!TOKEN_SECRET) {
   throw new Error("JWT_SECRET or ENCRYPTION_KEY must be set for intake form token signing");
+}
+
+/** Map lowercase form option values to valid AiRiskClassification enum values. */
+function mapToAiRiskClassification(value: string): AiRiskClassification | string {
+  const map: Record<string, AiRiskClassification> = {
+    minimal: AiRiskClassification.MINIMAL_RISK,
+    limited: AiRiskClassification.LIMITED_RISK,
+    high: AiRiskClassification.HIGH_RISK,
+    unacceptable: AiRiskClassification.PROHIBITED,
+    // Also accept display values directly
+    "minimal risk": AiRiskClassification.MINIMAL_RISK,
+    "limited risk": AiRiskClassification.LIMITED_RISK,
+    "high risk": AiRiskClassification.HIGH_RISK,
+    "prohibited": AiRiskClassification.PROHIBITED,
+  };
+  return map[value?.toLowerCase()?.trim()] || value || "";
 }
 
 /** Create an HMAC-signed token from a payload object. */
@@ -920,7 +937,7 @@ export async function approveSubmission(req: Request, res: Response) {
           start_date: new Date(),
           goal: (entityData.goal as string) || (entityData.description as string) || "",
           owner: req.userId!,
-          ai_risk_classification: (entityData.ai_risk_classification as string || "") as any,
+          ai_risk_classification: mapToAiRiskClassification(entityData.ai_risk_classification as string) as any,
           status: ProjectStatus.UNDER_REVIEW,
         },
         [],

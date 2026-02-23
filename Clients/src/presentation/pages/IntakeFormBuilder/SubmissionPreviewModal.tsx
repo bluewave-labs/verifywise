@@ -258,10 +258,15 @@ function SubmissionPreviewModal({
         const response = await getSubmissionPreview(submissionId as number, controller.signal);
         if (cancelled) return;
 
-        const { riskAssessment, entityPreview, formSchema, formName, entityType } =
-          response.data;
+        const { riskAssessment, entityPreview, form } = response.data;
 
-        setPreviewData({ riskAssessment, entityPreview, formSchema, formName, entityType });
+        setPreviewData({
+          riskAssessment,
+          entityPreview,
+          formSchema: form?.schema ?? { version: "1.0", fields: [] },
+          formName: form?.name ?? "Unknown form",
+          entityType: form?.entityType ?? "use_case",
+        });
         setEditedEntityData({ ...(entityPreview || {}) });
       } catch (err) {
         if (cancelled) return;
@@ -354,7 +359,7 @@ function SubmissionPreviewModal({
 
   // Derived: mapped fields for entity preview
   const mappedFields =
-    previewData?.formSchema.fields.filter((field) => Boolean(field.entityFieldMapping)) ?? [];
+    previewData?.formSchema?.fields?.filter((field) => Boolean(field.entityFieldMapping)) ?? [];
 
   // Derived: entity type label
   const entityLabel =

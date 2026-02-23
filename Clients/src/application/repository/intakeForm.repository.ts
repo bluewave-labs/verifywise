@@ -287,9 +287,15 @@ export async function getSubmissionPreview(
     submission: IntakeSubmission;
     riskAssessment: RiskAssessment | null;
     entityPreview: Record<string, unknown>;
-    formSchema: FormSchema;
-    formName: string;
-    entityType: string;
+    form: {
+      id: number;
+      name: string;
+      entityType: string;
+      schema: FormSchema;
+      riskTierSystem?: string;
+    };
+    riskTier?: string | null;
+    riskOverride?: RiskOverride | null;
   };
 }> {
   const response = await apiServices.get(`${BASE_URL}/submissions/${submissionId}/preview`, { signal });

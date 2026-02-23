@@ -9,10 +9,22 @@
  */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Step 1: Add 'Custom' to the ENUM (must be outside a transaction)
-    await queryInterface.sequelize.query(
-      `ALTER TYPE enum_llm_keys_provider ADD VALUE IF NOT EXISTS 'Custom';`
+    // Step 1: Ensure the ENUM type exists (it may not if the original
+    // migration was skipped or this is a fresh DB set up via createNewTenant)
+    const [enumCheck] = await queryInterface.sequelize.query(
+      `SELECT 1 FROM pg_type WHERE typname = 'enum_llm_keys_provider';`
     );
+    if (enumCheck.length === 0) {
+      // Create the full ENUM including Custom from scratch
+      await queryInterface.sequelize.query(
+        `CREATE TYPE enum_llm_keys_provider AS ENUM ('Anthropic', 'OpenAI', 'OpenRouter', 'Custom');`
+      );
+    } else {
+      // ENUM exists — add 'Custom' value (must be outside a transaction)
+      await queryInterface.sequelize.query(
+        `ALTER TYPE enum_llm_keys_provider ADD VALUE IF NOT EXISTS 'Custom';`
+      );
+    }
 
     // Step 2: Add custom_headers JSONB column to all tenant schemas
     const transaction = await queryInterface.sequelize.transaction();

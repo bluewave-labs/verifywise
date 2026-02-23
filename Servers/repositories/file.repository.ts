@@ -373,7 +373,7 @@ export async function uploadOrganizationFile(
       (filename, size, type, file_path, content, uploaded_by, uploaded_time, model_id, org_id, is_demo, source, project_id, file_group_id, review_status, version, approval_workflow_id)
     VALUES
       (:filename, :size, :mimetype, :file_path, :content, :uploaded_by, NOW(), :model_id, :org_id, false, :source, NULL, gen_random_uuid(), :review_status, '1.0', :approval_workflow_id)
-    RETURNING *`;
+    RETURNING id, filename, size, type AS mimetype, file_path, uploaded_by, uploaded_time AS upload_date, model_id, org_id, is_demo, source, project_id, file_group_id, review_status, version, approval_workflow_id`;
 
   const result = await sequelize.query(query, {
     replacements: {

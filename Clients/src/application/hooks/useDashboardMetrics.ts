@@ -412,7 +412,7 @@ export const useDashboardMetrics = () => {
             (risk.current_risk_level || risk.risk_level_autocalculated || "medium")
               .toLowerCase()
               .includes("low") ? "low" as const : "medium" as const,
-          created_at: risk.created_at || risk.date_of_assessment || new Date().toISOString(),
+          created_at: risk.created_at || risk.createdAt || risk.date_of_assessment,
           project_name: risk.project_name || "General",
         })),
       };
@@ -449,8 +449,7 @@ export const useDashboardMetrics = () => {
           uploaded_at:
             file.uploaded_time ||
             file.created_at ||
-            file.updated_at ||
-            new Date().toISOString(),
+            file.updated_at,
           project_name: file.project_title || file.project_name || "General",
           user_name:
             `${file.uploader_name || ""} ${
@@ -507,7 +506,7 @@ export const useDashboardMetrics = () => {
           severity:
             risk.risk_level?.toLowerCase().replace(" risk", "") || "medium",
           created_at:
-            risk.review_date || risk.created_at || new Date().toISOString(),
+            risk.review_date || risk.created_at || risk.createdAt,
           vendor_name: risk.vendor_name || "Unknown Vendor",
         })),
       };
@@ -538,7 +537,7 @@ export const useDashboardMetrics = () => {
             vendor.company_name ||
             "Unknown Vendor",
           created_at:
-            vendor.created_at || vendor.createdAt || new Date().toISOString(),
+            vendor.created_at || vendor.createdAt,
           status: vendor.status || vendor.vendor_status || "Active",
         })),
       };
@@ -572,7 +571,7 @@ export const useDashboardMetrics = () => {
           id: policy.id || "unknown",
           title: policy.title || "Untitled Policy",
           status: policy.status || "unknown",
-          last_updated_at: policy.last_updated_at || new Date().toISOString(),
+          last_updated_at: policy.last_updated_at || policy.updated_at || policy.updatedAt,
           author_id: policy.author_id || 0,
         })),
       };
@@ -645,7 +644,8 @@ export const useDashboardMetrics = () => {
           description: incident.description || incident.title || "Incident",
           severity: incident.severity || "Unknown",
           status: incident.status || "Unknown",
-          created_at: incident.created_at || incident.createdAt || new Date().toISOString(),
+          created_at: incident.created_at || incident.createdAt,
+          updated_at: incident.updated_at || incident.updatedAt,
         })),
       };
 
@@ -719,7 +719,7 @@ export const useDashboardMetrics = () => {
           id: risk.id || index + 1,
           title: risk.risk_name || "Untitled Risk",
           severity: (risk.risk_level || "medium").toLowerCase() as "critical" | "high" | "medium" | "low",
-          created_at: risk.created_at || new Date().toISOString(),
+          created_at: risk.created_at || risk.createdAt,
           model_name: risk.model_name || undefined,
         })),
       };

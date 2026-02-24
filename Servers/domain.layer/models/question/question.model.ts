@@ -515,8 +515,8 @@ export class QuestionModel extends Model<QuestionModel> implements IQuestion {
       answer: this.answer,
       subtopic_id: this.subtopic_id,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
       status: this.status,
       progressPercentage: this.getProgressPercentage(),
     };

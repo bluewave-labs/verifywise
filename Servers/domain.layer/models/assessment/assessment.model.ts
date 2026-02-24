@@ -218,7 +218,7 @@ export class AssessmentModel
       id: this.id,
       project_id: this.project_id,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
     };
   }
 
@@ -237,7 +237,7 @@ export class AssessmentModel
       id: this.id,
       project_id: this.project_id,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
     };
   }
 

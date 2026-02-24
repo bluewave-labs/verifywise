@@ -195,8 +195,8 @@ export class EntityGraphGapRulesModel extends Model<EntityGraphGapRulesModel> {
       user_id: this.user_id,
       organization_id: this.organization_id,
       rules: this.rules,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 

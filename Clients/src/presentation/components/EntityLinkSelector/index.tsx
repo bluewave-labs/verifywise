@@ -29,14 +29,6 @@ const ENTITY_TYPE_OPTIONS = [
   { _id: "framework", name: "Framework (Organizational)" },
 ];
 
-// Framework ID to entity type mapping
-const FRAMEWORK_ENTITY_TYPE_MAP: Record<number, { subclauses: EntityType; annexes?: EntityType }> = {
-  1: { subclauses: "eu_control" }, // EU AI Act - controls
-  2: { subclauses: "iso42001_subclause", annexes: "iso42001_annexcategory" }, // ISO 42001
-  3: { subclauses: "iso27001_subclause", annexes: "iso27001_annexcontrol" }, // ISO 27001
-  4: { subclauses: "nist_subcategory" }, // NIST AI RMF
-};
-
 const EntityLinkSelector: React.FC<EntityLinkSelectorProps> = ({
   value = [],
   onChange,
@@ -48,7 +40,6 @@ const EntityLinkSelector: React.FC<EntityLinkSelectorProps> = ({
   const [selectedTopLevel, setSelectedTopLevel] = useState<string>("");
   const [selectedProject, setSelectedProject] = useState<number | "">("");
   const [selectedFramework, setSelectedFramework] = useState<number | "">("");
-  const [selectedSubEntityType, setSelectedSubEntityType] = useState<string>("");
   const [selectedEntityId, setSelectedEntityId] = useState<number | "">("");
 
   // Data states

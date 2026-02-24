@@ -116,7 +116,7 @@ export function MathCaptcha({ value, onChange, error, refreshTrigger }: MathCapt
           placeholder="?"
           type="number"
           disabled={isLoading}
-          error={!!error}
+          error={error}
           sx={{
             width: 80,
             "& .MuiOutlinedInput-root": {

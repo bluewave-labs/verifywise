@@ -13,7 +13,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.99",
@@ -98,8 +101,11 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@emotion/jest": "^11.14.2",
+    "@playwright/test": "^1.58.2",
     "@svgr/webpack": "^8.1.0",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",

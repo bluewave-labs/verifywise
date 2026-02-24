@@ -373,6 +373,9 @@ export class PluginService {
       for (const installation of installations) {
         if (installation.status !== "installed") continue;
 
+        // Built-in plugins don't have remote code to load data providers from
+        if (isBuiltinPlugin(installation.plugin_key)) continue;
+
         try {
           // Get plugin metadata from marketplace
           const pluginMeta = await this.getPluginByKey(installation.plugin_key);

@@ -257,7 +257,7 @@ export function IntakeFormsListPage() {
     (s) =>
       !submissionsSearch ||
       (s.submitterName || "").toLowerCase().includes(submissionsSearch.toLowerCase()) ||
-      s.submitterEmail.toLowerCase().includes(submissionsSearch.toLowerCase())
+      (s.submitterEmail || "").toLowerCase().includes(submissionsSearch.toLowerCase())
   );
 
   // ============================================================================
@@ -327,8 +327,12 @@ export function IntakeFormsListPage() {
         await deleteIntakeForm(selectedForm.id);
         loadForms();
         setSnackbar({ open: true, message: "Form deleted", severity: "success" });
-      } catch {
-        setSnackbar({ open: true, message: "Failed to delete form", severity: "error" });
+      } catch (err: any) {
+        const msg =
+          err?.response?.data?.data?.message ||
+          err?.response?.data?.message ||
+          "Failed to delete form";
+        setSnackbar({ open: true, message: msg, severity: "error" });
       } finally {
         setIsDeleting(false);
         setDeleteModalOpen(false);
@@ -596,9 +600,9 @@ export function IntakeFormsListPage() {
                           <Typography
                             sx={{ fontWeight: 500, fontSize: "13px", color: theme.palette.text.primary }}
                           >
-                            {submission.submitterName || submission.submitterEmail}
+                            {submission.submitterName || submission.submitterEmail || "Anonymous"}
                           </Typography>
-                          {submission.submitterName && (
+                          {submission.submitterName && submission.submitterEmail && (
                             <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                               {submission.submitterEmail}
                             </Typography>
@@ -671,42 +675,42 @@ export function IntakeFormsListPage() {
             Edit
           </ListItemText>
         </MenuItem>
-        {selectedForm?.status === IntakeFormStatus.ACTIVE && (
-          <>
-            <MenuItem onClick={handlePreview}>
-              <ListItemIcon>
-                <Eye size={18} />
-              </ListItemIcon>
-              <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-                Preview
-              </ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleCopyLink}>
-              <ListItemIcon>
-                <Copy size={18} />
-              </ListItemIcon>
-              <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-                Copy link
-              </ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleArchive}>
-              <ListItemIcon>
-                <Archive size={18} />
-              </ListItemIcon>
-              <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-                Archive
-              </ListItemText>
-            </MenuItem>
-          </>
+        {selectedForm?.status === IntakeFormStatus.ACTIVE && [
+          <MenuItem key="preview" onClick={handlePreview}>
+            <ListItemIcon>
+              <Eye size={18} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Preview
+            </ListItemText>
+          </MenuItem>,
+          <MenuItem key="copy" onClick={handleCopyLink}>
+            <ListItemIcon>
+              <Copy size={18} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Copy link
+            </ListItemText>
+          </MenuItem>,
+          <MenuItem key="archive" onClick={handleArchive}>
+            <ListItemIcon>
+              <Archive size={18} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Archive
+            </ListItemText>
+          </MenuItem>,
+        ]}
+        {selectedForm?.status === IntakeFormStatus.DRAFT && (
+          <MenuItem onClick={handleDeleteClick} sx={{ color: theme.palette.status.error.text }}>
+            <ListItemIcon>
+              <Trash2 size={18} color={theme.palette.status.error.text} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Delete
+            </ListItemText>
+          </MenuItem>
         )}
-        <MenuItem onClick={handleDeleteClick} sx={{ color: theme.palette.status.error.text }}>
-          <ListItemIcon>
-            <Trash2 size={18} color={theme.palette.status.error.text} />
-          </ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-            Delete
-          </ListItemText>
-        </MenuItem>
       </Menu>
 
       {/* Create form dialog — choose entity type */}

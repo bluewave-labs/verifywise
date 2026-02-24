@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Box, Typography, IconButton, Tooltip, useTheme } from "@mui/material";
-import { Plus, Check, X } from "lucide-react";
+import { Plus, Check, X, User, Mail } from "lucide-react";
 import { FormField } from "./types";
 import { FieldCard } from "./FieldCard";
 
@@ -307,6 +307,69 @@ function EditableFormDescription({
   );
 }
 
+/**
+ * Read-only preview of the built-in contact-info section (Name + Email).
+ */
+function ContactInfoPreview() {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        px: "24px",
+        py: "16px",
+        borderBottom: `1px solid ${theme.palette.border.light}`,
+        backgroundColor: theme.palette.background.fill,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: "11px",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          color: theme.palette.text.accent,
+          mb: "10px",
+        }}
+      >
+        Contact information
+      </Typography>
+      {[
+        { icon: <User size={14} />, label: "Full name" },
+        { icon: <Mail size={14} />, label: "Email address" },
+      ].map(({ icon, label }) => (
+        <Box
+          key={label}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            mb: "8px",
+            "&:last-child": { mb: 0 },
+          }}
+        >
+          <Box sx={{ color: theme.palette.text.accent, display: "flex" }}>{icon}</Box>
+          <Box
+            sx={{
+              flex: 1,
+              height: 32,
+              border: `1px solid ${theme.palette.border.light}`,
+              borderRadius: "4px",
+              backgroundColor: theme.palette.background.main,
+              display: "flex",
+              alignItems: "center",
+              px: "10px",
+            }}
+          >
+            <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
+              {label}
+            </Typography>
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
 interface FormCanvasProps {
   fields: FormField[];
   selectedFieldId: string | null;
@@ -319,6 +382,7 @@ interface FormCanvasProps {
   formDescription: string;
   onNameChange?: (name: string) => void;
   onDescriptionChange?: (description: string) => void;
+  collectContactInfo?: boolean;
 }
 
 export function FormCanvas({
@@ -333,6 +397,7 @@ export function FormCanvas({
   formDescription,
   onNameChange,
   onDescriptionChange,
+  collectContactInfo,
 }: FormCanvasProps) {
   const theme = useTheme();
   const handleCanvasClick = () => {
@@ -393,6 +458,8 @@ export function FormCanvas({
               )
             )}
           </Box>
+
+          {collectContactInfo && <ContactInfoPreview />}
 
           {fields.length === 0 ? (
             <EmptyState />

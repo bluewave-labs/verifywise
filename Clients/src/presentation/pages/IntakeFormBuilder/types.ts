@@ -70,6 +70,7 @@ export interface FormDesignSettings {
   backgroundColor: string;
   logoUrl: string;
   fontFamily: string;
+  collectContactInfo: boolean;
 }
 
 /**
@@ -82,6 +83,7 @@ export const DEFAULT_DESIGN_SETTINGS: FormDesignSettings = {
   backgroundColor: "#fafafa",
   logoUrl: "",
   fontFamily: "Inter",
+  collectContactInfo: false,
 };
 
 /**

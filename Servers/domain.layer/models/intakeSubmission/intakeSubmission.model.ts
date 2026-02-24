@@ -36,17 +36,17 @@ export class IntakeSubmissionModel
 
   @Column({
     type: DataType.STRING(255),
-    allowNull: false,
+    allowNull: true,
     field: "submitter_email",
   })
-  submitterEmail!: string;
+  submitterEmail!: string | null;
 
   @Column({
     type: DataType.STRING(255),
-    allowNull: false,
+    allowNull: true,
     field: "submitter_name",
   })
-  submitterName!: string;
+  submitterName!: string | null;
 
   @Column({
     type: DataType.JSONB,
@@ -155,25 +155,27 @@ export class IntakeSubmissionModel
   /**
    * Validate submission data before saving
    */
-  async validateSubmissionData(): Promise<void> {
+  async validateSubmissionData(requireContactInfo = true): Promise<void> {
     if (!this.formId) {
       throw new ValidationException("Form ID is required", "formId", this.formId);
     }
 
-    if (!this.submitterEmail?.trim()) {
-      throw new ValidationException(
-        "Submitter email is required",
-        "submitterEmail",
-        this.submitterEmail
-      );
-    }
+    if (requireContactInfo) {
+      if (!this.submitterEmail?.trim()) {
+        throw new ValidationException(
+          "Submitter email is required",
+          "submitterEmail",
+          this.submitterEmail
+        );
+      }
 
-    if (!this.submitterName?.trim()) {
-      throw new ValidationException(
-        "Submitter name is required",
-        "submitterName",
-        this.submitterName
-      );
+      if (!this.submitterName?.trim()) {
+        throw new ValidationException(
+          "Submitter name is required",
+          "submitterName",
+          this.submitterName
+        );
+      }
     }
 
     if (!Object.values(IntakeEntityType).includes(this.entityType)) {

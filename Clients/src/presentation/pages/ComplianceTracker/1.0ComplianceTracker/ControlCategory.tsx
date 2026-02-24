@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
 import ControlsTable from "./ControlsTable";
 
@@ -46,6 +46,8 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   dueDateFilter,
   initialControlCategoryId,
 }) => {
+  const accordionRef = useRef<HTMLDivElement>(null);
+
   // Auto-expand if this category matches the initialControlCategoryId
   const [expanded, setExpanded] = useState<number | false>(() => {
     if (initialControlCategoryId && controlCategory.id === initialControlCategoryId) {
@@ -55,10 +57,17 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   });
   const [filteredControlsCount, setFilteredControlsCount] = useState<number | null>(null);
 
-  // Update expanded state when initialControlCategoryId changes
+  // Update expanded state and scroll into view when initialControlCategoryId changes
   useEffect(() => {
     if (initialControlCategoryId && controlCategory.id === initialControlCategoryId) {
       setExpanded(controlCategory.id);
+      // Scroll into view after a short delay to allow accordion expansion animation
+      setTimeout(() => {
+        accordionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
     }
   }, [initialControlCategoryId, controlCategory.id]);
 
@@ -72,7 +81,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   : { bg: "#FFF8E1", color: "#795548" };
 
   return (
-    <Stack className="control-category">
+    <Stack className="control-category" ref={accordionRef}>
       <Accordion
         className="control-category-accordion"
         expanded={expanded === controlCategory.id}

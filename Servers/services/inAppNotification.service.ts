@@ -848,3 +848,233 @@ async function getUserEmails(userIds: number[]): Promise<Array<{ id: number; nam
   );
   return result;
 }
+
+/**
+ * Role type for assignment notifications
+ */
+export type AssignmentRoleType =
+  | "Owner"
+  | "Reviewer"
+  | "Approver"
+  | "Member"
+  | "Assignee"
+  | "Action Owner"
+  | "Risk Owner";
+
+/**
+ * Entity type labels for display in notifications
+ */
+const ENTITY_TYPE_DISPLAY_LABELS: Record<string, string> = {
+  vendor: "Vendor",
+  vendor_risk: "Vendor Risk",
+  project_risk: "Use Case Risk",
+  project: "Use Case",
+  model_inventory: "Model",
+  iso42001_subclause: "ISO 42001 Subclause",
+  iso42001_annexcategory: "ISO 42001 Annex",
+  iso27001_subclause: "ISO 27001 Subclause",
+  iso27001_annexcontrol: "ISO 27001 Annex Control",
+  eu_control: "EU AI Act Control",
+  eu_subcontrol: "EU AI Act Subcontrol",
+  nist_subcategory: "NIST AI RMF Subcategory",
+};
+
+/**
+ * Map role type to notification type
+ */
+function getNotificationTypeForRole(roleType: AssignmentRoleType): NotificationType {
+  switch (roleType) {
+    case "Owner":
+    case "Risk Owner":
+      return NotificationType.ASSIGNMENT_OWNER;
+    case "Reviewer":
+      return NotificationType.ASSIGNMENT_REVIEWER;
+    case "Approver":
+      return NotificationType.ASSIGNMENT_APPROVER;
+    case "Member":
+      return NotificationType.ASSIGNMENT_MEMBER;
+    case "Assignee":
+      return NotificationType.ASSIGNMENT_ASSIGNEE;
+    case "Action Owner":
+      return NotificationType.ASSIGNMENT_ACTION_OWNER;
+    default:
+      return NotificationType.ASSIGNMENT_OWNER;
+  }
+}
+
+/**
+ * Get description of what each role is responsible for
+ */
+function getRoleDescription(roleType: AssignmentRoleType): string {
+  switch (roleType) {
+    case "Owner":
+      return "As the Owner, you are responsible for completing this item and ensuring all requirements are met.";
+    case "Risk Owner":
+      return "As the Risk Owner, you are responsible for managing and mitigating this risk.";
+    case "Reviewer":
+      return "As the Reviewer, you are responsible for reviewing the work and providing feedback before approval.";
+    case "Approver":
+      return "As the Approver, you have the authority to approve or reject this item once it's ready.";
+    case "Member":
+      return "As a Member, you have access to view and contribute to this project.";
+    case "Assignee":
+      return "As the Assignee, you are responsible for completing this task.";
+    case "Action Owner":
+      return "As the Action Owner, you are responsible for taking action to address this item.";
+    default:
+      return "You have been assigned to this item.";
+  }
+}
+
+/**
+ * Format date for email display
+ */
+function formatAssignmentDate(): string {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Map entity type string to NotificationEntityType enum
+ */
+function getNotificationEntityType(entityType: string): NotificationEntityType {
+  switch (entityType) {
+    case "vendor":
+      return NotificationEntityType.VENDOR;
+    case "project":
+      return NotificationEntityType.PROJECT;
+    case "model_inventory":
+      return NotificationEntityType.MODEL;
+    case "project_risk":
+    case "vendor_risk":
+      return NotificationEntityType.RISK;
+    default:
+      return NotificationEntityType.PROJECT;
+  }
+}
+
+/**
+ * Entity context for additional details in assignment emails
+ */
+export interface AssignmentEntityContext {
+  frameworkName?: string;    // e.g., "ISO 27001", "NIST AI RMF"
+  parentType?: string;       // e.g., "Annex", "Clause", "Control"
+  parentName?: string;       // e.g., "A.5 Organizational controls"
+  projectName?: string;      // Project this belongs to
+  description?: string;      // Brief description of the entity
+}
+
+/**
+ * Build HTML for entity context to include in email
+ */
+function buildEntityContextHtml(context?: AssignmentEntityContext): string {
+  if (!context) return "";
+
+  const rows: string[] = [];
+
+  if (context.frameworkName) {
+    rows.push(`<tr><td style="padding: 4px 0; color: #667085; font-size: 13px; width: 110px;">Framework:</td><td style="padding: 4px 0; color: #344054; font-size: 13px;">${context.frameworkName}</td></tr>`);
+  }
+
+  if (context.projectName) {
+    rows.push(`<tr><td style="padding: 4px 0; color: #667085; font-size: 13px; width: 110px;">Project:</td><td style="padding: 4px 0; color: #344054; font-size: 13px;">${context.projectName}</td></tr>`);
+  }
+
+  if (context.parentType && context.parentName) {
+    rows.push(`<tr><td style="padding: 4px 0; color: #667085; font-size: 13px; width: 110px;">${context.parentType}:</td><td style="padding: 4px 0; color: #344054; font-size: 13px;">${context.parentName}</td></tr>`);
+  }
+
+  if (context.description) {
+    rows.push(`<tr><td style="padding: 8px 0 4px 0; color: #667085; font-size: 13px; width: 110px; vertical-align: top;">About:</td><td style="padding: 8px 0 4px 0; color: #344054; font-size: 13px;">${context.description}</td></tr>`);
+  }
+
+  if (rows.length === 0) return "";
+
+  return `<table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">${rows.join("")}</table>`;
+}
+
+/**
+ * Notify a user when they are assigned to an entity
+ *
+ * @param tenantId - Tenant ID for multi-tenancy
+ * @param assigneeId - User ID being assigned
+ * @param assignment - Assignment details including entity info and role
+ * @param assignerName - Name of the person making the assignment
+ * @param baseUrl - Base URL for building entity links
+ * @param entityContext - Optional additional context about the entity
+ */
+export const notifyUserAssigned = async (
+  tenantId: string,
+  assigneeId: number,
+  assignment: {
+    entityType: string;      // "vendor", "project", "model_inventory", etc.
+    entityId: number;
+    entityName: string;
+    roleType: AssignmentRoleType;
+    entityUrl: string;       // Full URL path (relative or absolute)
+  },
+  assignerName: string,
+  baseUrl: string,
+  entityContext?: AssignmentEntityContext
+): Promise<void> => {
+  try {
+    const assignee = await getUserById(assigneeId);
+    if (!assignee) {
+      console.warn(`Cannot send assignment notification: user ${assigneeId} not found`);
+      return;
+    }
+
+    const displayEntityType = ENTITY_TYPE_DISPLAY_LABELS[assignment.entityType] || assignment.entityType;
+    const notificationType = getNotificationTypeForRole(assignment.roleType);
+    const notificationEntityType = getNotificationEntityType(assignment.entityType);
+
+    // Build full URL
+    const fullUrl = assignment.entityUrl.startsWith("http")
+      ? assignment.entityUrl
+      : `${baseUrl}${assignment.entityUrl.startsWith("/") ? "" : "/"}${assignment.entityUrl}`;
+
+    // Build entity context HTML for email
+    const entityContextHtml = buildEntityContextHtml(entityContext);
+
+    await sendInAppNotification(
+      tenantId,
+      {
+        user_id: assigneeId,
+        type: notificationType,
+        title: `Assigned as ${assignment.roleType}`,
+        message: `${assignerName} assigned you as ${assignment.roleType} for ${displayEntityType}: ${assignment.entityName}`,
+        entity_type: notificationEntityType,
+        entity_id: assignment.entityId,
+        entity_name: assignment.entityName,
+        action_url: assignment.entityUrl,
+      },
+      true,
+      {
+        template: EMAIL_TEMPLATES.ASSIGNMENT_NOTIFICATION,
+        subject: `You've been assigned as ${assignment.roleType}: ${assignment.entityName}`,
+        variables: {
+          recipient_name: assignee.name || "User",
+          assigner_name: assignerName,
+          role_type: assignment.roleType,
+          entity_type: displayEntityType,
+          entity_name: assignment.entityName,
+          entity_url: fullUrl,
+          assignment_date: formatAssignmentDate(),
+          role_description: getRoleDescription(assignment.roleType),
+          entity_context_html: entityContextHtml,
+        },
+      }
+    );
+
+    console.log(`📧 Assignment notification sent to user ${assigneeId} as ${assignment.roleType} for ${assignment.entityType} ${assignment.entityId}`);
+  } catch (error) {
+    console.error(`Failed to send assignment notification to user ${assigneeId}:`, error);
+    // Don't rethrow - notifications should not break the main flow
+  }
+};

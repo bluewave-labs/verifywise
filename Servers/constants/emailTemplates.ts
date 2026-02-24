@@ -60,6 +60,9 @@ export const EMAIL_TEMPLATES = {
   INTAKE_SUBMISSION_APPROVED: "intake-submission-approved.mjml",
   INTAKE_SUBMISSION_REJECTED: "intake-submission-rejected.mjml",
   INTAKE_NEW_SUBMISSION_ADMIN: "intake-new-submission-admin.mjml",
+
+  // Assignment notification template
+  ASSIGNMENT_NOTIFICATION: "assignment-notification.mjml",
 } as const;
 
 // Type-safe template keys

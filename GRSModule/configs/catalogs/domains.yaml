@@ -1,13 +1,11 @@
 version: domains_v0.1
 domains:
-  - domain_id: privacy
+  # AI governance lifecycle (maps to Art 9/10/12/13/15)
+  - domain_id: ai_governance
     regulated: true
-    keywords: ["GDPR", "personal data", "data export", "cross-border"]
+    keywords: ["risk management", "logging", "audit", "technical documentation", "robustness", "cybersecurity"]
 
-  - domain_id: hiring
+  # content integrity (maps to synthetic content disclosure)
+  - domain_id: content_integrity
     regulated: true
-    keywords: ["recruitment", "screening", "bias", "human oversight"]
-
-  - domain_id: finance
-    regulated: true
-    keywords: ["loan", "credit", "approval", "risk"]
+    keywords: ["deepfake", "synthetic content", "disclosure", "labeling", "impersonation"]

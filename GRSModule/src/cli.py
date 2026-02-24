@@ -614,7 +614,7 @@ def main() -> None:
     gen.add_argument("--model-id", default="mock-model")
     gen.add_argument("--provider", default="mock")
     gen.add_argument("--temperature", default="0.2")
-    gen.add_argument("--max-tokens", default="500")
+    gen.add_argument("--max-tokens", default="2048")
     gen.add_argument("--limit", type=int, default=None, help="Max number of scenarios to run inference on")
     gen.add_argument("--resume", action="store_true")
     gen.add_argument("--retry-max-attempts", default="5")

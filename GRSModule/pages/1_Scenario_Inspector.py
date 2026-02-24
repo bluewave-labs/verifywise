@@ -123,20 +123,33 @@ def load_intermediate(version: str) -> tuple[dict, dict, dict]:
 
 @st.cache_data(show_spinner="Loading final data…")
 def load_final(version: str, model_stem: str) -> tuple[dict, dict, dict]:
-    """Load final scenarios, responses, and judge scores."""
+    """Load final scenarios (or base scenarios as fallback), responses, and judge scores."""
     base = DATASETS_DIR / version / "final"
+    inter = DATASETS_DIR / version / "intermediate"
 
-    scenarios = {r["scenario_id"]: r for r in read_jsonl(base / "scenarios.jsonl")}
+    scenarios: dict[str, dict] = {}
+    final_path = base / "scenarios.jsonl"
+    if final_path.exists():
+        scenarios = {r["scenario_id"]: r for r in read_jsonl(final_path)}
+    else:
+        # Fall back to base scenarios from the render stage
+        base_path = inter / "base_scenarios_deduped.jsonl"
+        if base_path.exists():
+            for r in read_jsonl(base_path):
+                sid = r.get("base_scenario_id", "")
+                scenarios[sid] = {**r, "scenario_id": sid}
 
     responses: dict[str, dict] = {}
-    resp_path = base / "responses" / f"{model_stem}.jsonl"
-    if resp_path.exists():
-        responses = {r["scenario_id"]: r for r in read_jsonl(resp_path)}
+    if model_stem:
+        resp_path = base / "responses" / f"{model_stem}.jsonl"
+        if resp_path.exists():
+            responses = {r["scenario_id"]: r for r in read_jsonl(resp_path)}
 
     judge_scores: dict[str, dict] = {}
-    judge_path = base / "judge_scores" / f"{model_stem}.jsonl"
-    if judge_path.exists():
-        judge_scores = {r["scenario_id"]: r for r in read_jsonl(judge_path)}
+    if model_stem:
+        judge_path = base / "judge_scores" / f"{model_stem}.jsonl"
+        if judge_path.exists():
+            judge_scores = {r["scenario_id"]: r for r in read_jsonl(judge_path)}
 
     return scenarios, responses, judge_scores
 
@@ -441,11 +454,11 @@ def main() -> None:
         version = st.selectbox("Version", versions, index=len(versions) - 1)
 
         models = discover_models(version)
-        if not models:
-            st.warning("No model response files found for this version.")
-            st.stop()
-
-        model_stem = st.selectbox("Model", models)
+        if models:
+            model_stem = st.selectbox("Model", models)
+        else:
+            model_stem = ""
+            st.info("No inference results yet — showing scenarios only.")
 
         st.divider()
         st.header("Scenario")

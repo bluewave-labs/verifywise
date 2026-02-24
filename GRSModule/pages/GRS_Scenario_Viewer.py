@@ -35,22 +35,45 @@ DIMENSION_LABELS = {
 # ---------------------------------------------------------------------------
 
 
+def _normalize(sc: dict) -> dict:
+    """Ensure scenario always has a 'scenario_id' key (base scenarios use base_scenario_id)."""
+    if "scenario_id" not in sc:
+        sc = {**sc, "scenario_id": sc.get("base_scenario_id", "")}
+    return sc
+
+
+def _find_scenarios_path(version: str) -> tuple[Path, str]:
+    """Return (path, label) for the best available scenario file."""
+    final_path = DATASETS_DIR / version / "final" / "scenarios.jsonl"
+    if final_path.exists():
+        return final_path, "final"
+    inter_path = DATASETS_DIR / version / "intermediate" / "base_scenarios_deduped.jsonl"
+    if inter_path.exists():
+        return inter_path, "intermediate"
+    return final_path, "final"  # will simply be empty
+
+
 @st.cache_data(show_spinner="Loading dataset…")
 def load_dataset(version: str, model_stem: str) -> list[dict]:
     """Merge scenarios, responses, and judge scores into flat rows."""
-    base = DATASETS_DIR / version / "final"
+    scenarios_path, _ = _find_scenarios_path(version)
+    scenarios: dict[str, dict] = {}
+    if scenarios_path.exists():
+        for r in read_jsonl(scenarios_path):
+            r = _normalize(r)
+            scenarios[r["scenario_id"]] = r
 
-    scenarios = {r["scenario_id"]: r for r in read_jsonl(base / "scenarios.jsonl")}
-
-    resp_path = base / "responses" / f"{model_stem}.jsonl"
     responses: dict[str, dict] = {}
-    if resp_path.exists():
-        responses = {r["scenario_id"]: r for r in read_jsonl(resp_path)}
+    if model_stem:
+        resp_path = DATASETS_DIR / version / "final" / "responses" / f"{model_stem}.jsonl"
+        if resp_path.exists():
+            responses = {r["scenario_id"]: r for r in read_jsonl(resp_path)}
 
-    judge_path = base / "judge_scores" / f"{model_stem}.jsonl"
     judge_scores: dict[str, dict] = {}
-    if judge_path.exists():
-        judge_scores = {r["scenario_id"]: r for r in read_jsonl(judge_path)}
+    if model_stem:
+        judge_path = DATASETS_DIR / version / "final" / "judge_scores" / f"{model_stem}.jsonl"
+        if judge_path.exists():
+            judge_scores = {r["scenario_id"]: r for r in read_jsonl(judge_path)}
 
     rows: list[dict] = []
     for sid, sc in scenarios.items():
@@ -158,9 +181,13 @@ def render_detail(row: dict) -> None:
 
     st.markdown(f"### Scenario `{row['scenario_id']}`")
     col1, col2, col3 = st.columns(3)
-    col1.markdown(risk_badge(row["risk_level"]), unsafe_allow_html=True)
+    if row["risk_level"]:
+        col1.markdown(risk_badge(row["risk_level"]), unsafe_allow_html=True)
+    else:
+        col1.markdown("*risk level not yet assigned*")
     col2.markdown(f"**Domain:** {row['domain']}")
-    col3.markdown(f"**Industry:** {row['industry']}")
+    if row["industry"]:
+        col3.markdown(f"**Industry:** {row['industry']}")
 
     tab_sc, tab_resp, tab_eval, tab_trace = st.tabs(
         ["Scenario", "Response", "Evaluation", "Trace"]
@@ -180,40 +207,47 @@ def render_detail(row: dict) -> None:
         st.text_area("Prompt", value=sc.get("prompt", ""), height=200, disabled=True, label_visibility="collapsed")
 
         constraints = sc.get("constraints", {})
-        st.markdown("#### Constraints")
-        musts = constraints.get("must", [])
-        must_nots = constraints.get("must_not", [])
+        if constraints:
+            st.markdown("#### Constraints")
+            musts = constraints.get("must", [])
+            must_nots = constraints.get("must_not", [])
 
-        if musts:
-            st.markdown("**MUST**")
-            pills_html = " ".join(pill(m, "#2d7a2d") for m in musts)
-            st.markdown(pills_html, unsafe_allow_html=True)
-        if must_nots:
-            st.markdown("**MUST NOT**")
-            pills_html = " ".join(pill(m, "#b22222") for m in must_nots)
-            st.markdown(pills_html, unsafe_allow_html=True)
+            if musts:
+                st.markdown("**MUST**")
+                pills_html = " ".join(pill(m, "#2d7a2d") for m in musts)
+                st.markdown(pills_html, unsafe_allow_html=True)
+            if must_nots:
+                st.markdown("**MUST NOT**")
+                pills_html = " ".join(pill(m, "#b22222") for m in must_nots)
+                st.markdown(pills_html, unsafe_allow_html=True)
 
-        fmt = constraints.get("format", {})
-        if fmt.get("required"):
-            st.markdown(f"**Format required:** {fmt.get('type', '')} — {fmt.get('notes', '')}")
+            fmt = constraints.get("format", {})
+            if fmt.get("required"):
+                st.markdown(f"**Format required:** {fmt.get('type', '')} — {fmt.get('notes', '')}")
 
-        st.markdown("#### Governance Triggers")
         triggers = sc.get("governance_triggers", {})
-        active = [k for k, v in triggers.items() if v]
-        inactive = [k for k, v in triggers.items() if not v]
-        if active:
-            st.markdown(" ".join(pill(t.replace("_", " "), "#1a6ab5") for t in active), unsafe_allow_html=True)
-        if inactive:
-            inactive_html = " ".join(
-                f'<span style="background:#ccc;color:#555;padding:2px 10px;border-radius:12px;font-size:0.8em;margin:2px;display:inline-block">{t.replace("_", " ")}</span>'
-                for t in inactive
-            )
-            st.markdown(inactive_html, unsafe_allow_html=True)
+        if triggers:
+            st.markdown("#### Governance Triggers")
+            active = [k for k, v in triggers.items() if v]
+            inactive = [k for k, v in triggers.items() if not v]
+            if active:
+                st.markdown(" ".join(pill(t.replace("_", " "), "#1a6ab5") for t in active), unsafe_allow_html=True)
+            if inactive:
+                inactive_html = " ".join(
+                    f'<span style="background:#ccc;color:#555;padding:2px 10px;border-radius:12px;font-size:0.8em;margin:2px;display:inline-block">{t.replace("_", " ")}</span>'
+                    for t in inactive
+                )
+                st.markdown(inactive_html, unsafe_allow_html=True)
 
-        st.markdown("#### Risk Reasons")
         reasons = sc.get("risk_reasons", [])
         if reasons:
+            st.markdown("#### Risk Reasons")
             st.markdown(", ".join(f"`{r}`" for r in reasons))
+
+        render_vars = sc.get("render_vars", {})
+        if render_vars:
+            st.markdown("#### Render Vars")
+            st.json(render_vars)
 
     # ------------------------------------------------------------------
     # Response tab
@@ -280,35 +314,40 @@ def render_detail(row: dict) -> None:
         mutation_trace = sc.get("mutation_trace", {})
         seed_trace = sc.get("seed_trace", {})
 
-        st.markdown("#### Mutation Chain")
-        base_id = mutation_trace.get("base_scenario_id", "—")
-        st.markdown(f"**Base scenario:** `{base_id}` → `{row['scenario_id']}`")
+        if mutation_trace:
+            st.markdown("#### Mutation Chain")
+            base_id = mutation_trace.get("base_scenario_id", "—")
+            st.markdown(f"**Base scenario:** `{base_id}` → `{row['scenario_id']}`")
 
-        mutations = mutation_trace.get("mutations", [])
-        if mutations:
-            for m in mutations:
-                st.markdown(
-                    f"- **Family:** `{m.get('family', '—')}` | **ID:** `{m.get('mutation_id', '—')}`"
-                )
-                params = m.get("params", {})
-                if params:
-                    st.json(params)
+            mutations = mutation_trace.get("mutations", [])
+            if mutations:
+                for m in mutations:
+                    st.markdown(
+                        f"- **Family:** `{m.get('family', '—')}` | **ID:** `{m.get('mutation_id', '—')}`"
+                    )
+                    params = m.get("params", {})
+                    if params:
+                        st.json(params)
+            else:
+                st.markdown("_No mutations recorded._")
         else:
-            st.markdown("_No mutations recorded._")
+            st.markdown("#### Base Scenario")
+            st.markdown(f"**ID:** `{sc.get('base_scenario_id', sc.get('scenario_id', '—'))}`")
+            st.markdown(f"**Obligation:** `{sc.get('obligation_id', '—')}`")
+            st.markdown(f"**Template:** `{sc.get('template_id', '—')}`")
 
-        st.markdown("#### Obligation Sources")
-        sources = seed_trace.get("sources", [])
-        obl_ids = seed_trace.get("obligation_ids", [])
-        if obl_ids:
-            st.markdown(f"**Obligation IDs:** {', '.join(f'`{o}`' for o in obl_ids)}")
-        if sources:
-            for src in sources:
-                st.markdown(
-                    f"- **{src.get('source_type', '?')}** — {src.get('source_ref', '?')} "
-                    f"(excerpt `{src.get('excerpt_id', '?')}`)"
-                )
-        else:
-            st.markdown("_No obligation sources recorded._")
+        if seed_trace:
+            st.markdown("#### Obligation Sources")
+            sources = seed_trace.get("sources", [])
+            obl_ids = seed_trace.get("obligation_ids", [])
+            if obl_ids:
+                st.markdown(f"**Obligation IDs:** {', '.join(f'`{o}`' for o in obl_ids)}")
+            if sources:
+                for src in sources:
+                    st.markdown(
+                        f"- **{src.get('source_type', '?')}** — {src.get('source_ref', '?')} "
+                        f"(excerpt `{src.get('excerpt_id', '?')}`)"
+                    )
 
 
 # ---------------------------------------------------------------------------
@@ -333,11 +372,15 @@ def main() -> None:
         version = st.selectbox("Version", versions, index=len(versions) - 1)
 
         models = discover_models(version)
-        if not models:
-            st.warning("No model response files found for this version.")
-            st.stop()
-
-        model_stem = st.selectbox("Model", models)
+        if models:
+            model_stem = st.selectbox("Model", models)
+        else:
+            model_stem = ""
+            _, stage = _find_scenarios_path(version)
+            if stage == "intermediate":
+                st.info("Showing base scenarios (render stage). Run `make validate` and `make infer` for full results.")
+            else:
+                st.info("No inference results yet. Run `make infer` to add model responses.")
 
         st.divider()
         st.header("Filters")
@@ -348,7 +391,7 @@ def main() -> None:
     rows = load_dataset(version, model_stem)
 
     if not rows:
-        st.warning("Dataset is empty.")
+        st.warning("No scenarios found. Run `make render` (or `make validate`) to generate them.")
         st.stop()
 
     # Derive filter options from the data
@@ -375,9 +418,9 @@ def main() -> None:
     # ------------------------------------------------------------------
     filtered: list[dict] = []
     for r in rows:
-        if r["risk_level"] not in risk_filter:
+        if all_risks and r["risk_level"] not in risk_filter:
             continue
-        if r["domain"] not in domain_filter:
+        if all_domains and r["domain"] not in domain_filter:
             continue
         grs = r["grs_score"]
         if grs is not None and not (grs_range[0] <= grs <= grs_range[1]):
@@ -404,7 +447,7 @@ def main() -> None:
             {
                 "ID": r["scenario_id"],
                 "Domain": r["domain"],
-                "Risk": r["risk_level"],
+                "Risk": r["risk_level"] or "—",
                 "Mutation family": r["mutation_family"] or "—",
                 "GRS": f"{r['grs_score']:.2f}" if r["grs_score"] is not None else "—",
                 "Boundary": _fmt_score(r.get("score_boundary_management")),

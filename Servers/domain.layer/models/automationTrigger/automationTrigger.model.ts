@@ -154,8 +154,8 @@ export class AutomationTriggerModel extends Model<AutomationTriggerModel> implem
       label: this.label,
       event_name: this.event_name,
       description: this.description,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

@@ -128,8 +128,8 @@ export class ShareLinkModel extends Model<ShareLinkModel> implements IShareLink 
       settings: this.settings,
       is_enabled: this.is_enabled,
       expires_at: this.expires_at,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

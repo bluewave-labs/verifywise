@@ -411,8 +411,8 @@ export class NotesModel extends Model<NotesModel> {
       attached_to_id: this.attached_to_id,
       organization_id: this.organization_id,
       is_edited: this.is_edited,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 

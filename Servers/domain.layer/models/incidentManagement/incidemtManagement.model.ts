@@ -248,8 +248,8 @@ export class AIIncidentManagementModel
             approved_by: this.approved_by,
             approval_date: this.approval_date?.toISOString() || null,
             approval_notes: this.approval_notes,
-            created_at: this.created_at?.toISOString(),
-            updated_at: this.updated_at?.toISOString(),
+            created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+            updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
         };
     }
 
@@ -288,8 +288,8 @@ export class AIIncidentManagementModel
             approved_by: this.approved_by,
             approval_date: this.approval_date?.toISOString() || null,
             approval_notes: this.approval_notes,
-            created_at: this.created_at?.toISOString(),
-            updated_at: this.updated_at?.toISOString(),
+            created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+            updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
         };
     }
 

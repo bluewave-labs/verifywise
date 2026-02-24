@@ -290,7 +290,7 @@ export class FrameworkModel
       id: this.id,
       name: this.name,
       description: this.description,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
     };
   }
 
@@ -302,7 +302,7 @@ export class FrameworkModel
       id: this.id,
       name: this.name,
       description: this.description,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       is_organizational: this.is_organizational,
       ageInDays: this.getAgeInDays(),
       isActive: this.isActive(),
@@ -456,7 +456,7 @@ export class FrameworkModel
       id: this.id,
       name: this.name,
       description: this.description,
-      created_at: this.created_at,
+      created_at: (this.createdAt ?? this.created_at),
       ageInDays: this.getAgeInDays(),
       isActive: this.isActive(),
       isRecent: this.isRecent(),

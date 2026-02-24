@@ -277,8 +277,8 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       priority: this.priority,
       status: this.status,
       categories: this.categories,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 
@@ -297,8 +297,8 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       priority: this.priority,
       status: this.status,
       categories: this.categories,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
       isOverdue: this.isOverdue(),
       // Include dynamically added properties from queries
       assignees: dataValues?.assignees,

@@ -624,7 +624,7 @@ export class ControlModel extends Model<ControlModel> implements IControl {
       implementation_details: this.implementation_details,
       control_category_id: this.control_category_id,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       isOverdue: this.isOverdue(),
       isCompleted: this.isCompleted(),
       progressPercentage: this.getProgressPercentage(),

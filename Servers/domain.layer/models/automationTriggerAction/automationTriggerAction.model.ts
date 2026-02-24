@@ -206,8 +206,8 @@ export class AutomationTriggerActionModel extends Model<AutomationTriggerActionM
       action_id: this.action_id,
       trigger: this.trigger?.toJSON(),
       action: this.action?.toJSON(),
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

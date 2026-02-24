@@ -123,7 +123,7 @@ export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPo
       review_comment: this.review_comment,
       reviewed_by: this.reviewed_by,
       reviewed_at: this.reviewed_at,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
     };
   }
 

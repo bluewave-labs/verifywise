@@ -185,7 +185,7 @@ export class ProjectModel
       last_updated: this.last_updated?.toISOString(),
       last_updated_by: this.last_updated_by,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       is_organizational: this.is_organizational,
       status: this.status,
       _source: (this as any)._source,

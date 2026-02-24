@@ -364,7 +364,7 @@ export class OrganizationModel
       id: this.id,
       name: this.name,
       logo: this.logo,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       onboarding_status: this.onboarding_status,
     };
   }
@@ -377,7 +377,7 @@ export class OrganizationModel
       id: this.id,
       name: this.name,
       logo: this.logo,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       onboarding_status: this.onboarding_status,
       ageInDays: this.getAgeInDays(),
     };

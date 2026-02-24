@@ -51,7 +51,7 @@ export class DatasetProjectModel
       id: this.id,
       dataset_id: this.dataset_id,
       project_id: this.project_id,
-      created_at: this.created_at?.toISOString?.() || this.created_at,
+      created_at: (this.createdAt ?? this.created_at)?.toISOString?.() || this.createdAt || this.created_at,
     };
   }
 

@@ -158,8 +158,8 @@ export class AutomationActionModel extends Model<AutomationActionModel> implemen
       label: this.label,
       description: this.description,
       default_params: this.default_params,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

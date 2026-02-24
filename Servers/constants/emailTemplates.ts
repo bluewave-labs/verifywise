@@ -33,6 +33,7 @@ export const EMAIL_TEMPLATES = {
 
   // Task templates
   TASK_ASSIGNED: "task-assigned.mjml",
+  TASK_UPDATED: "task-updated.mjml",
 
   // Review templates
   REVIEW_REQUESTED: "review-requested.mjml",

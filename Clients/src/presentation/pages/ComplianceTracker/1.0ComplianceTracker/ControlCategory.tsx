@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronRight } from "lucide-react";
 import ControlsTable from "./ControlsTable";
 
@@ -32,6 +32,7 @@ interface ControlCategoryProps {
   ownerFilter?: string;
   approverFilter?: string;
   dueDateFilter?: string;
+  initialControlCategoryId?: number | null;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
@@ -42,10 +43,24 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   statusFilter,
   ownerFilter,
   approverFilter,
-  dueDateFilter
+  dueDateFilter,
+  initialControlCategoryId,
 }) => {
-  const [expanded, setExpanded] = useState<number | false>(false);
+  // Auto-expand if this category matches the initialControlCategoryId
+  const [expanded, setExpanded] = useState<number | false>(() => {
+    if (initialControlCategoryId && controlCategory.id === initialControlCategoryId) {
+      return controlCategory.id;
+    }
+    return false;
+  });
   const [filteredControlsCount, setFilteredControlsCount] = useState<number | null>(null);
+
+  // Update expanded state when initialControlCategoryId changes
+  useEffect(() => {
+    if (initialControlCategoryId && controlCategory.id === initialControlCategoryId) {
+      setExpanded(controlCategory.id);
+    }
+  }, [initialControlCategoryId, controlCategory.id]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {

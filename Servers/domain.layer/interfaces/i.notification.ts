@@ -5,6 +5,7 @@
 export enum NotificationType {
   // Task notifications
   TASK_ASSIGNED = "task_assigned",
+  TASK_UPDATED = "task_updated",
   TASK_COMPLETED = "task_completed",
 
   // Review notifications

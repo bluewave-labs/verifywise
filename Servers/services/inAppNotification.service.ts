@@ -126,6 +126,218 @@ export const sendBulkInAppNotifications = async (
 };
 
 /**
+ * Entity link for task notifications
+ */
+export interface ITaskEntityLinkForEmail {
+  entity_id: number;
+  entity_type: string;
+  entity_name: string;
+}
+
+/**
+ * Format a date string for display in emails
+ */
+function formatDateForEmail(dateStr?: string): string {
+  if (!dateStr) return "No due date";
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * Get a human-readable label for entity type
+ */
+function getEntityTypeLabel(entityType: string): string {
+  const labels: Record<string, string> = {
+    vendor: "Vendor",
+    model: "Model",
+    policy: "Policy",
+    nist_subcategory: "NIST AI RMF",
+    iso42001_subclause: "ISO 42001",
+    iso42001_annexcategory: "ISO 42001 Annex",
+    iso27001_subclause: "ISO 27001",
+    iso27001_annexcontrol: "ISO 27001 Annex",
+    eu_control: "EU AI Act",
+    eu_subcontrol: "EU AI Act",
+  };
+  return labels[entityType] || entityType;
+}
+
+/**
+ * Build URL for entities - queries DB for parent context when needed
+ */
+async function buildEntityUrlAsync(
+  baseUrl: string,
+  entityType: string,
+  entityId: number,
+  tenantId: string
+): Promise<string | null> {
+  switch (entityType) {
+    case "vendor":
+      return `${baseUrl}/vendors?vendorId=${entityId}`;
+    case "model":
+      return `${baseUrl}/model-inventory?modelId=${entityId}`;
+    case "policy":
+      return `${baseUrl}/policies?policyId=${entityId}`;
+
+    case "nist_subcategory": {
+      // Get function type and category info for NIST
+      const result = await sequelize.query<{ func_type: string; category_id: number }>(
+        `SELECT f.type as func_type, c.id as category_id
+         FROM "${tenantId}".nist_ai_rmf_subcategories s
+         JOIN public.nist_ai_rmf_categories c ON s.category_id = c.id
+         JOIN public.nist_ai_rmf_functions f ON c.function_id = f.id
+         WHERE s.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        // Tabs expect lowercase: govern, map, measure, manage
+        const funcType = result[0].func_type.toLowerCase();
+        return `${baseUrl}/framework?framework=nist-ai-rmf&functionId=${funcType}&categoryId=${result[0].category_id}&subcategoryId=${entityId}`;
+      }
+      return null;
+    }
+
+    case "iso42001_subclause": {
+      // Get clause ID for ISO 42001 subclause - join with struct table
+      const result = await sequelize.query<{ clause_id: number }>(
+        `SELECT scs.clause_id
+         FROM "${tenantId}".subclauses_iso sc
+         JOIN public.subclauses_struct_iso scs ON sc.subclause_meta_id = scs.id
+         WHERE sc.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        return `${baseUrl}/framework?framework=iso-42001&clauseId=${result[0].clause_id}&subClauseId=${entityId}`;
+      }
+      return null;
+    }
+
+    case "iso42001_annexcategory": {
+      // Get annex ID for ISO 42001 annex category - join with struct table
+      const result = await sequelize.query<{ annex_id: number }>(
+        `SELECT acs.annex_id
+         FROM "${tenantId}".annexcategories_iso ac
+         JOIN public.annexcategories_struct_iso acs ON ac.annexcategory_meta_id = acs.id
+         WHERE ac.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        return `${baseUrl}/framework?framework=iso-42001&annexId=${result[0].annex_id}&annexCategoryId=${entityId}`;
+      }
+      return null;
+    }
+
+    case "iso27001_subclause": {
+      // Get clause ID for ISO 27001 subclause - join with struct table
+      const result = await sequelize.query<{ clause_id: number }>(
+        `SELECT scs.clause_id
+         FROM "${tenantId}".subclauses_iso27001 sc
+         JOIN public.subclauses_struct_iso27001 scs ON sc.subclause_meta_id = scs.id
+         WHERE sc.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        return `${baseUrl}/framework?framework=iso-27001&clause27001Id=${result[0].clause_id}&subClause27001Id=${entityId}`;
+      }
+      return null;
+    }
+
+    case "iso27001_annexcontrol": {
+      // Get annex ID for ISO 27001 annex control - join with struct table
+      const result = await sequelize.query<{ annex_id: number }>(
+        `SELECT acs.annex_id
+         FROM "${tenantId}".annexcontrols_iso27001 ac
+         JOIN public.annexcontrols_struct_iso27001 acs ON ac.annexcontrol_meta_id = acs.id
+         WHERE ac.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        return `${baseUrl}/framework?framework=iso-27001&annex27001Id=${result[0].annex_id}&annexControl27001Id=${entityId}`;
+      }
+      return null;
+    }
+
+    case "eu_control": {
+      // EU AI Act controls - need project_id via projects_frameworks join
+      const result = await sequelize.query<{ project_id: number }>(
+        `SELECT pf.project_id
+         FROM "${tenantId}".controls_eu c
+         JOIN "${tenantId}".projects_frameworks pf ON c.projects_frameworks_id = pf.id
+         WHERE c.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        return `${baseUrl}/project-view?projectId=${result[0].project_id}&tab=frameworks&framework=eu-ai-act&subtab=compliance&controlId=${entityId}`;
+      }
+      return null;
+    }
+
+    case "eu_subcontrol": {
+      // EU AI Act subcontrols - need project_id via controls_eu and projects_frameworks join
+      const result = await sequelize.query<{ project_id: number; control_id: number }>(
+        `SELECT pf.project_id, sc.control_id
+         FROM "${tenantId}".subcontrols_eu sc
+         JOIN "${tenantId}".controls_eu c ON sc.control_id = c.id
+         JOIN "${tenantId}".projects_frameworks pf ON c.projects_frameworks_id = pf.id
+         WHERE sc.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]) {
+        return `${baseUrl}/project-view?projectId=${result[0].project_id}&tab=frameworks&framework=eu-ai-act&subtab=compliance&controlId=${result[0].control_id}&subControlId=${entityId}`;
+      }
+      return null;
+    }
+
+    default:
+      return null;
+  }
+}
+
+/**
+ * Build HTML for entity links to include in email
+ * All entity types get clickable links (queries DB for parent context when needed)
+ */
+async function buildEntityLinksHtml(
+  baseUrl: string,
+  entityLinks: ITaskEntityLinkForEmail[],
+  tenantId: string
+): Promise<string> {
+  if (!entityLinks || entityLinks.length === 0) {
+    return "";
+  }
+
+  const linkRows: string[] = [];
+  for (const link of entityLinks) {
+    const displayName = link.entity_name || `${link.entity_type} #${link.entity_id}`;
+    const typeLabel = getEntityTypeLabel(link.entity_type);
+
+    let url: string | null = null;
+    try {
+      url = await buildEntityUrlAsync(baseUrl, link.entity_type, link.entity_id, tenantId);
+    } catch (error) {
+      console.error(`Failed to build URL for ${link.entity_type}:${link.entity_id}:`, error);
+    }
+
+    const nameHtml = url
+      ? `<a href="${url}" style="color: #13715B; text-decoration: none; font-weight: 500;">${displayName}</a>`
+      : `<span style="font-weight: 500;">${displayName}</span>`;
+
+    linkRows.push(`<tr><td style="color: #667085; padding: 4px 0; font-size: 13px; vertical-align: top;">${typeLabel}:</td><td style="color: #344054; padding: 4px 0 4px 8px; font-size: 13px;">${nameHtml}</td></tr>`);
+  }
+
+  return `<table style="width: 100%; margin: 16px 0;"><tr><td colspan="2" style="color: #344054; font-weight: 500; padding-bottom: 8px;">Items to complete:</td></tr>${linkRows.join("")}</table>`;
+}
+
+/**
  * Notify task assignment
  */
 export const notifyTaskAssigned = async (
@@ -137,11 +349,15 @@ export const notifyTaskAssigned = async (
     description?: string;
     priority: string;
     due_date?: string;
+    entity_links?: ITaskEntityLinkForEmail[];
   },
   assignerName: string,
   baseUrl: string
 ): Promise<void> => {
   const assignee = await getUserById(assigneeId);
+
+  // Build entity links HTML for email (async - queries DB for parent context)
+  const entityLinksHtml = await buildEntityLinksHtml(baseUrl, task.entity_links || [], tenantId);
 
   await sendInAppNotification(
     tenantId,
@@ -165,8 +381,63 @@ export const notifyTaskAssigned = async (
         task_title: task.title,
         task_description: task.description || "No description provided",
         task_priority: task.priority,
-        task_due_date: task.due_date || "No due date",
+        task_due_date: formatDateForEmail(task.due_date),
         task_url: `${baseUrl}/tasks?taskId=${task.id}`,
+        entity_links_html: entityLinksHtml,
+      },
+    }
+  );
+};
+
+/**
+ * Notify task updated
+ */
+export const notifyTaskUpdated = async (
+  tenantId: string,
+  assigneeId: number,
+  task: {
+    id: number;
+    title: string;
+    description?: string;
+    priority: string;
+    status: string;
+    due_date?: string;
+    entity_links?: ITaskEntityLinkForEmail[];
+  },
+  updaterName: string,
+  baseUrl: string
+): Promise<void> => {
+  const assignee = await getUserById(assigneeId);
+
+  // Build entity links HTML for email (async - queries DB for parent context)
+  const entityLinksHtml = await buildEntityLinksHtml(baseUrl, task.entity_links || [], tenantId);
+
+  await sendInAppNotification(
+    tenantId,
+    {
+      user_id: assigneeId,
+      type: NotificationType.TASK_UPDATED,
+      title: "Task updated",
+      message: `${updaterName} updated task: ${task.title}`,
+      entity_type: NotificationEntityType.TASK,
+      entity_id: task.id,
+      entity_name: task.title,
+      action_url: `/tasks?taskId=${task.id}`,
+    },
+    true,
+    {
+      template: EMAIL_TEMPLATES.TASK_UPDATED,
+      subject: `Task updated: ${task.title}`,
+      variables: {
+        assignee_name: assignee ? `${assignee.name}` : "User",
+        updater_name: updaterName,
+        task_title: task.title,
+        task_description: task.description || "No description provided",
+        task_priority: task.priority,
+        task_status: task.status,
+        task_due_date: formatDateForEmail(task.due_date),
+        task_url: `${baseUrl}/tasks?taskId=${task.id}`,
+        entity_links_html: entityLinksHtml,
       },
     }
   );

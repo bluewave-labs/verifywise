@@ -11,10 +11,10 @@
     <mj-section text-align="left" padding="0px">
       <mj-column width="100%" vertical-align="top">
         <mj-text align="left">
-          <h2 style="color: #2c3e50; margin-bottom: 20px;">New task assigned to you</h2>
+          <h2 style="color: #2c3e50; margin-bottom: 20px;">Task updated</h2>
           <p>Hi {{assignee_name}},</p>
-          <p><strong>{{assigner_name}}</strong> has assigned you a new task:</p>
-          <div style="background-color: #f8f9fa; padding: 16px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #13715B;">
+          <p><strong>{{updater_name}}</strong> has updated a task you're assigned to:</p>
+          <div style="background-color: #f8f9fa; padding: 16px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #3498db;">
             <p style="margin: 0 0 8px 0; font-weight: 500; color: #2c3e50;">{{task_title}}</p>
             <p style="margin: 0; color: #667085; font-size: 13px;">{{task_description}}</p>
           </div>
@@ -24,13 +24,17 @@
               <td style="color: #344054; padding: 4px 0;"><strong>{{task_priority}}</strong></td>
             </tr>
             <tr>
+              <td style="color: #667085; padding: 4px 0;">Status:</td>
+              <td style="color: #344054; padding: 4px 0;"><strong>{{task_status}}</strong></td>
+            </tr>
+            <tr>
               <td style="color: #667085; padding: 4px 0;">Due date:</td>
               <td style="color: #344054; padding: 4px 0;"><strong>{{task_due_date}}</strong></td>
             </tr>
           </table>
           {{entity_links_html}}
         </mj-text>
-        <mj-button href="{{task_url}}" background-color="#13715B" color="white" border-radius="4px" font-weight="500" padding="20px 0">
+        <mj-button href="{{task_url}}" background-color="#3498db" color="white" border-radius="4px" font-weight="500" padding="20px 0">
           View task
         </mj-button>
         <mj-text align="left">

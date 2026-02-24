@@ -127,13 +127,14 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   useEffect(() => {
     if (controlId) {
+      // API returns 'control_id' as the actual control ID from controls_eu table
       const controlExists = controls.find(
-        (control) => control.id === Number(controlId)
+        (control: any) => control.control_id === Number(controlId)
       );
       if (controlExists) {
         (async () => {
           const subControlsResponse = await getControlByIdAndProject({
-            controlId: controlExists.id!,
+            controlId: (controlExists as any).control_id,
             projectFrameworkId,
             owner: ownerFilter,
             approver: approverFilter,

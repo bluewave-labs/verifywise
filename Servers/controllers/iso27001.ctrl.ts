@@ -478,6 +478,7 @@ export async function getClausesByProjectId(
     });
     return res.status(400).json(STATUS_CODE[400]("No sub clauses found"));
   } catch (error) {
+    console.error(`[ISO27001 Ctrl] ERROR in getClausesByProjectId:`, error);
     await logFailure({
       eventType: "Read",
       description: `Failed to retrieve clauses for project framework ID ${projectFrameworkId}`,

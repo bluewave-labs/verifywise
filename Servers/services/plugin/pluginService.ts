@@ -735,6 +735,14 @@ export class PluginService {
    */
   private static async downloadAndLoadPlugin(plugin: Plugin): Promise<any> {
     try {
+      // Guard: built-in plugins should never reach here — they don't have remote code
+      if (plugin.pluginPath === "__builtin__" || plugin.entryPoint === "__builtin__") {
+        throw new Error(
+          `Built-in plugin '${sanitizeForLog(plugin.key)}' cannot be downloaded. ` +
+          `Ensure callers check isBuiltinPlugin() before calling loadPluginCode().`
+        );
+      }
+
       // 1. Setup paths
       const tempPath = path.join(__dirname, "../../../temp/plugins", plugin.key);
       const entryPointPath = path.join(tempPath, plugin.entryPoint);

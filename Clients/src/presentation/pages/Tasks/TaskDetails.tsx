@@ -238,10 +238,9 @@ const TaskDetails: React.FC = () => {
 
   const { users } = useUsers();
 
-  // NEW: Fetch mapping master data
+  // Fetch mapping master data
   const { isLoading: mappingLoading, mapIdsToNames } = useTaskMappings();
 
-  // ✅ NEW: shared fetchTask so we can refetch after mapping save
   const fetchTask = useCallback(async () => {
     if (!id) return;
     try {
@@ -261,21 +260,14 @@ const TaskDetails: React.FC = () => {
     }
   }, [id]);
 
-  // Fetch task on mount or when id changes
+
   useEffect(() => {
     void fetchTask();
   }, [fetchTask]);
 
-  // NEW: Memoize mapped display names
+  // mapped display names
   const mappedNames = useMemo(() => {
-    if (!task)
-      return {
-        useCases: [],
-        models: [],
-        frameworks: [],
-        vendors: [],
-      };
-
+    if (!task) return {};
     return {
       useCases: mapIdsToNames((task as any).use_cases, "useCaseMap"),
       models: mapIdsToNames((task as any).models, "modelMap"),
@@ -358,7 +350,7 @@ const TaskDetails: React.FC = () => {
     [task?.id]
   );
 
-  // ✅ FIX: After mappings save, refetch task so UI updates instantly + modal gets latest task on reopen
+  // ✅ FIX: refetch task after mappings update so UI updates instantly and modal gets latest task next open
   const handleMappingsUpdate = useCallback(
     async (_updatedTask: TaskModel) => {
       setIsEditMappingsModalOpen(false);
@@ -654,28 +646,28 @@ const TaskDetails: React.FC = () => {
             <Box sx={{ px: "24px", py: "24px" }}>
               <Stack spacing="24px">
                 <MappingSection
-                  title="USE CASES"
+                  title="Use cases"
                   items={mappedNames.useCases}
                   type="usecase"
                   isLoading={mappingLoading}
                 />
                 <Divider />
                 <MappingSection
-                  title="MODELS"
+                  title="Models"
                   items={mappedNames.models}
                   type="model"
                   isLoading={mappingLoading}
                 />
                 <Divider />
                 <MappingSection
-                  title="FRAMEWORKS"
+                  title="Frameworks"
                   items={mappedNames.frameworks}
                   type="framework"
                   isLoading={mappingLoading}
                 />
                 <Divider />
                 <MappingSection
-                  title="VENDORS"
+                  title="Vendors"
                   items={mappedNames.vendors}
                   type="vendor"
                   isLoading={mappingLoading}

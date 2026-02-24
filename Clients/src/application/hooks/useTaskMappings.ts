@@ -1,47 +1,56 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { getAllProjects } from "../repository/project.repository";
-import { getAllFrameworks } from "../repository/entity.repository";
+import { getAllFrameworks, getAllEntities } from "../repository/entity.repository";
 import { getAllVendors } from "../repository/vendor.repository";
-import { getAllEntities } from "../repository/entity.repository";
 
-/**
- * Mapping structure
- */
-export interface MappingOption {
-  id: string | number;
-  label: string;
-}
+// import type { MappingOption } from "../../domain/types/mapping-option.type";
+import type {
+  TaskMappingKey,
+  TaskMappingMaps,
+  TaskMappingsState,
+  MappingOption
+} from "../../domain/types/task-mappings.type";
 
-/**
- * Master data maps
- */
-export interface TaskMappingMaps {
-  useCaseMap: Map<string, string>;
-  modelMap: Map<string, string>;
-  frameworkMap: Map<string, string>;
-  vendorMap: Map<string, string>;
-}
+const toMappingOptions = <T,>(
+  items: T[],
+  getId: (item: T) => string,
+  getLabel: (item: T) => string
+): MappingOption[] =>
+  items.map((item) => ({
+    id: getId(item),
+    label: getLabel(item) || "Unknown",
+  }));
+
+const buildMap = (options: MappingOption[]): Map<string, string> => {
+  const map = new Map<string, string>();
+  options.forEach((o) => map.set(String(o.id), o.label));
+  return map;
+};
 
 /**
  * Hook to fetch and manage task mapping data
  * Loads all data in parallel with caching
+ *
+ * NOTE: This hook only owns mapping/master-data + mapping helpers.
+ * No UI logic, no domain mutations.
  */
 export const useTaskMappings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [useCases, setUseCases] = useState<MappingOption[]>([]);
-  const [models, setModels] = useState<MappingOption[]>([]);
-  const [frameworks, setFrameworks] = useState<MappingOption[]>([]);
-  const [vendors, setVendors] = useState<MappingOption[]>([]);
 
-  // Fetch all master data
+  const [state, setState] = useState<TaskMappingsState>({
+    useCases: [],
+    models: [],
+    frameworks: [],
+    vendors: [],
+  });
+
   const fetchMappingData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Fetch in parallel
       const [projectsRes, frameworksRes, vendorsRes, modelsRes] = await Promise.all([
         getAllProjects(),
         getAllFrameworks(),
@@ -49,36 +58,41 @@ export const useTaskMappings = () => {
         getAllEntities({ routeUrl: "/modelInventory" }),
       ]);
 
-      // Transform projects → use cases
-      const projectsList = (projectsRes?.data?.projects || projectsRes?.data || []).map(
-        (p: any) => ({
-          id: String(p.id),
-          label: p.project_title || "Unknown",
-        })
+      const projectsRaw = projectsRes?.data?.projects || projectsRes?.data || [];
+      const frameworksRaw = frameworksRes?.data || [];
+      const vendorsRaw = vendorsRes?.data || [];
+      const modelsRaw = modelsRes?.data || [];
+
+      const useCases = toMappingOptions(
+        projectsRaw,
+        (p: any) => String(p.id),
+        (p: any) => String(p.project_title|| "Unknown")
       );
 
-      // Transform frameworks
-      const frameworksList = (frameworksRes?.data || []).map((f: any) => ({
-        id: String(f.id),
-        label: f.name || "Unknown",
-      }));
+      const frameworks = toMappingOptions(
+        frameworksRaw,
+        (f: any) => String(f.id),
+        (f: any) => String(f.name|| "Unknown")
+      );
 
-      // Transform vendors
-      const vendorsList = (vendorsRes?.data || []).map((v: any) => ({
-        id: String(v.id),
-        label: v.vendor_name  || "Unknown",
-      }));
+      const vendors = toMappingOptions(
+        vendorsRaw,
+        (v: any) => String(v.id),
+        (v: any) => String(v.vendor_name || "Unknown")
+      );
 
-      // Transform models
-      const modelsList = (modelsRes?.data || []).map((m: any) => ({
-        id: String(m.id),
-        label: m.model || "Unknown",
-      }));
+      const models = toMappingOptions(
+        modelsRaw,
+        (m: any) => String(m.id),
+        (m: any) => String(m.model || "Unknown")
+      );
 
-      setUseCases(projectsList);
-      setModels(modelsList);
-      setFrameworks(frameworksList);
-      setVendors(vendorsList);
+      setState({
+        useCases,
+        models,
+        frameworks,
+        vendors,
+      });
     } catch (err) {
       console.error("Error fetching mapping data:", err);
       setError("Failed to load mapping data");
@@ -87,45 +101,30 @@ export const useTaskMappings = () => {
     }
   }, []);
 
-  // Fetch data on mount
   useEffect(() => {
     fetchMappingData();
   }, [fetchMappingData]);
 
-  // Create ID → Name maps
   const maps = useMemo<TaskMappingMaps>(() => {
-    const useCaseMap = new Map<string, string>();
-    const modelMap = new Map<string, string>();
-    const frameworkMap = new Map<string, string>();
-    const vendorMap = new Map<string, string>();
+    return {
+      useCaseMap: buildMap(state.useCases),
+      modelMap: buildMap(state.models),
+      frameworkMap: buildMap(state.frameworks),
+      vendorMap: buildMap(state.vendors),
+    };
+  }, [state.useCases, state.models, state.frameworks, state.vendors]);
 
-    useCases.forEach((uc) => useCaseMap.set(String(uc.id), uc.label));
-    models.forEach((m) => modelMap.set(String(m.id), m.label));
-    frameworks.forEach((f) => frameworkMap.set(String(f.id), f.label));
-    vendors.forEach((v) => vendorMap.set(String(v.id), v.label));
-
-    return { useCaseMap, modelMap, frameworkMap, vendorMap };
-  }, [useCases, models, frameworks, vendors]);
-
-  /**
-   * Map IDs to their display names
-   */
   const mapIdsToNames = useCallback(
-    (ids: number[] | undefined, mapType: keyof TaskMappingMaps): string[] => {
+    (ids: number[] | undefined, mapType: TaskMappingKey): string[] => {
       if (!ids || ids.length === 0) return [];
       const map = maps[mapType];
-      return ids
-        .map((id) => map.get(String(id)) || `Unknown (${id})`)
-        .filter(Boolean);
+      return ids.map((id) => map.get(String(id)) || `Unknown (${id})`);
     },
     [maps]
   );
 
-  /**
-   * Get single name from ID
-   */
   const getNameById = useCallback(
-    (id: number | undefined, mapType: keyof TaskMappingMaps): string => {
+    (id: number | undefined, mapType: TaskMappingKey): string => {
       if (!id) return "—";
       const map = maps[mapType];
       return map.get(String(id)) || `Unknown (${id})`;
@@ -134,24 +133,19 @@ export const useTaskMappings = () => {
   );
 
   return {
-    // Loading state
     isLoading,
     error,
 
-    // Master data
-    useCases,
-    models,
-    frameworks,
-    vendors,
+    useCases: state.useCases,
+    models: state.models,
+    frameworks: state.frameworks,
+    vendors: state.vendors,
 
-    // Maps
     maps,
 
-    // Utility functions
     mapIdsToNames,
     getNameById,
 
-    // Refetch
     refetch: fetchMappingData,
   };
 };

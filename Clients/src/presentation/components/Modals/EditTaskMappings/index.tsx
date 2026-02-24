@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FC, useState, useCallback, useEffect } from "react";
+import { FC, useState, useCallback, useEffect, useMemo } from "react";
 import {
   useTheme,
   Stack,
@@ -21,6 +21,8 @@ import { getAllVendors } from "../../../../application/repository/vendor.reposit
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import { mapTaskResponseDTOToModel } from "../../../../application/mappers";
 
+import type { MappingOption } from "../../../../domain/types/task-mappings.type";
+
 interface EditTaskMappingsModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -28,19 +30,16 @@ interface EditTaskMappingsModalProps {
   onSuccess?: (updatedTask: TaskModel) => void;
 }
 
-interface MappingData {
-  use_cases: string[]; // store selected IDs
-  models: string[];
-  frameworks: string[];
-  vendors: string[];
-}
+type MappingField = "use_cases" | "models" | "frameworks" | "vendors";
 
-interface DropdownOptions {
-  useCases: { id: string; label: string }[];
-  models: { id: string; label: string }[];
-  frameworks: { id: string; label: string }[];
-  vendors: { id: string; label: string }[];
-}
+type MappingData = Record<MappingField, string[]>;
+
+type DropdownOptions = {
+  useCases: MappingOption[];
+  models: MappingOption[];
+  frameworks: MappingOption[];
+  vendors: MappingOption[];
+};
 
 const normalizeIdsToStringArray = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
@@ -48,9 +47,7 @@ const normalizeIdsToStringArray = (value: unknown): string[] => {
 };
 
 const toNumberIds = (ids: string[]): number[] =>
-  ids
-    .map((id) => Number(id))
-    .filter((n) => Number.isFinite(n) && n > 0);
+  ids.map((id) => Number(id)).filter((n) => Number.isFinite(n) && n > 0);
 
 const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
   isOpen,
@@ -88,33 +85,39 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
           getAllEntities({ routeUrl: "/modelInventory" }),
         ]);
 
-      const projects = (projectsRes?.data?.projects || projectsRes?.data || []).map(
-        (p: any) => ({
-          id: String(p.id),
-          label: p.project_title || "Unknown",
+      const projects: MappingOption[] = (
+        projectsRes?.data?.projects ||
+        projectsRes?.data ||
+        []
+      ).map((p: any) => ({
+        id: String(p.id),
+        label: p.project_title|| "Unknown",
+      }));
+
+      const frameworks: MappingOption[] = (frameworksRes?.data || []).map(
+        (f: any) => ({
+          id: String(f.id),
+          label: f.name || "Unknown",
         })
       );
 
-      const frameworks = (frameworksRes?.data || []).map((f: any) => ({
-        id: String(f.id),
-        label: f.name || "Unknown",
-      }));
+      const vendors: MappingOption[] = (vendorsRes?.data || []).map(
+        (v: any) => ({
+          id: String(v.id),
+          label: v.vendor_name  || "Unknown",
+        })
+      );
 
-      const vendors = (vendorsRes?.data || []).map((v: any) => ({
-        id: String(v.id),
-        label: v.vendor_name || "Unknown",
-      }));
-
-      const models = (modelsRes?.data || []).map((m: any) => ({
+      const models: MappingOption[] = (modelsRes?.data || []).map((m: any) => ({
         id: String(m.id),
         label: m.model || "Unknown",
       }));
 
       setDropdownOptions({
         useCases: projects,
-        models: models,
-        frameworks: frameworks,
-        vendors: vendors,
+        models,
+        frameworks,
+        vendors,
       });
     } catch (err) {
       console.error("Error fetching dropdown options:", err);
@@ -124,14 +127,13 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
     }
   }, []);
 
-  // Fetch dropdown options on open (existing behavior)
   useEffect(() => {
     if (isOpen && !isLoading && dropdownOptions.useCases.length === 0) {
       fetchDropdownOptions();
     }
   }, [isOpen, isLoading, dropdownOptions.useCases.length, fetchDropdownOptions]);
 
-  // ✅ FIX: Prefill selected IDs from task mapping fields (NOT categories)
+  // Prefill from task mapping fields
   useEffect(() => {
     if (isOpen && task) {
       setMappings({
@@ -143,15 +145,12 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
     }
   }, [isOpen, task]);
 
-  const handleMappingChange = useCallback(
-    (field: keyof MappingData, newValues: any[]) => {
-      setMappings((prev) => ({
-        ...prev,
-        [field]: newValues.map((v) => (typeof v === "string" ? v : v.id)),
-      }));
-    },
-    []
-  );
+  const handleMappingChange = useCallback((field: MappingField, newValues: MappingOption[]) => {
+    setMappings((prev) => ({
+      ...prev,
+      [field]: newValues.map((v) => v.id),
+    }));
+  }, []);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
@@ -165,30 +164,22 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
       setIsSubmitting(true);
       setError(null);
 
-      const useCaseIds = toNumberIds(mappings.use_cases);
-      const modelIds = toNumberIds(mappings.models);
-      const frameworkIds = toNumberIds(mappings.frameworks);
-      const vendorIds = toNumberIds(mappings.vendors);
-
-      // Keep only mapping fields in payload
       const updatePayload = {
-        use_cases: useCaseIds,
-        models: modelIds,
-        frameworks: frameworkIds,
-        vendors: vendorIds,
+        use_cases: toNumberIds(mappings.use_cases),
+        models: toNumberIds(mappings.models),
+        frameworks: toNumberIds(mappings.frameworks),
+        vendors: toNumberIds(mappings.vendors),
       };
 
       const response = await updateTask({
         id: task.id,
         body: updatePayload as any,
       });
-      const updatedTaskDto = response?.data?.data ?? response?.data ?? response;
 
+      const updatedTaskDto = response?.data?.data ?? response?.data ?? response;
       if (updatedTaskDto) {
         const updatedTaskModel = mapTaskResponseDTOToModel(updatedTaskDto);
-        if (onSuccess) {
-          onSuccess(updatedTaskModel);
-        }
+        onSuccess?.(updatedTaskModel);
         handleClose();
       }
     } catch (err) {
@@ -199,24 +190,29 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
     }
   }, [task, mappings, onSuccess, handleClose]);
 
+  const labelSx = useMemo(
+    () => ({
+      margin: 0,
+      height: "22px",
+      fontSize: "13px",
+      fontWeight: 500,
+      color: theme.palette.text.secondary,
+    }),
+    [theme.palette.text.secondary]
+  );
+
   if (!task) return null;
 
   const renderAutocomplete = (
-    field: keyof MappingData,
+    field: MappingField,
     label: string,
-    options: { id: string; label: string }[]
+    options: MappingOption[]
   ) => (
     <Stack gap={theme.spacing(2)} sx={{ width: "100%" }}>
-      <Typography
-        component="p"
-        variant="body1"
-        color={theme.palette.text.secondary}
-        fontWeight={500}
-        fontSize={"13px"}
-        sx={{ margin: 0, height: "22px" }}
-      >
+      <Typography component="p" variant="body1" sx={labelSx}>
         {label}
       </Typography>
+
       <Autocomplete
         multiple
         id={field}
@@ -281,10 +277,10 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
     <StandardModal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Edit Task Mappings"
+      title="Edit task mappings"
       description="Update the use cases, models, frameworks, and vendors associated with this task."
       onSubmit={handleSubmit}
-      submitButtonText="Update Mappings"
+      submitButtonText="Update mappings"
       isSubmitting={isSubmitting}
       maxWidth="800px"
     >
@@ -305,13 +301,11 @@ const EditTaskMappingsModal: FC<EditTaskMappingsModalProps> = ({
         </Typography>
       ) : (
         <Stack spacing={6}>
-          {/* Row 1: Use Cases | Models */}
           <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
-            {renderAutocomplete("use_cases", "Use Cases", dropdownOptions.useCases)}
+            {renderAutocomplete("use_cases", "Use cases", dropdownOptions.useCases)}
             {renderAutocomplete("models", "Models", dropdownOptions.models)}
           </Stack>
 
-          {/* Row 2: Frameworks | Vendors */}
           <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
             {renderAutocomplete("frameworks", "Frameworks", dropdownOptions.frameworks)}
             {renderAutocomplete("vendors", "Vendors", dropdownOptions.vendors)}

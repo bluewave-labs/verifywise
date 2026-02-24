@@ -104,18 +104,6 @@ export function ColumnSelector<TKey extends string = string>({
         }}
       >
         {buttonText}
-        {toggleableColumns.length > 0 && (
-          <Typography
-            component="span"
-            sx={{
-              ml: 0.5,
-              fontSize: 12,
-              color: "#667085",
-            }}
-          >
-            ({visibleToggleableCount}/{toggleableColumns.length})
-          </Typography>
-        )}
       </Button>
 
       <Popover

@@ -589,7 +589,10 @@ export class PluginService {
         console.log(`[PluginService] No package.json found for plugin ${sanitizeForLog(plugin.key)} (pre-bundled plugin)`);
         return null;
       }
-      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}:`, error);
+      const errMsg = error.isAxiosError
+        ? `${error.message} (status: ${error.response?.status || 'N/A'}, url: ${error.config?.url || 'N/A'})`
+        : error.message;
+      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}: ${errMsg}`);
       throw new Error(`Failed to download package.json: ${error.message}`);
     }
   }
@@ -722,8 +725,7 @@ export class PluginService {
       return pluginCode;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}:`,
-        error
+        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}: ${error.message}`
       );
       throw new Error(`Failed to load plugin code: ${error.message}`);
     }
@@ -840,7 +842,10 @@ export class PluginService {
       const pluginCode = require(entryPointPath);
       return pluginCode;
     } catch (error: any) {
-      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}:`, error);
+      const errMsg = error.isAxiosError
+        ? `${error.message} (status: ${error.response?.status || 'N/A'}, url: ${error.config?.url || 'N/A'})`
+        : error.message;
+      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}: ${errMsg}`);
       throw new Error(`Failed to download plugin: ${error.message}`);
     }
   }

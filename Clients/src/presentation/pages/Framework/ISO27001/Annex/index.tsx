@@ -82,6 +82,7 @@ const ISO27001Annex = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const annexId = initialAnnexId;
   const annexControlId = initialAnnexControlId;
+  const [lastProcessedLink, setLastProcessedLink] = useState<string | null>(null);
 
   // Shared function to filter controls based on all active filters
   const filterControls = useCallback((controls: any[]) => {
@@ -188,18 +189,23 @@ const ISO27001Annex = ({
     const activeAnnexId = initialAnnexId || annexId;
     const activeAnnexControlId = initialAnnexControlId || annexControlId;
 
-    if (activeAnnexId && annexes && annexes.length > 0) {
-      const annex = annexes.find((a: any) => a.id === Number(activeAnnexId));
-      if (annex) {
-        handleAccordionChange(annex.id)(new Event("click") as any, true);
-        const annexControl = annex.annexControls?.find(
-          (ac: any) => ac.id === Number(activeAnnexControlId),
-        );
-        if (annexControl) handleControlClick(annex, annexControl);
+    if (!activeAnnexId || !activeAnnexControlId || !annexes || annexes.length === 0) return;
+
+    const linkKey = `${activeAnnexId}-${activeAnnexControlId}`;
+    if (lastProcessedLink === linkKey) return;
+
+    const annex = annexes.find((a: any) => a.id === Number(activeAnnexId));
+    if (annex) {
+      handleAccordionChange(annex.id)(new Event("click") as any, true);
+      const annexControl = annex.annexControls?.find(
+        (ac: any) => ac.id === Number(activeAnnexControlId),
+      );
+      if (annexControl) {
+        setLastProcessedLink(linkKey);
+        handleControlClick(annex, annexControl);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [annexId, annexes, annexControlId, annexId, annexControlId]);
+  }, [annexId, annexes, annexControlId, initialAnnexId, initialAnnexControlId, lastProcessedLink]);
 
 
   const filteredAnnexes = useMemo(() => {

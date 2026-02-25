@@ -127,13 +127,16 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   useEffect(() => {
     if (controlId) {
+      // URL param 'controlId' is the tenant table ID (controls_eu.id)
+      // Find control by matching control_id (tenant table ID)
       const controlExists = controls.find(
-        (control) => control.id === Number(controlId)
+        (control: any) => control.control_id === Number(controlId)
       );
       if (controlExists) {
         (async () => {
+          // API expects struct table ID (control.id), not tenant table ID (control.control_id)
           const subControlsResponse = await getControlByIdAndProject({
-            controlId: controlExists.id!,
+            controlId: (controlExists as any).id,
             projectFrameworkId,
             owner: ownerFilter,
             approver: approverFilter,

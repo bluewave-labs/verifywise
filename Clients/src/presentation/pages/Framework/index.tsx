@@ -425,11 +425,13 @@ const Framework = () => {
         setSelectedFramework(nistAiRmfIndex);
       }
 
-      // Set tab based on parameters (simplified since we combined functions/categories)
-      if (subcategoryId) {
-        setNistAiRmfTabValue("subcategories");
-      } else {
-        setNistAiRmfTabValue("functions");
+      // Set tab based on functionId parameter (govern, map, measure, manage)
+      if (functionId) {
+        const validTabs = ["govern", "map", "measure", "manage"];
+        const normalizedFunctionId = functionId.toLowerCase();
+        if (validTabs.includes(normalizedFunctionId)) {
+          setNistAiRmfTabValue(normalizedFunctionId);
+        }
       }
     }
   }, [
@@ -792,6 +794,8 @@ const Framework = () => {
                 statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "govern" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "govern" ? subcategoryId : null}
               />
             </TabPanel>
             <TabPanel value="map" sx={tabPanelStyle}>
@@ -803,6 +807,8 @@ const Framework = () => {
                 statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "map" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "map" ? subcategoryId : null}
               />
             </TabPanel>
             <TabPanel value="measure" sx={tabPanelStyle}>
@@ -814,6 +820,8 @@ const Framework = () => {
                 statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "measure" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "measure" ? subcategoryId : null}
               />
             </TabPanel>
             <TabPanel value="manage" sx={tabPanelStyle}>
@@ -825,6 +833,8 @@ const Framework = () => {
                 statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "manage" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "manage" ? subcategoryId : null}
               />
             </TabPanel>
           </TabContext>

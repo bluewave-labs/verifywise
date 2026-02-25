@@ -495,7 +495,7 @@ export function IntakeFormsListPage() {
                       <TableCell sx={singleTheme.tableStyles.primary.body.cell} onClick={(e) => e.stopPropagation()}>
                         <IconButton
                           disableRipple={
-                            theme.components?.IconButton?.defaultProps?.disableRipple
+                            theme.components?.MuiIconButton?.defaultProps?.disableRipple
                           }
                           sx={singleTheme.iconButtons}
                           onClick={(e) => handleMenuOpen(e, form)}

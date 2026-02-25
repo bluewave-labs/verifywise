@@ -142,7 +142,7 @@ export function PublicIntakeForm() {
         ? await getPublicFormById(publicId!, resubmissionToken)
         : await getPublicForm(tenantSlug!, formSlug!, resubmissionToken);
       if (response.data) {
-        setFormData(response.data.form);
+        setFormData(response.data.form as PublicFormData);
         if (response.data.previousData) {
           setPreviousData(response.data.previousData);
           // Pre-fill form with previous data
@@ -471,7 +471,7 @@ export function PublicIntakeForm() {
                   setSubmitterEmail(e.target.value);
                   setEmailError(null);
                 }}
-                error={!!emailError}
+                error={emailError || undefined}
                 helperText={emailError || "We'll send you updates about your submission"}
                 sx={{
                   "& .MuiOutlinedInput-root": {

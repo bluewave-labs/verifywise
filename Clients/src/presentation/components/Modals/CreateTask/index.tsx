@@ -20,6 +20,7 @@ const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import ChipInput from "../../Inputs/ChipInput";
+import EntityLinkSelector, { EntityLink } from "../../EntityLinkSelector";
 import { ChevronDown as GreyDownArrowIcon, Flag } from "lucide-react";
 import StandardModal from "../StandardModal";
 import TabBar from "../../TabBar";
@@ -48,6 +49,7 @@ const initialState: ICreateTaskFormValues = {
   due_date: "",
   assignees: [],
   categories: [],
+  entity_links: [],
 };
 
 const statusOptions = [
@@ -138,6 +140,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
             );
         })(),
         categories: initialData.categories || [],
+        entity_links: (initialData as any).entity_links || [],
       });
     } else {
       setValues(initialState);
@@ -198,6 +201,13 @@ const CreateTask: FC<ICreateTaskProps> = ({
       }));
       setErrors((prev) => ({ ...prev, due_date: "" }));
     }
+  }, []);
+
+  const handleEntityLinksChange = useCallback((newLinks: EntityLink[]) => {
+    setValues((prev) => ({
+      ...prev,
+      entity_links: newLinks,
+    }));
   }, []);
 
   const validateForm = (): boolean => {
@@ -548,13 +558,13 @@ const CreateTask: FC<ICreateTaskProps> = ({
         </Suspense>
       </Stack>
 
-      {/* Row 4: Description (full width = 350px + 350px + 48px gap) */}
-      <Stack direction="row" spacing={6}>
+      {/* Row 4: Description (full width) */}
+      <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
         <Suspense fallback={<div>Loading...</div>}>
           <Field
             id="description"
             label="Description"
-            width="350px"
+            width="100%"
             type="description"
             value={values.description}
             onChange={handleOnTextFieldChange("description")}
@@ -563,7 +573,17 @@ const CreateTask: FC<ICreateTaskProps> = ({
             placeholder="Enter description"
           />
         </Suspense>
-        <Box sx={{ width: "350px" }} />
+      </Stack>
+
+      {/* Row 5: Entity Links */}
+      <Stack direction="row" spacing={6} sx={{ width: "748px" }}>
+        <Box sx={{ width: "100%" }}>
+          <EntityLinkSelector
+            value={values.entity_links}
+            onChange={handleEntityLinksChange}
+            disabled={isSubmitting}
+          />
+        </Box>
       </Stack>
     </Stack>
   );

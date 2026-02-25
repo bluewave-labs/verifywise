@@ -139,7 +139,7 @@ interface FieldEditorProps {
 export function FieldEditor({ field, entityType, usedEntityMappings = [], onChange, onClose }: FieldEditorProps) {
   const theme = useTheme();
   const [localField, setLocalField] = useState<FormField>(field);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clear pending debounce when field changes to prevent stale updates
   useEffect(() => {

@@ -103,7 +103,7 @@ export interface IntakeForm {
   riskAssessmentConfig?: Record<string, unknown> | null;
   llmKeyId?: number | null;
   suggestedQuestionsEnabled?: boolean;
-  designSettings?: FormDesignSettings;
+  designSettings?: FormDesignSettings | null;
   createdBy?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -125,7 +125,7 @@ export interface CreateIntakeFormInput {
   riskTierSystem?: string;
   llmKeyId?: number | null;
   suggestedQuestionsEnabled?: boolean;
-  designSettings?: FormDesignSettings;
+  designSettings?: FormDesignSettings | null;
 }
 
 /**
@@ -143,7 +143,7 @@ export interface UpdateIntakeFormInput {
   riskTierSystem?: string;
   llmKeyId?: number | null;
   suggestedQuestionsEnabled?: boolean;
-  designSettings?: FormDesignSettings;
+  designSettings?: FormDesignSettings | null;
 }
 
 /**

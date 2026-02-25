@@ -86,6 +86,7 @@ const ISO42001Clause = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const clauseId = initialClauseId;
   const subClauseId = initialSubClauseId;
+  const [lastProcessedLink, setLastProcessedLink] = useState<string | null>(null);
 
   // Shared function to filter subclauses based on all active filters
   const filterSubClauses = useCallback((subClauses: any[]) => {
@@ -364,15 +365,43 @@ const ISO42001Clause = ({
     );
   }
 
+  // Deep link - Step 1: Expand the clause accordion to trigger subclause fetching
   useEffect(() => {
-    if (clauseId && subClauseId && clauses.length > 0) {
-      const clause = clauses.find((c) => c.id === parseInt(clauseId));
-      const idx = clause?.subClauses.findIndex(
-        (sc: any) => sc.id === parseInt(subClauseId),
-      );
-      handleSubClauseClick(clause, {id: parseInt(subClauseId)}, idx ?? 0);
+    if (!clauseId || !subClauseId || !clauses || clauses.length === 0) return;
+
+    const linkKey = `${clauseId}-${subClauseId}`;
+    if (lastProcessedLink === linkKey) return;
+
+    const parsedClauseId = parseInt(clauseId);
+    const clause = clauses.find((c) => c.id === parsedClauseId);
+    if (clause) {
+      // Expand the clause to trigger subclause fetch
+      setExpanded(parsedClauseId);
     }
-  }, [clauseId, subClauseId, clauses]);
+  }, [clauseId, subClauseId, clauses, lastProcessedLink]);
+
+  // Deep link - Step 2: Open the drawer when subclauses are loaded
+  useEffect(() => {
+    if (!clauseId || !subClauseId) return;
+
+    const linkKey = `${clauseId}-${subClauseId}`;
+    if (lastProcessedLink === linkKey) return;
+
+    const parsedClauseId = parseInt(clauseId);
+    const parsedSubClauseId = parseInt(subClauseId);
+    const subClauses = subClausesMap[parsedClauseId];
+
+    if (subClauses && subClauses.length > 0) {
+      const clause = clauses.find((c) => c.id === parsedClauseId);
+      const subClause = subClauses.find((sc: any) => sc.id === parsedSubClauseId);
+
+      if (clause && subClause) {
+        const idx = subClauses.findIndex((sc: any) => sc.id === parsedSubClauseId);
+        setLastProcessedLink(linkKey);
+        handleSubClauseClick(clause, subClause, idx);
+      }
+    }
+  }, [clauseId, subClauseId, subClausesMap, clauses, lastProcessedLink, handleSubClauseClick]);
 
   return (
     <Stack className="iso-42001-clauses">

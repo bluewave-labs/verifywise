@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import { QueryTypes } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import { notifyUserAssigned, AssignmentRoleType } from "../services/inAppNotification.service";
 import {
   getAllNISTAIRMFSubcategoriesBycategoryIdAndtitleQuery,
   getNISTAIRMFSubcategoryByIdQuery,
@@ -28,6 +30,83 @@ import { getUserProjects } from "../utils/user.utils";
 
 // Note: Files are only unlinked from evidence_links, not deleted from file manager
 // This allows the same file to be used as evidence in multiple places
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
+
+// Helper function to notify assignment changes for NIST AI RMF entities
+async function notifyNistAiRmfAssignment(
+  req: Request | RequestWithFile,
+  entityId: number,
+  entityName: string,
+  roleType: AssignmentRoleType,
+  newUserId: number,
+  oldUserId: number | null | undefined
+): Promise<void> {
+  // Only notify if assigned to a new user
+  if (newUserId && newUserId !== oldUserId) {
+    const assignerName = await getUserNameById(req.userId!);
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+    // Query for function type, category info, subcategory index and description
+    const result = await sequelize.query<{ func_type: string; category_id: number; category_index: number; category_name: string; subcategory_index: number; subcategory_description: string }>(
+      `SELECT f.type as func_type, c.id as category_id, c.index as category_index, c.title as category_name, s.index as subcategory_index, s.description as subcategory_description
+       FROM "${req.tenantId!}".nist_ai_rmf_subcategories s
+       JOIN public.nist_ai_rmf_categories c ON s.category_id = c.id
+       JOIN public.nist_ai_rmf_functions f ON c.function_id = f.id
+       WHERE s.id = :entityId`,
+      { replacements: { entityId }, type: QueryTypes.SELECT }
+    );
+
+    let urlPath: string;
+    let functionName: string | undefined;
+    let categoryName: string | undefined;
+    let description: string | undefined;
+
+    if (result[0]) {
+      // Tabs expect lowercase: govern, map, measure, manage
+      const funcType = result[0].func_type.toLowerCase();
+      functionName = result[0].func_type; // Original case for display
+      categoryName = result[0].category_name;
+      description = result[0].subcategory_description;
+      // Build subcategory identifier like "GOVERN 1.1" or "GV-1.1"
+      const funcAbbrev = result[0].func_type.substring(0, 2).toUpperCase();
+      entityName = `${funcAbbrev}-${result[0].category_index}.${result[0].subcategory_index} ${entityName}`;
+      urlPath = `/framework?framework=nist-ai-rmf&functionId=${funcType}&categoryId=${result[0].category_id}&subcategoryId=${entityId}`;
+    } else {
+      urlPath = `/framework?framework=nist-ai-rmf&subcategoryId=${entityId}`;
+    }
+
+    notifyUserAssigned(
+      req.tenantId!,
+      newUserId,
+      {
+        entityType: "NIST AI RMF Subcategory",
+        entityId,
+        entityName,
+        roleType,
+        entityUrl: `${baseUrl}${urlPath}`,
+      },
+      assignerName,
+      baseUrl,
+      {
+        frameworkName: "NIST AI RMF",
+        parentType: functionName ? "Function / Category" : undefined,
+        parentName: functionName && categoryName ? `${functionName} → ${categoryName}` : undefined,
+        description,
+      }
+    ).catch((err) => console.error(`Failed to send ${roleType} notification:`, err));
+  }
+}
 
 export async function getAllNISTAIRMFSubcategoriesBycategoryIdAndtitle(
   req: Request,
@@ -205,6 +284,18 @@ export async function updateNISTAIRMFSubcategoryById(
       risksMitigated?: string; // JSON string of risk IDs to add
     };
 
+    // Get current subcategory data for assignment change detection
+    const currentSubcategoryResult = (await sequelize.query(
+      `SELECT owner, reviewer, approver, title FROM "${req.tenantId!}".nist_ai_rmf_subcategories WHERE id = :id;`,
+      {
+        replacements: { id: subcategoryId },
+        transaction,
+        type: QueryTypes.SELECT,
+      }
+    )) as { owner: number | null; reviewer: number | null; approver: number | null; title: string }[];
+
+    const currentData = currentSubcategoryResult[0] || { owner: null, reviewer: null, approver: null, title: '' };
+
     // Parse tags from JSON string if present
     if (subcategory.tags && typeof subcategory.tags === "string") {
       try {
@@ -292,6 +383,23 @@ export async function updateNISTAIRMFSubcategoryById(
     );
 
     await transaction.commit();
+
+    // Notify owner, reviewer, approver if changed
+    const entityName = currentData.title || `Subcategory #${subcategoryId}`;
+    const newOwner = subcategory.owner ? parseInt(String(subcategory.owner)) : null;
+    const newReviewer = subcategory.reviewer ? parseInt(String(subcategory.reviewer)) : null;
+    const newApprover = subcategory.approver ? parseInt(String(subcategory.approver)) : null;
+
+    if (newOwner) {
+      notifyNistAiRmfAssignment(req, subcategoryId, entityName, "Owner", newOwner, currentData.owner);
+    }
+    if (newReviewer) {
+      notifyNistAiRmfAssignment(req, subcategoryId, entityName, "Reviewer", newReviewer, currentData.reviewer);
+    }
+    if (newApprover) {
+      notifyNistAiRmfAssignment(req, subcategoryId, entityName, "Approver", newApprover, currentData.approver);
+    }
+
     await logEvent(
       "Update",
       `NIST AI RMF subcategory updated: ID ${subcategoryId}, title: ${updatedSubcategory.title}`,

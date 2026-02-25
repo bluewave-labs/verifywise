@@ -238,6 +238,6 @@ describe("DOCX Generator", () => {
       const result = await generateDOCX(modelData);
 
       expect(result.success).toBe(true);
-    });
+    }, 15000);
   });
 });

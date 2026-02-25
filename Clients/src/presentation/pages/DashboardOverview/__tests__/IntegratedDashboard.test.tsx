@@ -223,6 +223,12 @@ describe("IntegratedDashboard", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockHasCache = true;
+    // Suppress React "not wrapped in act(...)" warnings from async state updates
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should render greeting with user name", () => {

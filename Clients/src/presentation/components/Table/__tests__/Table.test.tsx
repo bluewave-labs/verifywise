@@ -69,6 +69,12 @@ const defaultProps = {
 describe("CustomizableBasicTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Suppress MUI TablePagination DOM nesting warning (<td> inside <div>)
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should render column headers", () => {

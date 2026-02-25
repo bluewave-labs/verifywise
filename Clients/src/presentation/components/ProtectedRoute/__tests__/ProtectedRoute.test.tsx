@@ -56,6 +56,15 @@ function renderProtected(options: {
 }
 
 describe("ProtectedRoute", () => {
+  beforeEach(() => {
+    // Suppress expected console.error from network errors in test environment
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("redirects to /login when there is no auth token", async () => {
     renderProtected({ route: "/", authToken: "" });
 

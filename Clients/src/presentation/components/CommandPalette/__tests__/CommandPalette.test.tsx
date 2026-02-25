@@ -88,6 +88,12 @@ describe("CommandPalette", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockRecentSearches = [];
+    // Suppress MUI "Missing Description" aria warning for Dialog
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should render dialog when open=true", () => {

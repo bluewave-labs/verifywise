@@ -161,12 +161,15 @@ function getEntityTypeLabel(entityType: string): string {
     model: "Model",
     policy: "Policy",
     nist_subcategory: "NIST AI RMF",
-    iso42001_subclause: "ISO 42001",
+    iso42001_subclause: "ISO 42001 Clause",
     iso42001_annexcategory: "ISO 42001 Annex",
-    iso27001_subclause: "ISO 27001",
+    iso42001_assessment: "ISO 42001 Assessment",
+    iso27001_subclause: "ISO 27001 Clause",
     iso27001_annexcontrol: "ISO 27001 Annex",
-    eu_control: "EU AI Act",
-    eu_subcontrol: "EU AI Act",
+    iso27001_assessment: "ISO 27001 Assessment",
+    eu_control: "EU AI Act Control",
+    eu_subcontrol: "EU AI Act Subcontrol",
+    eu_assessment: "EU AI Act Assessment",
   };
   return labels[entityType] || entityType;
 }
@@ -293,6 +296,63 @@ async function buildEntityUrlAsync(
       );
       if (result[0]) {
         return `${baseUrl}/project-view?projectId=${result[0].project_id}&tab=frameworks&framework=eu-ai-act&subtab=compliance&controlId=${result[0].control_id}&subControlId=${entityId}`;
+      }
+      return null;
+    }
+
+    case "eu_assessment": {
+      // EU AI Act assessment - need project_id, question_id, and topic_id for navigation
+      // Frontend uses topicId to select tab and questionId to scroll to question
+      const result = await sequelize.query<{ project_id: number; question_id: number; topic_id: number }>(
+        `SELECT pf.project_id, ae.question_id, st.topic_id
+         FROM "${tenantId}".answers_eu ae
+         JOIN "${tenantId}".assessments a ON ae.assessment_id = a.id
+         JOIN "${tenantId}".projects_frameworks pf ON a.projects_frameworks_id = pf.id
+         JOIN public.questions_struct_eu q ON ae.question_id = q.id
+         JOIN public.subtopics_struct_eu st ON q.subtopic_id = st.id
+         WHERE ae.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]?.project_id && result[0]?.question_id) {
+        return `${baseUrl}/project-view?projectId=${result[0].project_id}&tab=frameworks&framework=eu-ai-act&subtab=assessment&topicId=${result[0].topic_id}&questionId=${result[0].question_id}`;
+      }
+      return null;
+    }
+
+    case "iso42001_assessment": {
+      // ISO 42001 assessment - need project_id, question_id, and topic_id for navigation
+      // Frontend uses topicId to select tab and questionId to scroll to question
+      const result = await sequelize.query<{ project_id: number; question_id: number; topic_id: number }>(
+        `SELECT pf.project_id, ai.question_id, st.topic_id
+         FROM "${tenantId}".answers_iso ai
+         JOIN "${tenantId}".assessments a ON ai.assessment_id = a.id
+         JOIN "${tenantId}".projects_frameworks pf ON a.projects_frameworks_id = pf.id
+         JOIN public.questions_struct_iso q ON ai.question_id = q.id
+         JOIN public.subtopics_struct_iso st ON q.subtopic_id = st.id
+         WHERE ai.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]?.project_id && result[0]?.question_id) {
+        return `${baseUrl}/project-view?projectId=${result[0].project_id}&tab=frameworks&framework=iso-42001&subtab=assessment&topicId=${result[0].topic_id}&questionId=${result[0].question_id}`;
+      }
+      return null;
+    }
+
+    case "iso27001_assessment": {
+      // ISO 27001 assessment - need project_id, question_id, and topic_id for navigation
+      // Frontend uses topicId to select tab and questionId to scroll to question
+      const result = await sequelize.query<{ project_id: number; question_id: number; topic_id: number }>(
+        `SELECT pf.project_id, ai.question_id, st.topic_id
+         FROM "${tenantId}".answers_iso27001 ai
+         JOIN "${tenantId}".assessments a ON ai.assessment_id = a.id
+         JOIN "${tenantId}".projects_frameworks pf ON a.projects_frameworks_id = pf.id
+         JOIN public.questions_struct_iso27001 q ON ai.question_id = q.id
+         JOIN public.subtopics_struct_iso27001 st ON q.subtopic_id = st.id
+         WHERE ai.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      if (result[0]?.project_id && result[0]?.question_id) {
+        return `${baseUrl}/project-view?projectId=${result[0].project_id}&tab=frameworks&framework=iso-27001&subtab=assessment&topicId=${result[0].topic_id}&questionId=${result[0].question_id}`;
       }
       return null;
     }

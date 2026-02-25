@@ -2804,7 +2804,14 @@ export const createNewTenant = async (
           'file_uploaded',
           'comment_added',
           'mention',
-          'system'
+          'system',
+          'assignment_owner',
+          'assignment_reviewer',
+          'assignment_approver',
+          'assignment_member',
+          'assignment_assignee',
+          'assignment_action_owner',
+          'assignment_risk_owner'
         );
       EXCEPTION
         WHEN duplicate_object THEN null;

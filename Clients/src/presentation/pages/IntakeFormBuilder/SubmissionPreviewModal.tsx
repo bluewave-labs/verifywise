@@ -186,8 +186,7 @@ function OverrideSection({
           value={overrideJustification}
           onChange={(e) => onJustificationChange(e.target.value)}
           rows={2}
-          error={overrideJustification.length > 0 && overrideJustification.length < 10}
-          helperText={
+          error={
             overrideJustification.length > 0 && overrideJustification.length < 10
               ? "Justification must be at least 10 characters"
               : undefined

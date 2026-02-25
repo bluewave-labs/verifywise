@@ -17,6 +17,20 @@ import {
   trackVendorRiskChanges,
   recordMultipleFieldChanges,
 } from "../utils/vendorRiskChangeHistory.utils";
+import { notifyUserAssigned } from "../services/inAppNotification.service";
+import { QueryTypes } from "sequelize";
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
 
 export async function getAllVendorRisksAllProjects(
   req: Request,
@@ -259,6 +273,43 @@ export async function createVendorRisk(
       }
 
       await transaction.commit();
+
+      // Notify action_owner if assigned
+      const actionOwnerId = createdVendorRisk.action_owner;
+      if (actionOwnerId && createdVendorRisk.id) {
+        const assignerName = await getUserNameById(req.userId!);
+        const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+        // Get vendor name for context
+        let vendorName: string | undefined;
+        if (createdVendorRisk.vendor_id) {
+          const vendorResult = await sequelize.query<{ vendor_name: string }>(
+            `SELECT vendor_name FROM "${req.tenantId!}".vendors WHERE id = :vendorId`,
+            { replacements: { vendorId: createdVendorRisk.vendor_id }, type: QueryTypes.SELECT }
+          );
+          vendorName = vendorResult[0]?.vendor_name;
+        }
+
+        notifyUserAssigned(
+          req.tenantId!,
+          actionOwnerId,
+          {
+            entityType: "Vendor Risk",
+            entityId: createdVendorRisk.id,
+            entityName: createdVendorRisk.risk_description || `Vendor Risk #${createdVendorRisk.id}`,
+            roleType: "Action Owner",
+            entityUrl: `${baseUrl}/vendors?vendorRiskId=${createdVendorRisk.id}`,
+          },
+          assignerName,
+          baseUrl,
+          {
+            parentType: vendorName ? "Vendor" : undefined,
+            parentName: vendorName,
+            description: createdVendorRisk.impact_description || undefined,
+          }
+        ).catch((err) => console.error("Failed to send action owner notification:", err));
+      }
+
       await logSuccess({
         eventType: 'Create',
         description: 'Created new vendor risk',
@@ -357,6 +408,44 @@ export async function updateVendorRiskById(
       }
 
       await transaction.commit();
+
+      // Notify action_owner if changed to a new user
+      const oldActionOwner = (existingVendorRisk as any).action_owner;
+      const newActionOwner = updatedVendorRisk.action_owner;
+      if (newActionOwner && newActionOwner !== oldActionOwner) {
+        const assignerName = await getUserNameById(req.userId!);
+        const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+        // Get vendor name for context
+        let vendorName: string | undefined;
+        if (vendorRisk.vendor_id) {
+          const vendorResult = await sequelize.query<{ vendor_name: string }>(
+            `SELECT vendor_name FROM "${req.tenantId!}".vendors WHERE id = :vendorId`,
+            { replacements: { vendorId: vendorRisk.vendor_id }, type: QueryTypes.SELECT }
+          );
+          vendorName = vendorResult[0]?.vendor_name;
+        }
+
+        notifyUserAssigned(
+          req.tenantId!,
+          newActionOwner,
+          {
+            entityType: "Vendor Risk",
+            entityId: vendorRiskId,
+            entityName: vendorRisk.risk_description || `Vendor Risk #${vendorRiskId}`,
+            roleType: "Action Owner",
+            entityUrl: `${baseUrl}/vendors?vendorRiskId=${vendorRiskId}`,
+          },
+          assignerName,
+          baseUrl,
+          {
+            parentType: vendorName ? "Vendor" : undefined,
+            parentName: vendorName,
+            description: vendorRisk.impact_description || undefined,
+          }
+        ).catch((err) => console.error("Failed to send action owner notification:", err));
+      }
+
       await logSuccess({
         eventType: 'Update',
         description: `Updated vendor risk ID ${vendorRiskId}`,

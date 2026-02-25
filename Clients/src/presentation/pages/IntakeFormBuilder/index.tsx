@@ -43,7 +43,6 @@ import { DesignPanel } from "./DesignPanel";
 import CustomizableMultiSelect from "../../components/Inputs/Select/Multi";
 import {
   FormField,
-  FormDesignSettings,
   IntakeForm,
   createEmptyForm,
   generateFieldId,

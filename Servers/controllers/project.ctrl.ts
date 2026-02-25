@@ -54,6 +54,7 @@ import { createApprovalRequestQuery, hasPendingApprovalQuery, getPendingApproval
 // SSE notifications disabled for now - can be re-enabled later if needed
 // import { notifyStepApprovers } from "../services/notification.service";
 import { ApprovalRequestStatus } from "../domain.layer/enums/approval-workflow.enum";
+import { notifyUserAssigned } from "../services/inAppNotification.service";
 
 export async function getAllProjects(
   req: Request,
@@ -463,6 +464,25 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         });
       });
 
+      // Send owner assignment notification
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      if (createdProject.owner) {
+        const assignerName = `${actor.name} ${actor.surname}`.trim();
+        notifyUserAssigned(
+          req.tenantId!,
+          createdProject.owner,
+          {
+            entityType: "project",
+            entityId: createdProject.id!,
+            entityName: createdProject.project_title,
+            roleType: "Owner",
+            entityUrl: `/project-view?projectId=${createdProject.id}`,
+          },
+          assignerName,
+          baseUrl
+        ).catch((err) => console.error("Failed to send owner notification:", err));
+      }
+
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
@@ -630,6 +650,28 @@ export async function updateProjectById(
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
+
+      // Send owner assignment notification if owner changed
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const oldOwner = existingProject.owner;
+      const newOwner = project.owner;
+      if (newOwner && newOwner !== oldOwner && newOwner !== userId) {
+        const assigner = await getUserByIdQuery(userId);
+        const assignerName = assigner ? `${assigner.name} ${assigner.surname}`.trim() : "Someone";
+        notifyUserAssigned(
+          req.tenantId!,
+          newOwner,
+          {
+            entityType: "project",
+            entityId: projectId,
+            entityName: project.project_title,
+            roleType: "Owner",
+            entityUrl: `/project-view?projectId=${projectId}`,
+          },
+          assignerName,
+          baseUrl
+        ).catch((err) => console.error("Failed to send owner notification:", err));
+      }
 
       // Calculate which members actually got added (both new and re-added)
       // This includes users who weren't in currentMembers but are now in the final project

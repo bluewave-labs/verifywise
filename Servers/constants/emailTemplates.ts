@@ -33,6 +33,7 @@ export const EMAIL_TEMPLATES = {
 
   // Task templates
   TASK_ASSIGNED: "task-assigned.mjml",
+  TASK_UPDATED: "task-updated.mjml",
 
   // Review templates
   REVIEW_REQUESTED: "review-requested.mjml",
@@ -59,6 +60,9 @@ export const EMAIL_TEMPLATES = {
   INTAKE_SUBMISSION_APPROVED: "intake-submission-approved.mjml",
   INTAKE_SUBMISSION_REJECTED: "intake-submission-rejected.mjml",
   INTAKE_NEW_SUBMISSION_ADMIN: "intake-new-submission-admin.mjml",
+
+  // Assignment notification template
+  ASSIGNMENT_NOTIFICATION: "assignment-notification.mjml",
 } as const;
 
 // Type-safe template keys

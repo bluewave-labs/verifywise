@@ -78,6 +78,7 @@ const ISO42001Annex = ({
 
   const annexId = initialAnnexId;
   const annexControlId = initialAnnexCategoryId;
+  const [lastProcessedLink, setLastProcessedLink] = useState<string | null>(null);
 
   // Shared function to filter controls based on all active filters
   const filterControls = useCallback((controls: any[]) => {
@@ -179,18 +180,23 @@ const ISO42001Annex = ({
 
   useEffect(() => {
     // Use initialAnnexId/initialAnnexCategoryId props first, fallback to URL params
+    if (!annexId || !annexControlId || !annexes || annexes.length === 0) return;
 
-    if (annexId && annexes && annexes.length > 0) {
-      const annex = annexes.find((a: any) => a.id === Number(annexId));
-      if (annex) {
-        handleAccordionChange(annex.id)(new Event("click") as any, true);
-        const annexCategory = annex.annexCategories?.find(
-          (ac: any) => ac.id === Number(annexControlId),
-        );
-        if (annexCategory) handleControlClick(annex, annexCategory);
+    const linkKey = `${annexId}-${annexControlId}`;
+    if (lastProcessedLink === linkKey) return;
+
+    const annex = annexes.find((a: any) => a.id === Number(annexId));
+    if (annex) {
+      handleAccordionChange(annex.id)(new Event("click") as any, true);
+      const annexCategory = annex.annexCategories?.find(
+        (ac: any) => ac.id === Number(annexControlId),
+      );
+      if (annexCategory) {
+        setLastProcessedLink(linkKey);
+        handleControlClick(annex, annexCategory);
       }
     }
-  }, [annexId, annexes, annexControlId, initialAnnexId, initialAnnexCategoryId]);
+  }, [annexId, annexes, annexControlId, lastProcessedLink]);
 
 
   const filteredAnnexes = useMemo(() => {

@@ -123,9 +123,10 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                     id={`field-${field.id}`}
                     label=""
                     {...fieldProps}
+                    value={fieldProps.value as string}
                     placeholder={field.placeholder}
                     type={field.type === "email" ? "email" : field.type === "url" ? "url" : "text"}
-                    error={!!error}
+                    error={errorMessage}
                     helperText={errorMessage || field.helpText}
                   />
                   <GuidanceText text={field.guidanceText} />
@@ -158,9 +159,10 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                     id={`field-${field.id}`}
                     label=""
                     {...fieldProps}
+                    value={fieldProps.value as string}
                     placeholder={field.placeholder}
                     rows={4}
-                    error={!!error}
+                    error={errorMessage}
                     helperText={errorMessage || field.helpText}
                   />
                   <GuidanceText text={field.guidanceText} />
@@ -193,9 +195,10 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                     id={`field-${field.id}`}
                     label=""
                     {...fieldProps}
+                    value={fieldProps.value as string | number}
                     type="number"
                     placeholder={field.placeholder}
-                    error={!!error}
+                    error={errorMessage}
                     helperText={errorMessage || field.helpText}
                   />
                   <GuidanceText text={field.guidanceText} />
@@ -222,8 +225,9 @@ export function FormFieldRenderer({ field, control, errors }: FormFieldRendererP
                     id={`field-${field.id}`}
                     label=""
                     {...fieldProps}
+                    value={fieldProps.value as string}
                     type="date"
-                    error={!!error}
+                    error={errorMessage}
                     helperText={errorMessage || field.helpText}
                   />
                   <GuidanceText text={field.guidanceText} />

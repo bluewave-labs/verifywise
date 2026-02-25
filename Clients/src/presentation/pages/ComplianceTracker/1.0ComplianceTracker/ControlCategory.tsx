@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
 import ControlsTable from "./ControlsTable";
 
@@ -32,6 +32,7 @@ interface ControlCategoryProps {
   ownerFilter?: string;
   approverFilter?: string;
   dueDateFilter?: string;
+  initialControlCategoryId?: number | null;
 }
 
 const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
@@ -42,10 +43,33 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   statusFilter,
   ownerFilter,
   approverFilter,
-  dueDateFilter
+  dueDateFilter,
+  initialControlCategoryId,
 }) => {
-  const [expanded, setExpanded] = useState<number | false>(false);
+  const accordionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-expand if this category matches the initialControlCategoryId
+  const [expanded, setExpanded] = useState<number | false>(() => {
+    if (initialControlCategoryId && controlCategory.id === initialControlCategoryId) {
+      return controlCategory.id;
+    }
+    return false;
+  });
   const [filteredControlsCount, setFilteredControlsCount] = useState<number | null>(null);
+
+  // Update expanded state and scroll into view when initialControlCategoryId changes
+  useEffect(() => {
+    if (initialControlCategoryId && controlCategory.id === initialControlCategoryId) {
+      setExpanded(controlCategory.id);
+      // Scroll into view after a short delay to allow accordion expansion animation
+      setTimeout(() => {
+        accordionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [initialControlCategoryId, controlCategory.id]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -57,7 +81,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
   : { bg: "#FFF8E1", color: "#795548" };
 
   return (
-    <Stack className="control-category">
+    <Stack className="control-category" ref={accordionRef}>
       <Accordion
         className="control-category-accordion"
         expanded={expanded === controlCategory.id}

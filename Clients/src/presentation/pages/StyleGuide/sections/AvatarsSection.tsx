@@ -2,90 +2,83 @@ import React, { useState } from "react";
 import { Box, Stack, Typography, useTheme, Avatar as MuiAvatar, Snackbar } from "@mui/material";
 import { Copy } from "lucide-react";
 import CodeBlock from "../components/CodeBlock";
+import VWAvatar from "../../../components/Avatar/VWAvatar";
 
 const avatarSnippets = {
-  basic: `import { Avatar as MuiAvatar } from "@mui/material";
+  basic: `import VWAvatar from "@/presentation/components/Avatar/VWAvatar";
 
-<MuiAvatar
-  alt="John Doe"
-  sx={{ width: 40, height: 40 }}
->
-  JD
-</MuiAvatar>`,
-  withImage: `<MuiAvatar
-  alt="John Doe"
-  src="/path/to/image.jpg"
-  sx={{ width: 40, height: 40 }}
+// Display initials avatar for a user
+<VWAvatar
+  user={{ firstname: "John", lastname: "Doe" }}
+  size="small"
 />`,
-  sizes: `// Small (32px)
-<MuiAvatar sx={{ width: 32, height: 32, fontSize: 14 }}>JD</MuiAvatar>
+  withImage: `import VWAvatar from "@/presentation/components/Avatar/VWAvatar";
 
-// Medium (40px) - Default
-<MuiAvatar sx={{ width: 40, height: 40, fontSize: 16 }}>JD</MuiAvatar>
-
-// Large (64px)
-<MuiAvatar sx={{ width: 64, height: 64, fontSize: 22 }}>JD</MuiAvatar>`,
-  colorGeneration: `// Generate consistent color from string
-const stringToColor = (string: string) => {
-  let hash = 0;
-  for (let i = 0; i < string.length; i++) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  let color = "#";
-  for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff;
-    color += \`00\${value.toString(16)}\`.slice(-2);
-  }
-  return color;
-};
-
-<MuiAvatar
-  sx={{ backgroundColor: stringToColor("John Doe") }}
->
-  JD
-</MuiAvatar>`,
-  withBorder: `<MuiAvatar
-  sx={{
-    width: 40,
-    height: 40,
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      border: "2px solid rgba(255,255,255,0.2)",
-      borderRadius: "50%",
-    },
+// Display avatar with profile image and initials fallback
+<VWAvatar
+  user={{
+    firstname: "John",
+    lastname: "Doe",
+    pathToImage: "/path/to/image.jpg",
   }}
->
-  JD
-</MuiAvatar>`,
-  group: `import { AvatarGroup } from "@mui/material";
+  size="small"
+/>`,
+  sizes: `import VWAvatar from "@/presentation/components/Avatar/VWAvatar";
 
-<AvatarGroup max={4} sx={{ "& .MuiAvatar-root": { width: 32, height: 32, fontSize: 14 } }}>
-  <MuiAvatar>JD</MuiAvatar>
-  <MuiAvatar>AB</MuiAvatar>
-  <MuiAvatar>CD</MuiAvatar>
-  <MuiAvatar>EF</MuiAvatar>
-  <MuiAvatar>GH</MuiAvatar>
+// Small — 32px
+<VWAvatar user={{ firstname: "John", lastname: "Doe" }} size="small" />
+
+// Medium — 64px
+<VWAvatar user={{ firstname: "Alice", lastname: "Brown" }} size="medium" />
+
+// Large — 128px
+<VWAvatar user={{ firstname: "Carlos", lastname: "Davis" }} size="large" />`,
+  colorGeneration: `import VWAvatar from "@/presentation/components/Avatar/VWAvatar";
+
+// VWAvatar uses the theme primary color automatically.
+// No manual color calculation needed.
+<VWAvatar user={{ firstname: "John", lastname: "Doe" }} size="small" />
+<VWAvatar user={{ firstname: "Alice", lastname: "Brown" }} size="small" />
+<VWAvatar user={{ firstname: "Carlos", lastname: "Davis" }} size="small" />`,
+  withBorder: `import VWAvatar from "@/presentation/components/Avatar/VWAvatar";
+
+// showBorder prop (default: true) adds a 2px primary-color border
+// when an image is loaded, or no border when showing initials.
+<VWAvatar
+  user={{ firstname: "John", lastname: "Doe" }}
+  size="small"
+  showBorder
+/>
+
+// Disable border
+<VWAvatar
+  user={{ firstname: "Alice", lastname: "Brown" }}
+  size="small"
+  showBorder={false}
+/>`,
+  group: `import { AvatarGroup } from "@mui/material";
+import VWAvatar from "@/presentation/components/Avatar/VWAvatar";
+
+// Wrap multiple VWAvatars inside MUI AvatarGroup for overlap + overflow
+<AvatarGroup
+  max={4}
+  sx={{ "& .MuiAvatar-root": { width: 32, height: 32, fontSize: 14 } }}
+>
+  <VWAvatar user={{ firstname: "John", lastname: "Doe" }} size="small" />
+  <VWAvatar user={{ firstname: "Alice", lastname: "Brown" }} size="small" />
+  <VWAvatar user={{ firstname: "Carlos", lastname: "Davis" }} size="small" />
+  <VWAvatar user={{ firstname: "Emma", lastname: "Foster" }} size="small" />
+  <VWAvatar user={{ firstname: "George", lastname: "Hill" }} size="small" />
 </AvatarGroup>`,
 };
 
-// Color generation function (same as in Avatar component)
-const stringToColor = (string: string) => {
-  let hash = 0;
-  for (let i = 0; i < string.length; i++) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  let color = "#";
-  for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff;
-    color += `00${value.toString(16)}`.slice(-2);
-  }
-  return color;
-};
+const sampleUsers = [
+  { firstname: "John", lastname: "Doe" },
+  { firstname: "Alice", lastname: "Brown" },
+  { firstname: "Carlos", lastname: "Davis" },
+  { firstname: "Emma", lastname: "Foster" },
+  { firstname: "George", lastname: "Hill" },
+];
 
 const AvatarsSection: React.FC = () => {
   const theme = useTheme();
@@ -96,14 +89,6 @@ const AvatarsSection: React.FC = () => {
     setCopiedText(text);
     setTimeout(() => setCopiedText(null), 2000);
   };
-
-  const sampleUsers = [
-    { name: "John Doe", initials: "JD" },
-    { name: "Alice Brown", initials: "AB" },
-    { name: "Carlos Davis", initials: "CD" },
-    { name: "Emma Foster", initials: "EF" },
-    { name: "George Hill", initials: "GH" },
-  ];
 
   return (
     <Box sx={{ p: "32px 40px" }}>
@@ -134,16 +119,18 @@ const AvatarsSection: React.FC = () => {
             maxWidth: 600,
           }}
         >
-          User avatars with automatic color generation and fallback initials.
-          Uses MUI Avatar with VerifyWise styling conventions.
+          User avatars with automatic initials fallback and size support.
+          Uses VWAvatar, the VerifyWise avatar component with built-in color generation and size support.
         </Typography>
       </Box>
 
       {/* Basic Avatars */}
       <SpecSection title="Basic avatars">
         <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, mb: "24px" }}>
-          Avatars display user initials when no image is provided. Colors are
-          automatically generated based on the user's name for consistency.
+          VWAvatar displays user initials when no image is provided. Pass a{" "}
+          <code>user</code> object with <code>firstname</code> and{" "}
+          <code>lastname</code>. The component derives initials and applies
+          theme-based colors automatically.
         </Typography>
 
         <Box sx={{ display: "flex", gap: "40px", flexWrap: "wrap" }}>
@@ -165,18 +152,7 @@ const AvatarsSection: React.FC = () => {
                   }}
                 >
                   {sampleUsers.slice(0, 4).map((user) => (
-                    <MuiAvatar
-                      key={user.name}
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        fontSize: 16,
-                        backgroundColor: stringToColor(user.name),
-                        color: "white",
-                      }}
-                    >
-                      {user.initials}
-                    </MuiAvatar>
+                    <VWAvatar key={`${user.firstname}-${user.lastname}`} user={user} size="small" />
                   ))}
                 </Box>
               </ExampleWithCode>
@@ -197,98 +173,63 @@ const AvatarsSection: React.FC = () => {
                   }}
                 >
                   <Box sx={{ textAlign: "center" }}>
-                    <MuiAvatar
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        fontSize: 14,
-                        backgroundColor: stringToColor("John Doe"),
-                        color: "white",
-                        mb: "8px",
-                      }}
-                    >
-                      JD
-                    </MuiAvatar>
+                    <Box sx={{ display: "flex", justifyContent: "center", mb: "8px" }}>
+                      <VWAvatar user={sampleUsers[0]} size="small" />
+                    </Box>
                     <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary }}>
-                      32px
+                      small (32px)
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: "center" }}>
-                    <MuiAvatar
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        fontSize: 16,
-                        backgroundColor: stringToColor("Alice Brown"),
-                        color: "white",
-                        mb: "8px",
-                      }}
-                    >
-                      AB
-                    </MuiAvatar>
+                    <Box sx={{ display: "flex", justifyContent: "center", mb: "8px" }}>
+                      <VWAvatar user={sampleUsers[1]} size="medium" />
+                    </Box>
                     <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary }}>
-                      40px
+                      medium (64px)
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: "center" }}>
-                    <MuiAvatar
-                      sx={{
-                        width: 64,
-                        height: 64,
-                        fontSize: 22,
-                        backgroundColor: stringToColor("Carlos Davis"),
-                        color: "white",
-                        mb: "8px",
-                      }}
-                    >
-                      CD
-                    </MuiAvatar>
+                    <Box sx={{ display: "flex", justifyContent: "center", mb: "8px" }}>
+                      <VWAvatar user={sampleUsers[2]} size="large" />
+                    </Box>
                     <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary }}>
-                      64px
+                      large (128px)
                     </Typography>
                   </Box>
                 </Box>
               </ExampleWithCode>
 
               <ExampleWithCode
-                label="With inner border"
+                label="With and without border"
                 code={avatarSnippets.withBorder}
                 onCopy={handleCopy}
               >
                 <Box
                   sx={{
                     display: "flex",
-                    gap: "16px",
+                    gap: "24px",
                     alignItems: "center",
                     p: "24px",
                     backgroundColor: theme.palette.background.fill,
                     borderRadius: "4px",
                   }}
                 >
-                  {sampleUsers.slice(0, 3).map((user, index) => (
-                    <MuiAvatar
-                      key={user.name}
-                      sx={{
-                        width: index === 1 ? 64 : 40,
-                        height: index === 1 ? 64 : 40,
-                        fontSize: index === 1 ? 22 : 16,
-                        backgroundColor: stringToColor(user.name),
-                        color: "white",
-                        "&::before": {
-                          content: '""',
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          border: `${index === 1 ? 3 : 2}px solid rgba(255,255,255,0.2)`,
-                          borderRadius: "50%",
-                        },
-                      }}
-                    >
-                      {user.initials}
-                    </MuiAvatar>
-                  ))}
+                  <Box sx={{ textAlign: "center" }}>
+                    <Box sx={{ display: "flex", justifyContent: "center", mb: "8px" }}>
+                      <VWAvatar user={sampleUsers[0]} size="small" showBorder />
+                    </Box>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary }}>
+                      showBorder
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: "center" }}>
+                    <Box sx={{ display: "flex", justifyContent: "center", mb: "8px" }}>
+                      <VWAvatar user={sampleUsers[1]} size="small" showBorder={false} />
+                    </Box>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.tertiary }}>
+                      no border
+                    </Typography>
+                  </Box>
                 </Box>
               </ExampleWithCode>
             </Stack>
@@ -301,23 +242,24 @@ const AvatarsSection: React.FC = () => {
             <SpecTable
               onCopy={handleCopy}
               specs={[
-                { property: "Small", value: "32px (fontSize: 14px)" },
-                { property: "Medium (default)", value: "40px (fontSize: 16px)" },
-                { property: "Large", value: "64px (fontSize: 22px)" },
+                { property: "small", value: "32px (fontSize: 13px)" },
+                { property: "medium", value: "64px (fontSize: 22px)" },
+                { property: "large", value: "128px (fontSize: 44px)" },
               ]}
             />
 
             <Typography sx={{ fontSize: 12, fontWeight: 600, color: theme.palette.text.secondary, mb: "16px", mt: "24px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Styling specifications
+              Props reference
             </Typography>
             <SpecTable
               onCopy={handleCopy}
               specs={[
-                { property: "Shape", value: "Circle (borderRadius: 50%)" },
-                { property: "Text color", value: "#FFFFFF (white)" },
-                { property: "Font weight", value: "400 (regular)" },
-                { property: "Inner border", value: "2-3px rgba(255,255,255,0.2)" },
-                { property: "Background", value: "Generated from name" },
+                { property: "user", value: "{ firstname, lastname, pathToImage? }" },
+                { property: "size", value: '"small" | "medium" | "large"' },
+                { property: "variant", value: '"circular" | "rounded" | "square"' },
+                { property: "showBorder", value: "boolean (default: true)" },
+                { property: "onClick", value: "() => void" },
+                { property: "alt", value: "string (overrides auto alt text)" },
               ]}
             />
           </Box>
@@ -327,14 +269,16 @@ const AvatarsSection: React.FC = () => {
       {/* Color Generation */}
       <SpecSection title="Color generation">
         <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, mb: "24px" }}>
-          Avatar colors are deterministically generated from the user's name using a hash function.
-          This ensures the same user always gets the same color across the application.
+          VWAvatar uses the theme's primary color for all initials avatars. Color
+          generation is handled internally — no utility function is needed in
+          consuming code. When a profile image is provided, the background becomes
+          transparent and the border adopts the primary color.
         </Typography>
 
         <Box sx={{ display: "flex", gap: "40px", flexWrap: "wrap" }}>
           <Box sx={{ flex: "1 1 500px", minWidth: 320 }}>
             <ExampleWithCode
-              label="Consistent colors from names"
+              label="Theme-based avatar colors"
               code={avatarSnippets.colorGeneration}
               onCopy={handleCopy}
             >
@@ -348,31 +292,12 @@ const AvatarsSection: React.FC = () => {
                 <Stack spacing="12px">
                   {sampleUsers.map((user) => (
                     <Box
-                      key={user.name}
+                      key={`${user.firstname}-${user.lastname}`}
                       sx={{ display: "flex", alignItems: "center", gap: "12px" }}
                     >
-                      <MuiAvatar
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          fontSize: 12,
-                          backgroundColor: stringToColor(user.name),
-                          color: "white",
-                        }}
-                      >
-                        {user.initials}
-                      </MuiAvatar>
+                      <VWAvatar user={user} size="small" />
                       <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
-                        {user.name}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          fontFamily: "monospace",
-                          color: theme.palette.text.tertiary,
-                        }}
-                      >
-                        {stringToColor(user.name)}
+                        {user.firstname} {user.lastname}
                       </Typography>
                     </Box>
                   ))}
@@ -383,7 +308,7 @@ const AvatarsSection: React.FC = () => {
 
           <Box sx={{ flex: "1 1 300px", minWidth: 280 }}>
             <Typography sx={{ fontSize: 12, fontWeight: 600, color: theme.palette.text.secondary, mb: "16px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Algorithm
+              How colors work
             </Typography>
             <Box
               sx={{
@@ -395,16 +320,16 @@ const AvatarsSection: React.FC = () => {
             >
               <Stack spacing="8px">
                 <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-                  1. Convert each character to its char code
+                  1. Initials avatars use <code>theme.palette.primary.main</code>
                 </Typography>
                 <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-                  2. Accumulate hash: charCode + ((hash &lt;&lt; 5) - hash)
+                  2. Image avatars use transparent background
                 </Typography>
                 <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-                  3. Extract RGB values from hash bits
+                  3. Border color follows primary when image is present
                 </Typography>
                 <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-                  4. Format as hex color string
+                  4. All color logic lives inside VWAvatar — no manual calculation needed
                 </Typography>
               </Stack>
             </Box>
@@ -415,7 +340,8 @@ const AvatarsSection: React.FC = () => {
       {/* Avatar Groups */}
       <SpecSection title="Avatar groups">
         <Typography sx={{ fontSize: 13, color: theme.palette.text.tertiary, mb: "24px" }}>
-          Use MUI AvatarGroup to display multiple avatars with automatic overflow handling.
+          Wrap VWAvatar components inside MUI AvatarGroup to display multiple avatars
+          with automatic overlap and overflow handling.
         </Typography>
 
         <Box sx={{ display: "flex", gap: "40px", flexWrap: "wrap" }}>
@@ -453,15 +379,12 @@ const AvatarsSection: React.FC = () => {
                     }}
                   >
                     {sampleUsers.slice(0, 4).map((user) => (
-                      <MuiAvatar
-                        key={user.name}
-                        sx={{
-                          backgroundColor: stringToColor(user.name),
-                          color: "white",
-                        }}
-                      >
-                        {user.initials}
-                      </MuiAvatar>
+                      <VWAvatar
+                        key={`${user.firstname}-${user.lastname}`}
+                        user={user}
+                        size="small"
+                        showBorder={false}
+                      />
                     ))}
                     <MuiAvatar
                       sx={{
@@ -493,15 +416,12 @@ const AvatarsSection: React.FC = () => {
                     }}
                   >
                     {sampleUsers.slice(0, 3).map((user) => (
-                      <MuiAvatar
-                        key={user.name}
-                        sx={{
-                          backgroundColor: stringToColor(user.name),
-                          color: "white",
-                        }}
-                      >
-                        {user.initials}
-                      </MuiAvatar>
+                      <VWAvatar
+                        key={`${user.firstname}-${user.lastname}`}
+                        user={user}
+                        size="small"
+                        showBorder={false}
+                      />
                     ))}
                     <MuiAvatar
                       sx={{
@@ -569,13 +489,13 @@ const AvatarsSection: React.FC = () => {
         </Typography>
         <Stack spacing="8px">
           {[
-            "Use stringToColor() for consistent avatar colors across the app",
-            "Always provide alt text for accessibility",
-            "Use 32px for compact lists, 40px default, 64px for profiles",
-            "Add inner border (rgba(255,255,255,0.2)) for visual polish",
-            "Use AvatarGroup with max prop to handle overflow gracefully",
-            "Fallback to initials when image fails to load",
-            "Keep initials to 2 characters (first name + last name)",
+            "Use VWAvatar component (not raw MUI Avatar) for all user avatars",
+            "VWAvatar handles color generation automatically from the theme — no manual stringToColor() needed",
+            "Pass user as { firstname, lastname, pathToImage? } — never pass raw initials strings",
+            "Use size=\"small\" (32px) for compact lists, size=\"medium\" (64px) for profiles, size=\"large\" (128px) for hero displays",
+            "Set showBorder={false} when composing into AvatarGroup to avoid double borders",
+            "VWAvatar falls back to initials automatically when image fails to load",
+            "Always provide meaningful alt text via the alt prop when the avatar context is not self-evident",
           ].map((item, index) => (
             <Box
               key={index}

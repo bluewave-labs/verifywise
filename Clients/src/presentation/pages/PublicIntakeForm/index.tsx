@@ -220,7 +220,7 @@ export function PublicIntakeForm() {
     try {
       const payload = {
         formData: data,
-        submitterEmail: collectContactInfo ? submitterEmail : undefined,
+        submitterEmail: collectContactInfo ? (submitterEmail || "") : "",
         submitterName: collectContactInfo ? (submitterName || undefined) : undefined,
         captchaToken,
         captchaAnswer: captchaNum,

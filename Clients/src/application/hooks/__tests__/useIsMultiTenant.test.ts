@@ -113,6 +113,8 @@ describe("useIsMultiTenant", () => {
   });
 
   it("should default to multi-tenant on API error (safety)", async () => {
+    // Suppress expected console noise from error-handling code path
+    vi.spyOn(console, "error").mockImplementation(() => {});
     mockCheckOrganizationExists.mockRejectedValue(new Error("Network error"));
 
     const useIsMultiTenant = await importFresh();

@@ -110,6 +110,9 @@ describe("useDashboardMetrics", () => {
   });
 
   it("should handle API error gracefully via Promise.allSettled", async () => {
+    // Suppress expected console noise from error-handling code paths
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     mockGetAllEntities.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useDashboardMetrics());

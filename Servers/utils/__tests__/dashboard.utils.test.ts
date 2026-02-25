@@ -35,11 +35,19 @@ describe("getDashboardDataQuery", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Suppress expected console noise from error-handling tests
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
     // Default mocks
     mockGetAllProjects.mockResolvedValue([]);
     mockGetDataFromProviders.mockResolvedValue([]);
     // Default: trainings=0, models=0, reports=0, tasks=0/0/0
     mockQuery.mockResolvedValue([[{ count: "0" }], 0] as any);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("should return IDashboard with correct project count", async () => {

@@ -19,6 +19,12 @@ describe("accessControl.middleware (authorize)", () => {
 
   beforeEach(() => {
     next = jest.fn();
+    // Suppress expected console.error from "no role" test path
+    jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("should call next() when role is in allowedRoles", () => {

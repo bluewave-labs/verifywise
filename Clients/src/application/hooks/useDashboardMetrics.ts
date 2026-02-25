@@ -1123,7 +1123,7 @@ export const useDashboardMetrics = () => {
   }, []);
 
   // Use ref for fetchAllMetrics to avoid infinite re-render loops from useCallback deps
-  const fetchAllMetricsRef = useRef<(forceRefresh?: boolean) => Promise<void>>();
+  const fetchAllMetricsRef = useRef<(forceRefresh?: boolean) => Promise<void>>(undefined);
 
   // Fetch all dashboard metrics safely with stale-while-revalidate
   // Grouped into 5 sequential stages for progress tracking

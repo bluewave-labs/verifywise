@@ -70,6 +70,16 @@ jobs:
           DB_PASSWORD: postgres
         run: npx sequelize db:migrate
 
+      - name: Seed test data
+        working-directory: Servers
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: verifywise_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+        run: node dist/scripts/seedTestData.js
+
       - name: Start backend
         working-directory: Servers
         env:

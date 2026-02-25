@@ -1,5 +1,26 @@
 import { TaskPriority, TaskStatus } from "../enums/task.enum";
 
+export type EntityLinkType =
+  | "vendor"
+  | "model"
+  | "policy"
+  | "nist_subcategory"
+  | "iso42001_subclause"
+  | "iso42001_annexcategory"
+  | "iso42001_assessment"
+  | "iso27001_subclause"
+  | "iso27001_annexcontrol"
+  | "iso27001_assessment"
+  | "eu_control"
+  | "eu_subcontrol"
+  | "eu_assessment";
+
+export interface IEntityLink {
+  entity_id: number;
+  entity_type: EntityLinkType;
+  entity_name?: string;
+}
+
 export interface ITask {
   id?: number;
   title: string;
@@ -53,6 +74,7 @@ export interface ICreateTaskFormValues {
     email: string;
   }>;
   categories: string[];
+  entity_links: IEntityLink[];
 }
 
 // Note: ICreateTaskProps and ICreateTaskFormErrors have been moved to: presentation/types/interfaces/i.task.ts

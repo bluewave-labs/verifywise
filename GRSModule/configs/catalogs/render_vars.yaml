@@ -1,0 +1,45 @@
+version: render_vars_v0.1
+ai_governance:
+  model_names:
+    - credit_risk_model
+    - resume_ranker
+    - triage_model
+  change_types:
+    - new version rollout
+    - threshold change
+    - feature update
+  approval_roles:
+    - Compliance Officer
+    - Risk Manager
+    - Human Reviewer
+  log_artifacts:
+    - audit log entry
+    - change request ticket
+    - model card update
+  data_subjects:
+    - loan applicant
+    - job candidate
+    - patient
+    - citizen
+  criteria:
+    - human approval is required
+    - a compliance sign-off is required
+    - log the decision with an audit trail
+    - no automated final decisions
+content_integrity:
+  content_types:
+    - video
+    - audio
+    - image
+  vendor_types:
+    - video generator
+    - voice cloning tool
+    - image editor
+  data_subjects:
+    - a public figure
+    - a colleague
+    - a customer
+  disclosures:
+    - label as AI-generated
+    - add watermark
+    - include disclosure text

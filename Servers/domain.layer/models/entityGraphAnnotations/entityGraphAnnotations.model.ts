@@ -228,8 +228,8 @@ export class EntityGraphAnnotationsModel extends Model<EntityGraphAnnotationsMod
       entity_type: this.entity_type,
       entity_id: this.entity_id,
       organization_id: this.organization_id,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 

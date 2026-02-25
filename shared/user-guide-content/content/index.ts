@@ -37,8 +37,13 @@ import { runningExperimentsContent } from './llm-evals/running-experiments';
 import { managingDatasetsContent } from './llm-evals/managing-datasets';
 import { configuringScorersContent } from './llm-evals/configuring-scorers';
 import { biasAuditsContent } from './llm-evals/bias-audits';
+import { modelsContent } from './llm-evals/models';
+import { llmArenaContent } from './llm-evals/llm-arena';
 import { scanningContent } from './ai-detection/scanning';
+import { riskScoringContent } from './ai-detection/risk-scoring';
+import { repositoriesContent } from './ai-detection/repositories';
 import { historyContent } from './ai-detection/history';
+import { aiDetectionSettingsContent } from './ai-detection/settings';
 import { insightsContent } from './shadow-ai/insights';
 import { aiToolsContent } from './shadow-ai/ai-tools';
 import { userActivityContent } from './shadow-ai/user-activity';
@@ -97,9 +102,14 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'llm-evals/managing-datasets': managingDatasetsContent,
   'llm-evals/configuring-scorers': configuringScorersContent,
   'llm-evals/bias-audits': biasAuditsContent,
+  'llm-evals/models': modelsContent,
+  'llm-evals/llm-arena': llmArenaContent,
   // AI Detection
   'ai-detection/scanning': scanningContent,
+  'ai-detection/risk-scoring': riskScoringContent,
+  'ai-detection/repositories': repositoriesContent,
   'ai-detection/history': historyContent,
+  'ai-detection/settings': aiDetectionSettingsContent,
   // Shadow AI
   'shadow-ai/insights': insightsContent,
   'shadow-ai/ai-tools': aiToolsContent,

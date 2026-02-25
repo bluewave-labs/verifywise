@@ -82,8 +82,8 @@ export class EvidenceHubModel extends Model<EvidenceHubModel> {
       evidence_files: this.evidence_files,
       expiry_date: this.expiry_date?.toISOString() || null,
       mapped_model_ids: this.mapped_model_ids,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 
@@ -100,8 +100,8 @@ export class EvidenceHubModel extends Model<EvidenceHubModel> {
       evidence_files: this.evidence_files,
       expiry_date: this.expiry_date?.toISOString() || null,
       mapped_model_ids: this.mapped_model_ids,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 

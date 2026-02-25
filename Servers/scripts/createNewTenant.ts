@@ -2450,8 +2450,15 @@ export const createNewTenant = async (
     ].map((query) => sequelize.query(query, { transaction })));
 
     // Create llm_keys table for LLM API key management
-    // Note: Requires global ENUM type enum_llm_keys_provider to exist
-    // This is created by migration 20251126220719-create-llm-keys-table.js
+    // Ensure the global ENUM type exists (includes 'Custom' provider)
+    await sequelize.query(
+      `DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_llm_keys_provider') THEN
+          CREATE TYPE enum_llm_keys_provider AS ENUM ('Anthropic', 'OpenAI', 'OpenRouter', 'Custom');
+        END IF;
+      END $$;`,
+      { transaction }
+    );
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".llm_keys (
         id SERIAL PRIMARY KEY,
@@ -2459,6 +2466,7 @@ export const createNewTenant = async (
         name enum_llm_keys_provider NOT NULL,
         url TEXT,
         model TEXT NOT NULL,
+        custom_headers JSONB DEFAULT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );`,
       { transaction }
@@ -2481,6 +2489,45 @@ export const createNewTenant = async (
     // ========================================
     console.log(`🔍 Creating AI Detection tables for tenant: ${tenantHash}`);
 
+    // Create ai_detection_repositories table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_repositories (
+        id SERIAL PRIMARY KEY,
+        repository_url VARCHAR(500) NOT NULL,
+        repository_owner VARCHAR(255) NOT NULL,
+        repository_name VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255),
+        default_branch VARCHAR(100) DEFAULT 'main',
+        github_token_id INTEGER,
+
+        schedule_enabled BOOLEAN DEFAULT FALSE,
+        schedule_frequency VARCHAR(20),
+        schedule_day_of_week INTEGER,
+        schedule_day_of_month INTEGER,
+        schedule_hour INTEGER DEFAULT 2,
+        schedule_minute INTEGER DEFAULT 0,
+
+        last_scan_id INTEGER,
+        last_scan_status VARCHAR(50),
+        last_scan_at TIMESTAMP WITH TIME ZONE,
+        next_scan_at TIMESTAMP WITH TIME ZONE,
+
+        is_enabled BOOLEAN DEFAULT TRUE,
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        UNIQUE(repository_owner, repository_name)
+      );`,
+      { transaction }
+    );
+
+    // Create indexes for ai_detection_repositories
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_repos_enabled_idx" ON "${tenantHash}".ai_detection_repositories(is_enabled);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_repos_schedule_idx" ON "${tenantHash}".ai_detection_repositories(schedule_enabled, next_scan_at);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_repos_created_at_idx" ON "${tenantHash}".ai_detection_repositories(created_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
     // Create ai_detection_scans table
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_scans (
@@ -2499,6 +2546,12 @@ export const createNewTenant = async (
         error_message TEXT,
         triggered_by INTEGER NOT NULL,
         cache_path VARCHAR(255),
+        repository_id INTEGER,
+        triggered_by_type VARCHAR(20) DEFAULT 'manual',
+        risk_score NUMERIC(5,2),
+        risk_score_grade VARCHAR(1),
+        risk_score_details JSONB,
+        risk_score_calculated_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );`,
@@ -2511,6 +2564,8 @@ export const createNewTenant = async (
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_triggered_by_idx" ON "${tenantHash}".ai_detection_scans(triggered_by);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_created_at_idx" ON "${tenantHash}".ai_detection_scans(created_at DESC);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_repo_idx" ON "${tenantHash}".ai_detection_scans(repository_owner, repository_name);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_repo_id_idx" ON "${tenantHash}".ai_detection_scans(repository_id);`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "${tenantHash}_ai_scans_unique_active_idx" ON "${tenantHash}".ai_detection_scans(repository_owner, repository_name) WHERE status IN ('pending', 'cloning', 'scanning');`,
     ].map((query) => sequelize.query(query, { transaction })));
 
     // Create ai_detection_findings table
@@ -2574,6 +2629,19 @@ export const createNewTenant = async (
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         last_used_at TIMESTAMP WITH TIME ZONE
+      );`,
+      { transaction }
+    );
+
+    // Create ai_detection_risk_scoring_config table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".ai_detection_risk_scoring_config (
+        id SERIAL PRIMARY KEY,
+        llm_enabled BOOLEAN DEFAULT FALSE,
+        llm_key_id INTEGER,
+        dimension_weights JSONB DEFAULT '{"data_sovereignty":0.20,"transparency":0.15,"security":0.15,"autonomy":0.15,"supply_chain":0.15,"license":0.10,"accuracy":0.10}',
+        updated_by INTEGER,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );`,
       { transaction }
     );
@@ -2736,7 +2804,14 @@ export const createNewTenant = async (
           'file_uploaded',
           'comment_added',
           'mention',
-          'system'
+          'system',
+          'assignment_owner',
+          'assignment_reviewer',
+          'assignment_approver',
+          'assignment_member',
+          'assignment_assignee',
+          'assignment_action_owner',
+          'assignment_risk_owner'
         );
       EXCEPTION
         WHEN duplicate_object THEN null;
@@ -3308,6 +3383,133 @@ export const createNewTenant = async (
       ON "${tenantHash}".invitations (email)
       WHERE status = 'pending';
     `, { transaction });
+
+    // Create task_change_history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".task_change_history (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER NOT NULL REFERENCES "${tenantHash}".tasks(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_task_change_history_task_id ON "${tenantHash}".task_change_history(task_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_task_change_history_changed_at ON "${tenantHash}".task_change_history(changed_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_task_change_history_task_changed ON "${tenantHash}".task_change_history(task_id, changed_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create training_change_history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".training_change_history (
+        id SERIAL PRIMARY KEY,
+        training_id INTEGER NOT NULL REFERENCES "${tenantHash}".trainingregistar(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_training_change_history_training_id ON "${tenantHash}".training_change_history(training_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_training_change_history_changed_at ON "${tenantHash}".training_change_history(changed_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_training_change_history_training_changed ON "${tenantHash}".training_change_history(training_id, changed_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // Create model_risk_change_history table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".model_risk_change_history (
+        id SERIAL PRIMARY KEY,
+        model_risk_id INTEGER NOT NULL REFERENCES "${tenantHash}".model_risks(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+        field_name VARCHAR(255),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_model_risk_change_history_risk_id ON "${tenantHash}".model_risk_change_history(model_risk_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_risk_change_history_changed_at ON "${tenantHash}".model_risk_change_history(changed_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_model_risk_change_history_risk_changed ON "${tenantHash}".model_risk_change_history(model_risk_id, changed_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // ── Intake Forms ──────────────────────────────────────────────────
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".intake_forms (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        schema JSONB NOT NULL DEFAULT '{"version":"1.0","fields":[]}',
+        submit_button_text VARCHAR(100) DEFAULT 'Submit',
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        ttl_expires_at TIMESTAMPTZ,
+        public_id VARCHAR(16) UNIQUE,
+        recipients JSONB DEFAULT '[]',
+        risk_tier_system VARCHAR(20) DEFAULT 'generic',
+        risk_assessment_config JSONB,
+        llm_key_id INTEGER,
+        suggested_questions_enabled BOOLEAN DEFAULT false,
+        design_settings JSONB,
+        created_by INTEGER NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(slug)
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_status ON "${tenantHash}".intake_forms(status);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_entity_type ON "${tenantHash}".intake_forms(entity_type);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_slug ON "${tenantHash}".intake_forms(slug);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_forms_public_id ON "${tenantHash}".intake_forms(public_id);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // ── Intake Submissions ────────────────────────────────────────────
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}".intake_submissions (
+        id SERIAL PRIMARY KEY,
+        form_id INTEGER NOT NULL REFERENCES "${tenantHash}".intake_forms(id) ON DELETE CASCADE,
+        submitter_email VARCHAR(255),
+        submitter_name VARCHAR(255),
+        data JSONB NOT NULL DEFAULT '{}',
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id INTEGER,
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        rejection_reason TEXT,
+        reviewed_by INTEGER,
+        reviewed_at TIMESTAMPTZ,
+        original_submission_id INTEGER REFERENCES "${tenantHash}".intake_submissions(id) ON DELETE SET NULL,
+        resubmission_count INTEGER NOT NULL DEFAULT 0,
+        ip_address VARCHAR(45),
+        risk_assessment JSONB,
+        risk_tier VARCHAR(20),
+        risk_override JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_form_id ON "${tenantHash}".intake_submissions(form_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_status ON "${tenantHash}".intake_submissions(status);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_submitter_email ON "${tenantHash}".intake_submissions(submitter_email);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_entity ON "${tenantHash}".intake_submissions(entity_type, entity_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_created_at ON "${tenantHash}".intake_submissions(created_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_intake_submissions_ip_address ON "${tenantHash}".intake_submissions(ip_address, created_at DESC);`,
+    ].map((query) => sequelize.query(query, { transaction })));
 
   } catch (error) {
     throw error;

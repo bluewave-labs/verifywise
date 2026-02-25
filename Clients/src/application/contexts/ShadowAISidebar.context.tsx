@@ -5,7 +5,8 @@
  * Follows the same pattern as AIDetectionSidebarContext.
  */
 
-import { createContext, useContext, useState, ReactNode, FC } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, FC } from "react";
+import { getTools } from "../repository/shadowAi.repository";
 
 export interface RecentTool {
   id: number;
@@ -21,8 +22,7 @@ interface ShadowAISidebarContextType {
   setAlertsCount: (count: number) => void;
   recentTools: RecentTool[];
   setRecentTools: (tools: RecentTool[]) => void;
-  onToolClick: ((toolId: number) => void) | undefined;
-  setOnToolClick: (handler: ((toolId: number) => void) | undefined) => void;
+  refreshRecentTools: () => void;
 }
 
 const ShadowAISidebarContext = createContext<ShadowAISidebarContextType | null>(null);
@@ -32,7 +32,28 @@ export const ShadowAISidebarProvider: FC<{ children: ReactNode }> = ({ children 
   const [toolsCount, setToolsCount] = useState(0);
   const [alertsCount, setAlertsCount] = useState(0);
   const [recentTools, setRecentTools] = useState<RecentTool[]>([]);
-  const [onToolClick, setOnToolClick] = useState<((toolId: number) => void) | undefined>();
+
+  // Load recent tools for sidebar on mount
+  const refreshRecentTools = useCallback(async () => {
+    try {
+      const response = await getTools({
+        page: 1,
+        limit: 5,
+        sort_by: "last_seen_at",
+        order: "desc",
+      });
+      setToolsCount(response.total);
+      setRecentTools(
+        response.tools.map((t) => ({ id: t.id, name: t.name }))
+      );
+    } catch (error) {
+      console.error("Failed to load recent tools:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshRecentTools();
+  }, [refreshRecentTools]);
 
   return (
     <ShadowAISidebarContext.Provider
@@ -45,8 +66,7 @@ export const ShadowAISidebarProvider: FC<{ children: ReactNode }> = ({ children 
         setAlertsCount,
         recentTools,
         setRecentTools,
-        onToolClick,
-        setOnToolClick,
+        refreshRecentTools,
       }}
     >
       {children}

@@ -75,6 +75,19 @@ const FileManager: React.FC = (): JSX.Element => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
+
+  // Folder sidebar collapse state (persisted in localStorage)
+  const [folderSidebarCollapsed, setFolderSidebarCollapsed] = useState(() =>
+    localStorage.getItem("verifywise:folder-sidebar-collapsed") === "true"
+  );
+
+  const handleToggleFolderSidebar = useCallback(() => {
+    setFolderSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("verifywise:folder-sidebar-collapsed", String(next));
+      return next;
+    });
+  }, []);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
@@ -205,23 +218,19 @@ const FileManager: React.FC = (): JSX.Element => {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Only sync on initial load, not on subsequent hook updates
-    if (!hasInitialized && !initialLoading && initialFilesData.length > 0) {
-      setFilesData(initialFilesData);
-      setLoadingFiles(false);
-      setFilesError(initialError);
-      setHasInitialized(true);
-    }
-    // If still loading initially, reflect that
-    if (!hasInitialized && initialLoading) {
+    if (hasInitialized) return;
+
+    // Still loading - reflect that
+    if (initialLoading) {
       setLoadingFiles(true);
+      return;
     }
-    // Handle initial error
-    if (!hasInitialized && !initialLoading && initialError) {
-      setFilesError(initialError);
-      setLoadingFiles(false);
-      setHasInitialized(true);
-    }
+
+    // Loading finished (success or error) - sync state and mark initialized
+    setFilesData(initialFilesData);
+    setFilesError(initialError);
+    setLoadingFiles(false);
+    setHasInitialized(true);
   }, [initialFilesData, initialLoading, initialError, hasInitialized]);
 
   // RBAC: Get user role for permission checks
@@ -335,7 +344,12 @@ const FileManager: React.FC = (): JSX.Element => {
 
     // Refresh metadata to get the complete file info including review_status
     fetchFilesWithMetadata();
-  }, [selectedFolder, fetchFilesWithMetadata]);
+
+    // If viewing a specific folder, refresh folder files so the upload appears immediately
+    if (typeof selectedFolder === "number") {
+      refreshFiles(selectedFolder);
+    }
+  }, [selectedFolder, fetchFilesWithMetadata, refreshFiles]);
 
   // Handle file deleted - optimistically remove from state
   const handleFileDeleted = useCallback((fileId: string) => {
@@ -710,6 +724,7 @@ const FileManager: React.FC = (): JSX.Element => {
       title="Evidence & documents"
       description="Organize and manage all files uploaded to the system."
       helpArticlePath="ai-governance/evidence-collection"
+
       tipBoxEntity="file-manager"
     >
       <PageTour
@@ -743,6 +758,8 @@ const FileManager: React.FC = (): JSX.Element => {
           onDeleteFolder={handleOpenDeleteFolder}
           loading={loadingFolders}
           canManage={canManageFolders}
+          collapsed={folderSidebarCollapsed}
+          onToggleCollapse={handleToggleFolderSidebar}
         />
 
         {/* File content area */}

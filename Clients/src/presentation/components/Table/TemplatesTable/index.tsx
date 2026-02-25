@@ -9,10 +9,10 @@ import {
   TableRow,
   TableFooter,
   Typography,
-  Chip,
-  Button,
   CircularProgress,
 } from "@mui/material";
+import { CustomizableButton } from "../../button/customizable-button";
+import Chip from "../../Chip";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useMemo, useState } from "react";
 import TablePaginationActions from "../../TablePagination";
@@ -25,7 +25,7 @@ import {
 // Re-export TemplateRow from TemplatesList
 export type { TemplateRow } from "./TemplatesList";
 import type { TemplateRow } from "./TemplatesList";
-import { getPredominantDifficultyLabel, getDifficultyStyles } from "./TemplatesList";
+import { getPredominantDifficultyLabel, getDifficultyStyles, getCategoryStyles, getTypeStyles } from "./TemplatesList";
 
 export type SortDirection = "asc" | "desc" | null;
 export type SortConfig = {
@@ -43,32 +43,6 @@ export interface TemplatesTableProps {
   showPagination?: boolean;
   compact?: boolean;
 }
-
-const getTypeStyles = (type?: string) => {
-  switch (type) {
-    case "single-turn":
-      return { backgroundColor: "#FEF3C7", color: "#92400E" };
-    case "multi-turn":
-      return { backgroundColor: "#E3F2FD", color: "#1565C0" };
-    case "simulated":
-      return { backgroundColor: "#EDE9FE", color: "#6D28D9" };
-    default:
-      return { backgroundColor: "#F3F4F6", color: "#6B7280" };
-  }
-};
-
-const getCategoryStyles = (category: string) => {
-  switch (category) {
-    case "chatbot":
-      return { backgroundColor: "#CCFBF1", color: "#0D9488" };
-    case "rag":
-      return { backgroundColor: "#E0E7FF", color: "#3730A3" };
-    case "agent":
-      return { backgroundColor: "#FEE2E2", color: "#DC2626" };
-    default:
-      return { backgroundColor: "#F3F4F6", color: "#6B7280" };
-  }
-};
 
 const TemplatesTable: React.FC<TemplatesTableProps> = ({
   rows,
@@ -265,13 +239,9 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                       <Chip
                         label={template.type === "single-turn" ? "Single-Turn" : template.type === "multi-turn" ? "Multi-Turn" : "Simulated"}
                         size="small"
-                        sx={{
-                          height: compact ? "20px" : "22px",
-                          fontSize: compact ? "10px" : "11px",
-                          fontWeight: 500,
-                          borderRadius: "4px",
-                          ...getTypeStyles(template.type),
-                        }}
+                        uppercase={false}
+                        backgroundColor={getTypeStyles(template.type).backgroundColor}
+                        textColor={getTypeStyles(template.type).color}
                       />
                     ) : (
                       <Typography sx={{ fontSize: "13px", color: "#9CA3AF" }}>-</Typography>
@@ -281,13 +251,9 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                     <Chip
                       label={template.category === "rag" ? "RAG" : template.category === "chatbot" ? "Chatbot" : "Agent"}
                       size="small"
-                      sx={{
-                        height: compact ? "20px" : "22px",
-                        fontSize: compact ? "10px" : "11px",
-                        fontWeight: 500,
-                        borderRadius: "4px",
-                        ...getCategoryStyles(template.category),
-                      }}
+                      uppercase={false}
+                      backgroundColor={getCategoryStyles(template.category).backgroundColor}
+                      textColor={getCategoryStyles(template.category).color}
                     />
                   </TableCell>
                   <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}>
@@ -299,30 +265,25 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                     <Chip
                       label={difficultyLabel}
                       size="small"
-                      sx={{
-                        ...getDifficultyStyles(difficultyLabel),
-                        height: compact ? "20px" : "22px",
-                        fontSize: compact ? "10px" : "11px",
-                        fontWeight: 500,
-                        borderRadius: "4px",
-                        "& .MuiChip-label": { px: 1 },
-                      }}
+                      uppercase={false}
+                      backgroundColor={getDifficultyStyles(difficultyLabel).backgroundColor}
+                      textColor={getDifficultyStyles(difficultyLabel).color}
                     />
                   </TableCell>
                   <TableCell
                     sx={{ ...singleTheme.tableStyles.primary.body.cell, textAlign: "center" }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Button
+                    <CustomizableButton
                       size="small"
                       variant="outlined"
                       startIcon={<Copy size={compact ? 12 : 14} />}
                       onClick={() => onUse?.(template)}
-                      disabled={copyingTemplate}
+                      isDisabled={copyingTemplate}
+                      text="Use"
                       sx={{
-                        textTransform: "none",
                         fontSize: compact ? "11px" : "12px",
-                        height: compact ? "24px" : "28px",
+                        minHeight: compact ? "24px" : "28px",
                         borderColor: "#d0d5dd",
                         color: "#344054",
                         "&:hover": {
@@ -330,9 +291,7 @@ const TemplatesTable: React.FC<TemplatesTableProps> = ({
                           color: "#13715B",
                         },
                       }}
-                    >
-                      Use
-                    </Button>
+                    />
                   </TableCell>
                 </TableRow>
               );

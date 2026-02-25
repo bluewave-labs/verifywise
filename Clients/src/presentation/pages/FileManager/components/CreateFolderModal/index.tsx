@@ -249,22 +249,6 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
           </Box>
         </Stack>
 
-        {/* Parent folder info */}
-        {parentFolder && !isEdit && (
-          <Box
-            sx={{
-              padding: "12px",
-              backgroundColor: "#F9FAFB",
-              borderRadius: "4px",
-              border: "1px solid #E0E4E9",
-            }}
-          >
-            <Typography sx={{ fontSize: 12, color: "#667085" }}>
-              This folder will be created inside:{" "}
-              <strong style={{ color: "#344054" }}>{parentFolder.name}</strong>
-            </Typography>
-          </Box>
-        )}
       </Stack>
     </StandardModal>
   );

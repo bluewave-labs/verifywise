@@ -64,3 +64,25 @@ class BaseTemplate(BaseModel):
 class BaseTemplatesFile(BaseModel):
     version: str
     templates: List[BaseTemplate]
+
+
+class AiGovernanceVars(BaseModel):
+    model_names: List[str]
+    change_types: List[str]
+    approval_roles: List[str]
+    log_artifacts: List[str]
+    data_subjects: List[str]
+    criteria: List[str]
+
+
+class ContentIntegrityVars(BaseModel):
+    content_types: List[str]
+    vendor_types: List[str]
+    data_subjects: List[str]
+    disclosures: List[str]
+
+
+class RenderVarsCatalog(BaseModel):
+    version: str
+    ai_governance: AiGovernanceVars
+    content_integrity: ContentIntegrityVars

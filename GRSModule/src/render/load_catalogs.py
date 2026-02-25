@@ -10,6 +10,7 @@ from render.models import (
     DomainsCatalog,
     OrgContextsCatalog,
     BaseTemplatesFile,
+    RenderVarsCatalog,
 )
 
 
@@ -20,6 +21,7 @@ class RenderInputs:
     domains: DomainsCatalog
     org_contexts: OrgContextsCatalog
     templates: BaseTemplatesFile
+    render_vars: RenderVarsCatalog
 
 
 def load_render_inputs(*, config_dir: Path) -> RenderInputs:
@@ -31,6 +33,7 @@ def load_render_inputs(*, config_dir: Path) -> RenderInputs:
     domains = load_yaml_model(catalogs_dir / "domains.yaml", DomainsCatalog)
     org_contexts = load_yaml_model(catalogs_dir / "org_contexts.yaml", OrgContextsCatalog)
     templates = load_yaml_model(templates_dir / "base_scenarios.yaml", BaseTemplatesFile)
+    render_vars = load_yaml_model(catalogs_dir / "render_vars.yaml", RenderVarsCatalog)
 
     return RenderInputs(
         roles=roles,
@@ -38,4 +41,5 @@ def load_render_inputs(*, config_dir: Path) -> RenderInputs:
         domains=domains,
         org_contexts=org_contexts,
         templates=templates,
+        render_vars=render_vars,
     )

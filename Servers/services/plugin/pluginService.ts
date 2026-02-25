@@ -197,7 +197,7 @@ export class PluginService {
         p.isPublished &&
         (p.name.toLowerCase().includes(lowerQuery) ||
           p.description.toLowerCase().includes(lowerQuery) ||
-          p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)));
+          (p.tags || []).some((tag) => tag.toLowerCase().includes(lowerQuery)));
 
       // Include built-in plugins in search results
       const builtinMatches = (getBuiltinPlugins() as Plugin[]).filter(matchFilter);
@@ -372,6 +372,9 @@ export class PluginService {
 
       for (const installation of installations) {
         if (installation.status !== "installed") continue;
+
+        // Built-in plugins don't have remote code to load data providers from
+        if (isBuiltinPlugin(installation.plugin_key)) continue;
 
         try {
           // Get plugin metadata from marketplace
@@ -586,7 +589,10 @@ export class PluginService {
         console.log(`[PluginService] No package.json found for plugin ${sanitizeForLog(plugin.key)} (pre-bundled plugin)`);
         return null;
       }
-      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}:`, error);
+      const errMsg = error.isAxiosError
+        ? `${error.message} (status: ${error.response?.status || 'N/A'}, url: ${error.config?.url || 'N/A'})`
+        : error.message;
+      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}: ${errMsg}`);
       throw new Error(`Failed to download package.json: ${error.message}`);
     }
   }
@@ -692,11 +698,13 @@ export class PluginService {
 
       const data = response.data as PluginMarketplace;
 
-      // Transform relative iconUrl paths to full URLs
+      // Transform relative iconUrl paths to full URLs and normalize optional array fields
       data.plugins = data.plugins.map((plugin) => {
         if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
           plugin.iconUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}`;
         }
+        plugin.tags = plugin.tags || [];
+        plugin.features = plugin.features || [];
         return plugin;
       });
 
@@ -717,8 +725,7 @@ export class PluginService {
       return pluginCode;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}:`,
-        error
+        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}: ${error.message}`
       );
       throw new Error(`Failed to load plugin code: ${error.message}`);
     }
@@ -730,6 +737,14 @@ export class PluginService {
    */
   private static async downloadAndLoadPlugin(plugin: Plugin): Promise<any> {
     try {
+      // Guard: built-in plugins should never reach here — they don't have remote code
+      if (plugin.pluginPath === "__builtin__" || plugin.entryPoint === "__builtin__") {
+        throw new Error(
+          `Built-in plugin '${sanitizeForLog(plugin.key)}' cannot be downloaded. ` +
+          `Ensure callers check isBuiltinPlugin() before calling loadPluginCode().`
+        );
+      }
+
       // 1. Setup paths
       const tempPath = path.join(__dirname, "../../../temp/plugins", plugin.key);
       const entryPointPath = path.join(tempPath, plugin.entryPoint);
@@ -827,7 +842,10 @@ export class PluginService {
       const pluginCode = require(entryPointPath);
       return pluginCode;
     } catch (error: any) {
-      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}:`, error);
+      const errMsg = error.isAxiosError
+        ? `${error.message} (status: ${error.response?.status || 'N/A'}, url: ${error.config?.url || 'N/A'})`
+        : error.message;
+      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}: ${errMsg}`);
       throw new Error(`Failed to download plugin: ${error.message}`);
     }
   }

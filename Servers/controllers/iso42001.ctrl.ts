@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import { QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
+import { notifyUserAssigned, AssignmentRoleType } from "../services/inAppNotification.service";
 import { SubClauseISO } from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
 import { uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
@@ -39,6 +41,104 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import logger from "../utils/logger/fileLogger";
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
+
+// Helper function to notify assignment changes for ISO 42001 entities
+async function notifyIso42001Assignment(
+  req: Request | RequestWithFile,
+  entityType: "ISO 42001 Subclause" | "ISO 42001 Annex",
+  entityId: number,
+  entityName: string,
+  roleType: AssignmentRoleType,
+  newUserId: number,
+  oldUserId: number | null | undefined
+): Promise<void> {
+  // Only notify if assigned to a new user
+  if (newUserId && newUserId !== oldUserId) {
+    const assignerName = await getUserNameById(req.userId!);
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+    let urlPath: string;
+    let parentType: string | undefined;
+    let parentName: string | undefined;
+    let description: string | undefined;
+
+    if (entityType === "ISO 42001 Subclause") {
+      // Query for parent clause info, subclause order_no for full identifier (e.g., "4.1 Understanding the organization"), and subclause summary
+      const result = await sequelize.query<{ clause_id: number; clause_no: number; clause_title: string; subclause_order_no: number; summary: string }>(
+        `SELECT scs.clause_id, c.clause_no, c.title as clause_title, scs.order_no as subclause_order_no, scs.summary
+         FROM "${req.tenantId!}".subclauses_iso sc
+         JOIN public.subclauses_struct_iso scs ON sc.subclause_meta_id = scs.id
+         JOIN public.clauses_struct_iso c ON scs.clause_id = c.id
+         WHERE sc.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      const clauseId = result[0]?.clause_id;
+      parentType = "Clause";
+      parentName = result[0]?.clause_title;
+      // Build full subclause identifier like "4.1 Understanding the organization and its context"
+      if (result[0]) {
+        entityName = `${result[0].clause_no}.${result[0].subclause_order_no} ${entityName}`;
+      }
+      description = result[0]?.summary;
+      urlPath = clauseId
+        ? `/framework?framework=iso-42001&clauseId=${clauseId}&subClauseId=${entityId}`
+        : `/framework?framework=iso-42001&subClauseId=${entityId}`;
+    } else {
+      // Query for parent annex info, category sub_id for full identifier (e.g., "A.5.1 Policies for AI"), and category description
+      const result = await sequelize.query<{ annex_id: number; annex_no: number; annex_title: string; category_sub_id: number; category_description: string }>(
+        `SELECT acs.annex_id, a.annex_no, a.title as annex_title, acs.sub_id as category_sub_id, acs.description as category_description
+         FROM "${req.tenantId!}".annexcategories_iso ac
+         JOIN public.annexcategories_struct_iso acs ON ac.annexcategory_meta_id = acs.id
+         JOIN public.annex_struct_iso a ON acs.annex_id = a.id
+         WHERE ac.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      const annexId = result[0]?.annex_id;
+      parentType = "Annex";
+      parentName = result[0]?.annex_title;
+      // Build full annex category identifier like "A.5.1 Policies for AI"
+      if (result[0]) {
+        entityName = `A.${result[0].annex_no}.${result[0].category_sub_id} ${entityName}`;
+      }
+      description = result[0]?.category_description;
+      urlPath = annexId
+        ? `/framework?framework=iso-42001&annexId=${annexId}&annexCategoryId=${entityId}`
+        : `/framework?framework=iso-42001&annexCategoryId=${entityId}`;
+    }
+
+    notifyUserAssigned(
+      req.tenantId!,
+      newUserId,
+      {
+        entityType,
+        entityId,
+        entityName,
+        roleType,
+        entityUrl: `${baseUrl}${urlPath}`,
+      },
+      assignerName,
+      baseUrl,
+      {
+        frameworkName: "ISO 42001",
+        parentType,
+        parentName,
+        description,
+      }
+    ).catch((err) => console.error(`Failed to send ${roleType} notification:`, err));
+  }
+}
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -735,20 +835,26 @@ export async function saveClauses(
         .filter((id: number) => !isNaN(id))
       : [];
 
-    // Get project_id from subclause
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    // Get current subclause data for assignment change detection
+    const currentSubClauseResult = (await sequelize.query(
+      `SELECT sc.owner, sc.reviewer, sc.approver, pf.project_id as project_id, scs.title as title
+       FROM "${req.tenantId!}".subclauses_iso sc
+       JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id
+       LEFT JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
+       WHERE sc.id = :id;`,
       {
         replacements: { id: subClauseId },
         transaction,
+        type: QueryTypes.SELECT,
       }
-    )) as [{ id: number }[], number];
+    )) as { project_id: number; owner: number | null; reviewer: number | null; approver: number | null; title: string }[];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for subclause");
+    if (currentSubClauseResult.length === 0) {
+      throw new Error("Subclause not found");
     }
 
-    const projectId = projectIdResult[0][0].id;
+    const currentData = currentSubClauseResult[0];
+    const projectId = currentData.project_id;
 
     let uploadedFiles: FileType[] = [];
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
@@ -779,6 +885,22 @@ export async function saveClauses(
       transaction
     );
     await transaction.commit();
+
+    // Notify owner, reviewer, approver if changed
+    const entityName = currentData.title || `Subclause #${subClauseId}`;
+    const newOwner = subClause.owner ? parseInt(String(subClause.owner)) : null;
+    const newReviewer = subClause.reviewer ? parseInt(String(subClause.reviewer)) : null;
+    const newApprover = subClause.approver ? parseInt(String(subClause.approver)) : null;
+
+    if (newOwner) {
+      notifyIso42001Assignment(req, "ISO 42001 Subclause", subClauseId, entityName, "Owner", newOwner, currentData.owner);
+    }
+    if (newReviewer) {
+      notifyIso42001Assignment(req, "ISO 42001 Subclause", subClauseId, entityName, "Reviewer", newReviewer, currentData.reviewer);
+    }
+    if (newApprover) {
+      notifyIso42001Assignment(req, "ISO 42001 Subclause", subClauseId, entityName, "Approver", newApprover, currentData.approver);
+    }
 
     await logSuccess({
       eventType: "Update",
@@ -839,20 +961,26 @@ export async function saveAnnexes(
         .filter((id: number) => !isNaN(id))
       : [];
 
-    // Get project_id from annex category
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcategories_iso ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
+    // Get current annex category data for assignment change detection
+    const currentAnnexResult = (await sequelize.query(
+      `SELECT ac.owner, ac.reviewer, ac.approver, pf.project_id as project_id, acs.title as title
+       FROM "${req.tenantId!}".annexcategories_iso ac
+       JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id
+       LEFT JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+       WHERE ac.id = :id;`,
       {
         replacements: { id: annexCategoryId },
         transaction,
+        type: QueryTypes.SELECT,
       }
-    )) as [{ id: number }[], number];
+    )) as { project_id: number; owner: number | null; reviewer: number | null; approver: number | null; title: string }[];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for annex category");
+    if (currentAnnexResult.length === 0) {
+      throw new Error("Annex category not found");
     }
 
-    const projectId = projectIdResult[0][0].id;
+    const currentAnnexData = currentAnnexResult[0];
+    const projectId = currentAnnexData.project_id;
 
     let uploadedFiles: FileType[] = [];
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
@@ -883,6 +1011,22 @@ export async function saveAnnexes(
       transaction
     );
     await transaction.commit();
+
+    // Notify owner, reviewer, approver if changed
+    const annexEntityName = currentAnnexData.title || `Annex Category #${annexCategoryId}`;
+    const newAnnexOwner = annexCategory.owner ? parseInt(String(annexCategory.owner)) : null;
+    const newAnnexReviewer = annexCategory.reviewer ? parseInt(String(annexCategory.reviewer)) : null;
+    const newAnnexApprover = annexCategory.approver ? parseInt(String(annexCategory.approver)) : null;
+
+    if (newAnnexOwner) {
+      notifyIso42001Assignment(req, "ISO 42001 Annex", annexCategoryId, annexEntityName, "Owner", newAnnexOwner, currentAnnexData.owner);
+    }
+    if (newAnnexReviewer) {
+      notifyIso42001Assignment(req, "ISO 42001 Annex", annexCategoryId, annexEntityName, "Reviewer", newAnnexReviewer, currentAnnexData.reviewer);
+    }
+    if (newAnnexApprover) {
+      notifyIso42001Assignment(req, "ISO 42001 Annex", annexCategoryId, annexEntityName, "Approver", newAnnexApprover, currentAnnexData.approver);
+    }
 
     await logSuccess({
       eventType: "Update",

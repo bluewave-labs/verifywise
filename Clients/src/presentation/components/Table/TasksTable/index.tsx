@@ -28,6 +28,7 @@ import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import { CategoryChip } from "../../Chip/CategoryChip/CategoryChip";
 import { DISPLAY_TO_PRIORITY_MAP, PRIORITY_DISPLAY_MAP } from "../../../constants/priorityOptions";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import { taskTableStyles } from "./styles";
 
 const SelectorVertical = (props: any) => (
@@ -429,19 +430,15 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           variant="body2"
                           sx={{
                             fontSize: 13,
-                            color: task.isOverdue
-                              ? "#dc2626"
+                            color: task.isOverdue && task.status !== TaskStatus.COMPLETED
+                              ? "error.main"
                               : "text.secondary",
-                            fontWeight: task.isOverdue ? 500 : 400,
+                            fontWeight: task.isOverdue && task.status !== TaskStatus.COMPLETED ? 500 : 400,
                           }}
                         >
-                          {new Date(task.due_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {displayFormattedDate(task.due_date)}
                         </Typography>
-                        {task.isOverdue ? (
+                        {task.status === TaskStatus.COMPLETED ? null : task.isOverdue ? (
                           <Chip label="Overdue" variant="error" />
                         ) : (
                           <DaysChip dueDate={task.due_date} />

@@ -100,7 +100,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     return getDomainByPath(location.pathname);
   };
 
-  // Parse initial path on mount
+  // Parse initial path and switch to user-guide tab
   useEffect(() => {
     if (initialPath) {
       const parts = initialPath.split('/');
@@ -110,6 +110,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
           setArticleId(parts[1]);
         }
       }
+      setActiveTab('user-guide');
     }
   }, [initialPath]);
 

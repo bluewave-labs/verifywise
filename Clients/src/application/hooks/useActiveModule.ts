@@ -57,10 +57,10 @@ export function useActiveModule() {
           navigate("/evals");
           break;
         case "ai-detection":
-          navigate("/ai-detection");
+          navigate("/ai-detection/scan");
           break;
         case "shadow-ai":
-          navigate("/shadow-ai");
+          navigate("/shadow-ai/insights");
           break;
         case "main":
         default:

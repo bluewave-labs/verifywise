@@ -139,3 +139,17 @@ export async function scheduleAgentDiscoverySync() {
     },
   );
 }
+
+export async function scheduleAiDetectionScanCheck() {
+  logger.info("Adding AI Detection scheduled scan check jobs to the queue...");
+  // Check for due scheduled scans every 5 minutes
+  await automationQueue.add(
+    "ai_detection_scheduled_scan_check",
+    { type: "ai_detection" },
+    {
+      repeat: { pattern: "*/5 * * * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
+}

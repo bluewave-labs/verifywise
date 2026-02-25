@@ -20,6 +20,7 @@ import CustomIconButton from "../../components/IconButton";
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { displayFormattedDate } from "../../tools/isoDateToString";
 import { User } from "../../../domain/types/User";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { EmptyState } from "../../components/EmptyState";
@@ -37,6 +38,7 @@ import {
 } from "./style";
 import { singleTheme } from "../../themes";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
+import { palette } from "../../themes/palette";
 
 dayjs.extend(utc);
 
@@ -144,7 +146,7 @@ const SortableTableHead: React.FC<{
                     display: "flex",
                     alignItems: "center",
                     color:
-                      sortConfig.key === column.id ? "primary.main" : "#9CA3AF",
+                      sortConfig.key === column.id ? "primary.main" : palette.text.disabled,
                   }}
                 >
                   {sortConfig.key === column.id &&
@@ -416,14 +418,12 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
 
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {evidence.evidence_files && evidence.evidence_files.length > 0
-                    ? dayjs
-                        .utc(evidence.evidence_files[0].upload_date)
-                        .format("YYYY-MM-DD")
+                    ? displayFormattedDate(evidence.evidence_files[0].upload_date)
                     : "-"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {evidence.expiry_date
-                    ? dayjs.utc(evidence.expiry_date).format("YYYY-MM-DD")
+                    ? displayFormattedDate(evidence.expiry_date)
                     : "-"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>

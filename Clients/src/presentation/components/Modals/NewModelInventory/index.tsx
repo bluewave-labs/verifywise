@@ -26,7 +26,6 @@ import SelectComponent from "../../Inputs/Select";
 import {
   ChevronDown,
   DownloadIcon,
-  History as HistoryIcon,
 } from "lucide-react";
 import StandardModal from "../StandardModal";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
@@ -183,8 +182,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [isEvidenceLoading] = useState(false);
-  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
-
   // Prefetch history data when modal opens in edit mode
   // This ensures data is ready before user opens the sidebar
   useModelInventoryChangeHistory(
@@ -457,6 +454,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
   const handleClose = () => {
     setIsOpen(false);
+    setActiveTab("details");
     // Invalidate change history cache when modal closes
     // This ensures fresh data is fetched when reopening the modal
     queryClient.invalidateQueries({
@@ -1243,8 +1241,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
             variant="contained"
             text="Download"
             sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
+              backgroundColor: theme.palette.primary.main,
+              border: `1px solid ${theme.palette.primary.main}`,
             }}
             startIcon={<DownloadIcon size={16} />}
             onClick={() => handleDownloadEvidence(evidenceData)}
@@ -1274,110 +1272,64 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           ? "Update model details, approval status, and metadata"
           : "Register a new AI model with comprehensive metadata and approval tracking"
       }
-      onSubmit={activeTab === "evidence" ? undefined : handleSubmit}
+      onSubmit={activeTab === "details" ? handleSubmit : undefined}
       submitButtonText={isEdit ? "Update model" : "Save"}
       isSubmitting={isButtonDisabled}
-      maxWidth={isHistorySidebarOpen ? "1100px" : "760px"}
+      maxWidth="760px"
       expandedHeight={values.security_assessment}
-      headerActions={
-        isEdit && selectedModelInventoryId ? (
-          <Tooltip title="View activity history" arrow>
-            <IconButton
-              onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
-              size="small"
-              sx={{
-                color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
-                padding: "4px",
-                borderRadius: "4px",
-                backgroundColor: isHistorySidebarOpen
-                  ? "#E6F4F1"
-                  : "transparent",
-                "&:hover": {
-                  backgroundColor: isHistorySidebarOpen ? "#D1EDE6" : "#F2F4F7",
-                },
-              }}
-            >
-              <HistoryIcon size={20} />
-            </IconButton>
-          </Tooltip>
-        ) : undefined
-      }
     >
-      <Stack
-        direction="row"
-        sx={{
-          width: "100%",
-          minHeight: 0,
-          alignItems: "flex-start",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        {/* Main Content */}
-        <Box
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "auto",
-          }}
-        >
-          {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
-          {isEdit ? (
-            <TabContext value={activeTab}>
-              {/* TAB BAR */}
-              <Box sx={{ marginBottom: 3 }}>
-                <TabBar
-                  tabs={[
-                    {
-                      label: "Model details",
-                      value: "details",
-                      icon: "Box",
-                    },
-                    {
-                      label: "Evidence",
-                      value: "evidence",
-                      icon: "Database",
-                    },
-                  ]}
-                  activeTab={activeTab}
-                  onChange={(_, newValue) => setActiveTab(newValue)}
-                  dataJoyrideId="model-tabs"
-                />
-              </Box>
+      {/* ----------------- TABS ONLY IN EDIT MODE ----------------- */}
+      {isEdit ? (
+        <TabContext value={activeTab}>
+          {/* TAB BAR */}
+          <Box sx={{ marginBottom: 3 }}>
+            <TabBar
+              tabs={[
+                {
+                  label: "Model details",
+                  value: "details",
+                  icon: "Box",
+                },
+                {
+                  label: "Evidence",
+                  value: "evidence",
+                  icon: "Database",
+                },
+                {
+                  label: "Activity",
+                  value: "activity",
+                  icon: "History",
+                },
+              ]}
+              activeTab={activeTab}
+              onChange={(_, newValue) => setActiveTab(newValue)}
+              dataJoyrideId="model-tabs"
+            />
+          </Box>
 
-              {/* Tab Content Wrapper */}
-              <Box
-                sx={{
-                  width: "100%", // always full width inside modal
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                {/* TAB CONTENT */}
-                {activeTab === "details" && modelDetailsSection}
-
-                {/* Evidence content*/}
-                {activeTab === "evidence" && evidenceSection}
-              </Box>
-            </TabContext>
-          ) : (
-            /* NOT EDIT → always show model details */
-            modelDetailsSection
-          )}
-        </Box>
-
-        {/* History Sidebar - Embedded */}
-        {isEdit && (
-          <HistorySidebar
-            isOpen={isHistorySidebarOpen}
-            entityType="model_inventory"
-            entityId={selectedModelInventoryId as number}
-          />
-        )}
-      </Stack>
+          {/* Tab Content Wrapper */}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {activeTab === "details" && modelDetailsSection}
+            {activeTab === "evidence" && evidenceSection}
+            {activeTab === "activity" && (
+              <HistorySidebar
+                inline
+                isOpen={true}
+                entityType="model_inventory"
+                entityId={selectedModelInventoryId as number}
+              />
+            )}
+          </Box>
+        </TabContext>
+      ) : (
+        modelDetailsSection
+      )}
     </StandardModal>
   );
 };

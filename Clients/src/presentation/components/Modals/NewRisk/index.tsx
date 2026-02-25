@@ -1,25 +1,23 @@
 /**
- * Component for adding a new vendor through a modal interface.
+ * Component for adding or editing a vendor risk through a modal interface.
  *
  * @component
- * @param {AddNewVendorProps} props - The properties for the AddNewVendor component.
+ * @param {AddNewRiskProps} props - The properties for the AddNewRisk component.
  * @param {boolean} props.isOpen - Determines if the modal is open.
  * @param {() => void} props.setIsOpen - Function to set the modal open state.
- * @param {string} props.value - The current value of the selected tab.
- * @param {(event: React.SyntheticEvent, newValue: string) => void} props.handleChange - Function to handle tab change events.
+ * @param {ExistingRisk} [props.existingRisk] - Existing risk data for edit mode.
+ * @param {() => void} [props.onSuccess] - Callback on successful save.
+ * @param {VendorModel[]} props.vendors - Available vendors for selection.
  *
- * @returns {JSX.Element} The rendered AddNewVendor component.
+ * @returns {JSX.Element} The rendered AddNewRisk component.
  */
 
 import TabContext from "@mui/lab/TabContext";
-import TabPanel from "@mui/lab/TabPanel";
 import {
   Box,
   Stack,
   Typography,
   Divider,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
@@ -30,6 +28,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import StandardModal from "../StandardModal";
+import TabBar from "../../TabBar";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -39,24 +38,12 @@ import {
   useUpdateVendorRisk,
 } from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import { History as HistoryIcon } from "lucide-react";
 import { HistorySidebar } from "../../Common/HistorySidebar";
 import { useVendorRiskChangeHistory } from "../../../../application/hooks/useVendorRiskChangeHistory";
 import { VendorModel } from "../../../../domain/models/Common/vendor/vendor.model";
+import { ExistingRisk } from "../../../../domain/interfaces/i.vendor";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
-interface ExistingRisk {
-  id?: number;
-  risk_description: string;
-  impact_description: string;
-  project_name?: string;
-  action_owner: string;
-  risk_severity: string;
-  likelihood: string;
-  risk_level: string;
-  action_plan: string;
-  vendor_id: string;
-}
 interface FormErrors {
   risk_description: string;
   impact_description: string;
@@ -70,8 +57,8 @@ interface FormErrors {
 interface AddNewRiskProps {
   isOpen: boolean;
   setIsOpen: () => void;
-  value: string;
-  handleChange: (event: React.SyntheticEvent, newValue: string) => void;
+  value?: string;
+  handleChange?: (event: React.SyntheticEvent, newValue: string) => void;
   existingRisk?: ExistingRisk | null;
   onSuccess?: () => void;
   vendors: VendorModel[];
@@ -118,7 +105,6 @@ const RISK_SEVERITY_OPTIONS = [
 const AddNewRisk: React.FC<AddNewRiskProps> = ({
   isOpen,
   setIsOpen,
-  value,
   existingRisk,
   onSuccess = () => {},
   vendors,
@@ -143,7 +129,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     title?: string;
     body: string;
   } | null>(null);
-  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   // Prefetch history data when modal opens in edit mode
   useVendorRiskChangeHistory(
@@ -427,7 +413,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   );
 
   const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 0 }}>
       <Stack spacing={6}>
         <Stack direction="row" spacing={6}>
           <Stack flex={1} spacing={6}>
@@ -539,7 +524,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           </Box>
         </Stack>
       </Stack>
-    </TabPanel>
   );
 
   return (
@@ -562,7 +546,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         isOpen={isOpen}
         onClose={() => {
           setValues(initialState);
-          setIsHistorySidebarOpen(false);
+          setActiveTab("details");
           setIsOpen();
         }}
         title={existingRisk ? "Edit risk" : "Add a new vendor risk"}
@@ -571,69 +555,36 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             ? "Update risk details including description, impact assessment, and mitigation plan."
             : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
         }
-        onSubmit={handleSave}
+        onSubmit={activeTab === "details" ? handleSave : undefined}
         submitButtonText="Save"
         isSubmitting={isSubmitting || isEditingDisabled}
-        maxWidth={isHistorySidebarOpen ? "1300px" : "1000px"}
-        headerActions={
-          existingRisk?.id ? (
-            <Tooltip title="View activity history" arrow>
-              <IconButton
-                onClick={() => setIsHistorySidebarOpen((prev) => !prev)}
-                size="small"
-                sx={{
-                  color: isHistorySidebarOpen ? "#13715B" : "#98A2B3",
-                  padding: "4px",
-                  borderRadius: "4px",
-                  backgroundColor: isHistorySidebarOpen
-                    ? "#E6F4F1"
-                    : "transparent",
-                  "&:hover": {
-                    backgroundColor: isHistorySidebarOpen
-                      ? "#D1EDE6"
-                      : "#F2F4F7",
-                  },
-                }}
-              >
-                <HistoryIcon size={20} />
-              </IconButton>
-            </Tooltip>
-          ) : undefined
-        }
+        maxWidth="1000px"
       >
-        <Stack
-          direction="row"
-          sx={{
-            width: "100%",
-            minHeight: 0,
-            alignItems: "flex-start",
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          {/* Main Content */}
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "auto",
-            }}
-          >
-            <TabContext value={value}>{risksPanel}</TabContext>
-          </Box>
-
-          {/* History Sidebar - Only shown when editing */}
-          {existingRisk?.id && (
-            <HistorySidebar
-              isOpen={isHistorySidebarOpen}
-              entityType="vendor_risk"
-              entityId={existingRisk.id}
-            />
-          )}
-        </Stack>
+        {existingRisk?.id ? (
+          <TabContext value={activeTab}>
+            <Box sx={{ marginBottom: 3 }}>
+              <TabBar
+                tabs={[
+                  { label: "Risk details", value: "details", icon: "ShieldAlert" },
+                  { label: "Activity", value: "activity", icon: "History" },
+                ]}
+                activeTab={activeTab}
+                onChange={(_, newValue) => setActiveTab(newValue)}
+              />
+            </Box>
+            {activeTab === "details" && risksPanel}
+            {activeTab === "activity" && (
+              <HistorySidebar
+                inline
+                isOpen={true}
+                entityType="vendor_risk"
+                entityId={existingRisk.id}
+              />
+            )}
+          </TabContext>
+        ) : (
+          risksPanel
+        )}
       </StandardModal>
     </Stack>
   );

@@ -143,7 +143,8 @@ export async function runAdvisor(req: Request, res: Response) {
       tenant: tenantId,
       availableTools,
       toolsDefinition,
-      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter" | "Custom",
+      headers: apiKey.custom_headers || undefined,
     };
 
     const response = await runAdvisorAiSdk(agentParams);
@@ -345,7 +346,8 @@ export async function streamAdvisor(req: Request, res: Response) {
       tenant: tenantId,
       availableTools,
       toolsDefinition,
-      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter" | "Custom",
+      headers: apiKey.custom_headers || undefined,
     };
 
     // Send an immediate status event so the client knows the connection is open
@@ -464,7 +466,8 @@ export async function streamAdvisorV2(req: Request, res: Response) {
       tenant: tenantId,
       availableTools,
       toolsDefinition,
-      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter",
+      provider: apiKey.name as "Anthropic" | "OpenAI" | "OpenRouter" | "Custom",
+      headers: apiKey.custom_headers || undefined,
     });
 
     // Use the streamText result's built-in method to pipe the AI SDK protocol.

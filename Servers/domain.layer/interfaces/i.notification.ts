@@ -5,6 +5,7 @@
 export enum NotificationType {
   // Task notifications
   TASK_ASSIGNED = "task_assigned",
+  TASK_UPDATED = "task_updated",
   TASK_COMPLETED = "task_completed",
 
   // Review notifications
@@ -41,6 +42,14 @@ export enum NotificationType {
 
   // System notifications
   SYSTEM = "system",
+
+  // Assignment notifications
+  ASSIGNMENT_OWNER = "assignment_owner",
+  ASSIGNMENT_REVIEWER = "assignment_reviewer",
+  ASSIGNMENT_APPROVER = "assignment_approver",
+  ASSIGNMENT_MEMBER = "assignment_member",
+  ASSIGNMENT_ASSIGNEE = "assignment_assignee",
+  ASSIGNMENT_ACTION_OWNER = "assignment_action_owner",
 }
 
 /**

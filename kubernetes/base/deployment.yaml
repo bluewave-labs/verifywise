@@ -20,7 +20,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: verifywise-backend
-          image: ghcr.io/bluewave-labs/verifywise-backend:latest
+          image: ghcr.io/verifywise-ai/verifywise-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -78,7 +78,7 @@ spec:
               value: http://localhost:8000
 
         - name: verifywise-worker
-          image: ghcr.io/bluewave-labs/verifywise-backend:latest
+          image: ghcr.io/verifywise-ai/verifywise-backend:latest
           imagePullPolicy: Always
           command: ["node", "dist/jobs/worker.js"]
           resources: {}
@@ -119,7 +119,7 @@ spec:
               value: redis://localhost:6379/0
 
         - name: verifywise-frontend
-          image: ghcr.io/bluewave-labs/verifywise-frontend:latest
+          image: ghcr.io/verifywise-ai/verifywise-frontend:latest
           imagePullPolicy: Always
           resources: {}
           envFrom:
@@ -151,7 +151,7 @@ spec:
               type: RuntimeDefault
 
         - name: verifywise-eval-server
-          image: ghcr.io/bluewave-labs/verifywise-eval-server:latest
+          image: ghcr.io/verifywise-ai/verifywise-eval-server:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

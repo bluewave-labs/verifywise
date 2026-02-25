@@ -118,6 +118,7 @@ export default function ProfilePage() {
     <PageHeaderExtended
       title="Settings"
       description="Manage your profile, security, team members, and application preferences."
+
       helpArticlePath="settings/user-management"
       tipBoxEntity="settings"
     >

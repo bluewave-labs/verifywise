@@ -60,8 +60,8 @@ import { LinkedObjectType } from "../../enums/policy-manager.enum";
         policy_id: this.policy_id,
         object_id: this.object_id,
         object_type: this.object_type,
-        created_at: this.created_at,
-        updated_at: this.updated_at,
+        created_at: (this.createdAt ?? this.created_at),
+        updated_at: (this.updatedAt ?? this.updated_at),
       };
     }
   

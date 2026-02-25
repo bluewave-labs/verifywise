@@ -14,8 +14,9 @@
  */
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode, FC } from "react";
-import { getActiveScan, getScanStatus } from "../repository/aiDetection.repository";
-import { ScanStatus } from "../../domain/ai-detection/types";
+import { getActiveScan, getScans, getScanStatus } from "../repository/aiDetection.repository";
+import { getRepositoryCount } from "../repository/aiDetectionRepository.repository";
+import { ScanStatus, ScansResponse } from "../../domain/ai-detection/types";
 
 interface RecentScan {
   id: number;
@@ -34,10 +35,11 @@ interface AIDetectionSidebarContextType {
   setActiveTab: (tab: string) => void;
   historyCount: number;
   setHistoryCount: (count: number) => void;
+  repositoryCount: number;
   recentScans: RecentScan[];
   setRecentScans: (scans: RecentScan[]) => void;
-  onScanClick: ((scanId: number) => void) | undefined;
-  setOnScanClick: (handler: ((scanId: number) => void) | undefined) => void;
+  refreshRecentScans: () => void;
+  refreshRepositoryCount: () => void;
   // Global notification state
   scanNotification: ScanNotification | null;
   clearScanNotification: () => void;
@@ -53,8 +55,8 @@ const ACTIVE_SCAN_POLL_INTERVAL_MS = 2000; // Poll faster when tracking active s
 export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState("scan");
   const [historyCount, setHistoryCount] = useState(0);
+  const [repositoryCount, setRepositoryCount] = useState(0);
   const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
-  const [onScanClick, setOnScanClick] = useState<((scanId: number) => void) | undefined>();
   const [scanNotification, setScanNotification] = useState<ScanNotification | null>(null);
 
   // Track active scan for global notifications
@@ -132,6 +134,37 @@ export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ childr
     };
   }, [trackedScan]);
 
+  // Load repository count for sidebar badge
+  const refreshRepositoryCount = useCallback(async () => {
+    try {
+      const count = await getRepositoryCount();
+      setRepositoryCount(count);
+    } catch (error) {
+      console.error("Failed to load repository count:", error);
+    }
+  }, []);
+
+  // Load recent scans for sidebar on mount
+  const refreshRecentScans = useCallback(async () => {
+    try {
+      const response: ScansResponse = await getScans({ page: 1, limit: 5 });
+      setHistoryCount(response.pagination.total);
+      setRecentScans(
+        response.scans.map((s) => ({
+          id: s.id,
+          name: `${s.repository_owner}/${s.repository_name}`,
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to load recent scans:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshRecentScans();
+    refreshRepositoryCount();
+  }, [refreshRecentScans, refreshRepositoryCount]);
+
   // On mount, check once for any active scan (e.g., page refresh during scan)
   useEffect(() => {
     const checkForExistingActiveScan = async () => {
@@ -159,10 +192,11 @@ export const AIDetectionSidebarProvider: FC<{ children: ReactNode }> = ({ childr
         setActiveTab,
         historyCount,
         setHistoryCount,
+        repositoryCount,
         recentScans,
         setRecentScans,
-        onScanClick,
-        setOnScanClick,
+        refreshRecentScans,
+        refreshRepositoryCount,
         scanNotification,
         clearScanNotification,
         startTrackingScan,

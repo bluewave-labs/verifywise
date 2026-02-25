@@ -25,6 +25,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
+import "../Layout/icon-shake.css";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import VerifyWiseLogo from "../../assets/imgs/verifywise-logo.svg";
 import SidebarFooter from "./SidebarFooter";
@@ -408,6 +409,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 : {
                     color: "#13715B !important",
                     stroke: "#13715B !important",
+                    animation: "icon-shake 400ms ease-in-out",
                   },
               "&:hover svg path": isDisabled
                 ? {}

@@ -8,6 +8,7 @@ import * as emotionReact from "@emotion/react";
 import * as emotionStyled from "@emotion/styled";
 import * as ReactRouterDOM from "react-router-dom";
 import App from "./App.tsx";
+import "./presentation/styles/fonts.css";
 import "./index.css";
 import { Provider } from "react-redux";
 import { persistor, store } from "./application/redux/store.ts";

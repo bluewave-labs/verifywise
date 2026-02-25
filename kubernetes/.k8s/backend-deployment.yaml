@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: ghcr.io/bluewave-labs/verifywise-backend:latest
+        image: ghcr.io/verifywise-ai/verifywise-backend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

@@ -397,6 +397,7 @@ const ModelRisksDialog: React.FC<ModelRisksDialogProps> = ({
         initialData={selectedRiskFormData}
         isEdit={true}
         onSuccess={handleEditSuccess}
+        entityId={selectedRisk?.id}
       />
     )}
   </>

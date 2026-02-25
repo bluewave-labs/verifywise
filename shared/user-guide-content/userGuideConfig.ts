@@ -133,7 +133,7 @@ export const collections: Collection[] = [
     title: 'LLM Evals',
     description: 'Evaluate and benchmark your LLM applications for quality, safety, and performance.',
     icon: 'FlaskConical',
-    articleCount: 5,
+    articleCount: 7,
     articles: [
       {
         id: 'llm-evals-overview',
@@ -165,6 +165,18 @@ export const collections: Collection[] = [
         description: 'Run demographic bias audits against compliance frameworks like NYC LL144 and EEOC.',
         keywords: ['bias', 'audit', 'fairness', 'discrimination', 'impact ratio', 'selection rate', 'demographic', 'compliance', 'nyc', 'll144', 'eeoc', 'four-fifths', 'adverse impact', 'intersectional'],
       },
+      {
+        id: 'models',
+        title: 'Managing models',
+        description: 'View and manage the AI models used across your evaluation experiments.',
+        keywords: ['model', 'models', 'provider', 'openai', 'anthropic', 'ollama', 'huggingface', 'api key'],
+      },
+      {
+        id: 'llm-arena',
+        title: 'LLM Arena',
+        description: 'Compare two models side by side on the same prompt.',
+        keywords: ['arena', 'compare', 'side by side', 'model comparison', 'battle', 'head to head'],
+      },
     ],
   },
   {
@@ -172,7 +184,7 @@ export const collections: Collection[] = [
     title: 'AI Detection',
     description: 'Scan repositories to discover AI/ML libraries, CI/CD pipelines, container images, and detect shadow AI in your codebase.',
     icon: 'ScanSearch',
-    articleCount: 2,
+    articleCount: 5,
     articles: [
       {
         id: 'scanning',
@@ -181,10 +193,28 @@ export const collections: Collection[] = [
         keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai', 'docker', 'github actions', 'mcp', 'cicd', 'container'],
       },
       {
+        id: 'risk-scoring',
+        title: 'Risk scoring',
+        description: 'Understand the AI Governance Risk Score, LLM-enhanced analysis, and suggested risks.',
+        keywords: ['risk', 'score', 'grade', 'agrs', 'dimension', 'llm', 'analysis', 'suggested', 'governance'],
+      },
+      {
+        id: 'repositories',
+        title: 'Repositories',
+        description: 'Register repositories and configure automated scanning schedules.',
+        keywords: ['repository', 'schedule', 'automated', 'daily', 'weekly', 'monthly', 'monitor'],
+      },
+      {
         id: 'history',
-        title: 'Scan history',
-        description: 'View and manage your scan history and audit trail.',
+        title: 'Scan results',
+        description: 'View and manage your scan results and audit trail.',
         keywords: ['history', 'scan', 'audit', 'trail', 'results', 'findings'],
+      },
+      {
+        id: 'settings',
+        title: 'AI Detection settings',
+        description: 'Configure GitHub tokens, LLM analysis, and dimension weights.',
+        keywords: ['settings', 'github', 'token', 'integration', 'private', 'repository', 'access', 'llm', 'weights'],
       },
     ],
   },

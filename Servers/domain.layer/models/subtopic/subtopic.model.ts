@@ -221,8 +221,8 @@ export class SubtopicModel extends Model<SubtopicModel> implements ISubtopic {
       order_no: this.order_no,
       topic_id: this.topic_id,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
       // Include dynamically added properties from queries
       questions: dataValues?.questions,
     };

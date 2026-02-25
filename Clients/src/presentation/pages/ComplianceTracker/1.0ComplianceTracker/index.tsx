@@ -1,5 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { Stack, Typography } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { StatsCard } from "../../../components/Cards/StatsCard";
@@ -12,7 +13,7 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { ComplianceData } from "../../../../domain/interfaces/i.compliance";
 import { Project } from "../../../../domain/types/Project";
-import { getComplianceProgress } from "../../../../application/repository/control_eu_act.repository";
+import { getComplianceProgress, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
 
 const ComplianceTracker = ({
   project,
@@ -27,6 +28,9 @@ const ComplianceTracker = ({
   approverFilter?: string;
   dueDateFilter?: string;
 }) => {
+  const [searchParams] = useSearchParams();
+  const controlId = searchParams.get("controlId");
+
   const currentProjectId = project?.id;
   const currentProjectFramework = project.framework?.filter(
     (p) => p.framework_id === 1
@@ -39,6 +43,39 @@ const ComplianceTracker = ({
   const { componentsVisible, changeComponentVisibility } =
     useContext(VerifyWiseContext);
   const [runComplianceTour, setRunComplianceTour] = useState(false);
+  const [initialControlCategoryId, setInitialControlCategoryId] = useState<number | null>(null);
+
+  // Find which control category contains the target controlId
+  const findControlCategoryId = useCallback(async () => {
+    if (!controlId || !currentProjectFramework || !controlCategories) {
+      return;
+    }
+
+    for (const category of controlCategories) {
+      if (!category.id) continue;
+      try {
+        const controls = await getControlsByControlCategoryId({
+          controlCategoryId: category.id,
+          projectFrameworkId: currentProjectFramework,
+        });
+        // API returns 'control_id' as the actual control ID from controls_eu table
+        const found = controls?.find((c: any) => c.control_id === Number(controlId));
+        if (found) {
+          setInitialControlCategoryId(category.id);
+          return;
+        }
+      } catch (err) {
+        console.error("Error finding control category:", err);
+      }
+    }
+  }, [controlId, currentProjectFramework, controlCategories]);
+
+  // Find the control's category when controlId is present and categories are loaded
+  useEffect(() => {
+    if (controlId && controlCategories && controlCategories.length > 0) {
+      findControlCategoryId();
+    }
+  }, [controlId, controlCategories, findControlCategoryId]);
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 2,
@@ -177,6 +214,7 @@ const ComplianceTracker = ({
                   ownerFilter={ownerFilter}
                   approverFilter={approverFilter}
                   dueDateFilter={dueDateFilter}
+                  initialControlCategoryId={initialControlCategoryId}
                 />
               </div>
             ) : (
@@ -190,6 +228,7 @@ const ComplianceTracker = ({
                 ownerFilter={ownerFilter}
                 approverFilter={approverFilter}
                 dueDateFilter={dueDateFilter}
+                initialControlCategoryId={initialControlCategoryId}
               />
             )
           )}

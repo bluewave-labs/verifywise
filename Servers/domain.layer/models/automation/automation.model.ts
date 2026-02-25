@@ -225,8 +225,8 @@ export class AutomationModel extends Model<AutomationModel> implements IAutomati
       is_active: this.is_active,
       created_by: this.created_by,
       creator: this.creator?.toSafeJSON(),
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

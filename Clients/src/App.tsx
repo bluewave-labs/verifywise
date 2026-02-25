@@ -45,14 +45,23 @@ const AUTH_ROUTES = [
   '/reset-password-continue',
 ];
 
+// Public route patterns where the sidebar should not be shown
+const PUBLIC_ROUTE_PATTERNS = [
+  /\/use-case-form-intake/,   // Public intake forms (new & legacy)
+  /^\/intake\//,              // Legacy intake form routes
+  /^\/shared\//,              // Share link views
+  /\/aiTrustCentre\//,        // Public AI Trust Centre
+];
+
 // Component for User Guide Sidebar that uses the context
 const UserGuideSidebarContainer = () => {
   const location = useLocation();
   const userGuideSidebar = useUserGuideSidebarContext();
 
-  // Don't show the helper sidebar on auth pages
+  // Don't show the helper sidebar on auth or public pages
   const isAuthPage = AUTH_ROUTES.some(route => location.pathname === route);
-  if (isAuthPage) {
+  const isPublicPage = PUBLIC_ROUTE_PATTERNS.some(pattern => pattern.test(location.pathname));
+  if (isAuthPage || isPublicPage) {
     return null;
   }
 

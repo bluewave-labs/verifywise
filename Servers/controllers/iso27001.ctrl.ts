@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import { QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
+import { notifyUserAssigned, AssignmentRoleType } from "../services/inAppNotification.service";
 import { uploadFile } from "../utils/fileUpload.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -37,6 +39,104 @@ import {
 import logger from "../utils/logger/fileLogger";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
 import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
+
+// Helper function to notify assignment changes for ISO 27001 entities
+async function notifyIso27001Assignment(
+  req: Request | RequestWithFile,
+  entityType: "ISO 27001 Subclause" | "ISO 27001 Annex Control",
+  entityId: number,
+  entityName: string,
+  roleType: AssignmentRoleType,
+  newUserId: number,
+  oldUserId: number | null | undefined
+): Promise<void> {
+  // Only notify if assigned to a new user
+  if (newUserId && newUserId !== oldUserId) {
+    const assignerName = await getUserNameById(req.userId!);
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+    let urlPath: string;
+    let parentType: string | undefined;
+    let parentName: string | undefined;
+    let description: string | undefined;
+
+    if (entityType === "ISO 27001 Subclause") {
+      // Query for parent clause info, subclause order_no for full identifier (e.g., "4.1 Understanding the organization"), and subclause description
+      const result = await sequelize.query<{ clause_id: number; clause_arrangement: number; clause_title: string; subclause_order_no: number; requirement_summary: string }>(
+        `SELECT scs.clause_id, c.arrangement as clause_arrangement, c.title as clause_title, scs.order_no as subclause_order_no, scs.requirement_summary
+         FROM "${req.tenantId!}".subclauses_iso27001 sc
+         JOIN public.subclauses_struct_iso27001 scs ON sc.subclause_meta_id = scs.id
+         JOIN public.clauses_struct_iso27001 c ON scs.clause_id = c.id
+         WHERE sc.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      const clauseId = result[0]?.clause_id;
+      parentType = "Clause";
+      parentName = result[0] ? `${result[0].clause_arrangement}. ${result[0].clause_title}` : undefined;
+      // Build full subclause identifier like "4.1 Understanding the organization and its context"
+      if (result[0]) {
+        entityName = `${result[0].clause_arrangement}.${result[0].subclause_order_no} ${entityName}`;
+      }
+      description = result[0]?.requirement_summary;
+      urlPath = clauseId
+        ? `/framework?framework=iso-27001&clause27001Id=${clauseId}&subClause27001Id=${entityId}`
+        : `/framework?framework=iso-27001&subClause27001Id=${entityId}`;
+    } else {
+      // Query for parent annex info, control order_no for full identifier (e.g., "A.5.1 Policies for information security"), and control description
+      const result = await sequelize.query<{ annex_id: number; annex_arrangement: string; annex_order_no: number; annex_title: string; control_order_no: number; requirement_summary: string }>(
+        `SELECT acs.annex_id, a.arrangement as annex_arrangement, a.order_no as annex_order_no, a.title as annex_title, acs.order_no as control_order_no, acs.requirement_summary
+         FROM "${req.tenantId!}".annexcontrols_iso27001 ac
+         JOIN public.annexcontrols_struct_iso27001 acs ON ac.annexcontrol_meta_id = acs.id
+         JOIN public.annex_struct_iso27001 a ON acs.annex_id = a.id
+         WHERE ac.id = :entityId`,
+        { replacements: { entityId }, type: QueryTypes.SELECT }
+      );
+      const annexId = result[0]?.annex_id;
+      parentType = "Annex";
+      parentName = result[0] ? `${result[0].annex_arrangement}.${result[0].annex_order_no} ${result[0].annex_title}` : undefined;
+      // Build full control identifier like "A.5.1 Policies for information security"
+      if (result[0]) {
+        entityName = `${result[0].annex_arrangement}.${result[0].annex_order_no}.${result[0].control_order_no} ${entityName}`;
+      }
+      description = result[0]?.requirement_summary;
+      urlPath = annexId
+        ? `/framework?framework=iso-27001&annex27001Id=${annexId}&annexControl27001Id=${entityId}`
+        : `/framework?framework=iso-27001&annexControl27001Id=${entityId}`;
+    }
+
+    notifyUserAssigned(
+      req.tenantId!,
+      newUserId,
+      {
+        entityType,
+        entityId,
+        entityName,
+        roleType,
+        entityUrl: `${baseUrl}${urlPath}`,
+      },
+      assignerName,
+      baseUrl,
+      {
+        frameworkName: "ISO 27001",
+        parentType,
+        parentName,
+        description,
+      }
+    ).catch((err) => console.error(`Failed to send ${roleType} notification:`, err));
+  }
+}
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -478,6 +578,7 @@ export async function getClausesByProjectId(
     });
     return res.status(400).json(STATUS_CODE[400]("No sub clauses found"));
   } catch (error) {
+    console.error(`[ISO27001 Ctrl] ERROR in getClausesByProjectId:`, error);
     await logFailure({
       eventType: "Read",
       description: `Failed to retrieve clauses for project framework ID ${projectFrameworkId}`,
@@ -615,6 +716,21 @@ export async function saveClauses(
     // Files to unlink (not delete) - the actual file stays in file manager
     const filesToUnlink = JSON.parse(subClause.delete || "[]") as number[];
 
+    // Get current subclause data for assignment change detection
+    const currentSubClauseResult = (await sequelize.query(
+      `SELECT sc.owner, sc.reviewer, sc.approver, scs.title as title
+       FROM "${req.tenantId!}".subclauses_iso27001 sc
+       LEFT JOIN public.subclauses_struct_iso27001 scs ON scs.id = sc.subclause_meta_id
+       WHERE sc.id = :id;`,
+      {
+        replacements: { id: subClauseId },
+        transaction,
+        type: QueryTypes.SELECT,
+      }
+    )) as { owner: number | null; reviewer: number | null; approver: number | null; title: string }[];
+
+    const currentData = currentSubClauseResult[0] || { owner: null, reviewer: null, approver: null, title: '' };
+
     // // Get project_id from subclause
     // const projectIdResult = (await sequelize.query(
     //   `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso27001 sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
@@ -659,6 +775,22 @@ export async function saveClauses(
       transaction
     );
     await transaction.commit();
+
+    // Notify owner, reviewer, approver if changed
+    const entityName = currentData.title || `Subclause #${subClauseId}`;
+    const newOwner = subClause.owner ? parseInt(String(subClause.owner)) : null;
+    const newReviewer = subClause.reviewer ? parseInt(String(subClause.reviewer)) : null;
+    const newApprover = subClause.approver ? parseInt(String(subClause.approver)) : null;
+
+    if (newOwner) {
+      notifyIso27001Assignment(req, "ISO 27001 Subclause", subClauseId, entityName, "Owner", newOwner, currentData.owner);
+    }
+    if (newReviewer) {
+      notifyIso27001Assignment(req, "ISO 27001 Subclause", subClauseId, entityName, "Reviewer", newReviewer, currentData.reviewer);
+    }
+    if (newApprover) {
+      notifyIso27001Assignment(req, "ISO 27001 Subclause", subClauseId, entityName, "Approver", newApprover, currentData.approver);
+    }
 
     await logSuccess({
       eventType: "Update",
@@ -722,6 +854,21 @@ export async function saveAnnexes(
     // Files to unlink (not delete) - the actual file stays in file manager
     const filesToUnlink = JSON.parse(annexControl.delete || "[]") as number[];
 
+    // Get current annex control data for assignment change detection
+    const currentAnnexResult = (await sequelize.query(
+      `SELECT ac.owner, ac.reviewer, ac.approver, acs.title as control_title
+       FROM "${req.tenantId!}".annexcontrols_iso27001 ac
+       LEFT JOIN public.annexcontrols_struct_iso27001 acs ON acs.id = ac.annexcontrol_meta_id
+       WHERE ac.id = :id;`,
+      {
+        replacements: { id: annexControlId },
+        transaction,
+        type: QueryTypes.SELECT,
+      }
+    )) as { owner: number | null; reviewer: number | null; approver: number | null; control_title: string }[];
+
+    const currentAnnexData = currentAnnexResult[0] || { owner: null, reviewer: null, approver: null, control_title: '' };
+
     // // Get project_id from annex control
     // const projectIdResult = (await sequelize.query(
     //   `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcontrols_iso27001 ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
@@ -773,6 +920,22 @@ export async function saveAnnexes(
       // Continue with the transaction even if this fails
     }
     await transaction.commit();
+
+    // Notify owner, reviewer, approver if changed
+    const annexEntityName = currentAnnexData.control_title || `Annex Control #${annexControlId}`;
+    const newAnnexOwner = annexControl.owner ? parseInt(String(annexControl.owner)) : null;
+    const newAnnexReviewer = annexControl.reviewer ? parseInt(String(annexControl.reviewer)) : null;
+    const newAnnexApprover = annexControl.approver ? parseInt(String(annexControl.approver)) : null;
+
+    if (newAnnexOwner) {
+      notifyIso27001Assignment(req, "ISO 27001 Annex Control", annexControlId, annexEntityName, "Owner", newAnnexOwner, currentAnnexData.owner);
+    }
+    if (newAnnexReviewer) {
+      notifyIso27001Assignment(req, "ISO 27001 Annex Control", annexControlId, annexEntityName, "Reviewer", newAnnexReviewer, currentAnnexData.reviewer);
+    }
+    if (newAnnexApprover) {
+      notifyIso27001Assignment(req, "ISO 27001 Annex Control", annexControlId, annexEntityName, "Approver", newAnnexApprover, currentAnnexData.approver);
+    }
 
     await logSuccess({
       eventType: "Update",

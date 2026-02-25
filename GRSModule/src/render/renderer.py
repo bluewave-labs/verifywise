@@ -18,6 +18,14 @@ def _pick(rng: random.Random, items: List[Any]) -> Any:
     return items[rng.randrange(0, len(items))]
 
 
+def _infer_domain(blob: str, inputs: RenderInputs) -> str:
+    """Return the first domain whose keywords appear in blob; default to ai_governance."""
+    for dom in inputs.domains.domains:
+        if any(kw in blob for kw in dom.keywords):
+            return dom.domain_id
+    return "ai_governance"
+
+
 def render_base_scenarios(
     *,
     obligations: List[Obligation],
@@ -28,45 +36,56 @@ def render_base_scenarios(
 
     roles = inputs.roles.roles
     org_ctxs = inputs.org_contexts.org_contexts
-    activities_by_domain = {}
-    for a in inputs.activities.activities:
-        activities_by_domain.setdefault(a.domain, []).append(a)
+    activities_by_id = {a.activity_id: a for a in inputs.activities.activities}
 
     templates = inputs.templates.templates
-    templates_by_domain = {}
+    templates_by_domain: Dict[str, list] = {}
     for t in templates:
         templates_by_domain.setdefault(t.domain, []).append(t)
 
+    rv = inputs.render_vars
     out: List[Dict[str, Any]] = []
     base_id = 0
 
-    # Basic variables for placeholder filling
-    data_subjects = ["EU", "French", "German", "customer"]
-    vendor_types = ["support", "analytics", "CRM"]
-    vendor_locations = ["the US", "Canada", "a non-EU country", "Singapore"]
-    criteria = ["2+ years of experience", "a degree requirement", "a minimum score threshold"]
-
     for obl in obligations:
-        domain = "general"
         text_blob = " ".join(obl.must + obl.must_not).lower()
-        if any(k in text_blob for k in ["gdpr", "data", "export", "privacy", "cross-border"]):
-            domain = "privacy"
-        elif any(k in text_blob for k in ["recruit", "resume", "hiring", "candidate", "screen"]):
-            domain = "hiring"
-        elif any(k in text_blob for k in ["loan", "credit", "finance"]):
-            domain = "finance"
+        src_blob = " ".join([
+            getattr(obl.source, "source_type", "") or "",
+            getattr(obl.source, "source_ref", "") or "",
+            getattr(obl.source, "excerpt_id", "") or "",
+        ]).lower()
+        blob = f"{src_blob} {text_blob}"
 
+        domain = _infer_domain(blob, inputs)
         dom_templates = templates_by_domain.get(domain) or templates
+
         for _ in range(cfg.per_obligation):
             t = _pick(rng, dom_templates)
             role = _pick(rng, roles)
             org = _pick(rng, org_ctxs)
 
             verb = "do"
-            acts = activities_by_domain.get(t.domain, [])
-            if acts:
-                act = _pick(rng, acts)
-                verb = _pick(rng, act.verbs)
+            if t.activity_id in activities_by_id:
+                verb = _pick(rng, activities_by_id[t.activity_id].verbs)
+
+            if t.domain == "ai_governance":
+                render_vars: Dict[str, Any] = {
+                    "verb": verb,
+                    "model_name": _pick(rng, rv.ai_governance.model_names),
+                    "change_type": _pick(rng, rv.ai_governance.change_types),
+                    "approval_role": _pick(rng, rv.ai_governance.approval_roles),
+                    "log_artifact": _pick(rng, rv.ai_governance.log_artifacts),
+                }
+            elif t.domain == "content_integrity":
+                render_vars = {
+                    "verb": verb,
+                    "vendor_type": _pick(rng, rv.content_integrity.vendor_types),
+                    "content_type": _pick(rng, rv.content_integrity.content_types),
+                    "data_subject": _pick(rng, rv.content_integrity.data_subjects),
+                    "disclosure": _pick(rng, rv.content_integrity.disclosures),
+                }
+            else:
+                render_vars = {"verb": verb}
 
             base_id += 1
             scenario = {
@@ -79,13 +98,7 @@ def render_base_scenarios(
                     "org_context": org.org_context,
                 },
                 "template_id": t.template_id,
-                "render_vars": {
-                    "verb": verb,
-                    "data_subject": _pick(rng, data_subjects),
-                    "vendor_type": _pick(rng, vendor_types),
-                    "vendor_location": _pick(rng, vendor_locations),
-                    "criterion": _pick(rng, criteria),
-                },
+                "render_vars": render_vars,
             }
 
             prompt = t.template.format(

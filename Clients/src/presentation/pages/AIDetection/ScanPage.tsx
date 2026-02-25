@@ -7,7 +7,7 @@
  * @module pages/AIDetection/ScanPage
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
 import {
   Box,
   Typography,
@@ -15,7 +15,6 @@ import {
   CircularProgress,
   InputAdornment,
   Skeleton,
-  Tooltip,
 } from "@mui/material";
 import {
   Search,
@@ -29,11 +28,14 @@ import {
   Library,
   Webhook,
   ShieldAlert,
-  Info,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Field from "../../components/Inputs/Field";
+import Alert from "../../components/Alert";
 import { CustomizableButton } from "../../components/button/customizable-button";
-import { PageSubHeader } from "../../components/Layout/PageSubHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
+import { StatCard } from "../../components/Cards/StatCard";
+import AIDetectionOnboarding from "../../components/Modals/AIDetectionOnboarding";
 import {
   startScan,
   pollScanStatus,
@@ -47,114 +49,15 @@ import {
   ScanResponse,
   AIDetectionStats,
 } from "../../../domain/ai-detection/types";
-
-interface ScanPageProps {
-  onScanComplete: () => void;
-  onViewDetails: (scanId: number) => void;
-}
+import { useAIDetectionSidebarContext } from "../../../application/contexts/AIDetectionSidebar.context";
+import { palette } from "../../themes/palette";
 
 type ScanState = "idle" | "scanning" | "completed" | "failed";
 
-// Stat card component matching Evals ProjectOverview style
-interface StatCardProps {
-  title: string;
-  value: number | string;
-  Icon: React.ComponentType<{ size?: number | string }>;
-  subtitle?: string;
-  tooltip?: string;
-}
-
-function StatCard({ title, value, Icon, subtitle, tooltip }: StatCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <Box
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      sx={{
-        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #E5E7EB",
-        borderRadius: "8px",
-        p: "16px",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        overflow: "hidden",
-        minHeight: "80px",
-        transition: "all 0.2s ease",
-        boxSizing: "border-box",
-        "&:hover": {
-          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-          borderColor: "#D1D5DB",
-        },
-      }}
-    >
-      {/* Background Icon */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "-20px",
-          right: "-20px",
-          opacity: isHovered ? 0.06 : 0.03,
-          transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
-          zIndex: 0,
-          pointerEvents: "none",
-          transition: "opacity 0.2s ease, transform 0.3s ease",
-        }}
-      >
-        <Icon size={64} />
-      </Box>
-
-      {/* Content */}
-      <Box sx={{ position: "relative", zIndex: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "4px", mb: 0.5 }}>
-          <Typography
-            sx={{
-              color: "#6B7280",
-              fontSize: "11px",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-            }}
-          >
-            {title}
-          </Typography>
-          {tooltip && (
-            <Tooltip title={tooltip} arrow placement="top">
-              <Box sx={{ display: "flex", alignItems: "center", cursor: "help", ml: "2px" }}>
-                <Info size={14} color="#9CA3AF" />
-              </Box>
-            </Tooltip>
-          )}
-        </Box>
-        <Typography
-          sx={{
-            fontSize: "20px",
-            fontWeight: 600,
-            color: "#111827",
-            lineHeight: 1.3,
-          }}
-        >
-          {value}
-        </Typography>
-        {subtitle && (
-          <Typography
-            sx={{
-              fontSize: "10px",
-              color: "#9CA3AF",
-              mt: 0.25,
-              fontWeight: 400,
-            }}
-          >
-            {subtitle}
-          </Typography>
-        )}
-      </Box>
-    </Box>
-  );
-}
-
-export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProps) {
+export default function ScanPage() {
+  const navigate = useNavigate();
+  const { refreshRecentScans } = useAIDetectionSidebarContext();
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [progress, setProgress] = useState<ScanStatusResponse | null>(null);
@@ -165,6 +68,13 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
   const [statsLoading, setStatsLoading] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentScanIdRef = useRef<number | null>(null);
+
+  // Toast alert state
+  const [alert, setAlert] = useState<{ variant: "success" | "error"; body: string } | null>(null);
+  const showAlert = (variant: "success" | "error", body: string) => {
+    setAlert({ variant, body });
+    setTimeout(() => setAlert(null), 3000);
+  };
 
   // Fetch stats on mount
   useEffect(() => {
@@ -212,10 +122,12 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             );
             setResult(scanResult);
             setScanState("completed");
-            onScanComplete();
+            refreshRecentScans();
+            showAlert("success", `Scan completed for ${activeScan.repository_owner}/${activeScan.repository_name}`);
           } else if (finalStatus.status === "failed") {
             setScanState("failed");
             setError(finalStatus.error_message || "Scan failed");
+            showAlert("error", `Scan failed for ${activeScan.repository_owner}/${activeScan.repository_name}`);
           } else if (finalStatus.status === "cancelled") {
             setScanState("idle");
           }
@@ -236,7 +148,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       // Cleanup on unmount
       abortControllerRef.current?.abort();
     };
-  }, [onScanComplete]);
+  }, [refreshRecentScans]);
 
   /**
    * Normalizes a repository input to a full GitHub URL.
@@ -304,12 +216,15 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
         );
         setResult(scanResult);
         setScanState("completed");
-        onScanComplete();
+        refreshRecentScans();
+        showAlert("success", "Scan completed successfully");
       } else if (finalStatus.status === "failed") {
         setScanState("failed");
         setError(finalStatus.error_message || "Scan failed");
+        showAlert("error", finalStatus.error_message || "Scan failed");
       } else if (finalStatus.status === "cancelled") {
         setScanState("idle");
+        showAlert("success", "Scan cancelled");
       }
     } catch (err) {
       if (err instanceof Error && err.message.includes("aborted")) {
@@ -317,9 +232,11 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
         return;
       }
       setScanState("failed");
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMsg = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMsg);
+      showAlert("error", errorMsg);
     }
-  }, [repositoryUrl, onScanComplete]);
+  }, [repositoryUrl, refreshRecentScans]);
 
   const handleCancel = useCallback(async () => {
     // Abort local HTTP requests
@@ -338,6 +255,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
     currentScanIdRef.current = null;
     setScanState("idle");
     setProgress(null);
+    showAlert("success", "Scan cancelled");
   }, []);
 
   const handleReset = useCallback(() => {
@@ -349,10 +267,22 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
   }, []);
 
   return (
-    <PageSubHeader
+    <PageHeaderExtended
       title="Scan repository"
       description="Enter a public GitHub repository URL to detect AI/ML libraries and frameworks."
       helpArticlePath="ai-detection/scanning"
+      alert={
+        alert ? (
+          <Suspense fallback={null}>
+            <Alert
+              variant={alert.variant}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        ) : undefined
+      }
     >
 
       {/* Statistics Cards - 6 cards in 3x2 grid (only show if there are scans) */}
@@ -442,8 +372,8 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {!isCheckingActive && scanState === "idle" && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #d0d5dd",
+            backgroundColor: palette.background.main,
+            border: `1px solid ${palette.border.dark}`,
             borderRadius: "4px",
             p: "16px",
           }}
@@ -453,7 +383,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               <Typography sx={{ fontSize: "13px", fontWeight: 600, mb: 0.5 }}>
                 Repository URL
               </Typography>
-              <Typography sx={{ fontSize: "13px", color: "#667085", mb: "8px" }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: "8px" }}>
                 Configure a GitHub token in Settings to scan private repositories.{" "}
                 Try these examples:{" "}
                 {[
@@ -466,7 +396,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                     <span
                       onClick={() => setRepositoryUrl(repo)}
                       style={{
-                        color: "#13715B",
+                        color: palette.brand.primary,
                         cursor: "pointer",
                         textDecoration: "underline",
                       }}
@@ -485,7 +415,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Github size={16} color="#6c757d" />
+                      <Github size={16} color={palette.text.tertiary} />
                     </InputAdornment>
                   ),
                 }}
@@ -508,16 +438,16 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
               sx={{
                 mt: 2,
                 p: 2,
-                backgroundColor: "#fef3f2",
-                border: "1px solid #fecdca",
+                backgroundColor: palette.status.error.bg,
+                border: `1px solid ${palette.status.error.border}`,
                 borderRadius: "4px",
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
               }}
             >
-              <AlertCircle size={16} color="#d92d20" />
-              <Typography variant="body2" sx={{ color: "#b42318" }}>
+              <AlertCircle size={16} color={palette.status.error.text} />
+              <Typography variant="body2" sx={{ color: palette.status.error.text }}>
                 {error}
               </Typography>
             </Box>
@@ -529,8 +459,8 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {scanState === "scanning" && progress && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #d0d5dd",
+            backgroundColor: palette.background.main,
+            border: `1px solid ${palette.border.dark}`,
             borderRadius: "4px",
             p: "8px",
           }}
@@ -543,7 +473,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
                     progress.total_files ? `/${progress.total_files}` : ""
                   })`}
             </Typography>
-            <CircularProgress size={16} sx={{ color: "#13715B" }} />
+            <CircularProgress size={16} sx={{ color: palette.brand.primary }} />
           </Box>
 
           <LinearProgress
@@ -552,25 +482,25 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             sx={{
               height: 8,
               borderRadius: 4,
-              backgroundColor: "#e4e7ec",
+              backgroundColor: palette.border.light,
               "& .MuiLinearProgress-bar": {
-                backgroundColor: "#13715B",
+                backgroundColor: palette.brand.primary,
                 borderRadius: 4,
               },
             }}
           />
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-            <Typography variant="caption" sx={{ color: "#667085" }}>
+            <Typography variant="caption" sx={{ color: palette.text.tertiary }}>
               {progress.current_file || "Processing..."}
             </Typography>
-            <Typography variant="caption" sx={{ color: "#667085" }}>
+            <Typography variant="caption" sx={{ color: palette.text.tertiary }}>
               {progress.progress}%
             </Typography>
           </Box>
 
           {progress.findings_count > 0 && (
-            <Typography variant="body2" sx={{ mt: 2, color: "#13715B" }}>
+            <Typography variant="body2" sx={{ mt: 2, color: palette.brand.primary }}>
               Found {progress.findings_count} AI/ML {progress.findings_count === 1 ? "library" : "libraries"} so far
             </Typography>
           )}
@@ -590,19 +520,19 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {scanState === "completed" && result && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #d0d5dd",
+            backgroundColor: palette.background.main,
+            border: `1px solid ${palette.border.dark}`,
             borderRadius: "4px",
             p: "8px",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-            <CheckCircle2 size={24} color="#039855" />
+            <CheckCircle2 size={24} color={palette.status.success.text} />
             <Box>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 Scan completed
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
                 {result.scan.repository_owner}/{result.scan.repository_name}
               </Typography>
             </Box>
@@ -620,45 +550,45 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             <Box
               sx={{
                 p: 2,
-                backgroundColor: "#f9fafb",
+                backgroundColor: palette.background.accent,
                 borderRadius: "4px",
                 textAlign: "center",
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 600, color: "#101828" }}>
+              <Typography variant="h4" sx={{ fontWeight: 600, color: palette.text.primary }}>
                 {result.summary.total}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
                 Total findings
               </Typography>
             </Box>
             <Box
               sx={{
                 p: 2,
-                backgroundColor: "#f9fafb",
+                backgroundColor: palette.background.accent,
                 borderRadius: "4px",
                 textAlign: "center",
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 600, color: "#d92d20" }}>
+              <Typography variant="h4" sx={{ fontWeight: 600, color: palette.status.error.text }}>
                 {result.summary.by_confidence.high}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
                 High confidence
               </Typography>
             </Box>
             <Box
               sx={{
                 p: 2,
-                backgroundColor: "#f9fafb",
+                backgroundColor: palette.background.accent,
                 borderRadius: "4px",
                 textAlign: "center",
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 600, color: "#101828" }}>
+              <Typography variant="h4" sx={{ fontWeight: 600, color: palette.text.primary }}>
                 {result.scan.files_scanned}
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
                 Files scanned
               </Typography>
             </Box>
@@ -674,7 +604,7 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
             />
             <CustomizableButton
               text="View details"
-              onClick={() => onViewDetails(result.scan.id)}
+              onClick={() => navigate(`/ai-detection/scans/${result.scan.id}`)}
               sx={{ height: 34 }}
             />
           </Box>
@@ -685,19 +615,19 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
       {scanState === "failed" && (
         <Box
           sx={{
-            backgroundColor: "#fff",
-            border: "1px solid #fecdca",
+            backgroundColor: palette.background.main,
+            border: `1px solid ${palette.status.error.border}`,
             borderRadius: "4px",
             p: 3,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-            <XCircle size={24} color="#d92d20" />
+            <XCircle size={24} color={palette.status.error.text} />
             <Box>
-              <Typography variant="body1" sx={{ fontWeight: 500, color: "#b42318" }}>
+              <Typography variant="body1" sx={{ fontWeight: 500, color: palette.status.error.text }}>
                 Scan failed
               </Typography>
-              <Typography variant="body2" sx={{ color: "#667085" }}>
+              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
                 {error || "An error occurred during the scan"}
               </Typography>
             </Box>
@@ -712,6 +642,10 @@ export default function ScanPage({ onScanComplete, onViewDetails }: ScanPageProp
           </Box>
         </Box>
       )}
-    </PageSubHeader>
+      <AIDetectionOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
+    </PageHeaderExtended>
   );
 }

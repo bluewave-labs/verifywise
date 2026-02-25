@@ -24,7 +24,14 @@ import {
   BusinessLogicException,
   ForbiddenException,
 } from "../domain.layer/exceptions/custom.exception";
-import { notifyTaskAssigned } from "../services/inAppNotification.service";
+import { notifyTaskAssigned, notifyTaskUpdated, ITaskEntityLinkForEmail } from "../services/inAppNotification.service";
+import { getTaskEntityLinksQuery } from "../utils/taskEntityLink.utils";
+import {
+  recordEntityCreation,
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+  recordEntityDeletion,
+} from "../utils/changeHistory.base.utils";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -50,6 +57,7 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       status,
       categories,
       assignees,
+      entity_links, // Entity links passed for notification purposes
     } = req.body;
 
     // Create task with current user as creator
@@ -70,6 +78,18 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       transaction,
       assignees
     );
+
+    // Record creation in change history
+    if (task.id && userId) {
+      await recordEntityCreation(
+        "task",
+        task.id,
+        userId,
+        req.tenantId!,
+        taskData,
+        transaction
+      );
+    }
 
     await transaction.commit();
 
@@ -104,26 +124,43 @@ export async function createTask(req: Request, res: Response): Promise<any> {
           // Get base URL from env or default
           const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
-          // Notify each assignee (except the creator)
+          // Use entity links from request body if provided (frontend knows the current state)
+          let entityLinksForEmail: ITaskEntityLinkForEmail[] = [];
+          if (entity_links && Array.isArray(entity_links) && entity_links.length > 0) {
+            entityLinksForEmail = entity_links.map((link: any) => ({
+              entity_id: link.entity_id,
+              entity_type: link.entity_type,
+              entity_name: link.entity_name || `${link.entity_type} #${link.entity_id}`,
+            }));
+          }
+
+          // Notify each assignee
           for (const assigneeId of taskAssignees) {
-            if (assigneeId !== userId) {
-              await notifyTaskAssigned(
-                req.tenantId!,
-                assigneeId,
-                {
-                  id: task.id!,
-                  title: task.title,
-                  description: task.description || undefined,
-                  priority: task.priority || TaskPriority.MEDIUM,
-                  due_date: task.due_date?.toISOString(),
-                },
-                creatorName,
-                baseUrl
-              );
-            }
+            await notifyTaskAssigned(
+              req.tenantId!,
+              assigneeId,
+              {
+                id: task.id!,
+                title: task.title,
+                description: task.description || undefined,
+                priority: task.priority || TaskPriority.MEDIUM,
+                due_date: task.due_date?.toISOString(),
+                entity_links: entityLinksForEmail,
+              },
+              creatorName,
+              baseUrl
+            );
           }
         } catch (notifyError) {
-          console.error("Failed to send task assignment notifications:", notifyError);
+          await logFailure({
+            eventType: "Create",
+            description: `Failed to send task assignment notifications: ${notifyError}`,
+            functionName: "createTask",
+            fileName: "task.ctrl.ts",
+            error: notifyError as Error,
+            userId: req.userId!,
+            tenantId: req.tenantId!,
+          });
         }
       })();
     }
@@ -250,10 +287,11 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       hasPrev: pageNum > 1,
     };
 
-    // Add assignees to each task response (manually from dataValues)
+    // Add assignees and entity_links to each task response (manually from dataValues)
     const tasksWithAssignees = tasks.map((task) => ({
       ...task.toJSON(),
       assignees: (task.dataValues as any)["assignees"] || [],
+      entity_links: (task.dataValues as any)["entity_links"] || [],
     }));
 
     await logSuccess({
@@ -311,10 +349,11 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
     );
 
     if (task) {
-      // Add assignees to response (manually from dataValues)
+      // Add assignees and entity_links to response (manually from dataValues)
       const taskResponse = {
         ...task.toJSON(),
         assignees: (task.dataValues as any)["assignees"] || [],
+        entity_links: (task.dataValues as any)["entity_links"] || [],
       };
 
       await logSuccess({
@@ -359,6 +398,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
 
   // Get existing task and assignees for comparison after update
   let existingAssignees: number[] = [];
+  let existingTaskData: any = null;
   try {
     const existingTask = await getTaskByIdQuery(
       taskId,
@@ -368,6 +408,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     );
     if (existingTask) {
       existingAssignees = (existingTask.dataValues as any)["assignees"] || [];
+      existingTaskData = existingTask.toJSON();
     }
   } catch (error) {
     // Continue without existing data if query fails
@@ -397,6 +438,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       status,
       categories,
       assignees,
+      entity_links, // Entity links passed for notification purposes
     } = req.body;
 
     // Only include fields that are being updated
@@ -421,6 +463,21 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       assignees // Pass assignees to the function
     );
 
+    // Record changes in change history
+    if (existingTaskData && userId) {
+      const changes = await trackEntityChanges("task", existingTaskData, updateData);
+      if (changes.length > 0) {
+        await recordMultipleFieldChanges(
+          "task",
+          taskId,
+          userId,
+          req.tenantId!,
+          changes,
+          transaction
+        );
+      }
+    }
+
     await transaction.commit();
 
     await logSuccess({
@@ -439,50 +496,100 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       assignees: newAssignees,
     };
 
-    // Send notifications to newly assigned users (async, don't block response)
-    if (assignees && assignees.length > 0) {
-      const newlyAssigned = newAssignees.filter(
-        (id: number) => !existingAssignees.includes(id)
-      );
+    // Send notifications (async, don't block response)
+    (async () => {
+      try {
+        // Get updater name
+        const updaterResult = await sequelize.query<{ name: string; surname: string }>(
+          `SELECT name, surname FROM public.users WHERE id = :userId`,
+          { replacements: { userId }, type: QueryTypes.SELECT }
+        );
+        const updater = updaterResult[0];
+        const updaterName = updater ? `${updater.name} ${updater.surname}`.trim() : "Someone";
 
-      if (newlyAssigned.length > 0) {
-        (async () => {
-          try {
-            // Get updater name
-            const updaterResult = await sequelize.query<{ name: string; surname: string }>(
-              `SELECT name, surname FROM public.users WHERE id = :userId`,
-              { replacements: { userId }, type: QueryTypes.SELECT }
-            );
-            const updater = updaterResult[0];
-            const updaterName = updater ? `${updater.name} ${updater.surname}`.trim() : "Someone";
+        // Get base URL from env or default
+        const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
-            // Get base URL from env or default
-            const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+        // Use entity links from request body if provided (for immediate notification),
+        // otherwise fall back to fetching from DB
+        let entityLinksForEmail: ITaskEntityLinkForEmail[] = [];
+        if (entity_links && Array.isArray(entity_links) && entity_links.length > 0) {
+          // Use passed entity links (frontend knows the current state)
+          entityLinksForEmail = entity_links.map((link: any) => ({
+            entity_id: link.entity_id,
+            entity_type: link.entity_type,
+            entity_name: link.entity_name || `${link.entity_type} #${link.entity_id}`,
+          }));
+        } else {
+          // Fall back to fetching from DB (for backwards compatibility)
+          const dbEntityLinks = await getTaskEntityLinksQuery(updatedTask.id!, req.tenantId!);
+          entityLinksForEmail = dbEntityLinks.map(link => ({
+            entity_id: link.entity_id,
+            entity_type: link.entity_type,
+            entity_name: link.entity_name || `${link.entity_type} #${link.entity_id}`,
+          }));
+        }
 
-            // Notify each newly assigned user (except the updater)
-            for (const assigneeId of newlyAssigned) {
-              if (assigneeId !== userId) {
-                await notifyTaskAssigned(
-                  req.tenantId!,
-                  assigneeId,
-                  {
-                    id: updatedTask.id!,
-                    title: updatedTask.title,
-                    description: updatedTask.description || undefined,
-                    priority: updatedTask.priority || TaskPriority.MEDIUM,
-                    due_date: updatedTask.due_date?.toISOString(),
-                  },
-                  updaterName,
-                  baseUrl
-                );
-              }
-            }
-          } catch (notifyError) {
-            console.error("Failed to send task assignment notifications:", notifyError);
-          }
-        })();
+        // Determine newly assigned vs existing assignees
+        // Ensure both arrays contain numbers for proper comparison
+        const newAssigneesNumeric = newAssignees.map((id: any) => Number(id));
+        const existingAssigneesNumeric = existingAssignees.map((id: any) => Number(id));
+
+        const newlyAssigned = newAssigneesNumeric.filter(
+          (id: number) => !existingAssigneesNumeric.includes(id)
+        );
+        const existingAssigneesStillAssigned = newAssigneesNumeric.filter(
+          (id: number) => existingAssigneesNumeric.includes(id)
+        );
+
+        // Notify newly assigned users with TASK_ASSIGNED email
+        for (const assigneeId of newlyAssigned) {
+          await notifyTaskAssigned(
+            req.tenantId!,
+            assigneeId,
+            {
+              id: updatedTask.id!,
+              title: updatedTask.title,
+              description: updatedTask.description || undefined,
+              priority: updatedTask.priority || TaskPriority.MEDIUM,
+              due_date: updatedTask.due_date?.toISOString(),
+              entity_links: entityLinksForEmail,
+            },
+            updaterName,
+            baseUrl
+          );
+        }
+
+        // Notify existing assignees with TASK_UPDATED email
+        for (const assigneeId of existingAssigneesStillAssigned) {
+          await notifyTaskUpdated(
+            req.tenantId!,
+            assigneeId,
+            {
+              id: updatedTask.id!,
+              title: updatedTask.title,
+              description: updatedTask.description || undefined,
+              priority: updatedTask.priority || TaskPriority.MEDIUM,
+              status: updatedTask.status || TaskStatus.OPEN,
+              due_date: updatedTask.due_date?.toISOString(),
+              entity_links: entityLinksForEmail,
+            },
+            updaterName,
+            baseUrl
+          );
+        }
+      } catch (notifyError) {
+        await logFailure({
+          eventType: "Update",
+          description: `Failed to send task notifications: ${notifyError}`,
+          functionName: "updateTaskById",
+          fileName: "task.ctrl.ts",
+          error: notifyError as Error,
+          userId: req.userId!,
+          tenantId: req.tenantId!,
+        });
       }
-    }
+    })();
 
     return res.status(200).json(STATUS_CODE[200](taskResponse));
   } catch (error) {
@@ -564,6 +671,11 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
       },
       req.tenantId!
     );
+
+    // Record deletion in change history
+    if (deleted && userId) {
+      await recordEntityDeletion("task", taskId, userId, req.tenantId!, transaction);
+    }
 
     await transaction.commit();
 

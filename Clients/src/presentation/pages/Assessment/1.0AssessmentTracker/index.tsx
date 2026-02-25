@@ -46,7 +46,9 @@ const AssessmentTracker = ({
   )[0]?.project_framework_id;
   const [searchParams, setSearchParams] = useSearchParams();
   const topicId = searchParams.get("topicId");
+  const questionId = searchParams.get("questionId");
   const [activeTab, setActiveTab] = useState<number>(Number(topicId) || 0);
+  const [hasAutoOpenedDrawer, setHasAutoOpenedDrawer] = useState(false);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(
@@ -103,6 +105,36 @@ const AssessmentTracker = ({
       }
     }
   }, [topicId, assessmentTopics]);
+
+  // Auto-open drawer when questionId is in URL
+  useEffect(() => {
+    if (
+      questionId &&
+      !hasAutoOpenedDrawer &&
+      assessmentSubtopics &&
+      assessmentSubtopics.length > 0
+    ) {
+      const targetQuestionId = parseInt(questionId);
+      // Find the question and its subtopic
+      // assessmentSubtopics has questions array from the hook response
+      for (const subtopic of assessmentSubtopics as Array<Subtopic & { questions: Question[] }>) {
+        const question = subtopic.questions?.find(
+          (q: Question) => q.question_id === targetQuestionId
+        );
+        if (question) {
+          setSelectedQuestion(question);
+          setSelectedSubtopic(subtopic);
+          setDrawerOpen(true);
+          setHasAutoOpenedDrawer(true);
+          // Clear URL params after opening
+          searchParams.delete("questionId");
+          searchParams.delete("topicId");
+          setSearchParams(searchParams);
+          break;
+        }
+      }
+    }
+  }, [questionId, assessmentSubtopics, hasAutoOpenedDrawer, searchParams, setSearchParams]);
 
   const handleListItemClick = useCallback(
     (index: number) => {

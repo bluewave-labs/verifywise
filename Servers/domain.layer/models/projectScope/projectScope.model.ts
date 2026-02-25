@@ -504,7 +504,7 @@ export class ProjectScopeModel
       usesPersonalData: this.usesPersonalData,
       hasOngoingMonitoring: this.hasOngoingMonitoring,
       isNewAiTechnology: this.isNewAiTechnology,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       is_demo: this.is_demo,
     };
   }
@@ -524,7 +524,7 @@ export class ProjectScopeModel
       hasOngoingMonitoring: this.hasOngoingMonitoring,
       unintendedOutcomes: this.unintendedOutcomes,
       technologyDocumentation: this.technologyDocumentation,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       is_demo: this.is_demo,
       riskLevel: this.getRiskLevel(),
     };

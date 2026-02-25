@@ -8,18 +8,18 @@ import CodeBlock from "../components/CodeBlock";
 const statusColorsSnippet = `import { statusColorSchemes, getStatusColor } from "../utils/statusColors";
 
 // Direct access to color schemes
-const modelProductionColor = statusColorSchemes.models.production; // "#10B981"
+const modelProductionColor = statusColorSchemes.models.production; // "#138A5E"
 
 // Using helper function
-const color = getStatusColor("models", "production"); // "#10B981"
-const vendorColor = getStatusColor("vendors", "in review"); // "#F59E0B"`;
+const color = getStatusColor("models", "production"); // "#138A5E"
+const vendorColor = getStatusColor("vendors", "in review"); // "#795548"`;
 
 const chipSnippet = `<Chip
   label="Active"
   size="small"
   sx={{
     backgroundColor: "#E6F4EA",
-    color: "#10B981",
+    color: "#138A5E",
     fontSize: 12,
     height: 24,
     "& .MuiChip-label": { px: "8px" },
@@ -32,7 +32,7 @@ const chipWithIconSnippet = `<Chip
   size="small"
   sx={{
     backgroundColor: "#E6F4EA",
-    color: "#10B981",
+    color: "#138A5E",
     fontSize: 12,
     height: 24,
     "& .MuiChip-icon": { color: "inherit", ml: "6px" },
@@ -46,7 +46,7 @@ const dotIndicatorSnippet = `// Status dot with label
     width: 8,
     height: 8,
     borderRadius: "50%",
-    backgroundColor: "#10B981"
+    backgroundColor: "#138A5E"
   }} />
   <Typography sx={{ fontSize: 13 }}>Active</Typography>
 </Box>`;
@@ -271,10 +271,10 @@ const StatusSection: React.FC = () => {
                 onCopy={handleCopy}
               >
                 <Box sx={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
-                  <DotIndicator label="Active" color="#10B981" />
-                  <DotIndicator label="Pending" color="#F59E0B" />
+                  <DotIndicator label="Active" color="#138A5E" />
+                  <DotIndicator label="Pending" color="#795548" />
                   <DotIndicator label="Inactive" color="#6B7280" />
-                  <DotIndicator label="Error" color="#EF4444" />
+                  <DotIndicator label="Error" color="#D32F2F" />
                 </Box>
               </ExampleWithCode>
             </Stack>
@@ -326,29 +326,29 @@ const StatusSection: React.FC = () => {
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "16px" }}>
           <SemanticColorCard
             name="Success / Active"
-            textColor="#10B981"
+            textColor="#138A5E"
             bgColor="#E6F4EA"
             usage="Completed, Active, Production, Low risk"
             onCopy={handleCopy}
           />
           <SemanticColorCard
             name="Warning / Pending"
-            textColor="#F59E0B"
-            bgColor="#FEF3C7"
+            textColor="#795548"
+            bgColor="#FFF8E1"
             usage="In progress, In review, Medium risk"
             onCopy={handleCopy}
           />
           <SemanticColorCard
             name="Error / Critical"
-            textColor="#EF4444"
-            bgColor="#FEE2E2"
+            textColor="#D32F2F"
+            bgColor="#FFD6D6"
             usage="Failed, Open incidents, High risk"
             onCopy={handleCopy}
           />
           <SemanticColorCard
             name="Info / Development"
-            textColor="#3B82F6"
-            bgColor="#DBEAFE"
+            textColor="#1565C0"
+            bgColor="#E3F2FD"
             usage="Development, Published, Info states"
             onCopy={handleCopy}
           />
@@ -512,10 +512,10 @@ const StatusSchemeCard: React.FC<StatusSchemeCardProps> = ({ title, entityType, 
 };
 
 const statusVariants = {
-  success: { bg: "#E6F4EA", text: "#10B981" },
-  warning: { bg: "#FEF3C7", text: "#F59E0B" },
-  error: { bg: "#FEE2E2", text: "#EF4444" },
-  info: { bg: "#DBEAFE", text: "#3B82F6" },
+  success: { bg: "#E6F4EA", text: "#138A5E" },
+  warning: { bg: "#FFF8E1", text: "#795548" },
+  error: { bg: "#FFD6D6", text: "#D32F2F" },
+  info: { bg: "#E3F2FD", text: "#1565C0" },
   neutral: { bg: "#F3F4F6", text: "#6B7280" },
 };
 

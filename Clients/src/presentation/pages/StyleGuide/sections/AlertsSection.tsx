@@ -97,7 +97,7 @@ const AlertsSection: React.FC = () => {
                 title="Success"
                 body="Your changes have been saved successfully."
                 icon={<CheckCircle size={20} />}
-                colors={{ text: "#079455", bg: "#ecfdf3" }}
+                colors={{ text: "#138A5E", bg: "#E6F4EA" }}
                 code={alertSnippets.success}
                 onCopy={handleCopy}
               />
@@ -106,7 +106,7 @@ const AlertsSection: React.FC = () => {
                 title="Error"
                 body="Something went wrong. Please try again."
                 icon={<XCircle size={20} />}
-                colors={{ text: "#f04438", bg: "#f9eced" }}
+                colors={{ text: "#D32F2F", bg: "#FFD6D6" }}
                 code={alertSnippets.error}
                 onCopy={handleCopy}
               />
@@ -115,7 +115,7 @@ const AlertsSection: React.FC = () => {
                 title="Warning"
                 body="This action cannot be undone."
                 icon={<AlertTriangle size={20} />}
-                colors={{ text: "#DC6803", bg: "#fffcf5" }}
+                colors={{ text: "#795548", bg: "#FFF8E1" }}
                 code={alertSnippets.warning}
                 onCopy={handleCopy}
               />
@@ -124,7 +124,7 @@ const AlertsSection: React.FC = () => {
                 title="Information"
                 body="New features are available."
                 icon={<Info size={20} />}
-                colors={{ text: "#475467", bg: "#FFFFFF" }}
+                colors={{ text: "#1565C0", bg: "#E3F2FD" }}
                 code={alertSnippets.info}
                 onCopy={handleCopy}
               />
@@ -166,29 +166,29 @@ const AlertsSection: React.FC = () => {
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "16px" }}>
           <AlertColorCard
             variant="Success"
-            textColor="#079455"
-            bgColor="#ecfdf3"
+            textColor="#138A5E"
+            bgColor="#E6F4EA"
             themeKey="theme.palette.status.success"
             onCopy={handleCopy}
           />
           <AlertColorCard
             variant="Error"
-            textColor="#f04438"
-            bgColor="#f9eced"
+            textColor="#D32F2F"
+            bgColor="#FFD6D6"
             themeKey="theme.palette.status.error"
             onCopy={handleCopy}
           />
           <AlertColorCard
             variant="Warning"
-            textColor="#DC6803"
-            bgColor="#fffcf5"
+            textColor="#795548"
+            bgColor="#FFF8E1"
             themeKey="theme.palette.status.warning"
             onCopy={handleCopy}
           />
           <AlertColorCard
             variant="Info"
-            textColor="#475467"
-            bgColor="#FFFFFF"
+            textColor="#1565C0"
+            bgColor="#E3F2FD"
             themeKey="theme.palette.status.info"
             onCopy={handleCopy}
           />
@@ -224,23 +224,23 @@ const AlertsSection: React.FC = () => {
                 alignItems: "center",
                 gap: "16px",
                 p: "16px",
-                backgroundColor: "#ecfdf3",
-                border: "1px solid #079455",
+                backgroundColor: "#E6F4EA",
+                border: "1px solid #138A5E",
                 borderRadius: "4px",
               }}
             >
-              <Box sx={{ color: "#079455" }}>
+              <Box sx={{ color: "#138A5E" }}>
                 <CheckCircle size={20} />
               </Box>
               <Stack spacing="2px" sx={{ flex: 1 }}>
-                <Typography sx={{ fontWeight: 700, color: "#079455", fontSize: 13 }}>
+                <Typography sx={{ fontWeight: 700, color: "#138A5E", fontSize: 13 }}>
                   Success
                 </Typography>
-                <Typography sx={{ color: "#079455", fontSize: 13 }}>
+                <Typography sx={{ color: "#138A5E", fontSize: 13 }}>
                   Your changes have been saved.
                 </Typography>
               </Stack>
-              <Box sx={{ color: "#079455", cursor: "pointer", ml: "16px" }}>
+              <Box sx={{ color: "#138A5E", cursor: "pointer", ml: "16px" }}>
                 <XCircle size={16} />
               </Box>
             </Box>

@@ -74,12 +74,6 @@ export function ColumnSelector<TKey extends string = string>({
 
   const open = Boolean(anchorEl);
 
-  // Count visible vs total (excluding always visible)
-  const toggleableColumns = columns.filter((c) => !c.alwaysVisible);
-  const visibleToggleableCount = toggleableColumns.filter((c) =>
-    visibleColumns.has(c.key)
-  ).length;
-
   return (
     <>
       <Button
@@ -179,8 +173,8 @@ export function ColumnSelector<TKey extends string = string>({
               <Checkbox
                 checked={visibleColumns.has(column.key)}
                 disabled={column.alwaysVisible}
-                onChange={(e) => {
-                  e.stopPropagation();
+                onClick={(e) => e.stopPropagation()}
+                onChange={() => {
                   if (!column.alwaysVisible) {
                     onToggleColumn(column.key);
                   }

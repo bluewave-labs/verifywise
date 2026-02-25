@@ -479,7 +479,7 @@ export function IntakeFormBuilder() {
                       gap: "8px",
                     }}
                   >
-                    <Chip label={form.status} uppercase={false} />
+                    <Chip label={`Status: ${form.status}`} uppercase={false} />
                     <Chip
                       label={form.entityType === IntakeEntityType.USE_CASE ? "Type: AI use case" : "Type: Model inventory"}
                       uppercase={false}
@@ -682,6 +682,7 @@ export function IntakeFormBuilder() {
                     formDescription={form.description}
                     onNameChange={(name) => updateForm({ name })}
                     onDescriptionChange={(description) => updateForm({ description })}
+                    collectContactInfo={form.designSettings?.collectContactInfo ?? false}
                   />
                   <SuggestedQuestionsPanel
                     fieldCount={form.schema.fields.length}
@@ -949,6 +950,60 @@ export function IntakeFormBuilder() {
                               sx={{ fontSize: "11px", color: theme.palette.text.accent }}
                             >
                               Show AI-suggested questions to form submitters
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "4px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => {
+                            const ds = form.designSettings ?? { ...DEFAULT_DESIGN_SETTINGS };
+                            updateForm({
+                              designSettings: {
+                                ...DEFAULT_DESIGN_SETTINGS,
+                                ...ds,
+                                collectContactInfo: !(ds.collectContactInfo ?? false),
+                              },
+                            });
+                          }}
+                        >
+                          <Checkbox
+                            id="collect-contact-info"
+                            isChecked={form.designSettings?.collectContactInfo ?? false}
+                            value="collectContactInfo"
+                            onChange={() => {
+                              const ds = form.designSettings ?? { ...DEFAULT_DESIGN_SETTINGS };
+                              updateForm({
+                                designSettings: {
+                                  ...DEFAULT_DESIGN_SETTINGS,
+                                  ...ds,
+                                  collectContactInfo: !(ds.collectContactInfo ?? false),
+                                },
+                              });
+                            }}
+                            size="small"
+                            label=""
+                            sx={{ p: 0, mt: "1px", flexShrink: 0 }}
+                          />
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: theme.palette.text.secondary,
+                              }}
+                            >
+                              Collect contact information
+                            </Typography>
+                            <Typography
+                              sx={{ fontSize: "11px", color: theme.palette.text.accent }}
+                            >
+                              Show name and email fields on the public form
                             </Typography>
                           </Box>
                         </Box>

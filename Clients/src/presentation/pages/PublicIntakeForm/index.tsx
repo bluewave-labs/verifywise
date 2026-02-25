@@ -194,14 +194,16 @@ export function PublicIntakeForm() {
     const isNewFormat = !!publicId;
     if (!isNewFormat && (!tenantSlug || !formSlug)) return;
 
-    // Validate email
-    if (!submitterEmail.trim()) {
-      setEmailError("Email is required");
-      return;
-    }
-    if (!validateEmail(submitterEmail)) {
-      setEmailError("Please enter a valid email address");
-      return;
+    // Validate email (only when contact info is collected)
+    if (collectContactInfo) {
+      if (!submitterEmail.trim()) {
+        setEmailError("Email is required");
+        return;
+      }
+      if (!validateEmail(submitterEmail)) {
+        setEmailError("Please enter a valid email address");
+        return;
+      }
     }
     setEmailError(null);
 
@@ -218,8 +220,8 @@ export function PublicIntakeForm() {
     try {
       const payload = {
         formData: data,
-        submitterEmail,
-        submitterName: submitterName || undefined,
+        submitterEmail: collectContactInfo ? submitterEmail : undefined,
+        submitterName: collectContactInfo ? (submitterName || undefined) : undefined,
         captchaToken,
         captchaAnswer: captchaNum,
         resubmissionToken,
@@ -239,7 +241,7 @@ export function PublicIntakeForm() {
             submissionId: response.data.submissionId,
             resubmissionToken: response.data.resubmissionToken,
             formName: formData.name,
-            submitterEmail,
+            submitterEmail: collectContactInfo ? submitterEmail : undefined,
           },
         });
       }
@@ -324,6 +326,7 @@ export function PublicIntakeForm() {
 
   // Resolve design settings
   const ds = formData.designSettings ?? DEFAULT_DESIGN_SETTINGS;
+  const collectContactInfo = ds.collectContactInfo ?? true;
   const maxWidth = ds.format === "wide" ? 820 : 620;
   const formMargin =
     ds.alignment === "left"
@@ -432,63 +435,67 @@ export function PublicIntakeForm() {
             )}
 
             {/* Contact info section */}
-            <Typography
-              sx={{
-                fontWeight: 600,
-                color: "#1e293b",
-                mb: 2,
-                fontSize: "16px",
-              }}
-            >
-              Your contact information
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", mb: 3 }}>
-              <Field
-                id="submitter-name"
-                label="Name"
-                placeholder="Your name"
-                value={submitterName}
-                onChange={(e) => setSubmitterName(e.target.value)}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                    fontSize: "15px",
-                    "& fieldset": { borderColor: "#e2e8f0" },
-                    "&:hover fieldset": { borderColor: "#cbd5e1" },
-                    "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "12px 14px",
-                  },
-                }}
-              />
-              <Field
-                id="submitter-email"
-                label="Email"
-                type="email"
-                value={submitterEmail}
-                onChange={(e) => {
-                  setSubmitterEmail(e.target.value);
-                  setEmailError(null);
-                }}
-                error={emailError || undefined}
-                helperText={emailError || "We'll send you updates about your submission"}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                    fontSize: "15px",
-                    "& fieldset": { borderColor: "#e2e8f0" },
-                    "&:hover fieldset": { borderColor: "#cbd5e1" },
-                    "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "12px 14px",
-                  },
-                }}
-              />
-            </Box>
+            {collectContactInfo && (
+              <>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    color: "#1e293b",
+                    mb: 2,
+                    fontSize: "16px",
+                  }}
+                >
+                  Your contact information
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", mb: 3 }}>
+                  <Field
+                    id="submitter-name"
+                    label="Name"
+                    placeholder="Your name"
+                    value={submitterName}
+                    onChange={(e) => setSubmitterName(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "8px",
+                        fontSize: "15px",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: "#cbd5e1" },
+                        "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        padding: "12px 14px",
+                      },
+                    }}
+                  />
+                  <Field
+                    id="submitter-email"
+                    label="Email"
+                    type="email"
+                    value={submitterEmail}
+                    onChange={(e) => {
+                      setSubmitterEmail(e.target.value);
+                      setEmailError(null);
+                    }}
+                    error={emailError || undefined}
+                    helperText={emailError || "We'll send you updates about your submission"}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "8px",
+                        fontSize: "15px",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: "#cbd5e1" },
+                        "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        padding: "12px 14px",
+                      },
+                    }}
+                  />
+                </Box>
 
-            <Box sx={{ my: 4, borderTop: "1px solid #e2e8f0" }} />
+                <Box sx={{ my: 4, borderTop: "1px solid #e2e8f0" }} />
+              </>
+            )}
 
             {/* Form fields */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>

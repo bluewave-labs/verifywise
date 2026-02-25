@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/auth.fixture";
+import AxeBuilder from "@axe-core/playwright";
 
 test.describe("Navigation", () => {
   test("dashboard loads after login", async ({ authedPage: page }) => {
@@ -49,5 +50,14 @@ test.describe("Navigation", () => {
   test("can navigate to training page", async ({ authedPage: page }) => {
     await page.goto("/training");
     await expect(page).toHaveURL(/\/training/);
+  });
+
+  test("dashboard has no accessibility violations", async ({
+    authedPage: page,
+  }) => {
+    await page.waitForLoadState("networkidle");
+
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
   });
 });

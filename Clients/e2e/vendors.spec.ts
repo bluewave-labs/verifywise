@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/auth.fixture";
+import AxeBuilder from "@axe-core/playwright";
 
 test.describe("Vendors Page", () => {
   test("displays the vendor page with title", async ({ authedPage: page }) => {
@@ -31,5 +32,15 @@ test.describe("Vendors Page", () => {
       .getByPlaceholder(/search/i)
       .or(page.locator('[data-testid="search-input"]'));
     await expect(searchInput.first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("vendors page has no accessibility violations", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/vendors");
+    await page.waitForLoadState("networkidle");
+
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
   });
 });

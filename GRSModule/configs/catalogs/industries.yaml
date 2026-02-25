@@ -3,6 +3,7 @@ industries:
   - industry_id: finance
   - industry_id: healthcare
   - industry_id: retail
-  - industry_id: SaaS
+  - industry_id: saaS
+  - industry_id: media
   - industry_id: public_sector
   - industry_id: general

@@ -2804,7 +2804,14 @@ export const createNewTenant = async (
           'file_uploaded',
           'comment_added',
           'mention',
-          'system'
+          'system',
+          'assignment_owner',
+          'assignment_reviewer',
+          'assignment_approver',
+          'assignment_member',
+          'assignment_assignee',
+          'assignment_action_owner',
+          'assignment_risk_owner'
         );
       EXCEPTION
         WHEN duplicate_object THEN null;
@@ -3475,8 +3482,8 @@ export const createNewTenant = async (
       CREATE TABLE IF NOT EXISTS "${tenantHash}".intake_submissions (
         id SERIAL PRIMARY KEY,
         form_id INTEGER NOT NULL REFERENCES "${tenantHash}".intake_forms(id) ON DELETE CASCADE,
-        submitter_email VARCHAR(255) NOT NULL,
-        submitter_name VARCHAR(255) NOT NULL,
+        submitter_email VARCHAR(255),
+        submitter_name VARCHAR(255),
         data JSONB NOT NULL DEFAULT '{}',
         entity_type VARCHAR(50) NOT NULL,
         entity_id INTEGER,

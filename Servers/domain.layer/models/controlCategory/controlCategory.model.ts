@@ -245,7 +245,7 @@ export class ControlCategoryModel
       project_id: this.project_id,
       title: this.title,
       order_no: this.order_no,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       is_demo: this.is_demo,
     };
   }
@@ -284,7 +284,7 @@ export class ControlCategoryModel
       project_id: this.project_id,
       title: this.title,
       order_no: this.order_no,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       is_demo: this.is_demo,
       // Include dynamically added properties from queries
       controls: dataValues?.controls,

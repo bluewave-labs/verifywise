@@ -111,8 +111,8 @@ export class VirtualFolderModel extends Model<VirtualFolderModel> implements IVi
       icon: this.icon,
       is_system: this.is_system,
       created_by: this.created_by,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

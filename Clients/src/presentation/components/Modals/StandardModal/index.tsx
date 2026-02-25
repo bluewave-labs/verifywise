@@ -186,10 +186,10 @@ const StandardModal: React.FC<StandardModalProps> = ({
         <Stack
           sx={{
             background: "linear-gradient(180deg, #F8FAFB 0%, #F3F5F8 100%)",
-            borderBottom: "1px solid #E0E4E9",
+            borderBottom: children ? "1px solid #E0E4E9" : "none",
             padding: "16px 24px",
-            paddingBottom: "36px",
-            marginBottom: "-20px",
+            paddingBottom: children ? "36px" : "16px",
+            marginBottom: children ? "-20px" : 0,
             zIndex: 0,
           }}
         >
@@ -310,10 +310,10 @@ const StandardModal: React.FC<StandardModalProps> = ({
             spacing={6}
             sx={{
               background: "linear-gradient(180deg, #F3F5F8 0%, #F8FAFB 100%)",
-              borderTop: "1px solid #E0E4E9",
+              borderTop: children ? "1px solid #E0E4E9" : "none",
               padding: "12px 24px",
-              paddingTop: "32px",
-              marginTop: "-20px",
+              paddingTop: children ? "32px" : "12px",
+              marginTop: children ? "-20px" : 0,
               zIndex: 0,
             }}
           >

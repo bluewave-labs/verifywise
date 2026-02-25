@@ -28,6 +28,11 @@ import {
   hardDeleteTask,
   updateTaskPriority,
 } from "../../../application/repository/task.repository";
+import {
+  addTaskEntityLink,
+  removeTaskEntityLink,
+  getTaskEntityLinks,
+} from "../../../application/repository/taskEntityLink.repository";
 import TaskSummaryCards from "./TaskSummaryCards";
 import CreateTask from "../../components/Modals/CreateTask";
 import useUsers from "../../../application/hooks/useUsers";
@@ -331,8 +336,37 @@ const Tasks: React.FC = () => {
 
   const handleTaskCreated = async (formData: any) => {
     try {
-      const response = await createTask({ body: formData });
+      // Extract entity_links - we'll pass them to the API for notification purposes
+      // but also sync them separately after creation
+      const { entity_links, ...taskData } = formData;
+
+      const response = await createTask({
+        body: {
+          ...taskData,
+          // Include entity_links for notification email (backend uses these immediately)
+          entity_links: entity_links || [],
+        },
+      });
       if (response && response.data) {
+        const newTaskId = response.data.id;
+
+        // Save entity links if any
+        if (entity_links && entity_links.length > 0 && newTaskId) {
+          try {
+            for (const link of entity_links) {
+              await addTaskEntityLink(
+                newTaskId,
+                link.entity_id,
+                link.entity_type,
+                link.entity_name
+              );
+            }
+          } catch (linkError) {
+            console.error("Error saving entity links:", linkError);
+            // Don't fail the whole operation, just log the error
+          }
+        }
+
         // Add the new task to the list
         setTasks((prev) => [response.data, ...prev]);
         setAlert({
@@ -386,14 +420,73 @@ const Tasks: React.FC = () => {
     if (!editingTask) return;
 
     try {
+      // Extract entity_links - we'll pass them to the API for notification purposes
+      // but also sync them separately after the update
+      const { entity_links: newEntityLinks, ...taskData } = formData;
+
       const response = await updateTask({
         id: editingTask.id!,
-        body: formData,
+        body: {
+          ...taskData,
+          // Include entity_links for notification email (backend uses these immediately)
+          entity_links: newEntityLinks || [],
+        },
       });
       if (response && response.data) {
+        // Sync entity links: get existing, compare, remove old, add new
+        if (newEntityLinks) {
+          try {
+            const existingLinks = await getTaskEntityLinks(editingTask.id!);
+
+            // Find links to remove (in existing but not in new)
+            const linksToRemove = existingLinks.filter(
+              (existing) =>
+                !newEntityLinks.some(
+                  (newLink: any) =>
+                    newLink.entity_id === existing.entity_id &&
+                    newLink.entity_type === existing.entity_type
+                )
+            );
+
+            // Find links to add (in new but not in existing)
+            const linksToAdd = newEntityLinks.filter(
+              (newLink: any) =>
+                !existingLinks.some(
+                  (existing) =>
+                    existing.entity_id === newLink.entity_id &&
+                    existing.entity_type === newLink.entity_type
+                )
+            );
+
+            // Remove old links
+            for (const link of linksToRemove) {
+              await removeTaskEntityLink(editingTask.id!, link.id);
+            }
+
+            // Add new links
+            for (const link of linksToAdd) {
+              await addTaskEntityLink(
+                editingTask.id!,
+                link.entity_id,
+                link.entity_type,
+                link.entity_name
+              );
+            }
+          } catch (linkError) {
+            console.error("Error syncing entity links:", linkError);
+            // Don't fail the whole operation, just log the error
+          }
+        }
+
+        // Update task in state with new entity links
+        const updatedTaskWithLinks = {
+          ...response.data,
+          entity_links: newEntityLinks || [],
+        };
+
         setTasks((prev) =>
           prev.map((task) =>
-            task.id === editingTask.id ? response.data : task
+            task.id === editingTask.id ? updatedTaskWithLinks : task
           )
         );
 

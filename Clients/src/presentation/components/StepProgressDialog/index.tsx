@@ -11,8 +11,10 @@ interface StepProgressDialogProps {
   open: boolean;
   title: string;
   steps: ProgressStep[];
-  /** Time in ms between step transitions. Default 2200. */
+  /** Time in ms between step transitions. Default 2200. Ignored when currentStep is provided. */
   interval?: number;
+  /** When provided, controls the active step externally instead of using an internal timer. */
+  currentStep?: number;
 }
 
 export function StepProgressDialog({
@@ -20,15 +22,27 @@ export function StepProgressDialog({
   title,
   steps,
   interval = 2200,
+  currentStep: externalStep,
 }: StepProgressDialogProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [internalStep, setInternalStep] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const isExternallyControlled = externalStep !== undefined;
+  const activeStep = isExternallyControlled
+    ? Math.min(externalStep, steps.length - 1)
+    : internalStep;
+
   useEffect(() => {
+    // Skip internal timer when step is controlled externally
+    if (isExternallyControlled) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+
     if (open) {
-      setCurrentStep(0);
+      setInternalStep(0);
       timerRef.current = setInterval(() => {
-        setCurrentStep((prev) =>
+        setInternalStep((prev) =>
           prev < steps.length - 1 ? prev + 1 : prev
         );
       }, interval);
@@ -38,9 +52,9 @@ export function StepProgressDialog({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [open, steps.length, interval]);
+  }, [open, steps.length, interval, isExternallyControlled]);
 
-  const step = steps[currentStep] ?? steps[0];
+  const step = steps[activeStep] ?? steps[0];
 
   return (
     <Dialog
@@ -98,7 +112,7 @@ export function StepProgressDialog({
         }}
       >
         <Typography sx={{ fontSize: "12px", color: palette.text.accent }}>
-          Step {currentStep + 1} of {steps.length}
+          Step {activeStep + 1} of {steps.length}
         </Typography>
         <Typography sx={{ fontSize: "12px", color: palette.text.accent }}>
           {step.progress}%

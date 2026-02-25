@@ -290,8 +290,8 @@ const CardsSection: React.FC = () => {
           {/* Success Alert */}
           <Box
             sx={{
-              backgroundColor: "#ecfdf3",
-              border: "1px solid #17b26a",
+              backgroundColor: "#E6F4EA",
+              border: "1px solid #138A5E",
               borderRadius: "4px",
               p: "12px 16px",
               display: "flex",
@@ -299,8 +299,8 @@ const CardsSection: React.FC = () => {
               gap: "12px",
             }}
           >
-            <CheckCircle size={16} color="#079455" />
-            <Typography sx={{ fontSize: 13, color: "#079455" }}>
+            <CheckCircle size={16} color="#138A5E" />
+            <Typography sx={{ fontSize: 13, color: "#138A5E" }}>
               Success! Your changes have been saved.
             </Typography>
           </Box>
@@ -308,8 +308,8 @@ const CardsSection: React.FC = () => {
           {/* Error Alert */}
           <Box
             sx={{
-              backgroundColor: "#f9eced",
-              border: "1px solid #d32f2f",
+              backgroundColor: "#FFD6D6",
+              border: "1px solid #D32F2F",
               borderRadius: "4px",
               p: "12px 16px",
               display: "flex",
@@ -317,8 +317,8 @@ const CardsSection: React.FC = () => {
               gap: "12px",
             }}
           >
-            <AlertCircle size={16} color="#f04438" />
-            <Typography sx={{ fontSize: 13, color: "#f04438" }}>
+            <AlertCircle size={16} color="#D32F2F" />
+            <Typography sx={{ fontSize: 13, color: "#D32F2F" }}>
               Error: Something went wrong. Please try again.
             </Typography>
           </Box>
@@ -326,8 +326,8 @@ const CardsSection: React.FC = () => {
           {/* Warning Alert */}
           <Box
             sx={{
-              backgroundColor: "#fffcf5",
-              border: "1px solid #fdb022",
+              backgroundColor: "#FFF8E1",
+              border: "1px solid #795548",
               borderRadius: "4px",
               p: "12px 16px",
               display: "flex",
@@ -335,8 +335,8 @@ const CardsSection: React.FC = () => {
               gap: "12px",
             }}
           >
-            <AlertTriangle size={16} color="#DC6803" />
-            <Typography sx={{ fontSize: 13, color: "#DC6803" }}>
+            <AlertTriangle size={16} color="#795548" />
+            <Typography sx={{ fontSize: 13, color: "#795548" }}>
               Warning: This action cannot be undone.
             </Typography>
           </Box>
@@ -344,8 +344,8 @@ const CardsSection: React.FC = () => {
           {/* Info Alert */}
           <Box
             sx={{
-              backgroundColor: theme.palette.background.main,
-              border: "1px solid #d0d5dd",
+              backgroundColor: "#E3F2FD",
+              border: "1px solid #1565C0",
               borderRadius: "4px",
               p: "12px 16px",
               display: "flex",
@@ -353,8 +353,8 @@ const CardsSection: React.FC = () => {
               gap: "12px",
             }}
           >
-            <Info size={16} color="#475467" />
-            <Typography sx={{ fontSize: 13, color: "#475467" }}>
+            <Info size={16} color="#1565C0" />
+            <Typography sx={{ fontSize: 13, color: "#1565C0" }}>
               Info: Here's some additional information.
             </Typography>
           </Box>
@@ -385,30 +385,30 @@ const CardsSection: React.FC = () => {
         >
           <AlertColorCard
             type="Success"
-            bgColor="#ecfdf3"
-            borderColor="#17b26a"
-            textColor="#079455"
+            bgColor="#E6F4EA"
+            borderColor="#138A5E"
+            textColor="#138A5E"
             onCopy={handleCopy}
           />
           <AlertColorCard
             type="Error"
-            bgColor="#f9eced"
-            borderColor="#d32f2f"
-            textColor="#f04438"
+            bgColor="#FFD6D6"
+            borderColor="#D32F2F"
+            textColor="#D32F2F"
             onCopy={handleCopy}
           />
           <AlertColorCard
             type="Warning"
-            bgColor="#fffcf5"
-            borderColor="#fdb022"
-            textColor="#DC6803"
+            bgColor="#FFF8E1"
+            borderColor="#795548"
+            textColor="#795548"
             onCopy={handleCopy}
           />
           <AlertColorCard
             type="Info"
-            bgColor="#FFFFFF"
-            borderColor="#d0d5dd"
-            textColor="#475467"
+            bgColor="#E3F2FD"
+            borderColor="#1565C0"
+            textColor="#1565C0"
             onCopy={handleCopy}
           />
         </Box>

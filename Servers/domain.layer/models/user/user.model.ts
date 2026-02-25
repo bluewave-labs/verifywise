@@ -675,7 +675,7 @@ export class UserModel extends Model<UserModel> {
       surname: this.surname,
       email: this.email,
       role_id: this.role_id,
-      created_at: this.created_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       last_login: this.last_login?.toISOString(),
       is_demo: this.is_demo,
     };

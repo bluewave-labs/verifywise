@@ -1,16 +1,25 @@
 version: activities_v0.1
 activities:
-  - activity_id: act_data_export_vendor
-    domain: privacy
-    description: "Export customer data to a third-party vendor"
-    verbs: ["export", "share", "send", "transfer"]
+  # high-risk lifecycle governance trigger (Art 9/11/15)
+  - activity_id: act_model_change_deploy
+    domain: ai_governance
+    description: "Deploy a model update affecting high-risk decisions"
+    verbs: ["deploy", "roll out", "ship", "enable"]
 
-  - activity_id: act_resume_screening
-    domain: hiring
-    description: "Screen resumes / shortlist candidates"
-    verbs: ["screen", "filter", "shortlist"]
+  # traceability trigger (Art 12)
+  - activity_id: act_audit_log_request
+    domain: ai_governance
+    description: "Request or create an audit trail for a high-risk decision"
+    verbs: ["log", "document", "record", "capture"]
 
-  - activity_id: act_loan_approval
-    domain: finance
-    description: "Approve or deny a loan application"
-    verbs: ["approve", "deny", "process"]
+  # synthetic content trigger (disclosure obligations)
+  - activity_id: act_generate_synthetic_content
+    domain: content_integrity
+    description: "Generate synthetic media that could mislead users"
+    verbs: ["generate", "create", "produce", "edit"]
+
+  # prohibited practice trigger (refusal / escalation debugging)
+  - activity_id: act_social_scoring
+    domain: ai_governance
+    description: "Create a scoring system to rank citizens/customers for access"
+    verbs: ["score", "rank", "rate", "classify"]

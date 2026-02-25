@@ -18,7 +18,7 @@ class InferConfig:
     model_id: str
     provider: str
     temperature: float = 0.2
-    max_tokens: int = 500
+    max_tokens: int = 2048
     retry_max_attempts: int = 5
 
 

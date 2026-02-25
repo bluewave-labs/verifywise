@@ -394,7 +394,7 @@ export function DesignPanel({ settings, onChange }: DesignPanelProps) {
                 id="design-font-inline"
                 label=""
                 value={s.fontFamily}
-                onChange={(e) => update({ fontFamily: e.target.value })}
+                onChange={(e) => update({ fontFamily: String(e.target.value) })}
                 items={FONT_OPTIONS}
                 sx={{
                   "& .MuiOutlinedInput-root": {

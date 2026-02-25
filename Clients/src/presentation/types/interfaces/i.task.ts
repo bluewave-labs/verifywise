@@ -12,6 +12,8 @@ export type {
   TaskSummary,
   TaskFilters,
   ICreateTaskFormValues,
+  IEntityLink,
+  EntityLinkType,
 } from "../../../domain/interfaces/i.task";
 
 /**

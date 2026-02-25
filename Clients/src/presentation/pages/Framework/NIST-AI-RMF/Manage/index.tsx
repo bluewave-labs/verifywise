@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { updateNISTAIRMFSubcategoryStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
@@ -31,6 +31,8 @@ interface NISTAIRMFManageProps {
   statusOptions?: { value: string; label: string }[];
   searchTerm?: string;
   onSearchTermChange?: (term: string) => void;
+  initialCategoryId?: string | null;
+  initialSubcategoryId?: string | null;
 }
 
 const NISTAIRMFManage = ({
@@ -41,6 +43,8 @@ const NISTAIRMFManage = ({
   statusOptions,
   searchTerm = "",
   onSearchTermChange,
+  initialCategoryId,
+  initialSubcategoryId,
 }: NISTAIRMFManageProps) => {
   const { userId: _userId, userRoleName } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
@@ -61,6 +65,9 @@ const NISTAIRMFManage = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubcategory, setSelectedSubcategory] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
+
+  // Ref to track if auto-open has been triggered
+  const hasAutoOpenedRef = useRef(false);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -148,7 +155,47 @@ const NISTAIRMFManage = ({
     setDrawerOpen(false);
     setSelectedSubcategory(null);
     setSelectedCategory(null);
+    // Clear URL params when drawer closes
+    if (initialCategoryId && initialSubcategoryId) {
+      searchParams.delete("categoryId");
+      searchParams.delete("subcategoryId");
+      searchParams.delete("framework");
+      searchParams.delete("functionId");
+      setSearchParams(searchParams);
+    }
   };
+
+  // Auto-open drawer when initialCategoryId and initialSubcategoryId are provided
+  useEffect(() => {
+    // Skip if already auto-opened or missing params
+    if (hasAutoOpenedRef.current || !initialCategoryId || !initialSubcategoryId || categories.length === 0) {
+      return;
+    }
+
+    const catId = parseInt(initialCategoryId);
+    const subCatId = parseInt(initialSubcategoryId);
+
+    // Expand the category accordion
+    setExpanded(catId);
+
+    // Find the category
+    const category = categories.find((c) => c.id === catId);
+    if (!category) return;
+
+    // Check if subcategories are already loaded
+    const subcategories = subcategoriesMap[catId];
+    if (subcategories && subcategories.length > 0) {
+      // Find the subcategory and open drawer
+      const subcategory = subcategories.find((sc: any) => sc.id === subCatId);
+      if (subcategory) {
+        handleSubcategoryClick(category, subcategory, 0);
+        hasAutoOpenedRef.current = true;
+      }
+    } else if (!loadingSubcategories[catId]) {
+      // Trigger fetch if not already loading
+      fetchSubcategories(catId, "MANAGE");
+    }
+  }, [initialCategoryId, initialSubcategoryId, categories, subcategoriesMap, loadingSubcategories, fetchSubcategories, handleSubcategoryClick]);
 
   const handleDrawerSaveSuccess = (success: boolean, _message?: string, savedSubcategoryId?: number) => {
     if (success && savedSubcategoryId) {

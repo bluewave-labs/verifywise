@@ -28,9 +28,12 @@
               <td style="color: #344054; padding: 4px 0;"><strong>{{task_due_date}}</strong></td>
             </tr>
           </table>
-          <p style="margin: 20px 0;">
-            <a href="{{task_url}}" style="background-color: #13715B; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">View task</a>
-          </p>
+          {{entity_links_html}}
+        </mj-text>
+        <mj-button href="{{task_url}}" background-color="#13715B" color="white" border-radius="4px" font-weight="500" padding="20px 0">
+          View task
+        </mj-button>
+        <mj-text align="left">
           <p style="margin-top: 30px; color: #7f8c8d; font-size: 12px;">
             Sent from VerifyWise
           </p>

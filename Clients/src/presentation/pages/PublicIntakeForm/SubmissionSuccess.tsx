@@ -6,9 +6,9 @@ import { CustomizableButton } from "../../components/button/customizable-button"
 
 interface SubmissionState {
   submissionId: number;
-  resubmissionToken: string;
+  resubmissionToken?: string;
   formName: string;
-  submitterEmail: string;
+  submitterEmail?: string;
 }
 
 export function SubmissionSuccess() {
@@ -113,49 +113,54 @@ export function SubmissionSuccess() {
           }}
         >
           {/* Details rows */}
-          {[
-            { label: "Reference", value: `#${state.submissionId}`, icon: <Hash size={13} color="#94a3b8" /> },
-            { label: "Email", value: state.submitterEmail },
-            { label: "Status", value: "Pending review", color: "#f59e0b", icon: <Clock size={13} color="#f59e0b" /> },
-          ].map((row, i) => (
-            <Box
-              key={i}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                py: "10px",
-                borderBottom: i < 2 ? "1px solid #f1f5f9" : "none",
-              }}
-            >
-              <Typography sx={{ fontSize: "13px", color: "#94a3b8" }}>{row.label}</Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                {row.icon}
-                <Typography sx={{
-                  fontSize: "13px", fontWeight: 600,
-                  color: row.color || "#1e293b",
-                  maxWidth: 220, textAlign: "right", wordBreak: "break-all",
-                }}>
-                  {row.value}
-                </Typography>
+          {(() => {
+            const rows = [
+              { label: "Reference", value: `#${state.submissionId}`, icon: <Hash size={13} color="#94a3b8" /> },
+              ...(state.submitterEmail ? [{ label: "Email", value: state.submitterEmail }] : []),
+              { label: "Status", value: "Pending review", color: "#f59e0b", icon: <Clock size={13} color="#f59e0b" /> },
+            ];
+            return rows.map((row, i) => (
+              <Box
+                key={i}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  py: "10px",
+                  borderBottom: i < rows.length - 1 ? "1px solid #f1f5f9" : "none",
+                }}
+              >
+                <Typography sx={{ fontSize: "13px", color: "#94a3b8" }}>{row.label}</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  {(row as any).icon}
+                  <Typography sx={{
+                    fontSize: "13px", fontWeight: 600,
+                    color: (row as any).color || "#1e293b",
+                    maxWidth: 220, textAlign: "right", wordBreak: "break-all",
+                  }}>
+                    {row.value}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          ))}
+            ));
+          })()}
 
-          <Box sx={{ mt: 3 }}>
-            <CustomizableButton
-              variant="contained"
-              onClick={handleEditSubmission}
-              startIcon={<Edit size={15} />}
-              text="Edit and resubmit"
-              sx={{
-                width: "100%", height: 44, backgroundColor: "#13715B",
-                fontSize: "13px", fontWeight: 600, borderRadius: "8px", textTransform: "none",
-                boxShadow: "none",
-                "&:hover": { backgroundColor: "#0F5A47" },
-              }}
-            />
-          </Box>
+          {state.resubmissionToken && (
+            <Box sx={{ mt: 3 }}>
+              <CustomizableButton
+                variant="contained"
+                onClick={handleEditSubmission}
+                startIcon={<Edit size={15} />}
+                text="Edit and resubmit"
+                sx={{
+                  width: "100%", height: 44, backgroundColor: "#13715B",
+                  fontSize: "13px", fontWeight: 600, borderRadius: "8px", textTransform: "none",
+                  boxShadow: "none",
+                  "&:hover": { backgroundColor: "#0F5A47" },
+                }}
+              />
+            </Box>
+          )}
         </Box>
 
         <Typography sx={{ textAlign: "center", color: "#cbd5e1", fontSize: "12px", mt: 4 }}>

@@ -25,6 +25,20 @@ import {
   trackVendorChanges,
   recordMultipleFieldChanges,
 } from "../utils/vendorChangeHistory.utils";
+import { notifyUserAssigned } from "../services/inAppNotification.service";
+import { QueryTypes } from "sequelize";
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -241,6 +255,52 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
+
+      // Send assignment notifications (fire-and-forget)
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const assignerName = await getUserNameById(req.userId!);
+
+      // Build entity context for vendor
+      const vendorContext = {
+        description: createdVendor.vendor_provides || undefined,
+      };
+
+      // Notify assignee if assigned
+      if (createdVendor.assignee) {
+        notifyUserAssigned(
+          req.tenantId!,
+          createdVendor.assignee,
+          {
+            entityType: "vendor",
+            entityId: createdVendor.id!,
+            entityName: createdVendor.vendor_name,
+            roleType: "Assignee",
+            entityUrl: `/vendors?vendorId=${createdVendor.id}`,
+          },
+          assignerName,
+          baseUrl,
+          vendorContext
+        ).catch((err) => console.error("Failed to send assignee notification:", err));
+      }
+
+      // Notify reviewer if assigned
+      if (createdVendor.reviewer) {
+        notifyUserAssigned(
+          req.tenantId!,
+          createdVendor.reviewer,
+          {
+            entityType: "vendor",
+            entityId: createdVendor.id!,
+            entityName: createdVendor.vendor_name,
+            roleType: "Reviewer",
+            entityUrl: `/vendors?vendorId=${createdVendor.id}`,
+          },
+          assignerName,
+          baseUrl,
+          vendorContext
+        ).catch((err) => console.error("Failed to send reviewer notification:", err));
+      }
+
       return res.status(201).json(STATUS_CODE[201](createdVendor));
     }
 
@@ -402,6 +462,56 @@ export async function updateVendorById(
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
+
+      // Send assignment notifications for newly assigned users (fire-and-forget)
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const assignerName = await getUserNameById(userId);
+
+      // Build entity context for vendor
+      const vendorContext = {
+        description: vendor.vendor_provides || undefined,
+      };
+
+      // Check if assignee changed
+      const oldAssignee = existingVendor.assignee;
+      const newAssignee = vendor.assignee;
+      if (newAssignee && newAssignee !== oldAssignee && newAssignee !== userId) {
+        notifyUserAssigned(
+          req.tenantId!,
+          newAssignee,
+          {
+            entityType: "vendor",
+            entityId: vendorId,
+            entityName: vendor.vendor_name,
+            roleType: "Assignee",
+            entityUrl: `/vendors?vendorId=${vendorId}`,
+          },
+          assignerName,
+          baseUrl,
+          vendorContext
+        ).catch((err) => console.error("Failed to send assignee notification:", err));
+      }
+
+      // Check if reviewer changed
+      const oldReviewer = existingVendor.reviewer;
+      const newReviewer = vendor.reviewer;
+      if (newReviewer && newReviewer !== oldReviewer && newReviewer !== userId) {
+        notifyUserAssigned(
+          req.tenantId!,
+          newReviewer,
+          {
+            entityType: "vendor",
+            entityId: vendorId,
+            entityName: vendor.vendor_name,
+            roleType: "Reviewer",
+            entityUrl: `/vendors?vendorId=${vendorId}`,
+          },
+          assignerName,
+          baseUrl,
+          vendorContext
+        ).catch((err) => console.error("Failed to send reviewer notification:", err));
+      }
+
       return res.status(202).json(STATUS_CODE[202](vendor));
     }
 

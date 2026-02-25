@@ -526,9 +526,9 @@ export async function deleteIntakeForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Intake form not found"));
     }
 
-    if (existingForm.status !== IntakeFormStatus.DRAFT) {
+    if (existingForm.status === IntakeFormStatus.ACTIVE) {
       await transaction.rollback();
-      return res.status(400).json(STATUS_CODE[400]("Only draft forms can be deleted. Use archive for active forms."));
+      return res.status(400).json(STATUS_CODE[400]("Active forms cannot be deleted. Archive the form first."));
     }
 
     await deleteIntakeFormQuery(formId, req.tenantId!, transaction);

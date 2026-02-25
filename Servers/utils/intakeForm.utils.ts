@@ -302,7 +302,7 @@ export const updateIntakeFormQuery = async (
 };
 
 /**
- * Delete intake form (only drafts can be deleted)
+ * Delete intake form (draft and archived forms can be deleted)
  */
 export const deleteIntakeFormQuery = async (
   id: number,
@@ -311,9 +311,13 @@ export const deleteIntakeFormQuery = async (
 ): Promise<boolean> => {
   const result = await sequelize.query(
     `DELETE FROM "${tenant}".intake_forms
-    WHERE id = :id AND status = :status`,
+    WHERE id = :id AND status IN (:draft, :archived)`,
     {
-      replacements: { id, status: IntakeFormStatus.DRAFT },
+      replacements: {
+        id,
+        draft: IntakeFormStatus.DRAFT,
+        archived: IntakeFormStatus.ARCHIVED,
+      },
       transaction,
     }
   );

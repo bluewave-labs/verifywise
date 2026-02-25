@@ -146,6 +146,8 @@ export function IntakeFormsListPage() {
   const [selectedForm, setSelectedForm] = useState<IntakeForm | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -302,17 +304,26 @@ export function IntakeFormsListPage() {
     handleMenuClose();
   };
 
-  const handleArchive = async () => {
+  const handleArchiveClick = () => {
+    setArchiveModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleArchiveConfirm = async () => {
     if (selectedForm) {
+      setIsArchiving(true);
       try {
         await archiveIntakeForm(selectedForm.id);
         loadForms();
         setSnackbar({ open: true, message: "Form archived", severity: "success" });
       } catch {
         setSnackbar({ open: true, message: "Failed to archive form", severity: "error" });
+      } finally {
+        setIsArchiving(false);
+        setArchiveModalOpen(false);
+        setSelectedForm(null);
       }
     }
-    handleMenuClose();
   };
 
   const handleDeleteClick = () => {
@@ -692,7 +703,7 @@ export function IntakeFormsListPage() {
               Copy link
             </ListItemText>
           </MenuItem>,
-          <MenuItem key="archive" onClick={handleArchive}>
+          <MenuItem key="archive" onClick={handleArchiveClick}>
             <ListItemIcon>
               <Archive size={18} />
             </ListItemIcon>
@@ -701,7 +712,8 @@ export function IntakeFormsListPage() {
             </ListItemText>
           </MenuItem>,
         ]}
-        {selectedForm?.status === IntakeFormStatus.DRAFT && (
+        {(selectedForm?.status === IntakeFormStatus.DRAFT ||
+          selectedForm?.status === IntakeFormStatus.ARCHIVED) && (
           <MenuItem onClick={handleDeleteClick} sx={{ color: theme.palette.status.error.text }}>
             <ListItemIcon>
               <Trash2 size={18} color={theme.palette.status.error.text} />
@@ -780,6 +792,22 @@ export function IntakeFormsListPage() {
         </Stack>
       </StandardModal>
 
+      {/* Archive confirmation modal */}
+      <StandardModal
+        title="Archive form"
+        description={`Are you sure you want to archive "${selectedForm?.name}"? The public link will stop accepting new submissions.`}
+        isOpen={archiveModalOpen}
+        onClose={() => {
+          setArchiveModalOpen(false);
+          setSelectedForm(null);
+        }}
+        onSubmit={handleArchiveConfirm}
+        submitButtonText={isArchiving ? "Archiving..." : "Archive"}
+        isSubmitting={isArchiving}
+        maxWidth="440px"
+        fitContent
+      />
+
       {/* Delete confirmation modal */}
       <StandardModal
         title="Delete form"
@@ -793,6 +821,7 @@ export function IntakeFormsListPage() {
         submitButtonText={isDeleting ? "Deleting..." : "Delete"}
         submitButtonColor="#c62828"
         isSubmitting={isDeleting}
+        maxWidth="440px"
         fitContent
       />
 

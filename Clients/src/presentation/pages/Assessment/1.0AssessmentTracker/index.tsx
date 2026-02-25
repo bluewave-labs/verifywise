@@ -116,7 +116,8 @@ const AssessmentTracker = ({
     ) {
       const targetQuestionId = parseInt(questionId);
       // Find the question and its subtopic
-      for (const subtopic of assessmentSubtopics) {
+      // assessmentSubtopics has questions array from the hook response
+      for (const subtopic of assessmentSubtopics as Array<Subtopic & { questions: Question[] }>) {
         const question = subtopic.questions?.find(
           (q: Question) => q.question_id === targetQuestionId
         );

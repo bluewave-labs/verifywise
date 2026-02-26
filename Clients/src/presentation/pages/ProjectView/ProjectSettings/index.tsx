@@ -38,6 +38,7 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
+import IntakeSubmissionCard from "../IntakeSubmissionCard";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -1482,6 +1483,9 @@ const ProjectSettings = React.memo(
                   />
                 </Box>
               </Box>
+
+              {/* Intake Form Submission */}
+              <IntakeSubmissionCard projectId={parseInt(projectId, 10) || 0} />
 
               {/* Save Button Row */}
               <Stack sx={{ width: "100%" }}>

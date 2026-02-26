@@ -410,6 +410,56 @@ export async function getEntityIntakeSubmission(
 }
 
 // ============================================================================
+// LLM Features API (Admin - Authenticated)
+// ============================================================================
+
+/**
+ * LLM-suggested question returned by the backend
+ */
+export interface LLMSuggestedQuestion {
+  label: string;
+  fieldType: "text" | "textarea" | "select";
+  category: string;
+  entityFieldMapping?: string;
+  guidanceText?: string;
+  options?: Array<{ value: string; label: string }>;
+}
+
+/**
+ * Generate LLM-suggested questions for intake form building
+ */
+export async function getLLMSuggestedQuestions(
+  entityType: string,
+  context: string,
+  llmKeyId: number,
+  signal?: AbortSignal
+): Promise<{ data: LLMSuggestedQuestion[] }> {
+  const response = await apiServices.post(
+    `${BASE_URL}/forms/suggested-questions`,
+    { entityType, context, llmKeyId },
+    { signal }
+  );
+  return response.data as { data: LLMSuggestedQuestion[] };
+}
+
+/**
+ * Generate LLM guidance text for a field
+ */
+export async function getLLMFieldGuidance(
+  fieldLabel: string,
+  entityType: string,
+  llmKeyId: number,
+  signal?: AbortSignal
+): Promise<{ data: { guidanceText: string } }> {
+  const response = await apiServices.post(
+    `${BASE_URL}/forms/field-guidance`,
+    { fieldLabel, entityType, llmKeyId },
+    { signal }
+  );
+  return response.data as { data: { guidanceText: string } };
+}
+
+// ============================================================================
 // Public Form API (No authentication required)
 // ============================================================================
 
@@ -440,6 +490,7 @@ export async function getPublicForm(
       submitButtonText: string;
       designSettings?: FormDesignSettings | null;
     };
+    organizationLogo?: string | null;
     previousData?: Record<string, unknown>;
     previousSubmitterName?: string;
     previousSubmitterEmail?: string;
@@ -459,6 +510,7 @@ export async function getPublicForm(
         submitButtonText: string;
         designSettings?: FormDesignSettings | null;
       };
+      organizationLogo?: string | null;
       previousData?: Record<string, unknown>;
       previousSubmitterName?: string;
       previousSubmitterEmail?: string;
@@ -509,6 +561,7 @@ export async function getPublicFormById(
       submitButtonText: string;
       designSettings?: FormDesignSettings | null;
     };
+    organizationLogo?: string | null;
     previousData?: Record<string, unknown>;
     previousSubmitterName?: string;
     previousSubmitterEmail?: string;
@@ -528,6 +581,7 @@ export async function getPublicFormById(
         submitButtonText: string;
         designSettings?: FormDesignSettings | null;
       };
+      organizationLogo?: string | null;
       previousData?: Record<string, unknown>;
       previousSubmitterName?: string;
       previousSubmitterEmail?: string;

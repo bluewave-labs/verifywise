@@ -405,8 +405,10 @@ export const getSubmissionsByFormIdQuery = async (
  * Get pending submissions for a tenant (for dashboard, capped at 500)
  */
 export const getPendingSubmissionsQuery = async (
-  tenant: string
+  tenant: string,
+  status?: IntakeSubmissionStatus
 ): Promise<IIntakeSubmission[]> => {
+  const statusFilter = status ? "WHERE s.status = :status" : "";
   const submissions = await sequelize.query(
     `SELECT
       s.id, s.form_id as "formId", s.submitter_email as "submitterEmail",
@@ -421,11 +423,11 @@ export const getPendingSubmissionsQuery = async (
       f.name as "formName", f.entity_type as "formEntityType"
     FROM "${tenant}".intake_submissions s
     JOIN "${tenant}".intake_forms f ON s.form_id = f.id
-    WHERE s.status = :status
+    ${statusFilter}
     ORDER BY s.created_at DESC
     LIMIT 500`,
     {
-      replacements: { status: IntakeSubmissionStatus.PENDING },
+      replacements: status ? { status } : {},
       type: QueryTypes.SELECT,
     }
   );

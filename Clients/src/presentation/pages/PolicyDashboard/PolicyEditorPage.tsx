@@ -341,8 +341,8 @@ export default function PolicyEditorPage() {
   useEffect(() => {
     if (policy) {
       setFormData({
-        title: policy.title,
-        status: policy.status,
+        title: policy.title || "",
+        status: policy.status || "Draft",
         tags: policy.tags || [],
         nextReviewDate: policy.next_review_date
           ? new Date(policy.next_review_date).toISOString().slice(0, 10)

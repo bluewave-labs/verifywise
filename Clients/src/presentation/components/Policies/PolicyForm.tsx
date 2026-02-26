@@ -65,7 +65,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             id="policy-title-input"
             label="Policy title"
             width="100%"
-            value={formData.title}
+            value={formData.title ?? ""}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, title: e.target.value }))
             }
@@ -102,7 +102,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               id="status-input"
               label="Status"
               placeholder="Select status"
-              value={formData.status || ""}
+              value={formData.status ?? ""}
               onChange={(e) => {
                 const statusValue = e.target.value;
                 if (typeof statusValue === "string") {

@@ -65,6 +65,7 @@ import {
   Plus,
   X,
   ToggleLeft,
+  ArrowLeft,
 } from "lucide-react";
 
 import Select from "../../components/Inputs/Select";
@@ -290,6 +291,7 @@ export default function PolicyEditorPage() {
   const [toolbarState, setToolbarState] = useState(defaultToolbarState);
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [editorReady, setEditorReady] = useState(false);
 
   const [formData, setFormData] = useState<PolicyFormData>({
     title: "",
@@ -430,6 +432,7 @@ export default function PolicyEditorPage() {
     ],
     content: "",
     autofocus: false,
+    onCreate: () => setEditorReady(true),
     onUpdate: () => {
       setFormData((prev) => ({ ...prev, content: editor?.getHTML() || "" }));
       updateToolbarState();
@@ -439,14 +442,14 @@ export default function PolicyEditorPage() {
 
   // ── Load content into editor ──────────────────────────────────────
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || !editorReady) return;
     const content = policy?.content_html || template?.content;
     if (!content || typeof content !== "string") return;
 
     const normalized = normalizeSlateHtml(content);
     const sanitized = DOMPurify.sanitize(normalized, sanitizeOptions);
     editor.commands.setContent(sanitized);
-  }, [policy, template, editor]);
+  }, [policy, template, editor, editorReady]);
 
   // ── Image upload handler ──────────────────────────────────────────
   const handleImageFileChange = async (
@@ -978,11 +981,27 @@ export default function PolicyEditorPage() {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          sx={{ mb: 2, flexShrink: 0 }}
+          sx={{ mb: "8px", flexShrink: 0 }}
         >
-          <Typography sx={{ fontSize: 16, color: "#344054", fontWeight: 600 }}>
-            {pageTitle}
-          </Typography>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <Tooltip title="Back to policies" arrow>
+              <IconButton
+                onClick={() => navigate("/policies")}
+                size="small"
+                sx={{
+                  padding: "4px",
+                  borderRadius: "4px",
+                  color: "#98A2B3",
+                  "&:hover": { backgroundColor: "#F2F4F7", color: "#344054" },
+                }}
+              >
+                <ArrowLeft size={18} />
+              </IconButton>
+            </Tooltip>
+            <Typography sx={{ fontSize: 16, color: "#344054", fontWeight: 600 }}>
+              {pageTitle}
+            </Typography>
+          </Stack>
 
           <Stack direction="row" gap={1} alignItems="center">
             {/* Export error */}
@@ -1144,7 +1163,7 @@ export default function PolicyEditorPage() {
         </Stack>
 
         {/* ── Metadata form ────────────────────────────────────────── */}
-        <Box sx={{ flexShrink: 0 }}>
+        <Box sx={{ flexShrink: 0, mb: "8px" }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -1153,8 +1172,6 @@ export default function PolicyEditorPage() {
             setErrors={setErrors}
           />
         </Box>
-
-        <Divider sx={{ my: 2, flexShrink: 0 }} />
 
         {/* ── Toolbar ──────────────────────────────────────────────── */}
         <Box

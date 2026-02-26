@@ -136,6 +136,9 @@ export const routeMapping: Record<string, string> = {
   "/intake-forms": "Intake forms",
   "/intake-forms/submissions": "Submissions",
 
+  // Policies
+  "/policies": "Policies",
+
   // Authentication
   "/login": "Sign in",
   "/register": "Create account",
@@ -306,6 +309,18 @@ export const dynamicRoutePatterns = [
     label: "Form builder",
     description: "Edit intake form",
     icon: () => React.createElement(ClipboardList, { size: 14, strokeWidth: 1.5 }),
+  },
+  {
+    pattern: /\/policies\/\d+\/edit/,
+    label: "Edit policy",
+    description: "Edit an existing policy",
+    icon: () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
+  },
+  {
+    pattern: /\/policies\/new/,
+    label: "New policy",
+    description: "Create a new policy",
+    icon: () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
   },
 ];
 

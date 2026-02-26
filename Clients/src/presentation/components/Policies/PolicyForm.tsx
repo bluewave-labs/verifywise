@@ -55,12 +55,35 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
     }
   }, []);
 
+  const autocompleteSlotProps = {
+    paper: {
+      sx: {
+        "& .MuiAutocomplete-listbox": {
+          "& .MuiAutocomplete-option": {
+            fontSize: "13px",
+            color: "#1c2130",
+            paddingLeft: "9px",
+            paddingRight: "9px",
+          },
+          "& .MuiAutocomplete-option.Mui-focused": {
+            background: "#f9fafb",
+          },
+        },
+        "& .MuiAutocomplete-noOptions": {
+          fontSize: "13px",
+          paddingLeft: "9px",
+          paddingRight: "9px",
+        },
+      },
+    },
+  };
+
   return (
-    <Stack spacing={2}>
-      {/* Policy Title + Next Review Date + Status */}
-      <Stack direction="row" justifyContent="space-between" spacing={4}>
+    <Stack spacing="8px">
+      {/* Row 1: Policy Title + Next Review Date + Status */}
+      <Stack direction="row" spacing={2}>
         {/* Policy Title */}
-        <Stack sx={{ width: "50%" }}>
+        <Stack sx={{ flex: 1, minWidth: 0 }}>
           <Field
             id="policy-title-input"
             label="Policy title"
@@ -80,51 +103,48 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
           />
         </Stack>
 
-        {/* Next Review Date + Status */}
-        <Stack direction="row" sx={{ width: "50%", gap: 2 }}>
-          {/* Next Review Date */}
-          <Stack sx={{ width: "50%" }}>
-            <DatePicker
-              label="Next review date"
-              date={
-                formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null
-              }
-              handleDateChange={handleDateChange}
-              sx={{ width: "100%" }}
-              isRequired
-              error={errors.nextReviewDate}
-            />
-          </Stack>
+        {/* Next Review Date */}
+        <Stack sx={{ width: 160, flexShrink: 0 }}>
+          <DatePicker
+            label="Next review date"
+            date={
+              formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null
+            }
+            handleDateChange={handleDateChange}
+            sx={{ width: "100%" }}
+            isRequired
+            error={errors.nextReviewDate}
+          />
+        </Stack>
 
-          {/* Status */}
-          <Stack sx={{ width: "50%" }}>
-            <Select
-              id="status-input"
-              label="Status"
-              placeholder="Select status"
-              value={formData.status ?? ""}
-              onChange={(e) => {
-                const statusValue = e.target.value;
-                if (typeof statusValue === "string") {
-                  setFormData((prev) => ({ ...prev, status: statusValue }));
-                }
-              }}
-              items={statuses.map((s) => ({ _id: s, name: s }))}
-              sx={{
-                width: "100%",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.status}
-              isRequired
-            />
-          </Stack>
+        {/* Status */}
+        <Stack sx={{ width: 150, flexShrink: 0 }}>
+          <Select
+            id="status-input"
+            label="Status"
+            placeholder="Select status"
+            value={formData.status ?? ""}
+            onChange={(e) => {
+              const statusValue = e.target.value;
+              if (typeof statusValue === "string") {
+                setFormData((prev) => ({ ...prev, status: statusValue }));
+              }
+            }}
+            items={statuses.map((s) => ({ _id: s, name: s }))}
+            sx={{
+              width: "100%",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.status}
+            isRequired
+          />
         </Stack>
       </Stack>
 
-      {/* Team Members + Tags */}
-      <Stack direction="row" justifyContent="space-between" spacing={4}>
+      {/* Row 2: Team Members + Tags */}
+      <Stack direction="row" spacing={2}>
         {/* Team Members */}
-        <Stack sx={{ gap: 2, width: "50%" }}>
+        <Stack sx={{ gap: 1, flex: 1, minWidth: 0 }}>
           <Typography
             sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
           >
@@ -206,33 +226,12 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                 },
               },
             }}
-            slotProps={{
-              paper: {
-                sx: {
-                  "& .MuiAutocomplete-listbox": {
-                    "& .MuiAutocomplete-option": {
-                      fontSize: "13px",
-                      color: "#1c2130",
-                      paddingLeft: "9px",
-                      paddingRight: "9px",
-                    },
-                    "& .MuiAutocomplete-option.Mui-focused": {
-                      background: "#f9fafb",
-                    },
-                  },
-                  "& .MuiAutocomplete-noOptions": {
-                    fontSize: "13px",
-                    paddingLeft: "9px",
-                    paddingRight: "9px",
-                  },
-                },
-              },
-            }}
+            slotProps={autocompleteSlotProps}
           />
         </Stack>
 
         {/* Tags */}
-        <Stack sx={{ gap: 2, width: "50%" }}>
+        <Stack sx={{ gap: 1, flex: 1, minWidth: 0 }}>
           <Typography
             sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
           >
@@ -293,28 +292,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                 },
               },
             }}
-            slotProps={{
-              paper: {
-                sx: {
-                  "& .MuiAutocomplete-listbox": {
-                    "& .MuiAutocomplete-option": {
-                      fontSize: "13px",
-                      color: "#1c2130",
-                      paddingLeft: "9px",
-                      paddingRight: "9px",
-                    },
-                    "& .MuiAutocomplete-option.Mui-focused": {
-                      background: "#f9fafb",
-                    },
-                  },
-                  "& .MuiAutocomplete-noOptions": {
-                    fontSize: "13px",
-                    paddingLeft: "9px",
-                    paddingRight: "9px",
-                  },
-                },
-              },
-            }}
+            slotProps={autocompleteSlotProps}
           />
           {errors.tags && (
             <Typography

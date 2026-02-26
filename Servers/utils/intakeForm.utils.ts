@@ -438,15 +438,19 @@ export const getPendingSubmissionsQuery = async (
  */
 export const getSubmissionByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
+  transaction?: Transaction,
+  forUpdate?: boolean
 ): Promise<IIntakeSubmission | null> => {
+  const lock = forUpdate ? " FOR UPDATE" : "";
   const submissions = await sequelize.query(
     `SELECT ${SUBMISSION_SELECT_COLUMNS}
     FROM "${tenant}".intake_submissions
-    WHERE id = :id`,
+    WHERE id = :id${lock}`,
     {
       replacements: { id },
       type: QueryTypes.SELECT,
+      transaction,
     }
   );
 

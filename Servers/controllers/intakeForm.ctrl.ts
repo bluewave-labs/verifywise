@@ -122,8 +122,9 @@ function validateFormData(
     const value = formData[field.id];
     const isEmpty = value === undefined || value === null || value === "";
 
-    // Required check
-    if (field.required && isEmpty) {
+    // Required check — field.required (backend interface) or field.validation.required (frontend schema)
+    const isRequired = field.required || field.validation?.required;
+    if (isRequired && isEmpty) {
       errors.push(`"${field.label}" is required`);
       continue;
     }
@@ -863,7 +864,7 @@ export async function approveSubmission(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
 
   try {
-    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
+    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!, transaction, true);
 
     if (!submission) {
       await transaction.rollback();
@@ -909,15 +910,15 @@ export async function approveSubmission(req: Request, res: Response) {
     if (submission.entityType === IntakeEntityType.MODEL) {
       const model = ModelInventoryModel.createNewModelInventory({
         provider: (entityData.provider as string) || "",
-        model: (entityData.model as string) || "",
-        version: (entityData.version as string) || "",
+        model: (entityData.name as string) || (entityData.model as string) || "",
+        version: (entityData.modelVersion as string) || (entityData.version as string) || "",
         approver: entityData.approver ? Number(entityData.approver) : undefined,
-        capabilities: (entityData.capabilities as string) || "",
+        capabilities: (entityData.capabilities as string) || (entityData.intendedUse as string) || "",
         security_assessment: (entityData.security_assessment as boolean) || false,
         reference_link: (entityData.reference_link as string) || "",
         biases: (entityData.biases as string) || "",
         limitations: (entityData.limitations as string) || "",
-        hosting_provider: (entityData.hosting_provider as string) || "",
+        hosting_provider: (entityData.hosting_provider as string) || (entityData.modelType as string) || "",
         status: ModelInventoryStatus.PENDING,
       });
 
@@ -1024,7 +1025,7 @@ export async function rejectSubmission(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Rejection reason is required"));
     }
 
-    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
+    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!, transaction, true);
 
     if (!submission) {
       await transaction.rollback();

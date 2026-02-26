@@ -167,6 +167,8 @@ export interface EntityFieldMapping {
   label: string;
   description: string;
   requiredFieldType: FieldType[];
+  /** Whether this field is NOT NULL in the database (required for entity creation) */
+  entityRequired?: boolean;
 }
 
 /**
@@ -174,7 +176,7 @@ export interface EntityFieldMapping {
  */
 export const ENTITY_FIELD_MAPPINGS: Record<IntakeEntityType, EntityFieldMapping[]> = {
   [IntakeEntityType.MODEL]: [
-    { field: "name", label: "Model name", description: "Name of the AI model", requiredFieldType: ["text"] },
+    { field: "name", label: "Model name", description: "Name of the AI model", requiredFieldType: ["text"], entityRequired: true },
     { field: "description", label: "Description", description: "Model description", requiredFieldType: ["text", "textarea"] },
     { field: "modelVersion", label: "Model version", description: "Version of the model", requiredFieldType: ["text"] },
     { field: "provider", label: "Provider", description: "Model provider/vendor", requiredFieldType: ["text", "select"] },
@@ -184,8 +186,8 @@ export const ENTITY_FIELD_MAPPINGS: Record<IntakeEntityType, EntityFieldMapping[
     { field: "riskLevel", label: "Risk level", description: "Risk classification", requiredFieldType: ["select"] },
   ],
   [IntakeEntityType.USE_CASE]: [
-    { field: "project_title", label: "Project title", description: "Title of the use case/project", requiredFieldType: ["text"] },
-    { field: "goal", label: "Goal", description: "Goal of the project", requiredFieldType: ["text", "textarea"] },
+    { field: "project_title", label: "Project title", description: "Title of the use case/project", requiredFieldType: ["text"], entityRequired: true },
+    { field: "goal", label: "Goal", description: "Goal of the project", requiredFieldType: ["text", "textarea"], entityRequired: true },
     { field: "owner", label: "Owner", description: "Project owner", requiredFieldType: ["text", "email"] },
     { field: "start_date", label: "Start date", description: "Project start date", requiredFieldType: ["date"] },
     { field: "ai_risk_classification", label: "AI risk classification", description: "Risk classification", requiredFieldType: ["select"] },
@@ -393,6 +395,62 @@ export const DEFAULT_USE_CASE_FIELDS: FormField[] = [
     order: 5,
   },
 ];
+
+/**
+ * Mapping coverage analysis result
+ */
+export interface MappingCoverage {
+  /** Required entity fields that have no mapped form field */
+  missingRequired: EntityFieldMapping[];
+  /** Optional entity fields that have no mapped form field */
+  missingOptional: EntityFieldMapping[];
+  /** Fields where the form field type doesn't match the entity field's allowed types */
+  typeMismatches: Array<{
+    formField: FormField;
+    entityMapping: EntityFieldMapping;
+  }>;
+}
+
+/**
+ * Analyze mapping coverage for a form's fields against the entity field definitions
+ */
+export function analyzeMappingCoverage(
+  fields: FormField[],
+  entityType: IntakeEntityType
+): MappingCoverage {
+  const entityMappings = ENTITY_FIELD_MAPPINGS[entityType] || [];
+  const mappedKeys = new Set(
+    fields
+      .filter((f) => f.entityFieldMapping)
+      .map((f) => f.entityFieldMapping!)
+  );
+
+  const missingRequired: EntityFieldMapping[] = [];
+  const missingOptional: EntityFieldMapping[] = [];
+
+  for (const mapping of entityMappings) {
+    if (!mappedKeys.has(mapping.field)) {
+      if (mapping.entityRequired) {
+        missingRequired.push(mapping);
+      } else {
+        missingOptional.push(mapping);
+      }
+    }
+  }
+
+  const typeMismatches: MappingCoverage["typeMismatches"] = [];
+  for (const field of fields) {
+    if (!field.entityFieldMapping) continue;
+    const mapping = entityMappings.find(
+      (m) => m.field === field.entityFieldMapping
+    );
+    if (mapping && !mapping.requiredFieldType.includes(field.type)) {
+      typeMismatches.push({ formField: field, entityMapping: mapping });
+    }
+  }
+
+  return { missingRequired, missingOptional, typeMismatches };
+}
 
 /**
  * Hardcoded suggested questions grouped by category

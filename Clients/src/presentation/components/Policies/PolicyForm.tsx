@@ -186,6 +186,19 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
           }}
           slotProps={autocompleteSlotProps}
         />
+        {errors.assignedReviewers && (
+          <Typography
+            component="span"
+            color={theme.palette.error.main}
+            sx={{
+              opacity: 0.8,
+              fontSize: 11,
+              mt: 1,
+            }}
+          >
+            {errors.assignedReviewers}
+          </Typography>
+        )}
       </Stack>
 
       {/* Tags */}

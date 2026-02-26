@@ -43,6 +43,8 @@ import {
   Skeleton,
   Divider,
   Popover,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   Underline as UnderlineIcon,
@@ -447,6 +449,8 @@ export default function PolicyEditorPage() {
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const isLoadingContentRef = useRef(false);
+  const formRef = useRef<HTMLDivElement>(null);
+  const [validationSnackbar, setValidationSnackbar] = useState(false);
 
   // Color picker state
   const [colorAnchorEl, setColorAnchorEl] = useState<HTMLElement | null>(null);
@@ -1180,7 +1184,12 @@ export default function PolicyEditorPage() {
       newErrors.assignedReviewers = "At least one reviewer is required";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (Object.keys(newErrors).length > 0) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setValidationSnackbar(true);
+      return false;
+    }
+    return true;
   };
 
   // ── Save ──────────────────────────────────────────────────────────
@@ -1594,7 +1603,7 @@ export default function PolicyEditorPage() {
         </Stack>
 
         {/* ── Metadata form ────────────────────────────────────────── */}
-        <Box sx={{ flexShrink: 0, mb: "8px" }}>
+        <Box ref={formRef} sx={{ flexShrink: 0, mb: "8px" }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -2157,6 +2166,22 @@ export default function PolicyEditorPage() {
         </Stack>
       </Stack>
       </Stack>
+
+      {/* Validation error snackbar */}
+      <Snackbar
+        open={validationSnackbar}
+        autoHideDuration={4000}
+        onClose={() => setValidationSnackbar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setValidationSnackbar(false)}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          Please fill in all required fields before saving.
+        </Alert>
+      </Snackbar>
     </>
   );
 }

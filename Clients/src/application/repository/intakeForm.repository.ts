@@ -359,6 +359,56 @@ export async function rejectSubmission(
   return response.data as { data: IntakeSubmission };
 }
 
+/**
+ * Intake submission field as returned by the by-entity endpoint
+ */
+export interface IntakeSubmissionField {
+  fieldId: string;
+  label: string;
+  type: string;
+  value: unknown;
+  options: Array<{ label: string; value: string }> | null;
+  entityFieldMapping: string | null;
+  isMapped: boolean;
+}
+
+/**
+ * Response from the by-entity intake submission endpoint
+ */
+export interface EntityIntakeSubmission {
+  submissionId: number;
+  formName: string;
+  submitterName: string | null;
+  submitterEmail: string | null;
+  submittedAt: string;
+  reviewedAt: string | null;
+  riskTier: string | null;
+  fields: IntakeSubmissionField[];
+}
+
+/**
+ * Get the original intake submission data for an entity (project/model).
+ * Returns null (via 404) if the entity was not created from an intake form.
+ */
+export async function getEntityIntakeSubmission(
+  entityType: "use_case" | "model",
+  entityId: number,
+  signal?: AbortSignal
+): Promise<EntityIntakeSubmission | null> {
+  try {
+    const response = await apiServices.get(
+      `${BASE_URL}/submissions/by-entity/${entityType}/${entityId}`,
+      { signal }
+    );
+    return (response.data as { data: EntityIntakeSubmission }).data;
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 // ============================================================================
 // Public Form API (No authentication required)
 // ============================================================================

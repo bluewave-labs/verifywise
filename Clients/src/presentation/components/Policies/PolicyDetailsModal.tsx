@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
@@ -774,16 +774,19 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         }}
         onInsert={(url, text) => {
           if (!editor) return;
-          editor.chain().focus();
           const { from, to } = editor.state.selection;
           if (from !== to && !text) {
             // Text is selected — wrap it with the link
             editor.chain().focus().setLink({ href: url, target: '_blank' }).run();
           } else {
-            // No selection or custom text — insert new link text
+            // No selection or custom text — insert new link node
             const linkText = text || url;
             editor.chain().focus()
-              .insertContent(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`)
+              .insertContent({
+                type: 'text',
+                text: linkText,
+                marks: [{ type: 'link', attrs: { href: url, target: '_blank', rel: 'noopener noreferrer' } }],
+              })
               .run();
           }
         }}

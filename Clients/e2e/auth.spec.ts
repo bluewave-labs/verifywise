@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 const TEST_EMAIL = process.env.E2E_EMAIL || "verifywise@email.com";
 const TEST_PASSWORD = process.env.E2E_PASSWORD || "Verifywise#1";
@@ -58,5 +59,15 @@ test.describe("Authentication", () => {
     await page.goto("/login");
     await page.getByText("Register here").click();
     await expect(page).toHaveURL(/\/register/);
+  });
+
+  test("login page has no accessibility violations", async ({ page }) => {
+    await page.goto("/login");
+    await page.waitForLoadState("domcontentloaded");
+
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    expect(results.violations).toEqual([]);
   });
 });

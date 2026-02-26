@@ -8,6 +8,7 @@ import {
   NodeViewProps,
   ReactNodeViewRenderer,
 } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import TipTapUnderline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -288,7 +289,6 @@ export default function PolicyEditorPage() {
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [toolbarState, setToolbarState] = useState(defaultToolbarState);
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
-  const [isInTable, setIsInTable] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<PolicyFormData>({
@@ -384,7 +384,6 @@ export default function PolicyEditorPage() {
       else if (editor.isActive("blockquote")) blockType = "blockquote";
 
       setCurrentBlockType(blockType);
-      setIsInTable(editor.isActive("table"));
       setToolbarState({
         bold: editor.isActive("bold"),
         italic: editor.isActive("italic"),
@@ -1207,68 +1206,6 @@ export default function PolicyEditorPage() {
           ))}
         </Box>
 
-        {/* ── Table context toolbar ──────────────────────────────── */}
-        {isInTable && (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 0.5,
-              mb: 1,
-              px: 1.5,
-              py: 0.75,
-              alignItems: "center",
-              flexShrink: 0,
-              backgroundColor: "#f9fafb",
-              border: "1px solid #e5e7eb",
-              borderRadius: "4px",
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "#6b7280",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                mr: 1,
-              }}
-            >
-              Table
-            </Typography>
-
-            {tableToolbarConfig.map(({ key, title, icon, action, separator, danger }) => (
-              <React.Fragment key={key}>
-                <Tooltip title={title}>
-                  <IconButton
-                    onClick={() => {
-                      action();
-                      setTimeout(() => updateToolbarState(), 0);
-                    }}
-                    size="small"
-                    sx={{
-                      padding: "4px",
-                      borderRadius: "3px",
-                      backgroundColor: "#FFFFFF",
-                      border: "1px solid #e5e7eb",
-                      color: danger ? "#dc2626" : "#374151",
-                      "&:hover": {
-                        backgroundColor: danger ? "#fef2f2" : "#f3f4f6",
-                        borderColor: danger ? "#fca5a5" : "#d1d5db",
-                      },
-                    }}
-                  >
-                    {icon}
-                  </IconButton>
-                </Tooltip>
-                {separator && (
-                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: "#d1d5db" }} />
-                )}
-              </React.Fragment>
-            ))}
-          </Box>
-        )}
-
         {/* ── Editor + History sidebar ─────────────────────────────── */}
         <Stack
           direction="row"
@@ -1298,6 +1235,56 @@ export default function PolicyEditorPage() {
               editor={editor}
               className="policy-tiptap-editor"
             />
+
+            {/* ── Floating table toolbar ────────────────────────── */}
+            {editor && (
+              <BubbleMenu
+                editor={editor}
+                pluginKey="tableMenu"
+                shouldShow={({ editor: e }) => e.isActive("table")}
+                updateDelay={100}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: "2px",
+                    p: "4px",
+                    alignItems: "center",
+                    backgroundColor: "#fff",
+                    border: "1px solid #d0d5dd",
+                    borderRadius: "6px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  {tableToolbarConfig.map(({ key, title, icon, action, separator, danger }) => (
+                    <React.Fragment key={key}>
+                      <Tooltip title={title} placement="top" arrow>
+                        <IconButton
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            action();
+                          }}
+                          size="small"
+                          sx={{
+                            padding: "5px",
+                            borderRadius: "4px",
+                            color: danger ? "#dc2626" : "#374151",
+                            "&:hover": {
+                              backgroundColor: danger ? "#fef2f2" : "#f3f4f6",
+                            },
+                          }}
+                        >
+                          {icon}
+                        </IconButton>
+                      </Tooltip>
+                      {separator && (
+                        <Divider orientation="vertical" flexItem sx={{ mx: "2px", borderColor: "#e5e7eb" }} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </Box>
+              </BubbleMenu>
+            )}
             <style>{`
               .policy-tiptap-editor .ProseMirror {
                 height: 100%;

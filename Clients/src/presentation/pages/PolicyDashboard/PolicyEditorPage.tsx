@@ -1185,7 +1185,7 @@ export default function PolicyEditorPage() {
           }}
         >
           {/* Block type dropdown */}
-          <Box sx={{ mr: 1 }}>
+          <Box sx={{ mr: 2 }}>
             <Select
               id="block-type-select"
               value={currentBlockType}

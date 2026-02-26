@@ -648,7 +648,7 @@ export const getSubmissionStatsQuery = async (
 // ============================================================================
 
 /**
- * Check rate limit for IP address (100 submissions per hour)
+ * Check rate limit for IP address (10 submissions per hour per tenant)
  */
 export const checkRateLimitQuery = async (
   ipAddress: string,
@@ -666,7 +666,7 @@ export const checkRateLimitQuery = async (
   );
 
   const count = parseInt((result[0] as any).count, 10) || 0;
-  return count < 100;
+  return count < 10;
 };
 
 // ============================================================================

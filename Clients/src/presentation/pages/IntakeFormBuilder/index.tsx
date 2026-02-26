@@ -311,28 +311,54 @@ export function IntakeFormBuilder() {
       });
       return;
     }
+    if (!form.name.trim()) {
+      setSnackbar({
+        open: true,
+        message: "Form name is required",
+        severity: "error",
+      });
+      return;
+    }
+    setIsSaving(true);
     try {
-      const savedId = await handleSave();
-      if (savedId) {
-        const publishResponse = await updateIntakeForm(savedId, { status: IntakeFormStatus.ACTIVE });
-        const publishedData = publishResponse.data;
-        setForm((prev) => ({
-          ...prev,
-          status: IntakeFormStatus.ACTIVE,
-          ...(publishedData?.publicId ? { publicId: publishedData.publicId } : {}),
-        }));
-        setSnackbar({
-          open: true,
-          message: "Form published successfully",
-          severity: "success",
-        });
+      const formData = {
+        ...form,
+        slug: form.slug || generateSlug(form.name),
+        recipients: form.recipients ?? [],
+        riskTierSystem: form.riskTierSystem ?? "generic",
+        llmKeyId: form.llmKeyId ?? null,
+        suggestedQuestionsEnabled: form.suggestedQuestionsEnabled ?? false,
+        status: IntakeFormStatus.ACTIVE,
+      };
+      const formIdNum = isEditing && formId ? parseInt(formId) : undefined;
+      let publishedData;
+      if (formIdNum) {
+        const response = await updateIntakeForm(formIdNum, formData);
+        publishedData = response.data;
+      } else {
+        const response = await createIntakeForm(formData);
+        publishedData = response.data;
+        if (publishedData?.id) {
+          navigate(`/intake-forms/${publishedData.id}/edit`, { replace: true });
+        }
       }
+      if (publishedData) {
+        setForm((prev) => ({ ...prev, ...publishedData, status: IntakeFormStatus.ACTIVE }));
+      }
+      setIsDirty(false);
+      setSnackbar({
+        open: true,
+        message: "Form published successfully",
+        severity: "success",
+      });
     } catch {
       setSnackbar({
         open: true,
         message: "Failed to publish form",
         severity: "error",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 

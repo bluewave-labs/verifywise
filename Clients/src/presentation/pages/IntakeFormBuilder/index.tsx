@@ -853,7 +853,10 @@ export function IntakeFormBuilder() {
 
                           const handleAddField = (m: typeof missingRequired[0]) => {
                             const newField = createFieldFromMapping(m, form.schema.fields.length);
-                            addField(newField);
+                            setForm((prev) => ({
+                              ...prev,
+                              schema: { ...prev.schema, fields: [...prev.schema.fields, newField] },
+                            }));
                             setIsDirty(true);
                           };
 

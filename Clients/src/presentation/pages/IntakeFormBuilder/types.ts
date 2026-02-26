@@ -177,11 +177,11 @@ export interface EntityFieldMapping {
 export const ENTITY_FIELD_MAPPINGS: Record<IntakeEntityType, EntityFieldMapping[]> = {
   [IntakeEntityType.MODEL]: [
     { field: "name", label: "Model name", description: "Name of the AI model", requiredFieldType: ["text"], entityRequired: true },
-    { field: "description", label: "Description", description: "Model description", requiredFieldType: ["text", "textarea"] },
+    { field: "description", label: "Description", description: "Model description", requiredFieldType: ["textarea", "text"] },
     { field: "modelVersion", label: "Model version", description: "Version of the model", requiredFieldType: ["text"] },
     { field: "provider", label: "Provider", description: "Model provider/vendor", requiredFieldType: ["text", "select"] },
     { field: "modelType", label: "Model type", description: "Type of AI model", requiredFieldType: ["text", "select"] },
-    { field: "intendedUse", label: "Intended use", description: "Intended use of the model", requiredFieldType: ["text", "textarea"] },
+    { field: "intendedUse", label: "Intended use", description: "Intended use of the model", requiredFieldType: ["textarea", "text"] },
     { field: "riskLevel", label: "Risk level", description: "Risk classification", requiredFieldType: ["select"] },
   ],
   [IntakeEntityType.USE_CASE]: [
@@ -444,6 +444,69 @@ export const DEFAULT_USE_CASE_FIELDS: FormField[] = [
 ];
 
 /**
+ * Default model inventory fields pre-populated for new forms
+ */
+export const DEFAULT_MODEL_FIELDS: FormField[] = [
+  {
+    id: generateFieldId(),
+    type: "text",
+    label: "Model name",
+    placeholder: "Enter the name of your AI model",
+    guidanceText: "A clear name helps reviewers identify and track this model across the organization.",
+    validation: { required: true, maxLength: 255 },
+    entityFieldMapping: "name",
+    order: 0,
+  },
+  {
+    id: generateFieldId(),
+    type: "textarea",
+    label: "Description",
+    placeholder: "Describe what this model does and how it works",
+    guidanceText: "Include the model's purpose, training approach, and key capabilities.",
+    validation: { maxLength: 2000 },
+    entityFieldMapping: "description",
+    order: 1,
+  },
+  {
+    id: generateFieldId(),
+    type: "text",
+    label: "Model version",
+    placeholder: "e.g. v1.0, 2024-Q1",
+    guidanceText: "Version tracking is important for audit trails and rollback planning.",
+    entityFieldMapping: "modelVersion",
+    order: 2,
+  },
+  {
+    id: generateFieldId(),
+    type: "text",
+    label: "Provider",
+    placeholder: "e.g. OpenAI, Anthropic, in-house",
+    guidanceText: "Knowing the provider helps assess supply chain risk and vendor dependencies.",
+    entityFieldMapping: "provider",
+    order: 3,
+  },
+  {
+    id: generateFieldId(),
+    type: "text",
+    label: "Model type",
+    placeholder: "e.g. LLM, classification, regression, computer vision",
+    guidanceText: "The model type affects which governance controls and testing procedures apply.",
+    entityFieldMapping: "modelType",
+    order: 4,
+  },
+  {
+    id: generateFieldId(),
+    type: "textarea",
+    label: "Intended use",
+    placeholder: "Describe how this model will be used in production",
+    guidanceText: "Intended use determines whether the model falls under high-risk categories in the EU AI Act.",
+    validation: { maxLength: 2000 },
+    entityFieldMapping: "intendedUse",
+    order: 5,
+  },
+];
+
+/**
  * Mapping coverage analysis result
  */
 export interface MappingCoverage {
@@ -543,6 +606,8 @@ export function createEmptyForm(entityType?: IntakeEntityType): IntakeForm {
       version: "1.0",
       fields: type === IntakeEntityType.USE_CASE
         ? DEFAULT_USE_CASE_FIELDS.map((f, i) => ({ ...f, id: generateFieldId(), order: i }))
+        : type === IntakeEntityType.MODEL
+        ? DEFAULT_MODEL_FIELDS.map((f, i) => ({ ...f, id: generateFieldId(), order: i }))
         : [],
     },
     submitButtonText: "Submit",

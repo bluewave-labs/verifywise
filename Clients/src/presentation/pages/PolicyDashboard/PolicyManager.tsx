@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Stack, Fade } from "@mui/material";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
-import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { deletePolicy } from "../../../application/repository/policy.repository";
 import { EmptyState } from "../../components/EmptyState";
@@ -26,7 +25,7 @@ import { displayFormattedDate } from "../../tools/isoDateToString";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
-  tags,
+  tags: _tags,
   fetchAll,
 }) => {
   const location = useLocation();
@@ -42,10 +41,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     setPolicies(policyList);
   }, [policyList]);
 
-  const [selectedPolicy, setSelectedPolicy] =
-    useState<PolicyManagerModel | null>(null);
-  const [showModal, setShowModal] = useState(false);
-
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState<AlertProps | null>(null);
@@ -55,70 +50,51 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
-  // Auto-open create policy modal when navigating from "Add new..." dropdown
+  // Navigate to editor page when coming from "Add new..." dropdown
   useEffect(() => {
     if (location.state?.openCreateModal) {
-      setSelectedPolicy(null);
-      setShowModal(true);
+      navigate("/policies/new", { replace: true });
+    }
+  }, [location.state, navigate]);
 
-      // Clear the navigation state to prevent re-opening on subsequent navigations
+  // Handle success message from editor page via navigation state
+  useEffect(() => {
+    if (location.state?.successMessage) {
+      if (location.state.flashRowId) {
+        setFlashRowId(location.state.flashRowId);
+        setTimeout(() => setFlashRowId(null), 3000);
+      }
+      fetchAll();
+      handleAlert({
+        variant: "success",
+        body: location.state.successMessage,
+        setAlert,
+        alertTimeout: 4000,
+      });
+      // Clear state so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, fetchAll]);
 
   const handleOpen = useCallback((id?: number) => {
     if (!id) {
-      setSelectedPolicy(null); // Ensure selectedPolicy is null for new policy
-      setShowModal(true); // Open modal
+      navigate("/policies/new");
     } else {
-      const p = policies.find((x) => x.id === id) || null;
-      setSelectedPolicy(p);
-      setShowModal(true); // Open modal with selected policy
+      navigate(`/policies/${id}/edit`);
     }
-  }, [policies]);
+  }, [navigate]);
 
-  // Handle policyId URL param to open edit modal from Wise Search
+  // Handle policyId URL param to redirect to editor from Wise Search
   useEffect(() => {
-    const policyId = searchParams.get("policyId");
-    if (policyId && policies.length > 0) {
-      // Use existing handleOpen function which sets selectedPolicy and opens modal
-      handleOpen(parseInt(policyId, 10));
-      // Clear query params so this only runs once per navigation
+    const policyIdParam = searchParams.get("policyId");
+    if (policyIdParam) {
       setSearchParams({}, { replace: true });
+      navigate(`/policies/${policyIdParam}/edit`);
     }
-  }, [searchParams, policies, setSearchParams, handleOpen]);
+  }, [searchParams, setSearchParams, navigate]);
 
   const handleAddNewPolicy = () => {
     handleOpen();
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-  };
-
-  const handleSaved = (successMessage?: string) => {
-    // Flash the updated policy row if we have a selected policy
-    if (selectedPolicy?.id) {
-      setFlashRowId(selectedPolicy.id);
-    }
-    
-    handleClose();
-
-    // Delay fetchAll to allow flash to be visible, then clear flash after data loads
-    setTimeout(() => {
-      fetchAll();
-      setTimeout(() => setFlashRowId(null), 3000);
-    }, 100);
-
-    // Show success alert if message is provided
-    if (successMessage) {
-      handleAlert({
-        variant: "success",
-        body: successMessage,
-        setAlert,
-        alertTimeout: 4000, // 4 seconds to give users time to read
-      });
-    }
   };
 
   const handleDelete = async (id: number) => {
@@ -450,17 +426,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         )}
       </Box>
 
-      {/* Modal */}
-      {showModal && tags.length > 0 && (
-        <PolicyDetailModal
-          policy={selectedPolicy}
-          tags={tags}
-          onClose={handleClose}
-          onSaved={handleSaved}
-        />
-      )}
-
-      {/* Modal */}
+      {/* Linked Objects Modal */}
       {showLinkedObjectModal && (
       <LinkedPolicyModal
         onClose = {handleCloseLinkedObjects}

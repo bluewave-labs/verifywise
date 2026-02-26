@@ -3,14 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Box, Stack, TableRow, TableCell } from "@mui/material";
 import { EmptyState } from "../../components/EmptyState";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
-import {
-  PolicyTemplate,
-  PolicyTemplatesProps,
-} from "../../types/interfaces/i.policy";
-import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
-import { handleAlert } from "../../../application/tools/alertUtils";
-import Alert from "../../components/Alert";
-import { AlertProps } from "../../types/alert.types";
+import { PolicyTemplatesProps } from "../../types/interfaces/i.policy";
 import { SearchBox } from "../../components/Search";
 import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
 import TagChip from "../../components/Tags/TagChip";
@@ -31,78 +24,30 @@ const tableHeaders = [
 ];
 
 const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
-  tags,
-  fetchAll,
+  tags: _tags,
+  fetchAll: _fetchAll,
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasProcessedUrlParam = useRef(false);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPolicyTemplate, setSelectedPolicyTemplate] = useState<
-    PolicyTemplate | undefined
-  >(undefined);
-  const [alert, setAlert] = useState<AlertProps | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
 
-  // Handle templateId URL param to open modal from Wise Search
+  // Handle templateId URL param to redirect to editor from Wise Search
   useEffect(() => {
     const templateId = searchParams.get("templateId");
     if (templateId && !hasProcessedUrlParam.current) {
       hasProcessedUrlParam.current = true;
-      const id = parseInt(templateId, 10);
-      // Find and open the template
-      const selectedPolicy = policyTemplates.find((policy) => policy.id === id);
-      if (selectedPolicy) {
-        const template: PolicyTemplate = {
-          title: selectedPolicy.title,
-          tags: selectedPolicy.tags,
-          content: selectedPolicy.content,
-        };
-        setSelectedPolicyTemplate(template);
-        setShowModal(true);
-      }
       setSearchParams({}, { replace: true });
+      navigate(`/policies/new?templateId=${templateId}`);
     }
-  }, [searchParams, setSearchParams]);
-
-  const handleClose = () => {
-    setShowModal(false);
-    setSelectedPolicyTemplate(undefined);
-  };
+  }, [searchParams, setSearchParams, navigate]);
 
   const handleSelectPolicyTemplate = (id: number) => {
     if (id) {
-      const selectedPolicy = policyTemplates.find((policy) => policy.id === id);
-      if (selectedPolicy) {
-        const template: PolicyTemplate = {
-          title: selectedPolicy.title,
-          tags: selectedPolicy.tags,
-          content: selectedPolicy.content,
-        };
-        setSelectedPolicyTemplate(template);
-        setShowModal(true);
-      }
-    }
-  };
-
-  const handleSaved = (successMessage?: string) => {
-    fetchAll();
-    handleClose();
-
-    // Navigate to organizational policies tab to show the newly created policy
-    navigate("/policies");
-
-    // Show success alert if message is provided
-    if (successMessage) {
-      handleAlert({
-        variant: "success",
-        body: successMessage,
-        setAlert,
-        alertTimeout: 4000, // 4 seconds to give users time to read
-      });
+      navigate(`/policies/new?templateId=${id}`);
     }
   };
 
@@ -284,26 +229,6 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
         />
       )}
 
-      {/* Modal */}
-      {showModal && tags.length > 0 && (
-        <PolicyDetailModal
-          policy={null}
-          tags={tags}
-          onClose={handleClose}
-          onSaved={handleSaved}
-          template={selectedPolicyTemplate}
-        />
-      )}
-
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
     </Stack>
   );
 };

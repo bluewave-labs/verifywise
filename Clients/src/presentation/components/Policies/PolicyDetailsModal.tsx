@@ -2,35 +2,23 @@ import React, { CSSProperties, useEffect, useState, useCallback, useRef } from "
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
-import { Plate, PlateContent, createPlateEditor, ParagraphPlugin } from "platejs/react";
-import { AutoformatPlugin } from "@platejs/autoformat";
-import { Range, Editor, BaseRange, Transforms, Path } from "slate";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Highlight from "@tiptap/extension-highlight";
+import TextAlign from "@tiptap/extension-text-align";
+import TipTapLink from "@tiptap/extension-link";
+import TipTapImage from "@tiptap/extension-image";
+import TipTapTable from "@tiptap/extension-table";
+import TipTapTableRow from "@tiptap/extension-table-row";
+import TipTapTableCell from "@tiptap/extension-table-cell";
+import TipTapTableHeader from "@tiptap/extension-table-header";
+import Placeholder from "@tiptap/extension-placeholder";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 import { uploadFileToManager } from "../../../application/repository/file.repository";
 
 import {
-  BoldPlugin,
-  ItalicPlugin,
-  UnderlinePlugin,
-  H1Plugin,
-  H2Plugin,
-  H3Plugin,
-  StrikethroughPlugin,
-  BlockquotePlugin,
-  HighlightPlugin,
-} from "@platejs/basic-nodes/react";
-import {
-  ListPlugin,
-  BulletedListPlugin,
-  NumberedListPlugin,
-  ListItemPlugin,
-  ListItemContentPlugin,
-} from "@platejs/list-classic/react";
-import { TextAlignPlugin } from "@platejs/basic-styles/react";
-import { insertTable } from "@platejs/table";
-import { tablePlugin, tableRowPlugin, tableCellPlugin, tableCellHeaderPlugin } from "../PlatePlugins/CustomTablePlugin";
-import {
-  Underline,
+  Underline as UnderlineIcon,
   Bold,
   Italic,
   SaveIcon,
@@ -54,7 +42,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-const FormatUnderlined = () => <Underline size={16} />;
+const FormatUnderlined = () => <UnderlineIcon size={16} />;
 const FormatBold = () => <Bold size={16} />;
 const FormatItalic = () => <Italic size={16} />;
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
@@ -72,10 +60,7 @@ import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-import { linkPlugin, insertLink, removeLink, isLinkActive } from "../PlatePlugins/CustomLinkPlugin";
-import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { store } from "../../../application/redux/store";
-
 
 const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   policy,
@@ -90,7 +75,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [openLink, setOpenLink] = useState(false);
   const [selectedTextForLink, setSelectedTextForLink] = useState("");
-  const [savedSelection, setSavedSelection] = useState<BaseRange | null>(null);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
@@ -159,7 +143,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   }
 
   // Disable ESC key closing for policy editor to prevent accidental data loss
-  // Users can still close via the X button or Cancel button
   useModalKeyHandling({
     isOpen: true,
     onClose: handleClose,
@@ -200,7 +183,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       const fileId = response.data.id;
       // Use relative /api path - Vite dev server proxies this to backend
       const imageUrl = `/api/file-manager/${fileId}`;
-      insertImage(editor, imageUrl, file.name);
+      editor?.chain().focus().setImage({ src: imageUrl, alt: file.name }).run();
     } catch (error) {
       console.error("Failed to upload image:", error);
     } finally {
@@ -260,123 +243,91 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     content: "",
   });
 
-  // Create the editor with plugins
-  const [editor] = useState(
-    () =>
-      createPlateEditor({
-        plugins: [
-          ParagraphPlugin,
-          BoldPlugin,
-          ItalicPlugin,
-          UnderlinePlugin,
-          H1Plugin,
-          H2Plugin,
-          H3Plugin,
-          StrikethroughPlugin,
-          HighlightPlugin,
-          BlockquotePlugin,
-          tablePlugin,
-          tableRowPlugin,
-          tableCellPlugin,
-          tableCellHeaderPlugin,
-          imagePlugin,
-          linkPlugin,
-          ListPlugin,
-          BulletedListPlugin.configure({
-            shortcuts: { toggle: { keys: "mod+alt+5" } },
-          }),
-          NumberedListPlugin.configure({
-            shortcuts: { toggle: { keys: "mod+alt+6" } },
-          }),
-          ListItemPlugin,
-          ListItemContentPlugin,
-          TextAlignPlugin.configure({
-            inject: {
-              nodeProps: {
-                nodeKey: "align",
-                defaultNodeValue: "start",
-                styleKey: "textAlign",
-                validNodeValues: [
-                  "start",
-                  "left",
-                  "center",
-                  "right",
-                  "end",
-                  "justify",
-                ],
-              },
-              targetPlugins: ["h1", "h2", "h3", "p", "blockquote"],
-            },
-          }),
-          AutoformatPlugin.configure({
-            options: {
-              rules: [],
-            },
-          }),
-        ],
-        value: [{ type: "p", children: [{ text: "" }] }],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any
-  );
+  // Function to update toolbar state based on editor state
+  const updateToolbarState = useCallback(() => {
+    if (!editor) return;
 
-  // Add error handling for editor operations to prevent crashes from invalid paths
-  useEffect(() => {
-    if (editor) {
-      const originalApply = editor.apply;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editor.apply = (operation: any) => {
-        try {
-          // Check for operations that might target invalid paths
-          if (operation.path && operation.path.length === 0) {
-            // Skip operations targeting root path
-            console.warn("Skipping operation targeting root path:", operation.type);
-            return;
-          }
-          originalApply(operation);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-          // Catch and log errors instead of crashing
-          if (e.message?.includes("Cannot get the parent path of the root path")) {
-            console.warn("Editor operation failed (root path error):", operation.type);
-          } else {
-            console.error("Editor operation failed:", e);
-          }
-        }
-      };
+    try {
+      // Detect current block type
+      let blockType = 'p';
+      if (editor.isActive('heading', { level: 1 })) blockType = 'h1';
+      else if (editor.isActive('heading', { level: 2 })) blockType = 'h2';
+      else if (editor.isActive('heading', { level: 3 })) blockType = 'h3';
+      else if (editor.isActive('blockquote')) blockType = 'blockquote';
 
-      // Wrap deleteBackward to catch root path errors from list plugin
-      const originalDeleteBackward = editor.deleteBackward;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editor.deleteBackward = (unit: any) => {
-        try {
-          return originalDeleteBackward(unit);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-          if (e.message?.includes("Cannot get the parent path of the root path")) {
-            console.warn("deleteBackward failed (root path error) - this is a known issue with list handling");
-            return;
-          }
-          throw e;
-        }
-      };
+      setCurrentBlockType(blockType);
 
-      // Wrap deleteForward as well
-      const originalDeleteForward = editor.deleteForward;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      editor.deleteForward = (unit: any) => {
-        try {
-          return originalDeleteForward(unit);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-          if (e.message?.includes("Cannot get the parent path of the root path")) {
-            console.warn("deleteForward failed (root path error)");
-            return;
-          }
-          throw e;
-        }
-      };
+      setToolbarState({
+        bold: editor.isActive('bold'),
+        italic: editor.isActive('italic'),
+        underline: editor.isActive('underline'),
+        strike: editor.isActive('strike'),
+        ol: editor.isActive('orderedList'),
+        ul: editor.isActive('bulletList'),
+        'align-left': editor.isActive({ textAlign: 'left' }),
+        'align-center': editor.isActive({ textAlign: 'center' }),
+        'align-right': editor.isActive({ textAlign: 'right' }),
+        link: editor.isActive('link'),
+        highlight: editor.isActive('highlight'),
+        blockquote: blockType === 'blockquote',
+        // These don't have persistent state
+        undo: false,
+        redo: false,
+        image: false,
+        table: false,
+      });
+    } catch (error) {
+      console.debug('Error syncing toolbar state:', error);
     }
-  }, [editor]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Create TipTap editor
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+        // Disable default strike to use our custom mark name mapping
+      }),
+      Underline,
+      Highlight,
+      TextAlign.configure({
+        types: ['heading', 'paragraph', 'blockquote'],
+      }),
+      TipTapLink.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        },
+      }),
+      TipTapImage.configure({
+        inline: false,
+        allowBase64: true,
+      }),
+      TipTapTable.configure({
+        resizable: false,
+      }),
+      TipTapTableRow,
+      TipTapTableCell,
+      TipTapTableHeader,
+      Placeholder.configure({
+        placeholder: 'Start typing...',
+      }),
+    ],
+    content: '',
+    autofocus: false,
+    onUpdate: () => {
+      setFormData((prev) => ({
+        ...prev,
+        content: editor?.getHTML() || "",
+      }));
+      updateToolbarState();
+    },
+    onSelectionUpdate: () => {
+      updateToolbarState();
+    },
+  });
 
   useEffect(() => {
     if (policy) {
@@ -396,9 +347,9 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       });
     } else if (template) {
       setFormData((prev) => ({
-        ...prev, 
-        title: template.title, 
-        tags: template.tags, 
+        ...prev,
+        title: template.title,
+        tags: template.tags,
         content: template.content
       }));
     } else {
@@ -413,6 +364,104 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     }
   }, [policy, template, users]);
 
+  // Normalize Slate-specific HTML to standard HTML tags for backward compatibility
+  // with content saved by the previous Plate/Slate editor
+  const normalizeSlateHtml = (html: string): string => {
+    // Convert <div data-slate-type="p"> to <p>
+    let normalized = html.replace(/<div([^>]*?)data-slate-type="(h[1-6]|p|blockquote)"([^>]*)>/gi,
+      (_match, before, tag, after) => `<${tag}${before}${after}>`
+    );
+
+    // Fix corresponding closing tags: </div> → </h1>, </p>, etc.
+    // Use a simple approach: parse and replace the Slate wrapper structure
+    normalized = normalized.replace(/<div[^>]*class="slate-editor"[^>]*>/gi, '');
+
+    // Remove Slate wrapper spans
+    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
+    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>/gi, '');
+    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
+
+    // Remove data-slate-* and data-block-id attributes from remaining tags
+    normalized = normalized.replace(/\s*data-slate-[a-z-]+="[^"]*"/gi, '');
+    normalized = normalized.replace(/\s*data-block-id="[^"]*"/gi, '');
+
+    // Remove slate-specific class names
+    normalized = normalized.replace(/\s*class="slate-[^"]*"/gi, '');
+
+    // Remove inline position:relative style that Slate adds
+    normalized = normalized.replace(/\s*style="position:\s*relative\s*;?\s*"/gi, '');
+
+    // Clean up empty style/class attributes
+    normalized = normalized.replace(/\s*style=""/gi, '');
+    normalized = normalized.replace(/\s*class=""/gi, '');
+
+    // Convert remaining Slate divs (paragraph wrappers) to <p> tags
+    // After removing data-slate-type, some divs may remain as paragraph containers
+    normalized = normalized.replace(/<div>\s*([^<])/gi, '<p>$1');
+    normalized = normalized.replace(/<\/div>/gi, '</p>');
+
+    // Clean up any double-closed paragraph tags
+    normalized = normalized.replace(/<\/p>\s*<\/p>/gi, '</p>');
+
+    return normalized;
+  };
+
+  // Load content into editor when formData or editor becomes available
+  useEffect(() => {
+    if (!editor) return;
+
+    const content = policy?.content_html || template?.content;
+    if (!content || typeof content !== "string") return;
+
+    // Normalize Slate-specific HTML before loading
+    const normalized = normalizeSlateHtml(content);
+
+    // Sanitize the HTML before loading
+    const sanitized = DOMPurify.sanitize(normalized, {
+      ALLOWED_TAGS: [
+        "p", "br", "strong", "b", "em", "i", "u",
+        "h1", "h2", "h3", "h4", "h5", "h6",
+        "blockquote", "code", "pre",
+        "ul", "ol", "li",
+        "a", "img", "span", "div", "mark", "s",
+        "table", "thead", "tbody", "tr", "th", "td",
+      ],
+      ALLOWED_ATTR: [
+        "href", "title", "alt", "src",
+        "class", "id", "style",
+        "target", "rel",
+        "colspan", "rowspan",
+      ],
+      ALLOWED_URI_REGEXP:
+        /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
+      ADD_ATTR: ["target"],
+      FORBID_TAGS: ["script", "object", "embed", "iframe", "form", "input", "button"],
+      FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur"],
+    });
+
+    editor.commands.setContent(sanitized);
+  }, [policy, template, editor]);
+
+  // Handle block type change from dropdown
+  const handleBlockTypeChange = (event: { target: { value: string | number } }) => {
+    const newType = String(event.target.value);
+    setCurrentBlockType(newType);
+
+    if (!editor) return;
+
+    if (newType === 'p') {
+      editor.chain().focus().setParagraph().run();
+    } else if (newType === 'h1') {
+      editor.chain().focus().toggleHeading({ level: 1 }).run();
+    } else if (newType === 'h2') {
+      editor.chain().focus().toggleHeading({ level: 2 }).run();
+    } else if (newType === 'h3') {
+      editor.chain().focus().toggleHeading({ level: 3 }).run();
+    }
+
+    setTimeout(() => updateToolbarState(), 0);
+  };
+
   const toolbarConfig: Array<{
     key: ToolbarKey;
     title: string;
@@ -423,88 +472,86 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       key: "undo",
       title: "Undo",
       icon: <Undo2 size={16} />,
-      action: () => editor.tf.undo(),
+      action: () => editor?.chain().focus().undo().run(),
     },
     {
       key: "redo",
       title: "Redo",
       icon: <Redo2 size={16} />,
-      action: () => editor.tf.redo(),
+      action: () => editor?.chain().focus().redo().run(),
     },
     {
       key: "bold",
       title: "Bold",
       icon: <FormatBold />,
-      action: () => editor.tf.bold.toggle(),
+      action: () => editor?.chain().focus().toggleBold().run(),
     },
     {
       key: "italic",
       title: "Italic",
       icon: <FormatItalic />,
-      action: () => editor.tf.italic.toggle(),
+      action: () => editor?.chain().focus().toggleItalic().run(),
     },
     {
       key: "underline",
       title: "Underline",
       icon: <FormatUnderlined />,
-      action: () => editor.tf.underline.toggle(),
+      action: () => editor?.chain().focus().toggleUnderline().run(),
     },
     {
       key: "strike",
       title: "Strikethrough",
       icon: <Strikethrough size={16} />,
-      action: () => editor.tf.strikethrough.toggle(),
+      action: () => editor?.chain().focus().toggleStrike().run(),
     },
     {
       key: "ol",
       title: "Numbered List",
       icon: <ListOrdered size={16} />,
-      action: () => editor.tf.ol.toggle(),
+      action: () => editor?.chain().focus().toggleOrderedList().run(),
     },
     {
       key: "ul",
       title: "Bulleted List",
       icon: <List size={16} />,
-      action: () => editor.tf.ul.toggle(),
+      action: () => editor?.chain().focus().toggleBulletList().run(),
     },
     {
       key: "align-left",
       title: "Align Left",
       icon: <AlignLeft size={16} />,
-      action: () => editor.tf.textAlign.setNodes("left"),
+      action: () => editor?.chain().focus().setTextAlign('left').run(),
     },
     {
       key: "align-center",
       title: "Align Center",
       icon: <AlignCenter size={16} />,
-      action: () => editor.tf.textAlign.setNodes("center"),
+      action: () => editor?.chain().focus().setTextAlign('center').run(),
     },
     {
       key: "align-right",
       title: "Align Right",
       icon: <AlignRight size={16} />,
-      action: () => editor.tf.textAlign.setNodes("right"),
+      action: () => editor?.chain().focus().setTextAlign('right').run(),
     },
     {
       key: "link",
-      title: isLinkActive(editor) ? "Remove Link" : "Insert Link",
-      icon: isLinkActive(editor) ? <Unlink size={16} /> : <Link size={16} />,
+      title: editor?.isActive('link') ? "Remove Link" : "Insert Link",
+      icon: editor?.isActive('link') ? <Unlink size={16} /> : <Link size={16} />,
       action: () => {
+        if (!editor) return;
         // If cursor is in a link, remove the link
-        if (isLinkActive(editor)) {
-          removeLink(editor);
+        if (editor.isActive('link')) {
+          editor.chain().focus().unsetLink().run();
           return;
         }
         // Otherwise, open the insert link modal
-        const { selection } = editor;
-        if (selection && !Range.isCollapsed(selection)) {
-          const selectedText = Editor.string(editor, selection);
+        const { from, to } = editor.state.selection;
+        if (from !== to) {
+          const selectedText = editor.state.doc.textBetween(from, to);
           setSelectedTextForLink(selectedText);
-          // Save the selection range so we can restore it after modal closes
-          setSavedSelection(selection);
         } else {
           setSelectedTextForLink("");
-          setSavedSelection(selection);
         }
         setOpenLink(true);
       },
@@ -523,429 +570,32 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       key: "highlight",
       title: "Highlight",
       icon: <Highlighter size={16} />,
-      action: () => editor.tf.highlight.toggle(),
+      action: () => editor?.chain().focus().toggleHighlight().run(),
     },
     {
       key: "blockquote",
       title: "Blockquote",
       icon: <Quote size={16} />,
-      action: () => editor.tf.blockquote.toggle(),
+      action: () => editor?.chain().focus().toggleBlockquote().run(),
     },
     {
       key: "table",
       title: "Insert Table",
       icon: <Table size={16} />,
       action: () => {
-        insertTable(editor, { colCount: 4, rowCount: 3, header: true }, { select: true });
-        // Insert an empty paragraph after the table so users can continue typing below it
-        const { selection } = editor;
-        if (selection) {
-          // Find the table node and insert paragraph after it
-          const tableEntry = Editor.above(editor, {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            match: (n: any) => n.type === 'table',
-          });
-          if (tableEntry) {
-            const [, tablePath] = tableEntry;
-            const afterTablePath = Path.next(tablePath);
-            Transforms.insertNodes(
-              editor,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              { type: 'p', children: [{ text: '' }] } as any,
-              { at: afterTablePath }
-            );
-          }
-        }
+        editor?.chain().focus()
+          .insertTable({ rows: 3, cols: 4, withHeaderRow: true })
+          .run();
       },
     },
   ];
-
-  // Convert Slate-specific HTML markup to standard HTML tags for proper deserialization
-  const normalizeSlateHtml = (html: string): string => {
-    // Convert <div data-slate-type="p"> to <p>
-    let normalized = html.replace(/<div([^>]*?)data-slate-type="p"([^>]*)>/gi, '<p$1$2>');
-    normalized = normalized.replace(/<\/div>/gi, (match, offset) => {
-      // Check if this closing div corresponds to a paragraph we converted
-      const before = normalized.substring(0, offset);
-      const openParagraphs = (before.match(/<p[^>]*>/gi) || []).length;
-      const closedParagraphs = (before.match(/<\/p>/gi) || []).length;
-      if (openParagraphs > closedParagraphs) {
-        return '</p>';
-      }
-      return match;
-    });
-
-    // Convert <div data-slate-type="lic"> (list item content) to just extract the content
-    normalized = normalized.replace(/<div[^>]*data-slate-type="lic"[^>]*>/gi, '');
-
-    // Remove Slate wrapper spans that don't add semantic meaning
-    normalized = normalized.replace(/<span[^>]*data-slate-string="true"[^>]*>([^<]*)<\/span>/gi, '$1');
-    normalized = normalized.replace(/<span[^>]*data-slate-leaf="true"[^>]*>([^<]*)<\/span>/gi, '$1');
-    normalized = normalized.replace(/<span[^>]*data-slate-node="text"[^>]*>/gi, '');
-    normalized = normalized.replace(/<\/span>/gi, (match, offset) => {
-      // Only remove closing spans that were wrapping text nodes
-      const before = normalized.substring(0, offset);
-      const textNodeSpans = (before.match(/<span[^>]*data-slate-node="text"[^>]*>/gi) || []).length;
-      const closedTextSpans = before.substring(0, offset).split('</span>').length - 1;
-      if (textNodeSpans > closedTextSpans) {
-        return '';
-      }
-      return match;
-    });
-
-    // Remove the outer slate-editor wrapper div
-    normalized = normalized.replace(/<div[^>]*class="slate-editor"[^>]*>/gi, '');
-
-    return normalized;
-  };
-
-  useEffect(() => {
-    if ((policy || template) && editor) {
-      const api = editor.api.html;
-      const content = policy?.content_html || template?.content;
-
-      // First normalize Slate-specific HTML to standard HTML tags
-      let processedContent = typeof content === "string" ? normalizeSlateHtml(content) : content;
-
-      // Replace img src with data-src to prevent browser from loading images during deserialization
-      // The browser automatically tries to fetch <img src="..."> when setting innerHTML,
-      // which fails for authenticated API URLs. Our ImageElement component handles the auth fetch.
-      processedContent = typeof processedContent === "string"
-        ? processedContent.replace(/<img\s+([^>]*)src=/gi, "<img $1data-src=")
-        : processedContent;
-      const nodes =
-        typeof processedContent === "string"
-          ? api.deserialize({
-              element: Object.assign(document.createElement("div"), {
-                innerHTML: DOMPurify.sanitize(processedContent, {
-                  ALLOWED_TAGS: [
-                    "p",
-                    "br",
-                    "strong",
-                    "b",
-                    "em",
-                    "i",
-                    "u",
-                    "underline",
-                    "h1",
-                    "h2",
-                    "h3",
-                    "h4",
-                    "h5",
-                    "h6",
-                    "blockquote",
-                    "code",
-                    "pre",
-                    "ul",
-                    "ol",
-                    "li",
-                    "a",
-                    "img",
-                    "span",
-                    "div",
-                    "mark",
-                    "table",
-                    "thead",
-                    "tbody",
-                    "tr",
-                    "th",
-                    "td",
-                  ],
-                  ALLOWED_ATTR: [
-                    "href",
-                    "title",
-                    "alt",
-                    "src",
-                    "data-src",
-                    "data-slate-type",
-                    "data-slate-node",
-                    "data-slate-id",
-                    "data-block-id",
-                    "class",
-                    "id",
-                    "style",
-                    "target",
-                    "rel",
-                    "colspan",
-                    "rowspan",
-                  ],
-                  ALLOWED_URI_REGEXP:
-                    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
-                  ADD_ATTR: ["target"],
-                  FORBID_TAGS: [
-                    "script",
-                    "object",
-                    "embed",
-                    "iframe",
-                    "form",
-                    "input",
-                    "button",
-                  ],
-                  FORBID_ATTR: [
-                    "onerror",
-                    "onload",
-                    "onclick",
-                    "onmouseover",
-                    "onfocus",
-                    "onblur",
-                  ],
-                }),
-              }),
-            })
-          : content || editor.children;
-
-      editor.tf.reset();
-      editor.tf.setValue(nodes);
-      // Clear undo history so the initial content is the baseline
-      // and undo doesn't revert to an empty editor
-      if (editor.history) {
-        editor.history.undos = [];
-        editor.history.redos = [];
-      }
-    }
-  }, [policy, template, editor]);
-
-  // Function to update toolbar state based on editor state
-  const updateToolbarState = useCallback(() => {
-    if (!editor) return;
-
-    try {
-      const selection = editor.selection;
-      if (!selection) return;
-
-      // Get current marks (bold, italic, etc.)
-      const marks = editor.marks || {};
-
-      // Get current block type - traverse up to find a block element
-      let blockType = 'p';
-      let align = 'left';
-
-      try {
-        // Get the current block using editor.api.block()
-        const blockEntry = editor.api.block();
-        if (blockEntry && blockEntry[0]) {
-          const block = blockEntry[0];
-          const type = block.type as string;
-          if (type === 'h1' || type === 'heading-one') {
-            blockType = 'h1';
-          } else if (type === 'h2' || type === 'heading-two') {
-            blockType = 'h2';
-          } else if (type === 'h3' || type === 'heading-three') {
-            blockType = 'h3';
-          } else if (type === 'blockquote') {
-            blockType = 'blockquote';
-          } else {
-            blockType = 'p';
-          }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          align = (block as any).align || 'left';
-        }
-      } catch {
-        // Fallback to paragraph
-        blockType = 'p';
-      }
-
-      // Update block type for dropdown
-      setCurrentBlockType(blockType);
-
-      setToolbarState({
-        bold: !!marks.bold,
-        italic: !!marks.italic,
-        underline: !!marks.underline,
-        strike: !!marks.strikethrough,
-        ol: blockType === 'ol' || blockType === 'numbered_list',
-        ul: blockType === 'ul' || blockType === 'bulleted_list',
-        'align-left': align === 'left' || align === 'start',
-        'align-center': align === 'center',
-        'align-right': align === 'right' || align === 'end',
-        link: !!marks.link,
-        highlight: !!marks.highlight,
-        blockquote: blockType === 'blockquote',
-        // These don't have persistent state
-        undo: false,
-        redo: false,
-        image: false,
-        table: false,
-      });
-    } catch (error) {
-      // Silently handle errors during state sync
-      console.debug('Error syncing toolbar state:', error);
-    }
-  }, [editor]);
-
-  // Handle block type change from dropdown
-  const handleBlockTypeChange = (event: { target: { value: string | number } }) => {
-    const newType = String(event.target.value);
-    setCurrentBlockType(newType);
-
-    if (!editor) return;
-
-    // Convert current block to selected type
-    if (newType === 'p') {
-      // Convert to paragraph (remove heading)
-      editor.tf.setNodes({ type: 'p' });
-    } else if (newType === 'h1') {
-      editor.tf.h1.toggle();
-    } else if (newType === 'h2') {
-      editor.tf.h2.toggle();
-    } else if (newType === 'h3') {
-      editor.tf.h3.toggle();
-    }
-
-    // Update toolbar state after change
-    setTimeout(() => updateToolbarState(), 0);
-  };
-
-  // Helper to serialize image node to HTML (avoids hooks issue)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const serializeImageToHtml = (node: any): string => {
-    const url = node.url || node.src || "";
-    const alt = node.alt || "";
-    const width = node.width || "100%";
-    const align = node.align || "center";
-    const caption = node.caption || "";
-
-    const alignItems = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
-    const widthStyle = typeof width === "number" ? `${width}px` : width;
-
-    let html = `<div style="display: flex; flex-direction: column; align-items: ${alignItems}; margin: 12px 0;">`;
-    html += `<img src="${url}" alt="${alt}" style="width: ${widthStyle}; max-width: 100%; border-radius: 8px;" />`;
-    if (caption) {
-      html += `<div style="margin-top: 8px; font-size: 0.85rem; color: #667085; font-style: italic; text-align: center;">${caption}</div>`;
-    }
-    html += `</div>`;
-    return html;
-  };
-
-  // Helper to serialize table node to HTML (avoids hooks issue)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const serializeTableToHtml = (node: any): string => {
-    let html = '<table style="border-collapse: collapse; width: 100%; margin: 12px 0;">';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const serializeChildren = (children: any[]): string => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return children.map((child: any) => {
-        if (child.text !== undefined) {
-          let text = child.text;
-          if (child.bold) text = `<strong>${text}</strong>`;
-          if (child.italic) text = `<em>${text}</em>`;
-          if (child.underline) text = `<u>${text}</u>`;
-          return text;
-        }
-        return '';
-      }).join('');
-    };
-
-    if (node.children) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      node.children.forEach((row: any) => {
-        if (row.type === 'tr') {
-          html += '<tr>';
-          if (row.children) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            row.children.forEach((cell: any) => {
-              const isHeader = cell.type === 'th';
-              const tag = isHeader ? 'th' : 'td';
-              const bgStyle = isHeader ? 'background-color: #f9fafb; font-weight: 600;' : '';
-              html += `<${tag} style="border: 1px solid #d0d5dd; padding: 8px 12px; text-align: left; ${bgStyle}">`;
-              if (cell.children) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                cell.children.forEach((content: any) => {
-                  if (content.children) {
-                    html += serializeChildren(content.children);
-                  } else if (content.text !== undefined) {
-                    html += content.text;
-                  }
-                });
-              }
-              html += `</${tag}>`;
-            });
-          }
-          html += '</tr>';
-        }
-      });
-    }
-
-    html += '</table>';
-    return html;
-  };
-
-  // Custom HTML serializer that directly generates semantic HTML from editor nodes
-  // This bypasses Plate's serializeHtml which outputs generic divs
-  const serializeToHtml = async (): Promise<string> => {
-    const editorValue = editor.children;
-
-    // Serialize text marks (bold, italic, etc.)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const serializeText = (node: any): string => {
-      if (node.text === undefined) return '';
-      let text = node.text;
-      // Escape HTML entities
-      text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      if (node.bold) text = `<strong>${text}</strong>`;
-      if (node.italic) text = `<em>${text}</em>`;
-      if (node.underline) text = `<u>${text}</u>`;
-      if (node.strikethrough) text = `<s>${text}</s>`;
-      if (node.highlight) text = `<mark>${text}</mark>`;
-      return text;
-    };
-
-    // Map node types to HTML tags
-    const tagMap: Record<string, string> = {
-      'h1': 'h1', 'heading-one': 'h1',
-      'h2': 'h2', 'heading-two': 'h2',
-      'h3': 'h3', 'heading-three': 'h3',
-      'blockquote': 'blockquote',
-      'ul': 'ul', 'bulleted_list': 'ul', 'bulleted-list': 'ul',
-      'ol': 'ol', 'numbered_list': 'ol', 'numbered-list': 'ol',
-      'li': 'li', 'list_item': 'li', 'list-item': 'li',
-      'tr': 'tr', 'td': 'td', 'th': 'th',
-      'p': 'p',
-    };
-
-    // Serialize a single node to HTML
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const serializeNode = (node: any): string => {
-      if (node.text !== undefined) return serializeText(node);
-
-      const childrenHtml = node.children
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ? node.children.map((child: any) => serializeNode(child)).join('')
-        : '';
-
-      const type = node.type || 'p';
-
-      // Special cases that need custom handling
-      if (type === 'lic' || type === 'list_item_content' || type === 'list-item-content') {
-        return childrenHtml;
-      }
-      if (type === 'a' || type === 'link') {
-        const href = node.url || node.href || '#';
-        return `<a href="${href}" target="_blank" rel="noopener noreferrer">${childrenHtml}</a>`;
-      }
-      if (type === 'image') return serializeImageToHtml(node);
-      if (type === 'table') return serializeTableToHtml(node);
-
-      // Standard tag mapping
-      const tag = tagMap[type] || 'p';
-      const align = node.align ? ` style="text-align: ${node.align};"` : '';
-      return `<${tag}${align}>${childrenHtml}</${tag}>`;
-    };
-
-    // Serialize all top-level nodes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const html = editorValue.map((node: any) => serializeNode(node)).join('');
-
-    return html;
-  };
 
   const save = async () => {
     if (!validateForm()) {
       return;
     }
     setIsSaving(true);
-    const html = await serializeToHtml();
+    const html = editor?.getHTML() || "";
     const assignedReviewers = formData.assignedReviewers.map((user) => user.id);
     const payload = {
       title: formData.title,
@@ -983,14 +633,13 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       } else {
         _onSaved("Policy updated successfully");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setIsSaving(false);
       console.error("Full error object:", err);
       console.error("Original error:", err?.originalError);
       console.error("Original error response:", err?.originalError?.response);
 
-      // Handle server validation errors - the CustomException is in originalError
+      // Handle server validation errors
       const errorData =
         err?.originalError?.response || err?.response?.data || err?.response;
       console.error("Error data:", errorData);
@@ -998,7 +647,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       if (errorData?.errors) {
         console.error("Processing server errors:", errorData.errors);
         const serverErrors: PolicyFormErrors = {};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         errorData.errors.forEach((error: any) => {
           console.error("Processing error:", error);
           if (error.field === "title") {
@@ -1045,7 +693,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       const contentDisposition = response.headers.get("Content-Disposition");
       let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
 
-      // Extract filename from Content-Disposition header if available
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?([^"]+)"?/);
         if (match) {
@@ -1053,7 +700,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         }
       }
 
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -1093,7 +739,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       const contentDisposition = response.headers.get("Content-Disposition");
       let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
 
-      // Extract filename from Content-Disposition header if available
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?([^"]+)"?/);
         if (match) {
@@ -1101,7 +746,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
         }
       }
 
-      // Create download link with proper MIME type
       const docxBlob = new Blob([blob], {
         type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       });
@@ -1122,35 +766,26 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
 
   return (
     <>
-      {/* {isSubmitting && (
-      <Stack
-        sx={{
-          width: "100vw",
-          height: "100%",
-          position: "fixed",
-          top: "0",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 9999,
-        }}
-      >
-        <CustomizableToast title="Creating project. Please wait..." />
-      </Stack>
-      )} */}
       <InsertLinkModal
         open={openLink}
         onClose={() => {
           setOpenLink(false);
           setSelectedTextForLink("");
-          setSavedSelection(null);
         }}
         onInsert={(url, text) => {
-          // Restore the saved selection before inserting the link
-          if (savedSelection) {
-            editor.select(savedSelection);
+          if (!editor) return;
+          editor.chain().focus();
+          const { from, to } = editor.state.selection;
+          if (from !== to && !text) {
+            // Text is selected — wrap it with the link
+            editor.chain().focus().setLink({ href: url, target: '_blank' }).run();
+          } else {
+            // No selection or custom text — insert new link text
+            const linkText = text || url;
+            editor.chain().focus()
+              .insertContent(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`)
+              .run();
           }
-          insertLink(editor, url, text);
-          setSavedSelection(null);
         }}
         selectedText={selectedTextForLink}
       />
@@ -1249,7 +884,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             <Box
               sx={{
                 display: "flex",
-                flexWrap: "wrap", // allow multiple lines
+                flexWrap: "wrap",
                 gap: 1,
                 mb: 2,
                 alignItems: "center",
@@ -1280,7 +915,6 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                   <IconButton
                     onClick={() => {
                       action?.();
-                      // Update toolbar state immediately after action
                       setTimeout(() => updateToolbarState(), 0);
                     }}
                     size="small"
@@ -1323,74 +957,97 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                 },
               }}
             >
-              <Plate
+              <EditorContent
                 editor={editor}
-                onChange={({ value }) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    content: value,
-                  }));
-                  // Update toolbar state when editor content changes
-                  updateToolbarState();
-                }}
-                onSelectionChange={() => {
-                  // Update toolbar state when selection/cursor changes
-                  updateToolbarState();
-                }}
-              >
-                <PlateContent
-                  style={
-                    {
-                      height: "calc(100vh - 310px)",
-                      overflowY: "auto",
-                      padding: "16px",
-                      border: "none",
-                      borderRadius: "3px",
-                      backgroundColor: "#FFFFFF",
-                      fontSize: theme.typography.fontSize,
-                      color: theme.palette.text.primary,
-                      boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                      outline: "none",
-                      "--plate-highlight-bg": "#fef08a",
-                      "--plate-blockquote-border": "#d0d5dd",
-                    } as CSSProperties
-                  }
-                  placeholder="Start typing..."
-                />
-                <style>{`
-                  [data-slate-editor] mark {
-                    background-color: #fef08a;
-                    padding: 0 2px;
-                    border-radius: 2px;
-                  }
-                  [data-slate-editor] blockquote {
-                    border-left: 3px solid #d0d5dd;
-                    margin: 8px 0;
-                    padding: 8px 16px;
-                    color: #475467;
-                    background-color: #f9fafb;
-                    border-radius: 0 4px 4px 0;
-                  }
-                  [data-slate-editor] table {
-                    border-collapse: collapse;
-                    width: 100%;
-                    margin: 12px 0;
-                  }
-                  [data-slate-editor] th,
-                  [data-slate-editor] td {
-                    border: 1px solid #d0d5dd;
-                    padding: 8px 12px;
-                    text-align: left;
-                  }
-                  [data-slate-editor] th {
-                    background-color: #f9fafb;
-                    font-weight: 600;
-                  }
-                  [data-slate-editor] tr:hover td {
-                    background-color: #f9fafb;
-                  }
-                `}</style>
-              </Plate>
+                className="policy-tiptap-editor"
+              />
+              <style>{`
+                .policy-tiptap-editor .ProseMirror {
+                  height: calc(100vh - 310px);
+                  overflow-y: auto;
+                  padding: 16px;
+                  border: none;
+                  border-radius: 3px;
+                  background-color: #FFFFFF;
+                  font-size: ${theme.typography.fontSize}px;
+                  color: ${theme.palette.text.primary};
+                  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+                  outline: none;
+                }
+                .policy-tiptap-editor .ProseMirror:focus {
+                  outline: none;
+                }
+                .policy-tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+                  content: attr(data-placeholder);
+                  float: left;
+                  color: #adb5bd;
+                  pointer-events: none;
+                  height: 0;
+                }
+                .policy-tiptap-editor .ProseMirror mark {
+                  background-color: #fef08a;
+                  padding: 0 2px;
+                  border-radius: 2px;
+                }
+                .policy-tiptap-editor .ProseMirror blockquote {
+                  border-left: 3px solid #d0d5dd;
+                  margin: 8px 0;
+                  padding: 8px 16px;
+                  color: #475467;
+                  background-color: #f9fafb;
+                  border-radius: 0 4px 4px 0;
+                }
+                .policy-tiptap-editor .ProseMirror table {
+                  border-collapse: collapse;
+                  width: 100%;
+                  margin: 12px 0;
+                  table-layout: fixed;
+                }
+                .policy-tiptap-editor .ProseMirror th,
+                .policy-tiptap-editor .ProseMirror td {
+                  border: 1px solid #d0d5dd;
+                  padding: 8px 12px;
+                  text-align: left;
+                  vertical-align: top;
+                  min-width: 80px;
+                }
+                .policy-tiptap-editor .ProseMirror th {
+                  background-color: #f9fafb;
+                  font-weight: 600;
+                }
+                .policy-tiptap-editor .ProseMirror tr:hover td {
+                  background-color: #f9fafb;
+                }
+                .policy-tiptap-editor .ProseMirror img {
+                  max-width: 100%;
+                  border-radius: 8px;
+                  margin: 12px 0;
+                }
+                .policy-tiptap-editor .ProseMirror a {
+                  color: #3182ce;
+                  text-decoration: underline;
+                  cursor: pointer;
+                }
+                .policy-tiptap-editor .ProseMirror ul,
+                .policy-tiptap-editor .ProseMirror ol {
+                  padding-left: 24px;
+                }
+                .policy-tiptap-editor .ProseMirror h1 {
+                  font-size: 1.75em;
+                  font-weight: 700;
+                  margin: 16px 0 8px;
+                }
+                .policy-tiptap-editor .ProseMirror h2 {
+                  font-size: 1.4em;
+                  font-weight: 600;
+                  margin: 12px 0 6px;
+                }
+                .policy-tiptap-editor .ProseMirror h3 {
+                  font-size: 1.15em;
+                  font-weight: 600;
+                  margin: 10px 0 4px;
+                }
+              `}</style>
             </Box>
             {errors.content && (
               <Typography

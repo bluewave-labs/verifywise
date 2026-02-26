@@ -364,6 +364,7 @@ export function IntakeFormsListPage() {
     <PageHeaderExtended
       title="Intake forms"
       description="Create and manage intake forms for external submissions"
+      helpArticlePath="ai-governance/intake-forms"
     >
       {/* Main tabs: Forms / Submissions */}
       <TabContext value={mainTab}>

@@ -241,6 +241,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                           fontWeight: isActive ? typography.fontWeight.medium : typography.fontWeight.normal,
                           textDecoration: 'none',
                           padding: isInApp ? '2px 0' : `${spacing.xs} 0`,
+                          paddingLeft: item.level === 3 ? spacing.md : 0,
                         }}
                       >
                         {item.label}

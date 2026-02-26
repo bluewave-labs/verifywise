@@ -870,16 +870,18 @@ export default function PolicyEditorPage() {
         onChange={handleImageFileChange}
       />
 
+      <Stack className="vwhome" gap="16px">
+        {/* ── Breadcrumbs ──────────────────────────────────────────── */}
+        <PageBreadcrumbs />
+
       <Stack
         sx={{
-          height: "calc(100vh - 80px)",
+          height: "calc(100vh - 130px)",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
         }}
       >
-        {/* ── Breadcrumbs + header ─────────────────────────────────── */}
-        <PageBreadcrumbs />
 
         <Stack
           direction="row"
@@ -1277,6 +1279,7 @@ export default function PolicyEditorPage() {
             />
           )}
         </Stack>
+      </Stack>
       </Stack>
     </>
   );

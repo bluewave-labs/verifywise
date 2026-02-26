@@ -83,7 +83,7 @@ export const DEFAULT_DESIGN_SETTINGS: FormDesignSettings = {
   backgroundColor: "#fafafa",
   logoUrl: "",
   fontFamily: "Inter",
-  collectContactInfo: false,
+  collectContactInfo: true,
 };
 
 /**
@@ -180,7 +180,6 @@ export const ENTITY_FIELD_MAPPINGS: Record<IntakeEntityType, EntityFieldMapping[
     { field: "description", label: "Description", description: "Model description", requiredFieldType: ["text", "textarea"] },
     { field: "modelVersion", label: "Model version", description: "Version of the model", requiredFieldType: ["text"] },
     { field: "provider", label: "Provider", description: "Model provider/vendor", requiredFieldType: ["text", "select"] },
-    { field: "owner", label: "Owner", description: "Model owner", requiredFieldType: ["text", "email"] },
     { field: "modelType", label: "Model type", description: "Type of AI model", requiredFieldType: ["text", "select"] },
     { field: "intendedUse", label: "Intended use", description: "Intended use of the model", requiredFieldType: ["text", "textarea"] },
     { field: "riskLevel", label: "Risk level", description: "Risk classification", requiredFieldType: ["select"] },
@@ -188,7 +187,6 @@ export const ENTITY_FIELD_MAPPINGS: Record<IntakeEntityType, EntityFieldMapping[
   [IntakeEntityType.USE_CASE]: [
     { field: "project_title", label: "Project title", description: "Title of the use case/project", requiredFieldType: ["text"], entityRequired: true },
     { field: "goal", label: "Goal", description: "Goal of the project", requiredFieldType: ["text", "textarea"], entityRequired: true },
-    { field: "owner", label: "Owner", description: "Project owner", requiredFieldType: ["text", "email"] },
     { field: "start_date", label: "Start date", description: "Project start date", requiredFieldType: ["date"] },
     { field: "ai_risk_classification", label: "AI risk classification", description: "Risk classification", requiredFieldType: ["select"] },
     { field: "type_of_high_risk_role", label: "High risk role type", description: "Type of high-risk role", requiredFieldType: ["text", "select"] },
@@ -318,6 +316,22 @@ export function createFieldFromPalette(paletteItem: PaletteItem, order: number):
     label: paletteItem.label,
     order,
     ...paletteItem.defaultConfig,
+  };
+}
+
+/**
+ * Create a form field from an entity field mapping definition
+ */
+export function createFieldFromMapping(mapping: EntityFieldMapping, order: number): FormField {
+  const type = mapping.requiredFieldType[0];
+  return {
+    id: generateFieldId(),
+    type,
+    label: mapping.label,
+    placeholder: mapping.description,
+    validation: mapping.entityRequired ? { required: true } : undefined,
+    entityFieldMapping: mapping.field,
+    order,
   };
 }
 

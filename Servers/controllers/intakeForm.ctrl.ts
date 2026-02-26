@@ -49,6 +49,7 @@ import {
   generateSuggestedQuestions,
   generateFieldGuidance,
 } from "../services/intakeLLM.service";
+import { getCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
 
 /** Safely extract a single string from req.params (which may be string | string[]). */
 const paramStr = (val: string | string[]): string =>
@@ -1308,6 +1309,21 @@ export async function getPublicFormByPublicId(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
+    // Fetch org logo (non-blocking — null if missing)
+    let organizationLogo: string | null = null;
+    try {
+      const logoRow = await getCompanyLogoQuery(tenantInfo.tenantHash);
+      if (logoRow && (logoRow as any).content) {
+        const buf = Buffer.isBuffer((logoRow as any).content)
+          ? (logoRow as any).content
+          : Buffer.from((logoRow as any).content);
+        const mimeType = (logoRow as any).type || "image/png";
+        organizationLogo = `data:${mimeType};base64,${buf.toString("base64")}`;
+      }
+    } catch {
+      // Logo is optional — swallow errors silently
+    }
+
     // Check for resubmission token
     let previousData: Record<string, unknown> | undefined;
     let previousSubmitterName: string | undefined;
@@ -1351,6 +1367,7 @@ export async function getPublicFormByPublicId(req: Request, res: Response) {
         publicId: form.publicId,
         designSettings: form.designSettings ?? null,
       },
+      organizationLogo,
       previousData,
       previousSubmitterName,
       previousSubmitterEmail,
@@ -1387,18 +1404,15 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
 
     const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
 
-    // Determine if contact info is required based on form design settings
+    // Validate contact info (always required)
     const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.tenantHash);
-    const collectContactInfo = (fullFormForValidation?.designSettings as any)?.collectContactInfo ?? true;
 
-    if (collectContactInfo) {
-      if (!submitterEmail) {
-        return res.status(400).json(STATUS_CODE[400]("Submitter email is required"));
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(submitterEmail)) {
-        return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
-      }
+    if (!submitterEmail) {
+      return res.status(400).json(STATUS_CODE[400]("Submitter email is required"));
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submitterEmail)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
     }
 
     if (!formData) {
@@ -1439,8 +1453,8 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
     }
 
-    const resolvedEmail = collectContactInfo ? submitterEmail : null;
-    const resolvedName = collectContactInfo ? (submitterName || (submitterEmail ? submitterEmail.split("@")[0] : null)) : null;
+    const resolvedEmail = submitterEmail;
+    const resolvedName = submitterName || (submitterEmail ? submitterEmail.split("@")[0] : null);
 
     // Handle resubmission (7-day expiry on resubmission tokens)
     let originalSubmissionId: number | undefined;
@@ -1579,6 +1593,21 @@ export async function getPublicForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
+    // Fetch org logo (non-blocking — null if missing)
+    let organizationLogo: string | null = null;
+    try {
+      const logoRow = await getCompanyLogoQuery(tenantInfo.hash);
+      if (logoRow && (logoRow as any).content) {
+        const buf = Buffer.isBuffer((logoRow as any).content)
+          ? (logoRow as any).content
+          : Buffer.from((logoRow as any).content);
+        const mimeType = (logoRow as any).type || "image/png";
+        organizationLogo = `data:${mimeType};base64,${buf.toString("base64")}`;
+      }
+    } catch {
+      // Logo is optional — swallow errors silently
+    }
+
     let previousData: Record<string, unknown> | undefined;
     let previousSubmitterName: string | undefined;
     let previousSubmitterEmail: string | undefined;
@@ -1621,6 +1650,7 @@ export async function getPublicForm(req: Request, res: Response) {
         publicId: form.publicId,
         designSettings: form.designSettings ?? null,
       },
+      organizationLogo,
       previousData,
       previousSubmitterName,
       previousSubmitterEmail,
@@ -1660,18 +1690,15 @@ export async function submitPublicForm(req: Request, res: Response) {
 
     const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
 
-    // Determine if contact info is required based on form design settings
+    // Validate contact info (always required)
     const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.hash);
-    const collectContactInfo = (fullFormForValidation?.designSettings as any)?.collectContactInfo ?? true;
 
-    if (collectContactInfo) {
-      if (!submitterEmail) {
-        return res.status(400).json(STATUS_CODE[400]("Submitter email is required"));
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(submitterEmail)) {
-        return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
-      }
+    if (!submitterEmail) {
+      return res.status(400).json(STATUS_CODE[400]("Submitter email is required"));
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submitterEmail)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
     }
 
     if (!formData) {
@@ -1711,8 +1738,8 @@ export async function submitPublicForm(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
     }
 
-    const resolvedEmail = collectContactInfo ? submitterEmail : null;
-    const resolvedName = collectContactInfo ? (submitterName || (submitterEmail ? submitterEmail.split("@")[0] : null)) : null;
+    const resolvedEmail = submitterEmail;
+    const resolvedName = submitterName || (submitterEmail ? submitterEmail.split("@")[0] : null);
 
     // Handle resubmission (7-day expiry on resubmission tokens)
     let originalSubmissionId: number | undefined;

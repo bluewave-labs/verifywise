@@ -257,8 +257,8 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           {project ? (
             <>
               <DescriptionCard
-                title="Goal"
-                body={project.goal}
+                title="Description"
+                body={project.description || ""}
                 icon={<TargetIcon size={16} />}
               />
               <TeamCard

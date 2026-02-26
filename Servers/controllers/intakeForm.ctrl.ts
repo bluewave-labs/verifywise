@@ -1021,6 +1021,8 @@ export async function approveSubmission(req: Request, res: Response) {
           goal: (entityData.goal as string) || (entityData.description as string) || "",
           owner: req.userId!,
           ai_risk_classification: mapToAiRiskClassification(entityData.ai_risk_classification as string) as any,
+          type_of_high_risk_role: (entityData.type_of_high_risk_role as string as any) || undefined,
+          geography: entityData.geography ? Number(entityData.geography) : 1,
           status: ProjectStatus.UNDER_REVIEW,
         },
         [],

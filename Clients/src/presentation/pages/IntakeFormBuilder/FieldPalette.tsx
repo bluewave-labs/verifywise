@@ -39,6 +39,14 @@ const sparkleShimmer = keyframes`
   100% { opacity: 0.6; filter: brightness(1); }
 `;
 
+const sparkleIdle = keyframes`
+  0% { transform: scale(1) rotate(0deg); opacity: 0.85; }
+  25% { transform: scale(1.15) rotate(8deg); opacity: 1; }
+  50% { transform: scale(1) rotate(0deg); opacity: 0.85; }
+  75% { transform: scale(1.1) rotate(-6deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.85; }
+`;
+
 const ICON_MAP: Record<string, React.ElementType> = {
   TextFields: Type,
   Notes: FileText,
@@ -507,15 +515,22 @@ export const SuggestedQuestionsPanel = forwardRef<SuggestedQuestionsPanelHandle,
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <Box sx={{ display: "flex", ...sparkleSx }}>
-                <Sparkles size={14} color={theme.palette.primary.main} />
+              <Box
+                sx={{
+                  display: "flex",
+                  animation: isSparkleAnimating
+                    ? `${sparkleShimmer} 0.8s ease-in-out 3`
+                    : `${sparkleIdle} 3s ease-in-out infinite`,
+                }}
+              >
+                <Sparkles size={14} color="#7c3aed" />
               </Box>
               <Typography
                 sx={{
                   fontWeight: 600,
-                  color: theme.palette.text.primary,
+                  color: "#7c3aed",
                   fontSize: "13px",
-                  ...sparkleSx,
+                  ...(isSparkleAnimating ? { animation: `${sparkleShimmer} 0.8s ease-in-out 3` } : {}),
                 }}
               >
                 AI-suggested questions
@@ -597,7 +612,7 @@ export const SuggestedQuestionsPanel = forwardRef<SuggestedQuestionsPanelHandle,
               )}
 
               {!llmLoading && !llmError && filteredLLMQuestions.length > 0 && (
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   {filteredLLMQuestions.map((question, index) => (
                     <LLMQuestionItem
                       key={`${question.label}-${index}`}

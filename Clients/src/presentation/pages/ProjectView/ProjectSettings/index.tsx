@@ -617,28 +617,9 @@ const ProjectSettings = React.memo(
         newErrors.startDate = startDate.message;
       }
 
-      const geography = selectValidation("Geography", values.geography);
-      if (!geography.accepted) {
-        newErrors.geography = geography.message;
-      }
-
       const owner = selectValidation("Owner", values.owner);
       if (!owner.accepted) {
         newErrors.owner = owner.message;
-      }
-      const riskClassification = selectValidation(
-        "AI risk classification",
-        values.riskClassification,
-      );
-      if (!riskClassification.accepted) {
-        newErrors.riskClassification = riskClassification.message;
-      }
-      const typeOfHighRiskRole = selectValidation(
-        "Type of high risk role",
-        values.typeOfHighRiskRole,
-      );
-      if (!typeOfHighRiskRole.accepted) {
-        newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
       // Skip framework validation if use-case has pending approval (no frameworks created yet)
@@ -1039,7 +1020,6 @@ const ProjectSettings = React.memo(
                     onChange={handleOnSelectChange("geography")}
                     items={geographyItems}
                     sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
-                    isRequired
                   />
 
                   {/* Use case status Row */}
@@ -1447,7 +1427,6 @@ const ProjectSettings = React.memo(
                         backgroundColor: theme.palette.background.main,
                       }}
                       error={errors.riskClassification}
-                      isRequired
                     />
                   </Stack>
 
@@ -1479,7 +1458,6 @@ const ProjectSettings = React.memo(
                       backgroundColor: theme.palette.background.main,
                     }}
                     error={errors.typeOfHighRiskRole}
-                    isRequired
                   />
                 </Box>
               </Box>

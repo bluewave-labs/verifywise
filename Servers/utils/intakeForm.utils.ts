@@ -405,8 +405,10 @@ export const getSubmissionsByFormIdQuery = async (
  * Get pending submissions for a tenant (for dashboard, capped at 500)
  */
 export const getPendingSubmissionsQuery = async (
-  tenant: string
+  tenant: string,
+  status?: IntakeSubmissionStatus
 ): Promise<IIntakeSubmission[]> => {
+  const statusFilter = status ? "WHERE s.status = :status" : "";
   const submissions = await sequelize.query(
     `SELECT
       s.id, s.form_id as "formId", s.submitter_email as "submitterEmail",
@@ -421,11 +423,11 @@ export const getPendingSubmissionsQuery = async (
       f.name as "formName", f.entity_type as "formEntityType"
     FROM "${tenant}".intake_submissions s
     JOIN "${tenant}".intake_forms f ON s.form_id = f.id
-    WHERE s.status = :status
+    ${statusFilter}
     ORDER BY s.created_at DESC
     LIMIT 500`,
     {
-      replacements: { status: IntakeSubmissionStatus.PENDING },
+      replacements: status ? { status } : {},
       type: QueryTypes.SELECT,
     }
   );
@@ -438,15 +440,19 @@ export const getPendingSubmissionsQuery = async (
  */
 export const getSubmissionByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
+  transaction?: Transaction,
+  forUpdate?: boolean
 ): Promise<IIntakeSubmission | null> => {
+  const lock = forUpdate ? " FOR UPDATE" : "";
   const submissions = await sequelize.query(
     `SELECT ${SUBMISSION_SELECT_COLUMNS}
     FROM "${tenant}".intake_submissions
-    WHERE id = :id`,
+    WHERE id = :id${lock}`,
     {
       replacements: { id },
       type: QueryTypes.SELECT,
+      transaction,
     }
   );
 
@@ -642,7 +648,7 @@ export const getSubmissionStatsQuery = async (
 // ============================================================================
 
 /**
- * Check rate limit for IP address (100 submissions per hour)
+ * Check rate limit for IP address (10 submissions per hour per tenant)
  */
 export const checkRateLimitQuery = async (
   ipAddress: string,
@@ -660,7 +666,7 @@ export const checkRateLimitQuery = async (
   );
 
   const count = parseInt((result[0] as any).count, 10) || 0;
-  return count < 100;
+  return count < 10;
 };
 
 // ============================================================================

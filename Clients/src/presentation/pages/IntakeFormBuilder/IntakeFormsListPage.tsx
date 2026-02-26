@@ -162,6 +162,7 @@ export function IntakeFormsListPage() {
   const [submissions, setSubmissions] = useState<IntakeSubmission[]>([]);
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const [submissionsSearch, setSubmissionsSearch] = useState("");
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState<string>("all");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
 
@@ -190,14 +191,18 @@ export function IntakeFormsListPage() {
   const loadSubmissions = useCallback(async () => {
     setIsLoadingSubmissions(true);
     try {
-      const response = await getPendingSubmissions();
+      const params: { status?: string } = {};
+      if (submissionStatusFilter !== "all") {
+        params.status = submissionStatusFilter;
+      }
+      const response = await getPendingSubmissions(params);
       setSubmissions(Array.isArray(response.data) ? response.data : []);
     } catch {
       setSnackbar({ open: true, message: "Failed to load submissions", severity: "error" });
     } finally {
       setIsLoadingSubmissions(false);
     }
-  }, []);
+  }, [submissionStatusFilter]);
 
   useEffect(() => {
     if (mainTab === "submissions") {
@@ -567,8 +572,40 @@ export function IntakeFormsListPage() {
       {/* ================================================================ */}
       {mainTab === "submissions" && (
         <>
-          {/* Search */}
-          <Stack direction="row" justifyContent="flex-end" alignItems="center">
+          {/* Filter + Search */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" gap={1}>
+              {[
+                { value: "all", label: "All" },
+                { value: "pending", label: "Pending" },
+                { value: "approved", label: "Approved" },
+                { value: "rejected", label: "Rejected" },
+              ].map((opt) => (
+                <Chip
+                  key={opt.value}
+                  label={opt.label}
+                  onClick={() => setSubmissionStatusFilter(opt.value)}
+                  sx={{
+                    cursor: "pointer",
+                    fontWeight: submissionStatusFilter === opt.value ? 600 : 400,
+                    backgroundColor: submissionStatusFilter === opt.value
+                      ? theme.palette.primary.main
+                      : theme.palette.background.default,
+                    color: submissionStatusFilter === opt.value
+                      ? "#fff"
+                      : theme.palette.text.primary,
+                    border: submissionStatusFilter === opt.value
+                      ? "none"
+                      : `1px solid ${theme.palette.border.dark}`,
+                    "&:hover": {
+                      backgroundColor: submissionStatusFilter === opt.value
+                        ? theme.palette.primary.main
+                        : theme.palette.action.hover,
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
             <SearchBox
               placeholder="Search submissions..."
               value={submissionsSearch}

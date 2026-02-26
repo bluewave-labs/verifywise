@@ -264,6 +264,7 @@ export async function getPendingSubmissions(
     page?: number;
     limit?: number;
     formId?: number;
+    status?: string;
   } = {},
   signal?: AbortSignal
 ): Promise<{ data: IntakeSubmission[]; pagination?: { total: number; page: number; limit: number } }> {
@@ -271,6 +272,7 @@ export async function getPendingSubmissions(
   if (params.page) queryParams.append("page", String(params.page));
   if (params.limit) queryParams.append("limit", String(params.limit));
   if (params.formId) queryParams.append("formId", String(params.formId));
+  if (params.status) queryParams.append("status", params.status);
 
   const url = `${BASE_URL}/submissions${queryParams.toString() ? `?${queryParams}` : ""}`;
   const response = await apiServices.get(url, { signal });

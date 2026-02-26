@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
@@ -26,6 +26,9 @@ import {
   ClipboardList,
   Pencil,
   PaintBucket,
+  AlertTriangle,
+  CircleCheck,
+  Info,
 } from "lucide-react";
 import {
   getIntakeForm,
@@ -48,6 +51,8 @@ import {
   generateFieldId,
   generateSlug,
   DEFAULT_DESIGN_SETTINGS,
+  ENTITY_FIELD_MAPPINGS,
+  analyzeMappingCoverage,
 } from "./types";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
@@ -302,23 +307,7 @@ export function IntakeFormBuilder() {
     }
   };
 
-  const handlePublish = async () => {
-    if (form.schema.fields.length === 0) {
-      setSnackbar({
-        open: true,
-        message: "Add at least one field before publishing",
-        severity: "error",
-      });
-      return;
-    }
-    if (!form.name.trim()) {
-      setSnackbar({
-        open: true,
-        message: "Form name is required",
-        severity: "error",
-      });
-      return;
-    }
+  const doPublish = async () => {
     setIsSaving(true);
     try {
       const formData = {
@@ -360,6 +349,60 @@ export function IntakeFormBuilder() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handlePublish = async () => {
+    if (form.schema.fields.length === 0) {
+      setSnackbar({
+        open: true,
+        message: "Add at least one field before publishing",
+        severity: "error",
+      });
+      return;
+    }
+    if (!form.name.trim()) {
+      setSnackbar({
+        open: true,
+        message: "Form name is required",
+        severity: "error",
+      });
+      return;
+    }
+
+    // Block publish if required entity fields are unmapped
+    if (mappingCoverage.missingRequired.length > 0) {
+      const names = mappingCoverage.missingRequired.map((m) => m.label).join(", ");
+      setSnackbar({
+        open: true,
+        message: `Required fields not mapped: ${names}. Add form fields mapped to these before publishing.`,
+        severity: "error",
+      });
+      return;
+    }
+
+    // Block publish if any mapped field has incompatible type
+    if (mappingCoverage.typeMismatches.length > 0) {
+      const details = mappingCoverage.typeMismatches
+        .map(
+          (m) =>
+            `"${m.formField.label}" is ${m.formField.type} but "${m.entityMapping.label}" requires ${m.entityMapping.requiredFieldType.join(" or ")}`
+        )
+        .join("; ");
+      setSnackbar({
+        open: true,
+        message: `Field type mismatch: ${details}`,
+        severity: "error",
+      });
+      return;
+    }
+
+    // Warn if optional entity fields are unmapped
+    if (mappingCoverage.missingOptional.length > 0) {
+      setPublishWarningOpen(true);
+      return;
+    }
+
+    await doPublish();
   };
 
   const handleArchiveBuilder = async () => {
@@ -407,9 +450,16 @@ export function IntakeFormBuilder() {
     if (publicId) window.open(`/${publicId}/use-case-form-intake`, "_blank");
   };
 
+  const [publishWarningOpen, setPublishWarningOpen] = useState(false);
+
   // ============================================================================
   // Derived values
   // ============================================================================
+
+  const mappingCoverage = useMemo(
+    () => analyzeMappingCoverage(form.schema.fields, form.entityType),
+    [form.schema.fields, form.entityType]
+  );
 
   const selectedField = form.schema.fields.find(
     (f) => f.id === selectedFieldId
@@ -790,6 +840,86 @@ export function IntakeFormBuilder() {
                           gap: "20px",
                         }}
                       >
+                        {/* Entity field mapping coverage */}
+                        {(() => {
+                          const { missingRequired, missingOptional, typeMismatches } = mappingCoverage;
+                          const allMapped = missingRequired.length === 0 && missingOptional.length === 0 && typeMismatches.length === 0;
+                          const entityLabel = form.entityType === IntakeEntityType.USE_CASE ? "use case" : "model";
+
+                          return (
+                            <Box
+                              sx={{
+                                p: "10px",
+                                borderRadius: "4px",
+                                border: `1px solid ${
+                                  missingRequired.length > 0 || typeMismatches.length > 0
+                                    ? "#FECACA"
+                                    : missingOptional.length > 0
+                                      ? "#FDE68A"
+                                      : "#BBF7D0"
+                                }`,
+                                backgroundColor:
+                                  missingRequired.length > 0 || typeMismatches.length > 0
+                                    ? "#FEF2F2"
+                                    : missingOptional.length > 0
+                                      ? "#FFFBEB"
+                                      : "#F0FDF4",
+                              }}
+                            >
+                              <Stack direction="row" gap="6px" alignItems="center" sx={{ mb: missingRequired.length > 0 || missingOptional.length > 0 || typeMismatches.length > 0 ? "6px" : 0 }}>
+                                {allMapped ? (
+                                  <CircleCheck size={14} color="#16A34A" strokeWidth={1.5} />
+                                ) : missingRequired.length > 0 || typeMismatches.length > 0 ? (
+                                  <AlertTriangle size={14} color="#DC2626" strokeWidth={1.5} />
+                                ) : (
+                                  <Info size={14} color="#D97706" strokeWidth={1.5} />
+                                )}
+                                <Typography sx={{ fontSize: "12px", fontWeight: 600, color: theme.palette.text.primary }}>
+                                  {allMapped
+                                    ? `All ${entityLabel} fields mapped`
+                                    : `${entityLabel.charAt(0).toUpperCase() + entityLabel.slice(1)} field mapping`}
+                                </Typography>
+                              </Stack>
+                              {missingRequired.length > 0 && (
+                                <Box sx={{ mb: "4px" }}>
+                                  <Typography sx={{ fontSize: "11px", color: "#DC2626", fontWeight: 500 }}>
+                                    Required (blocks publishing):
+                                  </Typography>
+                                  {missingRequired.map((m) => (
+                                    <Typography key={m.field} sx={{ fontSize: "11px", color: theme.palette.text.secondary, pl: "12px" }}>
+                                      &bull; {m.label} ({m.requiredFieldType.join(" or ")})
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              )}
+                              {typeMismatches.length > 0 && (
+                                <Box sx={{ mb: "4px" }}>
+                                  <Typography sx={{ fontSize: "11px", color: "#DC2626", fontWeight: 500 }}>
+                                    Type mismatch (blocks publishing):
+                                  </Typography>
+                                  {typeMismatches.map((m) => (
+                                    <Typography key={m.formField.id} sx={{ fontSize: "11px", color: theme.palette.text.secondary, pl: "12px" }}>
+                                      &bull; &quot;{m.formField.label}&quot; is {m.formField.type}, needs {m.entityMapping.requiredFieldType.join(" or ")}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              )}
+                              {missingOptional.length > 0 && (
+                                <Box>
+                                  <Typography sx={{ fontSize: "11px", color: "#D97706", fontWeight: 500 }}>
+                                    Optional (not mapped):
+                                  </Typography>
+                                  {missingOptional.map((m) => (
+                                    <Typography key={m.field} sx={{ fontSize: "11px", color: theme.palette.text.secondary, pl: "12px" }}>
+                                      &bull; {m.label}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              )}
+                            </Box>
+                          );
+                        })()}
+
                         <Box>
                           <CustomizableMultiSelect
                             label="Recipients"
@@ -1056,6 +1186,21 @@ export function IntakeFormBuilder() {
         submitButtonText="Delete"
         submitButtonColor="#c62828"
         maxWidth="440px"
+        fitContent
+      />
+
+      {/* Publish warning modal (optional fields unmapped) */}
+      <StandardModal
+        title="Publish with unmapped fields?"
+        description={`The following optional fields are not mapped to any form field: ${mappingCoverage.missingOptional.map((m) => m.label).join(", ")}. These fields will be empty when the entity is created. Publish anyway?`}
+        isOpen={publishWarningOpen}
+        onClose={() => setPublishWarningOpen(false)}
+        onSubmit={async () => {
+          setPublishWarningOpen(false);
+          await doPublish();
+        }}
+        submitButtonText="Publish anyway"
+        maxWidth="480px"
         fitContent
       />
 

@@ -23,6 +23,7 @@ import {
   updateSubmissionRiskQuery,
   updateSubmissionRiskOverrideQuery,
   getTenantByPublicId,
+  getSubmissionByEntityQuery,
 } from "../utils/intakeForm.utils";
 import { createNewModelInventoryQuery } from "../utils/modelInventory.utils";
 import { createNewProjectQuery } from "../utils/project.utils";
@@ -794,6 +795,85 @@ export async function getSubmissionPreview(req: Request, res: Response) {
     }));
   } catch (error) {
     logger.error("Error in getSubmissionPreview:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Get the original intake submission for a given entity (project/model).
+ * Returns the full submission data with form schema so the frontend
+ * can render all fields with labels, including unmapped ones.
+ * GET /intake/submissions/by-entity/:entityType/:entityId
+ */
+export async function getSubmissionByEntity(req: Request, res: Response) {
+  const entityType = paramStr(req.params.entityType);
+  const entityId = parseId(req.params.entityId);
+
+  if (!entityType || isNaN(entityId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid entity type or ID"));
+  }
+
+  const validEntityTypes = ["use_case", "model"];
+  if (!validEntityTypes.includes(entityType)) {
+    return res.status(400).json(STATUS_CODE[400]("Unsupported entity type"));
+  }
+
+  logProcessing({
+    description: `fetching submission for ${entityType}:${entityId}`,
+    functionName: "getSubmissionByEntity",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const result = await getSubmissionByEntityQuery(
+      entityType,
+      entityId,
+      req.tenantId!
+    );
+
+    if (!result) {
+      return res.status(404).json(STATUS_CODE[404]("No intake submission found for this entity"));
+    }
+
+    const { submission, formName, formSchema } = result;
+    const submissionData = submission.data as Record<string, unknown>;
+
+    // Build a structured fields array using the form schema for labels/types
+    const schemaFields = (formSchema as any)?.fields || [];
+    const fields = schemaFields
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+      .map((field: any) => ({
+        fieldId: field.id,
+        label: field.label,
+        type: field.type,
+        value: submissionData[field.id] ?? null,
+        options: field.options || null,
+        entityFieldMapping: field.entityFieldMapping || null,
+        isMapped: Boolean(field.entityFieldMapping),
+      }));
+
+    return res.status(200).json(STATUS_CODE[200]({
+      submissionId: submission.id,
+      formName,
+      submitterName: submission.submitterName,
+      submitterEmail: submission.submitterEmail,
+      submittedAt: submission.createdAt,
+      reviewedAt: submission.reviewedAt,
+      riskTier: submission.riskTier,
+      fields,
+    }));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `failed to fetch submission for ${entityType}:${entityId}`,
+      functionName: "getSubmissionByEntity",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

@@ -643,6 +643,85 @@ export const getSubmissionStatsQuery = async (
   };
 };
 
+/**
+ * Get the approved submission + form schema for a given entity.
+ * Used for surfacing original intake data on entity detail pages.
+ */
+export const getSubmissionByEntityQuery = async (
+  entityType: string,
+  entityId: number,
+  tenant: string
+): Promise<{
+  submission: IIntakeSubmission;
+  formName: string;
+  formSchema: Record<string, unknown> | null;
+} | null> => {
+  const results = await sequelize.query(
+    `SELECT
+      s.id, s.form_id as "formId", s.submitter_email as "submitterEmail",
+      s.submitter_name as "submitterName", s.data, s.entity_type as "entityType",
+      s.entity_id as "entityId", s.status, s.rejection_reason as "rejectionReason",
+      s.reviewed_by as "reviewedBy", s.reviewed_at as "reviewedAt",
+      s.original_submission_id as "originalSubmissionId",
+      s.resubmission_count as "resubmissionCount", s.ip_address as "ipAddress",
+      s.risk_assessment as "riskAssessment", s.risk_tier as "riskTier",
+      s.risk_override as "riskOverride",
+      s.created_at as "createdAt", s.updated_at as "updatedAt",
+      f.name as "formName",
+      f.schema as "formSchema"
+    FROM "${tenant}".intake_submissions s
+    LEFT JOIN "${tenant}".intake_forms f ON s.form_id = f.id
+    WHERE s.entity_type = :entityType
+      AND s.entity_id = :entityId
+      AND s.status = :status
+    ORDER BY s.created_at DESC
+    LIMIT 1`,
+    {
+      replacements: {
+        entityType,
+        entityId,
+        status: IntakeSubmissionStatus.APPROVED,
+      },
+      type: QueryTypes.SELECT,
+    }
+  );
+
+  if (results.length === 0) return null;
+
+  const row = results[0] as any;
+  const formSchema = row.formSchema
+    ? typeof row.formSchema === "string"
+      ? JSON.parse(row.formSchema)
+      : row.formSchema
+    : null;
+
+  return {
+    submission: {
+      id: row.id,
+      formId: row.formId,
+      submitterEmail: row.submitterEmail,
+      submitterName: row.submitterName,
+      data: row.data,
+      entityType: row.entityType,
+      entityId: row.entityId,
+      status: row.status,
+      rejectionReason: row.rejectionReason,
+      reviewedBy: row.reviewedBy,
+      reviewedAt: row.reviewedAt,
+      originalSubmissionId: row.originalSubmissionId,
+      resubmissionCount: row.resubmissionCount,
+      ipAddress: row.ipAddress,
+      riskAssessment: row.riskAssessment,
+      riskTier: row.riskTier,
+      riskOverride: row.riskOverride,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    } as IIntakeSubmission,
+    formName: row.formName || "Deleted form",
+    formSchema,
+  };
+};
+
 // ============================================================================
 // RATE LIMITING
 // ============================================================================

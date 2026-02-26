@@ -292,6 +292,7 @@ export default function PolicyEditorPage() {
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [editorReady, setEditorReady] = useState(false);
+  const isLoadingContentRef = useRef(false);
 
   const [formData, setFormData] = useState<PolicyFormData>({
     title: "",
@@ -432,9 +433,13 @@ export default function PolicyEditorPage() {
     ],
     content: "",
     autofocus: false,
-    onCreate: () => setEditorReady(true),
-    onUpdate: () => {
-      setFormData((prev) => ({ ...prev, content: editor?.getHTML() || "" }));
+    onCreate: () => {
+      // Defer to avoid state update before mount
+      setTimeout(() => setEditorReady(true), 0);
+    },
+    onUpdate: ({ editor: e }) => {
+      if (isLoadingContentRef.current) return;
+      setFormData((prev) => ({ ...prev, content: e.getHTML() }));
       updateToolbarState();
     },
     onSelectionUpdate: () => updateToolbarState(),
@@ -448,7 +453,9 @@ export default function PolicyEditorPage() {
 
     const normalized = normalizeSlateHtml(content);
     const sanitized = DOMPurify.sanitize(normalized, sanitizeOptions);
+    isLoadingContentRef.current = true;
     editor.commands.setContent(sanitized);
+    isLoadingContentRef.current = false;
   }, [policy, template, editor, editorReady]);
 
   // ── Image upload handler ──────────────────────────────────────────

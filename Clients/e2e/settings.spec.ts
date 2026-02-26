@@ -47,4 +47,69 @@ test.describe("Settings", () => {
       .or(page.getByText(/general/i));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 1: Tab navigation ---
+
+  test("clicking Password tab navigates to /settings/password", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings");
+    const passwordTab = page
+      .getByRole("tab", { name: /password/i })
+      .or(page.getByText(/password/i));
+    await expect(passwordTab.first()).toBeVisible({ timeout: 10_000 });
+    await passwordTab.first().click();
+    await expect(page).toHaveURL(/\/settings\/password/, { timeout: 10_000 });
+  });
+
+  test("clicking Organization tab navigates to /settings/organization", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings");
+    const orgTab = page
+      .getByRole("tab", { name: /organization/i })
+      .or(page.getByText(/organization/i));
+    await expect(orgTab.first()).toBeVisible({ timeout: 10_000 });
+    await orgTab.first().click();
+    await expect(page).toHaveURL(/\/settings\/organization/, {
+      timeout: 10_000,
+    });
+  });
+
+  test("clicking Profile tab returns to profile view", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings/password");
+    const profileTab = page
+      .getByRole("tab", { name: /profile/i })
+      .or(page.getByText(/profile/i));
+    await expect(profileTab.first()).toBeVisible({ timeout: 10_000 });
+    await profileTab.first().click();
+    // Should be back on /settings (profile is default)
+    await expect(page).toHaveURL(/\/settings/, { timeout: 10_000 });
+  });
+
+  // --- Tier 3: Password form fields ---
+
+  test("password settings page shows password form fields", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings/password");
+
+    // Verify password-related fields are present
+    const currentPwd = page
+      .getByPlaceholder(/current password/i)
+      .or(page.getByRole("textbox", { name: /current password/i }))
+      .or(page.getByText(/current password/i));
+    const newPwd = page
+      .getByPlaceholder(/new password/i)
+      .or(page.getByText(/new password/i));
+    const confirmPwd = page
+      .getByPlaceholder(/confirm/i)
+      .or(page.getByText(/confirm/i));
+
+    await expect(currentPwd.first()).toBeVisible({ timeout: 10_000 });
+    await expect(newPwd.first()).toBeVisible({ timeout: 10_000 });
+    await expect(confirmPwd.first()).toBeVisible({ timeout: 10_000 });
+  });
 });

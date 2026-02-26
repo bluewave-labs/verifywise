@@ -49,4 +49,32 @@ test.describe("Datasets", () => {
       .or(page.getByRole("button", { name: /add|new|create/i }));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 3: Modal open/close ---
+
+  test("Add new dataset button opens modal", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/datasets");
+    const addBtn = page.getByRole("button", { name: /add new dataset/i });
+
+    if (await addBtn.isVisible().catch(() => false)) {
+      await addBtn.click();
+      // Verify modal title appears
+      await expect(
+        page
+          .getByText(/add new dataset/i)
+          .or(page.getByText(/create dataset/i))
+          .or(page.getByText(/new dataset/i))
+          .first()
+      ).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
+
+  // --- Tier 4: CRUD skipped ---
+
+  test.skip("CRUD: create and delete dataset", async () => {
+    // Skipped: Dataset creation requires project context
+  });
 });

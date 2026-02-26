@@ -102,9 +102,9 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       </Stack>
 
       {/* Team Members */}
-      <Stack sx={{ gap: 1, flex: 1.5, minWidth: 0 }}>
+      <Stack sx={{ gap: "16px", flex: 1.5, minWidth: 0 }}>
         <Typography
-          sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, height: "22px", margin: 0, color: theme.palette.text.secondary }}
         >
           Team members
         </Typography>
@@ -189,9 +189,9 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       </Stack>
 
       {/* Tags */}
-      <Stack sx={{ gap: 1, flex: 1.5, minWidth: 0 }}>
+      <Stack sx={{ gap: "16px", flex: 1.5, minWidth: 0 }}>
         <Typography
-          sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, height: "22px", margin: 0, color: theme.palette.text.secondary }}
         >
           Tags
         </Typography>

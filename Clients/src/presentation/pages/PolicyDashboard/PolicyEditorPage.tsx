@@ -291,7 +291,6 @@ export default function PolicyEditorPage() {
   const [toolbarState, setToolbarState] = useState(defaultToolbarState);
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const [editorReady, setEditorReady] = useState(false);
   const isLoadingContentRef = useRef(false);
 
   const [formData, setFormData] = useState<PolicyFormData>({
@@ -433,10 +432,6 @@ export default function PolicyEditorPage() {
     ],
     content: "",
     autofocus: false,
-    onCreate: () => {
-      // Defer to avoid state update before mount
-      setTimeout(() => setEditorReady(true), 0);
-    },
     onUpdate: ({ editor: e }) => {
       if (isLoadingContentRef.current) return;
       setFormData((prev) => ({ ...prev, content: e.getHTML() }));
@@ -447,19 +442,16 @@ export default function PolicyEditorPage() {
 
   // ── Load content into editor ──────────────────────────────────────
   useEffect(() => {
-    if (!editor || !editorReady) return;
+    if (!editor) return;
     const content = policy?.content_html || template?.content;
     if (!content || typeof content !== "string") return;
 
-    // Use requestAnimationFrame to ensure editor DOM is fully ready
-    requestAnimationFrame(() => {
-      isLoadingContentRef.current = true;
-      const normalized = normalizeSlateHtml(content);
-      const sanitized = DOMPurify.sanitize(normalized, sanitizeOptions);
-      editor.commands.setContent(sanitized);
-      isLoadingContentRef.current = false;
-    });
-  }, [policy, template, editorReady]); // eslint-disable-line react-hooks/exhaustive-deps
+    isLoadingContentRef.current = true;
+    editor.commands.setContent(
+      DOMPurify.sanitize(normalizeSlateHtml(content), sanitizeOptions)
+    );
+    isLoadingContentRef.current = false;
+  }, [policy, template, editor]);
 
   // ── Image upload handler ──────────────────────────────────────────
   const handleImageFileChange = async (

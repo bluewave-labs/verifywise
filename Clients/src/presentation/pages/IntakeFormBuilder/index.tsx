@@ -1188,7 +1188,7 @@ export function IntakeFormBuilder() {
       {/* Publish warning modal (optional fields unmapped) */}
       <StandardModal
         title="Publish with unmapped fields?"
-        description="The following optional fields are not mapped to any form field. These fields will be empty when the entity is created."
+        description=""
         isOpen={publishWarningOpen}
         onClose={() => setPublishWarningOpen(false)}
         onSubmit={async () => {
@@ -1199,7 +1199,10 @@ export function IntakeFormBuilder() {
         maxWidth="480px"
         fitContent
       >
-        <Box component="ul" sx={{ pl: "20px", m: 0, mt: "4px" }}>
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, mb: "12px" }}>
+          The following optional fields are not mapped to any form field. These fields will be empty when the entity is created.
+        </Typography>
+        <Box component="ul" sx={{ pl: "20px", m: 0 }}>
           {mappingCoverage.missingOptional.map((m) => (
             <Typography
               key={m.field}

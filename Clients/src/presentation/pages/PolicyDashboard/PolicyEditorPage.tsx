@@ -7,8 +7,11 @@ import {
   NodeViewWrapper,
   NodeViewProps,
   ReactNodeViewRenderer,
+  Extension,
 } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import StarterKit from "@tiptap/starter-kit";
 import TipTapUnderline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -22,6 +25,14 @@ import {
   TableHeader as TipTapTableHeader,
 } from "@tiptap/extension-table";
 import Placeholder from "@tiptap/extension-placeholder";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import CharacterCount from "@tiptap/extension-character-count";
+import Superscript from "@tiptap/extension-superscript";
+import Subscript from "@tiptap/extension-subscript";
+import TypographyExtension from "@tiptap/extension-typography";
+import Color from "@tiptap/extension-color";
+import { TextStyle } from "@tiptap/extension-text-style";
 import {
   Box,
   Stack,
@@ -31,6 +42,7 @@ import {
   useTheme,
   Skeleton,
   Divider,
+  Popover,
 } from "@mui/material";
 import {
   Underline as UnderlineIcon,
@@ -66,9 +78,18 @@ import {
   X,
   ToggleLeft,
   ArrowLeft,
+  ListChecks,
+  SuperscriptIcon,
+  SubscriptIcon,
+  Check,
+  Palette,
+  ChevronDown as ChevronDownIcon,
+  ChevronUp as ChevronUpIcon,
+  Search,
 } from "lucide-react";
 
 import Select from "../../components/Inputs/Select";
+import Field from "../../components/Inputs/Field";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { HistorySidebar } from "../../components/Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
@@ -90,14 +111,18 @@ import { store } from "../../../application/redux/store";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 
-// ── Auth image node view ──────────────────────────────────────────────
-const AuthImage: React.FC<NodeViewProps> = ({ node }) => {
+// ── Auth image node view with resize ─────────────────────────────────
+const AuthImage: React.FC<NodeViewProps> = ({ node, updateAttributes, selected }) => {
   const src = node.attrs.src || "";
   const alt = node.attrs.alt || "";
+  const width = node.attrs.width as number | null;
   const isApiUrl =
     src.startsWith("/api/") || src.includes("/api/file-manager/");
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const startXRef = useRef(0);
+  const startWidthRef = useRef(0);
 
   useEffect(() => {
     if (!isApiUrl || !src) return;
@@ -123,6 +148,28 @@ const AuthImage: React.FC<NodeViewProps> = ({ node }) => {
     };
   }, [src, isApiUrl]);
 
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startXRef.current = e.clientX;
+      startWidthRef.current = imgRef.current?.offsetWidth || 300;
+
+      const onMove = (ev: MouseEvent) => {
+        const diff = ev.clientX - startXRef.current;
+        const newWidth = Math.max(100, startWidthRef.current + diff);
+        updateAttributes({ width: newWidth });
+      };
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    },
+    [updateAttributes]
+  );
+
   const displaySrc = isApiUrl ? blobUrl : src;
 
   return (
@@ -142,11 +189,44 @@ const AuthImage: React.FC<NodeViewProps> = ({ node }) => {
           Image not found
         </div>
       ) : displaySrc ? (
-        <img
-          src={displaySrc}
-          alt={alt}
-          style={{ maxWidth: "100%", borderRadius: 8, margin: "12px 0" }}
-        />
+        <div
+          style={{
+            position: "relative",
+            display: "inline-block",
+            margin: "12px 0",
+            outline: selected ? "2px solid #13715B" : "none",
+            borderRadius: 8,
+          }}
+        >
+          <img
+            ref={imgRef}
+            src={displaySrc}
+            alt={alt}
+            style={{
+              display: "block",
+              width: width ? `${width}px` : undefined,
+              maxWidth: "100%",
+              borderRadius: 8,
+            }}
+          />
+          {selected && (
+            <div
+              onMouseDown={handleResizeStart}
+              style={{
+                position: "absolute",
+                right: -5,
+                bottom: -5,
+                width: 12,
+                height: 12,
+                backgroundColor: "#13715B",
+                border: "2px solid #fff",
+                borderRadius: 2,
+                cursor: "nwse-resize",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+              }}
+            />
+          )}
+        </div>
       ) : (
         <div
           style={{
@@ -167,6 +247,16 @@ const AuthImage: React.FC<NodeViewProps> = ({ node }) => {
 };
 
 const AuthImageExtension = TipTapImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("width") ? Number(el.getAttribute("width")) : null,
+        renderHTML: (attrs) => (attrs.width ? { width: attrs.width } : {}),
+      },
+    };
+  },
   addNodeView() {
     return ReactNodeViewRenderer(AuthImage);
   },
@@ -191,7 +281,12 @@ type ToolbarKey =
   | "blockquote"
   | "table"
   | "code"
-  | "hr";
+  | "hr"
+  | "taskList"
+  | "superscript"
+  | "subscript"
+  | "color"
+  | "search";
 
 const defaultToolbarState: Record<ToolbarKey, boolean> = {
   bold: false,
@@ -212,6 +307,11 @@ const defaultToolbarState: Record<ToolbarKey, boolean> = {
   table: false,
   code: false,
   hr: false,
+  taskList: false,
+  superscript: false,
+  subscript: false,
+  color: false,
+  search: false,
 };
 
 // ── Normalize legacy Slate HTML ───────────────────────────────────────
@@ -244,15 +344,17 @@ const sanitizeOptions: DOMPurify.Config = {
     "p", "br", "strong", "b", "em", "i", "u",
     "h1", "h2", "h3", "h4", "h5", "h6",
     "blockquote", "code", "pre",
-    "ul", "ol", "li",
+    "ul", "ol", "li", "label", "input",
     "a", "img", "span", "div", "mark", "s", "hr",
     "table", "thead", "tbody", "tr", "th", "td",
+    "sup", "sub",
   ],
   ALLOWED_ATTR: [
-    "href", "title", "alt", "src",
+    "href", "title", "alt", "src", "width",
     "class", "id", "style",
     "target", "rel",
     "colspan", "rowspan",
+    "data-type", "data-checked", "type", "checked",
   ],
   ALLOWED_URI_REGEXP:
     /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z.+\-]+(?:[^a-z.+\-:]|$))/i,
@@ -260,6 +362,58 @@ const sanitizeOptions: DOMPurify.Config = {
   FORBID_TAGS: ["script", "object", "embed", "iframe", "form", "input", "button"],
   FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur"],
 };
+
+// ── Search highlight extension ─────────────────────────────────────────
+const searchHighlightKey = new PluginKey("searchHighlight");
+
+function createSearchHighlightExtension() {
+  return Extension.create({
+    name: "searchHighlight",
+    addProseMirrorPlugins() {
+      return [
+        new Plugin({
+          key: searchHighlightKey,
+          state: {
+            init() { return { term: "", decorations: DecorationSet.empty }; },
+            apply(tr, prev) {
+              const meta = tr.getMeta(searchHighlightKey);
+              if (meta !== undefined) {
+                const term = meta as string;
+                if (!term) return { term: "", decorations: DecorationSet.empty };
+                const decorations: Decoration[] = [];
+                const searchLower = term.toLowerCase();
+                tr.doc.descendants((node, pos) => {
+                  if (!node.isText || !node.text) return;
+                  const text = node.text.toLowerCase();
+                  let idx = text.indexOf(searchLower);
+                  while (idx !== -1) {
+                    decorations.push(
+                      Decoration.inline(pos + idx, pos + idx + term.length, {
+                        class: "search-highlight",
+                      })
+                    );
+                    idx = text.indexOf(searchLower, idx + term.length);
+                  }
+                });
+                return { term, decorations: DecorationSet.create(tr.doc, decorations) };
+              }
+              // Remap existing decorations on doc change
+              if (tr.docChanged && prev.decorations !== DecorationSet.empty) {
+                return { ...prev, decorations: prev.decorations.map(tr.mapping, tr.doc) };
+              }
+              return prev;
+            },
+          },
+          props: {
+            decorations(state) {
+              return this.getState(state)?.decorations ?? DecorationSet.empty;
+            },
+          },
+        }),
+      ];
+    },
+  });
+}
 
 // ── Component ─────────────────────────────────────────────────────────
 export default function PolicyEditorPage() {
@@ -287,11 +441,21 @@ export default function PolicyEditorPage() {
   const [isExportingDOCX, setIsExportingDOCX] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [toolbarState, setToolbarState] = useState(defaultToolbarState);
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const isLoadingContentRef = useRef(false);
+
+  // Color picker state
+  const [colorAnchorEl, setColorAnchorEl] = useState<HTMLElement | null>(null);
+
+  // Search & replace state
+  const [searchAnchorEl, setSearchAnchorEl] = useState<HTMLElement | null>(null);
+  const [searchText, setSearchText] = useState("");
+  const [replaceText, setReplaceText] = useState("");
+  const [searchMatchCount, setSearchMatchCount] = useState(0);
 
   const [formData, setFormData] = useState<PolicyFormData>({
     title: "",
@@ -405,6 +569,11 @@ export default function PolicyEditorPage() {
         image: false,
         table: editor.isActive("table"),
         hr: false,
+        taskList: editor.isActive("taskList"),
+        superscript: editor.isActive("superscript"),
+        subscript: editor.isActive("subscript"),
+        color: false,
+        search: false,
       });
     } catch {
       // ignore
@@ -437,6 +606,15 @@ export default function PolicyEditorPage() {
       TipTapTableCell,
       TipTapTableHeader,
       Placeholder.configure({ placeholder: "Start typing your policy content..." }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      CharacterCount,
+      Superscript,
+      Subscript,
+      TypographyExtension,
+      TextStyle,
+      Color,
+      createSearchHighlightExtension(),
     ],
     content: initialContent,
     autofocus: false,
@@ -446,6 +624,68 @@ export default function PolicyEditorPage() {
       updateToolbarState();
     },
     onSelectionUpdate: () => updateToolbarState(),
+    editorProps: {
+      handleDrop: (view, event, _slice, moved) => {
+        if (moved || !event.dataTransfer?.files?.length) return false;
+        const file = event.dataTransfer.files[0];
+        if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) return false;
+        event.preventDefault();
+        // Capture position before async upload
+        const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
+        const dropPos = coords?.pos ?? view.state.selection.anchor;
+        (async () => {
+          try {
+            const response = await uploadFileToManager({
+              file,
+              model_id: null,
+              source: "policy_editor",
+              signal: undefined,
+            });
+            const fileId = response.data.id;
+            const node = view.state.schema.nodes.image.create({
+              src: `/api/file-manager/${fileId}`,
+              alt: file.name,
+            });
+            const tr = view.state.tr.insert(Math.min(dropPos, view.state.doc.content.size), node);
+            view.dispatch(tr);
+          } catch {
+            // ignore
+          }
+        })();
+        return true;
+      },
+      handlePaste: (view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+        for (const item of Array.from(items)) {
+          if (!item.type.startsWith("image/")) continue;
+          const file = item.getAsFile();
+          if (!file || file.size > 10 * 1024 * 1024) continue;
+          event.preventDefault();
+          (async () => {
+            try {
+              const response = await uploadFileToManager({
+                file,
+                model_id: null,
+                source: "policy_editor",
+                signal: undefined,
+              });
+              const fileId = response.data.id;
+              const node = view.state.schema.nodes.image.create({
+                src: `/api/file-manager/${fileId}`,
+                alt: file.name,
+              });
+              const tr = view.state.tr.replaceSelectionWith(node);
+              view.dispatch(tr);
+            } catch {
+              // ignore
+            }
+          })();
+          return true;
+        }
+        return false;
+      },
+    },
   }, [initialContent]);
 
   // ── Image upload handler ──────────────────────────────────────────
@@ -496,6 +736,178 @@ export default function PolicyEditorPage() {
     setTimeout(() => updateToolbarState(), 0);
   };
 
+  // ── Color palette ────────────────────────────────────────────────
+  const colorPalette = [
+    "#000000", "#344054", "#475467", "#667085",
+    "#dc2626", "#ea580c", "#d97706", "#ca8a04",
+    "#16a34a", "#059669", "#0d9488", "#0891b2",
+    "#2563eb", "#4f46e5", "#7c3aed", "#9333ea",
+  ];
+
+  // ── Search & replace ───────────────────────────────────────────
+  const countMatches = useCallback(() => {
+    if (!editor || !searchText) { setSearchMatchCount(0); return; }
+    const searchLower = searchText.toLowerCase();
+    let count = 0;
+    editor.state.doc.descendants((node) => {
+      if (!node.isText || !node.text) return;
+      const text = node.text.toLowerCase();
+      let idx = text.indexOf(searchLower);
+      while (idx !== -1) {
+        count++;
+        idx = text.indexOf(searchLower, idx + searchText.length);
+      }
+    });
+    setSearchMatchCount(count);
+  }, [editor, searchText]);
+
+  // Count matches, update decorations, and auto-find first match when searchText changes
+  useEffect(() => {
+    countMatches();
+    if (!editor) return;
+    // Update search highlight decorations
+    const tr = editor.state.tr.setMeta(searchHighlightKey, searchText || "");
+    editor.view.dispatch(tr);
+    // Auto-jump to first match
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      let found = false;
+      editor.state.doc.descendants((node, pos) => {
+        if (found || !node.isText || !node.text) return;
+        const text = node.text.toLowerCase();
+        const idx = text.indexOf(searchLower);
+        if (idx !== -1) {
+          const from = pos + idx;
+          const to = from + searchText.length;
+          editor.chain().setTextSelection({ from, to }).scrollIntoView().run();
+          found = true;
+        }
+      });
+    }
+  }, [countMatches, editor, searchText]);
+
+  const handleSearchNext = useCallback(() => {
+    if (!editor || !searchText) return;
+    const { doc, selection } = editor.state;
+    const searchLower = searchText.toLowerCase();
+    const startFrom = selection.to;
+    let found = false;
+
+    doc.descendants((node, pos) => {
+      if (found || !node.isText || !node.text) return;
+      const text = node.text.toLowerCase();
+      const idx = pos >= startFrom
+        ? text.indexOf(searchLower)
+        : text.indexOf(searchLower, startFrom - pos);
+      if (idx !== -1 && pos + idx >= startFrom) {
+        const from = pos + idx;
+        const to = from + searchText.length;
+        editor.chain().setTextSelection({ from, to }).scrollIntoView().run();
+        found = true;
+      }
+    });
+
+    // Wrap around if not found after cursor
+    if (!found) {
+      doc.descendants((node, pos) => {
+        if (found || !node.isText || !node.text) return;
+        const text = node.text.toLowerCase();
+        const idx = text.indexOf(searchLower);
+        if (idx !== -1) {
+          const from = pos + idx;
+          const to = from + searchText.length;
+          editor.chain().setTextSelection({ from, to }).scrollIntoView().run();
+          found = true;
+        }
+      });
+    }
+  }, [editor, searchText]);
+
+  const handleSearchPrev = useCallback(() => {
+    if (!editor || !searchText) return;
+    const { doc, selection } = editor.state;
+    const searchLower = searchText.toLowerCase();
+    const startBefore = selection.from;
+    let lastMatch: { from: number; to: number } | null = null;
+
+    // Find the last match before cursor
+    doc.descendants((node, pos) => {
+      if (!node.isText || !node.text) return;
+      const text = node.text.toLowerCase();
+      let idx = text.indexOf(searchLower);
+      while (idx !== -1) {
+        const from = pos + idx;
+        if (from < startBefore) {
+          lastMatch = { from, to: from + searchText.length };
+        }
+        idx = text.indexOf(searchLower, idx + searchText.length);
+      }
+    });
+
+    if (lastMatch) {
+      editor.chain().setTextSelection(lastMatch).scrollIntoView().run();
+    } else {
+      // Wrap around: find last match in the whole doc
+      doc.descendants((node, pos) => {
+        if (!node.isText || !node.text) return;
+        const text = node.text.toLowerCase();
+        let idx = text.indexOf(searchLower);
+        while (idx !== -1) {
+          const from = pos + idx;
+          lastMatch = { from, to: from + searchText.length };
+          idx = text.indexOf(searchLower, idx + searchText.length);
+        }
+      });
+      if (lastMatch) {
+        editor.chain().setTextSelection(lastMatch).scrollIntoView().run();
+      }
+    }
+  }, [editor, searchText]);
+
+  const handleReplaceCurrent = useCallback(() => {
+    if (!editor || !searchText) return;
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to).toLowerCase();
+    if (selectedText === searchText.toLowerCase()) {
+      editor.chain().deleteSelection().insertContent(replaceText).run();
+      countMatches();
+      // Find next match after replacement
+      handleSearchNext();
+    } else {
+      // No current selection matching — find next first
+      handleSearchNext();
+    }
+  }, [editor, searchText, replaceText, countMatches, handleSearchNext]);
+
+  const handleReplaceAll = useCallback(() => {
+    if (!editor || !searchText) return;
+    const { doc, tr } = editor.state;
+    const searchLower = searchText.toLowerCase();
+    let replaced = 0;
+
+    doc.descendants((node, pos) => {
+      if (!node.isText || !node.text) return;
+      const text = node.text.toLowerCase();
+      let idx = text.indexOf(searchLower);
+      while (idx !== -1) {
+        const from = pos + idx;
+        const to = from + searchText.length;
+        tr.replaceWith(
+          from + (replaced * (replaceText.length - searchText.length)),
+          to + (replaced * (replaceText.length - searchText.length)),
+          editor.state.schema.text(replaceText)
+        );
+        replaced++;
+        idx = text.indexOf(searchLower, idx + searchText.length);
+      }
+    });
+
+    if (replaced > 0) {
+      editor.view.dispatch(tr);
+      countMatches();
+    }
+  }, [editor, searchText, replaceText, countMatches]);
+
   // ── Toolbar config ────────────────────────────────────────────────
   const toolbarConfig: Array<{
     key: ToolbarKey;
@@ -540,6 +952,18 @@ export default function PolicyEditorPage() {
       action: () => editor?.chain().focus().toggleStrike().run(),
     },
     {
+      key: "superscript",
+      title: "Superscript",
+      icon: <SuperscriptIcon size={16} />,
+      action: () => editor?.chain().focus().toggleSuperscript().run(),
+    },
+    {
+      key: "subscript",
+      title: "Subscript",
+      icon: <SubscriptIcon size={16} />,
+      action: () => editor?.chain().focus().toggleSubscript().run(),
+    },
+    {
       key: "highlight",
       title: "Highlight",
       icon: <Highlighter size={16} />,
@@ -562,6 +986,12 @@ export default function PolicyEditorPage() {
       title: "Bulleted list",
       icon: <List size={16} />,
       action: () => editor?.chain().focus().toggleBulletList().run(),
+    },
+    {
+      key: "taskList",
+      title: "Task list",
+      icon: <ListChecks size={16} />,
+      action: () => editor?.chain().focus().toggleTaskList().run(),
     },
     {
       key: "blockquote",
@@ -632,6 +1062,18 @@ export default function PolicyEditorPage() {
           .focus()
           .insertTable({ rows: 3, cols: 4, withHeaderRow: true })
           .run(),
+    },
+    {
+      key: "color",
+      title: "Text color",
+      icon: <Palette size={16} />,
+      action: () => {}, // handled via popover click
+    },
+    {
+      key: "search",
+      title: "Find & replace",
+      icon: <Search size={16} />,
+      action: () => {}, // handled via popover click
     },
   ];
 
@@ -760,33 +1202,22 @@ export default function PolicyEditorPage() {
     };
 
     try {
-      const startTime = Date.now();
+      let savedPolicy: PolicyManagerModel;
 
       if (isNew) {
-        await createPolicy(payload);
+        savedPolicy = await createPolicy(payload);
       } else {
-        await updatePolicy(policy!.id, payload);
+        savedPolicy = await updatePolicy(policy!.id, payload);
       }
 
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 1000)
-        await new Promise((r) => setTimeout(r, 1000 - elapsed));
-
       setIsSaving(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
 
-      const message =
-        isNew && template
-          ? "Policy created successfully from template"
-          : isNew
-            ? "Policy created successfully"
-            : "Policy updated successfully";
-
-      navigate("/policies", {
-        state: {
-          successMessage: message,
-          flashRowId: policy?.id,
-        },
-      });
+      // For new policies, navigate to the edit URL so subsequent saves work as updates
+      if (isNew && savedPolicy?.id) {
+        navigate(`/policies/${savedPolicy.id}/edit`, { replace: true });
+      }
     } catch (err: any) {
       setIsSaving(false);
 
@@ -967,7 +1398,7 @@ export default function PolicyEditorPage() {
 
       <Stack
         sx={{
-          height: "calc(100vh - 130px)",
+          height: "calc(100vh - 100px)",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -1000,7 +1431,7 @@ export default function PolicyEditorPage() {
             </Typography>
           </Stack>
 
-          <Stack direction="row" gap={1} alignItems="center">
+          <Stack direction="row" gap="8px" alignItems="center">
             {/* Export error */}
             {exportError && (
               <Typography
@@ -1126,18 +1557,20 @@ export default function PolicyEditorPage() {
               text={
                 isSaving
                   ? "Saving..."
-                  : isNew && template
-                    ? "Save in organizational policies"
-                    : "Save"
+                  : saveSuccess
+                    ? "Saved"
+                    : isNew && template
+                      ? "Save in organizational policies"
+                      : "Save"
               }
               isDisabled={isSaving}
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                backgroundColor: saveSuccess ? "#079455" : "#13715B",
+                border: `1px solid ${saveSuccess ? "#079455" : "#13715B"}`,
                 gap: 2,
                 "&:hover": {
-                  backgroundColor: "#0F5B4D",
-                  borderColor: "#0F5B4D",
+                  backgroundColor: saveSuccess ? "#079455" : "#0F5B4D",
+                  borderColor: saveSuccess ? "#079455" : "#0F5B4D",
                 },
                 "&:disabled": {
                   backgroundColor: "#13715B",
@@ -1151,6 +1584,8 @@ export default function PolicyEditorPage() {
                     size={16}
                     style={{ animation: "spin 1s linear infinite" }}
                   />
+                ) : saveSuccess ? (
+                  <Check size={16} />
                 ) : (
                   <SaveIcon size={16} />
                 )
@@ -1176,7 +1611,7 @@ export default function PolicyEditorPage() {
             display: "flex",
             flexWrap: "wrap",
             gap: 0.5,
-            mb: 1.5,
+            mb: "8px",
             alignItems: "center",
             flexShrink: 0,
           }}
@@ -1200,7 +1635,15 @@ export default function PolicyEditorPage() {
           {toolbarConfig.map(({ key, title, icon, action }) => (
             <Tooltip key={key} title={title}>
               <IconButton
-                onClick={() => {
+                onClick={(e) => {
+                  if (key === "color") {
+                    setColorAnchorEl(e.currentTarget);
+                    return;
+                  }
+                  if (key === "search") {
+                    setSearchAnchorEl(e.currentTarget);
+                    return;
+                  }
                   action?.();
                   setTimeout(() => updateToolbarState(), 0);
                 }}
@@ -1218,7 +1661,223 @@ export default function PolicyEditorPage() {
               </IconButton>
             </Tooltip>
           ))}
+
+          {/* Character / word count */}
+          {editor && (
+            <Box sx={{ ml: "auto", display: "flex", gap: 2, alignItems: "center" }}>
+              <Typography sx={{ fontSize: 11, color: "#98A2B3" }}>
+                {editor.storage.characterCount.words()} words
+              </Typography>
+              <Typography sx={{ fontSize: 11, color: "#98A2B3" }}>
+                {editor.storage.characterCount.characters()} characters
+              </Typography>
+            </Box>
+          )}
         </Box>
+
+        {/* ── Color picker popover ────────────────────────────────── */}
+        <Popover
+          open={Boolean(colorAnchorEl)}
+          anchorEl={colorAnchorEl}
+          onClose={() => setColorAnchorEl(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+          slotProps={{
+            paper: {
+              sx: {
+                p: 1.5,
+                borderRadius: "6px",
+                border: "1px solid #D0D5DD",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              },
+            },
+          }}
+        >
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "4px" }}>
+            {colorPalette.map((c) => (
+              <Box
+                key={c}
+                onClick={() => {
+                  editor?.chain().focus().setColor(c).run();
+                  setColorAnchorEl(null);
+                }}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: "4px",
+                  backgroundColor: c,
+                  cursor: "pointer",
+                  border: "1px solid rgba(0,0,0,0.1)",
+                  "&:hover": { transform: "scale(1.15)", transition: "transform 0.1s" },
+                }}
+              />
+            ))}
+          </Box>
+          <Box
+            onClick={() => {
+              editor?.chain().focus().unsetColor().run();
+              setColorAnchorEl(null);
+            }}
+            sx={{
+              mt: 1,
+              textAlign: "center",
+              fontSize: 11,
+              color: "#667085",
+              cursor: "pointer",
+              "&:hover": { color: "#344054" },
+            }}
+          >
+            Reset to default
+          </Box>
+        </Popover>
+
+        {/* ── Find & replace popover (Google Docs style) ────────────── */}
+        <Popover
+          open={Boolean(searchAnchorEl)}
+          anchorEl={searchAnchorEl}
+          onClose={() => {
+            setSearchAnchorEl(null);
+            setSearchText("");
+            setReplaceText("");
+          }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+          disableAutoFocus
+          disableEnforceFocus
+          slotProps={{
+            paper: {
+              sx: {
+                width: 340,
+                borderRadius: "4px",
+                border: "1px solid #D0D5DD",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                p: "16px",
+              },
+            },
+          }}
+        >
+          {/* Find row */}
+          <Stack gap="12px">
+            <Stack direction="row" gap="8px" alignItems="center">
+              <Box sx={{ flex: 1 }}>
+                <Field
+                  id="search-find-input"
+                  placeholder="Find in document..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSearchNext(); }}
+                  autoFocus
+                  sx={{
+                    "& .field-input": { height: 34 },
+                    "& input": { padding: "0 10px", fontSize: 13 },
+                  }}
+                />
+              </Box>
+              <Tooltip title="Previous" arrow>
+                <IconButton
+                  onClick={handleSearchPrev}
+                  disabled={searchMatchCount === 0}
+                  size="small"
+                  sx={{
+                    padding: "6px",
+                    borderRadius: "4px",
+                    border: "1px solid #D0D5DD",
+                    color: "#344054",
+                    "&:hover": { backgroundColor: "#F9FAFB" },
+                    "&:disabled": { color: "#D0D5DD", borderColor: "#EAECF0" },
+                  }}
+                >
+                  <ChevronUpIcon size={16} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Next" arrow>
+                <IconButton
+                  onClick={handleSearchNext}
+                  disabled={searchMatchCount === 0}
+                  size="small"
+                  sx={{
+                    padding: "6px",
+                    borderRadius: "4px",
+                    border: "1px solid #D0D5DD",
+                    color: "#344054",
+                    "&:hover": { backgroundColor: "#F9FAFB" },
+                    "&:disabled": { color: "#D0D5DD", borderColor: "#EAECF0" },
+                  }}
+                >
+                  <ChevronDownIcon size={16} />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+
+            {/* Match count */}
+            {searchText && (
+              <Typography sx={{ fontSize: 11, color: "#98A2B3", mt: "-4px" }}>
+                {searchMatchCount === 0
+                  ? "No matches found"
+                  : `${searchMatchCount} match${searchMatchCount !== 1 ? "es" : ""} found`}
+              </Typography>
+            )}
+
+            {/* Replace row */}
+            <Stack direction="row" gap="8px" alignItems="center">
+              <Box sx={{ flex: 1 }}>
+                <Field
+                  id="search-replace-input"
+                  placeholder="Replace with..."
+                  value={replaceText}
+                  onChange={(e) => setReplaceText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleReplaceCurrent(); }}
+                  sx={{
+                    "& .field-input": { height: 34 },
+                    "& input": { padding: "0 10px", fontSize: 13 },
+                  }}
+                />
+              </Box>
+              <Tooltip title="Replace" arrow>
+                <span>
+                  <CustomizableButton
+                    variant="outlined"
+                    text="Replace"
+                    onClick={handleReplaceCurrent}
+                    isDisabled={searchMatchCount === 0}
+                    sx={{
+                      minWidth: "auto",
+                      height: 34,
+                      px: "10px",
+                      fontSize: 12,
+                      backgroundColor: "#fff",
+                      border: "1px solid #D0D5DD",
+                      color: "#344054",
+                      whiteSpace: "nowrap",
+                      "&:hover": { backgroundColor: "#F9FAFB" },
+                    }}
+                  />
+                </span>
+              </Tooltip>
+            </Stack>
+
+            {/* Replace all */}
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <CustomizableButton
+                variant="outlined"
+                text="Replace all"
+                onClick={handleReplaceAll}
+                isDisabled={searchMatchCount === 0}
+                sx={{
+                  minWidth: "auto",
+                  height: 34,
+                  px: "10px",
+                  fontSize: 12,
+                  backgroundColor: "#fff",
+                  border: "1px solid #D0D5DD",
+                  color: "#344054",
+                  whiteSpace: "nowrap",
+                  "&:hover": { backgroundColor: "#F9FAFB" },
+                }}
+              />
+            </Box>
+          </Stack>
+        </Popover>
 
         {/* ── Editor + History sidebar ─────────────────────────────── */}
         <Stack
@@ -1230,19 +1889,10 @@ export default function PolicyEditorPage() {
             sx={{
               flex: 1,
               minWidth: 0,
+              minHeight: 0,
+              overflow: "auto",
               border: "1px solid #D0D5DD",
               borderRadius: "4px",
-              transition:
-                "border-color 150ms ease-in-out, outline 150ms ease-in-out, box-shadow 150ms ease-in-out",
-              outline: "1px solid transparent",
-              outlineOffset: "-1px",
-              "&:hover": { borderColor: "#5FA896" },
-              "&:focus-within": {
-                borderColor: "#13715B",
-                outline: "1px solid #13715B",
-                outlineOffset: "-1px",
-                boxShadow: "0 0 0 3px rgba(19, 113, 91, 0.1)",
-              },
             }}
           >
             <EditorContent
@@ -1440,6 +2090,48 @@ export default function PolicyEditorPage() {
                 font-size: 1.15em;
                 font-weight: 600;
                 margin: 10px 0 4px;
+              }
+              .policy-tiptap-editor .ProseMirror ul[data-type="taskList"] {
+                list-style: none;
+                padding-left: 4px;
+              }
+              .policy-tiptap-editor .ProseMirror ul[data-type="taskList"] li {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+                margin: 4px 0;
+              }
+              .policy-tiptap-editor .ProseMirror ul[data-type="taskList"] li label {
+                display: flex;
+                align-items: center;
+                flex-shrink: 0;
+                margin-top: 2px;
+              }
+              .policy-tiptap-editor .ProseMirror ul[data-type="taskList"] li label input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                accent-color: #13715B;
+              }
+              .policy-tiptap-editor .ProseMirror ul[data-type="taskList"] li > div {
+                flex: 1;
+              }
+              .policy-tiptap-editor .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div > p {
+                text-decoration: line-through;
+                color: #98A2B3;
+              }
+              .policy-tiptap-editor .ProseMirror sup {
+                font-size: 0.75em;
+                vertical-align: super;
+              }
+              .policy-tiptap-editor .ProseMirror sub {
+                font-size: 0.75em;
+                vertical-align: sub;
+              }
+              .policy-tiptap-editor .ProseMirror .search-highlight {
+                background-color: #fef08a;
+                border-radius: 2px;
+                box-shadow: 0 0 0 1px #eab308;
               }
             `}</style>
           </Box>

@@ -115,10 +115,9 @@ test.describe("File Manager", () => {
 
     if (await uploadBtn.isVisible().catch(() => false)) {
       await uploadBtn.click();
+      await page.waitForTimeout(500);
       // FileManagerUpload uses <Dialog> (role="dialog")
-      await expect(
-        page.getByRole("dialog").or(page.getByText(/upload/i).last())
-      ).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
       await page.keyboard.press("Escape");
     }
   });

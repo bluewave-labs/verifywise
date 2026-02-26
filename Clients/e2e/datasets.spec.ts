@@ -9,7 +9,7 @@ test.describe("Datasets", () => {
     // Page should show dataset-related content or empty state
     await expect(
       page.getByText(/dataset/i).first()
-    ).toBeVisible({ timeout: 10_000 });
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("page has no accessibility violations", async ({

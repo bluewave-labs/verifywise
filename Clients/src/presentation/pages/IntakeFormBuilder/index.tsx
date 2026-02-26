@@ -373,12 +373,7 @@ export function IntakeFormBuilder() {
 
     // Block publish if required entity fields are unmapped
     if (mappingCoverage.missingRequired.length > 0) {
-      const names = mappingCoverage.missingRequired.map((m) => m.label).join(", ");
-      setSnackbar({
-        open: true,
-        message: `Required fields not mapped: ${names}. Add form fields mapped to these before publishing.`,
-        severity: "error",
-      });
+      setRequiredFieldsModalOpen(true);
       return;
     }
 
@@ -453,6 +448,7 @@ export function IntakeFormBuilder() {
   };
 
   const [publishWarningOpen, setPublishWarningOpen] = useState(false);
+  const [requiredFieldsModalOpen, setRequiredFieldsModalOpen] = useState(false);
 
   // ============================================================================
   // Derived values
@@ -1204,6 +1200,33 @@ export function IntakeFormBuilder() {
         </Typography>
         <Box component="ul" sx={{ pl: "20px", m: 0 }}>
           {mappingCoverage.missingOptional.map((m) => (
+            <Typography
+              key={m.field}
+              component="li"
+              sx={{ fontSize: 13, color: theme.palette.text.secondary, mb: "4px" }}
+            >
+              {m.label}
+            </Typography>
+          ))}
+        </Box>
+      </StandardModal>
+
+      {/* Required fields not mapped modal */}
+      <StandardModal
+        title="Required fields not mapped"
+        description=""
+        isOpen={requiredFieldsModalOpen}
+        onClose={() => setRequiredFieldsModalOpen(false)}
+        onSubmit={() => setRequiredFieldsModalOpen(false)}
+        submitButtonText="OK"
+        maxWidth="480px"
+        fitContent
+      >
+        <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, mb: "12px" }}>
+          The following required fields are not mapped to any form field. Add form fields mapped to these before publishing.
+        </Typography>
+        <Box component="ul" sx={{ pl: "20px", m: 0 }}>
+          {mappingCoverage.missingRequired.map((m) => (
             <Typography
               key={m.field}
               component="li"

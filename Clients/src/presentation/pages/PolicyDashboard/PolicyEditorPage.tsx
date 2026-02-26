@@ -451,12 +451,15 @@ export default function PolicyEditorPage() {
     const content = policy?.content_html || template?.content;
     if (!content || typeof content !== "string") return;
 
-    const normalized = normalizeSlateHtml(content);
-    const sanitized = DOMPurify.sanitize(normalized, sanitizeOptions);
-    isLoadingContentRef.current = true;
-    editor.commands.setContent(sanitized);
-    isLoadingContentRef.current = false;
-  }, [policy, template, editor, editorReady]);
+    // Use requestAnimationFrame to ensure editor DOM is fully ready
+    requestAnimationFrame(() => {
+      isLoadingContentRef.current = true;
+      const normalized = normalizeSlateHtml(content);
+      const sanitized = DOMPurify.sanitize(normalized, sanitizeOptions);
+      editor.commands.setContent(sanitized);
+      isLoadingContentRef.current = false;
+    });
+  }, [policy, template, editorReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Image upload handler ──────────────────────────────────────────
   const handleImageFileChange = async (

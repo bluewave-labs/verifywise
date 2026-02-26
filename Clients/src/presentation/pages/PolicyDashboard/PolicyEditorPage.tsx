@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import {
@@ -466,13 +466,12 @@ export default function PolicyEditorPage() {
     content: "",
   });
 
-  // Resolve template from query param
-  const template = templateId
-    ? (() => {
-        const t = policyTemplates.find((p) => p.id === Number(templateId));
-        return t ? { title: t.title, tags: t.tags, content: t.content } : undefined;
-      })()
-    : undefined;
+  // Resolve template from query param (memoized to avoid new object each render)
+  const template = useMemo(() => {
+    if (!templateId) return undefined;
+    const t = policyTemplates.find((p) => p.id === Number(templateId));
+    return t ? { title: t.title, tags: t.tags, content: t.content } : undefined;
+  }, [templateId]);
 
   // Prefetch change history for existing policies
   usePolicyChangeHistory(!isNew && policy?.id ? policy.id : undefined);

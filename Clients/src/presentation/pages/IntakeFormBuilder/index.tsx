@@ -1109,6 +1109,7 @@ export function IntakeFormBuilder() {
                           </Typography>
                         </Box>
 
+                        {form.llmKeyId && (
                         <Box
                           sx={{
                             display: "flex",
@@ -1156,6 +1157,7 @@ export function IntakeFormBuilder() {
                             </Typography>
                           </Box>
                         </Box>
+                        )}
 
                       </Box>
                     </Collapse>

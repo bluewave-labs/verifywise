@@ -182,7 +182,6 @@ export const ENTITY_FIELD_MAPPINGS: Record<IntakeEntityType, EntityFieldMapping[
     { field: "provider", label: "Provider", description: "Model provider/vendor", requiredFieldType: ["text", "select"] },
     { field: "modelType", label: "Model type", description: "Type of AI model", requiredFieldType: ["text", "select"] },
     { field: "intendedUse", label: "Intended use", description: "Intended use of the model", requiredFieldType: ["textarea", "text"] },
-    { field: "riskLevel", label: "Risk level", description: "Risk classification", requiredFieldType: ["select"] },
   ],
   [IntakeEntityType.USE_CASE]: [
     { field: "project_title", label: "Project title", description: "Title of the use case/project", requiredFieldType: ["text"], entityRequired: true },

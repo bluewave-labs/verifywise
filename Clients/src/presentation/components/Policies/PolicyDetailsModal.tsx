@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import DOMPurify from "dompurify";
 import PolicyForm from "./PolicyForm";
 import { PolicyFormErrors, PolicyDetailModalProps, PolicyFormData } from "../../types/interfaces/i.policy";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, NodeViewWrapper, NodeViewProps, ReactNodeViewRenderer } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -13,6 +13,63 @@ import { Table as TipTapTable, TableRow as TipTapTableRow, TableCell as TipTapTa
 import Placeholder from "@tiptap/extension-placeholder";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 import { uploadFileToManager } from "../../../application/repository/file.repository";
+
+// Custom image node view that fetches API images with auth headers
+const AuthImage: React.FC<NodeViewProps> = ({ node }) => {
+  const src = node.attrs.src || "";
+  const alt = node.attrs.alt || "";
+  const isApiUrl = src.startsWith("/api/") || src.includes("/api/file-manager/");
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!isApiUrl || !src) return;
+    let cancelled = false;
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const token = store.getState().auth.authToken;
+        const res = await fetch(src, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        if (!cancelled) setBlobUrl(URL.createObjectURL(blob));
+      } catch (e: any) {
+        if (e.name !== "AbortError" && !cancelled) setError(true);
+      }
+    })();
+
+    return () => { cancelled = true; controller.abort(); };
+  }, [src, isApiUrl]);
+
+  const displaySrc = isApiUrl ? blobUrl : src;
+
+  return (
+    <NodeViewWrapper>
+      {error ? (
+        <div style={{ background: "#fee2e2", color: "#991b1b", padding: "8px 12px", borderRadius: 6, fontSize: "0.9rem", textAlign: "center", margin: "12px 0" }}>
+          Image not found
+        </div>
+      ) : displaySrc ? (
+        <img src={displaySrc} alt={alt} style={{ maxWidth: "100%", borderRadius: 8, margin: "12px 0" }} />
+      ) : (
+        <div style={{ background: "#f0f0f0", color: "#666", padding: "16px 24px", borderRadius: 6, textAlign: "center", fontSize: "0.9rem", margin: "12px 0" }}>
+          Loading image...
+        </div>
+      )}
+    </NodeViewWrapper>
+  );
+};
+
+// Extend TipTap's Image extension with the auth-aware node view
+const AuthImageExtension = TipTapImage.extend({
+  addNodeView() {
+    return ReactNodeViewRenderer(AuthImage);
+  },
+});
 
 import {
   Underline as UnderlineIcon,
@@ -76,6 +133,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingDOCX, setIsExportingDOCX] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Prefetch history data when drawer opens in edit mode
@@ -298,7 +356,7 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
           rel: 'noopener noreferrer',
         },
       }),
-      TipTapImage.configure({
+      AuthImageExtension.configure({
         inline: false,
         allowBase64: true,
       }),
@@ -668,36 +726,45 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
     }
   };
 
-  // Export policy as PDF
-  const exportPDF = async () => {
+  // Helper to download a file from a fetch response
+  const downloadExport = async (format: "pdf" | "docx") => {
     if (!policy?.id) return;
 
-    setIsExportingPDF(true);
+    const setExporting = format === "pdf" ? setIsExportingPDF : setIsExportingDOCX;
+    setExporting(true);
+    setExportError(null);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+
     try {
       const token = store.getState().auth.authToken;
-      const response = await fetch(`/api/policies/${policy.id}/export/pdf`, {
+      const response = await fetch(`/api/policies/${policy.id}/export/${format}`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeout);
+
       if (!response.ok) {
-        throw new Error("Failed to export PDF");
+        throw new Error(`Export failed (${response.status})`);
       }
 
       const blob = await response.blob();
       const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.${format}`;
 
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match) {
-          filename = match[1];
-        }
+        if (match) filename = match[1];
       }
 
-      const url = window.URL.createObjectURL(blob);
+      const finalBlob = format === "docx"
+        ? new Blob([blob], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" })
+        : blob;
+
+      const url = window.URL.createObjectURL(finalBlob);
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
@@ -705,59 +772,15 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to export PDF:", error);
+    } catch (error: any) {
+      clearTimeout(timeout);
+      const message = error.name === "AbortError"
+        ? `${format.toUpperCase()} export timed out. Please try again.`
+        : `Failed to export ${format.toUpperCase()}. Please try again.`;
+      setExportError(message);
+      console.error(`Failed to export ${format}:`, error);
     } finally {
-      setIsExportingPDF(false);
-    }
-  };
-
-  // Export policy as DOCX
-  const exportDOCX = async () => {
-    if (!policy?.id) return;
-
-    setIsExportingDOCX(true);
-    try {
-      const token = store.getState().auth.authToken;
-      const response = await fetch(`/api/policies/${policy.id}/export/docx`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to export DOCX");
-      }
-
-      const blob = await response.blob();
-      console.log("DOCX blob size:", blob.size, "type:", blob.type);
-
-      const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `${formData.title.replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
-
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match) {
-          filename = match[1];
-        }
-      }
-
-      const docxBlob = new Blob([blob], {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      });
-      const url = window.URL.createObjectURL(docxBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to export DOCX:", error);
-    } finally {
-      setIsExportingDOCX(false);
+      setExporting(false);
     }
   };
 
@@ -1096,6 +1119,23 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
             transition: "right 300ms ease-in-out",
           }}
         >
+          {/* Export error banner */}
+          {exportError && (
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: theme.palette.status?.error?.text || "#f04438",
+                backgroundColor: theme.palette.status?.error?.bg || "#f9eced",
+                px: 1.5,
+                py: 0.75,
+                borderRadius: "4px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {exportError}
+            </Typography>
+          )}
           {/* Export buttons - only show when editing existing policy */}
           {!isNew && policy?.id && (
             <>
@@ -1121,8 +1161,8 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                         color: "#98A2B3",
                       },
                     }}
-                    onClick={exportPDF}
-                    icon={<FileText size={16} />}
+                    onClick={() => downloadExport("pdf")}
+                    icon={isExportingPDF ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <FileText size={16} />}
                   />
                 </span>
               </Tooltip>
@@ -1148,8 +1188,8 @@ const PolicyDetailModal: React.FC<PolicyDetailModalProps> = ({
                         color: "#98A2B3",
                       },
                     }}
-                    onClick={exportDOCX}
-                    icon={<FileDown size={16} />}
+                    onClick={() => downloadExport("docx")}
+                    icon={isExportingDOCX ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <FileDown size={16} />}
                   />
                 </span>
               </Tooltip>

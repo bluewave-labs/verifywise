@@ -21,6 +21,7 @@ import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
 import { DeploymentManager } from "./application/utils/deploymentHelpers";
+import UpdateBanner from "./presentation/components/UpdateBanner";
 import { CommandPalette } from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
@@ -103,6 +104,7 @@ function App() {
   const location = useLocation();
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
   const { users, refreshUsers } = useUsers();
   const {userPreferences} = useUserPreferences();
   const commandPalette = useCommandPalette();
@@ -143,10 +145,14 @@ function App() {
       setTimeout(() => setAlert(null), 5000);
     });
 
-    // Initialize deployment update checking
-    DeploymentManager.initializeUpdateCheck();
+    // Poll backend for version updates
+    DeploymentManager.startPolling();
+    const unsubscribe = DeploymentManager.onUpdate(() => setShowUpdateBanner(true));
 
-    return () => setShowAlertCallback(() => {});
+    return () => {
+      setShowAlertCallback(() => {});
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -253,6 +259,7 @@ function App() {
               <PluginLoader />
               <UserGuideSidebarProvider>
                 <ConditionalThemeWrapper>
+                {showUpdateBanner && <UpdateBanner />}
                 {alert && (
                   <Alert
                     variant={alert.variant}

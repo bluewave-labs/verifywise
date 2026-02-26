@@ -412,7 +412,15 @@ export default function PolicyEditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Compute initial editor content ──────────────────────────────
+  const initialContent = (() => {
+    const raw = policy?.content_html || template?.content || "";
+    if (!raw) return "";
+    return DOMPurify.sanitize(normalizeSlateHtml(raw), sanitizeOptions);
+  })();
+
   // ── TipTap editor ─────────────────────────────────────────────────
+  // Pass `deps` array so the editor re-creates when content changes
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
@@ -430,7 +438,7 @@ export default function PolicyEditorPage() {
       TipTapTableHeader,
       Placeholder.configure({ placeholder: "Start typing your policy content..." }),
     ],
-    content: "",
+    content: initialContent,
     autofocus: false,
     onUpdate: ({ editor: e }) => {
       if (isLoadingContentRef.current) return;
@@ -438,24 +446,7 @@ export default function PolicyEditorPage() {
       updateToolbarState();
     },
     onSelectionUpdate: () => updateToolbarState(),
-  });
-
-  // ── Load content into editor ──────────────────────────────────────
-  // Must also depend on isLoading: the editor DOM is not mounted while
-  // isLoading is true (skeleton is shown instead), so setContent would
-  // run against an unmounted editor. We wait until isLoading becomes false.
-  useEffect(() => {
-    if (isLoading) return;
-    const content = policy?.content_html || template?.content;
-    if (!content || typeof content !== "string" || !editor) return;
-
-    isLoadingContentRef.current = true;
-    editor.commands.setContent(
-      DOMPurify.sanitize(normalizeSlateHtml(content), sanitizeOptions)
-    );
-    isLoadingContentRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [policy, template, isLoading]);
+  }, [initialContent]);
 
   // ── Image upload handler ──────────────────────────────────────────
   const handleImageFileChange = async (

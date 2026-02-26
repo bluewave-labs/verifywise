@@ -46,8 +46,8 @@ export interface IRiskOverride {
 export interface IIntakeSubmission {
   id: number;
   formId: number;
-  submitterEmail: string;
-  submitterName: string;
+  submitterEmail: string | null;
+  submitterName: string | null;
   data: IntakeSubmissionData;
   entityType: IntakeEntityType;
   entityId: number | null;
@@ -70,8 +70,8 @@ export interface IIntakeSubmission {
  */
 export interface ICreateIntakeSubmissionInput {
   formId: number;
-  submitterEmail: string;
-  submitterName: string;
+  submitterEmail: string | null;
+  submitterName: string | null;
   data: IntakeSubmissionData;
   entityType: IntakeEntityType;
   originalSubmissionId?: number;

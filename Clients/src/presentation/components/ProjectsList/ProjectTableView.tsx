@@ -130,7 +130,12 @@ const SortableTableHeader: React.FC<{
   );
 };
 
-const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagination = false, onProjectDeleted }) => {
+const ProjectTableView: React.FC<IProjectTableViewProps> = ({ 
+  projects, 
+  hidePagination = false, 
+  onProjectDeleted,
+  visibleColumns,
+}) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const { setProjects } = useContext(VerifyWiseContext);
@@ -170,6 +175,21 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
   useEffect(() => {
     localStorage.setItem(PROJECT_SORTING_KEY, JSON.stringify(sortConfig));
   }, [sortConfig]);
+
+  // Filter columns based on visibility
+  const visibleColumnsArray = useMemo(() => {
+    if (!visibleColumns || visibleColumns.size === 0) {
+      // If no visibility set provided, show all columns
+      return columns;
+    }
+    return columns.filter(col => visibleColumns.has(col.id));
+  }, [visibleColumns]);
+
+  // Helper to check if column is visible (defaults to true if no visibility set)
+  const isColumnVisible = useCallback((columnId: string) => {
+    if (!visibleColumns || visibleColumns.size === 0) return true;
+    return visibleColumns.has(columnId);
+  }, [visibleColumns]);
 
   // Sorting handlers
   const handleSort = useCallback((columnId: string) => {
@@ -345,14 +365,14 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
           <SortableTableHeader
-            columns={columns}
+            columns={visibleColumnsArray}
             sortConfig={sortConfig}
             onSort={handleSort}
           />
           <TableBody>
             <TableRow>
               <TableCell
-                colSpan={columns.length}
+                colSpan={visibleColumnsArray.length}
                 align="center"
                 sx={{ border: "none", p: 0 }}
               >
@@ -379,7 +399,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
           <SortableTableHeader
-          columns={columns}
+          columns={visibleColumnsArray}
           sortConfig={sortConfig}
           onSort={handleSort}
         />
@@ -409,98 +429,115 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects, hidePagi
                 },
               }}
             >
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  backgroundColor:
-                    sortConfig.key === "ucId" ? "#e8e8e8" : "#fafafa",
-                }}
-              >
-                {project.uc_id || project.id}
-              </TableCell>
+              {isColumnVisible('ucId') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    backgroundColor:
+                      sortConfig.key === "ucId" ? "#e8e8e8" : "#fafafa",
+                  }}
+                >
+                  {project.uc_id || project.id}
+                </TableCell>
+              )}
 
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  backgroundColor:
-                    sortConfig.key === "title" ? "#f5f5f5" : "inherit",
-                }}
-              >
-                {project.project_title}
-              </TableCell>
+              {isColumnVisible('title') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    backgroundColor:
+                      sortConfig.key === "title" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {project.project_title}
+                </TableCell>
+              )}
 
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  backgroundColor:
-                    sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
-                }}
-              >
-                <Chip label={project.ai_risk_classification || "—"} />
-              </TableCell>
+              {isColumnVisible('risk') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    backgroundColor:
+                      sortConfig.key === "risk" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  <Chip label={project.ai_risk_classification || "—"} />
+                </TableCell>
+              )}
 
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  fontSize: "13px",
-                  textTransform: "capitalize",
-                  backgroundColor:
-                    sortConfig.key === "role" ? "#f5f5f5" : "inherit",
-                }}
-              >
-                {project.type_of_high_risk_role?.replace(/_/g, " ") || "—"}
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  fontSize: "13px",
-                  color: "#475467",
-                  backgroundColor:
-                    sortConfig.key === "startDate" ? "#f5f5f5" : "inherit",
-                }}
-              >
-                {formatDate(project.start_date)}
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                  fontSize: "13px",
-                  color: "#475467",
-                  backgroundColor:
-                    sortConfig.key === "lastUpdated" ? "#f5f5f5" : "inherit",
-                }}
-              >
-                {formatDate(project.last_updated)}
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...singleTheme.tableStyles.primary.body.cell,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Stack direction="row" alignItems="center" gap={0.5}>
-                  <ViewRelationshipsButton
-                    entityId={project.id}
-                    entityType="useCase"
-                    entityLabel={project.project_title}
-                  />
-                  {allowedRoles.projects.delete.includes(userRoleName) && (
-                    <IconButton
-                      id={project.id}
-                      type="use case"
-                      onEdit={() => handleEditProject(project.id)}
-                      onDelete={() => { handleDeleteProject(project.id); }}
-                      onMouseEvent={() => {}}
-                      warningTitle="Delete this use case?"
-                      warningMessage="Note that deleting a use case will remove all data related to that use case from your system. This is permanent and non-recoverable."
+              {isColumnVisible('role') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    fontSize: "13px",
+                    textTransform: "capitalize",
+                    backgroundColor:
+                      sortConfig.key === "role" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {project.type_of_high_risk_role?.replace(/_/g, " ") || "—"}
+                </TableCell>
+              )}
+              
+              {isColumnVisible('startDate') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    fontSize: "13px",
+                    color: "#475467",
+                    backgroundColor:
+                      sortConfig.key === "startDate" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {formatDate(project.start_date)}
+                </TableCell>
+              )}
+              
+              {isColumnVisible('lastUpdated') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    fontSize: "13px",
+                    color: "#475467",
+                    backgroundColor:
+                      sortConfig.key === "lastUpdated" ? "#f5f5f5" : "inherit",
+                  }}
+                >
+                  {formatDate(project.last_updated)}
+                </TableCell>
+              )}
+              
+              {isColumnVisible('actions') && (
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <ViewRelationshipsButton
+                      entityId={project.id}
+                      entityType="useCase"
+                      entityLabel={project.project_title}
                     />
-                  )}
-                </Stack>
-              </TableCell>
+                    {allowedRoles.projects.delete.includes(userRoleName) && (
+                      <IconButton
+                        id={project.id}
+                        type="use case"
+                        onEdit={() => handleEditProject(project.id)}
+                        onDelete={() => { handleDeleteProject(project.id); }}
+                        onMouseEvent={() => {}}
+                        warningTitle="Delete this use case?"
+                        warningMessage="Note that deleting a use case will remove all data related to that use case from your system. This is permanent and non-recoverable."
+                      />
+                    )}
+                  </Stack>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

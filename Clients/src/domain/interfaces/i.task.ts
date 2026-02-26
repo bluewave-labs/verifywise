@@ -7,10 +7,13 @@ export type EntityLinkType =
   | "nist_subcategory"
   | "iso42001_subclause"
   | "iso42001_annexcategory"
+  | "iso42001_assessment"
   | "iso27001_subclause"
   | "iso27001_annexcontrol"
+  | "iso27001_assessment"
   | "eu_control"
-  | "eu_subcontrol";
+  | "eu_subcontrol"
+  | "eu_assessment";
 
 export interface IEntityLink {
   entity_id: number;

@@ -183,6 +183,7 @@ const EntityLinkSelector: React.FC<EntityLinkSelectorProps> = ({
       switch (frameworkId) {
         case 1: // EU AI Act
           if (projectFrameworkId) {
+            // Fetch compliance controls
             const euResponse = await getAllEntities({
               routeUrl: `/eu-ai-act/compliances/byProjectId/${projectFrameworkId}`
             });
@@ -192,8 +193,8 @@ const EntityLinkSelector: React.FC<EntityLinkSelectorProps> = ({
               const categoryNo = category.order_no || category.id || "";
               const controls = category.controls || [];
               controls.forEach((control: any) => {
-                // API returns 'control_id' as the actual control ID from controls_eu table
-                const controlId = control.control_id;
+                // API returns 'id' as the control ID from controls_eu table
+                const controlId = control.id;
                 const controlNo = control.order_no || "";
                 const controlTitle = control.title;
                 // Format: "1.1 - Control Title" or "Category - Control Title"
@@ -220,6 +221,38 @@ const EntityLinkSelector: React.FC<EntityLinkSelectorProps> = ({
                     entity_id: subId,
                     name: subDisplayName,
                     type: "eu_subcontrol",
+                  });
+                });
+              });
+            });
+
+            // Fetch assessment questions
+            const euAssessmentResponse = await getAllEntities({
+              routeUrl: `/eu-ai-act/assessments/byProjectId/${projectFrameworkId}`
+            });
+            const euAssessmentData = euAssessmentResponse?.data || euAssessmentResponse || [];
+            euAssessmentData.forEach((topic: any) => {
+              const topicData = topic.dataValues || topic;
+              const topicNo = topicData.order_no || "";
+              const subTopics = topicData.subTopics || [];
+              subTopics.forEach((subTopic: any) => {
+                const subTopicData = subTopic.dataValues || subTopic;
+                const subTopicNo = subTopicData.order_no || "";
+                const questions = subTopicData.questions || [];
+                questions.forEach((question: any) => {
+                  const questionData = question.dataValues || question;
+                  const answerId = questionData.answer_id || questionData.id;
+                  const questionNo = questionData.order_no || "";
+                  const questionTitle = questionData.question || questionData.title || "Question";
+                  // Format: "1.1.1 - Question text"
+                  const displayName = topicNo && subTopicNo && questionNo
+                    ? `${topicNo}.${subTopicNo}.${questionNo} - ${questionTitle.substring(0, 80)}${questionTitle.length > 80 ? "..." : ""}`
+                    : questionTitle.substring(0, 100);
+                  subEntityList.push({
+                    _id: `eu_assessment_${answerId}`,
+                    entity_id: answerId,
+                    name: displayName,
+                    type: "eu_assessment",
                   });
                 });
               });
@@ -565,10 +598,13 @@ const EntityLinkSelector: React.FC<EntityLinkSelectorProps> = ({
       nist_subcategory: "NIST AI RMF",
       iso42001_subclause: "ISO 42001 Clause",
       iso42001_annexcategory: "ISO 42001 Annex",
+      iso42001_assessment: "ISO 42001 Assessment",
       iso27001_subclause: "ISO 27001 Clause",
       iso27001_annexcontrol: "ISO 27001 Annex",
+      iso27001_assessment: "ISO 27001 Assessment",
       eu_control: "EU AI Act Control",
       eu_subcontrol: "EU AI Act Subcontrol",
+      eu_assessment: "EU AI Act Assessment",
     };
     return displayNames[type] || type;
   };

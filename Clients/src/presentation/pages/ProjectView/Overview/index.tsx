@@ -7,6 +7,7 @@ import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useMemo } from "react";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
+import IntakeSubmissionCard from "../IntakeSubmissionCard";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useProjectStatus from "../../../../application/hooks/useProjectStatus";
@@ -134,6 +135,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
             <Typography sx={styles.value}>{project.last_updated_by}</Typography>
           </Stack>
         </Stack>
+        <IntakeSubmissionCard projectId={numericProjectId} />
         <Stack direction="row" spacing={18} sx={{ pb: "56px" }} data-joyride-id="framework-progress">
           {progressBarCardRender({
             progress: controlsProgress,

@@ -76,6 +76,7 @@ Return ONLY valid JSON array. Each question should help assess AI governance ris
       model,
       prompt,
       maxOutputTokens: 1000,
+      abortSignal: AbortSignal.timeout(30_000),
     });
 
     const jsonMatch = result.text.match(/\[[\s\S]*\]/);
@@ -113,6 +114,7 @@ Return ONLY the guidance text, no quotes or formatting.`;
       model,
       prompt,
       maxOutputTokens: 100,
+      abortSignal: AbortSignal.timeout(15_000),
     });
 
     return result.text.trim();

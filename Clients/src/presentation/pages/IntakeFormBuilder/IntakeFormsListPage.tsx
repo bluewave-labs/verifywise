@@ -50,6 +50,7 @@ import { SubmissionPreviewModal } from "./SubmissionPreviewModal";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Chip from "../../components/Chip";
+import Select from "../../components/Inputs/Select";
 import { EmptyState } from "../../components/EmptyState";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import SearchBox from "../../components/Search/SearchBox";
@@ -146,6 +147,8 @@ export function IntakeFormsListPage() {
   const [selectedForm, setSelectedForm] = useState<IntakeForm | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -160,6 +163,7 @@ export function IntakeFormsListPage() {
   const [submissions, setSubmissions] = useState<IntakeSubmission[]>([]);
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const [submissionsSearch, setSubmissionsSearch] = useState("");
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState<string>("all");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
 
@@ -188,22 +192,23 @@ export function IntakeFormsListPage() {
   const loadSubmissions = useCallback(async () => {
     setIsLoadingSubmissions(true);
     try {
-      const response = await getPendingSubmissions();
+      const params: { status?: string } = {};
+      if (submissionStatusFilter !== "all") {
+        params.status = submissionStatusFilter;
+      }
+      const response = await getPendingSubmissions(params);
       setSubmissions(Array.isArray(response.data) ? response.data : []);
     } catch {
       setSnackbar({ open: true, message: "Failed to load submissions", severity: "error" });
     } finally {
       setIsLoadingSubmissions(false);
     }
-  }, []);
+  }, [submissionStatusFilter]);
 
+  // Always load submissions so the tab badge count is accurate
   useEffect(() => {
-    if (mainTab === "submissions") {
-      loadSubmissions();
-      // Also load forms so we can resolve form names in submissions table
-      if (forms.length === 0) loadForms();
-    }
-  }, [mainTab, loadSubmissions]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadSubmissions();
+  }, [loadSubmissions]);
 
   // Filter forms by search query
   const filteredForms = forms.filter((form) => {
@@ -257,7 +262,7 @@ export function IntakeFormsListPage() {
     (s) =>
       !submissionsSearch ||
       (s.submitterName || "").toLowerCase().includes(submissionsSearch.toLowerCase()) ||
-      s.submitterEmail.toLowerCase().includes(submissionsSearch.toLowerCase())
+      (s.submitterEmail || "").toLowerCase().includes(submissionsSearch.toLowerCase())
   );
 
   // ============================================================================
@@ -302,17 +307,26 @@ export function IntakeFormsListPage() {
     handleMenuClose();
   };
 
-  const handleArchive = async () => {
+  const handleArchiveClick = () => {
+    setArchiveModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleArchiveConfirm = async () => {
     if (selectedForm) {
+      setIsArchiving(true);
       try {
         await archiveIntakeForm(selectedForm.id);
         loadForms();
         setSnackbar({ open: true, message: "Form archived", severity: "success" });
       } catch {
         setSnackbar({ open: true, message: "Failed to archive form", severity: "error" });
+      } finally {
+        setIsArchiving(false);
+        setArchiveModalOpen(false);
+        setSelectedForm(null);
       }
     }
-    handleMenuClose();
   };
 
   const handleDeleteClick = () => {
@@ -327,8 +341,12 @@ export function IntakeFormsListPage() {
         await deleteIntakeForm(selectedForm.id);
         loadForms();
         setSnackbar({ open: true, message: "Form deleted", severity: "success" });
-      } catch {
-        setSnackbar({ open: true, message: "Failed to delete form", severity: "error" });
+      } catch (err: any) {
+        const msg =
+          err?.response?.data?.data?.message ||
+          err?.response?.data?.message ||
+          "Failed to delete form";
+        setSnackbar({ open: true, message: msg, severity: "error" });
       } finally {
         setIsDeleting(false);
         setDeleteModalOpen(false);
@@ -349,6 +367,7 @@ export function IntakeFormsListPage() {
     <PageHeaderExtended
       title="Intake forms"
       description="Create and manage intake forms for external submissions"
+      helpArticlePath="ai-governance/intake-forms"
     >
       {/* Main tabs: Forms / Submissions */}
       <TabContext value={mainTab}>
@@ -551,8 +570,20 @@ export function IntakeFormsListPage() {
       {/* ================================================================ */}
       {mainTab === "submissions" && (
         <>
-          {/* Search */}
-          <Stack direction="row" justifyContent="flex-end" alignItems="center">
+          {/* Filter + Search */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: "8px" }}>
+            <Select
+              id="submission-status-filter"
+              value={submissionStatusFilter}
+              onChange={(e) => setSubmissionStatusFilter(e.target.value as string)}
+              items={[
+                { _id: "all", name: "All submissions" },
+                { _id: "pending", name: "Pending" },
+                { _id: "approved", name: "Approved" },
+                { _id: "rejected", name: "Rejected" },
+              ]}
+              sx={{ width: 180, backgroundColor: theme.palette.background.main }}
+            />
             <SearchBox
               placeholder="Search submissions..."
               value={submissionsSearch}
@@ -590,15 +621,22 @@ export function IntakeFormsListPage() {
                     return (
                       <TableRow
                         key={submission.id}
-                        sx={singleTheme.tableStyles.primary.body.row}
+                        onClick={() => {
+                          setSelectedSubmissionId(submission.id);
+                          setPreviewOpen(true);
+                        }}
+                        sx={{
+                          ...singleTheme.tableStyles.primary.body.row,
+                          cursor: "pointer",
+                        }}
                       >
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Typography
                             sx={{ fontWeight: 500, fontSize: "13px", color: theme.palette.text.primary }}
                           >
-                            {submission.submitterName || submission.submitterEmail}
+                            {submission.submitterName || submission.submitterEmail || "Anonymous"}
                           </Typography>
-                          {submission.submitterName && (
+                          {submission.submitterName && submission.submitterEmail && (
                             <Typography sx={{ fontSize: "12px", color: theme.palette.text.accent }}>
                               {submission.submitterEmail}
                             </Typography>
@@ -671,42 +709,43 @@ export function IntakeFormsListPage() {
             Edit
           </ListItemText>
         </MenuItem>
-        {selectedForm?.status === IntakeFormStatus.ACTIVE && (
-          <>
-            <MenuItem onClick={handlePreview}>
-              <ListItemIcon>
-                <Eye size={18} />
-              </ListItemIcon>
-              <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-                Preview
-              </ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleCopyLink}>
-              <ListItemIcon>
-                <Copy size={18} />
-              </ListItemIcon>
-              <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-                Copy link
-              </ListItemText>
-            </MenuItem>
-            <MenuItem onClick={handleArchive}>
-              <ListItemIcon>
-                <Archive size={18} />
-              </ListItemIcon>
-              <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-                Archive
-              </ListItemText>
-            </MenuItem>
-          </>
+        {selectedForm?.status === IntakeFormStatus.ACTIVE && [
+          <MenuItem key="preview" onClick={handlePreview}>
+            <ListItemIcon>
+              <Eye size={18} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Preview
+            </ListItemText>
+          </MenuItem>,
+          <MenuItem key="copy" onClick={handleCopyLink}>
+            <ListItemIcon>
+              <Copy size={18} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Copy link
+            </ListItemText>
+          </MenuItem>,
+          <MenuItem key="archive" onClick={handleArchiveClick}>
+            <ListItemIcon>
+              <Archive size={18} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Archive
+            </ListItemText>
+          </MenuItem>,
+        ]}
+        {(selectedForm?.status === IntakeFormStatus.DRAFT ||
+          selectedForm?.status === IntakeFormStatus.ARCHIVED) && (
+          <MenuItem onClick={handleDeleteClick} sx={{ color: theme.palette.status.error.text }}>
+            <ListItemIcon>
+              <Trash2 size={18} color={theme.palette.status.error.text} />
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
+              Delete
+            </ListItemText>
+          </MenuItem>
         )}
-        <MenuItem onClick={handleDeleteClick} sx={{ color: theme.palette.status.error.text }}>
-          <ListItemIcon>
-            <Trash2 size={18} color={theme.palette.status.error.text} />
-          </ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: "13px" }}>
-            Delete
-          </ListItemText>
-        </MenuItem>
       </Menu>
 
       {/* Create form dialog — choose entity type */}
@@ -776,6 +815,22 @@ export function IntakeFormsListPage() {
         </Stack>
       </StandardModal>
 
+      {/* Archive confirmation modal */}
+      <StandardModal
+        title="Archive form"
+        description={`Are you sure you want to archive "${selectedForm?.name}"? The public link will stop accepting new submissions.`}
+        isOpen={archiveModalOpen}
+        onClose={() => {
+          setArchiveModalOpen(false);
+          setSelectedForm(null);
+        }}
+        onSubmit={handleArchiveConfirm}
+        submitButtonText={isArchiving ? "Archiving..." : "Archive"}
+        isSubmitting={isArchiving}
+        maxWidth="440px"
+        fitContent
+      />
+
       {/* Delete confirmation modal */}
       <StandardModal
         title="Delete form"
@@ -789,6 +844,7 @@ export function IntakeFormsListPage() {
         submitButtonText={isDeleting ? "Deleting..." : "Delete"}
         submitButtonColor="#c62828"
         isSubmitting={isDeleting}
+        maxWidth="440px"
         fitContent
       />
 

@@ -302,7 +302,7 @@ export const updateIntakeFormQuery = async (
 };
 
 /**
- * Delete intake form (only drafts can be deleted)
+ * Delete intake form (draft and archived forms can be deleted)
  */
 export const deleteIntakeFormQuery = async (
   id: number,
@@ -311,9 +311,13 @@ export const deleteIntakeFormQuery = async (
 ): Promise<boolean> => {
   const result = await sequelize.query(
     `DELETE FROM "${tenant}".intake_forms
-    WHERE id = :id AND status = :status`,
+    WHERE id = :id AND status IN (:draft, :archived)`,
     {
-      replacements: { id, status: IntakeFormStatus.DRAFT },
+      replacements: {
+        id,
+        draft: IntakeFormStatus.DRAFT,
+        archived: IntakeFormStatus.ARCHIVED,
+      },
       transaction,
     }
   );
@@ -401,8 +405,10 @@ export const getSubmissionsByFormIdQuery = async (
  * Get pending submissions for a tenant (for dashboard, capped at 500)
  */
 export const getPendingSubmissionsQuery = async (
-  tenant: string
+  tenant: string,
+  status?: IntakeSubmissionStatus
 ): Promise<IIntakeSubmission[]> => {
+  const statusFilter = status ? "WHERE s.status = :status" : "";
   const submissions = await sequelize.query(
     `SELECT
       s.id, s.form_id as "formId", s.submitter_email as "submitterEmail",
@@ -417,11 +423,11 @@ export const getPendingSubmissionsQuery = async (
       f.name as "formName", f.entity_type as "formEntityType"
     FROM "${tenant}".intake_submissions s
     JOIN "${tenant}".intake_forms f ON s.form_id = f.id
-    WHERE s.status = :status
+    ${statusFilter}
     ORDER BY s.created_at DESC
     LIMIT 500`,
     {
-      replacements: { status: IntakeSubmissionStatus.PENDING },
+      replacements: status ? { status } : {},
       type: QueryTypes.SELECT,
     }
   );
@@ -434,15 +440,19 @@ export const getPendingSubmissionsQuery = async (
  */
 export const getSubmissionByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
+  transaction?: Transaction,
+  forUpdate?: boolean
 ): Promise<IIntakeSubmission | null> => {
+  const lock = forUpdate ? " FOR UPDATE" : "";
   const submissions = await sequelize.query(
     `SELECT ${SUBMISSION_SELECT_COLUMNS}
     FROM "${tenant}".intake_submissions
-    WHERE id = :id`,
+    WHERE id = :id${lock}`,
     {
       replacements: { id },
       type: QueryTypes.SELECT,
+      transaction,
     }
   );
 
@@ -633,12 +643,91 @@ export const getSubmissionStatsQuery = async (
   };
 };
 
+/**
+ * Get the approved submission + form schema for a given entity.
+ * Used for surfacing original intake data on entity detail pages.
+ */
+export const getSubmissionByEntityQuery = async (
+  entityType: string,
+  entityId: number,
+  tenant: string
+): Promise<{
+  submission: IIntakeSubmission;
+  formName: string;
+  formSchema: Record<string, unknown> | null;
+} | null> => {
+  const results = await sequelize.query(
+    `SELECT
+      s.id, s.form_id as "formId", s.submitter_email as "submitterEmail",
+      s.submitter_name as "submitterName", s.data, s.entity_type as "entityType",
+      s.entity_id as "entityId", s.status, s.rejection_reason as "rejectionReason",
+      s.reviewed_by as "reviewedBy", s.reviewed_at as "reviewedAt",
+      s.original_submission_id as "originalSubmissionId",
+      s.resubmission_count as "resubmissionCount", s.ip_address as "ipAddress",
+      s.risk_assessment as "riskAssessment", s.risk_tier as "riskTier",
+      s.risk_override as "riskOverride",
+      s.created_at as "createdAt", s.updated_at as "updatedAt",
+      f.name as "formName",
+      f.schema as "formSchema"
+    FROM "${tenant}".intake_submissions s
+    LEFT JOIN "${tenant}".intake_forms f ON s.form_id = f.id
+    WHERE s.entity_type = :entityType
+      AND s.entity_id = :entityId
+      AND s.status = :status
+    ORDER BY s.created_at DESC
+    LIMIT 1`,
+    {
+      replacements: {
+        entityType,
+        entityId,
+        status: IntakeSubmissionStatus.APPROVED,
+      },
+      type: QueryTypes.SELECT,
+    }
+  );
+
+  if (results.length === 0) return null;
+
+  const row = results[0] as any;
+  const formSchema = row.formSchema
+    ? typeof row.formSchema === "string"
+      ? JSON.parse(row.formSchema)
+      : row.formSchema
+    : null;
+
+  return {
+    submission: {
+      id: row.id,
+      formId: row.formId,
+      submitterEmail: row.submitterEmail,
+      submitterName: row.submitterName,
+      data: row.data,
+      entityType: row.entityType,
+      entityId: row.entityId,
+      status: row.status,
+      rejectionReason: row.rejectionReason,
+      reviewedBy: row.reviewedBy,
+      reviewedAt: row.reviewedAt,
+      originalSubmissionId: row.originalSubmissionId,
+      resubmissionCount: row.resubmissionCount,
+      ipAddress: row.ipAddress,
+      riskAssessment: row.riskAssessment,
+      riskTier: row.riskTier,
+      riskOverride: row.riskOverride,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    } as IIntakeSubmission,
+    formName: row.formName || "Deleted form",
+    formSchema,
+  };
+};
+
 // ============================================================================
 // RATE LIMITING
 // ============================================================================
 
 /**
- * Check rate limit for IP address (100 submissions per hour)
+ * Check rate limit for IP address (10 submissions per hour per tenant)
  */
 export const checkRateLimitQuery = async (
   ipAddress: string,
@@ -656,7 +745,7 @@ export const checkRateLimitQuery = async (
   );
 
   const count = parseInt((result[0] as any).count, 10) || 0;
-  return count < 100;
+  return count < 10;
 };
 
 // ============================================================================

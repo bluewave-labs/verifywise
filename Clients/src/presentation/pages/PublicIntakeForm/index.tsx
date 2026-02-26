@@ -42,15 +42,17 @@ function buildGradient(hex: string): string {
 }
 
 /**
- * Reusable gradient banner component
+ * Reusable gradient banner component with optional logo
  */
 function GradientBanner({
   height = 160,
   colorTheme,
+  logoSrc,
   children,
 }: {
   height?: number;
   colorTheme?: string;
+  logoSrc?: string | null;
   children?: React.ReactNode;
 }) {
   const gradient = buildGradient(colorTheme || "#13715B");
@@ -58,15 +60,43 @@ function GradientBanner({
     <Box
       sx={{
         background: gradient,
-        height,
+        minHeight: height,
         borderRadius: "12px 12px 0 0",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
         px: "32px",
-        pb: "32px",
+        pb: "24px",
+        pt: logoSrc ? "24px" : "32px",
       }}
     >
+      {logoSrc && (
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: "16px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+            flexShrink: 0,
+          }}
+        >
+          <Box
+            component="img"
+            src={logoSrc}
+            alt="Organization logo"
+            sx={{
+              maxWidth: 40,
+              maxHeight: 40,
+              objectFit: "contain",
+            }}
+          />
+        </Box>
+      )}
       {children}
     </Box>
   );
@@ -106,6 +136,7 @@ export function PublicIntakeForm() {
 
   // State
   const [formData, setFormData] = useState<PublicFormData | null>(null);
+  const [organizationLogo, setOrganizationLogo] = useState<string | null>(null);
   const [previousData, setPreviousData] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,6 +174,9 @@ export function PublicIntakeForm() {
         : await getPublicForm(tenantSlug!, formSlug!, resubmissionToken);
       if (response.data) {
         setFormData(response.data.form as PublicFormData);
+        if (response.data.organizationLogo) {
+          setOrganizationLogo(response.data.organizationLogo);
+        }
         if (response.data.previousData) {
           setPreviousData(response.data.previousData);
           // Pre-fill form with previous data
@@ -194,14 +228,16 @@ export function PublicIntakeForm() {
     const isNewFormat = !!publicId;
     if (!isNewFormat && (!tenantSlug || !formSlug)) return;
 
-    // Validate email
-    if (!submitterEmail.trim()) {
-      setEmailError("Email is required");
-      return;
-    }
-    if (!validateEmail(submitterEmail)) {
-      setEmailError("Please enter a valid email address");
-      return;
+    // Validate email (only when contact info is collected)
+    if (collectContactInfo) {
+      if (!submitterEmail.trim()) {
+        setEmailError("Email is required");
+        return;
+      }
+      if (!validateEmail(submitterEmail)) {
+        setEmailError("Please enter a valid email address");
+        return;
+      }
     }
     setEmailError(null);
 
@@ -218,8 +254,8 @@ export function PublicIntakeForm() {
     try {
       const payload = {
         formData: data,
-        submitterEmail,
-        submitterName: submitterName || undefined,
+        submitterEmail: collectContactInfo ? (submitterEmail || "") : "",
+        submitterName: collectContactInfo ? (submitterName || undefined) : undefined,
         captchaToken,
         captchaAnswer: captchaNum,
         resubmissionToken,
@@ -239,7 +275,7 @@ export function PublicIntakeForm() {
             submissionId: response.data.submissionId,
             resubmissionToken: response.data.resubmissionToken,
             formName: formData.name,
-            submitterEmail,
+            submitterEmail: collectContactInfo ? submitterEmail : undefined,
           },
         });
       }
@@ -324,6 +360,7 @@ export function PublicIntakeForm() {
 
   // Resolve design settings
   const ds = formData.designSettings ?? DEFAULT_DESIGN_SETTINGS;
+  const collectContactInfo = true;
   const maxWidth = ds.format === "wide" ? 820 : 620;
   const formMargin =
     ds.alignment === "left"
@@ -350,11 +387,12 @@ export function PublicIntakeForm() {
             borderRadius: "12px",
             overflow: "hidden",
             backgroundColor: "#fff",
+            border: "1px solid #d0d5dd",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           }}
         >
           {/* Banner */}
-          <GradientBanner height={160} colorTheme={ds.colorTheme}>
+          <GradientBanner height={160} colorTheme={ds.colorTheme} logoSrc={organizationLogo}>
             <Typography
               sx={{
                 color: "#fff",
@@ -432,63 +470,67 @@ export function PublicIntakeForm() {
             )}
 
             {/* Contact info section */}
-            <Typography
-              sx={{
-                fontWeight: 600,
-                color: "#1e293b",
-                mb: 2,
-                fontSize: "16px",
-              }}
-            >
-              Your contact information
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", mb: 3 }}>
-              <Field
-                id="submitter-name"
-                label="Name"
-                placeholder="Your name"
-                value={submitterName}
-                onChange={(e) => setSubmitterName(e.target.value)}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                    fontSize: "15px",
-                    "& fieldset": { borderColor: "#e2e8f0" },
-                    "&:hover fieldset": { borderColor: "#cbd5e1" },
-                    "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "12px 14px",
-                  },
-                }}
-              />
-              <Field
-                id="submitter-email"
-                label="Email"
-                type="email"
-                value={submitterEmail}
-                onChange={(e) => {
-                  setSubmitterEmail(e.target.value);
-                  setEmailError(null);
-                }}
-                error={emailError || undefined}
-                helperText={emailError || "We'll send you updates about your submission"}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                    fontSize: "15px",
-                    "& fieldset": { borderColor: "#e2e8f0" },
-                    "&:hover fieldset": { borderColor: "#cbd5e1" },
-                    "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    padding: "12px 14px",
-                  },
-                }}
-              />
-            </Box>
+            {collectContactInfo && (
+              <>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    color: "#1e293b",
+                    mb: 2,
+                    fontSize: "16px",
+                  }}
+                >
+                  Your contact information
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: "20px", mb: 3 }}>
+                  <Field
+                    id="submitter-name"
+                    label="Name"
+                    placeholder="Your name"
+                    value={submitterName}
+                    onChange={(e) => setSubmitterName(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "8px",
+                        fontSize: "15px",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: "#cbd5e1" },
+                        "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        padding: "12px 14px",
+                      },
+                    }}
+                  />
+                  <Field
+                    id="submitter-email"
+                    label="Email"
+                    type="email"
+                    value={submitterEmail}
+                    onChange={(e) => {
+                      setSubmitterEmail(e.target.value);
+                      setEmailError(null);
+                    }}
+                    error={emailError || undefined}
+                    helperText={emailError || "We'll send you updates about your submission"}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "8px",
+                        fontSize: "15px",
+                        "& fieldset": { borderColor: "#e2e8f0" },
+                        "&:hover fieldset": { borderColor: "#cbd5e1" },
+                        "&.Mui-focused fieldset": { borderColor: ds.colorTheme },
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        padding: "12px 14px",
+                      },
+                    }}
+                  />
+                </Box>
 
-            <Box sx={{ my: 4, borderTop: "1px solid #e2e8f0" }} />
+                <Box sx={{ my: 4, borderTop: "1px solid #e2e8f0" }} />
+              </>
+            )}
 
             {/* Form fields */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>

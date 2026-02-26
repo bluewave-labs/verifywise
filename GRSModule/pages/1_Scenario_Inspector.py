@@ -123,7 +123,7 @@ def load_intermediate(version: str) -> tuple[dict, dict, dict]:
 
 @st.cache_data(show_spinner="Loading final data…")
 def load_final(version: str, model_stem: str) -> tuple[dict, dict, dict]:
-    """Load final scenarios (or base scenarios as fallback), responses, and judge scores."""
+    """Load final scenarios (or mutated candidates / base scenarios as fallback), responses, and judge scores."""
     base = DATASETS_DIR / version / "final"
     inter = DATASETS_DIR / version / "intermediate"
 
@@ -132,12 +132,32 @@ def load_final(version: str, model_stem: str) -> tuple[dict, dict, dict]:
     if final_path.exists():
         scenarios = {r["scenario_id"]: r for r in read_jsonl(final_path)}
     else:
-        # Fall back to base scenarios from the render stage
-        base_path = inter / "base_scenarios_deduped.jsonl"
-        if base_path.exists():
-            for r in read_jsonl(base_path):
-                sid = r.get("base_scenario_id", "")
-                scenarios[sid] = {**r, "scenario_id": sid}
+        # Fall back to mutated candidates (perturb stage) — richer than base scenarios
+        mut_path = inter / "mutated_candidates.jsonl"
+        if mut_path.exists():
+            for r in read_jsonl(mut_path):
+                sid = r["candidate_id"]
+                scenarios[sid] = {
+                    **r,
+                    "scenario_id": sid,
+                    "seed_trace": {"obligation_ids": [r["obligation_id"]]},
+                    "mutation_trace": {
+                        "base_scenario_id": r["base_scenario_id"],
+                        "mutations": [r["mutation"]],
+                    },
+                }
+        else:
+            # Fall back further to base scenarios from the render stage
+            base_path = inter / "base_scenarios_deduped.jsonl"
+            if base_path.exists():
+                for r in read_jsonl(base_path):
+                    sid = r.get("base_scenario_id", "")
+                    scenarios[sid] = {
+                        **r,
+                        "scenario_id": sid,
+                        "seed_trace": {"obligation_ids": [r["obligation_id"]]},
+                        "mutation_trace": {"base_scenario_id": sid, "mutations": []},
+                    }
 
     responses: dict[str, dict] = {}
     if model_stem:

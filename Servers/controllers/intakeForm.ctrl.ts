@@ -23,6 +23,7 @@ import {
   updateSubmissionRiskQuery,
   updateSubmissionRiskOverrideQuery,
   getTenantByPublicId,
+  getSubmissionByEntityQuery,
 } from "../utils/intakeForm.utils";
 import { createNewModelInventoryQuery } from "../utils/modelInventory.utils";
 import { createNewProjectQuery } from "../utils/project.utils";
@@ -48,6 +49,7 @@ import {
   generateSuggestedQuestions,
   generateFieldGuidance,
 } from "../services/intakeLLM.service";
+import { getCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
 
 /** Safely extract a single string from req.params (which may be string | string[]). */
 const paramStr = (val: string | string[]): string =>
@@ -122,8 +124,9 @@ function validateFormData(
     const value = formData[field.id];
     const isEmpty = value === undefined || value === null || value === "";
 
-    // Required check
-    if (field.required && isEmpty) {
+    // Required check — field.required (backend interface) or field.validation.required (frontend schema)
+    const isRequired = field.required || field.validation?.required;
+    if (isRequired && isEmpty) {
       errors.push(`"${field.label}" is required`);
       continue;
     }
@@ -526,9 +529,9 @@ export async function deleteIntakeForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Intake form not found"));
     }
 
-    if (existingForm.status !== IntakeFormStatus.DRAFT) {
+    if (existingForm.status === IntakeFormStatus.ACTIVE) {
       await transaction.rollback();
-      return res.status(400).json(STATUS_CODE[400]("Only draft forms can be deleted. Use archive for active forms."));
+      return res.status(400).json(STATUS_CODE[400]("Active forms cannot be deleted. Archive the form first."));
     }
 
     await deleteIntakeFormQuery(formId, req.tenantId!, transaction);
@@ -631,7 +634,8 @@ export async function getPendingSubmissions(req: Request, res: Response) {
   });
 
   try {
-    const submissions = await getPendingSubmissionsQuery(req.tenantId!);
+    const status = req.query.status as IntakeSubmissionStatus | undefined;
+    const submissions = await getPendingSubmissionsQuery(req.tenantId!, status);
     return res.status(200).json(STATUS_CODE[200](submissions));
   } catch (error) {
     await logFailure({
@@ -797,6 +801,85 @@ export async function getSubmissionPreview(req: Request, res: Response) {
 }
 
 /**
+ * Get the original intake submission for a given entity (project/model).
+ * Returns the full submission data with form schema so the frontend
+ * can render all fields with labels, including unmapped ones.
+ * GET /intake/submissions/by-entity/:entityType/:entityId
+ */
+export async function getSubmissionByEntity(req: Request, res: Response) {
+  const entityType = paramStr(req.params.entityType);
+  const entityId = parseId(req.params.entityId);
+
+  if (!entityType || isNaN(entityId)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid entity type or ID"));
+  }
+
+  const validEntityTypes = ["use_case", "model"];
+  if (!validEntityTypes.includes(entityType)) {
+    return res.status(400).json(STATUS_CODE[400]("Unsupported entity type"));
+  }
+
+  logProcessing({
+    description: `fetching submission for ${entityType}:${entityId}`,
+    functionName: "getSubmissionByEntity",
+    fileName: "intakeForm.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const result = await getSubmissionByEntityQuery(
+      entityType,
+      entityId,
+      req.tenantId!
+    );
+
+    if (!result) {
+      return res.status(404).json(STATUS_CODE[404]("No intake submission found for this entity"));
+    }
+
+    const { submission, formName, formSchema } = result;
+    const submissionData = submission.data as Record<string, unknown>;
+
+    // Build a structured fields array using the form schema for labels/types
+    const schemaFields = (formSchema as any)?.fields || [];
+    const fields = schemaFields
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+      .map((field: any) => ({
+        fieldId: field.id,
+        label: field.label,
+        type: field.type,
+        value: submissionData[field.id] ?? null,
+        options: field.options || null,
+        entityFieldMapping: field.entityFieldMapping || null,
+        isMapped: Boolean(field.entityFieldMapping),
+      }));
+
+    return res.status(200).json(STATUS_CODE[200]({
+      submissionId: submission.id,
+      formName,
+      submitterName: submission.submitterName,
+      submitterEmail: submission.submitterEmail,
+      submittedAt: submission.createdAt,
+      reviewedAt: submission.reviewedAt,
+      riskTier: submission.riskTier,
+      fields,
+    }));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `failed to fetch submission for ${entityType}:${entityId}`,
+      functionName: "getSubmissionByEntity",
+      fileName: "intakeForm.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
  * Override submission risk assessment
  */
 export async function overrideSubmissionRisk(req: Request, res: Response) {
@@ -863,7 +946,7 @@ export async function approveSubmission(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
 
   try {
-    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
+    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!, transaction, true);
 
     if (!submission) {
       await transaction.rollback();
@@ -909,15 +992,15 @@ export async function approveSubmission(req: Request, res: Response) {
     if (submission.entityType === IntakeEntityType.MODEL) {
       const model = ModelInventoryModel.createNewModelInventory({
         provider: (entityData.provider as string) || "",
-        model: (entityData.model as string) || "",
-        version: (entityData.version as string) || "",
+        model: (entityData.name as string) || (entityData.model as string) || "",
+        version: (entityData.modelVersion as string) || (entityData.version as string) || "",
         approver: entityData.approver ? Number(entityData.approver) : undefined,
-        capabilities: (entityData.capabilities as string) || "",
+        capabilities: (entityData.capabilities as string) || (entityData.intendedUse as string) || "",
         security_assessment: (entityData.security_assessment as boolean) || false,
         reference_link: (entityData.reference_link as string) || "",
         biases: (entityData.biases as string) || "",
         limitations: (entityData.limitations as string) || "",
-        hosting_provider: (entityData.hosting_provider as string) || "",
+        hosting_provider: (entityData.hosting_provider as string) || (entityData.modelType as string) || "",
         status: ModelInventoryStatus.PENDING,
       });
 
@@ -934,10 +1017,12 @@ export async function approveSubmission(req: Request, res: Response) {
         {
           project_title: (entityData.project_title as string) || "",
           description: (entityData.description as string) || "",
-          start_date: new Date(),
+          start_date: entityData.start_date ? new Date(entityData.start_date as string) : new Date(),
           goal: (entityData.goal as string) || (entityData.description as string) || "",
           owner: req.userId!,
           ai_risk_classification: mapToAiRiskClassification(entityData.ai_risk_classification as string) as any,
+          type_of_high_risk_role: (entityData.type_of_high_risk_role as string as any) || undefined,
+          geography: entityData.geography ? Number(entityData.geography) : 1,
           status: ProjectStatus.UNDER_REVIEW,
         },
         [],
@@ -962,13 +1047,15 @@ export async function approveSubmission(req: Request, res: Response) {
 
     await transaction.commit();
 
-    sendSubmissionApprovedEmail(
-      submission.submitterEmail,
-      submission.submitterName,
-      formName,
-      submissionId,
-      submission.entityType
-    ).catch((err) => logger.error("Failed to send approval email:", err));
+    if (submission.submitterEmail) {
+      sendSubmissionApprovedEmail(
+        submission.submitterEmail,
+        submission.submitterName || "Submitter",
+        formName,
+        submissionId,
+        submission.entityType
+      ).catch((err) => logger.error("Failed to send approval email:", err));
+    }
 
     await logSuccess({
       eventType: "Update",
@@ -1022,7 +1109,7 @@ export async function rejectSubmission(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Rejection reason is required"));
     }
 
-    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!);
+    const submission = await getSubmissionByIdQuery(submissionId, req.tenantId!, transaction, true);
 
     if (!submission) {
       await transaction.rollback();
@@ -1034,6 +1121,13 @@ export async function rejectSubmission(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Only pending submissions can be rejected"));
     }
 
+    // Fetch form and tenant info before commit so email data is available atomically
+    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
+    const formName = form?.name || "Unknown Form";
+    const formPublicId = form?.publicId;
+    const tenantSlug = await getTenantSlugById(req.organizationId!);
+    const formSlug = form?.slug || "";
+
     const updatedSubmission = await rejectSubmissionQuery(
       submissionId,
       rejectionReason,
@@ -1044,35 +1138,31 @@ export async function rejectSubmission(req: Request, res: Response) {
 
     await transaction.commit();
 
-    const form = await getIntakeFormByIdQuery(submission.formId, req.tenantId!);
-    const formName = form?.name || "Unknown Form";
-    const formPublicId = form?.publicId;
-    const tenantSlug = await getTenantSlugById(req.organizationId!);
-    const formSlug = form?.slug || "";
+    if (submission.submitterEmail) {
+      // Generate HMAC-signed resubmission token
+      const resubmissionToken = createSignedToken({
+        submissionId: submission.id,
+        formId: submission.formId,
+        email: submission.submitterEmail,
+        timestamp: Date.now(),
+      });
 
-    // Generate HMAC-signed resubmission token
-    const resubmissionToken = createSignedToken({
-      submissionId: submission.id,
-      formId: submission.formId,
-      email: submission.submitterEmail,
-      timestamp: Date.now(),
-    });
-
-    // Use new URL format if publicId available, fall back to old format
-    if (formPublicId || (tenantSlug && formSlug)) {
-      sendSubmissionRejectedEmail(
-        submission.submitterEmail,
-        submission.submitterName,
-        formName,
-        submissionId,
-        rejectionReason,
-        resubmissionToken,
-        formPublicId || "",
-        tenantSlug || "",
-        formSlug
-      ).catch((err) => logger.error("Failed to send rejection email:", err));
-    } else {
-      logger.warn(`Could not send rejection email for submission #${submissionId}: missing routing info`);
+      // Use new URL format if publicId available, fall back to old format
+      if (formPublicId || (tenantSlug && formSlug)) {
+        sendSubmissionRejectedEmail(
+          submission.submitterEmail,
+          submission.submitterName || "Submitter",
+          formName,
+          submissionId,
+          rejectionReason,
+          resubmissionToken,
+          formPublicId || "",
+          tenantSlug || "",
+          formSlug
+        ).catch((err) => logger.error("Failed to send rejection email:", err));
+      } else {
+        logger.warn(`Could not send rejection email for submission #${submissionId}: missing routing info`);
+      }
     }
 
     await logSuccess({
@@ -1221,6 +1311,21 @@ export async function getPublicFormByPublicId(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
+    // Fetch org logo (non-blocking — null if missing)
+    let organizationLogo: string | null = null;
+    try {
+      const logoRow = await getCompanyLogoQuery(tenantInfo.tenantHash);
+      if (logoRow && (logoRow as any).content) {
+        const buf = Buffer.isBuffer((logoRow as any).content)
+          ? (logoRow as any).content
+          : Buffer.from((logoRow as any).content);
+        const mimeType = (logoRow as any).type || "image/png";
+        organizationLogo = `data:${mimeType};base64,${buf.toString("base64")}`;
+      }
+    } catch {
+      // Logo is optional — swallow errors silently
+    }
+
     // Check for resubmission token
     let previousData: Record<string, unknown> | undefined;
     let previousSubmitterName: string | undefined;
@@ -1245,8 +1350,8 @@ export async function getPublicFormByPublicId(req: Request, res: Response) {
             previousSubmission.submitterEmail === decoded.email
           ) {
             previousData = previousSubmission.data as Record<string, unknown>;
-            previousSubmitterName = previousSubmission.submitterName;
-            previousSubmitterEmail = previousSubmission.submitterEmail;
+            previousSubmitterName = previousSubmission.submitterName ?? undefined;
+            previousSubmitterEmail = previousSubmission.submitterEmail ?? undefined;
           }
         }
       }
@@ -1264,6 +1369,7 @@ export async function getPublicFormByPublicId(req: Request, res: Response) {
         publicId: form.publicId,
         designSettings: form.designSettings ?? null,
       },
+      organizationLogo,
       previousData,
       previousSubmitterName,
       previousSubmitterEmail,
@@ -1300,21 +1406,26 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
 
     const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
 
-    if (!submitterEmail || !formData) {
-      return res.status(400).json(STATUS_CODE[400]("Submitter email and form data are required"));
+    // Validate contact info (always required)
+    const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.tenantHash);
+
+    if (!submitterEmail) {
+      return res.status(400).json(STATUS_CODE[400]("Submitter email is required"));
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submitterEmail)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
+    }
+
+    if (!formData) {
+      return res.status(400).json(STATUS_CODE[400]("Form data is required"));
     }
 
     if (typeof formData !== "object" || Array.isArray(formData)) {
       return res.status(400).json(STATUS_CODE[400]("Form data must be an object"));
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(submitterEmail)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
-    }
-
     // Validate form data against schema
-    const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.tenantHash);
     if (fullFormForValidation?.schema) {
       const validationErrors = validateFormData(formData, fullFormForValidation.schema);
       if (validationErrors.length > 0) {
@@ -1344,9 +1455,12 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
     }
 
+    const resolvedEmail = submitterEmail;
+    const resolvedName = submitterName || (submitterEmail ? submitterEmail.split("@")[0] : null);
+
     // Handle resubmission (7-day expiry on resubmission tokens)
     let originalSubmissionId: number | undefined;
-    if (resubmissionToken) {
+    if (resubmissionToken && resolvedEmail) {
       const decoded = verifySignedToken<{
         submissionId: number;
         formId: number;
@@ -1360,7 +1474,7 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
         if (tokenAge > SEVEN_DAYS_MS) {
           return res.status(400).json(STATUS_CODE[400]("Resubmission link has expired. Please request a new one."));
         }
-        if (decoded.email !== submitterEmail) {
+        if (decoded.email !== resolvedEmail) {
           return res.status(400).json(STATUS_CODE[400]("Email does not match the original submission."));
         }
         originalSubmissionId = decoded.submissionId;
@@ -1373,8 +1487,8 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
       const submission = await createSubmissionQuery(
         {
           formId: form.id,
-          submitterEmail,
-          submitterName: submitterName || submitterEmail.split("@")[0],
+          submitterEmail: resolvedEmail,
+          submitterName: resolvedName,
           data: formData,
           entityType: form.entityType,
           originalSubmissionId,
@@ -1386,25 +1500,30 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
 
       await transaction.commit();
 
-      // Generate resubmission token
-      const newResubmissionToken = createSignedToken({
-        submissionId: submission.id,
-        formId: form.id,
-        email: submitterEmail,
-        timestamp: Date.now(),
-      });
+      // Generate resubmission token only if email is present
+      let newResubmissionToken: string | undefined;
+      if (resolvedEmail) {
+        newResubmissionToken = createSignedToken({
+          submissionId: submission.id,
+          formId: form.id,
+          email: resolvedEmail,
+          timestamp: Date.now(),
+        });
+      }
 
-      const submissionName = submitterName || submitterEmail.split("@")[0];
+      const submissionName = resolvedName || "Anonymous";
 
-      // Send confirmation email to submitter
-      sendSubmissionReceivedEmail(
-        submitterEmail,
-        submissionName,
-        form.name,
-        submission.id,
-        newResubmissionToken,
-        publicId
-      ).catch((err) => logger.error("Failed to send submission received email:", err));
+      // Send confirmation email to submitter (only if email present)
+      if (resolvedEmail) {
+        sendSubmissionReceivedEmail(
+          resolvedEmail,
+          submissionName,
+          form.name,
+          submission.id,
+          newResubmissionToken || "",
+          publicId
+        ).catch((err) => logger.error("Failed to send submission received email:", err));
+      }
 
       // Get full form with recipients to send notifications
       const fullForm = await getIntakeFormByIdQuery(form.id, tenantInfo.tenantHash);
@@ -1415,7 +1534,7 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
           recipientIds,
           form.name,
           submissionName,
-          submitterEmail,
+          resolvedEmail || "No email provided",
           submission.id,
           form.entityType
         ).catch((err) => logger.error("Failed to send admin notification:", err));
@@ -1439,7 +1558,9 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
       }
 
       return res.status(201).json(STATUS_CODE[201]({
-        message: "Form submitted successfully. You will receive an email when your submission is reviewed.",
+        message: resolvedEmail
+          ? "Form submitted successfully. You will receive an email when your submission is reviewed."
+          : "Form submitted successfully.",
         submissionId: submission.id,
         resubmissionToken: newResubmissionToken,
       }));
@@ -1474,6 +1595,21 @@ export async function getPublicForm(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Form not found or not available"));
     }
 
+    // Fetch org logo (non-blocking — null if missing)
+    let organizationLogo: string | null = null;
+    try {
+      const logoRow = await getCompanyLogoQuery(tenantInfo.hash);
+      if (logoRow && (logoRow as any).content) {
+        const buf = Buffer.isBuffer((logoRow as any).content)
+          ? (logoRow as any).content
+          : Buffer.from((logoRow as any).content);
+        const mimeType = (logoRow as any).type || "image/png";
+        organizationLogo = `data:${mimeType};base64,${buf.toString("base64")}`;
+      }
+    } catch {
+      // Logo is optional — swallow errors silently
+    }
+
     let previousData: Record<string, unknown> | undefined;
     let previousSubmitterName: string | undefined;
     let previousSubmitterEmail: string | undefined;
@@ -1497,8 +1633,8 @@ export async function getPublicForm(req: Request, res: Response) {
             previousSubmission.submitterEmail === decoded.email
           ) {
             previousData = previousSubmission.data as Record<string, unknown>;
-            previousSubmitterName = previousSubmission.submitterName;
-            previousSubmitterEmail = previousSubmission.submitterEmail;
+            previousSubmitterName = previousSubmission.submitterName ?? undefined;
+            previousSubmitterEmail = previousSubmission.submitterEmail ?? undefined;
           }
         }
       }
@@ -1516,6 +1652,7 @@ export async function getPublicForm(req: Request, res: Response) {
         publicId: form.publicId,
         designSettings: form.designSettings ?? null,
       },
+      organizationLogo,
       previousData,
       previousSubmitterName,
       previousSubmitterEmail,
@@ -1555,21 +1692,26 @@ export async function submitPublicForm(req: Request, res: Response) {
 
     const { submitterEmail, submitterName, formData, captchaToken, captchaAnswer, resubmissionToken } = req.body;
 
-    if (!submitterEmail || !formData) {
-      return res.status(400).json(STATUS_CODE[400]("Submitter email and form data are required"));
+    // Validate contact info (always required)
+    const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.hash);
+
+    if (!submitterEmail) {
+      return res.status(400).json(STATUS_CODE[400]("Submitter email is required"));
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(submitterEmail)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
+    }
+
+    if (!formData) {
+      return res.status(400).json(STATUS_CODE[400]("Form data is required"));
     }
 
     if (typeof formData !== "object" || Array.isArray(formData)) {
       return res.status(400).json(STATUS_CODE[400]("Form data must be an object"));
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(submitterEmail)) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid email format"));
-    }
-
     // Validate form data against schema
-    const fullFormForValidation = await getIntakeFormByIdQuery(form.id, tenantInfo.hash);
     if (fullFormForValidation?.schema) {
       const validationErrors = validateFormData(formData, fullFormForValidation.schema);
       if (validationErrors.length > 0) {
@@ -1598,9 +1740,12 @@ export async function submitPublicForm(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Incorrect CAPTCHA answer"));
     }
 
+    const resolvedEmail = submitterEmail;
+    const resolvedName = submitterName || (submitterEmail ? submitterEmail.split("@")[0] : null);
+
     // Handle resubmission (7-day expiry on resubmission tokens)
     let originalSubmissionId: number | undefined;
-    if (resubmissionToken) {
+    if (resubmissionToken && resolvedEmail) {
       const decoded = verifySignedToken<{
         submissionId: number;
         formId: number;
@@ -1614,7 +1759,7 @@ export async function submitPublicForm(req: Request, res: Response) {
         if (tokenAge > SEVEN_DAYS_MS) {
           return res.status(400).json(STATUS_CODE[400]("Resubmission link has expired. Please request a new one."));
         }
-        if (decoded.email !== submitterEmail) {
+        if (decoded.email !== resolvedEmail) {
           return res.status(400).json(STATUS_CODE[400]("Email does not match the original submission."));
         }
         originalSubmissionId = decoded.submissionId;
@@ -1627,8 +1772,8 @@ export async function submitPublicForm(req: Request, res: Response) {
       const submission = await createSubmissionQuery(
         {
           formId: form.id,
-          submitterEmail,
-          submitterName: submitterName || submitterEmail.split("@")[0],
+          submitterEmail: resolvedEmail,
+          submitterName: resolvedName,
           data: formData,
           entityType: form.entityType,
           originalSubmissionId,
@@ -1640,28 +1785,35 @@ export async function submitPublicForm(req: Request, res: Response) {
 
       await transaction.commit();
 
-      const newResubmissionToken = createSignedToken({
-        submissionId: submission.id,
-        formId: form.id,
-        email: submitterEmail,
-        timestamp: Date.now(),
-      });
+      // Generate resubmission token only if email is present
+      let newResubmissionToken: string | undefined;
+      if (resolvedEmail) {
+        newResubmissionToken = createSignedToken({
+          submissionId: submission.id,
+          formId: form.id,
+          email: resolvedEmail,
+          timestamp: Date.now(),
+        });
+      }
 
-      const submissionName = submitterName || submitterEmail.split("@")[0];
+      const submissionName = resolvedName || "Anonymous";
 
       // Use publicId for emails if available
       const formPublicId = form.publicId;
 
-      sendSubmissionReceivedEmail(
-        submitterEmail,
-        submissionName,
-        form.name,
-        submission.id,
-        newResubmissionToken,
-        formPublicId || "",
-        tenantSlug,
-        formSlug
-      ).catch((err) => logger.error("Failed to send submission received email:", err));
+      // Send confirmation email to submitter (only if email present)
+      if (resolvedEmail) {
+        sendSubmissionReceivedEmail(
+          resolvedEmail,
+          submissionName,
+          form.name,
+          submission.id,
+          newResubmissionToken || "",
+          formPublicId || "",
+          tenantSlug,
+          formSlug
+        ).catch((err) => logger.error("Failed to send submission received email:", err));
+      }
 
       // Use per-form recipients
       const fullForm = await getIntakeFormByIdQuery(form.id, tenantInfo.hash);
@@ -1672,7 +1824,7 @@ export async function submitPublicForm(req: Request, res: Response) {
           recipientIds,
           form.name,
           submissionName,
-          submitterEmail,
+          resolvedEmail || "No email provided",
           submission.id,
           form.entityType
         ).catch((err) => logger.error("Failed to send admin notification:", err));
@@ -1682,7 +1834,7 @@ export async function submitPublicForm(req: Request, res: Response) {
           tenantInfo.id,
           form.name,
           submissionName,
-          submitterEmail,
+          resolvedEmail || "No email provided",
           submission.id,
           form.entityType
         ).catch((err) => logger.error("Failed to send admin notification:", err));
@@ -1704,7 +1856,9 @@ export async function submitPublicForm(req: Request, res: Response) {
       }
 
       return res.status(201).json(STATUS_CODE[201]({
-        message: "Form submitted successfully. You will receive an email when your submission is reviewed.",
+        message: resolvedEmail
+          ? "Form submitted successfully. You will receive an email when your submission is reviewed."
+          : "Form submitted successfully.",
         submissionId: submission.id,
         resubmissionToken: newResubmissionToken,
       }));

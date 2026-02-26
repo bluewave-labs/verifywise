@@ -78,7 +78,7 @@ import { PolicyManagerModel } from "../../../domain/models/Common/policy/policyM
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { store } from "../../../application/redux/store";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
-import PageBreadcrumbs from "../../components/breadcrumbs/PageBreadcrumbs";
+import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 
 // ── Auth image node view ──────────────────────────────────────────────
 const AuthImage: React.FC<NodeViewProps> = ({ node }) => {

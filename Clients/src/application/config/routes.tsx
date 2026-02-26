@@ -28,6 +28,7 @@ import SharedView from "../../presentation/pages/SharedView";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
+import PolicyEditorPage from "../../presentation/pages/PolicyDashboard/PolicyEditorPage";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import ModelLifecycleDetail from "../../presentation/pages/ModelInventory/ModelLifecycleDetail";
@@ -106,6 +107,8 @@ export const createRoutes = (
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
+    <Route path="/policies/new" element={<PolicyEditorPage />} />
+    <Route path="/policies/:id/edit" element={<PolicyEditorPage />} />
     <Route path="/policies" element={<PolicyDashboard />}>
       <Route index element={<PolicyDashboard />} /> {/* Default tab */}
       <Route path="templates" element={<PolicyDashboard />} /> {/* Policy Templates tab */}

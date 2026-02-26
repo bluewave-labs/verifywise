@@ -56,6 +56,14 @@ import {
   Loader2,
   Code,
   Minus,
+  Rows3,
+  Columns3,
+  TableCellsMerge,
+  TableCellsSplit,
+  Trash2,
+  Plus,
+  X,
+  ToggleLeft,
 } from "lucide-react";
 
 import Select from "../../components/Inputs/Select";
@@ -280,6 +288,7 @@ export default function PolicyEditorPage() {
   const [errors, setErrors] = useState<PolicyFormErrors>({});
   const [toolbarState, setToolbarState] = useState(defaultToolbarState);
   const [currentBlockType, setCurrentBlockType] = useState<string>("p");
+  const [isInTable, setIsInTable] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<PolicyFormData>({
@@ -375,6 +384,7 @@ export default function PolicyEditorPage() {
       else if (editor.isActive("blockquote")) blockType = "blockquote";
 
       setCurrentBlockType(blockType);
+      setIsInTable(editor.isActive("table"));
       setToolbarState({
         bold: editor.isActive("bold"),
         italic: editor.isActive("italic"),
@@ -392,7 +402,7 @@ export default function PolicyEditorPage() {
         undo: false,
         redo: false,
         image: false,
-        table: false,
+        table: editor.isActive("table"),
         hr: false,
       });
     } catch {
@@ -413,7 +423,7 @@ export default function PolicyEditorPage() {
         HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
       }),
       AuthImageExtension.configure({ inline: false, allowBase64: true }),
-      TipTapTable.configure({ resizable: false }),
+      TipTapTable.configure({ resizable: true }),
       TipTapTableRow,
       TipTapTableCell,
       TipTapTableHeader,
@@ -623,6 +633,88 @@ export default function PolicyEditorPage() {
           .focus()
           .insertTable({ rows: 3, cols: 4, withHeaderRow: true })
           .run(),
+    },
+  ];
+
+  // ── Table context toolbar config ──────────────────────────────────
+  const tableToolbarConfig: Array<{
+    key: string;
+    title: string;
+    icon: React.ReactNode;
+    action: () => void;
+    separator?: boolean;
+    danger?: boolean;
+  }> = [
+    {
+      key: "addRowBefore",
+      title: "Add row above",
+      icon: <Plus size={14} />,
+      action: () => editor?.chain().focus().addRowBefore().run(),
+    },
+    {
+      key: "addRowAfter",
+      title: "Add row below",
+      icon: <Rows3 size={14} />,
+      action: () => editor?.chain().focus().addRowAfter().run(),
+    },
+    {
+      key: "deleteRow",
+      title: "Delete row",
+      icon: <X size={14} />,
+      action: () => editor?.chain().focus().deleteRow().run(),
+      separator: true,
+    },
+    {
+      key: "addColumnBefore",
+      title: "Add column left",
+      icon: <Plus size={14} />,
+      action: () => editor?.chain().focus().addColumnBefore().run(),
+    },
+    {
+      key: "addColumnAfter",
+      title: "Add column right",
+      icon: <Columns3 size={14} />,
+      action: () => editor?.chain().focus().addColumnAfter().run(),
+    },
+    {
+      key: "deleteColumn",
+      title: "Delete column",
+      icon: <X size={14} />,
+      action: () => editor?.chain().focus().deleteColumn().run(),
+      separator: true,
+    },
+    {
+      key: "mergeCells",
+      title: "Merge cells",
+      icon: <TableCellsMerge size={14} />,
+      action: () => editor?.chain().focus().mergeCells().run(),
+    },
+    {
+      key: "splitCell",
+      title: "Split cell",
+      icon: <TableCellsSplit size={14} />,
+      action: () => editor?.chain().focus().splitCell().run(),
+      separator: true,
+    },
+    {
+      key: "toggleHeaderRow",
+      title: "Toggle header row",
+      icon: <ToggleLeft size={14} />,
+      action: () => editor?.chain().focus().toggleHeaderRow().run(),
+    },
+    {
+      key: "toggleHeaderColumn",
+      title: "Toggle header column",
+      icon: <ToggleLeft size={14} />,
+      action: () => editor?.chain().focus().toggleHeaderColumn().run(),
+      separator: true,
+    },
+    {
+      key: "deleteTable",
+      title: "Delete table",
+      icon: <Trash2 size={14} />,
+      action: () => editor?.chain().focus().deleteTable().run(),
+      danger: true,
     },
   ];
 
@@ -1115,6 +1207,68 @@ export default function PolicyEditorPage() {
           ))}
         </Box>
 
+        {/* ── Table context toolbar ──────────────────────────────── */}
+        {isInTable && (
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 0.5,
+              mb: 1,
+              px: 1.5,
+              py: 0.75,
+              alignItems: "center",
+              flexShrink: 0,
+              backgroundColor: "#f9fafb",
+              border: "1px solid #e5e7eb",
+              borderRadius: "4px",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#6b7280",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                mr: 1,
+              }}
+            >
+              Table
+            </Typography>
+
+            {tableToolbarConfig.map(({ key, title, icon, action, separator, danger }) => (
+              <React.Fragment key={key}>
+                <Tooltip title={title}>
+                  <IconButton
+                    onClick={() => {
+                      action();
+                      setTimeout(() => updateToolbarState(), 0);
+                    }}
+                    size="small"
+                    sx={{
+                      padding: "4px",
+                      borderRadius: "3px",
+                      backgroundColor: "#FFFFFF",
+                      border: "1px solid #e5e7eb",
+                      color: danger ? "#dc2626" : "#374151",
+                      "&:hover": {
+                        backgroundColor: danger ? "#fef2f2" : "#f3f4f6",
+                        borderColor: danger ? "#fca5a5" : "#d1d5db",
+                      },
+                    }}
+                  >
+                    {icon}
+                  </IconButton>
+                </Tooltip>
+                {separator && (
+                  <Divider orientation="vertical" flexItem sx={{ mx: 0.5, borderColor: "#d1d5db" }} />
+                )}
+              </React.Fragment>
+            ))}
+          </Box>
+        )}
+
         {/* ── Editor + History sidebar ─────────────────────────────── */}
         <Stack
           direction="row"
@@ -1211,6 +1365,7 @@ export default function PolicyEditorPage() {
                 width: 100%;
                 margin: 12px 0;
                 table-layout: fixed;
+                overflow: hidden;
               }
               .policy-tiptap-editor .ProseMirror th,
               .policy-tiptap-editor .ProseMirror td {
@@ -1219,13 +1374,42 @@ export default function PolicyEditorPage() {
                 text-align: left;
                 vertical-align: top;
                 min-width: 80px;
+                position: relative;
+                box-sizing: border-box;
               }
               .policy-tiptap-editor .ProseMirror th {
-                background-color: #f9fafb;
+                background-color: #f0f4f2;
                 font-weight: 600;
               }
-              .policy-tiptap-editor .ProseMirror tr:hover td {
-                background-color: #f9fafb;
+              /* Selected cell highlight */
+              .policy-tiptap-editor .ProseMirror .selectedCell {
+                background-color: #e6f0ec !important;
+                border-color: #13715B !important;
+              }
+              .policy-tiptap-editor .ProseMirror .selectedCell::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: rgba(19, 113, 91, 0.08);
+                pointer-events: none;
+              }
+              /* Column resize handle */
+              .policy-tiptap-editor .ProseMirror .column-resize-handle {
+                position: absolute;
+                right: -2px;
+                top: 0;
+                bottom: -2px;
+                width: 4px;
+                background-color: #13715B;
+                cursor: col-resize;
+                z-index: 10;
+              }
+              .policy-tiptap-editor .ProseMirror.resize-cursor {
+                cursor: col-resize;
+              }
+              /* Subtle hover on rows (only when no cell is selected) */
+              .policy-tiptap-editor .ProseMirror td:hover {
+                background-color: #fafbfc;
               }
               .policy-tiptap-editor .ProseMirror img {
                 max-width: 100%;

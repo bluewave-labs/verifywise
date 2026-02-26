@@ -441,17 +441,21 @@ export default function PolicyEditorPage() {
   });
 
   // ── Load content into editor ──────────────────────────────────────
+  // Must also depend on isLoading: the editor DOM is not mounted while
+  // isLoading is true (skeleton is shown instead), so setContent would
+  // run against an unmounted editor. We wait until isLoading becomes false.
   useEffect(() => {
-    if (!editor) return;
+    if (isLoading) return;
     const content = policy?.content_html || template?.content;
-    if (!content || typeof content !== "string") return;
+    if (!content || typeof content !== "string" || !editor) return;
 
     isLoadingContentRef.current = true;
     editor.commands.setContent(
       DOMPurify.sanitize(normalizeSlateHtml(content), sanitizeOptions)
     );
     isLoadingContentRef.current = false;
-  }, [policy, template, editor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [policy, template, isLoading]);
 
   // ── Image upload handler ──────────────────────────────────────────
   const handleImageFileChange = async (

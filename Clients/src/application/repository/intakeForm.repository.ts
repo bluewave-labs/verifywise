@@ -89,7 +89,9 @@ export interface IntakeForm {
  * Risk dimension scores
  */
 export interface RiskDimensionScore {
-  name: string;
+  key: string;
+  label: string;
+  name?: string;
   score: number;
   weight: number;
   signals: string[];

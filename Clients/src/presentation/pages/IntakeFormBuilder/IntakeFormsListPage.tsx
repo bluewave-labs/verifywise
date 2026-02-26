@@ -50,6 +50,7 @@ import { SubmissionPreviewModal } from "./SubmissionPreviewModal";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import StandardModal from "../../components/Modals/StandardModal";
 import Chip from "../../components/Chip";
+import Select from "../../components/Inputs/Select";
 import { EmptyState } from "../../components/EmptyState";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import SearchBox from "../../components/Search/SearchBox";
@@ -204,13 +205,10 @@ export function IntakeFormsListPage() {
     }
   }, [submissionStatusFilter]);
 
+  // Always load submissions so the tab badge count is accurate
   useEffect(() => {
-    if (mainTab === "submissions") {
-      loadSubmissions();
-      // Also load forms so we can resolve form names in submissions table
-      if (forms.length === 0) loadForms();
-    }
-  }, [mainTab, loadSubmissions]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadSubmissions();
+  }, [loadSubmissions]);
 
   // Filter forms by search query
   const filteredForms = forms.filter((form) => {
@@ -573,39 +571,19 @@ export function IntakeFormsListPage() {
       {mainTab === "submissions" && (
         <>
           {/* Filter + Search */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Stack direction="row" gap={1}>
-              {[
-                { value: "all", label: "All" },
-                { value: "pending", label: "Pending" },
-                { value: "approved", label: "Approved" },
-                { value: "rejected", label: "Rejected" },
-              ].map((opt) => (
-                <Chip
-                  key={opt.value}
-                  label={opt.label}
-                  onClick={() => setSubmissionStatusFilter(opt.value)}
-                  sx={{
-                    cursor: "pointer",
-                    fontWeight: submissionStatusFilter === opt.value ? 600 : 400,
-                    backgroundColor: submissionStatusFilter === opt.value
-                      ? theme.palette.primary.main
-                      : theme.palette.background.default,
-                    color: submissionStatusFilter === opt.value
-                      ? "#fff"
-                      : theme.palette.text.primary,
-                    border: submissionStatusFilter === opt.value
-                      ? "none"
-                      : `1px solid ${theme.palette.border.dark}`,
-                    "&:hover": {
-                      backgroundColor: submissionStatusFilter === opt.value
-                        ? theme.palette.primary.main
-                        : theme.palette.action.hover,
-                    },
-                  }}
-                />
-              ))}
-            </Stack>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: "8px" }}>
+            <Select
+              id="submission-status-filter"
+              value={submissionStatusFilter}
+              onChange={(e) => setSubmissionStatusFilter(e.target.value as string)}
+              items={[
+                { _id: "all", name: "All submissions" },
+                { _id: "pending", name: "Pending" },
+                { _id: "approved", name: "Approved" },
+                { _id: "rejected", name: "Rejected" },
+              ]}
+              sx={{ width: 180, backgroundColor: theme.palette.background.main }}
+            />
             <SearchBox
               placeholder="Search submissions..."
               value={submissionsSearch}
@@ -643,7 +621,14 @@ export function IntakeFormsListPage() {
                     return (
                       <TableRow
                         key={submission.id}
-                        sx={singleTheme.tableStyles.primary.body.row}
+                        onClick={() => {
+                          setSelectedSubmissionId(submission.id);
+                          setPreviewOpen(true);
+                        }}
+                        sx={{
+                          ...singleTheme.tableStyles.primary.body.row,
+                          cursor: "pointer",
+                        }}
                       >
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <Typography

@@ -39,17 +39,6 @@ export interface PolicyStatusCardProps {
 }
 
 /**
- * Props for policy detail modal component
- */
-export interface PolicyDetailModalProps {
-  policy: PolicyManagerModel | null;
-  tags: string[];
-  template?: import("../../../domain/interfaces/i.policy").PolicyTemplate;
-  onClose: () => void;
-  onSaved: (successMessage?: string) => void;
-}
-
-/**
  * Props for policy form component - contains React types
  */
 export interface PolicyFormProps {

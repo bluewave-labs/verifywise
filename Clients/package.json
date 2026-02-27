@@ -28,7 +28,6 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^10.0.1",
-    "@monaco-editor/react": "^4.7.0",
     "@mui/lab": "^7.0.1-beta.20",
     "@mui/material": "^7.3.8",
     "@mui/styled-engine-sc": "^7.3.8",
@@ -132,10 +131,5 @@
     "typescript": "^5.5.3",
     "url-loader": "^4.1.1",
     "vitest": "^4.0.18"
-  },
-  "overrides": {
-    "monaco-editor": {
-      "dompurify": "3.3.1"
-    }
   }
 }

@@ -298,7 +298,6 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
       <Box
         sx={{
           padding: collapsed ? "12px 0" : "12px 16px",
-          borderBottom: "1px solid #E0E4E9",
           display: "flex",
           alignItems: "center",
           justifyContent: collapsed ? "center" : "space-between",

@@ -514,8 +514,8 @@ export default function NewExperimentModal({
       const modelName = config.model.name;
       const modelProvider = config.model.accessMethod;
 
-      // Skip validation if user already acknowledged the warning
-      if (!apiKeyWarningAcknowledged && modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
+      // Skip validation if user already acknowledged the warning, or if they provided a key inline
+      if (!apiKeyWarningAcknowledged && !config.model.apiKey && modelName && modelProvider !== "ollama" && modelProvider !== "huggingface") {
         try {
           const validation = await validateModel(modelName, modelProvider);
           if (!validation.valid) {

@@ -1073,6 +1073,7 @@ export default function CreateScorerModal({
                   </Box>
                   <Box
                     component="button"
+                    type="button"
                     ref={paramsButtonRef}
                     onClick={() => setParamsPopoverOpen(!paramsPopoverOpen)}
                     sx={{

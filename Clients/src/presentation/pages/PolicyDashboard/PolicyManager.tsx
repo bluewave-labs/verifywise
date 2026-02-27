@@ -373,41 +373,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       parentFolder={createFolderParent}
     />
 
-    <Stack direction="row" sx={{ gap: 0 }}>
-      {/* Folder sidebar */}
-      {folderSidebarOpen && (
-        <Stack
-          sx={{
-            width: folderSidebarCollapsed ? 48 : 260,
-            minWidth: folderSidebarCollapsed ? 48 : 260,
-            borderRight: "1px solid #D0D5DD",
-            backgroundColor: "#FAFBFC",
-            overflow: "hidden",
-            transition: "width 200ms ease, min-width 200ms ease",
-            maxHeight: "calc(100vh - 120px)",
-          }}
-        >
-          {/* Folder tree (top) */}
-          <FolderTree
-            folders={folderTree}
-            selectedFolder={selectedFolder}
-            onSelectFolder={setSelectedFolder}
-            onCreateFolder={(parentId) => {
-              const parent = parentId !== null
-                ? folderTree.find((f) => f.id === parentId) ?? null
-                : null;
-              setCreateFolderParent(parent);
-              setCreateFolderOpen(true);
-            }}
-            loading={foldersLoading}
-            canManage
-            collapsed={folderSidebarCollapsed}
-            onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
-          />
-        </Stack>
-      )}
-
-    <Stack className="vwhome" gap={"16px"} sx={{ flex: 1, minWidth: 0 }}>
+    <Stack className="vwhome" gap={"16px"}>
       {/* Policy by Status Cards */}
       <Box data-joyride-id="policy-status-cards">
         <PolicyStatusCard
@@ -501,34 +467,69 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         </Stack>
       </Stack>
 
-      {/* Table / Empty state */}
-      <Box sx={{ mt: 1 }}>
-        {filteredPolicies.length === 0 ? (
-          <EmptyState
-            message={
-              searchTerm
-                ? "No matching policies found."
-                : "There is currently no data in this table."
-            }
-            imageAlt="No policies available"
-          />
-        ) : (
-          <GroupedTableView
-            groupedData={groupedPolicies}
-            ungroupedData={filteredPolicies}
-            renderTable={(data, options) => (
-              <PolicyTable
-                data={data}
-                onOpen={handleOpen}
-                onDelete={handleDelete}
-                onLinkedObjects={handleLinkedObject}
-                hidePagination={options?.hidePagination}
-                flashRowId={flashRowId}
-              />
-            )}
-          />
+      {/* Folder sidebar + Table */}
+      <Stack direction="row" sx={{ gap: 0, mt: 1 }}>
+        {/* Folder sidebar */}
+        {folderSidebarOpen && (
+          <Stack
+            sx={{
+              width: folderSidebarCollapsed ? 48 : 260,
+              minWidth: folderSidebarCollapsed ? 48 : 260,
+              borderRight: "1px solid #D0D5DD",
+              backgroundColor: "#FAFBFC",
+              borderRadius: "4px 0 0 4px",
+              overflow: "hidden",
+              transition: "width 200ms ease, min-width 200ms ease",
+            }}
+          >
+            <FolderTree
+              folders={folderTree}
+              selectedFolder={selectedFolder}
+              onSelectFolder={setSelectedFolder}
+              onCreateFolder={(parentId) => {
+                const parent = parentId !== null
+                  ? folderTree.find((f) => f.id === parentId) ?? null
+                  : null;
+                setCreateFolderParent(parent);
+                setCreateFolderOpen(true);
+              }}
+              loading={foldersLoading}
+              canManage
+              collapsed={folderSidebarCollapsed}
+              onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
+            />
+          </Stack>
         )}
-      </Box>
+
+        {/* Table / Empty state */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          {filteredPolicies.length === 0 ? (
+            <EmptyState
+              message={
+                searchTerm
+                  ? "No matching policies found."
+                  : "There is currently no data in this table."
+              }
+              imageAlt="No policies available"
+            />
+          ) : (
+            <GroupedTableView
+              groupedData={groupedPolicies}
+              ungroupedData={filteredPolicies}
+              renderTable={(data, options) => (
+                <PolicyTable
+                  data={data}
+                  onOpen={handleOpen}
+                  onDelete={handleDelete}
+                  onLinkedObjects={handleLinkedObject}
+                  hidePagination={options?.hidePagination}
+                  flashRowId={flashRowId}
+                />
+              )}
+            />
+          )}
+        </Box>
+      </Stack>
 
       {/* Linked Objects Modal */}
       {showLinkedObjectModal && (
@@ -556,7 +557,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
           </Box>
         </Fade>
       )}
-    </Stack>
     </Stack>
     </>
   );

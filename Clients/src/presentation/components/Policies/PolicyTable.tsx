@@ -24,6 +24,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   onOpen,
   onDelete,
   onLinkedObjects,
+  onAssignToFolder,
   isLoading,
   error,
   onRefresh,
@@ -258,6 +259,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                   onLinkedObjects={() => {
                     onLinkedObjects(policy.id);
                   }}
+                  onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(policy.id) : undefined}
                   onDownloadPDF={() => handleDownloadPDF(policy.id, policy.title)}
                   onDownloadDOCX={() => handleDownloadDOCX(policy.id, policy.title)}
                   onMouseEvent={() => {}}

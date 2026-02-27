@@ -34,8 +34,14 @@ import { displayFormattedDate } from "../../tools/isoDateToString";
 import { useVirtualFolders } from "../../../application/hooks/useVirtualFolders";
 import { FolderTree } from "../FileManager/components/FolderTree";
 import { CreateFolderModal } from "../FileManager/components/CreateFolderModal";
+import { AssignToFolderModal } from "../FileManager/components/AssignToFolderModal";
+import {
+  getPolicyFolders,
+  updatePolicyFolders,
+} from "../../../application/repository/policyFolder.repository";
 import type {
   IFolderTreeNode,
+  IVirtualFolder,
   IVirtualFolderInput,
 } from "../../../domain/interfaces/i.virtualFolder";
 
@@ -63,6 +69,12 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
   const [createFolderParent, setCreateFolderParent] = useState<IFolderTreeNode | null>(null);
 
+  // Assign to folder modal state
+  const [assignFolderOpen, setAssignFolderOpen] = useState(false);
+  const [assignFolderPolicyId, setAssignFolderPolicyId] = useState<number | null>(null);
+  const [assignFolderCurrentFolders, setAssignFolderCurrentFolders] = useState<IVirtualFolder[]>([]);
+  const [assignFolderSubmitting, setAssignFolderSubmitting] = useState(false);
+
   // Virtual folders hooks
   const {
     folderTree,
@@ -70,6 +82,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     setSelectedFolder,
     loading: foldersLoading,
     handleCreateFolder,
+    refreshFolders,
   } = useVirtualFolders();
 
   const handleCreateFolderSubmit = useCallback(
@@ -182,6 +195,52 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const handleCloseLinkedObjects = () => {
     setLinkedObjectsModalOpen(false);
   };
+
+  // Assign to folder handlers
+  const handleAssignToFolder = useCallback(async (id: number) => {
+    try {
+      const currentFolders = await getPolicyFolders(id);
+      setAssignFolderPolicyId(id);
+      setAssignFolderCurrentFolders(currentFolders);
+      setAssignFolderOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch policy folders:", err);
+      handleAlert({
+        variant: "error",
+        body: "Failed to load folder assignments.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    }
+  }, []);
+
+  const handleAssignFolderSubmit = useCallback(async (folderIds: number[]) => {
+    if (!assignFolderPolicyId) return;
+    setAssignFolderSubmitting(true);
+    try {
+      await updatePolicyFolders(assignFolderPolicyId, folderIds);
+      setAssignFolderOpen(false);
+      setAssignFolderPolicyId(null);
+      setAssignFolderCurrentFolders([]);
+      await refreshFolders();
+      handleAlert({
+        variant: "success",
+        body: "Folder assignment updated.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    } catch (err) {
+      console.error("Failed to update policy folders:", err);
+      handleAlert({
+        variant: "error",
+        body: "Failed to update folder assignment.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    } finally {
+      setAssignFolderSubmitting(false);
+    }
+  }, [assignFolderPolicyId, refreshFolders]);
 
   // Handle policy card click to filter by status
   const handleStatusCardClick = useCallback((status: string) => {
@@ -521,6 +580,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
                   onOpen={handleOpen}
                   onDelete={handleDelete}
                   onLinkedObjects={handleLinkedObject}
+                  onAssignToFolder={handleAssignToFolder}
                   hidePagination={options?.hidePagination}
                   flashRowId={flashRowId}
                 />
@@ -537,8 +597,26 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         policyId = {policyId}
         isOpen = {showLinkedObjectModal}
       />
-      
       )}
+
+      {/* Assign to Folder Modal */}
+      <AssignToFolderModal
+        isOpen={assignFolderOpen}
+        onClose={() => {
+          setAssignFolderOpen(false);
+          setAssignFolderPolicyId(null);
+          setAssignFolderCurrentFolders([]);
+        }}
+        onSubmit={handleAssignFolderSubmit}
+        folders={folderTree}
+        currentFolders={assignFolderCurrentFolders}
+        fileName={
+          assignFolderPolicyId
+            ? policies.find((p) => p.id === assignFolderPolicyId)?.title
+            : undefined
+        }
+        isSubmitting={assignFolderSubmitting}
+      />
 
       {alert && (
         <Fade in={showAlert} timeout={300}>

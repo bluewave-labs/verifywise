@@ -604,6 +604,33 @@ export const createNewTenant = async (
       { transaction }
     );
 
+    // Policy folder mappings junction table
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".policy_folder_mappings (
+        id SERIAL PRIMARY KEY,
+        policy_id INTEGER NOT NULL,
+        folder_id INTEGER NOT NULL REFERENCES "${tenantHash}".virtual_folders(id) ON DELETE CASCADE,
+        assigned_by INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+        assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        CONSTRAINT unique_policy_folder UNIQUE (policy_id, folder_id)
+      );`,
+      { transaction }
+    );
+
+    // Indexes for policy_folder_mappings table
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_policy_folder_mappings_policy_id ON "${tenantHash}".policy_folder_mappings(policy_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_policy_folder_mappings_folder_id ON "${tenantHash}".policy_folder_mappings(folder_id);`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_policy_folder_mappings_assigned_by ON "${tenantHash}".policy_folder_mappings(assigned_by);`,
+      { transaction }
+    );
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects_frameworks
     (

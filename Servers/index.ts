@@ -23,6 +23,7 @@ import isoRoutes from "./routes/iso42001.route";
 import trainingRoutes from "./routes/trainingRegistar.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import policyRoutes from "./routes/policy.route";
+import policyFolderRoutes from "./routes/policyFolder.route";
 import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
@@ -193,6 +194,7 @@ try {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
+  app.use("/api/policies", policyFolderRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
   app.use("/api/plugins", pluginRoutes);
   app.use("/api/tokens", tokenRoutes);

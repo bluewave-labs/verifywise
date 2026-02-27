@@ -22,6 +22,7 @@ export interface PolicyTableProps {
   onOpen: (id: number) => void;
   onDelete: (id: number) => void;
   onLinkedObjects: (id: number) => void;
+  onAssignToFolder?: (id: number) => void;
   onRefresh?: () => void;
   isLoading?: boolean;
   error?: Error | null;

@@ -1887,7 +1887,7 @@ export default function PolicyEditorPage() {
           </Stack>
         </Popover>
 
-        {/* ── Editor + History sidebar ─────────────────────────────── */}
+        {/* ── Editor + History sidebar ────────────────────────────── */}
         <Stack
           direction="row"
           sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}

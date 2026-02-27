@@ -1,7 +1,16 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Stack, Fade } from "@mui/material";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import {
+  Box,
+  Stack,
+  Fade,
+  Tooltip,
+  IconButton,
+} from "@mui/material";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  FolderOpen,
+} from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { deletePolicy } from "../../../application/repository/policy.repository";
@@ -22,6 +31,20 @@ import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
 import { displayFormattedDate } from "../../tools/isoDateToString";
+import { useVirtualFolders } from "../../../application/hooks/useVirtualFolders";
+import { FolderTree } from "../FileManager/components/FolderTree";
+import { CreateFolderModal } from "../FileManager/components/CreateFolderModal";
+import { AssignToFolderModal } from "../FileManager/components/AssignToFolderModal";
+import {
+  getPolicyFolders,
+  getPolicyIdsInFolder,
+  updatePolicyFolders,
+} from "../../../application/repository/policyFolder.repository";
+import type {
+  IFolderTreeNode,
+  IVirtualFolder,
+  IVirtualFolderInput,
+} from "../../../domain/interfaces/i.virtualFolder";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -40,6 +63,51 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   useEffect(() => {
     setPolicies(policyList);
   }, [policyList]);
+
+  // Folder sidebar state
+  const [folderSidebarOpen, setFolderSidebarOpen] = useState(false);
+  const [folderSidebarCollapsed, setFolderSidebarCollapsed] = useState(false);
+  const [createFolderOpen, setCreateFolderOpen] = useState(false);
+  const [createFolderParent, setCreateFolderParent] = useState<IFolderTreeNode | null>(null);
+
+  // Assign to folder modal state
+  const [assignFolderOpen, setAssignFolderOpen] = useState(false);
+  const [assignFolderPolicyId, setAssignFolderPolicyId] = useState<number | null>(null);
+  const [assignFolderCurrentFolders, setAssignFolderCurrentFolders] = useState<IVirtualFolder[]>([]);
+  const [assignFolderSubmitting, setAssignFolderSubmitting] = useState(false);
+
+  // Policy IDs filtered by selected folder
+  const [folderPolicyIds, setFolderPolicyIds] = useState<number[] | null>(null);
+
+  // Virtual folders hooks
+  const {
+    folderTree,
+    selectedFolder,
+    setSelectedFolder,
+    loading: foldersLoading,
+    handleCreateFolder,
+    refreshFolders,
+  } = useVirtualFolders();
+
+  const handleCreateFolderSubmit = useCallback(
+    async (input: IVirtualFolderInput) => {
+      await handleCreateFolder(input);
+      setCreateFolderOpen(false);
+      setCreateFolderParent(null);
+    },
+    [handleCreateFolder]
+  );
+
+  // Fetch policy IDs when a folder is selected
+  useEffect(() => {
+    if (typeof selectedFolder === "number") {
+      getPolicyIdsInFolder(selectedFolder)
+        .then(setFolderPolicyIds)
+        .catch(() => setFolderPolicyIds([]));
+    } else {
+      setFolderPolicyIds(null);
+    }
+  }, [selectedFolder]);
 
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
@@ -142,6 +210,57 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const handleCloseLinkedObjects = () => {
     setLinkedObjectsModalOpen(false);
   };
+
+  // Assign to folder handlers
+  const handleAssignToFolder = useCallback(async (id: number) => {
+    try {
+      const currentFolders = await getPolicyFolders(id);
+      setAssignFolderPolicyId(id);
+      setAssignFolderCurrentFolders(currentFolders);
+      setAssignFolderOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch policy folders:", err);
+      handleAlert({
+        variant: "error",
+        body: "Failed to load folder assignments.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    }
+  }, []);
+
+  const handleAssignFolderSubmit = useCallback(async (folderIds: number[]) => {
+    if (!assignFolderPolicyId) return;
+    setAssignFolderSubmitting(true);
+    try {
+      await updatePolicyFolders(assignFolderPolicyId, folderIds);
+      setAssignFolderOpen(false);
+      setAssignFolderPolicyId(null);
+      setAssignFolderCurrentFolders([]);
+      await refreshFolders();
+      // Refresh folder filter if a folder is currently selected
+      if (typeof selectedFolder === "number") {
+        const updatedIds = await getPolicyIdsInFolder(selectedFolder);
+        setFolderPolicyIds(updatedIds);
+      }
+      handleAlert({
+        variant: "success",
+        body: "Folder assignment updated.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    } catch (err) {
+      console.error("Failed to update policy folders:", err);
+      handleAlert({
+        variant: "error",
+        body: "Failed to update folder assignment.",
+        setAlert,
+        alertTimeout: 4000,
+      });
+    } finally {
+      setAssignFolderSubmitting(false);
+    }
+  }, [assignFolderPolicyId, refreshFolders]);
 
   // Handle policy card click to filter by status
   const handleStatusCardClick = useCallback((status: string) => {
@@ -249,6 +368,12 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const filteredPolicies = useMemo(() => {
     let result = filterPolicyData(policies);
 
+    // Apply folder filter
+    if (folderPolicyIds !== null) {
+      const idSet = new Set(folderPolicyIds);
+      result = result.filter((p) => idSet.has(p.id));
+    }
+
     // Apply card filter for status
     if (selectedStatus) {
       result = result.filter((p) => p.status === selectedStatus);
@@ -263,7 +388,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
 
     return result;
-  }, [filterPolicyData, policies, selectedStatus, searchTerm]);
+  }, [filterPolicyData, policies, selectedStatus, searchTerm, folderPolicyIds]);
 
   // Define how to get the group key for each policy
   const getPolicyGroupKey = useCallback((policy: PolicyManagerModel, field: string): string => {
@@ -294,7 +419,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     return [
       { id: 'title', label: 'Title' },
       { id: 'status', label: 'Status' },
-      { id: 'tags', label: 'Tags' },
       { id: 'next_review', label: 'Next Review' },
       { id: 'author', label: 'Author' },
       { id: 'last_updated', label: 'Last Updated' },
@@ -314,7 +438,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       return {
         title: policy.title || '-',
         status: policy.status || '-',
-        tags: policy.tags?.join(', ') || '-',
         next_review: policy.next_review_date ? displayFormattedDate(policy.next_review_date) : '-',
         author: authorName,
         last_updated: policy.last_updated_at ? displayFormattedDate(policy.last_updated_at) : '-',
@@ -324,6 +447,17 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   }, [filteredPolicies, users]);
 
   return (
+    <>
+    <CreateFolderModal
+      isOpen={createFolderOpen}
+      onClose={() => {
+        setCreateFolderOpen(false);
+        setCreateFolderParent(null);
+      }}
+      onSubmit={handleCreateFolderSubmit}
+      parentFolder={createFolderParent}
+    />
+
     <Stack className="vwhome" gap={"16px"}>
       {/* Policy by Status Cards */}
       <Box data-joyride-id="policy-status-cards">
@@ -373,8 +507,29 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
           </Box>
         </Stack>
 
-        {/* Right side: Export and Add Button */}
+        {/* Right side: Documents toggle, Export and Add Button */}
         <Stack direction="row" gap="8px" alignItems="center">
+          <Tooltip title="Documents" arrow>
+            <IconButton
+              onClick={() => setFolderSidebarOpen((prev) => !prev)}
+              size="small"
+              sx={{
+                color: folderSidebarOpen ? "#13715B" : "#98A2B3",
+                padding: "4px",
+                borderRadius: "4px",
+                backgroundColor: folderSidebarOpen
+                  ? "#E6F4F1"
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: folderSidebarOpen
+                    ? "#D1EDE6"
+                    : "#F2F4F7",
+                },
+              }}
+            >
+              <FolderOpen size={16} />
+            </IconButton>
+          </Tooltip>
           <ExportMenu
             data={exportData}
             columns={exportColumns}
@@ -397,34 +552,76 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         </Stack>
       </Stack>
 
-      {/* Table / Empty state */}
-      <Box sx={{ mt: 1 }}>
-        {filteredPolicies.length === 0 ? (
-          <EmptyState
-            message={
-              searchTerm
-                ? "No matching policies found."
-                : "There is currently no data in this table."
-            }
-            imageAlt="No policies available"
-          />
-        ) : (
-          <GroupedTableView
-            groupedData={groupedPolicies}
-            ungroupedData={filteredPolicies}
-            renderTable={(data, options) => (
-              <PolicyTable
-                data={data}
-                onOpen={handleOpen}
-                onDelete={handleDelete}
-                onLinkedObjects={handleLinkedObject}
-                hidePagination={options?.hidePagination}
-                flashRowId={flashRowId}
-              />
-            )}
-          />
+      {/* Folder sidebar + Table */}
+      <Stack direction="row" sx={{ gap: "8px", mt: 1 }}>
+        {/* Folder sidebar */}
+        {folderSidebarOpen && (
+          <Stack
+            sx={{
+              width: folderSidebarCollapsed ? 48 : 260,
+              minWidth: folderSidebarCollapsed ? 48 : 260,
+              backgroundColor: "#FAFBFC",
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+              overflow: "hidden",
+              transition: "width 200ms ease, min-width 200ms ease",
+              // Override FolderTree's internal borderRight since this wrapper already has a full border
+              "& > .MuiStack-root": {
+                borderRight: "none",
+              },
+            }}
+          >
+            <FolderTree
+              folders={folderTree}
+              selectedFolder={selectedFolder}
+              onSelectFolder={setSelectedFolder}
+              onCreateFolder={(parentId) => {
+                const parent = parentId !== null
+                  ? folderTree.find((f) => f.id === parentId) ?? null
+                  : null;
+                setCreateFolderParent(parent);
+                setCreateFolderOpen(true);
+              }}
+              loading={foldersLoading}
+              canManage
+              collapsed={folderSidebarCollapsed}
+              onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
+              allLabel="All policies"
+              showUncategorized={false}
+            />
+          </Stack>
         )}
-      </Box>
+
+        {/* Table / Empty state */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          {filteredPolicies.length === 0 ? (
+            <EmptyState
+              message={
+                searchTerm
+                  ? "No matching policies found."
+                  : "There is currently no data in this table."
+              }
+              imageAlt="No policies available"
+            />
+          ) : (
+            <GroupedTableView
+              groupedData={groupedPolicies}
+              ungroupedData={filteredPolicies}
+              renderTable={(data, options) => (
+                <PolicyTable
+                  data={data}
+                  onOpen={handleOpen}
+                  onDelete={handleDelete}
+                  onLinkedObjects={handleLinkedObject}
+                  onAssignToFolder={handleAssignToFolder}
+                  hidePagination={options?.hidePagination}
+                  flashRowId={flashRowId}
+                />
+              )}
+            />
+          )}
+        </Box>
+      </Stack>
 
       {/* Linked Objects Modal */}
       {showLinkedObjectModal && (
@@ -433,8 +630,26 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         policyId = {policyId}
         isOpen = {showLinkedObjectModal}
       />
-      
       )}
+
+      {/* Assign to Folder Modal */}
+      <AssignToFolderModal
+        isOpen={assignFolderOpen}
+        onClose={() => {
+          setAssignFolderOpen(false);
+          setAssignFolderPolicyId(null);
+          setAssignFolderCurrentFolders([]);
+        }}
+        onSubmit={handleAssignFolderSubmit}
+        folders={folderTree}
+        currentFolders={assignFolderCurrentFolders}
+        fileName={
+          assignFolderPolicyId
+            ? policies.find((p) => p.id === assignFolderPolicyId)?.title
+            : undefined
+        }
+        isSubmitting={assignFolderSubmitting}
+      />
 
       {alert && (
         <Fade in={showAlert} timeout={300}>
@@ -453,6 +668,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         </Fade>
       )}
     </Stack>
+    </>
   );
 };
 

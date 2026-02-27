@@ -1,6 +1,7 @@
 import { ModelInventoryStatus } from "../enums/modelInventory.enum";
 import { IModelRisk } from "./i.modelRisk";
 import { User } from "../types/User";
+import { EvidenceHubModel } from "../models/Common/evidenceHub/evidenceHub.model";
 
 export interface IModelInventory {
   id?: number;
@@ -87,6 +88,19 @@ export interface ModelRisksTableProps {
   users?: User[];
   models?: IModelInventory[];
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
+}
+
+export interface EvidenceHubTableProps {
+  data: EvidenceHubModel[];
+  isLoading?: boolean;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
+  paginated?: boolean;
+  deletingId?: number | null;
+  modelInventoryData: IModelInventory[];
+  hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface ModelRiskSummaryProps {

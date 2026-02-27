@@ -11,7 +11,6 @@ import { store } from "../../../application/redux/store";
 const tableHeaders = [
   { id: "title", name: "Title" },
   { id: "status", name: "Status" },
-  { id: "tags", name: "Tags" },
   { id: "next_review", name: "Next Review" },
   { id: "author", name: "Author" },
   // { id: "reviewers", name: "Reviewers" },
@@ -199,17 +198,6 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
               }}
             >
               <Chip label={policy.status} />
-            </TableCell>
-            <TableCell
-              sx={{
-                ...cellStyle,
-                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("tags") ? singleTheme.tableColors.sortedColumn : undefined,
-              }}
-            >
-              {(() => {
-                const tags = policy.tags?.join(", ") ?? "-";
-                return tags.length > 30 ? `${tags.slice(0, 30)}...` : tags;
-              })()}
             </TableCell>
             <TableCell
               sx={{

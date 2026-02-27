@@ -4,16 +4,12 @@ import {
   Box,
   Stack,
   Fade,
-  Divider,
   Tooltip,
   IconButton,
-  Typography,
-  CircularProgress,
 } from "@mui/material";
 import {
   CirclePlus as AddCircleOutlineIcon,
   FolderOpen,
-  File as FileIcon,
 } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -36,7 +32,6 @@ import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
 import { displayFormattedDate } from "../../tools/isoDateToString";
 import { useVirtualFolders } from "../../../application/hooks/useVirtualFolders";
-import { useFolderFiles } from "../../../application/hooks/useFolderFiles";
 import { FolderTree } from "../FileManager/components/FolderTree";
 import { CreateFolderModal } from "../FileManager/components/CreateFolderModal";
 import type {
@@ -76,7 +71,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     loading: foldersLoading,
     handleCreateFolder,
   } = useVirtualFolders();
-  const { files: folderFiles, loading: filesLoading } = useFolderFiles(selectedFolder);
 
   const handleCreateFolderSubmit = useCallback(
     async (input: IVirtualFolderInput) => {
@@ -340,7 +334,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     return [
       { id: 'title', label: 'Title' },
       { id: 'status', label: 'Status' },
-      { id: 'tags', label: 'Tags' },
       { id: 'next_review', label: 'Next Review' },
       { id: 'author', label: 'Author' },
       { id: 'last_updated', label: 'Last Updated' },
@@ -360,7 +353,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       return {
         title: policy.title || '-',
         status: policy.status || '-',
-        tags: policy.tags?.join(', ') || '-',
         next_review: policy.next_review_date ? displayFormattedDate(policy.next_review_date) : '-',
         author: authorName,
         last_updated: policy.last_updated_at ? displayFormattedDate(policy.last_updated_at) : '-',
@@ -412,67 +404,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
             collapsed={folderSidebarCollapsed}
             onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
           />
-
-          {/* File list (bottom) */}
-          {!folderSidebarCollapsed && (
-            <>
-              <Divider />
-              <Stack
-                sx={{
-                  flex: 1,
-                  overflow: "auto",
-                  padding: "8px",
-                }}
-              >
-                {filesLoading ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                    <CircularProgress size={20} sx={{ color: "#98A2B3" }} />
-                  </Box>
-                ) : folderFiles.length === 0 ? (
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      color: "#98A2B3",
-                      textAlign: "center",
-                      py: 2,
-                    }}
-                  >
-                    No files in this folder
-                  </Typography>
-                ) : (
-                  folderFiles.map((file) => (
-                    <Box
-                      key={file.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        padding: "6px 8px",
-                        borderRadius: "4px",
-                        "&:hover": { backgroundColor: "#F0F2F5" },
-                      }}
-                    >
-                      <FileIcon size={14} color="#667085" style={{ flexShrink: 0 }} />
-                      <Tooltip title={file.filename} placement="top">
-                        <Typography
-                          sx={{
-                            flex: 1,
-                            fontSize: 12,
-                            color: "#344054",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {file.filename}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                  ))
-                )}
-              </Stack>
-            </>
-          )}
         </Stack>
       )}
 

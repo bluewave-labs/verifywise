@@ -586,6 +586,8 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
               canManage
               collapsed={folderSidebarCollapsed}
               onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
+              allLabel="All policies"
+              showUncategorized={false}
             />
           </Stack>
         )}

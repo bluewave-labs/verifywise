@@ -38,6 +38,10 @@ interface FolderTreeProps {
   canManage?: boolean;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  /** Label for the "All files" item. Defaults to "All files". */
+  allLabel?: string;
+  /** Whether to show the "Uncategorized" item. Defaults to true. */
+  showUncategorized?: boolean;
 }
 
 interface FolderItemProps {
@@ -267,6 +271,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   canManage,
   collapsed = false,
   onToggleCollapse,
+  allLabel = "All files",
+  showUncategorized = true,
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
 
@@ -425,11 +431,12 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     color: selectedFolder === "all" ? "#13715B" : "#344054",
                   }}
                 >
-                  All files
+                  {allLabel}
                 </Typography>
               </Box>
 
               {/* Uncategorized */}
+              {showUncategorized && (
               <Box
                 onClick={() => onSelectFolder("uncategorized")}
                 sx={{
@@ -460,6 +467,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                   Uncategorized
                 </Typography>
               </Box>
+              )}
 
               {/* Folder tree */}
               {folders.map((folder) => (

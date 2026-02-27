@@ -475,7 +475,6 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
             sx={{
               width: folderSidebarCollapsed ? 48 : 260,
               minWidth: folderSidebarCollapsed ? 48 : 260,
-              borderRight: "1px solid #D0D5DD",
               backgroundColor: "#FAFBFC",
               borderRadius: "4px 0 0 4px",
               overflow: "hidden",

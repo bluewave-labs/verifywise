@@ -983,7 +983,7 @@ async def run_evaluation(
                                         "score": result.score,
                                         "label": result.label,
                                         "passed": result.passed,
-                                        "reason": result.raw_response if result.raw_response else "",
+                                        "reason": result.reason if result.reason else (result.raw_response if result.raw_response else ""),
                                     }
                                 
                             except Exception as scorer_err:

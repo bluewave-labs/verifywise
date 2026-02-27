@@ -45,6 +45,7 @@ import {
   Popover,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
   Underline as UnderlineIcon,
@@ -88,6 +89,10 @@ import {
   ChevronDown as ChevronDownIcon,
   ChevronUp as ChevronUpIcon,
   Search,
+  FolderOpen,
+  Link2,
+  CheckCircle2,
+  File as FileIcon,
 } from "lucide-react";
 
 import Select from "../../components/Inputs/Select";
@@ -112,6 +117,16 @@ import { checkStringValidation } from "../../../application/validations/stringVa
 import { store } from "../../../application/redux/store";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
+import { useVirtualFolders } from "../../../application/hooks/useVirtualFolders";
+import { useFolderFiles } from "../../../application/hooks/useFolderFiles";
+import { FolderTree } from "../FileManager/components/FolderTree";
+import { CreateFolderModal } from "../FileManager/components/CreateFolderModal";
+import { getAllEntities } from "../../../application/repository/entity.repository";
+import { createPolicyLinkedObjects } from "../../../application/repository/policyLinkedObjects.repository";
+import type {
+  IFolderTreeNode,
+  IVirtualFolderInput,
+} from "../../../domain/interfaces/i.virtualFolder";
 
 // ── Auth image node view with resize ─────────────────────────────────
 const AuthImage: React.FC<NodeViewProps> = ({ node, updateAttributes, selected }) => {
@@ -451,6 +466,24 @@ export default function PolicyEditorPage() {
   const isLoadingContentRef = useRef(false);
   const formRef = useRef<HTMLDivElement>(null);
   const [validationSnackbar, setValidationSnackbar] = useState(false);
+
+  // Folder sidebar state
+  const [folderSidebarOpen, setFolderSidebarOpen] = useState(false);
+  const [folderSidebarCollapsed, setFolderSidebarCollapsed] = useState(false);
+  const [linkedEvidenceIds, setLinkedEvidenceIds] = useState<Set<number>>(new Set());
+  const [createFolderOpen, setCreateFolderOpen] = useState(false);
+  const [createFolderParent, setCreateFolderParent] = useState<IFolderTreeNode | null>(null);
+  const [linkingFileId, setLinkingFileId] = useState<number | null>(null);
+
+  // Virtual folders hooks
+  const {
+    folderTree,
+    selectedFolder,
+    setSelectedFolder,
+    loading: foldersLoading,
+    handleCreateFolder,
+  } = useVirtualFolders();
+  const { files: folderFiles, loading: filesLoading } = useFolderFiles(selectedFolder);
 
   // Color picker state
   const [colorAnchorEl, setColorAnchorEl] = useState<HTMLElement | null>(null);
@@ -910,6 +943,58 @@ export default function PolicyEditorPage() {
       countMatches();
     }
   }, [editor, searchText, replaceText, countMatches]);
+
+  // ── Fetch linked evidence ──────────────────────────────────────────
+  const policyId = isNew ? null : policy?.id ?? null;
+
+  const fetchLinkedEvidence = useCallback(async () => {
+    if (!policyId) return;
+    try {
+      const data = await getAllEntities({
+        routeUrl: `/policy-linked/${policyId}/linked-objects`,
+      });
+      const evidenceIds: number[] = (data?.evidence ?? []).map(
+        (e: { object_id: number }) => e.object_id
+      );
+      setLinkedEvidenceIds(new Set(evidenceIds));
+    } catch {
+      // Not critical — leave set empty
+    }
+  }, [policyId]);
+
+  useEffect(() => {
+    fetchLinkedEvidence();
+  }, [fetchLinkedEvidence]);
+
+  // ── Link file handler ──────────────────────────────────────────────
+  const handleLinkFile = useCallback(
+    async (fileId: number) => {
+      if (!policyId) return;
+      setLinkingFileId(fileId);
+      try {
+        await createPolicyLinkedObjects(
+          `/policy-linked/${policyId}/linked-objects`,
+          { object_type: "evidence", object_ids: [fileId] }
+        );
+        setLinkedEvidenceIds((prev) => new Set([...prev, fileId]));
+      } catch {
+        // Silently fail — user can retry
+      } finally {
+        setLinkingFileId(null);
+      }
+    },
+    [policyId]
+  );
+
+  // ── Create folder handler ──────────────────────────────────────────
+  const handleCreateFolderSubmit = useCallback(
+    async (input: IVirtualFolderInput) => {
+      await handleCreateFolder(input);
+      setCreateFolderOpen(false);
+      setCreateFolderParent(null);
+    },
+    [handleCreateFolder]
+  );
 
   // ── Toolbar config ────────────────────────────────────────────────
   const toolbarConfig: Array<{
@@ -1392,6 +1477,16 @@ export default function PolicyEditorPage() {
         selectedText={selectedTextForLink}
       />
 
+      <CreateFolderModal
+        isOpen={createFolderOpen}
+        onClose={() => {
+          setCreateFolderOpen(false);
+          setCreateFolderParent(null);
+        }}
+        onSubmit={handleCreateFolderSubmit}
+        parentFolder={createFolderParent}
+      />
+
       <input
         ref={imageInputRef}
         type="file"
@@ -1455,6 +1550,29 @@ export default function PolicyEditorPage() {
                 {exportError}
               </Typography>
             )}
+
+            {/* Documents sidebar toggle */}
+            <Tooltip title="Documents" arrow>
+              <IconButton
+                onClick={() => setFolderSidebarOpen((prev) => !prev)}
+                size="small"
+                sx={{
+                  color: folderSidebarOpen ? "#13715B" : "#98A2B3",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  backgroundColor: folderSidebarOpen
+                    ? "#E6F4F1"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: folderSidebarOpen
+                      ? "#D1EDE6"
+                      : "#F2F4F7",
+                  },
+                }}
+              >
+                <FolderOpen size={16} />
+              </IconButton>
+            </Tooltip>
 
             {/* History toggle */}
             {!isNew && policy?.id && (
@@ -1887,11 +2005,135 @@ export default function PolicyEditorPage() {
           </Stack>
         </Popover>
 
-        {/* ── Editor + History sidebar ─────────────────────────────── */}
+        {/* ── Folder sidebar + Editor + History sidebar ────────────── */}
         <Stack
           direction="row"
           sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}
         >
+          {/* Folder sidebar */}
+          {folderSidebarOpen && (
+            <Stack
+              sx={{
+                width: folderSidebarCollapsed ? 48 : 260,
+                minWidth: folderSidebarCollapsed ? 48 : 260,
+                borderRight: "1px solid #D0D5DD",
+                backgroundColor: "#FAFBFC",
+                overflow: "hidden",
+                transition: "width 200ms ease, min-width 200ms ease",
+              }}
+            >
+              {/* Folder tree (top) */}
+              <FolderTree
+                folders={folderTree}
+                selectedFolder={selectedFolder}
+                onSelectFolder={setSelectedFolder}
+                onCreateFolder={(parentId) => {
+                  const parent = parentId !== null
+                    ? folderTree.find((f) => f.id === parentId) ?? null
+                    : null;
+                  setCreateFolderParent(parent);
+                  setCreateFolderOpen(true);
+                }}
+                loading={foldersLoading}
+                canManage
+                collapsed={folderSidebarCollapsed}
+                onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
+              />
+
+              {/* File list (bottom) */}
+              {!folderSidebarCollapsed && (
+                <>
+                  <Divider />
+                  <Stack
+                    sx={{
+                      flex: 1,
+                      overflow: "auto",
+                      padding: "8px",
+                    }}
+                  >
+                    {filesLoading ? (
+                      <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                        <CircularProgress size={20} sx={{ color: "#98A2B3" }} />
+                      </Box>
+                    ) : folderFiles.length === 0 ? (
+                      <Typography
+                        sx={{
+                          fontSize: 12,
+                          color: "#98A2B3",
+                          textAlign: "center",
+                          py: 2,
+                        }}
+                      >
+                        No files in this folder
+                      </Typography>
+                    ) : (
+                      folderFiles.map((file) => {
+                        const isLinked = linkedEvidenceIds.has(file.id);
+                        const isLinking = linkingFileId === file.id;
+                        return (
+                          <Box
+                            key={file.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "6px 8px",
+                              borderRadius: "4px",
+                              "&:hover": { backgroundColor: "#F0F2F5" },
+                            }}
+                          >
+                            <FileIcon size={14} color="#667085" style={{ flexShrink: 0 }} />
+                            <Tooltip title={file.filename} placement="top">
+                              <Typography
+                                sx={{
+                                  flex: 1,
+                                  fontSize: 12,
+                                  color: "#344054",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {file.filename}
+                              </Typography>
+                            </Tooltip>
+                            {isLinked ? (
+                              <Tooltip title="Already linked" placement="top">
+                                <CheckCircle2 size={14} color="#079455" style={{ flexShrink: 0 }} />
+                              </Tooltip>
+                            ) : isLinking ? (
+                              <CircularProgress size={14} sx={{ color: "#13715B", flexShrink: 0 }} />
+                            ) : (
+                              <Tooltip
+                                title={isNew ? "Save the policy first" : "Link to policy"}
+                                placement="top"
+                              >
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    disabled={isNew}
+                                    onClick={() => handleLinkFile(file.id)}
+                                    sx={{
+                                      padding: "2px",
+                                      "&:hover": { backgroundColor: "#E8F5F1" },
+                                      "&:disabled": { opacity: 0.4 },
+                                    }}
+                                  >
+                                    <Link2 size={14} color="#13715B" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        );
+                      })
+                    )}
+                  </Stack>
+                </>
+              )}
+            </Stack>
+          )}
+
           {/* Editor */}
           <Box
             sx={{

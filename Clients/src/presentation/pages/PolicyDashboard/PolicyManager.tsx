@@ -1,7 +1,20 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Stack, Fade } from "@mui/material";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import {
+  Box,
+  Stack,
+  Fade,
+  Divider,
+  Tooltip,
+  IconButton,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import {
+  CirclePlus as AddCircleOutlineIcon,
+  FolderOpen,
+  File as FileIcon,
+} from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { deletePolicy } from "../../../application/repository/policy.repository";
@@ -22,6 +35,14 @@ import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
 import { displayFormattedDate } from "../../tools/isoDateToString";
+import { useVirtualFolders } from "../../../application/hooks/useVirtualFolders";
+import { useFolderFiles } from "../../../application/hooks/useFolderFiles";
+import { FolderTree } from "../FileManager/components/FolderTree";
+import { CreateFolderModal } from "../FileManager/components/CreateFolderModal";
+import type {
+  IFolderTreeNode,
+  IVirtualFolderInput,
+} from "../../../domain/interfaces/i.virtualFolder";
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -40,6 +61,31 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   useEffect(() => {
     setPolicies(policyList);
   }, [policyList]);
+
+  // Folder sidebar state
+  const [folderSidebarOpen, setFolderSidebarOpen] = useState(false);
+  const [folderSidebarCollapsed, setFolderSidebarCollapsed] = useState(false);
+  const [createFolderOpen, setCreateFolderOpen] = useState(false);
+  const [createFolderParent, setCreateFolderParent] = useState<IFolderTreeNode | null>(null);
+
+  // Virtual folders hooks
+  const {
+    folderTree,
+    selectedFolder,
+    setSelectedFolder,
+    loading: foldersLoading,
+    handleCreateFolder,
+  } = useVirtualFolders();
+  const { files: folderFiles, loading: filesLoading } = useFolderFiles(selectedFolder);
+
+  const handleCreateFolderSubmit = useCallback(
+    async (input: IVirtualFolderInput) => {
+      await handleCreateFolder(input);
+      setCreateFolderOpen(false);
+      setCreateFolderParent(null);
+    },
+    [handleCreateFolder]
+  );
 
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
@@ -324,7 +370,113 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   }, [filteredPolicies, users]);
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
+    <>
+    <CreateFolderModal
+      isOpen={createFolderOpen}
+      onClose={() => {
+        setCreateFolderOpen(false);
+        setCreateFolderParent(null);
+      }}
+      onSubmit={handleCreateFolderSubmit}
+      parentFolder={createFolderParent}
+    />
+
+    <Stack direction="row" sx={{ gap: 0 }}>
+      {/* Folder sidebar */}
+      {folderSidebarOpen && (
+        <Stack
+          sx={{
+            width: folderSidebarCollapsed ? 48 : 260,
+            minWidth: folderSidebarCollapsed ? 48 : 260,
+            borderRight: "1px solid #D0D5DD",
+            backgroundColor: "#FAFBFC",
+            overflow: "hidden",
+            transition: "width 200ms ease, min-width 200ms ease",
+            maxHeight: "calc(100vh - 120px)",
+          }}
+        >
+          {/* Folder tree (top) */}
+          <FolderTree
+            folders={folderTree}
+            selectedFolder={selectedFolder}
+            onSelectFolder={setSelectedFolder}
+            onCreateFolder={(parentId) => {
+              const parent = parentId !== null
+                ? folderTree.find((f) => f.id === parentId) ?? null
+                : null;
+              setCreateFolderParent(parent);
+              setCreateFolderOpen(true);
+            }}
+            loading={foldersLoading}
+            canManage
+            collapsed={folderSidebarCollapsed}
+            onToggleCollapse={() => setFolderSidebarCollapsed((p) => !p)}
+          />
+
+          {/* File list (bottom) */}
+          {!folderSidebarCollapsed && (
+            <>
+              <Divider />
+              <Stack
+                sx={{
+                  flex: 1,
+                  overflow: "auto",
+                  padding: "8px",
+                }}
+              >
+                {filesLoading ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                    <CircularProgress size={20} sx={{ color: "#98A2B3" }} />
+                  </Box>
+                ) : folderFiles.length === 0 ? (
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      color: "#98A2B3",
+                      textAlign: "center",
+                      py: 2,
+                    }}
+                  >
+                    No files in this folder
+                  </Typography>
+                ) : (
+                  folderFiles.map((file) => (
+                    <Box
+                      key={file.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "6px 8px",
+                        borderRadius: "4px",
+                        "&:hover": { backgroundColor: "#F0F2F5" },
+                      }}
+                    >
+                      <FileIcon size={14} color="#667085" style={{ flexShrink: 0 }} />
+                      <Tooltip title={file.filename} placement="top">
+                        <Typography
+                          sx={{
+                            flex: 1,
+                            fontSize: 12,
+                            color: "#344054",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {file.filename}
+                        </Typography>
+                      </Tooltip>
+                    </Box>
+                  ))
+                )}
+              </Stack>
+            </>
+          )}
+        </Stack>
+      )}
+
+    <Stack className="vwhome" gap={"16px"} sx={{ flex: 1, minWidth: 0 }}>
       {/* Policy by Status Cards */}
       <Box data-joyride-id="policy-status-cards">
         <PolicyStatusCard
@@ -373,8 +525,29 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
           </Box>
         </Stack>
 
-        {/* Right side: Export and Add Button */}
+        {/* Right side: Documents toggle, Export and Add Button */}
         <Stack direction="row" gap="8px" alignItems="center">
+          <Tooltip title="Documents" arrow>
+            <IconButton
+              onClick={() => setFolderSidebarOpen((prev) => !prev)}
+              size="small"
+              sx={{
+                color: folderSidebarOpen ? "#13715B" : "#98A2B3",
+                padding: "4px",
+                borderRadius: "4px",
+                backgroundColor: folderSidebarOpen
+                  ? "#E6F4F1"
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: folderSidebarOpen
+                    ? "#D1EDE6"
+                    : "#F2F4F7",
+                },
+              }}
+            >
+              <FolderOpen size={16} />
+            </IconButton>
+          </Tooltip>
           <ExportMenu
             data={exportData}
             columns={exportColumns}
@@ -453,6 +626,8 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         </Fade>
       )}
     </Stack>
+    </Stack>
+    </>
   );
 };
 

@@ -75,6 +75,7 @@ export interface ModelInventoryTableProps {
   hidePagination?: boolean;
   modelRisks?: IModelRisk[];
   flashRowId?: number | string | null;
+  visibleColumns?: Set<string>;
 }
 
 export interface ModelRisksTableProps {

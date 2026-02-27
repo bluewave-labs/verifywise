@@ -88,6 +88,8 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { ColumnSelector } from "../../components/Table/ColumnSelector";
+import { useColumnVisibility, ColumnConfig } from "../../../application/hooks/useColumnVisibility";
 import { palette } from "../../themes/palette";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
@@ -161,6 +163,43 @@ const ModelInventory: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+
+  // Column visibility management for Models tab
+  type ModelInventoryColumn =
+    | "provider"
+    | "model"
+    | "version"
+    | "approver"
+    | "security_assessment"
+    | "risks"
+    | "status"
+    | "status_date"
+    | "actions";
+
+  const MODEL_INVENTORY_COLUMNS: ColumnConfig<ModelInventoryColumn>[] = useMemo(
+    () => [
+      { key: "provider", label: "Provider", defaultVisible: true },
+      { key: "model", label: "Model", defaultVisible: true, alwaysVisible: true },
+      { key: "version", label: "Version", defaultVisible: true },
+      { key: "approver", label: "Approver", defaultVisible: true },
+      { key: "security_assessment", label: "Assessment", defaultVisible: true },
+      { key: "risks", label: "Risks", defaultVisible: true },
+      { key: "status", label: "Status", defaultVisible: true, alwaysVisible: true },
+      { key: "status_date", label: "Status date", defaultVisible: true },
+      { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
+    ],
+    []
+  );
+
+  const {
+    visibleColumns: modelVisibleColumns,
+    allColumns: modelAllColumns,
+    toggleColumn: modelToggleColumn,
+    resetToDefaults: modelResetToDefaults,
+  } = useColumnVisibility<ModelInventoryColumn>({
+    tableId: "model-inventory-table",
+    columns: MODEL_INVENTORY_COLUMNS,
+  });
 
   // GroupBy state - models tab
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
@@ -2087,6 +2126,13 @@ const ModelInventory: React.FC = () => {
                   onGroupChange={handleGroupChange}
                 />
 
+                <ColumnSelector
+                  columns={modelAllColumns}
+                  visibleColumns={modelVisibleColumns}
+                  onToggleColumn={modelToggleColumn}
+                  onResetToDefaults={modelResetToDefaults}
+                />
+
                 {/* Search */}
                 <Box data-joyride-id="model-search">
                   <SearchBox
@@ -2161,6 +2207,7 @@ const ModelInventory: React.FC = () => {
                   hidePagination={options?.hidePagination}
                   modelRisks={modelRisksData}
                   flashRowId={flashRowId}
+                  visibleColumns={modelVisibleColumns}
                 />
               )}
             />

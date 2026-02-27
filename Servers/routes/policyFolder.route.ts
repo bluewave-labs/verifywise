@@ -11,10 +11,17 @@ import { Router } from "express";
 import authenticateJWT from "../middleware/auth.middleware";
 import {
   getPolicyFolders,
+  getPoliciesInFolder,
   updatePolicyFolders,
 } from "../controllers/policyFolder.ctrl";
 
 const router = Router();
+
+/**
+ * GET /policies/folders/:folderId/policies
+ * Get all policy IDs assigned to a folder
+ */
+router.get("/folders/:folderId/policies", authenticateJWT, getPoliciesInFolder);
 
 /**
  * GET /policies/:id/folders

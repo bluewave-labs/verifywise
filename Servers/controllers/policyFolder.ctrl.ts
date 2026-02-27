@@ -14,6 +14,7 @@ import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   getPolicyFoldersQuery,
+  getPolicyIdsInFolderQuery,
   bulkUpdatePolicyFoldersQuery,
 } from "../utils/policyFolder.utils";
 import { sequelize } from "../database/db";
@@ -47,6 +48,28 @@ export const getPolicyFolders = async (
     return res.status(200).json(STATUS_CODE[200](folders));
   } catch (error) {
     console.error("Error getting policy folders:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+};
+
+/**
+ * GET /folders/:folderId/policies
+ * Get all policy IDs in a folder
+ */
+export const getPoliciesInFolder = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const folderId = parseParamId(req.params.folderId);
+    if (isNaN(folderId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid folder ID"));
+    }
+
+    const policyIds = await getPolicyIdsInFolderQuery(req.tenantId!, folderId);
+    return res.status(200).json(STATUS_CODE[200](policyIds));
+  } catch (error) {
+    console.error("Error getting policies in folder:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 };

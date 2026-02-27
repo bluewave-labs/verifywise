@@ -43,6 +43,24 @@ export const getPolicyFoldersQuery = async (
 };
 
 /**
+ * Get all policy IDs assigned to a specific folder
+ */
+export const getPolicyIdsInFolderQuery = async (
+  tenant: string,
+  folderId: number
+): Promise<number[]> => {
+  validateTenant(tenant);
+  const result = await sequelize.query<{ policy_id: number }>(
+    `SELECT policy_id FROM "${tenant}".policy_folder_mappings WHERE folder_id = :folderId`,
+    {
+      replacements: { folderId },
+      type: QueryTypes.SELECT,
+    }
+  );
+  return result.map((r) => r.policy_id);
+};
+
+/**
  * Bulk update policy folder assignments (replace all folder assignments for a policy)
  */
 export const bulkUpdatePolicyFoldersQuery = async (

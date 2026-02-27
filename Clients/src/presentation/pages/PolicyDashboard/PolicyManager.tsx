@@ -37,6 +37,7 @@ import { CreateFolderModal } from "../FileManager/components/CreateFolderModal";
 import { AssignToFolderModal } from "../FileManager/components/AssignToFolderModal";
 import {
   getPolicyFolders,
+  getPolicyIdsInFolder,
   updatePolicyFolders,
 } from "../../../application/repository/policyFolder.repository";
 import type {
@@ -75,6 +76,9 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const [assignFolderCurrentFolders, setAssignFolderCurrentFolders] = useState<IVirtualFolder[]>([]);
   const [assignFolderSubmitting, setAssignFolderSubmitting] = useState(false);
 
+  // Policy IDs filtered by selected folder
+  const [folderPolicyIds, setFolderPolicyIds] = useState<number[] | null>(null);
+
   // Virtual folders hooks
   const {
     folderTree,
@@ -93,6 +97,17 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     },
     [handleCreateFolder]
   );
+
+  // Fetch policy IDs when a folder is selected
+  useEffect(() => {
+    if (typeof selectedFolder === "number") {
+      getPolicyIdsInFolder(selectedFolder)
+        .then(setFolderPolicyIds)
+        .catch(() => setFolderPolicyIds([]));
+    } else {
+      setFolderPolicyIds(null);
+    }
+  }, [selectedFolder]);
 
   // New state for filter + search
   const [searchTerm, setSearchTerm] = useState("");
@@ -223,6 +238,11 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       setAssignFolderPolicyId(null);
       setAssignFolderCurrentFolders([]);
       await refreshFolders();
+      // Refresh folder filter if a folder is currently selected
+      if (typeof selectedFolder === "number") {
+        const updatedIds = await getPolicyIdsInFolder(selectedFolder);
+        setFolderPolicyIds(updatedIds);
+      }
       handleAlert({
         variant: "success",
         body: "Folder assignment updated.",
@@ -348,6 +368,12 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
   const filteredPolicies = useMemo(() => {
     let result = filterPolicyData(policies);
 
+    // Apply folder filter
+    if (folderPolicyIds !== null) {
+      const idSet = new Set(folderPolicyIds);
+      result = result.filter((p) => idSet.has(p.id));
+    }
+
     // Apply card filter for status
     if (selectedStatus) {
       result = result.filter((p) => p.status === selectedStatus);
@@ -362,7 +388,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
     }
 
     return result;
-  }, [filterPolicyData, policies, selectedStatus, searchTerm]);
+  }, [filterPolicyData, policies, selectedStatus, searchTerm, folderPolicyIds]);
 
   // Define how to get the group key for each policy
   const getPolicyGroupKey = useCallback((policy: PolicyManagerModel, field: string): string => {
@@ -527,7 +553,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
       </Stack>
 
       {/* Folder sidebar + Table */}
-      <Stack direction="row" sx={{ gap: 0, mt: 1 }}>
+      <Stack direction="row" sx={{ gap: "8px", mt: 1 }}>
         {/* Folder sidebar */}
         {folderSidebarOpen && (
           <Stack
@@ -535,9 +561,14 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
               width: folderSidebarCollapsed ? 48 : 260,
               minWidth: folderSidebarCollapsed ? 48 : 260,
               backgroundColor: "#FAFBFC",
-              borderRadius: "4px 0 0 4px",
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
               overflow: "hidden",
               transition: "width 200ms ease, min-width 200ms ease",
+              // Override FolderTree's internal borderRight since this wrapper already has a full border
+              "& > .MuiStack-root": {
+                borderRight: "none",
+              },
             }}
           >
             <FolderTree

@@ -10,6 +10,13 @@ export const getPolicyFolders = async (
   return response.data.data;
 };
 
+export const getPolicyIdsInFolder = async (
+  folderId: number
+): Promise<number[]> => {
+  const response = await CustomAxios.get(`${BASE_URL}/folders/${folderId}/policies`);
+  return response.data.data;
+};
+
 export const updatePolicyFolders = async (
   policyId: number,
   folderIds: number[]

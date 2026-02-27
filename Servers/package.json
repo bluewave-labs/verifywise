@@ -1,6 +1,6 @@
 {
   "name": "verifywise",
-  "version": "v1.7",
+  "version": "1.8.0",
   "main": "index.js",
   "scripts": {
     "test": "jest --detectOpenHandles --forceExit",

@@ -39,6 +39,14 @@ export class DeploymentManager {
     };
   }
 
+  /** Reset module state — only for use in tests */
+  static _resetForTesting(): void {
+    updateAvailable = false;
+    onUpdateCallbacks = [];
+    if (intervalId) clearInterval(intervalId);
+    intervalId = null;
+  }
+
   static startPolling(): void {
     if (intervalId) return;
     checkVersion();

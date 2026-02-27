@@ -1,5 +1,5 @@
-import CustomAxios from "@/infrastructure/api/customAxios";
-import type { IVirtualFolder } from "@/domain/interfaces/i.virtualFolder";
+import CustomAxios from "../../infrastructure/api/customAxios";
+import type { IVirtualFolder } from "../../domain/interfaces/i.virtualFolder";
 
 const BASE_URL = "/policies";
 

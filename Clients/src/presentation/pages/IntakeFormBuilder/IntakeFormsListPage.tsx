@@ -623,12 +623,13 @@ export function IntakeFormsListPage() {
                       <TableRow
                         key={submission.id}
                         onClick={() => {
+                          if (submission.status === "superseded") return;
                           setSelectedSubmissionId(submission.id);
                           setPreviewOpen(true);
                         }}
                         sx={{
                           ...singleTheme.tableStyles.primary.body.row,
-                          cursor: "pointer",
+                          cursor: submission.status === "superseded" ? "default" : "pointer",
                           ...(submission.status === "superseded" && { opacity: 0.5 }),
                         }}
                       >
@@ -650,7 +651,7 @@ export function IntakeFormsListPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <Stack direction="row" alignItems="center" gap="8px">
                             <Chip label={submission.status} />
                             {submission.resubmissionCount > 0 && submission.status !== "superseded" && (
                               <Chip label="resubmitted" />
@@ -666,25 +667,27 @@ export function IntakeFormsListPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <CustomizableButton
-                            variant="outlined"
-                            onClick={() => {
-                              setSelectedSubmissionId(submission.id);
-                              setPreviewOpen(true);
-                            }}
-                            sx={{
-                              height: 28,
-                              fontSize: "12px",
-                              borderColor: theme.palette.border.dark,
-                              color: theme.palette.text.secondary,
-                              "&:hover": {
-                                borderColor: theme.palette.primary.main,
-                                backgroundColor: theme.palette.background.fill,
-                              },
-                            }}
-                          >
-                            {submission.status === "superseded" ? "View" : "Review"}
-                          </CustomizableButton>
+                          {submission.status !== "superseded" && (
+                            <CustomizableButton
+                              variant="outlined"
+                              onClick={() => {
+                                setSelectedSubmissionId(submission.id);
+                                setPreviewOpen(true);
+                              }}
+                              sx={{
+                                height: 28,
+                                fontSize: "12px",
+                                borderColor: theme.palette.border.dark,
+                                color: theme.palette.text.secondary,
+                                "&:hover": {
+                                  borderColor: theme.palette.primary.main,
+                                  backgroundColor: theme.palette.background.fill,
+                                },
+                              }}
+                            >
+                              Review
+                            </CustomizableButton>
+                          )}
                         </TableCell>
                       </TableRow>
                     );

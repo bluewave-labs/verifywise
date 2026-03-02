@@ -613,7 +613,7 @@ export function createEmptyForm(entityType?: IntakeEntityType): IntakeForm {
     status: IntakeFormStatus.DRAFT,
     ttlExpiresAt: null,
     recipients: [],
-    riskTierSystem: "generic",
+    riskTierSystem: "eu_ai_act",
     llmKeyId: null,
     suggestedQuestionsEnabled: false,
     designSettings: { ...DEFAULT_DESIGN_SETTINGS },

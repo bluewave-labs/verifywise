@@ -3485,7 +3485,7 @@ export const createNewTenant = async (
         ttl_expires_at TIMESTAMPTZ,
         public_id VARCHAR(16) UNIQUE,
         recipients JSONB DEFAULT '[]',
-        risk_tier_system VARCHAR(20) DEFAULT 'generic',
+        risk_tier_system VARCHAR(20) DEFAULT 'eu_ai_act',
         risk_assessment_config JSONB,
         llm_key_id INTEGER,
         suggested_questions_enabled BOOLEAN DEFAULT false,

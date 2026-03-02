@@ -189,7 +189,7 @@ export const createIntakeFormQuery = async (
         ttlExpiresAt: data.ttlExpiresAt || null,
         publicId,
         recipients: JSON.stringify(data.recipients || []),
-        riskTierSystem: data.riskTierSystem || "generic",
+        riskTierSystem: data.riskTierSystem || "eu_ai_act",
         riskAssessmentConfig: data.riskAssessmentConfig
           ? JSON.stringify(data.riskAssessmentConfig)
           : null,
@@ -496,6 +496,26 @@ export const createSubmissionQuery = async (
     }
   );
 
+  // Supersede the original submission when this is a resubmission
+  if (data.originalSubmissionId) {
+    await sequelize.query(
+      `UPDATE "${tenant}".intake_submissions
+       SET status = :superseded, updated_at = NOW()
+       WHERE id = :originalId
+         AND status IN (:pending, :rejected)`,
+      {
+        replacements: {
+          originalId: data.originalSubmissionId,
+          superseded: IntakeSubmissionStatus.SUPERSEDED,
+          pending: IntakeSubmissionStatus.PENDING,
+          rejected: IntakeSubmissionStatus.REJECTED,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      }
+    );
+  }
+
   return result[0] as IIntakeSubmission;
 };
 
@@ -622,6 +642,7 @@ export const getSubmissionStatsQuery = async (
       COUNT(*) FILTER (WHERE status = :pending) as pending,
       COUNT(*) FILTER (WHERE status = :approved) as approved,
       COUNT(*) FILTER (WHERE status = :rejected) as rejected,
+      COUNT(*) FILTER (WHERE status = :superseded) as superseded,
       COUNT(*) as total
     FROM "${tenant}".intake_submissions`,
     {
@@ -629,6 +650,7 @@ export const getSubmissionStatsQuery = async (
         pending: IntakeSubmissionStatus.PENDING,
         approved: IntakeSubmissionStatus.APPROVED,
         rejected: IntakeSubmissionStatus.REJECTED,
+        superseded: IntakeSubmissionStatus.SUPERSEDED,
       },
       type: QueryTypes.SELECT,
     }
@@ -639,6 +661,7 @@ export const getSubmissionStatsQuery = async (
     pending: parseInt(stats.pending, 10) || 0,
     approved: parseInt(stats.approved, 10) || 0,
     rejected: parseInt(stats.rejected, 10) || 0,
+    superseded: parseInt(stats.superseded, 10) || 0,
     total: parseInt(stats.total, 10) || 0,
   };
 };

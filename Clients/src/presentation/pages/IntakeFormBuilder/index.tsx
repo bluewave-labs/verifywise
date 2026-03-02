@@ -79,6 +79,7 @@ export function IntakeFormBuilder() {
   const { formId } = useParams<{ formId?: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const entityTypeParam = searchParams.get("entityType");
   const theme = useTheme();
 
   // --- Builder state ---
@@ -125,7 +126,6 @@ export function IntakeFormBuilder() {
         })
         .finally(() => setIsLoadingForm(false));
     } else if (formId === "new") {
-      const entityTypeParam = searchParams.get("entityType");
       const entityType = entityTypeParam === IntakeEntityType.MODEL
         ? IntakeEntityType.MODEL
         : IntakeEntityType.USE_CASE;
@@ -133,7 +133,7 @@ export function IntakeFormBuilder() {
       setSelectedFieldId(null);
       setIsDirty(false);
     }
-  }, [formId, isEditing, searchParams]);
+  }, [formId, isEditing, entityTypeParam]);
 
   // Load LLM keys & users (once)
   useEffect(() => {
@@ -759,14 +759,16 @@ export function IntakeFormBuilder() {
                     onDescriptionChange={(description) => updateForm({ description })}
                     collectContactInfo
                   />
-                  <SuggestedQuestionsPanel
-                    ref={suggestedPanelRef}
-                    fieldCount={form.schema.fields.length}
-                    existingFieldLabels={form.schema.fields.map((f) => f.label)}
-                    entityType={form.entityType}
-                    llmKeyId={form.llmKeyId}
-                    onAdd={addField}
-                  />
+                  {form.suggestedQuestionsEnabled && (
+                    <SuggestedQuestionsPanel
+                      ref={suggestedPanelRef}
+                      fieldCount={form.schema.fields.length}
+                      existingFieldLabels={form.schema.fields.map((f) => f.label)}
+                      entityType={form.entityType}
+                      llmKeyId={form.llmKeyId}
+                      onAdd={addField}
+                    />
+                  )}
                 </Box>
                 {builderMode === "design" ? (
                   <DesignPanel
@@ -1152,7 +1154,7 @@ export function IntakeFormBuilder() {
                             <Typography
                               sx={{ fontSize: "11px", color: theme.palette.text.accent }}
                             >
-                              Show AI-suggested questions to form submitters
+                              Show AI-suggested questions while building the form
                             </Typography>
                           </Box>
                         </Box>

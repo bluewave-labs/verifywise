@@ -8,9 +8,6 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Collapse,
   useTheme,
 } from "@mui/material";
@@ -265,7 +262,7 @@ export function IntakeFormBuilder() {
         ...form,
         slug: form.slug || generateSlug(form.name),
         recipients: form.recipients ?? [],
-        riskTierSystem: form.riskTierSystem ?? "generic",
+        riskTierSystem: form.riskTierSystem ?? "eu_ai_act",
         llmKeyId: form.llmKeyId ?? null,
         suggestedQuestionsEnabled: form.suggestedQuestionsEnabled ?? false,
       };
@@ -316,7 +313,7 @@ export function IntakeFormBuilder() {
         ...form,
         slug: form.slug || generateSlug(form.name),
         recipients: form.recipients ?? [],
-        riskTierSystem: form.riskTierSystem ?? "generic",
+        riskTierSystem: form.riskTierSystem ?? "eu_ai_act",
         llmKeyId: form.llmKeyId ?? null,
         suggestedQuestionsEnabled: form.suggestedQuestionsEnabled ?? false,
         status: IntakeFormStatus.ACTIVE,
@@ -983,82 +980,6 @@ export function IntakeFormBuilder() {
                           >
                             Submission responses will be emailed to selected recipients
                           </Typography>
-                        </Box>
-
-                        <Box>
-                          <Typography
-                            sx={{
-                              fontSize: 13,
-                              fontWeight: 500,
-                              color: theme.palette.text.secondary,
-                              mb: "4px",
-                            }}
-                          >
-                            Risk tier system
-                          </Typography>
-                          <RadioGroup
-                            value={form.riskTierSystem ?? "generic"}
-                            onChange={(e) =>
-                              updateForm({
-                                riskTierSystem: e.target.value,
-                              })
-                            }
-                            sx={{ pl: "16px", gap: "8px" }}
-                          >
-                            <FormControlLabel
-                              value="generic"
-                              sx={{ mr: 0 }}
-                              control={
-                                <Radio
-                                  size="small"
-                                  sx={{
-                                    color: theme.palette.text.accent,
-                                    "&.Mui-checked": {
-                                      color: theme.palette.primary.main,
-                                    },
-                                    p: 0.5,
-                                  }}
-                                />
-                              }
-                              label={
-                                <Typography
-                                  sx={{
-                                    fontSize: 13,
-                                    color: theme.palette.text.secondary,
-                                  }}
-                                >
-                                  Generic (Low / Med / High / Critical)
-                                </Typography>
-                              }
-                            />
-                            <FormControlLabel
-                              value="eu_ai_act"
-                              sx={{ mr: 0 }}
-                              control={
-                                <Radio
-                                  size="small"
-                                  sx={{
-                                    color: theme.palette.text.accent,
-                                    "&.Mui-checked": {
-                                      color: theme.palette.primary.main,
-                                    },
-                                    p: 0.5,
-                                  }}
-                                />
-                              }
-                              label={
-                                <Typography
-                                  sx={{
-                                    fontSize: 13,
-                                    color: theme.palette.text.secondary,
-                                  }}
-                                >
-                                  EU AI Act (Minimal / Limited / High /
-                                  Unacceptable)
-                                </Typography>
-                              }
-                            />
-                          </RadioGroup>
                         </Box>
 
                         <Box>

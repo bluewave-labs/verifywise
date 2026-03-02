@@ -403,6 +403,18 @@ export function PublicIntakeForm() {
             >
               {formData.name}
             </Typography>
+            {formData.description && (
+              <Typography
+                sx={{
+                  color: "rgba(255, 255, 255, 0.85)",
+                  fontSize: "15px",
+                  lineHeight: 1.6,
+                  mt: "8px",
+                }}
+              >
+                {formData.description}
+              </Typography>
+            )}
           </GradientBanner>
 
           {/* Form body */}
@@ -411,19 +423,6 @@ export function PublicIntakeForm() {
             onSubmit={handleSubmit(onSubmit)}
             sx={{ p: "32px" }}
           >
-            {/* Description */}
-            {formData.description && (
-              <Typography
-                sx={{
-                  color: "#64748b",
-                  fontSize: "15px",
-                  lineHeight: 1.6,
-                  mb: 3,
-                }}
-              >
-                {formData.description}
-              </Typography>
-            )}
 
             {/* Resubmission alert */}
             {previousData && (

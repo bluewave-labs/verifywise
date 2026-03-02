@@ -189,7 +189,7 @@ export const createIntakeFormQuery = async (
         ttlExpiresAt: data.ttlExpiresAt || null,
         publicId,
         recipients: JSON.stringify(data.recipients || []),
-        riskTierSystem: data.riskTierSystem || "generic",
+        riskTierSystem: data.riskTierSystem || "eu_ai_act",
         riskAssessmentConfig: data.riskAssessmentConfig
           ? JSON.stringify(data.riskAssessmentConfig)
           : null,

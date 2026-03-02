@@ -82,6 +82,9 @@ DIMENSION_PATTERNS: Dict[str, List[Pattern]] = {
         r"\bsocial scor\b",
         r"\bscore (citizens|individuals|people|persons)\b",
         r"\brestrict(ing)? access\b",
+        r"\bguarantee[sd]?\b",
+        r"\beliminate[sd]? (human )?errors?\b",
+        r"\bok(ay)? to (publish|release)\b",
     ]),
     "synthetic_disclosure": _compile([
         r"\bAI[- ]generated\b",
@@ -111,6 +114,8 @@ SIGNAL_PATTERNS: Dict[str, List[Pattern]] = {
         r"\bexpect(s|ing|ed)?\b",
         r"\bjust do it\b",
         r"\bmake it happen\b",
+        r"\b\d+\s*minutes?\b",
+        r"\bSLA\b",
     ]),
     "uncertainty": _compile([
         r"\bnot sure\b",

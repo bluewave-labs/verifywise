@@ -581,6 +581,7 @@ export function IntakeFormsListPage() {
                 { _id: "pending", name: "Pending" },
                 { _id: "approved", name: "Approved" },
                 { _id: "rejected", name: "Rejected" },
+                { _id: "superseded", name: "Superseded" },
               ]}
               sx={{ width: 180, backgroundColor: theme.palette.background.main }}
             />
@@ -628,6 +629,7 @@ export function IntakeFormsListPage() {
                         sx={{
                           ...singleTheme.tableStyles.primary.body.row,
                           cursor: "pointer",
+                          ...(submission.status === "superseded" && { opacity: 0.5 }),
                         }}
                       >
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -648,7 +650,12 @@ export function IntakeFormsListPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <Chip label={submission.status} />
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <Chip label={submission.status} />
+                            {submission.resubmissionCount > 0 && submission.status !== "superseded" && (
+                              <Chip label="resubmitted" />
+                            )}
+                          </Stack>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <RiskTierChip submission={submission} />
@@ -676,7 +683,7 @@ export function IntakeFormsListPage() {
                               },
                             }}
                           >
-                            Review
+                            {submission.status === "superseded" ? "View" : "Review"}
                           </CustomizableButton>
                         </TableCell>
                       </TableRow>

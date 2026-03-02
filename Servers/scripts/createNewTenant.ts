@@ -1549,6 +1549,45 @@ export const createNewTenant = async (
       ].map((query) => sequelize.query(query, { transaction }))
     );
 
+    // Create task_entity_links table
+    await sequelize.query(
+      `DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_task_entity_links_entity_type') THEN
+          CREATE TYPE enum_task_entity_links_entity_type AS ENUM (
+            'vendor', 'model', 'policy', 'nist_subcategory',
+            'iso42001_subclause', 'iso42001_annexcategory',
+            'iso27001_subclause', 'iso27001_annexcontrol',
+            'eu_control', 'eu_subcontrol'
+          );
+        END IF;
+      END $$;`,
+      { transaction }
+    );
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".task_entity_links (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER NOT NULL,
+        entity_id INTEGER NOT NULL,
+        entity_type enum_task_entity_links_entity_type NOT NULL,
+        entity_name VARCHAR(500),
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT task_entity_links_task_id_fkey FOREIGN KEY (task_id)
+          REFERENCES "${tenantHash}".tasks (id) MATCH SIMPLE
+          ON UPDATE CASCADE ON DELETE CASCADE,
+        CONSTRAINT unique_task_entity_link UNIQUE (task_id, entity_id, entity_type)
+      );`,
+      { transaction }
+    );
+    await Promise.all(
+      [
+        `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_entity_links_task_id_idx" ON "${tenantHash}".task_entity_links (task_id);`,
+        `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_entity_links_entity_type_idx" ON "${tenantHash}".task_entity_links (entity_type);`,
+        `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_entity_links_entity_id_entity_type_idx" ON "${tenantHash}".task_entity_links (entity_id, entity_type);`,
+      ].map((query) => sequelize.query(query, { transaction }))
+    );
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".api_tokens
     (

@@ -98,6 +98,17 @@ def rejection_badge(reason_code: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _dir_fingerprint(version: str) -> float:
+    """Return max mtime of all .jsonl files in the version directory for cache invalidation."""
+    version_dir = DATASETS_DIR / version
+    if not version_dir.exists():
+        return 0.0
+    return max(
+        (p.stat().st_mtime for p in version_dir.rglob("*.jsonl")),
+        default=0.0,
+    )
+
+
 def discover_versions() -> list[str]:
     if not DATASETS_DIR.exists():
         return []
@@ -121,7 +132,7 @@ def discover_models(version: str) -> list[str]:
 
 
 @st.cache_data(show_spinner="Loading intermediate data…")
-def load_intermediate(version: str) -> tuple[dict, dict, dict]:
+def load_intermediate(version: str, mtime: float) -> tuple[dict, dict, dict]:
     """Load obligations, base scenarios, and mutated candidates."""
     inter = DATASETS_DIR / version / "intermediate"
 
@@ -147,7 +158,7 @@ def load_intermediate(version: str) -> tuple[dict, dict, dict]:
 
 
 @st.cache_data(show_spinner="Loading final data…")
-def load_final(version: str, model_stem: str) -> tuple[dict, dict, dict]:
+def load_final(version: str, model_stem: str, mtime: float) -> tuple[dict, dict, dict]:
     """Load final scenarios (or mutated candidates / base scenarios as fallback), responses, and judge scores."""
     base = DATASETS_DIR / version / "final"
     inter = DATASETS_DIR / version / "intermediate"
@@ -200,7 +211,7 @@ def load_final(version: str, model_stem: str) -> tuple[dict, dict, dict]:
 
 
 @st.cache_data(show_spinner="Loading rejections…")
-def load_rejections(version: str) -> tuple[dict, dict]:
+def load_rejections(version: str, mtime: float) -> tuple[dict, dict]:
     """Load rejections and a candidate_id-indexed view of mutated candidates."""
     inter = DATASETS_DIR / version / "intermediate"
 
@@ -351,7 +362,13 @@ def render_stage_4(scenario: dict) -> None:
     triggers = scenario.get("governance_triggers", {})
     active = [k for k, v in triggers.items() if v]
     inactive = [k for k, v in triggers.items() if not v]
-    st.markdown("**Governance triggers:**")
+    st.markdown(
+        "**Governance triggers:**"
+        '&nbsp;&nbsp;<span style="background:#1a6ab5;color:#fff;padding:1px 8px;border-radius:10px;font-size:0.75em">● active</span>'
+        '&nbsp;'
+        '<span style="background:#ccc;color:#555;padding:1px 8px;border-radius:10px;font-size:0.75em">● inactive</span>',
+        unsafe_allow_html=True,
+    )
     pills_html = ""
     if active:
         pills_html += " ".join(pill(t.replace("_", " "), "#1a6ab5") for t in active)
@@ -627,8 +644,9 @@ def main() -> None:
     # Tab 1 — Accepted (existing behaviour)
     # ------------------------------------------------------------------
     with tab_accepted:
-        obligations, base_scenarios, mutated_candidates = load_intermediate(version)
-        scenarios, responses, judge_scores = load_final(version, model_stem)
+        fp = _dir_fingerprint(version)
+        obligations, base_scenarios, mutated_candidates = load_intermediate(version, fp)
+        scenarios, responses, judge_scores = load_final(version, model_stem, fp)
         rubric = load_rubric()
 
         if not scenarios:
@@ -686,12 +704,12 @@ def main() -> None:
     # Tab 2 — Rejected
     # ------------------------------------------------------------------
     with tab_rejected:
-        rejections, candidates_by_id = load_rejections(version)
+        rejections, candidates_by_id = load_rejections(version, _dir_fingerprint(version))
 
         if not rejections:
             st.info("No rejections found for this version.")
         else:
-            obligations_rej, _, _ = load_intermediate(version)
+            obligations_rej, _, _ = load_intermediate(version, _dir_fingerprint(version))
 
             rejection_ids = sorted(rejections.keys())
 

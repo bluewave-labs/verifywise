@@ -3369,6 +3369,7 @@ export const createNewTenant = async (
       CREATE TABLE IF NOT EXISTS "${tenantHash}".feature_settings (
         id SERIAL PRIMARY KEY,
         lifecycle_enabled BOOLEAN NOT NULL DEFAULT true,
+        audit_ledger_enabled BOOLEAN NOT NULL DEFAULT true,
         updated_at TIMESTAMP DEFAULT NOW(),
         updated_by INTEGER NULL REFERENCES public.users(id)
       );

@@ -270,7 +270,7 @@ const Chip: React.FC<IChipProps> = ({
         border: `1px solid ${borderColor}`,
         color: colors.textColor,
         fontSize: 11,
-        fontWeight: 500,
+        fontWeight: 400,
         textTransform: uppercase ? "uppercase" : "none",
         whiteSpace: "nowrap",
         lineHeight: 1,

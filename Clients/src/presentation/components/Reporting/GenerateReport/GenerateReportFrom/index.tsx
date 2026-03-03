@@ -371,7 +371,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
           </Box>
           {values.aiEnhanced && (
             <Stack spacing={1.5} sx={{ mt: 1.5 }}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                 {[
                   "Executive Summary",
                   "Key Findings",

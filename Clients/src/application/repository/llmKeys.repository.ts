@@ -39,5 +39,5 @@ export interface LLMKeyStatus {
 
 export async function getLLMKeyStatus(): Promise<LLMKeyStatus> {
   const response = await apiServices.get("/llm-keys/status");
-  return response.data as LLMKeyStatus;
+  return (response.data as any).data as LLMKeyStatus;
 }

@@ -1,7 +1,6 @@
 import React from "react";
 import { Box, Typography, Button, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Info } from "lucide-react";
 
 interface AIKeyBannerProps {
   onClose: () => void;
@@ -20,16 +19,12 @@ const AIKeyBanner: React.FC<AIKeyBannerProps> = ({ onClose }) => {
     <Box
       sx={{
         display: "flex",
-        gap: 1.5,
-        p: 2,
+        p: "8px",
         borderRadius: "4px",
         backgroundColor: theme.palette.background.fill,
         border: `1px solid ${theme.palette.primary.main}`,
       }}
     >
-      <Box sx={{ pt: 0.25, flexShrink: 0 }}>
-        <Info size={16} color={theme.palette.primary.main} />
-      </Box>
       <Box>
         <Typography
           sx={{
@@ -49,7 +44,7 @@ const AIKeyBanner: React.FC<AIKeyBannerProps> = ({ onClose }) => {
           }}
         >
           Configure an LLM key to generate reports with executive summaries, key
-          findings, and recommendations.
+          findings and recommendations.
         </Typography>
         <Button
           size="small"

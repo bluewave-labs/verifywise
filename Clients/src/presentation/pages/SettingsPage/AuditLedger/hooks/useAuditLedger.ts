@@ -4,7 +4,7 @@ import {
   verifyAuditLedger,
   type AuditLedgerEntry,
   type VerifyResult,
-} from "../../../../application/repository/auditLedger.repository";
+} from "../../../../../application/repository/auditLedger.repository";
 
 const PAGE_SIZE = 50;
 

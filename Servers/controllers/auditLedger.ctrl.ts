@@ -16,8 +16,8 @@ export async function getAuditLedger(req: Request, res: Response): Promise<any> 
 
   try {
     const tenantId = req.tenantId!;
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 200);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
     const countResult: any[] = await sequelize.query(
       `SELECT COUNT(*) as count FROM "${tenantId}".audit_ledger`,

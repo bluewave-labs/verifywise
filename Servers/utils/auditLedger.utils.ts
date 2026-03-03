@@ -78,7 +78,7 @@ export async function appendToAuditLedger(
       `SELECT entry_hash FROM "${tenant}".audit_ledger ORDER BY id DESC LIMIT 1`,
       { type: QueryTypes.SELECT, transaction: txn }
     );
-    const prevHash = lastRows.length > 0 ? lastRows[0].entry_hash : GENESIS_HASH;
+    const prevHash = lastRows.length > 0 ? lastRows[0].entry_hash.trim() : GENESIS_HASH;
 
     // Step 2: INSERT with sentinel hash
     const sentinel = "pending".padEnd(64, "0");
@@ -109,7 +109,9 @@ export async function appendToAuditLedger(
       }
     );
 
-    const inserted = insertResult[0] as any;
+    // QueryTypes.INSERT returns [rows[], rowCount] — access first row from the array
+    const rows = insertResult[0] as any[];
+    const inserted = rows[0];
     const newId: number = inserted.id;
     const occurredAt: string = inserted.occurred_at;
 
@@ -194,14 +196,18 @@ export async function verifyChain(
     for (const row of rows) {
       totalEntries++;
 
+      // Trim CHAR(64) padding to avoid false-positive chain breaks
+      const rowPrevHash = row.prev_hash?.trim() ?? "";
+      const rowEntryHash = row.entry_hash?.trim() ?? "";
+
       // Verify prev_hash linkage
-      if (row.prev_hash !== prevHash) {
+      if (rowPrevHash !== prevHash) {
         return {
           status: "compromised",
           totalEntries,
           brokenAtId: row.id,
           expectedHash: prevHash,
-          actualHash: row.prev_hash,
+          actualHash: rowPrevHash,
         };
       }
 
@@ -219,20 +225,20 @@ export async function verifyChain(
         old_value: row.old_value,
         new_value: row.new_value,
         description: row.description,
-        prev_hash: row.prev_hash,
+        prev_hash: rowPrevHash,
       });
 
-      if (row.entry_hash !== expectedHash) {
+      if (rowEntryHash !== expectedHash) {
         return {
           status: "compromised",
           totalEntries,
           brokenAtId: row.id,
           expectedHash,
-          actualHash: row.entry_hash,
+          actualHash: rowEntryHash,
         };
       }
 
-      prevHash = row.entry_hash;
+      prevHash = rowEntryHash;
     }
 
     offset += batchSize;

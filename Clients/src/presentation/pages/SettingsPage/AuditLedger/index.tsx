@@ -25,6 +25,7 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import SearchBox from "../../../components/Search/SearchBox";
 import Select from "../../../components/Inputs/Select";
 import { EmptyState } from "../../../components/EmptyState";
+import InfoBox from "../../../components/InfoBox";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useAuditLedger } from "./hooks/useAuditLedger";
 
@@ -93,7 +94,7 @@ export default function AuditLedger() {
     if (!verifyResult) {
       return {
         icon: <ShieldQuestion size={18} strokeWidth={1.5} />,
-        label: "Chain integrity not yet verified",
+        label: "Chain not yet verified — click 'Verify chain' to check integrity",
         color: theme.palette.text.accent,
         bg: theme.palette.background.alt,
       };
@@ -131,6 +132,14 @@ export default function AuditLedger() {
 
   return (
     <Stack sx={{ gap: "16px" }}>
+      {/* Info box */}
+      <InfoBox
+        header="Tamper-proof audit ledger"
+        message="Every change made on the platform is recorded as an append-only, hash-chained entry. Each entry's cryptographic hash depends on the previous one, so any modification or deletion would break the chain. Click 'Verify chain' to confirm that no entries have been altered or removed since they were recorded."
+        storageKey="audit-ledger-info"
+        variant="info"
+      />
+
       {/* Verification banner */}
       <Stack
         direction="row"
@@ -197,7 +206,7 @@ export default function AuditLedger() {
           <SearchBox
             value={filters.searchUser}
             onChange={(val: string) => updateFilters({ searchUser: val })}
-            placeholder="Search by user name..."
+            placeholder="Search user..."
             fullWidth={false}
           />
         </Stack>

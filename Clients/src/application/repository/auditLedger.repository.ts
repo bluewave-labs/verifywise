@@ -46,7 +46,7 @@ export async function getAuditLedger(
   params: GetAuditLedgerParams = {}
 ): Promise<AuditLedgerResponse> {
   const query = new URLSearchParams();
-  if (params.limit) query.set("limit", String(params.limit));
+  if (params.limit !== undefined) query.set("limit", String(params.limit));
   if (params.offset !== undefined) query.set("offset", String(params.offset));
   if (params.entity_type) query.set("entity_type", String(params.entity_type));
   if (params.entry_type) query.set("entry_type", String(params.entry_type));

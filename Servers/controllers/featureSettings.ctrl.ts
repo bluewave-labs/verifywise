@@ -101,6 +101,12 @@ export async function updateFeatureSettings(
         .json(STATUS_CODE[400]("audit_ledger_enabled must be a boolean"));
     }
 
+    if (lifecycle_enabled === undefined && audit_ledger_enabled === undefined) {
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("No valid fields to update"));
+    }
+
     const updated = await updateFeatureSettingsQuery(tenantId, {
       lifecycle_enabled,
       audit_ledger_enabled,

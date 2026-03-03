@@ -125,7 +125,9 @@ export default function AuditLedger() {
     }
     return {
       icon: <ShieldAlert size={18} strokeWidth={1.5} />,
-      label: `Tampering detected — hash chain broken at entry #${verifyResult.brokenAtId}. Entries at or before this point may have been altered.`,
+      label: verifyResult.brokenAtId
+        ? `Tampering detected — hash chain broken at entry #${verifyResult.brokenAtId}. Entries at or before this point may have been altered.`
+        : "Tampering detected — hash chain integrity check failed.",
       color: theme.palette.status.error.text,
       bg: theme.palette.status.error.bg,
     };

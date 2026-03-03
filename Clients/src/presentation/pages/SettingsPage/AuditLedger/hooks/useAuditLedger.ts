@@ -67,10 +67,8 @@ export function useAuditLedger() {
       setVerifyResult(result);
     } catch (error) {
       console.error("Failed to verify audit ledger:", error);
-      setVerifyResult({
-        status: "compromised",
-        totalEntries: 0,
-      });
+      // Don't report "compromised" on network errors — leave as unverified
+      setVerifyResult(null);
     } finally {
       setIsVerifying(false);
     }

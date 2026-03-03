@@ -269,7 +269,16 @@ def render_detail(row: dict) -> None:
         else:
             st.markdown(f"**Model:** `{resp.get('model_id', '—')}`")
             st.markdown(f"**Provider:** {resp.get('provider', '—')}")
-            st.markdown(f"**Finish reason:** {resp.get('raw', {}).get('finish_reason', '—')}")
+            finish_reason = resp.get('raw', {}).get('finish_reason', '—')
+            st.markdown(f"**Finish reason:** {finish_reason}")
+            if finish_reason == "length":
+                reasoning_tokens = resp.get("raw", {}).get("usage", {}).get("completion_tokens_details", {}).get("reasoning_tokens", 0)
+                st.warning(
+                    f"⚠️ **Response was cut off** (`finish_reason=length`). "
+                    f"The model hit the `max_tokens` limit before finishing its response. "
+                    + (f"Reasoning tokens consumed: **{reasoning_tokens}** of the budget. " if reasoning_tokens else "")
+                    + "Re-run inference with a higher `--max-tokens` value."
+                )
 
             col_a, col_b, col_c, col_d = st.columns(4)
             col_a.metric("Latency", f"{row['latency_ms']} ms" if row["latency_ms"] else "—")

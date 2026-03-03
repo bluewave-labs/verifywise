@@ -26,6 +26,7 @@ import SearchBox from "../../../components/Search/SearchBox";
 import Select from "../../../components/Inputs/Select";
 import { EmptyState } from "../../../components/EmptyState";
 import InfoBox from "../../../components/InfoBox";
+import Chip from "../../../components/Chip";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useAuditLedger } from "./hooks/useAuditLedger";
 
@@ -258,28 +259,11 @@ export default function AuditLedger() {
                       {entry.entity_id ?? "-"}
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                      <Typography
-                        component="span"
-                        sx={{
-                          fontSize: 12,
-                          px: "8px",
-                          py: "2px",
-                          borderRadius: "4px",
-                          backgroundColor:
-                            entry.entry_type === "event_log"
-                              ? theme.palette.background.fill
-                              : theme.palette.status.warning.bg,
-                          color:
-                            entry.entry_type === "event_log"
-                              ? theme.palette.primary.main
-                              : theme.palette.status.warning.text,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {entry.entry_type === "event_log"
-                          ? "Event log"
-                          : "Change history"}
-                      </Typography>
+                      <Chip
+                        label={entry.entry_type === "event_log" ? "Event log" : "Change history"}
+                        variant={entry.entry_type === "event_log" ? "info" : "warning"}
+                        uppercase={false}
+                      />
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Tooltip title={entry.entry_hash.trim()} arrow>

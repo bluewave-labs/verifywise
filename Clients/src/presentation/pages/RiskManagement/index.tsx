@@ -28,10 +28,12 @@ import { RiskModel } from "../../../domain/models/Common/risks/risk.model";
 import AnalyticsDrawer from "../../components/AnalyticsDrawer";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { GroupBy } from "../../components/Table/GroupBy";
+import { ColumnSelector } from "../../components/Table/ColumnSelector";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { FilterBy, FilterColumn, FilterCondition } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { useColumnVisibility, ColumnConfig } from "../../../application/hooks/useColumnVisibility";
 import { useEntityChangeHistory } from "../../../application/hooks/useEntityChangeHistory";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
@@ -135,6 +137,29 @@ const RiskManagement = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Column visibility management
+  type RiskColumn = 'risk_name' | 'risk_owner' | 'severity' | 'mitigation_status' | 'risk_level_autocalculated' | 'deadline' | 'controls_mapping' | 'actions';
+
+  const RISK_COLUMNS: ColumnConfig<RiskColumn>[] = useMemo(
+    () => [
+      { key: 'risk_name', label: 'Risk name', defaultVisible: true, alwaysVisible: true },
+      { key: 'risk_owner', label: 'Owner', defaultVisible: true },
+      { key: 'severity', label: 'Severity', defaultVisible: true },
+      { key: 'mitigation_status', label: 'Mitigation status', defaultVisible: true },
+      { key: 'risk_level_autocalculated', label: 'Risk level', defaultVisible: true },
+      { key: 'deadline', label: 'Target date', defaultVisible: true },
+      { key: 'controls_mapping', label: 'Controls', defaultVisible: true },
+      { key: 'actions', label: 'Actions', defaultVisible: true, alwaysVisible: true },
+    ],
+    []
+  );
+
+  const { visibleColumns, allColumns, toggleColumn, resetToDefaults } =
+    useColumnVisibility<RiskColumn>({
+      tableId: 'risk-management-table',
+      columns: RISK_COLUMNS,
+    });
 
   // Selected risk level for card filtering
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string | null>(null);
@@ -738,6 +763,12 @@ const RiskManagement = () => {
               ]}
               onGroupChange={handleGroupChange}
             />
+            <ColumnSelector
+              columns={allColumns}
+              visibleColumns={visibleColumns}
+              onToggleColumn={toggleColumn}
+              onResetToDefaults={resetToDefaults}
+            />
             <SearchBox
               placeholder="Search risks..."
               value={searchTerm}
@@ -953,6 +984,7 @@ const RiskManagement = () => {
                 onDeleteRisk={handleDelete}
                 flashRow={currentRow}
                 hidePagination={options?.hidePagination}
+                visibleColumns={visibleColumns}
               />
             )}
           />

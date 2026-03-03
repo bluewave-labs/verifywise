@@ -49,7 +49,11 @@ const SortableTableHead: React.FC<{
   columns: typeof columns;
   sortConfig: SortConfig;
   onSort: (columnId: string) => void;
-}> = ({ columns, sortConfig, onSort }) => {
+  visibleColumns?: Set<string>;
+}> = ({ columns, sortConfig, onSort, visibleColumns }) => {
+  const filteredColumns = visibleColumns
+    ? columns.filter((col) => visibleColumns.has(col.id))
+    : columns;
   const theme = useTheme();
 
   return (
@@ -60,7 +64,7 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {columns.map((column) => (
+        {filteredColumns.map((column) => (
           <TableCell
             key={column.id}
             sx={{
@@ -130,7 +134,15 @@ const VWProjectRisksTable = ({
   page,
   flashRow,
   hidePagination = false,
+  visibleColumns,
 }: IVWProjectRisksTable) => {
+  const filteredColumns = useMemo(
+    () =>
+      visibleColumns
+        ? columns.filter((col) => visibleColumns.has(col.id))
+        : columns,
+    [visibleColumns]
+  );
   const theme = useTheme();
 
   // Initialize rowsPerPage from localStorage or default to 5
@@ -327,6 +339,7 @@ const VWProjectRisksTable = ({
           columns={columns}
           sortConfig={sortConfig}
           onSort={handleSort}
+          visibleColumns={visibleColumns}
         />
         {sortedRows.length !== 0 ? (
           <VWProjectRisksTableBody
@@ -338,11 +351,12 @@ const VWProjectRisksTable = ({
             onDeleteRisk={onDeleteRisk}
             flashRow={flashRow}
             sortConfig={sortConfig}
+            visibleColumns={visibleColumns}
           />
         ) : (
           <TableBody>
             <TableRow>
-              <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+              <TableCell colSpan={filteredColumns.length} sx={{ border: "none", p: 0 }}>
                 <EmptyState message="There is currently no data in this table." />
               </TableCell>
             </TableRow>
@@ -351,7 +365,7 @@ const VWProjectRisksTable = ({
         {!hidePagination && (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+              <TableCell colSpan={filteredColumns.length} sx={{ border: "none", p: 0 }}>
                 <Box
                   sx={{
                     display: "flex",

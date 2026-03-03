@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Navigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -9,8 +8,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Select,
-  MenuItem,
   Tooltip,
   CircularProgress,
   Stack,
@@ -24,29 +21,30 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { CustomizableButton } from "../../components/button/customizable-button";
-import { SearchBox } from "../../components/Search";
-import { EmptyState } from "../../components/EmptyState";
-import { useAuth } from "../../../application/hooks/useAuth";
+import { CustomizableButton } from "../../../components/button/customizable-button";
+import SearchBox from "../../../components/Search/SearchBox";
+import Select from "../../../components/Inputs/Select";
+import { EmptyState } from "../../../components/EmptyState";
+import singleTheme from "../../../themes/v1SingleTheme";
 import { useAuditLedger } from "./hooks/useAuditLedger";
 
-const ENTITY_TYPES = [
-  { value: "", label: "All entity types" },
-  { value: "vendor", label: "Vendor" },
-  { value: "vendor_risk", label: "Vendor risk" },
-  { value: "project_risk", label: "Project risk" },
-  { value: "policy", label: "Policy" },
-  { value: "incident", label: "Incident" },
-  { value: "use_case", label: "Use case" },
-  { value: "model_inventory", label: "Model inventory" },
-  { value: "file", label: "File" },
-  { value: "dataset", label: "Dataset" },
+const ENTITY_TYPE_ITEMS = [
+  { _id: "", name: "All entity types" },
+  { _id: "vendor", name: "Vendor" },
+  { _id: "vendor_risk", name: "Vendor risk" },
+  { _id: "project_risk", name: "Project risk" },
+  { _id: "policy", name: "Policy" },
+  { _id: "incident", name: "Incident" },
+  { _id: "use_case", name: "Use case" },
+  { _id: "model_inventory", name: "Model inventory" },
+  { _id: "file", name: "File" },
+  { _id: "dataset", name: "Dataset" },
 ];
 
-const ENTRY_TYPES = [
-  { value: "", label: "All entry types" },
-  { value: "event_log", label: "Event log" },
-  { value: "change_history", label: "Change history" },
+const ENTRY_TYPE_ITEMS = [
+  { _id: "", name: "All entry types" },
+  { _id: "event_log", name: "Event log" },
+  { _id: "change_history", name: "Change history" },
 ];
 
 function formatTimestamp(iso: string): string {
@@ -73,13 +71,6 @@ function getUserDisplay(
 
 export default function AuditLedger() {
   const theme = useTheme();
-  const { userRoleName } = useAuth();
-
-  // Admin-only page: redirect non-admins to dashboard
-  if (userRoleName && userRoleName !== "Admin") {
-    return <Navigate to="/" replace />;
-  }
-
   const {
     entries,
     total,
@@ -130,7 +121,6 @@ export default function AuditLedger() {
         bg: theme.palette.background.alt,
       };
     }
-    // compromised
     return {
       icon: <ShieldAlert size={18} strokeWidth={1.5} />,
       label: `Chain compromised at entry #${verifyResult.brokenAtId}`,
@@ -139,47 +129,22 @@ export default function AuditLedger() {
     };
   }, [verifyResult, theme]);
 
-  const selectSx = {
-    height: 34,
-    fontSize: 13,
-    "& .MuiSelect-select": { py: "6px" },
-  };
-
   return (
-    <Box>
-      {/* Header */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
-        <Typography
-          sx={{
-            fontSize: 16,
-            fontWeight: 600,
-            color: theme.palette.text.primary,
-          }}
-        >
-          Audit ledger
-        </Typography>
-      </Stack>
-
+    <Stack sx={{ gap: "16px" }}>
       {/* Verification banner */}
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
         sx={{
-          px: 2,
-          py: 1.5,
-          mb: 2,
+          px: "16px",
+          py: "12px",
           borderRadius: "4px",
           border: `1px solid ${theme.palette.border.light}`,
           backgroundColor: verifyBanner.bg,
         }}
       >
-        <Stack direction="row" alignItems="center" gap={1}>
+        <Stack direction="row" alignItems="center" sx={{ gap: "8px" }}>
           <Box sx={{ color: verifyBanner.color, display: "flex" }}>
             {verifyBanner.icon}
           </Box>
@@ -202,48 +167,45 @@ export default function AuditLedger() {
         />
       </Stack>
 
-      {/* Filters */}
-      <Stack direction="row" alignItems="center" gap={1.5} sx={{ mb: 2 }}>
-        <Select
-          value={filters.entity_type}
-          onChange={(e: SelectChangeEvent) =>
-            updateFilters({ entity_type: e.target.value })
-          }
-          displayEmpty
-          size="small"
-          sx={{ ...selectSx, minWidth: 160 }}
-        >
-          {ENTITY_TYPES.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-        <Select
-          value={filters.entry_type}
-          onChange={(e: SelectChangeEvent) =>
-            updateFilters({ entry_type: e.target.value })
-          }
-          displayEmpty
-          size="small"
-          sx={{ ...selectSx, minWidth: 150 }}
-        >
-          {ENTRY_TYPES.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-        <SearchBox
-          value={filters.searchUser}
-          onChange={(val: string) => updateFilters({ searchUser: val })}
-          placeholder="Search by user name..."
-        />
+      {/* Filters row */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Stack direction="row" alignItems="center" sx={{ gap: "8px" }}>
+          <Select
+            id="audit-entity-type"
+            placeholder="All entity types"
+            value={filters.entity_type}
+            items={ENTITY_TYPE_ITEMS}
+            onChange={(e: SelectChangeEvent<string | number>) =>
+              updateFilters({ entity_type: String(e.target.value) })
+            }
+            sx={{ minWidth: 170 }}
+          />
+          <Select
+            id="audit-entry-type"
+            placeholder="All entry types"
+            value={filters.entry_type}
+            items={ENTRY_TYPE_ITEMS}
+            onChange={(e: SelectChangeEvent<string | number>) =>
+              updateFilters({ entry_type: String(e.target.value) })
+            }
+            sx={{ minWidth: 160 }}
+          />
+          <SearchBox
+            value={filters.searchUser}
+            onChange={(val: string) => updateFilters({ searchUser: val })}
+            placeholder="Search by user name..."
+            fullWidth={false}
+          />
+        </Stack>
       </Stack>
 
       {/* Table */}
       {isLoading ? (
-        <Stack alignItems="center" sx={{ py: 8 }}>
+        <Stack alignItems="center" sx={{ py: "64px" }}>
           <CircularProgress size={28} />
         </Stack>
       ) : entries.length === 0 ? (
@@ -252,52 +214,45 @@ export default function AuditLedger() {
           showBorder
         />
       ) : (
-        <>
-          <TableContainer
-            sx={{
-              border: `1px solid ${theme.palette.border.light}`,
-              borderRadius: "4px",
-            }}
-          >
-            <Table size="small">
+        <Stack sx={{ gap: "16px" }}>
+          <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+            <Table>
               <TableHead>
-                <TableRow
-                  sx={{ backgroundColor: theme.palette.background.alt }}
-                >
-                  <TableCell sx={headerCellSx}>Timestamp</TableCell>
-                  <TableCell sx={headerCellSx}>User</TableCell>
-                  <TableCell sx={headerCellSx}>Action</TableCell>
-                  <TableCell sx={headerCellSx}>Entity type</TableCell>
-                  <TableCell sx={headerCellSx}>Entity ID</TableCell>
-                  <TableCell sx={headerCellSx}>Entry type</TableCell>
-                  <TableCell sx={headerCellSx}>Hash</TableCell>
+                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Timestamp</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>User</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Action</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Entity type</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Entity ID</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Entry type</TableCell>
+                  <TableCell sx={singleTheme.tableStyles.primary.header.cell}>Hash</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {entries.map((entry) => (
-                  <TableRow key={entry.id} hover>
-                    <TableCell sx={cellSx}>
+                  <TableRow key={entry.id} sx={singleTheme.tableStyles.primary.body.row}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {formatTimestamp(entry.occurred_at)}
                     </TableCell>
-                    <TableCell sx={cellSx}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {getUserDisplay(entry.user_name, entry.user_surname)}
                     </TableCell>
-                    <TableCell sx={cellSx}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {entry.event_type ?? entry.action ?? "-"}
                     </TableCell>
-                    <TableCell sx={cellSx}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {entry.entity_type ?? "-"}
                     </TableCell>
-                    <TableCell sx={cellSx}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       {entry.entity_id ?? "-"}
                     </TableCell>
-                    <TableCell sx={cellSx}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Typography
                         component="span"
                         sx={{
                           fontSize: 12,
-                          px: 1,
-                          py: 0.25,
+                          px: "8px",
+                          py: "2px",
                           borderRadius: "4px",
                           backgroundColor:
                             entry.entry_type === "event_log"
@@ -315,7 +270,7 @@ export default function AuditLedger() {
                           : "Change history"}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={cellSx}>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Tooltip title={entry.entry_hash.trim()} arrow>
                         <Typography
                           component="span"
@@ -341,7 +296,6 @@ export default function AuditLedger() {
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ mt: 1.5 }}
           >
             <Typography
               sx={{ fontSize: 13, color: theme.palette.text.accent }}
@@ -350,12 +304,12 @@ export default function AuditLedger() {
                 ? `${entries.length} matching of ${total.toLocaleString()} entries`
                 : `${total.toLocaleString()} total entries`}
             </Typography>
-            <Stack direction="row" alignItems="center" gap={1}>
+            <Stack direction="row" alignItems="center" sx={{ gap: "8px" }}>
               <CustomizableButton
                 variant="outlined"
                 onClick={prevPage}
                 disabled={offset === 0}
-                sx={{ height: 30, minWidth: 30, px: 1 }}
+                sx={{ height: 30, minWidth: 30, px: "8px" }}
               >
                 <ChevronLeft size={16} />
               </CustomizableButton>
@@ -366,29 +320,14 @@ export default function AuditLedger() {
                 variant="outlined"
                 onClick={nextPage}
                 disabled={offset + pageSize >= total}
-                sx={{ height: 30, minWidth: 30, px: 1 }}
+                sx={{ height: 30, minWidth: 30, px: "8px" }}
               >
                 <ChevronRight size={16} />
               </CustomizableButton>
             </Stack>
           </Stack>
-        </>
+        </Stack>
       )}
-    </Box>
+    </Stack>
   );
 }
-
-const headerCellSx = {
-  fontSize: 12,
-  fontWeight: 600,
-  color: "text.tertiary",
-  py: 1,
-  whiteSpace: "nowrap" as const,
-};
-
-const cellSx = {
-  fontSize: 13,
-  py: 1,
-  borderBottom: "1px solid",
-  borderBottomColor: "border.light",
-};

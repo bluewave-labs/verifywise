@@ -11,6 +11,7 @@ import Features from "./Features/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
+import AuditLedger from "./AuditLedger";
 import TabBar, { TabItem } from "../../components/TabBar";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
@@ -26,6 +27,7 @@ const BUILT_IN_TABS = [
   "organization",
   "features",
   "apikeys",
+  "audit-ledger",
 ];
 
 export default function ProfilePage() {
@@ -36,6 +38,7 @@ export default function ProfilePage() {
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
   const isFeaturesDisabled = !allowedRoles.features?.manage?.includes(userRoleName);
+  const isAuditLedgerDisabled = userRoleName !== "Admin";
 
   // Get plugin tabs dynamically from the plugin registry
   const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();
@@ -170,6 +173,17 @@ export default function ProfilePage() {
               disabled: isApiKeysDisabled,
               tooltip: "Generate keys for programmatic API access",
             },
+            ...(!isAuditLedgerDisabled
+              ? [
+                  {
+                    label: "Audit ledger",
+                    value: "audit-ledger",
+                    icon: "FileCheck" as TabItem["icon"],
+                    tooltip:
+                      "Tamper-proof log of all platform changes",
+                  },
+                ]
+              : []),
             // Dynamically add plugin tabs
             ...pluginTabs.map((tab) => ({
               label: tab.label,
@@ -208,6 +222,12 @@ export default function ProfilePage() {
         <TabPanel value="apikeys">
           <ApiKeys />
         </TabPanel>
+
+        {!isAuditLedgerDisabled && (
+          <TabPanel value="audit-ledger">
+            <AuditLedger />
+          </TabPanel>
+        )}
 
         {/* Render plugin tab content dynamically */}
         {pluginTabs.some((tab) => tab.value === activeTab) && (

@@ -16,7 +16,6 @@ import {
   AlertCircle,
   Bot,
   Database,
-  FileCheck,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -200,21 +199,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         // },
       ],
     },
-    ...(isAdmin
-      ? [
-          {
-            name: "MANAGEMENT",
-            items: [
-              {
-                id: "audit-ledger",
-                label: "Audit ledger",
-                icon: <FileCheck size={16} strokeWidth={1.5} />,
-                path: "/audit-ledger",
-              },
-            ],
-          },
-        ]
-      : []),
   ];
 
   // Check if item is active based on current path

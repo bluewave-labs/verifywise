@@ -192,12 +192,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
         },
-        {
-          id: "audit-ledger",
-          label: "Audit ledger",
-          icon: <FileCheck size={16} strokeWidth={1.5} />,
-          path: "/audit-ledger",
-        },
         // {
         //   id: "approval-workflows",
         //   label: "Approval Workflows",
@@ -206,6 +200,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         // },
       ],
     },
+    ...(isAdmin
+      ? [
+          {
+            name: "MANAGEMENT",
+            items: [
+              {
+                id: "audit-ledger",
+                label: "Audit ledger",
+                icon: <FileCheck size={16} strokeWidth={1.5} />,
+                path: "/audit-ledger",
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   // Check if item is active based on current path

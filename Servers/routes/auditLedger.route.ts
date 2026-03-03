@@ -7,10 +7,8 @@ const router = express.Router();
 
 router.use(authenticateJWT);
 
-// All authenticated users can view the ledger
-router.get("/", getAuditLedger);
-
-// Only admins can verify chain integrity
+// Only admins can view and verify the ledger
+router.get("/", authorize(["Admin"]), getAuditLedger);
 router.get("/verify", authorize(["Admin"]), verifyAuditLedger);
 
 export default router;

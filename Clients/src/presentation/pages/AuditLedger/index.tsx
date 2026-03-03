@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Navigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -73,6 +74,12 @@ function getUserDisplay(
 export default function AuditLedger() {
   const theme = useTheme();
   const { userRoleName } = useAuth();
+
+  // Admin-only page: redirect non-admins to dashboard
+  if (userRoleName && userRoleName !== "Admin") {
+    return <Navigate to="/" replace />;
+  }
+
   const {
     entries,
     total,
@@ -88,7 +95,6 @@ export default function AuditLedger() {
     isVerifying,
   } = useAuditLedger();
 
-  const isAdmin = userRoleName === "Admin";
   const currentPage = Math.floor(offset / pageSize) + 1;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -187,15 +193,13 @@ export default function AuditLedger() {
             {verifyBanner.label}
           </Typography>
         </Stack>
-        {isAdmin && (
-          <CustomizableButton
-            text={isVerifying ? "Verifying..." : "Verify chain"}
-            variant="contained"
-            onClick={verify}
-            disabled={isVerifying}
-            sx={{ height: 34, minWidth: 120 }}
-          />
-        )}
+        <CustomizableButton
+          text={isVerifying ? "Verifying..." : "Verify chain"}
+          variant="contained"
+          onClick={verify}
+          disabled={isVerifying}
+          sx={{ height: 34, minWidth: 120 }}
+        />
       </Stack>
 
       {/* Filters */}

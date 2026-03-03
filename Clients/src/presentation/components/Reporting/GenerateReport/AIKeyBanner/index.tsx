@@ -20,16 +20,17 @@ const AIKeyBanner: React.FC<AIKeyBannerProps> = ({ onClose }) => {
     <Box
       sx={{
         display: "flex",
-        alignItems: "flex-start",
         gap: 1.5,
         p: 2,
         borderRadius: "4px",
-        backgroundColor: "#EFF8FF",
-        border: "1px solid #B2DDFF",
+        backgroundColor: theme.palette.background.fill,
+        border: `1px solid ${theme.palette.primary.main}`,
       }}
     >
-      <Info size={16} color="#1570EF" style={{ marginTop: 2, flexShrink: 0 }} />
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ pt: 0.25, flexShrink: 0 }}>
+        <Info size={16} color={theme.palette.primary.main} />
+      </Box>
+      <Box>
         <Typography
           sx={{
             fontSize: "13px",
@@ -45,7 +46,6 @@ const AIKeyBanner: React.FC<AIKeyBannerProps> = ({ onClose }) => {
             fontSize: "12px",
             color: theme.palette.text.secondary,
             lineHeight: 1.5,
-            mb: 1.5,
           }}
         >
           Configure an LLM key to generate reports with executive summaries, key
@@ -58,11 +58,13 @@ const AIKeyBanner: React.FC<AIKeyBannerProps> = ({ onClose }) => {
             textTransform: "none",
             fontSize: "12px",
             fontWeight: 600,
-            color: "#1570EF",
-            padding: "2px 8px",
+            color: theme.palette.primary.main,
+            padding: 0,
+            mt: 1,
             minWidth: "auto",
             "&:hover": {
-              backgroundColor: "#D1E9FF",
+              backgroundColor: "transparent",
+              textDecoration: "underline",
             },
           }}
         >

@@ -9,11 +9,14 @@ import React, {
 } from "react";
 import {
   Stack,
+  Box,
   useTheme,
   SelectChangeEvent,
   Typography,
   ToggleButtonGroup,
   ToggleButton,
+  Switch,
+  Chip,
 } from "@mui/material";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
@@ -23,7 +26,7 @@ import {
   Project,
   FrameworkValues,
 } from "../../../../../application/interfaces/appStates";
-import { FileText, FileType } from "lucide-react";
+import { FileText, FileType, Sparkles } from "lucide-react";
 import { ReportFormat } from "../../../../../domain/interfaces/i.widget";
 
 interface BasicFormValues {
@@ -32,6 +35,7 @@ interface BasicFormValues {
   projectFrameworkId: number;
   reportName: string;
   format: ReportFormat;
+  aiEnhanced: boolean;
 }
 
 interface FormErrors {
@@ -50,6 +54,7 @@ interface ReportProps {
   values: BasicFormValues;
   onValuesChange: (values: BasicFormValues) => void;
   onValidateRef?: React.MutableRefObject<(() => boolean) | null>;
+  hasKeys?: boolean;
 }
 
 const GenerateReportFrom: React.FC<ReportProps> = ({
@@ -57,6 +62,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
   values,
   onValuesChange,
   onValidateRef,
+  hasKeys = false,
 }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -339,6 +345,82 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
+
+      {/* AI-Enhanced Report Toggle */}
+      {hasKeys && (
+        <Stack>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Sparkles size={16} color="#13715B" />
+              <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                AI-enhanced report
+              </Typography>
+            </Box>
+            <Switch
+              checked={values.aiEnhanced}
+              onChange={(e) =>
+                onValuesChange({ ...values, aiEnhanced: e.target.checked })
+              }
+              size="small"
+              sx={{
+                "& .MuiSwitch-switchBase.Mui-checked": {
+                  color: "#13715B",
+                },
+                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                  backgroundColor: "#13715B",
+                },
+              }}
+            />
+          </Box>
+          {values.aiEnhanced && (
+            <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {[
+                  "Executive Summary",
+                  "Key Findings",
+                  "Risk Highlights",
+                  "Recommendations",
+                ].map((label) => (
+                  <Chip
+                    key={label}
+                    label={label}
+                    size="small"
+                    icon={
+                      <Sparkles
+                        size={12}
+                        color="#13715B"
+                        style={{ marginLeft: 8 }}
+                      />
+                    }
+                    sx={{
+                      fontSize: "11px",
+                      height: "24px",
+                      backgroundColor: "#E6F0EC",
+                      color: "#13715B",
+                      fontWeight: 500,
+                      "& .MuiChip-icon": { marginRight: "-2px" },
+                    }}
+                  />
+                ))}
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: theme.palette.text.accent,
+                }}
+              >
+                Standard: ~5-10s | AI-Enhanced: ~15-30s
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
+      )}
     </Stack>
   );
 };

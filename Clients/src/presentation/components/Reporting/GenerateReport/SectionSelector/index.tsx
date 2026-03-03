@@ -23,6 +23,7 @@ interface SectionSelectorProps {
   isOrganizational: boolean;
   selection: Record<string, boolean>;
   onSelectionChange: (selection: Record<string, boolean>) => void;
+  aiEnhanced?: boolean;
 }
 
 const SectionSelector: React.FC<SectionSelectorProps> = ({

@@ -244,6 +244,7 @@ const Chip: React.FC<IChipProps> = ({
   uppercase = true,
   backgroundColor,
   textColor,
+  icon,
 }) => {
   const colors = getChipColors(label, variant, backgroundColor, textColor);
   const height = SIZE_HEIGHT[size];
@@ -275,6 +276,7 @@ const Chip: React.FC<IChipProps> = ({
         lineHeight: 1,
       }}
     >
+      {icon && <Box component="span" sx={{ display: "inline-flex", alignItems: "center", mr: 0.5 }}>{icon}</Box>}
       {label}
     </Box>
   );

@@ -15,9 +15,9 @@ import {
   Typography,
   ToggleButtonGroup,
   ToggleButton,
-  Switch,
-  Chip,
 } from "@mui/material";
+import Toggle from "../../../../components/Inputs/Toggle";
+import Chip from "../../../../components/Chip";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
@@ -362,20 +362,11 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
                 AI-enhanced report
               </Typography>
             </Box>
-            <Switch
+            <Toggle
               checked={values.aiEnhanced}
               onChange={(e) =>
                 onValuesChange({ ...values, aiEnhanced: e.target.checked })
               }
-              size="small"
-              sx={{
-                "& .MuiSwitch-switchBase.Mui-checked": {
-                  color: "#13715B",
-                },
-                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                  backgroundColor: "#13715B",
-                },
-              }}
             />
           </Box>
           {values.aiEnhanced && (
@@ -391,21 +382,12 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
                     key={label}
                     label={label}
                     size="small"
+                    uppercase={false}
+                    backgroundColor="#E6F0EC"
+                    textColor="#13715B"
                     icon={
-                      <Sparkles
-                        size={12}
-                        color="#13715B"
-                        style={{ marginLeft: 8 }}
-                      />
+                      <Sparkles size={12} color="#13715B" />
                     }
-                    sx={{
-                      fontSize: "11px",
-                      height: "24px",
-                      backgroundColor: "#E6F0EC",
-                      color: "#13715B",
-                      fontWeight: 500,
-                      "& .MuiChip-icon": { marginRight: "-2px" },
-                    }}
                   />
                 ))}
               </Box>

@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Bot,
   Database,
+  FileCheck,
 } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -190,6 +191,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Incident management",
           icon: <AlertCircle size={16} strokeWidth={1.5} />,
           path: "/ai-incident-managements",
+        },
+        {
+          id: "audit-ledger",
+          label: "Audit ledger",
+          icon: <FileCheck size={16} strokeWidth={1.5} />,
+          path: "/audit-ledger",
         },
         // {
         //   id: "approval-workflows",

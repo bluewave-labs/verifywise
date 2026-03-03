@@ -59,6 +59,7 @@ import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/Monito
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 import IntakeFormsListPage from "../../presentation/pages/IntakeFormBuilder/IntakeFormsListPage";
 import IntakeFormBuilder from "../../presentation/pages/IntakeFormBuilder";
+import AuditLedger from "../../presentation/pages/AuditLedger";
 import PublicIntakeForm from "../../presentation/pages/PublicIntakeForm";
 import SubmissionSuccess from "../../presentation/pages/PublicIntakeForm/SubmissionSuccess";
 
@@ -127,6 +128,7 @@ export const createRoutes = (
     <Route path="/tasks" element={<Tasks />} />
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
+    <Route path="/audit-ledger" element={<AuditLedger />} />
     <Route path="/agent-discovery" element={<AgentDiscovery />} />
     <Route path="/approval-workflows" element={<ApprovalWorkflows />} />
     <Route path="/ai-detection" element={<Navigate to="/ai-detection/scan" replace />} />

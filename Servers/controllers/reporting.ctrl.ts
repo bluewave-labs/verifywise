@@ -227,6 +227,8 @@ export async function generateReportsV2(
     reportName,
     projectFrameworkId: projectFrameworkIdRaw,
     format = "docx", // Default to docx for backward compatibility
+    aiEnhanced,
+    llmKeyId,
   } = req.body;
 
   const projectId = parseInt(projectIdRaw);
@@ -276,6 +278,8 @@ export async function generateReportsV2(
         branding: {
           organizationName,
         },
+        aiEnhanced: aiEnhanced === true,
+        llmKeyId: llmKeyId ? parseInt(llmKeyId) : undefined,
       },
       userId!,
       req.tenantId!

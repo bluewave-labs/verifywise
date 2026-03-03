@@ -13,6 +13,7 @@ import { ReportType } from "../../domain.layer/models/reporting/reporting.model"
 import { createDataCollector } from "./dataCollector";
 import { generatePDF, closeBrowser } from "./pdfGenerator";
 import { generateDOCX } from "./docxGenerator";
+import logger from "../../utils/logger/fileLogger";
 
 /**
  * Valid section keys that can be passed directly from the frontend
@@ -106,6 +107,20 @@ export async function generateReport(
 
     // Collect all report data
     const reportData = await dataCollector.collectAllData(sections);
+
+    // AI Enhancement (optional)
+    if (request.aiEnhanced) {
+      try {
+        const { generateAISummaries } = await import("./aiSummarizer");
+        reportData.aiSummaries = await generateAISummaries(
+          reportData,
+          reportData.metadata.tenantId,
+          request.llmKeyId
+        );
+      } catch (error) {
+        logger.warn("AI summarization failed, continuing with standard report:", error);
+      }
+    }
 
     // Apply custom branding if provided
     if (request.branding) {

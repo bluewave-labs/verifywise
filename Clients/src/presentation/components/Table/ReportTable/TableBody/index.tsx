@@ -1,5 +1,6 @@
 import React from "react";
-import { TableBody, TableCell, TableRow } from "@mui/material";
+import { TableBody, TableCell, TableRow, Chip, Box } from "@mui/material";
+import { Sparkles } from "lucide-react";
 import IconButton from "../../../IconButton";
 import { displayFormattedDate } from "../../../../tools/isoDateToString";
 import singleTheme from "../../../../themes/v1SingleTheme";
@@ -55,7 +56,35 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
                   backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("file") || sortConfig.key.toLowerCase().includes("name")) ? "#e8e8e8" : "#fafafa",
                 }}
               >
-                {row.filename ? row.filename : "-"}
+                {row.filename ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {row.filename}
+                    {row.filename.includes("_AI_") && (
+                      <Chip
+                        label="AI"
+                        size="small"
+                        icon={
+                          <Sparkles
+                            size={10}
+                            color="#13715B"
+                            style={{ marginLeft: 6 }}
+                          />
+                        }
+                        sx={{
+                          fontSize: "10px",
+                          height: "20px",
+                          backgroundColor: "#E6F0EC",
+                          color: "#13715B",
+                          fontWeight: 600,
+                          "& .MuiChip-label": { px: 0.5 },
+                          "& .MuiChip-icon": { marginRight: "-2px" },
+                        }}
+                      />
+                    )}
+                  </Box>
+                ) : (
+                  "-"
+                )}
               </TableCell>
               <TableCell
                 sx={{

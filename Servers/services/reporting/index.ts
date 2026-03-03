@@ -147,6 +147,13 @@ export async function generateReport(
         : `${request.reportName}${extension}`;
     }
 
+    // Mark AI-enhanced reports in the filename for frontend badge detection
+    if (request.aiEnhanced && result.success && reportData.aiSummaries) {
+      const ext = request.format === "pdf" ? ".pdf" : ".docx";
+      const baseName = result.filename.replace(ext, "");
+      result.filename = `${baseName}_AI_${ext}`;
+    }
+
     return result;
   } catch (error) {
     console.error("Error generating report:", error);

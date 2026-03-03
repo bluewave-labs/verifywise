@@ -19,9 +19,28 @@ export async function getAuditLedger(req: Request, res: Response): Promise<any> 
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 200);
     const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
 
+    // Optional filters
+    const entityType = (req.query.entity_type as string) || "";
+    const entryType = (req.query.entry_type as string) || "";
+
+    // Build WHERE clauses
+    const conditions: string[] = [];
+    const replacements: Record<string, string | number> = { limit, offset };
+
+    if (entityType) {
+      conditions.push("al.entity_type = :entityType");
+      replacements.entityType = entityType;
+    }
+    if (entryType) {
+      conditions.push("al.entry_type = :entryType");
+      replacements.entryType = entryType;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
     const countResult: any[] = await sequelize.query(
-      `SELECT COUNT(*) as count FROM "${tenantId}".audit_ledger`,
-      { type: QueryTypes.SELECT }
+      `SELECT COUNT(*) as count FROM "${tenantId}".audit_ledger al ${whereClause}`,
+      { replacements, type: QueryTypes.SELECT }
     );
     const total = parseInt(countResult[0]?.count || "0", 10);
 
@@ -29,10 +48,11 @@ export async function getAuditLedger(req: Request, res: Response): Promise<any> 
       `SELECT al.*, u.name as user_name, u.surname as user_surname
        FROM "${tenantId}".audit_ledger al
        LEFT JOIN public.users u ON al.user_id = u.id
+       ${whereClause}
        ORDER BY al.id DESC
        LIMIT :limit OFFSET :offset`,
       {
-        replacements: { limit, offset },
+        replacements,
         type: QueryTypes.SELECT,
       }
     );

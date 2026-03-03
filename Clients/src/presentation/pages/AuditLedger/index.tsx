@@ -298,11 +298,11 @@ export default function AuditLedger() {
                           backgroundColor:
                             entry.entry_type === "event_log"
                               ? theme.palette.background.fill
-                              : "#FFF4E5",
+                              : theme.palette.status.warning.bg,
                           color:
                             entry.entry_type === "event_log"
                               ? theme.palette.primary.main
-                              : "#DC6803",
+                              : theme.palette.status.warning.text,
                           fontWeight: 500,
                         }}
                       >
@@ -342,7 +342,9 @@ export default function AuditLedger() {
             <Typography
               sx={{ fontSize: 13, color: theme.palette.text.accent }}
             >
-              {total.toLocaleString()} total entries
+              {filters.searchUser
+                ? `${entries.length} matching of ${total.toLocaleString()} entries`
+                : `${total.toLocaleString()} total entries`}
             </Typography>
             <Stack direction="row" alignItems="center" gap={1}>
               <CustomizableButton
@@ -375,7 +377,7 @@ export default function AuditLedger() {
 const headerCellSx = {
   fontSize: 12,
   fontWeight: 600,
-  color: "#475467",
+  color: "text.tertiary",
   py: 1,
   whiteSpace: "nowrap" as const,
 };
@@ -383,5 +385,6 @@ const headerCellSx = {
 const cellSx = {
   fontSize: 13,
   py: 1,
-  borderBottom: "1px solid #eaecf0",
+  borderBottom: "1px solid",
+  borderBottomColor: "border.light",
 };

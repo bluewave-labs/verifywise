@@ -226,7 +226,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
               ? "Select organizational project"
               : "Select use case"
           }
-          value={values.project?.toString() ?? ""}
+          value={values.project ?? ""}
           onChange={handleOnSelectChange("project")}
           items={
             availableProjects?.map((project: Project) => ({

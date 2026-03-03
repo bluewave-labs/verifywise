@@ -110,7 +110,7 @@ export default function AuditLedger() {
           : ` (${verifyResult.totalEntries.toLocaleString()} entries)`;
       return {
         icon: <ShieldCheck size={18} strokeWidth={1.5} />,
-        label: `Chain intact${suffix}`,
+        label: `All entries verified — no tampering detected${suffix}`,
         color: theme.palette.status.success.text,
         bg: theme.palette.status.success.bg,
       };
@@ -125,7 +125,7 @@ export default function AuditLedger() {
     }
     return {
       icon: <ShieldAlert size={18} strokeWidth={1.5} />,
-      label: `Chain compromised at entry #${verifyResult.brokenAtId}`,
+      label: `Tampering detected — hash chain broken at entry #${verifyResult.brokenAtId}. Entries at or before this point may have been altered.`,
       color: theme.palette.status.error.text,
       bg: theme.palette.status.error.bg,
     };

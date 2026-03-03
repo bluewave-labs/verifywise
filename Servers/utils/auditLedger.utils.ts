@@ -113,7 +113,10 @@ export async function appendToAuditLedger(
     const rows = insertResult[0] as any[];
     const inserted = rows[0];
     const newId: number = inserted.id;
-    const occurredAt: string = inserted.occurred_at;
+    // Canonicalize to ISO string — Sequelize returns Date objects for TIMESTAMPTZ
+    const occurredAt: string = inserted.occurred_at instanceof Date
+      ? inserted.occurred_at.toISOString()
+      : String(inserted.occurred_at);
 
     // Step 3: Compute the real hash
     const realHash = computeEntryHash({
@@ -150,10 +153,11 @@ export async function appendToAuditLedger(
 
 interface VerifyChainOptions {
   batchSize?: number;
+  maxEntries?: number;
 }
 
 interface VerifyChainResult {
-  status: "intact" | "compromised" | "empty";
+  status: "intact" | "compromised" | "empty" | "partial";
   totalEntries: number;
   brokenAtId?: number;
   expectedHash?: string;
@@ -173,6 +177,7 @@ export async function verifyChain(
   }
 
   const batchSize = options?.batchSize || 1000;
+  const maxEntries = options?.maxEntries || 100000;
   let offset = 0;
   let prevHash = GENESIS_HASH;
   let totalEntries = 0;
@@ -211,12 +216,15 @@ export async function verifyChain(
         };
       }
 
-      // Recompute hash from row data
+      // Recompute hash from row data — canonicalize occurred_at to ISO string
+      const occurredAt = row.occurred_at instanceof Date
+        ? row.occurred_at.toISOString()
+        : String(row.occurred_at);
       const expectedHash = computeEntryHash({
         id: row.id,
         entry_type: row.entry_type,
         user_id: row.user_id,
-        occurred_at: row.occurred_at,
+        occurred_at: occurredAt,
         event_type: row.event_type,
         entity_type: row.entity_type,
         entity_id: row.entity_id,
@@ -239,6 +247,11 @@ export async function verifyChain(
       }
 
       prevHash = rowEntryHash;
+    }
+
+    // Cap the number of entries verified to prevent unbounded CPU usage
+    if (totalEntries >= maxEntries) {
+      return { status: "partial", totalEntries };
     }
 
     offset += batchSize;

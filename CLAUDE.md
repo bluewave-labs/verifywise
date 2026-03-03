@@ -942,6 +942,7 @@ await sequelize.query(`
 | **CE Marking** | `/api/ce-marking` | - |
 | **Entity Graph** | `/api/entity-graph` | - |
 | **AI Advisor** | `/api/advisor` | - |
+| **Audit Ledger** | `/api/audit-ledger` | - |
 
 ---
 
@@ -3046,6 +3047,7 @@ Automated compliance status calculation based on defined rules.
 | `/api/tiers` | Pricing tiers |
 | `/api/tokens` | API tokens |
 | `/api/autoDrivers` | Auto drivers |
+| `/api/audit-ledger` | Tamper-proof audit ledger |
 | `/api/mail` | Email sending |
 | `/api/compliance` | Compliance utils |
 

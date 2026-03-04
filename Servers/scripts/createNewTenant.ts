@@ -308,6 +308,84 @@ export const createNewTenant = async (
           ON DELETE SET NULL
       );`, { transaction });
 
+    // Tamper-proof audit ledger (hash chain, append-only)
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".audit_ledger (
+        id           BIGSERIAL PRIMARY KEY,
+        entry_type   VARCHAR(20)  NOT NULL,
+        user_id      INTEGER      REFERENCES public.users(id) ON DELETE SET NULL,
+        occurred_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+        event_type   VARCHAR(20),
+        entity_type  VARCHAR(60),
+        entity_id    INTEGER,
+        action       VARCHAR(20),
+        field_name   TEXT,
+        old_value    TEXT,
+        new_value    TEXT,
+        description  TEXT,
+        entry_hash   CHAR(64)     NOT NULL,
+        prev_hash    CHAR(64)     NOT NULL
+      );`, { transaction });
+
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS idx_audit_ledger_occurred_at ON "${tenantHash}".audit_ledger (occurred_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_audit_ledger_user_id ON "${tenantHash}".audit_ledger (user_id);`,
+      `CREATE INDEX IF NOT EXISTS idx_audit_ledger_entity ON "${tenantHash}".audit_ledger (entity_type, entity_id);`,
+    ].map((query) => sequelize.query(query, { transaction })));
+
+    // Delete-prevention trigger
+    await sequelize.query(`
+      CREATE OR REPLACE FUNCTION "${tenantHash}".audit_ledger_prevent_delete()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        RAISE EXCEPTION 'DELETE on audit_ledger is prohibited — append-only table';
+      END;
+      $$ LANGUAGE plpgsql;
+    `, { transaction });
+
+    await sequelize.query(`
+      DROP TRIGGER IF EXISTS trg_audit_ledger_no_delete ON "${tenantHash}".audit_ledger;
+      CREATE TRIGGER trg_audit_ledger_no_delete
+        BEFORE DELETE ON "${tenantHash}".audit_ledger
+        FOR EACH ROW
+        EXECUTE FUNCTION "${tenantHash}".audit_ledger_prevent_delete();
+    `, { transaction });
+
+    // Update-guard trigger: only allow sentinel→real hash transition
+    await sequelize.query(`
+      CREATE OR REPLACE FUNCTION "${tenantHash}".audit_ledger_guard_update()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        IF OLD.entry_hash = RPAD('pending', 64, '0')
+           AND NEW.entry_hash ~ '^[a-f0-9]{64}$'
+           AND OLD.entry_type   = NEW.entry_type
+           AND OLD.user_id     IS NOT DISTINCT FROM NEW.user_id
+           AND OLD.occurred_at  = NEW.occurred_at
+           AND OLD.event_type  IS NOT DISTINCT FROM NEW.event_type
+           AND OLD.entity_type IS NOT DISTINCT FROM NEW.entity_type
+           AND OLD.entity_id   IS NOT DISTINCT FROM NEW.entity_id
+           AND OLD.action      IS NOT DISTINCT FROM NEW.action
+           AND OLD.field_name  IS NOT DISTINCT FROM NEW.field_name
+           AND OLD.old_value   IS NOT DISTINCT FROM NEW.old_value
+           AND OLD.new_value   IS NOT DISTINCT FROM NEW.new_value
+           AND OLD.description IS NOT DISTINCT FROM NEW.description
+           AND OLD.prev_hash    = NEW.prev_hash
+        THEN
+          RETURN NEW;
+        END IF;
+        RAISE EXCEPTION 'UPDATE on audit_ledger is prohibited — only sentinel hash finalization is allowed';
+      END;
+      $$ LANGUAGE plpgsql;
+    `, { transaction });
+
+    await sequelize.query(`
+      DROP TRIGGER IF EXISTS trg_audit_ledger_guard_update ON "${tenantHash}".audit_ledger;
+      CREATE TRIGGER trg_audit_ledger_guard_update
+        BEFORE UPDATE ON "${tenantHash}".audit_ledger
+        FOR EACH ROW
+        EXECUTE FUNCTION "${tenantHash}".audit_ledger_guard_update();
+    `, { transaction });
+
     await sequelize.query(
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors_projects
     (
@@ -3291,6 +3369,7 @@ export const createNewTenant = async (
       CREATE TABLE IF NOT EXISTS "${tenantHash}".feature_settings (
         id SERIAL PRIMARY KEY,
         lifecycle_enabled BOOLEAN NOT NULL DEFAULT true,
+        audit_ledger_enabled BOOLEAN NOT NULL DEFAULT true,
         updated_at TIMESTAMP DEFAULT NOW(),
         updated_by INTEGER NULL REFERENCES public.users(id)
       );

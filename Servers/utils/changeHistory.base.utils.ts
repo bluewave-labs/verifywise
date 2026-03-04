@@ -25,6 +25,7 @@ import {
 } from "../config/changeHistory.config";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import logger from "./logger/fileLogger";
+import { appendToAuditLedger } from "./auditLedger.utils";
 
 /**
  * Validates tenant identifier to prevent SQL injection
@@ -109,6 +110,19 @@ export const recordEntityChange = async (
         transaction,
       }
     );
+
+    // Append to tamper-proof audit ledger (fire-and-forget)
+    appendToAuditLedger({
+      tenantId: tenant,
+      entryType: "change_history",
+      userId: changedByUserId,
+      entityType,
+      entityId,
+      action,
+      fieldName: fieldName || null,
+      oldValue: oldValue || null,
+      newValue: newValue || null,
+    }).catch(err => logger.error(`[audit_ledger] write failed: ${err}`));
   } catch (error) {
     logger.error(`Error recording ${entityType} change: ${error}`);
     throw error;

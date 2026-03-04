@@ -6,8 +6,6 @@ import {
   type VerifyResult,
 } from "../../../../../application/repository/auditLedger.repository";
 
-const PAGE_SIZE = 50;
-
 interface Filters {
   entity_type: string;
   entry_type: string;
@@ -18,7 +16,8 @@ export function useAuditLedger() {
   const [entries, setEntries] = useState<AuditLedgerEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filters, setFilters] = useState<Filters>({
     entity_type: "",
     entry_type: "",
@@ -32,8 +31,8 @@ export function useAuditLedger() {
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = {
-        limit: PAGE_SIZE,
-        offset,
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
       };
       if (filters.entity_type) params.entity_type = filters.entity_type;
       if (filters.entry_type) params.entry_type = filters.entry_type;
@@ -48,17 +47,32 @@ export function useAuditLedger() {
     } finally {
       setIsLoading(false);
     }
-  }, [offset, filters.entity_type, filters.entry_type]);
+  }, [page, rowsPerPage, filters.entity_type, filters.entry_type]);
 
   useEffect(() => {
     fetchEntries();
   }, [fetchEntries]);
 
-  // Reset offset when filters change
+  // Reset page when filters change
   const updateFilters = useCallback((newFilters: Partial<Filters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
-    setOffset(0);
+    setPage(0);
   }, []);
+
+  const handleChangePage = useCallback(
+    (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+      setPage(newPage);
+    },
+    []
+  );
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
 
   const verify = useCallback(async () => {
     setIsVerifying(true);
@@ -74,18 +88,6 @@ export function useAuditLedger() {
     }
   }, []);
 
-  const nextPage = useCallback(() => {
-    if (offset + PAGE_SIZE < total) {
-      setOffset((prev) => prev + PAGE_SIZE);
-    }
-  }, [offset, total]);
-
-  const prevPage = useCallback(() => {
-    if (offset > 0) {
-      setOffset((prev) => Math.max(0, prev - PAGE_SIZE));
-    }
-  }, [offset]);
-
   // Client-side user name filter
   const filteredEntries = filters.searchUser
     ? entries.filter((e) => {
@@ -100,10 +102,10 @@ export function useAuditLedger() {
     isLoading,
     filters,
     updateFilters,
-    offset,
-    pageSize: PAGE_SIZE,
-    nextPage,
-    prevPage,
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
     verify,
     verifyResult,
     isVerifying,

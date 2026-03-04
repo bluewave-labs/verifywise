@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
+import { getFeatureSettingsQuery } from "./featureSettings.utils";
 
 /** SHA-256 of 64 zeroes — the "genesis" previous hash for the first entry */
 export const GENESIS_HASH = "0".repeat(64);
@@ -49,13 +50,37 @@ export function computeEntryHash(payload: AuditLedgerHashPayload): string {
 }
 
 /**
+ * In-memory cache for the audit_ledger_enabled setting per tenant.
+ * Avoids a DB query on every single event. Expires after 30 seconds.
+ */
+const enabledCache = new Map<string, { enabled: boolean; expiry: number }>();
+const CACHE_TTL_MS = 30_000;
+
+async function isAuditLedgerEnabled(tenant: string): Promise<boolean> {
+  const now = Date.now();
+  const cached = enabledCache.get(tenant);
+  if (cached && cached.expiry > now) return cached.enabled;
+
+  try {
+    const settings = await getFeatureSettingsQuery(tenant);
+    const enabled = settings.audit_ledger_enabled !== false;
+    enabledCache.set(tenant, { enabled, expiry: now + CACHE_TTL_MS });
+    return enabled;
+  } catch {
+    // If we can't read settings, default to enabled (don't lose audit data)
+    return true;
+  }
+}
+
+/**
  * Append an entry to the tenant's audit_ledger using a SERIALIZABLE transaction.
  *
  * Flow:
- * 1. Get the prev_hash from the last entry (or GENESIS_HASH)
- * 2. INSERT with entry_hash = 'pending' sentinel
- * 3. Compute the real hash using the assigned id
- * 4. UPDATE the sentinel to the real hash
+ * 1. Check if audit ledger is enabled for this tenant
+ * 2. Get the prev_hash from the last entry (or GENESIS_HASH)
+ * 3. INSERT with entry_hash = 'pending' sentinel
+ * 4. Compute the real hash using the assigned id
+ * 5. UPDATE the sentinel to the real hash
  *
  * The append-only triggers allow only this specific sentinel→hash transition.
  */
@@ -67,6 +92,9 @@ export async function appendToAuditLedger(
   if (!/^[A-Za-z0-9]{10}$/.test(tenant)) {
     throw new Error("Invalid tenant identifier for audit ledger");
   }
+
+  // Skip if audit ledger is disabled for this tenant
+  if (!(await isAuditLedgerEnabled(tenant))) return;
 
   const txn: Transaction = await sequelize.transaction({
     isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,

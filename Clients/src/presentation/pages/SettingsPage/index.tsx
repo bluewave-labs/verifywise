@@ -15,7 +15,6 @@ import AuditLedger from "./AuditLedger";
 import TabBar, { TabItem } from "../../components/TabBar";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
-import { useFeatureSettings } from "../../../application/hooks/useFeatureSettings";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 
@@ -39,10 +38,8 @@ export default function ProfilePage() {
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
   const isFeaturesDisabled = !allowedRoles.features?.manage?.includes(userRoleName);
-  // Audit ledger: Admin-only AND feature must be enabled
-  const { settings: featureSettings } = useFeatureSettings();
-  const isAuditLedgerDisabled =
-    userRoleName !== "Admin" || featureSettings?.audit_ledger_enabled === false;
+  // Audit ledger: Admin-only (toggle lives inside the tab itself)
+  const isAuditLedgerDisabled = userRoleName !== "Admin";
 
   // Get plugin tabs dynamically from the plugin registry
   const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();

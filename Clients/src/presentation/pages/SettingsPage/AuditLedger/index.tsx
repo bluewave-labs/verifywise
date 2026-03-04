@@ -182,6 +182,25 @@ export default function AuditLedger() {
         />
       </Box>
 
+      {/* Status message */}
+      {!isEnabled && (
+        <Typography
+          sx={{
+            fontSize: 13,
+            color: theme.palette.text.accent,
+            backgroundColor: theme.palette.background.alt,
+            border: `1px solid ${theme.palette.border.light}`,
+            borderRadius: "4px",
+            px: "16px",
+            py: "12px",
+          }}
+        >
+          The audit ledger is currently disabled. New platform changes will not
+          be recorded. Existing entries are preserved and can still be verified
+          once the ledger is re-enabled.
+        </Typography>
+      )}
+
       {/* Info box */}
       {isEnabled && (
         <InfoBox

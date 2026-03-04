@@ -53,7 +53,7 @@ export async function getAllRisks(
   );
   logger.debug(`🔍 Fetching all project risks with filter: ${filter}`);
   try {
-    const projectRisks = await getAllRisksQuery(req.tenantId!, filter);
+    const projectRisks = await getAllRisksQuery(req.organizationId!, filter);
 
     if (projectRisks) {
       logStructured(
@@ -83,7 +83,7 @@ export async function getAllRisks(
       "Error",
       `Failed to retrieve project risks`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in getAllProjectRisks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -112,7 +112,7 @@ export async function getRisksByProject(
   try {
     const risks = await getRisksByProjectQuery(
       projectId,
-      req.tenantId!,
+      req.organizationId!,
       filter
     );
 
@@ -144,7 +144,7 @@ export async function getRisksByProject(
       "Error",
       `Failed to retrieve risks for project ID: ${projectId}`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in getRisksByProject:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -168,7 +168,7 @@ export async function getRisksByFramework(
   try {
     const risks = await getRisksByFrameworkQuery(
       frameworkId,
-      req.tenantId!,
+      req.organizationId!,
       filter
     );
 
@@ -200,7 +200,7 @@ export async function getRisksByFramework(
       "Error",
       `Failed to retrieve risks for framework ID: ${frameworkId}`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in getRisksByFramework:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -223,7 +223,7 @@ export async function getRiskById(
   try {
     const projectRisk = await getRiskByIdQuery(
       projectRiskId,
-      req.tenantId!
+      req.organizationId!
     );
 
     if (projectRisk) {
@@ -254,7 +254,7 @@ export async function getRiskById(
       "Error",
       `Failed to retrieve project risk by ID: ${projectRiskId}`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in getProjectRiskById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -288,7 +288,7 @@ export async function createRisk(
 
     const newProjectRisk = await createRiskQuery(
       { ...projectRiskData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
-      req.tenantId!,
+      req.organizationId!,
       transaction
     );
 
@@ -298,7 +298,7 @@ export async function createRisk(
         await recordProjectRiskCreation(
           newProjectRisk.id!,
           req.userId,
-          req.tenantId!,
+          req.organizationId!,
           projectRiskData,
           transaction
         );
@@ -315,7 +315,7 @@ export async function createRisk(
         "Create",
         `Project risk created: ${newProjectRisk.risk_name}`,
         req.userId!,
-        req.tenantId!
+        req.organizationId!
       );
 
       // Send risk owner assignment notification (fire-and-forget)
@@ -328,14 +328,14 @@ export async function createRisk(
         const projects = req.body.projects || [];
         if (projects.length > 0) {
           const projectResult = await sequelize.query<{ project_title: string }>(
-            `SELECT project_title FROM "${req.tenantId!}".projects WHERE id = :projectId`,
-            { replacements: { projectId: projects[0] }, type: QueryTypes.SELECT }
+            `SELECT project_title FROM projects WHERE id = :projectId AND organization_id = :organizationId`,
+            { replacements: { projectId: projects[0], organizationId: req.organizationId! }, type: QueryTypes.SELECT }
           );
           projectName = projectResult[0]?.project_title;
         }
 
         notifyUserAssigned(
-          req.tenantId!,
+          req.organizationId!,
           newProjectRisk.risk_owner,
           {
             entityType: "project_risk",
@@ -362,7 +362,7 @@ export async function createRisk(
       "createProjectRisk",
       "projectRisks.ctrl.ts"
     );
-    await logEvent("Error", "Project risk creation failed", req.userId!, req.tenantId!);
+    await logEvent("Error", "Project risk creation failed", req.userId!, req.organizationId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -382,7 +382,7 @@ export async function createRisk(
         "Error",
         `Validation error during project risk creation: ${error.message}`,
         req.userId!,
-        req.tenantId!
+        req.organizationId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -398,7 +398,7 @@ export async function createRisk(
         "Error",
         `Business logic error during project risk creation: ${error.message}`,
         req.userId!,
-        req.tenantId!
+        req.organizationId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -414,7 +414,7 @@ export async function createRisk(
       `Unexpected error during project risk creation: ${(error as Error).message
       }`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in createProjectRisk:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -449,7 +449,7 @@ export async function updateRiskById(
 
 
     // Find existing risk to track changes
-    const existingProjectRisk = await getRiskByIdQuery(projectRiskId, req.tenantId!);
+    const existingProjectRisk = await getRiskByIdQuery(projectRiskId, req.organizationId!);
 
     if (!existingProjectRisk) {
       logStructured(
@@ -462,7 +462,7 @@ export async function updateRiskById(
         "Error",
         `Project risk not found for update: ID ${projectRiskId}`,
         req.userId!,
-        req.tenantId!
+        req.organizationId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
@@ -474,7 +474,7 @@ export async function updateRiskById(
     const updatedProjectRisk = await updateRiskByIdQuery(
       projectRiskId,
       { ...updateDataTyped, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
-      req.tenantId!,
+      req.organizationId!,
       transaction
     );
 
@@ -484,7 +484,7 @@ export async function updateRiskById(
         await recordMultipleFieldChanges(
           projectRiskId,
           req.userId,
-          req.tenantId!,
+          req.organizationId!,
           changes,
           transaction
         );
@@ -497,7 +497,7 @@ export async function updateRiskById(
         "updateProjectRiskById",
         "projectRisks.ctrl.ts"
       );
-      await logEvent("Update", `Project risk updated: ID ${projectRiskId}`, req.userId!, req.tenantId!);
+      await logEvent("Update", `Project risk updated: ID ${projectRiskId}`, req.userId!, req.organizationId!);
 
       // Send risk owner assignment notification if owner changed (fire-and-forget)
       const oldRiskOwner = existingProjectRisk.risk_owner;
@@ -509,15 +509,15 @@ export async function updateRiskById(
         // Get project name for context
         let projectName: string | undefined;
         const projectsResult = await sequelize.query<{ project_title: string }>(
-          `SELECT p.project_title FROM "${req.tenantId!}".projects p
-           JOIN "${req.tenantId!}".project_risk_links prl ON p.id = prl.project_id
-           WHERE prl.risk_id = :riskId LIMIT 1`,
-          { replacements: { riskId: projectRiskId }, type: QueryTypes.SELECT }
+          `SELECT p.project_title FROM projects p
+           JOIN projects_risks prl ON p.id = prl.project_id AND prl.organization_id = :organizationId
+           WHERE prl.risk_id = :riskId AND p.organization_id = :organizationId LIMIT 1`,
+          { replacements: { riskId: projectRiskId, organizationId: req.organizationId! }, type: QueryTypes.SELECT }
         );
         projectName = projectsResult[0]?.project_title;
 
         notifyUserAssigned(
-          req.tenantId!,
+          req.organizationId!,
           newRiskOwner,
           {
             entityType: "project_risk",
@@ -544,7 +544,7 @@ export async function updateRiskById(
       "updateProjectRiskById",
       "projectRisks.ctrl.ts"
     );
-    await logEvent("Error", "Project risk not found for updateProjectRiskById", req.userId!, req.tenantId!);
+    await logEvent("Error", "Project risk not found for updateProjectRiskById", req.userId!, req.organizationId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
   } catch (error) {
@@ -562,7 +562,7 @@ export async function updateRiskById(
         "Error",
         `Validation error during project risk update: ${error.message}`,
         req.userId!,
-        req.tenantId!
+        req.organizationId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -578,7 +578,7 @@ export async function updateRiskById(
         "Error",
         `Business logic error during project risk update: ${error.message}`,
         req.userId!,
-        req.tenantId!
+        req.organizationId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -594,7 +594,7 @@ export async function updateRiskById(
       `Unexpected error during update for project risk ID ${projectRiskId}: ${(error as Error).message
       }`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in updateProjectRiskById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -618,7 +618,7 @@ export async function deleteRiskById(
   try {
     const deletedProjectRisk = await deleteRiskByIdQuery(
       projectRiskId,
-      req.tenantId!,
+      req.organizationId!,
       transaction
     );
 
@@ -628,7 +628,7 @@ export async function deleteRiskById(
         await recordProjectRiskDeletion(
           projectRiskId,
           req.userId,
-          req.tenantId!,
+          req.organizationId!,
           transaction
         );
       }
@@ -640,7 +640,7 @@ export async function deleteRiskById(
         "deleteProjectRiskById",
         "projectRisks.ctrl.ts"
       );
-      await logEvent("Delete", `Project risk deleted: ID ${projectRiskId}`, req.userId!, req.tenantId!);
+      await logEvent("Delete", `Project risk deleted: ID ${projectRiskId}`, req.userId!, req.organizationId!);
       return res.status(200).json(STATUS_CODE[200](deletedProjectRisk));
     }
 
@@ -654,7 +654,7 @@ export async function deleteRiskById(
       "Error",
       `Delete failed — project risk not found: ID ${projectRiskId}`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
@@ -671,7 +671,7 @@ export async function deleteRiskById(
       `Unexpected error during delete for project risk ID ${projectRiskId}: ${(error as Error).message
       }`,
       req.userId!,
-      req.tenantId!
+      req.organizationId!
     );
     logger.error("❌ Error in deleteProjectRiskById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

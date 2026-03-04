@@ -27,29 +27,6 @@ import { ValidationException } from "../domain.layer/exceptions/custom.exception
 import logger from "./logger/fileLogger";
 
 /**
- * Validates tenant identifier to prevent SQL injection
- *
- * @param tenant - The tenant identifier to validate
- * @throws {ValidationException} If tenant contains invalid characters
- */
-function validateTenant(tenant: string): void {
-  if (!/^[A-Za-z0-9]{10}$/.test(tenant)) {
-    throw new ValidationException("Invalid tenant identifier");
-  }
-}
-
-/**
- * Escapes a PostgreSQL identifier safely (for tenant schema names)
- *
- * @param ident - The identifier to escape
- * @returns Safely escaped identifier wrapped in double quotes
- */
-function escapePgIdentifier(ident: string): string {
-  validateTenant(ident);
-  return '"' + ident.replace(/"/g, '""') + '"';
-}
-
-/**
  * Escapes a PostgreSQL identifier safely (for table/column names)
  *
  * @param ident - The identifier to escape (alphanumeric + underscores)
@@ -69,7 +46,7 @@ function escapePgName(ident: string): string {
  * @param entityId - The ID of the entity being changed
  * @param action - The action being performed ('created', 'updated', 'deleted')
  * @param changedByUserId - ID of the user making the change
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param fieldName - Optional name of the field being changed
  * @param oldValue - Optional previous value of the field
  * @param newValue - Optional new value of the field
@@ -80,7 +57,7 @@ export const recordEntityChange = async (
   entityId: number,
   action: "created" | "updated" | "deleted",
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   fieldName?: string,
   oldValue?: string,
   newValue?: string,
@@ -88,17 +65,17 @@ export const recordEntityChange = async (
 ): Promise<void> => {
   try {
     const config = getEntityConfig(entityType);
-    const schemaName = escapePgIdentifier(tenant);
 
     const tableName = escapePgName(config.tableName);
     const foreignKey = escapePgName(config.foreignKeyField);
 
     await sequelize.query(
-      `INSERT INTO ${schemaName}.${tableName}
-       (${foreignKey}, action, field_name, old_value, new_value, changed_by_user_id, changed_at)
-       VALUES (:entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW())`,
+      `INSERT INTO ${tableName}
+       (organization_id, ${foreignKey}, action, field_name, old_value, new_value, changed_by_user_id, changed_at)
+       VALUES (:organization_id, :entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW())`,
       {
         replacements: {
+          organization_id: organizationId,
           entity_id: entityId,
           action,
           field_name: fieldName || null,
@@ -121,7 +98,7 @@ export const recordEntityChange = async (
  * @param entityType - The type of entity being changed
  * @param entityId - The ID of the entity being changed
  * @param changedByUserId - ID of the user making the change
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param changes - Array of field changes to record
  * @param transaction - Optional database transaction
  */
@@ -129,7 +106,7 @@ export const recordMultipleFieldChanges = async (
   entityType: EntityType,
   entityId: number,
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   changes: Array<{ fieldName: string; oldValue: string; newValue: string }>,
   transaction?: Transaction
 ): Promise<void> => {
@@ -139,7 +116,7 @@ export const recordMultipleFieldChanges = async (
       entityId,
       "updated",
       changedByUserId,
-      tenant,
+      organizationId,
       change.fieldName,
       change.oldValue,
       change.newValue,
@@ -153,7 +130,7 @@ export const recordMultipleFieldChanges = async (
  *
  * @param entityType - The type of entity to get history for
  * @param entityId - The ID of the entity
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param limit - Maximum number of records to return (default: 100)
  * @param offset - Number of records to skip (default: 0)
  * @returns Object containing data array, hasMore flag, and total count
@@ -161,13 +138,12 @@ export const recordMultipleFieldChanges = async (
 export const getEntityChangeHistory = async (
   entityType: EntityType,
   entityId: number,
-  tenant: string,
+  organizationId: number,
   limit: number = 100,
   offset: number = 0
 ): Promise<{ data: any[]; hasMore: boolean; total: number }> => {
   try {
     const config = getEntityConfig(entityType);
-    const schemaName = escapePgIdentifier(tenant);
 
     const tableName = escapePgName(config.tableName);
     const foreignKey = escapePgName(config.foreignKeyField);
@@ -175,10 +151,10 @@ export const getEntityChangeHistory = async (
     // Get total count
     const countResult: any[] = await sequelize.query(
       `SELECT COUNT(*) as count
-       FROM ${schemaName}.${tableName}
-       WHERE ${foreignKey} = :entity_id`,
+       FROM ${tableName}
+       WHERE organization_id = :organization_id AND ${foreignKey} = :entity_id`,
       {
-        replacements: { entity_id: entityId },
+        replacements: { organization_id: organizationId, entity_id: entityId },
         type: QueryTypes.SELECT,
       }
     );
@@ -191,13 +167,13 @@ export const getEntityChangeHistory = async (
         u.name as user_name,
         u.surname as user_surname,
         u.email as user_email
-       FROM ${schemaName}.${tableName} ch
+       FROM ${tableName} ch
        LEFT JOIN public.users u ON ch.changed_by_user_id = u.id
-       WHERE ch.${foreignKey} = :entity_id
+       WHERE ch.organization_id = :organization_id AND ch.${foreignKey} = :entity_id
        ORDER BY ch.changed_at DESC
        LIMIT :limit OFFSET :offset`,
       {
-        replacements: { entity_id: entityId, limit, offset },
+        replacements: { organization_id: organizationId, entity_id: entityId, limit, offset },
         type: QueryTypes.SELECT,
       }
     );
@@ -323,7 +299,7 @@ export const trackEntityChanges = async (
  * @param entityType - The type of entity being created
  * @param entityId - The ID of the newly created entity
  * @param changedByUserId - ID of the user creating the entity
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param entityData - The initial entity data
  * @param transaction - Optional database transaction
  */
@@ -331,7 +307,7 @@ export const recordEntityCreation = async (
   entityType: EntityType,
   entityId: number,
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   entityData: any,
   transaction?: Transaction
 ): Promise<void> => {
@@ -346,7 +322,7 @@ export const recordEntityCreation = async (
         entityId,
         "created",
         changedByUserId,
-        tenant,
+        organizationId,
         getFieldLabel(entityType, field),
         "-",
         await formatFieldValue(entityType, field, value),
@@ -364,14 +340,14 @@ export const recordEntityCreation = async (
  * @param entityType - The type of entity being deleted
  * @param entityId - The ID of the entity being deleted
  * @param changedByUserId - ID of the user deleting the entity
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param transaction - Optional database transaction
  */
 export const recordEntityDeletion = async (
   entityType: EntityType,
   entityId: number,
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   transaction?: Transaction
 ): Promise<void> => {
   // Get the entity name from the config or use a default
@@ -385,7 +361,7 @@ export const recordEntityDeletion = async (
     entityId,
     "deleted",
     changedByUserId,
-    tenant,
+    organizationId,
     entityName,
     "Active",
     "Deleted",
@@ -401,7 +377,7 @@ export const recordEntityDeletion = async (
  * @param entityType - The type of entity receiving evidence
  * @param entityId - The ID of the entity
  * @param changedByUserId - ID of the user adding the evidence
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param evidenceName - Name of the evidence being added
  * @param evidenceType - Type of the evidence being added
  * @param transaction - Optional database transaction
@@ -410,7 +386,7 @@ export const recordEvidenceAddedToEntity = async (
   entityType: EntityType,
   entityId: number,
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   evidenceName: string,
   evidenceType: string,
   transaction?: Transaction
@@ -420,7 +396,7 @@ export const recordEvidenceAddedToEntity = async (
     entityId,
     "updated",
     changedByUserId,
-    tenant,
+    organizationId,
     "Evidence added",
     "-",
     `${evidenceName} (${evidenceType})`,
@@ -436,7 +412,7 @@ export const recordEvidenceAddedToEntity = async (
  * @param entityType - The type of entity losing evidence
  * @param entityId - The ID of the entity
  * @param changedByUserId - ID of the user removing the evidence
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param evidenceName - Name of the evidence being removed
  * @param evidenceType - Type of the evidence being removed
  * @param transaction - Optional database transaction
@@ -445,7 +421,7 @@ export const recordEvidenceRemovedFromEntity = async (
   entityType: EntityType,
   entityId: number,
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   evidenceName: string,
   evidenceType: string,
   transaction?: Transaction
@@ -455,7 +431,7 @@ export const recordEvidenceRemovedFromEntity = async (
     entityId,
     "updated",
     changedByUserId,
-    tenant,
+    organizationId,
     "Evidence removed",
     `${evidenceName} (${evidenceType})`,
     "-",
@@ -471,7 +447,7 @@ export const recordEvidenceRemovedFromEntity = async (
  * @param entityType - The type of entity
  * @param entityId - The ID of the entity
  * @param changedByUserId - ID of the user making the change
- * @param tenant - Tenant schema identifier
+ * @param organizationId - Organization ID for tenant isolation
  * @param evidenceName - Name of the evidence being modified
  * @param fieldName - Name of the evidence field being changed
  * @param oldValue - Previous value of the field
@@ -482,7 +458,7 @@ export const recordEvidenceFieldChangeForEntity = async (
   entityType: EntityType,
   entityId: number,
   changedByUserId: number,
-  tenant: string,
+  organizationId: number,
   evidenceName: string,
   fieldName: string,
   oldValue: string,
@@ -494,7 +470,7 @@ export const recordEvidenceFieldChangeForEntity = async (
     entityId,
     "updated",
     changedByUserId,
-    tenant,
+    organizationId,
     `Evidence: ${evidenceName} - ${fieldName}`,
     oldValue,
     newValue,

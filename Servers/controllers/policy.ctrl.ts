@@ -32,7 +32,7 @@ export class PolicyController {
   // Get all policies
   static async getAllPolicies(req: Request, res: Response) {
     try {
-      const policies = await getAllPoliciesQuery(req.tenantId!);
+      const policies = await getAllPoliciesQuery(req.organizationId!);
 
       return res.status(200).json(STATUS_CODE[200](policies));
     } catch (error) {
@@ -44,7 +44,7 @@ export class PolicyController {
   static async getPolicyById(req: Request, res: Response) {
     try {
       const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
-      const policy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const policy = await getPolicyByIdQuery(req.organizationId!, policyId);
 
       if (policy) {
         return res.status(200).json(STATUS_CODE[200](policy));
@@ -69,7 +69,7 @@ export class PolicyController {
 
       const policy = await createPolicyQuery(
         policyData,
-        req.tenantId!,
+        req.organizationId!,
         userId,
         transaction
       );
@@ -80,7 +80,7 @@ export class PolicyController {
           await recordPolicyCreation(
             policy.id,
             userId,
-            req.tenantId!,
+            req.organizationId!,
             policyData,
             transaction
           );
@@ -105,7 +105,7 @@ export class PolicyController {
       const userId = req.userId!;
       // Get existing policy for change tracking
       const existingPolicyResult = await getPolicyByIdQuery(
-        req.tenantId!,
+        req.organizationId!,
         policyId
       );
 
@@ -124,7 +124,7 @@ export class PolicyController {
       const policy = await updatePolicyByIdQuery(
         policyId,
         policyData,
-        req.tenantId!,
+        req.organizationId!,
         userId,
         transaction
       );
@@ -139,7 +139,7 @@ export class PolicyController {
           await recordMultipleFieldChanges(
             policyId,
             userId,
-            req.tenantId!,
+            req.organizationId!,
             changes,
             transaction
           );
@@ -173,7 +173,7 @@ export class PolicyController {
       const policyId = parseInt(Array.isArray(req.params.id) ? req.params.id[0] : req.params.id);
 
       const deleted = await deletePolicyByIdQuery(
-        req.tenantId!,
+        req.organizationId!,
         policyId,
         transaction
       );
@@ -199,7 +199,7 @@ export class PolicyController {
         return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
       }
 
-      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const policyResult = await getPolicyByIdQuery(req.organizationId!, policyId);
 
       if (!policyResult || policyResult.length === 0) {
         return res.status(404).json(STATUS_CODE[404](null));
@@ -209,7 +209,7 @@ export class PolicyController {
       const pdfBuffer = await generatePolicyPDF(
         policy.title,
         policy.content_html || "",
-        req.tenantId!
+        req.organizationId!
       );
 
       const filename = generateFilename(policy.title, "pdf");
@@ -236,7 +236,7 @@ export class PolicyController {
         return res.status(400).json(STATUS_CODE[400]("Invalid policy ID"));
       }
 
-      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const policyResult = await getPolicyByIdQuery(req.organizationId!, policyId);
 
       if (!policyResult || policyResult.length === 0) {
         return res.status(404).json(STATUS_CODE[404](null));
@@ -249,7 +249,7 @@ export class PolicyController {
       const docxBuffer = await generatePolicyDOCX(
         policy.title,
         policy.content_html || "",
-        req.tenantId!
+        req.organizationId!
       );
       console.log("Generated DOCX buffer size:", docxBuffer.length);
 
@@ -290,7 +290,7 @@ export class PolicyController {
         return res.status(400).json(STATUS_CODE[400]("reviewer_ids is required"));
       }
 
-      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const policyResult = await getPolicyByIdQuery(req.organizationId!, policyId);
       if (!policyResult || policyResult.length === 0) {
         await transaction.rollback();
         return res.status(404).json(STATUS_CODE[404](null));
@@ -299,7 +299,7 @@ export class PolicyController {
 
       // Update review status to pending_review
       await updatePolicyReviewStatusQuery(
-        req.tenantId!,
+        req.organizationId!,
         policyId,
         "pending_review",
         userId,
@@ -324,7 +324,7 @@ export class PolicyController {
         if (isNaN(reviewerId)) continue;
         try {
           await notifyReviewRequested(
-            req.tenantId!,
+            req.organizationId!,
             reviewerId,
             {
               type: NotificationEntityType.POLICY,
@@ -341,7 +341,7 @@ export class PolicyController {
         }
       }
 
-      const updatedPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
@@ -363,7 +363,7 @@ export class PolicyController {
       const reviewerId = req.userId!;
       const { comment } = req.body;
 
-      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const policyResult = await getPolicyByIdQuery(req.organizationId!, policyId);
       if (!policyResult || policyResult.length === 0) {
         await transaction.rollback();
         return res.status(404).json(STATUS_CODE[404](null));
@@ -372,7 +372,7 @@ export class PolicyController {
 
       // Update review status to approved
       await updatePolicyReviewStatusQuery(
-        req.tenantId!,
+        req.organizationId!,
         policyId,
         "approved",
         reviewerId,
@@ -394,7 +394,7 @@ export class PolicyController {
 
       try {
         await notifyReviewApproved(
-          req.tenantId!,
+          req.organizationId!,
           policy.author_id,
           {
             type: NotificationEntityType.POLICY,
@@ -410,7 +410,7 @@ export class PolicyController {
         console.error("Failed to send review approved notification:", notifyError);
       }
 
-      const updatedPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
@@ -437,7 +437,7 @@ export class PolicyController {
         return res.status(400).json(STATUS_CODE[400]("comment is required when requesting changes"));
       }
 
-      const policyResult = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const policyResult = await getPolicyByIdQuery(req.organizationId!, policyId);
       if (!policyResult || policyResult.length === 0) {
         await transaction.rollback();
         return res.status(404).json(STATUS_CODE[404](null));
@@ -446,7 +446,7 @@ export class PolicyController {
 
       // Update review status to changes_requested
       await updatePolicyReviewStatusQuery(
-        req.tenantId!,
+        req.organizationId!,
         policyId,
         "changes_requested",
         reviewerId,
@@ -468,7 +468,7 @@ export class PolicyController {
 
       try {
         await notifyReviewRejected(
-          req.tenantId!,
+          req.organizationId!,
           policy.author_id,
           {
             type: NotificationEntityType.POLICY,
@@ -484,7 +484,7 @@ export class PolicyController {
         console.error("Failed to send review rejected notification:", notifyError);
       }
 
-      const updatedPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();

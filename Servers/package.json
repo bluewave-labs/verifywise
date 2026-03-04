@@ -13,7 +13,8 @@
     "worker": "node dist/jobs/worker.js",
     "watch": "tsc-watch --noClear --onSuccess \"npm-run-all postbuild start\"",
     "reset-db": "ts-node scripts/resetDatabase.ts",
-    "generate-dbml": "node scripts/generateDbml.js"
+    "generate-dbml": "node scripts/generateDbml.js",
+    "migrate:shared-schema": "ts-node scripts/migrateToSharedSchema.ts"
   },
   "author": "",
   "license": "ISC",

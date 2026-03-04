@@ -41,3 +41,4 @@ EvaluationModule/data/uploads/*
 !EvaluationModule/data/uploads/.gitkeep
 nul
 agent-plan.md
+pdf-templates/

@@ -42,6 +42,17 @@ def _normalize(sc: dict) -> dict:
     return sc
 
 
+def _dir_fingerprint(version: str) -> float:
+    """Return max mtime of all .jsonl files in the version directory for cache invalidation."""
+    version_dir = DATASETS_DIR / version
+    if not version_dir.exists():
+        return 0.0
+    return max(
+        (p.stat().st_mtime for p in version_dir.rglob("*.jsonl")),
+        default=0.0,
+    )
+
+
 def _find_scenarios_path(version: str) -> tuple[Path, str]:
     """Return (path, label) for the best available scenario file."""
     final_path = DATASETS_DIR / version / "final" / "scenarios.jsonl"
@@ -54,7 +65,7 @@ def _find_scenarios_path(version: str) -> tuple[Path, str]:
 
 
 @st.cache_data(show_spinner="Loading dataset…")
-def load_dataset(version: str, model_stem: str) -> list[dict]:
+def load_dataset(version: str, model_stem: str, mtime: float) -> list[dict]:
     """Merge scenarios, responses, and judge scores into flat rows."""
     scenarios_path, _ = _find_scenarios_path(version)
     scenarios: dict[str, dict] = {}
@@ -388,7 +399,7 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Load data
     # ------------------------------------------------------------------
-    rows = load_dataset(version, model_stem)
+    rows = load_dataset(version, model_stem, _dir_fingerprint(version))
 
     if not rows:
         st.warning("No scenarios found. Run `make render` (or `make validate`) to generate them.")

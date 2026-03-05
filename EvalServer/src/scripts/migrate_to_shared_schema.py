@@ -731,7 +731,7 @@ async def check_and_run_migration(database_url: str) -> MigrationResult:
     print("\n🚀 Starting EvalServer tenant-to-shared-schema migration...")
     return await migrate_to_shared_schema(
         database_url,
-        drop_schemas_after=True,
+        drop_schemas_after=False,
         dry_run=False
     )
 

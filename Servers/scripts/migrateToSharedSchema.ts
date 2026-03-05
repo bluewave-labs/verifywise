@@ -226,7 +226,8 @@ async function migrateTable(
   tenantHash: string,
   tableName: string,
   idMapping: IdMapping,
-  transaction: Transaction
+  transaction: Transaction,
+  cfIdMaps?: CustomFrameworkIdMaps
 ): Promise<{ sourceCount: number; migratedCount: number }> {
   // Check if source table exists
   const sourceExists = await tableExists(tenantHash, tableName, transaction);
@@ -324,6 +325,20 @@ async function migrateTable(
           }
         } else {
           insertData[col] = value;
+        }
+      }
+
+      // For file_entity_links: remap entity_id using custom framework ID maps
+      if (tableName === 'file_entity_links' && cfIdMaps && insertData.entity_id != null) {
+        const entityType = insertData.entity_type;
+        if (entityType === 'level2' && cfIdMaps.l2IdMap[insertData.entity_id]) {
+          insertData.entity_id = cfIdMaps.l2IdMap[insertData.entity_id];
+        } else if (entityType === 'level3' && cfIdMaps.l3IdMap[insertData.entity_id]) {
+          insertData.entity_id = cfIdMaps.l3IdMap[insertData.entity_id];
+        } else if (entityType === 'level2_impl' && cfIdMaps.l2ImplIdMap[insertData.entity_id]) {
+          insertData.entity_id = cfIdMaps.l2ImplIdMap[insertData.entity_id];
+        } else if (entityType === 'level3_impl' && cfIdMaps.l3ImplIdMap[insertData.entity_id]) {
+          insertData.entity_id = cfIdMaps.l3ImplIdMap[insertData.entity_id];
         }
       }
 
@@ -462,24 +477,31 @@ interface GlobalStructMap {
  * Migrate custom framework data from tenant schema to verifywise schema
  * using the struct/impl split pattern.
  */
+interface CustomFrameworkIdMaps {
+  l2IdMap: Record<number, number>;
+  l3IdMap: Record<number, number>;
+  l2ImplIdMap: Record<number, number>;
+  l3ImplIdMap: Record<number, number>;
+}
+
 async function migrateCustomFrameworkData(
   orgId: number,
   tenantHash: string,
   globalStructMap: GlobalStructMap,
   transaction: Transaction
-): Promise<number> {
+): Promise<{ totalMigrated: number; idMaps: CustomFrameworkIdMaps }> {
   let totalMigrated = 0;
+  const emptyMaps: CustomFrameworkIdMaps = { l2IdMap: {}, l3IdMap: {}, l2ImplIdMap: {}, l3ImplIdMap: {} };
 
   // Check if tenant has custom_frameworks
   const hasCF = await tableExists(tenantHash, 'custom_frameworks', transaction);
-  if (!hasCF) return 0;
+  if (!hasCF) return { totalMigrated: 0, idMaps: emptyMaps };
 
   const tenantFrameworks = (await sequelize.query(
     `SELECT * FROM "${tenantHash}".custom_frameworks ORDER BY id`,
     { type: QueryTypes.SELECT, transaction }
   )) as any[];
-
-  if (tenantFrameworks.length === 0) return 0;
+  if (tenantFrameworks.length === 0) return { totalMigrated: 0, idMaps: emptyMaps };
 
   // ID mappings for this org
   const fwIdMap: Record<number, number> = {};
@@ -866,98 +888,12 @@ async function migrateCustomFrameworkData(
     if (riskCount > 0) { console.log(`    ✓ ${riskTable}: ${riskCount} rows`); totalMigrated += riskCount; }
   }
 
-  // 7. file_entity_links for custom frameworks
-  const hasFEL = await tableExists(tenantHash, 'file_entity_links', transaction);
-  if (hasFEL) {
-    const felRows = (await sequelize.query(
-      `SELECT * FROM "${tenantHash}".file_entity_links
-       WHERE entity_type IN ('level2', 'level3', 'level2_impl', 'level3_impl')
-       ORDER BY id`,
-      { type: QueryTypes.SELECT, transaction }
-    )) as any[];
-
-    const filesMap: Record<number, number> = {};
-    let felCount = 0;
-
-    for (const row of felRows) {
-      let newFileId = row.file_id;
-      if (filesMap[row.file_id]) {
-        newFileId = filesMap[row.file_id];
-      } else {
-        const existingFile = (await sequelize.query(
-          `SELECT id FROM files WHERE id = :fileId AND organization_id = :orgId LIMIT 1`,
-          { replacements: { fileId: row.file_id, orgId }, type: QueryTypes.SELECT, transaction }
-        )) as any[];
-
-        if (existingFile.length > 0) {
-          newFileId = existingFile[0].id;
-          filesMap[row.file_id] = newFileId;
-        } else {
-          const tenantFile = (await sequelize.query(
-            `SELECT * FROM "${tenantHash}".files WHERE id = :fileId LIMIT 1`,
-            { replacements: { fileId: row.file_id }, type: QueryTypes.SELECT, transaction }
-          )) as any[];
-          if (tenantFile.length === 0) continue;
-          const file = tenantFile[0];
-          try {
-            const inserted = (await sequelize.query(
-              `INSERT INTO files
-               (organization_id, project_id, filename, file_path, type, size, source, uploaded_by, uploaded_time, updated_at)
-               VALUES (:orgId, :projectId, :filename, :filePath, :fileType, :size, :source, :uploadedBy, :uploadedTime, :updatedAt)
-               RETURNING id`,
-              {
-                replacements: {
-                  orgId, projectId: file.project_id, filename: file.filename,
-                  filePath: file.file_path, fileType: file.type, size: file.size,
-                  source: file.source, uploadedBy: file.uploaded_by,
-                  uploadedTime: file.uploaded_time || new Date(), updatedAt: file.updated_at || new Date(),
-                },
-                type: QueryTypes.SELECT, transaction,
-              }
-            )) as any[];
-            newFileId = inserted[0].id;
-            filesMap[row.file_id] = newFileId;
-          } catch (fileError: any) {
-            console.log(`    ⚠ Could not migrate file ${row.file_id}: ${fileError.message}`);
-            continue;
-          }
-        }
-      }
-
-      let newEntityId = row.entity_id;
-      if (row.entity_type === 'level2') newEntityId = l2IdMap[row.entity_id] || row.entity_id;
-      else if (row.entity_type === 'level3') newEntityId = l3IdMap[row.entity_id] || row.entity_id;
-      else if (row.entity_type === 'level2_impl') newEntityId = l2ImplIdMap[row.entity_id] || row.entity_id;
-      else if (row.entity_type === 'level3_impl') newEntityId = l3ImplIdMap[row.entity_id] || row.entity_id;
-
-      try {
-        await sequelize.query(
-          `INSERT INTO file_entity_links
-           (organization_id, file_id, framework_type, entity_type, entity_id, project_id, link_type, created_by, created_at)
-           VALUES (:orgId, :fileId, :frameworkType, :entityType, :entityId, :projectId, :linkType, :createdBy, :createdAt)
-           ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
-          {
-            replacements: {
-              orgId, fileId: newFileId, frameworkType: row.framework_type,
-              entityType: row.entity_type, entityId: newEntityId,
-              projectId: row.project_id, linkType: row.link_type || 'evidence',
-              createdBy: row.created_by, createdAt: row.created_at || new Date(),
-            },
-            transaction,
-          }
-        );
-        felCount++;
-      } catch (error: any) {
-        if (!error.message?.includes('duplicate key')) {
-          console.log(`    ⚠ file_entity_links error: ${error.message}`);
-        }
-      }
-    }
-    if (felCount > 0) { console.log(`    ✓ file_entity_links (custom framework): ${felCount} rows`); totalMigrated += felCount; }
-  }
+  // NOTE: file_entity_links for custom frameworks are handled by the general migration.
+  // The general migration copies files and file_entity_links, then remaps entity_id
+  // using the custom framework ID maps returned here.
 
   if (totalMigrated > 0) console.log(`    ✓ custom_frameworks: ${tenantFrameworks.length} frameworks, ${totalMigrated} total rows`);
-  return totalMigrated;
+  return { totalMigrated, idMaps: { l2IdMap, l3IdMap, l2ImplIdMap, l3ImplIdMap } };
 }
 
 // ============================================================
@@ -994,10 +930,14 @@ async function migrateOrganization(
   const idMapping: IdMapping = {};
 
   // Migrate custom framework tables first (struct/impl split)
-  const cfMigrated = await migrateCustomFrameworkData(orgId, tenantHash, globalStructMap, transaction);
-  if (cfMigrated > 0) {
-    tableCounts['custom_frameworks (struct/impl)'] = { source: cfMigrated, migrated: cfMigrated };
+  const cfResult = await migrateCustomFrameworkData(orgId, tenantHash, globalStructMap, transaction);
+  if (cfResult.totalMigrated > 0) {
+    tableCounts['custom_frameworks (struct/impl)'] = { source: cfResult.totalMigrated, migrated: cfResult.totalMigrated };
   }
+
+  // Store custom framework ID maps so the general migration can remap
+  // file_entity_links entity_id for custom framework entity types
+  const cfIdMaps = cfResult.idMaps;
 
   // Get all tables in dependency order
   const allTables = getAllTablesInOrder();
@@ -1015,7 +955,8 @@ async function migrateOrganization(
         tenantHash,
         tableName,
         idMapping,
-        transaction
+        transaction,
+        cfIdMaps
       );
       tableCounts[tableName] = {
         source: result.sourceCount,
@@ -1534,7 +1475,7 @@ export async function checkAndRunMigration(): Promise<MigrationResult> {
   // Run the migration
   console.log("\n🚀 Starting tenant-to-shared-schema migration...");
   return migrateToSharedSchema({
-    dropSchemasAfter: true,  // Drop schemas after successful migration
+    dropSchemasAfter: false,  // Drop schemas after successful migration
     skipValidation: true,     // Skip validation since we're dropping schemas
   });
 }

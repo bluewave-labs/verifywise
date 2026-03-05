@@ -31,6 +31,45 @@ function isValidCustomHeaders(
   );
 }
 
+export const getLLMKeyStatus = async (req: Request, res: Response) => {
+  const functionName = "getLLMKeyStatus";
+
+  logStructured(
+    "processing",
+    `starting LLM Key status check`,
+    functionName,
+    fileName,
+  );
+  try {
+    const llmKeys = await getLLMKeysQuery(req.tenantId!);
+    const providers = [
+      ...new Set(llmKeys.map((k: any) => k.name as string)),
+    ];
+    logStructured(
+      "successful",
+      `LLM Key status: ${llmKeys.length} keys found`,
+      functionName,
+      fileName,
+    );
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        hasKeys: llmKeys.length > 0,
+        keyCount: llmKeys.length,
+        providers,
+      })
+    );
+  } catch (error) {
+    logStructured(
+      "error",
+      `unexpected error checking LLM Key status`,
+      functionName,
+      fileName,
+    );
+    logger.error("Error in getLLMKeyStatus:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+};
+
 export const getLLMKeys = async (req: Request, res: Response) => {
   const functionName = "getLLMKeys";
 

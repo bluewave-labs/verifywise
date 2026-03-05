@@ -413,7 +413,7 @@ export class ReportDataCollector {
       (assessmentData as any[]).forEach((topic) => {
         (topic.subtopics || []).forEach((subtopic: any) => {
           (subtopic.questions || []).forEach((q: any) => {
-            if (q.answer && q.answer.trim() !== "") {
+            if (q.status === "Done") {
               answered++;
             } else {
               pending++;
@@ -646,14 +646,15 @@ export class ReportDataCollector {
       const subtopics = (topic.subtopics || []).map((subtopic: any) => {
         const questions = (subtopic.questions || []).map((q: any) => {
           totalQuestions++;
-          if (q.answer && q.answer.trim() !== "") {
+          const isDone = q.status === "Done";
+          if (isDone) {
             answeredQuestions++;
           }
           return {
             id: q.id,
             question: q.question || "Unnamed Question",
             answer: q.answer,
-            status: q.answer && q.answer.trim() !== "" ? "Answered" : "Pending",
+            status: isDone ? "Answered" : "Pending",
           };
         });
 

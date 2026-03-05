@@ -9,12 +9,15 @@ import React, {
 } from "react";
 import {
   Stack,
+  Box,
   useTheme,
   SelectChangeEvent,
   Typography,
   ToggleButtonGroup,
   ToggleButton,
 } from "@mui/material";
+import Toggle from "../../../../components/Inputs/Toggle";
+import Chip from "../../../../components/Chip";
 const Field = lazy(() => import("../../../Inputs/Field"));
 import { fieldStyle } from "./styles";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
@@ -23,7 +26,7 @@ import {
   Project,
   FrameworkValues,
 } from "../../../../../application/interfaces/appStates";
-import { FileText, FileType } from "lucide-react";
+import { FileText, FileType, Sparkles } from "lucide-react";
 import { ReportFormat } from "../../../../../domain/interfaces/i.widget";
 
 interface BasicFormValues {
@@ -32,6 +35,7 @@ interface BasicFormValues {
   projectFrameworkId: number;
   reportName: string;
   format: ReportFormat;
+  aiEnhanced: boolean;
 }
 
 interface FormErrors {
@@ -50,6 +54,7 @@ interface ReportProps {
   values: BasicFormValues;
   onValuesChange: (values: BasicFormValues) => void;
   onValidateRef?: React.MutableRefObject<(() => boolean) | null>;
+  hasKeys?: boolean;
 }
 
 const GenerateReportFrom: React.FC<ReportProps> = ({
@@ -57,6 +62,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
   values,
   onValuesChange,
   onValidateRef,
+  hasKeys = false,
 }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -210,6 +216,75 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
 
   return (
     <Stack spacing={6}>
+      {/* AI-Enhanced Report Toggle */}
+      {hasKeys && (
+        <Stack>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Sparkles size={16} color="#13715B" />
+              <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                AI-enhanced report
+              </Typography>
+            </Box>
+            <Toggle
+              checked={values.aiEnhanced}
+              onChange={(e) =>
+                onValuesChange({ ...values, aiEnhanced: e.target.checked })
+              }
+            />
+          </Box>
+          {values.aiEnhanced && (
+            <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                AI will analyze your data and enrich the following sections with
+                generated insights:
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {[
+                  "Executive Summary",
+                  "Key Findings",
+                  "Risk Highlights",
+                  "Recommendations",
+                ].map((label) => (
+                  <Chip
+                    key={label}
+                    label={label}
+                    size="small"
+                    uppercase={false}
+                    backgroundColor="#E6F0EC"
+                    textColor="#13715B"
+                    icon={
+                      <Sparkles size={12} color="#13715B" />
+                    }
+                  />
+                ))}
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: theme.palette.text.accent,
+                }}
+              >
+                A standard report typically takes 5 to 10 seconds to generate.
+                With AI enhancement enabled, expect 15 to 30 seconds as the
+                model analyzes your data and produces additional insights.
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
+      )}
+
       {/* Use Case / Organizational Project Selection */}
       <Suspense fallback={<div>Loading...</div>}>
         <Select
@@ -220,7 +295,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
               ? "Select organizational project"
               : "Select use case"
           }
-          value={values.project?.toString() ?? ""}
+          value={values.project ?? ""}
           onChange={handleOnSelectChange("project")}
           items={
             availableProjects?.map((project: Project) => ({
@@ -339,6 +414,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
+
     </Stack>
   );
 };

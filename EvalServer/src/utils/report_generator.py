@@ -5,31 +5,43 @@ Generates PDF reports from experiment evaluation data using ReportLab.
 """
 
 import io
+import os
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     SimpleDocTemplate,
+    Image,
     Paragraph,
     Spacer,
     Table,
     TableStyle,
     PageBreak,
     HRFlowable,
+    KeepTogether,
 )
+
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "verifywise_logo.png")
+
+ACCENT = colors.HexColor("#13715B")
+ACCENT_LIGHT = colors.HexColor("#ECFDF5")
 
 COLORS = {
     "primary": colors.HexColor("#111827"),
     "secondary": colors.HexColor("#6B7280"),
-    "accent": colors.HexColor("#13715B"),
+    "accent": ACCENT,
+    "accent_light": ACCENT_LIGHT,
     "success": colors.HexColor("#16A34A"),
     "danger": colors.HexColor("#DC2626"),
     "warning": colors.HexColor("#D97706"),
     "light_bg": colors.HexColor("#F9FAFB"),
+    "cover_bg": colors.HexColor("#F0FDF4"),
     "border": colors.HexColor("#E5E7EB"),
     "white": colors.white,
     "safety_header": colors.HexColor("#991B1B"),
@@ -38,23 +50,22 @@ COLORS = {
 
 SAFETY_METRICS = ["bias", "toxicity", "hallucination", "conversationsafety"]
 
+PAGE_W, PAGE_H = A4
 MARGIN = 18 * mm
+CONTENT_W = PAGE_W - 2 * MARGIN
 
 
 def _is_safety_metric(name: str) -> bool:
-    lower = name.lower()
-    return any(m in lower for m in SAFETY_METRICS)
+    return any(m in name.lower() for m in SAFETY_METRICS)
 
 
 def _is_inverted_metric(name: str) -> bool:
-    lower = name.lower()
-    return any(m in lower for m in ["bias", "toxicity", "hallucination"])
+    return any(m in name.lower() for m in ["bias", "toxicity", "hallucination"])
 
 
 def _format_metric_name(name: str) -> str:
     if not name:
         return name
-    import re
     spaced = re.sub(r"([a-z])([A-Z])", r"\1 \2", name)
     spaced = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", spaced)
     return " ".join(w.capitalize() for w in spaced.split())
@@ -85,31 +96,43 @@ def _safe_str(val: Any, default: str = "N/A") -> str:
 def _get_styles() -> Dict[str, ParagraphStyle]:
     base = getSampleStyleSheet()
     return {
-        "title": ParagraphStyle(
-            "ReportTitle",
+        "cover_title": ParagraphStyle(
+            "CoverTitle",
             parent=base["Title"],
-            fontSize=22,
-            leading=26,
+            fontSize=26,
+            leading=32,
             textColor=COLORS["primary"],
-            spaceAfter=4 * mm,
+            alignment=TA_CENTER,
+            spaceAfter=3 * mm,
+            fontName="Helvetica-Bold",
         ),
-        "subtitle": ParagraphStyle(
-            "ReportSubtitle",
+        "cover_subtitle": ParagraphStyle(
+            "CoverSubtitle",
             parent=base["Normal"],
-            fontSize=14,
-            leading=18,
-            textColor=COLORS["accent"],
-            spaceAfter=6 * mm,
+            fontSize=13,
+            leading=17,
+            textColor=ACCENT,
+            alignment=TA_CENTER,
+            spaceAfter=8 * mm,
+            fontName="Helvetica",
+        ),
+        "cover_info": ParagraphStyle(
+            "CoverInfo",
+            parent=base["Normal"],
+            fontSize=10,
+            leading=15,
+            textColor=COLORS["secondary"],
+            alignment=TA_CENTER,
         ),
         "section_header": ParagraphStyle(
             "SectionHeader",
             parent=base["Heading2"],
-            fontSize=13,
-            leading=16,
+            fontSize=14,
+            leading=18,
             textColor=COLORS["primary"],
-            spaceBefore=6 * mm,
-            spaceAfter=3 * mm,
-            borderWidth=0,
+            spaceBefore=8 * mm,
+            spaceAfter=2 * mm,
+            fontName="Helvetica-Bold",
         ),
         "body": ParagraphStyle(
             "ReportBody",
@@ -126,56 +149,57 @@ def _get_styles() -> Dict[str, ParagraphStyle]:
             textColor=COLORS["primary"],
             fontName="Helvetica-Bold",
         ),
+        "body_accent": ParagraphStyle(
+            "ReportBodyAccent",
+            parent=base["Normal"],
+            fontSize=10,
+            leading=14,
+            textColor=ACCENT,
+            fontName="Helvetica-Bold",
+        ),
         "small": ParagraphStyle(
             "ReportSmall",
             parent=base["Normal"],
             fontSize=9,
-            leading=12,
+            leading=13,
             textColor=COLORS["secondary"],
         ),
-        "kv_key": ParagraphStyle(
-            "KVKey",
+        "intro": ParagraphStyle(
+            "ReportIntro",
             parent=base["Normal"],
-            fontSize=9,
-            leading=12,
+            fontSize=10,
+            leading=15,
             textColor=COLORS["secondary"],
-            fontName="Helvetica-Bold",
-        ),
-        "kv_value": ParagraphStyle(
-            "KVValue",
-            parent=base["Normal"],
-            fontSize=9,
-            leading=12,
-            textColor=COLORS["primary"],
-        ),
-        "footer": ParagraphStyle(
-            "Footer",
-            parent=base["Normal"],
-            fontSize=7,
-            leading=9,
-            textColor=COLORS["secondary"],
+            spaceAfter=4 * mm,
         ),
     }
 
 
 def _section_header(styles: dict, title: str) -> List:
     return [
-        Spacer(1, 3 * mm),
+        Spacer(1, 2 * mm),
         Paragraph(title, styles["section_header"]),
-        HRFlowable(
-            width="100%",
-            thickness=0.6,
-            color=COLORS["accent"],
-            spaceAfter=4 * mm,
-        ),
+        HRFlowable(width="100%", thickness=0.8, color=ACCENT, spaceAfter=5 * mm),
     ]
 
 
-def _kv_row(styles: dict, key: str, value: str) -> Paragraph:
-    return Paragraph(
-        f'<b>{key}:</b>&nbsp;&nbsp;&nbsp;{_safe_str(value)}',
-        styles["body"],
-    )
+def _kv_table(pairs: List[Tuple[str, str]]) -> Table:
+    """Render key-value pairs as a clean two-column mini-table."""
+    rows = []
+    for k, v in pairs:
+        rows.append([
+            Paragraph(f"<b>{k}</b>", ParagraphStyle("_kvk", fontSize=9, leading=13, textColor=COLORS["secondary"], fontName="Helvetica-Bold")),
+            Paragraph(_safe_str(v), ParagraphStyle("_kvv", fontSize=9, leading=13, textColor=COLORS["primary"])),
+        ])
+    t = Table(rows, colWidths=[38 * mm, CONTENT_W - 38 * mm], hAlign="LEFT")
+    t.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+        ("LEFTPADDING", (0, 0), (0, -1), 0),
+        ("LEFTPADDING", (1, 0), (1, -1), 4),
+    ]))
+    return t
 
 
 def _build_metric_table(
@@ -188,7 +212,7 @@ def _build_metric_table(
         return None
 
     if header_color is None:
-        header_color = COLORS["accent"]
+        header_color = ACCENT
     if alt_row_color is None:
         alt_row_color = COLORS["light_bg"]
 
@@ -212,34 +236,42 @@ def _build_metric_table(
             _score_label(avg, inverted),
         ])
 
-    col_widths = [55 * mm, 25 * mm, 25 * mm, 25 * mm, 20 * mm, 25 * mm]
+    col_widths = [50 * mm, 26 * mm, 26 * mm, 26 * mm, 22 * mm, 25 * mm]
     table = Table(rows, colWidths=col_widths, repeatRows=1)
 
-    style_commands: List = [
+    style_cmds: List = [
         ("BACKGROUND", (0, 0), (-1, 0), header_color),
         ("TEXTCOLOR", (0, 0), (-1, 0), COLORS["white"]),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 4),
-        ("TOPPADDING", (0, 0), (-1, 0), 4),
-        ("BOTTOMPADDING", (0, 1), (-1, -1), 3),
-        ("TOPPADDING", (0, 1), (-1, -1), 3),
-        ("GRID", (0, 0), (-1, -1), 0.3, COLORS["border"]),
+        ("FONTSIZE", (0, 0), (-1, 0), 8),
+        ("FONTSIZE", (0, 1), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, 0), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 5),
+        ("TOPPADDING", (0, 1), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.8, header_color),
+        ("LINEBELOW", (0, 1), (-1, -2), 0.3, COLORS["border"]),
+        ("LINEBELOW", (0, -1), (-1, -1), 0.5, COLORS["border"]),
         ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
     ]
 
     for i in range(1, len(rows)):
         if i % 2 == 0:
-            style_commands.append(("BACKGROUND", (0, i), (-1, i), alt_row_color))
+            style_cmds.append(("BACKGROUND", (0, i), (-1, i), alt_row_color))
 
     for row_idx, passed in status_cells:
-        color = COLORS["success"] if passed else COLORS["danger"]
-        style_commands.append(("TEXTCOLOR", (4, row_idx), (4, row_idx), color))
-        style_commands.append(("FONTNAME", (4, row_idx), (4, row_idx), "Helvetica-Bold"))
+        clr = COLORS["success"] if passed else COLORS["danger"]
+        style_cmds.append(("TEXTCOLOR", (4, row_idx), (4, row_idx), clr))
+        style_cmds.append(("FONTNAME", (4, row_idx), (4, row_idx), "Helvetica-Bold"))
 
-    table.setStyle(TableStyle(style_commands))
+    table.setStyle(TableStyle(style_cmds))
     return table
 
+
+# ===================== MAIN PDF =====================
 
 def generate_pdf_report(
     config: Dict[str, Any],
@@ -247,11 +279,11 @@ def generate_pdf_report(
     project_name: str,
     org_name: str,
 ) -> bytes:
-    """
-    Generate a PDF report and return it as bytes.
-    """
+    """Generate a PDF report and return it as bytes."""
     buffer = io.BytesIO()
     styles = _get_styles()
+
+    title = config.get("title") or f"{project_name} - Evaluation Report"
 
     enabled_sections = set()
     for s in config.get("sections", []):
@@ -272,29 +304,74 @@ def generate_pdf_report(
     )
 
     story: List = []
-    title = config.get("title") or f"{project_name} - Evaluation Report"
 
-    # Cover
-    story.append(Spacer(1, 25 * mm))
-    story.append(Paragraph("LLM Evaluation Report", styles["title"]))
-    story.append(Paragraph(title, styles["subtitle"]))
-    story.append(Spacer(1, 4 * mm))
+    # ── Cover page ──
+    story.append(Spacer(1, 18 * mm))
 
-    cover_info = [
-        f"<b>Project:</b> {_safe_str(project_name)}",
-        f"<b>Organization:</b> {_safe_str(org_name)}",
-        f"<b>Generated:</b> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}",
-        f"<b>Experiments included:</b> {len(experiments)}",
-        f"<b>Report standard:</b> EvalCards",
+    if os.path.exists(LOGO_PATH):
+        logo = Image(LOGO_PATH, width=22 * mm, height=22 * mm)
+        logo.hAlign = "CENTER"
+        story.append(logo)
+        story.append(Spacer(1, 5 * mm))
+
+    story.append(Paragraph("VerifyWise", ParagraphStyle(
+        "_brand", fontSize=16, leading=20, textColor=ACCENT,
+        alignment=TA_CENTER, fontName="Helvetica-Bold", spaceAfter=12 * mm,
+    )))
+
+    story.append(Paragraph("LLM Evaluation Report", styles["cover_title"]))
+    story.append(Paragraph(title, styles["cover_subtitle"]))
+
+    story.append(HRFlowable(width="40%", thickness=0.6, color=ACCENT, spaceAfter=8 * mm, hAlign="CENTER"))
+
+    # Cover metadata
+    date_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+    models_used = list({exp.get("model", "Unknown") for exp in experiments})
+    metrics_all = set()
+    for exp in experiments:
+        metrics_all.update(exp.get("metricSummaries", {}).keys())
+
+    cover_lines = [
+        f"<b>Project:</b>&nbsp;&nbsp;{_safe_str(project_name)}",
+        f"<b>Organization:</b>&nbsp;&nbsp;{_safe_str(org_name)}",
+        f"<b>Generated:</b>&nbsp;&nbsp;{date_str}",
+        f"<b>Experiments:</b>&nbsp;&nbsp;{len(experiments)}",
+        f"<b>Models evaluated:</b>&nbsp;&nbsp;{', '.join(models_used)}",
+        f"<b>Report standard:</b>&nbsp;&nbsp;EvalCards",
     ]
-    for line in cover_info:
-        story.append(Paragraph(line, styles["body"]))
-        story.append(Spacer(1, 1.5 * mm))
+    for line in cover_lines:
+        story.append(Paragraph(line, styles["cover_info"]))
+        story.append(Spacer(1, 1.2 * mm))
 
-    story.append(Spacer(1, 4 * mm))
-    story.append(HRFlowable(width="100%", thickness=0.3, color=COLORS["border"], spaceAfter=6 * mm))
+    story.append(Spacer(1, 10 * mm))
+    story.append(HRFlowable(width="100%", thickness=0.3, color=COLORS["border"], spaceAfter=4 * mm))
 
-    # Executive Summary
+    # ── About this report ──
+    story.append(Paragraph("About This Report", ParagraphStyle(
+        "_aboutHdr", fontSize=11, leading=14, textColor=COLORS["primary"],
+        fontName="Helvetica-Bold", spaceAfter=2 * mm,
+    )))
+    story.append(Paragraph(
+        "This report documents the evaluation of large language model (LLM) performance "
+        "using the <b>EvalCards</b> standard for structured AI evaluation reporting. "
+        "It covers the models tested, datasets used, evaluation metrics and thresholds, "
+        "detailed scoring results, and safety compliance considerations. "
+        "The goal is to provide transparent, reproducible evidence of model behavior "
+        "to support AI governance and compliance requirements.",
+        styles["intro"],
+    ))
+
+    if metrics_all:
+        metric_list = ", ".join(sorted(_format_metric_name(m) for m in metrics_all))
+        story.append(Paragraph(
+            f"<b>Metrics evaluated:</b>&nbsp;&nbsp;{metric_list}",
+            styles["small"],
+        ))
+        story.append(Spacer(1, 2 * mm))
+
+    story.append(PageBreak())
+
+    # ── Executive Summary ──
     if "executive-summary" in enabled_sections and experiments:
         story.extend(_section_header(styles, "1. Executive Summary"))
 
@@ -318,60 +395,81 @@ def generate_pdf_report(
             else:
                 verdict = "FAIL"
 
-            story.append(Paragraph(f"Experiment: {_safe_str(exp.get('name', exp.get('id', 'Unknown')))}", styles["body_bold"]))
-            story.append(_kv_row(styles, "Model", _safe_str(exp.get("model"))))
-            story.append(_kv_row(styles, "Overall avg score", f"{avg * 100:.1f}%"))
-            story.append(_kv_row(styles, "Metrics passing", f"{passing} / {total}"))
-            story.append(_kv_row(styles, "Verdict", verdict))
-            story.append(_kv_row(styles, "Samples evaluated", _safe_str(exp.get("totalSamples", 0))))
-            story.append(Spacer(1, 3 * mm))
+            story.append(Paragraph(
+                _safe_str(exp.get("name", exp.get("id", "Unknown"))),
+                styles["body_accent"],
+            ))
+            story.append(Spacer(1, 1 * mm))
+            story.append(_kv_table([
+                ("Model", _safe_str(exp.get("model"))),
+                ("Avg score", f"{avg * 100:.1f}%"),
+                ("Metrics passing", f"{passing} / {total}"),
+                ("Verdict", verdict),
+                ("Samples", str(exp.get("totalSamples", 0))),
+            ]))
+            story.append(Spacer(1, 4 * mm))
 
-    # Evaluation Context
+    # ── Evaluation Context ──
     if "evaluation-context" in enabled_sections:
         story.extend(_section_header(styles, "2. Evaluation Context"))
-        story.append(_kv_row(styles, "Project", _safe_str(project_name)))
-        story.append(_kv_row(styles, "Organization", _safe_str(org_name)))
-        story.append(_kv_row(styles, "Report date", datetime.now().strftime("%Y-%m-%d")))
-        story.append(_kv_row(styles, "Experiments", str(len(experiments))))
+        pairs = [
+            ("Project", _safe_str(project_name)),
+            ("Organization", _safe_str(org_name)),
+            ("Report date", datetime.now().strftime("%B %d, %Y")),
+            ("Experiments", str(len(experiments))),
+        ]
         if experiments and experiments[0].get("useCase"):
-            story.append(_kv_row(styles, "Use case", experiments[0]["useCase"]))
-        story.append(Spacer(1, 2 * mm))
+            pairs.append(("Use case", experiments[0]["useCase"]))
+        story.append(_kv_table(pairs))
+        story.append(Spacer(1, 3 * mm))
 
-    # Model Under Test
+    # ── Model Under Test ──
     if "model-under-test" in enabled_sections:
         story.extend(_section_header(styles, "3. Model Under Test"))
         for exp in experiments:
-            story.append(Paragraph(f"Experiment: {_safe_str(exp.get('name', exp.get('id')))}", styles["body_bold"]))
-            story.append(_kv_row(styles, "Model", _safe_str(exp.get("model"))))
-            story.append(_kv_row(styles, "Dataset", _safe_str(exp.get("dataset"))))
-            story.append(_kv_row(styles, "Judge / Scorer", _safe_str(exp.get("judge") or exp.get("scorer"))))
-            story.append(_kv_row(styles, "Created", _safe_str(exp.get("createdAt"))))
+            story.append(Paragraph(
+                _safe_str(exp.get("name", exp.get("id"))),
+                styles["body_accent"],
+            ))
+            story.append(Spacer(1, 1 * mm))
+            pairs = [
+                ("Model", _safe_str(exp.get("model"))),
+                ("Dataset", _safe_str(exp.get("dataset"))),
+                ("Judge / Scorer", _safe_str(exp.get("judge") or exp.get("scorer"))),
+                ("Created", _safe_str(exp.get("createdAt"))),
+            ]
             if exp.get("duration"):
-                story.append(_kv_row(styles, "Duration", f"{exp['duration'] / 1000:.1f}s"))
-            story.append(Spacer(1, 3 * mm))
+                pairs.append(("Duration", f"{exp['duration'] / 1000:.1f}s"))
+            story.append(_kv_table(pairs))
+            story.append(Spacer(1, 4 * mm))
 
-    # Evaluation Setup
+    # ── Evaluation Setup ──
     if "evaluation-setup" in enabled_sections:
         story.extend(_section_header(styles, "4. Evaluation Setup"))
         for exp in experiments:
-            story.append(Paragraph(f"Experiment: {_safe_str(exp.get('name', exp.get('id')))}", styles["body_bold"]))
-            story.append(_kv_row(styles, "Total samples", str(exp.get("totalSamples", 0))))
+            story.append(Paragraph(
+                _safe_str(exp.get("name", exp.get("id"))),
+                styles["body_accent"],
+            ))
+            story.append(Spacer(1, 1 * mm))
+
+            pairs = [("Total samples", str(exp.get("totalSamples", 0)))]
 
             thresholds = exp.get("metricThresholds", {})
             if thresholds:
                 thresh_str = ", ".join(
                     f"{_format_metric_name(k)}: {v * 100:.0f}%"
-                    for k, v in thresholds.items()
-                    if v is not None
+                    for k, v in thresholds.items() if v is not None
                 )
                 if thresh_str:
-                    story.append(_kv_row(styles, "Thresholds", thresh_str))
+                    pairs.append(("Thresholds", thresh_str))
 
             metric_names = [_format_metric_name(k) for k in exp.get("metricSummaries", {}).keys()]
-            story.append(_kv_row(styles, "Enabled metrics", ", ".join(metric_names) or "N/A"))
-            story.append(Spacer(1, 3 * mm))
+            pairs.append(("Enabled metrics", ", ".join(metric_names) or "N/A"))
+            story.append(_kv_table(pairs))
+            story.append(Spacer(1, 4 * mm))
 
-    # Metric Results
+    # ── Metric Results ──
     if "metric-results" in enabled_sections:
         story.extend(_section_header(styles, "5. Metric Results"))
 
@@ -379,42 +477,45 @@ def generate_pdf_report(
             summaries = exp.get("metricSummaries", {})
             thresholds = exp.get("metricThresholds", {})
 
-            story.append(Paragraph(f"Experiment: {_safe_str(exp.get('name', exp.get('id')))}", styles["body_bold"]))
-            story.append(Spacer(1, 2 * mm))
+            story.append(Paragraph(
+                _safe_str(exp.get("name", exp.get("id"))),
+                styles["body_accent"],
+            ))
+            story.append(Spacer(1, 3 * mm))
 
             quality = [(n, m) for n, m in summaries.items() if not _is_safety_metric(n)]
             safety = [(n, m) for n, m in summaries.items() if _is_safety_metric(n)]
 
             if quality:
                 story.append(Paragraph("Quality Metrics", styles["body_bold"]))
-                story.append(Spacer(1, 1 * mm))
+                story.append(Spacer(1, 2 * mm))
                 table = _build_metric_table(quality, thresholds)
                 if table:
                     story.append(table)
-                story.append(Spacer(1, 4 * mm))
+                story.append(Spacer(1, 5 * mm))
 
             if safety:
                 story.append(Paragraph("Safety Metrics", styles["body_bold"]))
-                story.append(Spacer(1, 1 * mm))
+                story.append(Spacer(1, 2 * mm))
                 table = _build_metric_table(
-                    safety,
-                    thresholds,
+                    safety, thresholds,
                     header_color=COLORS["safety_header"],
                     alt_row_color=COLORS["safety_row"],
                 )
                 if table:
                     story.append(table)
-                story.append(Spacer(1, 4 * mm))
+                story.append(Spacer(1, 5 * mm))
 
-    # Safety & Compliance
+    # ── Safety & Compliance ──
     if "safety-compliance" in enabled_sections:
         story.extend(_section_header(styles, "6. Safety & Compliance"))
         story.append(Paragraph(
-            "This section highlights safety-relevant metrics in the context of AI governance frameworks "
-            "such as the EU AI Act (Article 55) and the EvalCards standard for safety documentation.",
+            "This section highlights safety-relevant metrics in the context of AI governance "
+            "frameworks such as the EU AI Act (Article 55) and the EvalCards standard for "
+            "safety documentation.",
             styles["small"],
         ))
-        story.append(Spacer(1, 2 * mm))
+        story.append(Spacer(1, 3 * mm))
 
         for exp in experiments:
             summaries = exp.get("metricSummaries", {})
@@ -424,20 +525,30 @@ def generate_pdf_report(
             if not safety:
                 story.append(Paragraph(
                     "No safety metrics were evaluated for this experiment.",
-                    ParagraphStyle("Warning", parent=styles["body"], textColor=COLORS["warning"]),
+                    ParagraphStyle("_warn", parent=styles["body"], textColor=COLORS["warning"]),
                 ))
                 continue
 
-            story.append(Paragraph(f"Experiment: {_safe_str(exp.get('name', exp.get('id')))}", styles["body_bold"]))
+            story.append(Paragraph(
+                _safe_str(exp.get("name", exp.get("id"))),
+                styles["body_accent"],
+            ))
+            story.append(Spacer(1, 1 * mm))
+
             for name, m in safety:
                 avg = m.get("averageScore", 0)
                 threshold = thresholds.get(name, 0.5)
                 inverted = _is_inverted_metric(name)
                 passed = _did_pass(avg, threshold, inverted)
                 pct = f"{avg * 100:.1f}%"
-                status = "PASS" if passed else "FAIL"
+                status_color = "#16A34A" if passed else "#DC2626"
+                status_text = "PASS" if passed else "FAIL"
 
-                story.append(_kv_row(styles, _format_metric_name(name), f"{pct} ({status})"))
+                story.append(Paragraph(
+                    f'<b>{_format_metric_name(name)}:</b>&nbsp;&nbsp;{pct}'
+                    f'&nbsp;&nbsp;<font color="{status_color}"><b>{status_text}</b></font>',
+                    styles["body"],
+                ))
 
                 if not passed:
                     if inverted:
@@ -452,22 +563,26 @@ def generate_pdf_report(
                         )
                     story.append(Paragraph(
                         f"&rarr; {note}",
-                        ParagraphStyle("DangerNote", parent=styles["small"], textColor=COLORS["danger"]),
+                        ParagraphStyle("_dn", parent=styles["small"], textColor=COLORS["danger"]),
                     ))
-            story.append(Spacer(1, 3 * mm))
+            story.append(Spacer(1, 4 * mm))
 
-    # Arena Comparison
+    # ── Arena Comparison ──
     if "arena-comparison" in enabled_sections:
         arena_data = config.get("arenaData", [])
         if arena_data:
             story.extend(_section_header(styles, "7. Arena Comparison"))
             for arena in arena_data:
-                story.append(Paragraph(f"Arena: {_safe_str(arena.get('name', arena.get('id')))}", styles["body_bold"]))
-                story.append(_kv_row(styles, "Winner", _safe_str(arena.get("winner", "Tie"))))
-                story.append(_kv_row(styles, "Rounds", str(arena.get("rounds", 0))))
-                criteria = arena.get("criteria", [])
-                if criteria:
-                    story.append(_kv_row(styles, "Criteria", ", ".join(str(c) for c in criteria)))
+                story.append(Paragraph(
+                    _safe_str(arena.get("name", arena.get("id"))),
+                    styles["body_accent"],
+                ))
+                story.append(Spacer(1, 1 * mm))
+                story.append(_kv_table([
+                    ("Winner", _safe_str(arena.get("winner", "Tie"))),
+                    ("Rounds", str(arena.get("rounds", 0))),
+                    ("Criteria", ", ".join(str(c) for c in arena.get("criteria", []))),
+                ]))
                 story.append(Spacer(1, 2 * mm))
 
                 contestants = arena.get("contestants", [])
@@ -482,23 +597,23 @@ def generate_pdf_report(
                             str(c.get("ties", 0)),
                             f"{c.get('avgScore', 0) * 100:.1f}%",
                         ])
-
                     col_widths = [45 * mm, 25 * mm, 25 * mm, 25 * mm, 30 * mm]
                     table = Table(rows, colWidths=col_widths, repeatRows=1)
                     table.setStyle(TableStyle([
-                        ("BACKGROUND", (0, 0), (-1, 0), COLORS["accent"]),
+                        ("BACKGROUND", (0, 0), (-1, 0), ACCENT),
                         ("TEXTCOLOR", (0, 0), (-1, 0), COLORS["white"]),
                         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                         ("FONTSIZE", (0, 0), (-1, -1), 8),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                        ("TOPPADDING", (0, 0), (-1, -1), 3),
-                        ("GRID", (0, 0), (-1, -1), 0.3, COLORS["border"]),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                        ("LINEBELOW", (0, 0), (-1, 0), 0.8, ACCENT),
+                        ("LINEBELOW", (0, 1), (-1, -1), 0.3, COLORS["border"]),
                         ("ALIGN", (1, 0), (-1, -1), "CENTER"),
                     ]))
                     story.append(table)
-                story.append(Spacer(1, 4 * mm))
+                story.append(Spacer(1, 5 * mm))
 
-    # Recommendations
+    # ── Recommendations ──
     if "recommendations" in enabled_sections:
         story.extend(_section_header(styles, "8. Limitations & Recommendations"))
 
@@ -527,41 +642,47 @@ def generate_pdf_report(
         if not recommendations:
             story.append(Paragraph(
                 "All evaluated metrics are within configured thresholds. Continue monitoring.",
-                ParagraphStyle("SuccessNote", parent=styles["body"], textColor=COLORS["success"]),
+                ParagraphStyle("_ok", parent=styles["body"], textColor=COLORS["success"]),
             ))
         else:
             for rec in recommendations:
-                story.append(Paragraph(f"&bull; {rec}", styles["small"]))
-                story.append(Spacer(1, 1 * mm))
+                story.append(Paragraph(f"&bull;&nbsp;&nbsp;{rec}", styles["small"]))
+                story.append(Spacer(1, 1.5 * mm))
 
-        story.append(Spacer(1, 4 * mm))
+        story.append(Spacer(1, 5 * mm))
         story.append(Paragraph(
-            "Limitations: Evaluation results depend on the dataset, judge model, and configured thresholds. "
-            "Scores should be interpreted in context and validated against domain-specific requirements. "
-            "This report follows the EvalCards framework for standardized documentation.",
+            "<i>Limitations: Evaluation results depend on the dataset, judge model, and "
+            "configured thresholds. Scores should be interpreted in context and validated "
+            "against domain-specific requirements. This report follows the EvalCards "
+            "framework for standardized documentation.</i>",
             styles["small"],
         ))
 
-    # Build with page footer
-    def add_page_footer(canvas, doc):
+    # ── Page footer ──
+    def _footer(canvas, doc):
         canvas.saveState()
         canvas.setFont("Helvetica", 7)
         canvas.setFillColor(COLORS["secondary"])
         canvas.drawString(MARGIN, 10 * mm, "VerifyWise — LLM Evaluation Report")
-        page_text = f"Page {canvas.getPageNumber()}"
-        canvas.drawRightString(A4[0] - MARGIN, 10 * mm, page_text)
+        canvas.drawRightString(PAGE_W - MARGIN, 10 * mm, f"Page {canvas.getPageNumber()}")
+        canvas.setStrokeColor(COLORS["border"])
+        canvas.setLineWidth(0.3)
+        canvas.line(MARGIN, 13 * mm, PAGE_W - MARGIN, 13 * mm)
         canvas.restoreState()
 
-    doc.build(story, onFirstPage=add_page_footer, onLaterPages=add_page_footer)
-
+    doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
     return buffer.getvalue()
 
+
+# ===================== CSV =====================
 
 def generate_csv_report(
     experiments: List[Dict[str, Any]],
     project_name: str,
 ) -> str:
     """Generate CSV report content as a string."""
+    import csv
+
     rows: List[List[str]] = []
 
     rows.append(["LLM Evaluation Report"])
@@ -605,7 +726,6 @@ def generate_csv_report(
                 "Safety" if _is_safety_metric(name) else "Quality",
             ])
 
-    import csv
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_ALL)
     for row in rows:

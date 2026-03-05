@@ -6,8 +6,16 @@ import {
   CircularProgress,
   Chip,
   IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  useTheme,
 } from "@mui/material";
-import { FileText, Download, Clock, CheckCircle, AlertTriangle, Eye, X, ExternalLink } from "lucide-react";
+import { FileText, Download, AlertTriangle, Eye, X, ExternalLink, Trash2 } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import ReportConfigModal from "./ReportConfigModal";
@@ -16,6 +24,7 @@ import CustomAxios from "../../../infrastructure/api/customAxios";
 import {
   getAllExperiments,
 } from "../../../application/repository/deepEval.repository";
+import singleTheme from "../../themes/v1SingleTheme";
 
 interface ReportPageProps {
   projectId: string;
@@ -29,6 +38,8 @@ interface ReportHistoryEntry {
   title: string;
   format: string;
   experiments: number;
+  experimentIds: string[];
+  sections: any[];
   generatedAt: string;
 }
 
@@ -40,8 +51,10 @@ export default function ReportPage({
   orgId,
   orgName = "",
 }: ReportPageProps) {
+  const theme = useTheme();
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [experiments, setExperiments] = useState<
     Array<{ id: string; name: string; model: string; status: string }>
   >([]);
@@ -53,7 +66,14 @@ export default function ReportPage({
   const [reportHistory, setReportHistory] = useState<ReportHistoryEntry[]>(() => {
     try {
       const stored = localStorage.getItem(REPORT_HISTORY_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return parsed.map((e: any) => ({
+        ...e,
+        experimentIds: e.experimentIds || [],
+        sections: e.sections || [],
+        experiments: e.experiments || 0,
+      }));
     } catch {
       return [];
     }
@@ -91,52 +111,82 @@ export default function ReportPage({
     loadExperiments();
   }, [loadExperiments]);
 
+  const generateReport = async (
+    title: string,
+    format: string,
+    experimentIds: string[],
+    sections: any[],
+    includeDetailedSamples: boolean,
+    includeArena: boolean,
+  ): Promise<Blob> => {
+    const response = await CustomAxios.post(
+      "/deepeval/reports/generate",
+      {
+        title,
+        format,
+        experimentIds,
+        sections,
+        includeDetailedSamples,
+        includeArena,
+        projectId,
+        orgName: orgName || orgId,
+      },
+      {
+        responseType: "blob",
+        timeout: 120000,
+      },
+    );
+    return new Blob([response.data], {
+      type: format === "pdf" ? "application/pdf" : "text/csv",
+    });
+  };
+
+  const showPdf = (blob: Blob, title: string) => {
+    if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    const url = URL.createObjectURL(blob);
+    setPdfBlobUrl(url);
+    setPdfTitle(title);
+    setTimeout(() => {
+      pdfContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleGenerate = async (config: ReportConfig) => {
     setIsGenerating(true);
     try {
-      const response = await CustomAxios.post(
-        "/deepeval/reports/generate",
-        {
-          title: config.title,
-          format: config.format,
-          experimentIds: config.experimentIds,
-          sections: config.sections,
-          includeDetailedSamples: config.includeDetailedSamples,
-          includeArena: config.includeArena,
-          projectId,
-          orgName: orgName || orgId,
-        },
-        {
-          responseType: "blob",
-          timeout: 120000,
-        },
+      const blob = await generateReport(
+        config.title,
+        config.format,
+        config.experimentIds,
+        config.sections,
+        config.includeDetailedSamples,
+        config.includeArena,
       );
 
-      if (config.format === "pdf") {
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
-        const url = URL.createObjectURL(blob);
-        setPdfBlobUrl(url);
-        setPdfTitle(config.title || `${projectName} - Evaluation Report`);
+      const reportTitle = config.title || `${projectName} - Evaluation Report`;
 
-        setTimeout(() => {
-          pdfContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
+      if (config.format === "pdf") {
+        showPdf(blob, reportTitle);
       } else {
-        const blob = new Blob([response.data], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${(config.title || projectName).replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadBlob(blob, `${reportTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.csv`);
       }
 
       const entry: ReportHistoryEntry = {
         id: crypto.randomUUID(),
-        title: config.title,
+        title: reportTitle,
         format: config.format.toUpperCase(),
         experiments: config.experimentIds.length,
+        experimentIds: config.experimentIds,
+        sections: config.sections,
         generatedAt: new Date().toISOString(),
       };
       const updatedHistory = [entry, ...reportHistory].slice(0, 20);
@@ -158,6 +208,72 @@ export default function ReportPage({
     }
   };
 
+  const handleViewReport = async (entry: ReportHistoryEntry) => {
+    if (!entry.experimentIds || entry.experimentIds.length === 0) {
+      setAlert({ variant: "warning", body: "Cannot regenerate: no experiment IDs stored for this report." });
+      setTimeout(() => setAlert(null), 4000);
+      return;
+    }
+    setRegeneratingId(entry.id);
+    try {
+      const blob = await generateReport(
+        entry.title,
+        "pdf",
+        entry.experimentIds,
+        entry.sections || [],
+        false,
+        false,
+      );
+      showPdf(blob, entry.title);
+    } catch (err) {
+      console.error("Failed to regenerate report:", err);
+      setAlert({
+        variant: "error",
+        body: `Failed to load report: ${err instanceof Error ? err.message : "Unknown error"}`,
+      });
+      setTimeout(() => setAlert(null), 6000);
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
+
+  const handleDownloadReport = async (entry: ReportHistoryEntry) => {
+    if (!entry.experimentIds || entry.experimentIds.length === 0) {
+      setAlert({ variant: "warning", body: "Cannot regenerate: no experiment IDs stored for this report." });
+      setTimeout(() => setAlert(null), 4000);
+      return;
+    }
+    setRegeneratingId(entry.id);
+    try {
+      const format = entry.format.toLowerCase();
+      const blob = await generateReport(
+        entry.title,
+        format,
+        entry.experimentIds,
+        entry.sections || [],
+        false,
+        false,
+      );
+      const ext = format === "csv" ? "csv" : "pdf";
+      downloadBlob(blob, `${entry.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.${ext}`);
+    } catch (err) {
+      console.error("Failed to download report:", err);
+      setAlert({
+        variant: "error",
+        body: `Failed to download report: ${err instanceof Error ? err.message : "Unknown error"}`,
+      });
+      setTimeout(() => setAlert(null), 6000);
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
+
+  const handleRemoveReport = (entryId: string) => {
+    const updated = reportHistory.filter(e => e.id !== entryId);
+    setReportHistory(updated);
+    localStorage.setItem(REPORT_HISTORY_KEY, JSON.stringify(updated));
+  };
+
   const handleDownloadCurrent = () => {
     if (!pdfBlobUrl) return;
     const a = document.createElement("a");
@@ -174,6 +290,20 @@ export default function ReportPage({
     if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
     setPdfBlobUrl(null);
     setPdfTitle("");
+  };
+
+  const formatDate = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return iso;
+    }
   };
 
   const completedCount = experiments.filter(e => e.status === "completed").length;
@@ -341,67 +471,122 @@ export default function ReportPage({
         </Box>
       )}
 
-      {/* Report History */}
+      {/* Report History Table */}
       {reportHistory.length > 0 && (
         <Box
           sx={{
             background: "#fff",
             border: "1px solid #d0d5dd",
             borderRadius: "4px",
-            p: "24px",
           }}
         >
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827", mb: 2 }}>
-            Recent reports
-          </Typography>
-          <Stack spacing={0}>
-            {reportHistory.slice(0, 10).map(entry => (
-              <Box
-                key={entry.id}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  py: 1.5,
-                  borderBottom: "1px solid #F3F4F6",
-                  "&:last-child": { borderBottom: "none" },
-                }}
-              >
-                <Stack direction="row" alignItems="center" gap={1.5}>
-                  <CheckCircle size={14} color="#16A34A" />
-                  <Typography sx={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>
-                    {entry.title}
-                  </Typography>
-                  <Chip
-                    label={entry.format}
-                    size="small"
-                    sx={{
-                      fontSize: 10,
-                      height: 18,
-                      backgroundColor: "#ECFDF5",
-                      color: "#13715B",
-                    }}
-                  />
-                  <Chip
-                    label={`${entry.experiments} exp${entry.experiments !== 1 ? "s" : ""}`}
-                    size="small"
-                    sx={{ fontSize: 10, height: 18, backgroundColor: "#F3F4F6", color: "#374151" }}
-                  />
-                </Stack>
-                <Stack direction="row" alignItems="center" gap={0.5}>
-                  <Clock size={12} color="#9CA3AF" />
-                  <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
-                    {new Date(entry.generatedAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Typography>
-                </Stack>
-              </Box>
-            ))}
-          </Stack>
+          <Box sx={{ px: "24px", pt: "20px", pb: "12px" }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>
+              Recent reports
+            </Typography>
+          </Box>
+          <TableContainer sx={{ overflowX: "auto" }}>
+            <Table sx={singleTheme.tableStyles.primary.frame}>
+              <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
+                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "35%" }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Report</Typography>
+                  </TableCell>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "12%" }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Format</Typography>
+                  </TableCell>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%" }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Experiments</Typography>
+                  </TableCell>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "23%" }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Generated</Typography>
+                  </TableCell>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%", minWidth: 120 }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Actions</Typography>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reportHistory.slice(0, 15).map(entry => (
+                  <TableRow
+                    key={entry.id}
+                    sx={singleTheme.tableStyles.primary.body.row}
+                  >
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        <FileText size={14} strokeWidth={1.5} color="#13715B" />
+                        <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, fontWeight: 500 }}>
+                          {entry.title}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Chip
+                        label={entry.format}
+                        size="small"
+                        sx={{
+                          fontSize: 11,
+                          height: 22,
+                          fontWeight: 500,
+                          backgroundColor: entry.format === "PDF" ? "#ECFDF5" : "#F0FDF4",
+                          color: "#13715B",
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                        {entry.experiments} exp{entry.experiments !== 1 ? "s" : ""}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                        {formatDate(entry.generatedAt)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell} onClick={(e) => e.stopPropagation()}>
+                      <Stack direction="row" spacing={0.5}>
+                        {entry.format === "PDF" && (
+                          <Tooltip title="View report">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewReport(entry)}
+                              disabled={regeneratingId === entry.id}
+                              sx={{ padding: 0.5 }}
+                            >
+                              {regeneratingId === entry.id ? (
+                                <CircularProgress size={14} />
+                              ) : (
+                                <Eye size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Download report">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDownloadReport(entry)}
+                            disabled={regeneratingId === entry.id}
+                            sx={{ padding: 0.5 }}
+                          >
+                            <Download size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Remove from history">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemoveReport(entry.id)}
+                            sx={{ padding: 0.5 }}
+                          >
+                            <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       )}
 

@@ -1634,7 +1634,11 @@ export default function EvalsDashboard() {
               )}
 
               {tab === "reports" && (
-                <ReportPage />
+                <ReportPage
+                  projectId={projectId}
+                  projectName={currentProject?.name || ""}
+                  orgId={orgId || currentProject?.orgId || ""}
+                />
               )}
 
               {tab === "configuration" && (

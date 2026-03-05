@@ -557,7 +557,7 @@ async def migrate_to_shared_schema(
 
             # Get all organizations
             org_result = await session.execute(
-                text("SELECT id, name FROM verifywise.organizations ORDER BY id")
+                text("SELECT id, name FROM public.organizations ORDER BY id")
             )
             organizations = [{"id": row[0], "name": row[1]} for row in org_result.fetchall()]
 
@@ -699,7 +699,7 @@ async def check_and_run_migration(database_url: str) -> MigrationResult:
 
             # Check if any tenant schemas exist
             org_result = await session.execute(
-                text("SELECT id FROM verifywise.organizations ORDER BY id")
+                text("SELECT id FROM public.organizations ORDER BY id")
             )
             organizations = [row[0] for row in org_result.fetchall()]
 

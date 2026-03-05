@@ -405,27 +405,27 @@ export const FK_MAPPINGS: Record<string, Record<string, string>> = {
   // Risk junction tables (Level 3)
   controls_eu__risks: {
     control_id: 'controls_eu',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
   annexcategories_iso__risks: {
     annexcategory_id: 'annexcategories_iso',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
   subclauses_iso__risks: {
     subclause_id: 'subclauses_iso',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
   subclauses_iso27001__risks: {
     subclause_id: 'subclauses_iso27001',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
   annexcontrols_iso27001__risks: {
     annexcontrol_id: 'annexcontrols_iso27001',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
   nist_ai_rmf_subcategories__risks: {
     nist_ai_rmf_subcategory_id: 'nist_ai_rmf_subcategories',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
 
   // Level 4 tables
@@ -435,7 +435,7 @@ export const FK_MAPPINGS: Record<string, Record<string, string>> = {
   },
   answers_eu__risks: {
     answer_id: 'answers_eu',
-    projects_risks_id: 'projects_risks',
+    projects_risks_id: 'risks',
   },
   approval_request_step_approvals: {
     request_step_id: 'approval_request_steps',

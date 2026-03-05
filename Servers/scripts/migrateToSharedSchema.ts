@@ -63,47 +63,14 @@ const isPostgresArrayColumn = (tableName: string, columnName: string): boolean =
 };
 
 /**
- * Junction tables that don't have an 'id' column
- * These use composite primary keys (e.g., vendor_id + project_id)
- * They don't need ID mapping - they only have FK references that get remapped
- *
- * NOTE: Tables that ARE referenced by other tables via *_id columns MUST have 'id':
- * - projects_risks HAS id (referenced by *__risks tables via projects_risks_id)
- * - approval_workflow_steps HAS id (referenced by approval_step_approvers)
- * - approval_request_steps HAS id (referenced by approval_request_step_approvals)
- */
-const TABLES_WITHOUT_ID: string[] = [
-  // Pure junction tables - only have FK columns, no references from other tables
-  'vendors_projects',
-  'projects_members',
-  'frameworks_risks',
-  'policy_manager__assigned_reviewer_ids',
-  'llm_evals_org_members',
-  // All *__risks junction tables (they reference projects_risks_id but aren't referenced themselves)
-  'controls_eu__risks',
-  'annexcategories_iso__risks',
-  'subclauses_iso__risks',
-  'subclauses_iso27001__risks',
-  'annexcontrols_iso27001__risks',
-  'nist_ai_rmf_subcategories__risks',
-  'subcontrols_eu__risks',
-  'answers_eu__risks',
-];
-
-/**
- * Check if a table has an 'id' column (dynamic check against database)
+ * Check if a table has an 'id' column in a given schema.
+ * Always checks the actual database — no static lists.
  */
 async function checkTableHasIdColumn(
   schemaName: string,
   tableName: string,
   transaction?: Transaction
 ): Promise<boolean> {
-  // First check static list for performance
-  if (TABLES_WITHOUT_ID.includes(tableName)) {
-    return false;
-  }
-
-  // Then verify against database
   const result = await sequelize.query(
     `SELECT EXISTS (
       SELECT 1 FROM information_schema.columns
@@ -277,7 +244,6 @@ async function migrateTable(
   }
 
   // Get columns that exist in BOTH source (tenant) and target (verifywise) tables
-  // This handles schema mismatches where tenant has extra columns
   const sourceColumns = await getTableColumns(tenantHash, tableName, transaction);
   const targetColumns = await getTableColumns("verifywise", targetTableName, transaction);
 
@@ -304,7 +270,7 @@ async function migrateTable(
   // Check if this table references struct tables (meta_id columns shouldn't be remapped)
   const isStructReference = STRUCT_REFERENCES.includes(tableName);
 
-  // Check if this table has an id column (dynamic check against source schema)
+  // Check if source table has an id column (for ID mapping)
   const hasIdColumn = await checkTableHasIdColumn(tenantHash, tableName, transaction);
 
   // Initialize mapping for this table (only if it has an id column)
@@ -317,7 +283,6 @@ async function migrateTable(
   let migratedCount = 0;
 
   while (offset < sourceCount) {
-    // Fetch batch - use ORDER BY 1 for tables without id column
     const orderClause = hasIdColumn ? 'ORDER BY id' : 'ORDER BY 1';
     const rows = (await sequelize.query(
       `SELECT * FROM "${tenantHash}"."${tableName}" ${orderClause} LIMIT :limit OFFSET :offset`,
@@ -351,9 +316,10 @@ async function migrateTable(
             // Remap to new ID
             insertData[col] = idMapping[sourceTable][value];
           } else {
-            // FK target not found - orphaned reference (referenced row was deleted)
-            // Set to NULL to avoid FK constraint violation
-            console.log(`    ⚠️ ${tableName}.${col}: orphaned FK ${value} → NULL (${sourceTable} row was deleted)`);
+            // FK target not found - debug info
+            const hasTable = !!idMapping[sourceTable];
+            const mappingKeys = hasTable ? Object.keys(idMapping[sourceTable]).slice(0, 5) : [];
+            console.log(`    ⚠️ ${tableName}.${col}: FK ${value} not found in idMapping['${sourceTable}'] (exists=${hasTable}, keys=${JSON.stringify(mappingKeys)}) → NULL`);
             insertData[col] = null;
           }
         } else {
@@ -362,7 +328,7 @@ async function migrateTable(
       }
 
       // Build INSERT statement
-      const targetColumns = hasOrgId
+      const targetCols = hasOrgId
         ? ["organization_id", ...commonColumns]
         : commonColumns;
 
@@ -392,7 +358,7 @@ async function migrateTable(
         : commonColumns.map((c) => serializeValue(c, insertData[c]));
 
       const placeholders = targetValues.map((_, i) => `$${i + 1}`).join(", ");
-      const columnList = targetColumns.map((c) => `"${c}"`).join(", ");
+      const columnList = targetCols.map((c) => `"${c}"`).join(", ");
 
       try {
         if (hasIdColumn) {
@@ -403,7 +369,7 @@ async function migrateTable(
              RETURNING id`,
             {
               bind: targetValues,
-              type: QueryTypes.SELECT,  // Use SELECT to get RETURNING results
+              type: QueryTypes.SELECT,
               transaction,
             }
           );
@@ -427,11 +393,9 @@ async function migrateTable(
           migratedCount++;
         }
       } catch (error) {
-        // Handle unique constraint violations (might be duplicate from previous partial migration)
         const err = error as any;
         if (err.name === "SequelizeUniqueConstraintError" || err.code === "23505") {
           if (hasIdColumn) {
-            // Try to find existing row and add to mapping
             const existing = await sequelize.query(
               `SELECT id FROM "${targetTableName}"
                WHERE organization_id = :orgId
@@ -448,8 +412,7 @@ async function migrateTable(
               migratedCount++;
             }
           } else {
-            // Junction table - duplicate row, just skip it
-            // This is fine - the row already exists from a previous partial migration
+            // Junction table - duplicate row, skip
           }
         } else {
           throw error;
@@ -1245,7 +1208,7 @@ export async function migrateToSharedSchema(options: {
   dropSchemasAfter?: boolean;
   skipValidation?: boolean;
 } = {}): Promise<MigrationResult> {
-  const { dropSchemasAfter = true, skipValidation = false } = options;
+  const { dropSchemasAfter = false, skipValidation = false } = options;
 
   console.log("╔════════════════════════════════════════════════════════════╗");
   console.log("║     MIGRATE TENANT DATA TO SHARED SCHEMA                    ║");
@@ -1264,7 +1227,7 @@ export async function migrateToSharedSchema(options: {
   try {
     // Get all organizations
     const organizations = (await sequelize.query(
-      `SELECT id, name FROM organizations ORDER BY id`,
+      `SELECT id, name FROM public.organizations ORDER BY id`,
       { type: QueryTypes.SELECT }
     )) as { id: number; name: string }[];
 
@@ -1461,14 +1424,14 @@ export async function checkAndRunMigration(): Promise<MigrationResult> {
     };
   }
 
-  // Get all organizations
+  // Get all organizations from public schema (source of old data)
   const organizations = (await sequelize.query(
-    `SELECT id FROM organizations ORDER BY id`,
+    `SELECT id FROM public.organizations ORDER BY id`,
     { type: QueryTypes.SELECT }
   )) as { id: number }[];
 
   if (organizations.length === 0) {
-    console.log("ℹ️  No organizations found, skipping migration");
+    console.log("ℹ️  No organizations found in public schema, skipping migration");
     return {
       success: true,
       status: "no_tenants",

@@ -83,7 +83,7 @@ const GS_CARDS = [
     image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80",
     overlay: "linear-gradient(135deg, rgba(21,101,192,0.82), rgba(30,136,229,0.72))",
     action: "external" as const,
-    url: "https://verifywise.ai/user-guide",
+    url: "https://verifywise.ai/user-guide/getting-started/quick-start",
   },
   {
     title: "Navigating the dashboard",
@@ -91,7 +91,7 @@ const GS_CARDS = [
     image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80",
     overlay: "linear-gradient(135deg, rgba(123,31,162,0.82), rgba(156,39,176,0.72))",
     action: "external" as const,
-    url: "https://verifywise.ai/user-guide",
+    url: "https://verifywise.ai/user-guide/getting-started/dashboard",
   },
   {
     title: "Installing VerifyWise",
@@ -99,7 +99,7 @@ const GS_CARDS = [
     image: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80",
     overlay: "linear-gradient(135deg, rgba(230,81,0,0.82), rgba(244,81,30,0.72))",
     action: "external" as const,
-    url: "https://verifywise.ai/user-guide",
+    url: "https://verifywise.ai/user-guide/getting-started/installing",
   },
 ] as const;
 

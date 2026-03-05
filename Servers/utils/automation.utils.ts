@@ -57,7 +57,7 @@ export const getAutomationByIdQuery = async (id: number, organizationId: number)
   automation.actions = [];
   if (automations[0].length > 0) {
     const actions = await sequelize.query(
-      `SELECT * FROM automation_actions WHERE organization_id = :organizationId AND automation_id = :id ORDER BY "order";`,
+      `SELECT * FROM automation_actions_data WHERE organization_id = :organizationId AND automation_id = :id ORDER BY "order";`,
       {
         replacements: { organizationId, id },
       }
@@ -87,7 +87,7 @@ export const createAutomationQuery = async (
   // add some validations for action params
   await Promise.all(actions.map((action, index) => {
     return sequelize.query(
-      `INSERT INTO automation_actions(
+      `INSERT INTO automation_actions_data(
         organization_id, automation_id, action_type_id, params, "order") VALUES (
         :organizationId, :automationId, :actionTypeId, :params, :order);`,
       {
@@ -103,7 +103,7 @@ export const createAutomationQuery = async (
   }))
 
   const _actions = await sequelize.query(
-    `SELECT * FROM automation_actions WHERE organization_id = :organizationId AND automation_id = :id ORDER BY "order";`,
+    `SELECT * FROM automation_actions_data WHERE organization_id = :organizationId AND automation_id = :id ORDER BY "order";`,
     {
       replacements: { organizationId, id: automation.id }, transaction
     }
@@ -161,7 +161,7 @@ export const updateAutomationByIdQuery = async (
 
   if (actions && actions.length > 0) {
     await sequelize.query(
-      `DELETE FROM automation_actions WHERE organization_id = :organizationId AND automation_id = :id;`,
+      `DELETE FROM automation_actions_data WHERE organization_id = :organizationId AND automation_id = :id;`,
       {
         replacements: { organizationId, id }, transaction
       }
@@ -169,7 +169,7 @@ export const updateAutomationByIdQuery = async (
 
     await Promise.all((actions || []).map((action, index) => {
       return sequelize.query(
-        `INSERT INTO automation_actions(
+        `INSERT INTO automation_actions_data(
         organization_id, automation_id, action_type_id, params, "order") VALUES (
         :organizationId, :automationId, :actionTypeId, :params, :order);`,
         {
@@ -186,7 +186,7 @@ export const updateAutomationByIdQuery = async (
   }
 
   const _actions = await sequelize.query(
-    `SELECT * FROM automation_actions WHERE organization_id = :organizationId AND automation_id = :id ORDER BY "order";`,
+    `SELECT * FROM automation_actions_data WHERE organization_id = :organizationId AND automation_id = :id ORDER BY "order";`,
     {
       replacements: { organizationId, id }, transaction
     }
@@ -198,7 +198,7 @@ export const updateAutomationByIdQuery = async (
 
 export const deleteAutomationByIdQuery = async (id: number, organizationId: number, transaction: Transaction) => {
   await sequelize.query(
-    `DELETE FROM automation_actions WHERE organization_id = :organizationId AND automation_id = :id;`,
+    `DELETE FROM automation_actions_data WHERE organization_id = :organizationId AND automation_id = :id;`,
     {
       replacements: { organizationId, id }, transaction
     }

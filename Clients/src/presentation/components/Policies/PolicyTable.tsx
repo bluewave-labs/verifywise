@@ -11,7 +11,6 @@ import { store } from "../../../application/redux/store";
 const tableHeaders = [
   { id: "title", name: "Title" },
   { id: "status", name: "Status" },
-  { id: "tags", name: "Tags" },
   { id: "next_review", name: "Next Review" },
   { id: "author", name: "Author" },
   // { id: "reviewers", name: "Reviewers" },
@@ -25,6 +24,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
   onOpen,
   onDelete,
   onLinkedObjects,
+  onAssignToFolder,
   isLoading,
   error,
   onRefresh,
@@ -203,17 +203,6 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
             <TableCell
               sx={{
                 ...cellStyle,
-                backgroundColor: sortConfig?.key && sortConfig.key.toLowerCase().includes("tags") ? singleTheme.tableColors.sortedColumn : undefined,
-              }}
-            >
-              {(() => {
-                const tags = policy.tags?.join(", ") ?? "-";
-                return tags.length > 30 ? `${tags.slice(0, 30)}...` : tags;
-              })()}
-            </TableCell>
-            <TableCell
-              sx={{
-                ...cellStyle,
                 backgroundColor: sortConfig?.key && (sortConfig.key.toLowerCase().includes("next") || sortConfig.key.toLowerCase().includes("review")) ? singleTheme.tableColors.sortedColumn : undefined,
               }}
             >
@@ -270,6 +259,7 @@ const PolicyTable: React.FC<PolicyTableProps> = ({
                   onLinkedObjects={() => {
                     onLinkedObjects(policy.id);
                   }}
+                  onAssignToFolder={onAssignToFolder ? () => onAssignToFolder(policy.id) : undefined}
                   onDownloadPDF={() => handleDownloadPDF(policy.id, policy.title)}
                   onDownloadDOCX={() => handleDownloadDOCX(policy.id, policy.title)}
                   onMouseEvent={() => {}}

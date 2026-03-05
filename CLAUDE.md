@@ -134,7 +134,19 @@ Plugins live in `../plugin-marketplace`. Types: integration (Slack, MLflow), dat
 EU AI Act (`/api/eu-ai-act`), ISO 42001 (`/api/iso-42001`), ISO 27001 (`/api/iso-27001`), NIST AI RMF (`/api/nist-ai-rmf`), Plugin frameworks (`/api/plugins/:key`)
 
 ### Special Features
-LLM Evals (`/api/deepeval` → EvalServer) | AI Detection (`/api/ai-detection`) | Shadow AI (`/api/shadow-ai`) | Agent Discovery (`/api/agent-primitives`) | Approval Workflows (`/api/approval-workflows`, `/api/approval-requests`) | PMM (`/api/pmm`) | CE Marking (`/api/ce-marking`) | Entity Graph (`/api/entity-graph`) | AI Advisor (`/api/advisor`)
+
+| Feature | Backend Routes | Frontend Pages |
+|---------|---------------|----------------|
+| **LLM Evals** | `/api/deepeval` (proxied to EvalServer) | `/evals` |
+| **AI Detection** | `/api/ai-detection` | `/ai-detection` |
+| **Shadow AI** | `/api/shadow-ai` | `/shadow-ai` |
+| **Agent Discovery** | `/api/agent-primitives` | `/agent-discovery` |
+| **Approval Workflows** | `/api/approval-workflows`, `/api/approval-requests` | `/approval-workflows` |
+| **Post-Market Monitoring** | `/api/pmm` | `/monitoring` |
+| **CE Marking** | `/api/ce-marking` | - |
+| **Entity Graph** | `/api/entity-graph` | - |
+| **AI Advisor** | `/api/advisor` | - |
+| **Audit Ledger** | `/api/audit-ledger` | - |
 
 ## 10. Development Workflow
 
@@ -450,3 +462,11 @@ Docker builds on release → Trivy scan → push to GHCR. PR checks: lint, type-
 | Constants | UPPER_SNAKE_CASE | `MAX_RETRIES` |
 | DB Tables | snake_case | `user_profiles` |
 | API Endpoints | kebab-case | `/api/user-profiles` |
+
+## Additional Resources
+
+- [Code Rules](./CodeRules/README.md) - Detailed coding standards
+- [Plugin System](./docs/PLUGIN_SYSTEM.md) - Plugin architecture
+- [Technical Docs](./docs/technical/) - Architecture documentation
+- [API Docs](./Servers/swagger.yaml) - OpenAPI specification
+- [Agent Roles](./agents/) - AI-assisted development roles

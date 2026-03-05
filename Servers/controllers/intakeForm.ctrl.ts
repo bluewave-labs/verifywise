@@ -448,11 +448,6 @@ export async function updateIntakeForm(req: Request, res: Response) {
       return res.status(400).json(STATUS_CODE[400]("Invalid entity type"));
     }
 
-    if (riskTierSystem && !["generic", "eu_ai_act", "nist"].includes(riskTierSystem)) {
-      await transaction.rollback();
-      return res.status(400).json(STATUS_CODE[400]("Invalid risk tier system"));
-    }
-
     const form = await updateIntakeFormQuery(
       formId,
       {
@@ -1547,7 +1542,7 @@ export async function submitPublicFormByPublicId(req: Request, res: Response) {
         calculateSubmissionRisk(
           formData,
           fullForm.schema,
-          fullForm.riskTierSystem || "generic",
+          fullForm.riskTierSystem || "eu_ai_act",
           fullForm.llmKeyId,
           tenantInfo.orgId
         )
@@ -1845,7 +1840,7 @@ export async function submitPublicForm(req: Request, res: Response) {
         calculateSubmissionRisk(
           formData,
           fullForm.schema,
-          fullForm.riskTierSystem || "generic",
+          fullForm.riskTierSystem || "eu_ai_act",
           fullForm.llmKeyId,
           tenantInfo.id
         )

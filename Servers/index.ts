@@ -23,6 +23,7 @@ import isoRoutes from "./routes/iso42001.route";
 import trainingRoutes from "./routes/trainingRegistar.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import policyRoutes from "./routes/policy.route";
+import policyFolderRoutes from "./routes/policyFolder.route";
 import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
@@ -83,6 +84,8 @@ import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import invitationRoutes from "./routes/invitation.route";
 import intakeFormRoutes from "./routes/intakeForm.route";
+import auditLedgerRoutes from "./routes/auditLedger.route";
+import featureSettingsRoutes from "./routes/featureSettings.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -192,6 +195,7 @@ try {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
+  app.use("/api/policies", policyFolderRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
   app.use("/api/plugins", pluginRoutes);
   app.use("/api/tokens", tokenRoutes);
@@ -240,6 +244,8 @@ try {
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
   app.use("/api/agent-primitives", agentDiscoveryRoutes);
   app.use("/api/intake", intakeFormRoutes);
+  app.use("/api/audit-ledger", auditLedgerRoutes);
+  app.use("/api/feature-settings", featureSettingsRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

@@ -362,7 +362,7 @@ export const createNewProjectQuery = async (
       aa.*
     FROM public.automation_triggers pat
     JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
-    JOIN automation_actions aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
+    JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
     JOIN public.automation_actions paa ON aa.action_type_id = paa.id
     WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
@@ -564,7 +564,7 @@ export const updateProjectByIdQuery = async (
       aa.*
     FROM public.automation_triggers pat
     JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
-    JOIN automation_actions aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
+    JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
     JOIN public.automation_actions paa ON aa.action_type_id = paa.id
     WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
@@ -770,7 +770,7 @@ export const deleteProjectByIdQuery = async (
           aa.*
         FROM public.automation_triggers pat
         JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
-        JOIN automation_actions aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
+        JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
         JOIN public.automation_actions paa ON aa.action_type_id = paa.id
         WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
         { replacements: { organizationId }, transaction }

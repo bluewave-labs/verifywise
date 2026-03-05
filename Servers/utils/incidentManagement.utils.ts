@@ -97,7 +97,7 @@ export const createNewIncidentQuery = async (
               paa.key AS action_key,
               a.id AS automation_id,
               aa.*
-            FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_added' AND a.is_active ORDER BY aa."order" ASC;`,
+            FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_added' AND a.is_active ORDER BY aa."order" ASC;`,
             { replacements: { organizationId }, transaction }
         ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
         if (automations[0].length > 0) {
@@ -211,7 +211,7 @@ export const updateIncidentByIdQuery = async (
               paa.key AS action_key,
               a.id AS automation_id,
               aa.*
-            FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+            FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_updated' AND a.is_active ORDER BY aa."order" ASC;`,
             { replacements: { organizationId }, transaction }
         ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
         if (automations[0].length > 0) {
@@ -265,7 +265,7 @@ export const deleteIncidentByIdQuery = async (
               paa.key AS action_key,
               a.id AS automation_id,
               aa.*
-            FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+            FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'incident_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
             { replacements: { organizationId }, transaction }
         ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string, automation_id: number })[], number];
         if (automations[0].length > 0) {

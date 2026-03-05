@@ -3,12 +3,15 @@ from __future__ import annotations
 from pydantic import BaseModel
 from typing import List, Literal, Optional
 
+from models.generated_by import GeneratedBy
+
 
 class RoleItem(BaseModel):
     role_id: str
     user_role: str
     assistant_role: str
     typical_channels: List[str]
+    generated_by: GeneratedBy | None = None
 
 
 class RolesCatalog(BaseModel):
@@ -21,6 +24,7 @@ class ActivityItem(BaseModel):
     domain: str
     description: str
     verbs: List[str]
+    generated_by: GeneratedBy | None = None
 
 
 class ActivitiesCatalog(BaseModel):
@@ -32,6 +36,7 @@ class DomainItem(BaseModel):
     domain_id: str
     regulated: bool
     keywords: List[str]
+    generated_by: GeneratedBy | None = None
 
 
 class DomainsCatalog(BaseModel):
@@ -39,14 +44,20 @@ class DomainsCatalog(BaseModel):
     domains: List[DomainItem]
 
 
+class IndustryItem(BaseModel):
+    industry_id: str
+    generated_by: GeneratedBy | None = None
+
+
 class IndustriesCatalog(BaseModel):
     version: str
-    industries: List[dict] 
+    industries: List[IndustryItem]
 
 
 class OrgContextItem(BaseModel):
     context_id: str
     org_context: str
+    generated_by: GeneratedBy | None = None
 
 
 class OrgContextsCatalog(BaseModel):
@@ -59,6 +70,7 @@ class BaseTemplate(BaseModel):
     domain: str
     activity_id: str
     template: str
+    generated_by: GeneratedBy | None = None
 
 
 class BaseTemplatesFile(BaseModel):

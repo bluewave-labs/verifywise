@@ -52,4 +52,38 @@ test.describe("AI Trust Center", () => {
       .or(page.getByText(/governance/i));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 1: Tab navigation ---
+
+  test("clicking Resources tab navigates to /ai-trust-center/resources", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/ai-trust-center");
+    const resourcesTab = page
+      .getByRole("tab", { name: /resources/i })
+      .or(page.getByText(/resources/i));
+
+    if (await resourcesTab.first().isVisible().catch(() => false)) {
+      await resourcesTab.first().click();
+      await expect(page).toHaveURL(/\/ai-trust-center\/resources/, {
+        timeout: 10_000,
+      });
+    }
+  });
+
+  test("clicking Settings tab navigates to /ai-trust-center/settings", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/ai-trust-center");
+    const settingsTab = page
+      .getByRole("tab", { name: /settings/i })
+      .or(page.getByText(/settings/i));
+
+    if (await settingsTab.first().isVisible().catch(() => false)) {
+      await settingsTab.first().click();
+      await expect(page).toHaveURL(/\/ai-trust-center\/settings/, {
+        timeout: 10_000,
+      });
+    }
+  });
 });

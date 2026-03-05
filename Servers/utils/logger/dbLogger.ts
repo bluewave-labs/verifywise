@@ -2,6 +2,7 @@
 import { sequelize } from "../../database/db";
 import { QueryTypes } from 'sequelize';
 import { asyncLocalStorage } from '../context/context';
+import { appendToAuditLedger } from '../auditLedger.utils';
 
 type EventType = 'Create' | 'Read' | 'Update' | 'Delete' | 'Error';
 
@@ -25,6 +26,14 @@ export async function logEvent(
                 type: QueryTypes.INSERT,
             }
         );
+        // Append to tamper-proof audit ledger (fire-and-forget)
+        appendToAuditLedger({
+            organizationId,
+            entryType: "event_log",
+            userId: effectiveUserId,
+            eventType,
+            description,
+        }).catch(err => console.error("[audit_ledger] write failed:", err));
     } catch (err) {
         console.error('Failed to log event:', err);
     }

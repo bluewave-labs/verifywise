@@ -61,8 +61,7 @@ const items: MegaDropdownItem[] = [
     id: "policy",
     label: "Policy",
     icon: <Shield size={20} strokeWidth={1.5} color="#7986CB" />,
-    path: "/policies",
-    state: { openCreateModal: true },
+    path: "/policies/new",
   },
   {
     id: "vendor-risk",

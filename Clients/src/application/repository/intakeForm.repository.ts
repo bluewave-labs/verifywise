@@ -135,6 +135,7 @@ export interface IntakeSubmission {
   createdEntityId?: number;
   createdEntityType?: string;
   resubmissionToken?: string;
+  originalSubmissionId?: number | null;
   resubmissionCount: number;
   ipAddress?: string;
   riskAssessment?: RiskAssessment | null;

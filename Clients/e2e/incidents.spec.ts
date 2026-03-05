@@ -49,4 +49,26 @@ test.describe("Incident Management", () => {
       .or(page.getByRole("button", { name: /add|new|create|report/i }));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 3: Drawer open/close ---
+
+  test("Add new incident button opens drawer", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/ai-incident-managements");
+    const addBtn = page.getByRole("button", { name: /add new incident/i });
+
+    if (await addBtn.isVisible().catch(() => false)) {
+      await addBtn.click();
+      // Incidents use a MUI Drawer (role="presentation")
+      await expect(
+        page
+          .locator(".MuiDrawer-root")
+          .or(page.getByText(/new incident/i))
+          .or(page.getByText(/create incident/i))
+          .first()
+      ).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
 });

@@ -270,14 +270,15 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
         rej_out = intermediate_dir / "rejections.jsonl"
         scenarios_out = final_dir / "scenarios.jsonl"
+        validate_report_path = final_dir / "validate_report.json"
         write_jsonl(rej_out, rejections)
         write_jsonl(scenarios_out, accepted)
 
         report = build_validate_report(accepted=accepted, rejections=rejections)
         report["generated_at"] = datetime.now(timezone.utc).isoformat()
         report["dataset_version"] = args.dataset_version
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        validate_report_path.parent.mkdir(parents=True, exist_ok=True)
+        validate_report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
         manifest = {
             "dataset_version": args.dataset_version,
@@ -296,8 +297,8 @@ def _cmd_generate(args: argparse.Namespace) -> int:
                 "rejections_jsonl_sha256": sha256_file(rej_out),
                 "scenarios_jsonl": str(scenarios_out),
                 "scenarios_jsonl_sha256": sha256_file(scenarios_out),
-                "sampling_report_json": str(report_path),
-                "sampling_report_json_sha256": sha256_file(report_path),
+                "validate_report_json": str(validate_report_path),
+                "validate_report_json_sha256": sha256_file(validate_report_path),
             },
             "counts": {
                 "candidates_in": len(candidates),
@@ -313,7 +314,7 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         console.print(f"- rejected: {len(rejections)}")
         console.print(f"- wrote: {scenarios_out}")
         console.print(f"- wrote: {rej_out}")
-        console.print(f"- wrote: {report_path}")
+        console.print(f"- wrote: {validate_report_path}")
         console.print(f"- wrote: {manifest_path}")
         return 0
 

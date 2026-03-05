@@ -194,7 +194,7 @@ export const createIntakeFormQuery = async (
         ttlExpiresAt: data.ttlExpiresAt || null,
         publicId,
         recipients: JSON.stringify(data.recipients || []),
-        riskTierSystem: data.riskTierSystem || "generic",
+        riskTierSystem: data.riskTierSystem || "eu_ai_act",
         riskAssessmentConfig: data.riskAssessmentConfig
           ? JSON.stringify(data.riskAssessmentConfig)
           : null,
@@ -506,6 +506,27 @@ export const createSubmissionQuery = async (
     }
   );
 
+  // Supersede the original submission when this is a resubmission
+  if (data.originalSubmissionId) {
+    await sequelize.query(
+      `UPDATE intake_submissions
+       SET status = :superseded, updated_at = NOW()
+       WHERE organization_id = :organizationId AND id = :originalId
+         AND status IN (:pending, :rejected)`,
+      {
+        replacements: {
+          organizationId,
+          originalId: data.originalSubmissionId,
+          superseded: IntakeSubmissionStatus.SUPERSEDED,
+          pending: IntakeSubmissionStatus.PENDING,
+          rejected: IntakeSubmissionStatus.REJECTED,
+        },
+        type: QueryTypes.UPDATE,
+        transaction,
+      }
+    );
+  }
+
   return result[0] as IIntakeSubmission;
 };
 
@@ -636,6 +657,7 @@ export const getSubmissionStatsQuery = async (
       COUNT(*) FILTER (WHERE status = :pending) as pending,
       COUNT(*) FILTER (WHERE status = :approved) as approved,
       COUNT(*) FILTER (WHERE status = :rejected) as rejected,
+      COUNT(*) FILTER (WHERE status = :superseded) as superseded,
       COUNT(*) as total
     FROM intake_submissions
     WHERE organization_id = :organizationId`,
@@ -645,6 +667,7 @@ export const getSubmissionStatsQuery = async (
         pending: IntakeSubmissionStatus.PENDING,
         approved: IntakeSubmissionStatus.APPROVED,
         rejected: IntakeSubmissionStatus.REJECTED,
+        superseded: IntakeSubmissionStatus.SUPERSEDED,
       },
       type: QueryTypes.SELECT,
     }
@@ -655,6 +678,7 @@ export const getSubmissionStatsQuery = async (
     pending: parseInt(stats.pending, 10) || 0,
     approved: parseInt(stats.approved, 10) || 0,
     rejected: parseInt(stats.rejected, 10) || 0,
+    superseded: parseInt(stats.superseded, 10) || 0,
     total: parseInt(stats.total, 10) || 0,
   };
 };
@@ -844,15 +868,13 @@ export async function getTenantSlugById(
 }
 
 /**
- * Get tenant hash from organization slug
+ * Get organization ID from organization slug
  */
 export async function getTenantHashBySlug(
   slug: string
 ): Promise<{ id: number; hash: string } | null> {
-  const { getTenantHash } = await import("../tools/getTenantHash");
-
   const result = await sequelize.query(
-    `SELECT id FROM public.organizations WHERE slug = :slug`,
+    `SELECT id FROM organizations WHERE slug = :slug`,
     {
       replacements: { slug },
       type: QueryTypes.SELECT,
@@ -864,7 +886,7 @@ export async function getTenantHashBySlug(
   }
 
   const orgId = (result[0] as any).id;
-  return { id: orgId, hash: getTenantHash(orgId) };
+  return { id: orgId, hash: "" };
 }
 
 /**

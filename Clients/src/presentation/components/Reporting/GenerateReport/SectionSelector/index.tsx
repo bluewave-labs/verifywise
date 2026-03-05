@@ -12,7 +12,7 @@ import {
   Collapse,
   useTheme,
 } from "@mui/material";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
 import {
   getAvailableSections,
   ReportSectionGroup,
@@ -23,6 +23,7 @@ interface SectionSelectorProps {
   isOrganizational: boolean;
   selection: Record<string, boolean>;
   onSelectionChange: (selection: Record<string, boolean>) => void;
+  aiEnhanced?: boolean;
 }
 
 const SectionSelector: React.FC<SectionSelectorProps> = ({
@@ -30,6 +31,7 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
   isOrganizational,
   selection,
   onSelectionChange,
+  aiEnhanced = false,
 }) => {
   const theme = useTheme();
   const [expandedGroups, setExpandedGroups] = React.useState<Record<string, boolean>>({
@@ -268,9 +270,15 @@ const SectionSelector: React.FC<SectionSelectorProps> = ({
                         fontSize: "13px",
                         fontWeight: 400,
                         color: theme.palette.text.primary,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
                       }}
                     >
                       {section.label}
+                      {aiEnhanced && (
+                        <Sparkles size={12} color="#13715B" />
+                      )}
                     </Typography>
                   </Box>
                 ))}

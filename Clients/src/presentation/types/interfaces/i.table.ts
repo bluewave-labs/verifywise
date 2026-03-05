@@ -204,6 +204,7 @@ export interface IReportTableProps {
     key: string;
     direction: "asc" | "desc" | null;
   };
+  visibleColumns?: Set<string>;
 }
 
 export interface IReportTablePropsExtended {
@@ -213,6 +214,7 @@ export interface IReportTablePropsExtended {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface IRiskTableProps {

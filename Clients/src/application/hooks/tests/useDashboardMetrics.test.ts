@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useDashboardMetrics } from "../useDashboardMetrics";
 
 vi.mock("../../repository/entity.repository", () => ({
@@ -7,7 +7,10 @@ vi.mock("../../repository/entity.repository", () => ({
   getEntityById: vi.fn(),
 }));
 
-import { getAllEntities, getEntityById } from "../../repository/entity.repository";
+import {
+  getAllEntities,
+  getEntityById,
+} from "../../repository/entity.repository";
 
 type MockFn = ReturnType<typeof vi.fn>;
 
@@ -18,7 +21,10 @@ function setCache(cache: any) {
 }
 
 // Type guard helper to silence TS "possibly null" safely
-function assertNotNull<T>(value: T | null | undefined, name: string): asserts value is T {
+function assertNotNull<T>(
+  value: T | null | undefined,
+  name: string,
+): asserts value is T {
   expect(value, `${name} should not be null`).not.toBeNull();
   expect(value, `${name} should not be undefined`).not.toBeUndefined();
 }
@@ -72,20 +78,22 @@ describe("useDashboardMetrics", () => {
   });
 
   it("covers training metrics mapping + fallback when response is not an array", async () => {
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/training") {
-        return {
-          data: [
-            { training_type: "Staff", status: "completed" },
-            { training_type: "Staff", status: "in_progress" },
-            { training_type: "Third party", status: "completed" },
-            { training_type: "Vendors", status: "assigned" },
-            { training_type: undefined, status: "completed" },
-          ],
-        };
-      }
-      return { data: [] };
-    });
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/training") {
+          return {
+            data: [
+              { training_type: "Staff", status: "completed" },
+              { training_type: "Staff", status: "in_progress" },
+              { training_type: "Third party", status: "completed" },
+              { training_type: "Vendors", status: "assigned" },
+              { training_type: undefined, status: "completed" },
+            ],
+          };
+        }
+        return { data: [] };
+      },
+    );
 
     const { result } = renderHook(() => useDashboardMetrics());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -98,10 +106,12 @@ describe("useDashboardMetrics", () => {
     expect(result.current.trainingMetrics.total).toBeGreaterThan(0);
     expect(result.current.trainingMetrics.distribution).toBeTruthy();
 
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/training") return { data: { not: "array" } };
-      return { data: [] };
-    });
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/training") return { data: { not: "array" } };
+        return { data: [] };
+      },
+    );
 
     await act(async () => {
       await result.current.fetchTrainingMetrics();
@@ -112,18 +122,38 @@ describe("useDashboardMetrics", () => {
   });
 
   it("covers tasks metrics recent + fallback (TaskMetrics has NO distribution)", async () => {
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/tasks") {
-        return {
-          data: [
-            { id: 1, title: "A", status: "completed", priority: "high", created_at: "2024-01-01" },
-            { id: 2, title: "B", status: "in_progress", priority: "low", created_at: "2024-01-02" },
-            { id: 3, title: "C", status: "todo", priority: "medium", created_at: "2024-01-03" },
-          ],
-        };
-      }
-      return { data: [] };
-    });
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/tasks") {
+          return {
+            data: [
+              {
+                id: 1,
+                title: "A",
+                status: "completed",
+                priority: "high",
+                created_at: "2024-01-01",
+              },
+              {
+                id: 2,
+                title: "B",
+                status: "in_progress",
+                priority: "low",
+                created_at: "2024-01-02",
+              },
+              {
+                id: 3,
+                title: "C",
+                status: "todo",
+                priority: "medium",
+                created_at: "2024-01-03",
+              },
+            ],
+          };
+        }
+        return { data: [] };
+      },
+    );
 
     const { result } = renderHook(() => useDashboardMetrics());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -136,10 +166,12 @@ describe("useDashboardMetrics", () => {
     expect(result.current.taskMetrics.total).toBe(3);
     expect(result.current.taskMetrics.recent.length).toBeGreaterThan(0);
 
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/tasks") return { data: {} };
-      return { data: [] };
-    });
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/tasks") return { data: {} };
+        return { data: [] };
+      },
+    );
 
     await act(async () => {
       await result.current.fetchTaskMetrics();
@@ -149,38 +181,56 @@ describe("useDashboardMetrics", () => {
     expect(result.current.taskMetrics.total).toBe(0);
   });
 
-  it("covers use case metrics sorting + fallback", async () => {
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/projects") {
-        return {
-          data: [
-            { id: 1, project_title: "Old", last_updated: "2024-01-01T00:00:00Z", created_at: "2024-01-01T00:00:00Z" },
-            { id: 2, project_title: "New", last_updated: "2024-02-01T00:00:00Z", created_at: "2024-02-01T00:00:00Z" },
-            { id: 3, project_title: "CreatedOnly", created_at: "2024-03-01T00:00:00Z" },
-          ],
-        };
-      }
-      return { data: [] };
-    });
+  it("covers use case metrics sorting + fallback via fetchProjectMetrics", async () => {
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/projects") {
+          return {
+            data: [
+              {
+                id: 1,
+                project_title: "Old",
+                last_updated: "2024-01-01T00:00:00Z",
+                created_at: "2024-01-01T00:00:00Z",
+              },
+              {
+                id: 2,
+                project_title: "New",
+                last_updated: "2024-02-01T00:00:00Z",
+                created_at: "2024-02-01T00:00:00Z",
+              },
+              {
+                id: 3,
+                project_title: "CreatedOnly",
+                created_at: "2024-03-01T00:00:00Z",
+              },
+            ],
+          };
+        }
+        return { data: [] };
+      },
+    );
 
     const { result } = renderHook(() => useDashboardMetrics());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => {
-      await result.current.fetchUseCaseMetrics();
+      await result.current.fetchProjectMetrics();
     });
 
     assertNotNull(result.current.useCaseMetrics, "useCaseMetrics");
     expect(result.current.useCaseMetrics.total).toBe(3);
     expect(result.current.useCaseMetrics.recent[0].title).toBe("CreatedOnly");
 
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/projects") return { data: {} };
-      return { data: [] };
-    });
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/projects") return { data: {} };
+        return { data: [] };
+      },
+    );
 
     await act(async () => {
-      await result.current.fetchUseCaseMetrics();
+      await result.current.fetchProjectMetrics();
     });
 
     assertNotNull(result.current.useCaseMetrics, "useCaseMetrics");
@@ -188,77 +238,81 @@ describe("useDashboardMetrics", () => {
   });
 
   // ✅ FIX #2: organizational frameworks uses /projects + /frameworks + getEntityById(progress endpoints)
-  it("covers organizational frameworks using /projects + /frameworks + getEntityById(progress endpoints) + sorting", async () => {
-    (getAllEntities as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      if (routeUrl === "/projects") {
-        return {
-          data: [
-            {
-              id: 1,
-              is_organizational: true,
-              framework: [
-                { framework_id: "101", project_framework_id: 111 }, // ISO 42001
-                { framework_id: "102", project_framework_id: 222 }, // ISO 27001
-                { framework_id: "103", project_framework_id: 333 }, // NIST AI RMF
-              ],
+  it("covers organizational frameworks using /projects + /frameworks + getEntityById(progress endpoints) + sorting via fetchProjectMetrics", async () => {
+    (getAllEntities as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        if (routeUrl === "/projects") {
+          return {
+            data: [
+              {
+                id: 1,
+                is_organizational: true,
+                framework: [
+                  { framework_id: "101", project_framework_id: 111 }, // ISO 42001
+                  { framework_id: "102", project_framework_id: 222 }, // ISO 27001
+                  { framework_id: "103", project_framework_id: 333 }, // NIST AI RMF
+                ],
+              },
+            ],
+          };
+        }
+
+        if (routeUrl === "/frameworks") {
+          return {
+            data: [
+              { id: 101, name: "ISO 42001" },
+              { id: 102, name: "ISO 27001" },
+              { id: 103, name: "NIST AI RMF" },
+            ],
+          };
+        }
+
+        return { data: [] };
+      },
+    );
+
+    (getEntityById as unknown as MockFn).mockImplementation(
+      async ({ routeUrl }: { routeUrl: string }) => {
+        // ISO 42001 progress
+        if (routeUrl === "/iso-42001/clauses/progress/111") {
+          return { data: { totalSubclauses: 10, doneSubclauses: 4 } };
+        }
+        if (routeUrl === "/iso-42001/annexes/progress/111") {
+          return { data: { totalAnnexcategories: 5, doneAnnexcategories: 2 } };
+        }
+
+        // ISO 27001 progress
+        if (routeUrl === "/iso-27001/clauses/progress/222") {
+          return { data: { totalSubclauses: 20, doneSubclauses: 7 } };
+        }
+        if (routeUrl === "/iso-27001/annexes/progress/222") {
+          return { data: { totalAnnexControls: 30, doneAnnexControls: 9 } };
+        }
+
+        // NIST breakdown (note: hook calls without id)
+        if (routeUrl === "/nist-ai-rmf/status-breakdown") {
+          return {
+            data: {
+              notStarted: 1,
+              draft: 2,
+              inProgress: 3,
+              awaitingReview: 0,
+              awaitingApproval: 0,
+              implemented: 4,
+              needsRework: 0,
             },
-          ],
-        };
-      }
+          };
+        }
 
-      if (routeUrl === "/frameworks") {
-        return {
-          data: [
-            { id: 101, name: "ISO 42001" },
-            { id: 102, name: "ISO 27001" },
-            { id: 103, name: "NIST AI RMF" },
-          ],
-        };
-      }
-
-      return { data: [] };
-    });
-
-    (getEntityById as unknown as MockFn).mockImplementation(async ({ routeUrl }: { routeUrl: string }) => {
-      // ISO 42001 progress
-      if (routeUrl === "/iso-42001/clauses/progress/111") {
-        return { data: { totalSubclauses: 10, doneSubclauses: 4 } };
-      }
-      if (routeUrl === "/iso-42001/annexes/progress/111") {
-        return { data: { totalAnnexcategories: 5, doneAnnexcategories: 2 } };
-      }
-
-      // ISO 27001 progress
-      if (routeUrl === "/iso-27001/clauses/progress/222") {
-        return { data: { totalSubclauses: 20, doneSubclauses: 7 } };
-      }
-      if (routeUrl === "/iso-27001/annexes/progress/222") {
-        return { data: { totalAnnexControls: 30, doneAnnexControls: 9 } };
-      }
-
-      // NIST breakdown (note: hook calls without id)
-      if (routeUrl === "/nist-ai-rmf/status-breakdown") {
-        return {
-          data: {
-            notStarted: 1,
-            draft: 2,
-            inProgress: 3,
-            awaitingReview: 0,
-            awaitingApproval: 0,
-            implemented: 4,
-            needsRework: 0,
-          },
-        };
-      }
-
-      return { data: null };
-    });
+        return { data: null };
+      },
+    );
 
     const { result } = renderHook(() => useDashboardMetrics());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => {
-      await result.current.fetchOrganizationalFrameworks();
+      await result.current.fetchProjectMetrics();
     });
 
     expect(result.current.organizationalFrameworks.length).toBe(3);
@@ -267,35 +321,53 @@ describe("useDashboardMetrics", () => {
     // - ISO 42001 first
     // - ISO 27001 middle
     // - NIST last
-    expect(result.current.organizationalFrameworks[0].frameworkName.toLowerCase()).toContain("iso 42001");
-    expect(result.current.organizationalFrameworks[1].frameworkName.toLowerCase()).toContain("iso 27001");
-    expect(result.current.organizationalFrameworks[2].frameworkName.toLowerCase()).toContain("nist");
+    expect(
+      result.current.organizationalFrameworks[0].frameworkName.toLowerCase(),
+    ).toContain("iso 42001");
+    expect(
+      result.current.organizationalFrameworks[1].frameworkName.toLowerCase(),
+    ).toContain("iso 27001");
+    expect(
+      result.current.organizationalFrameworks[2].frameworkName.toLowerCase(),
+    ).toContain("nist");
 
-    const iso42001 = result.current.organizationalFrameworks.find((f) => f.frameworkName.toLowerCase().includes("iso 42001"))!;
-    expect(iso42001.clauseProgress).toEqual({ totalSubclauses: 10, doneSubclauses: 4 });
-    expect(iso42001.annexProgress).toEqual({ totalAnnexcategories: 5, doneAnnexcategories: 2 });
+    const iso42001 = result.current.organizationalFrameworks.find((f) =>
+      f.frameworkName.toLowerCase().includes("iso 42001"),
+    )!;
+    expect(iso42001.clauseProgress).toEqual({
+      totalSubclauses: 10,
+      doneSubclauses: 4,
+    });
+    expect(iso42001.annexProgress).toEqual({
+      totalAnnexcategories: 5,
+      doneAnnexcategories: 2,
+    });
 
-    const iso27001 = result.current.organizationalFrameworks.find((f) => f.frameworkName.toLowerCase().includes("iso 27001"))!;
-    expect(iso27001.clauseProgress).toEqual({ totalSubclauses: 20, doneSubclauses: 7 });
-    expect(iso27001.annexProgress).toEqual({ totalAnnexControls: 30, doneAnnexControls: 9 });
+    const iso27001 = result.current.organizationalFrameworks.find((f) =>
+      f.frameworkName.toLowerCase().includes("iso 27001"),
+    )!;
+    expect(iso27001.clauseProgress).toEqual({
+      totalSubclauses: 20,
+      doneSubclauses: 7,
+    });
+    expect(iso27001.annexProgress).toEqual({
+      totalAnnexControls: 30,
+      doneAnnexControls: 9,
+    });
 
-    const nist = result.current.organizationalFrameworks.find((f) => f.frameworkName.toLowerCase().includes("nist"))!;
+    const nist = result.current.organizationalFrameworks.find((f) =>
+      f.frameworkName.toLowerCase().includes("nist"),
+    )!;
     expect(nist.nistStatusBreakdown?.inProgress).toBe(3);
     expect(nist.nistStatusBreakdown?.implemented).toBe(4);
   });
 
-  it("covers dev-only warn branch for rejected result in fetchAllMetrics (lines 1239-1241)", async () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
-
-    const settledSpy = vi.spyOn(Promise, "allSettled").mockResolvedValue([
-      { status: "rejected", reason: new Error("rejected metric") } as any,
-    ]);
-
-    (getAllEntities as unknown as MockFn).mockResolvedValue({ data: [] });
-    (getEntityById as unknown as MockFn).mockResolvedValue({ data: {} });
-
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("handles rejected Promise.allSettled results in fetchAllMetrics without breaking state", async () => {
+    const settledSpy = vi
+      .spyOn(Promise, "allSettled")
+      .mockResolvedValue([
+        { status: "rejected", reason: new Error("rejected metric") } as any,
+      ]);
 
     const { result } = renderHook(() => useDashboardMetrics());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -304,10 +376,10 @@ describe("useDashboardMetrics", () => {
       await result.current.fetchAllMetrics(true);
     });
 
-    expect(warnSpy).toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.isRevalidating).toBe(false);
+    expect(result.current.error).toBe(null);
 
-    process.env.NODE_ENV = originalEnv;
     settledSpy.mockRestore();
-    warnSpy.mockRestore();
   });
 });

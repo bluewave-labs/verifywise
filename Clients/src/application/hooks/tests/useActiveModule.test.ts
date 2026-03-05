@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useActiveModule } from "../useActiveModule";
 
 vi.mock("react-router-dom", () => ({
@@ -20,15 +20,16 @@ vi.mock("../../redux/ui/uiSlice", () => ({
   }),
 }));
 
-import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import { setActiveModule } from "../../redux/ui/uiSlice";
 
 describe("useActiveModule", () => {
   const dispatch = vi.fn();
   const navigate = vi.fn();
 
-  let activeModuleValue: "main" | "evals" | "ai-detection" | "shadow-ai" = "main";
+  let activeModuleValue: "main" | "evals" | "ai-detection" | "shadow-ai" =
+    "main";
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,7 +41,7 @@ describe("useActiveModule", () => {
     (useSelector as any).mockImplementation((selectorFn: any) =>
       selectorFn({
         ui: { appModule: { active: activeModuleValue } },
-      })
+      }),
     );
 
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {});
@@ -55,7 +56,10 @@ describe("useActiveModule", () => {
     renderHook(() => useActiveModule());
 
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("evals"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "evals");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "evals",
+    );
 
     // 2) /ai-detection
     vi.clearAllMocks();
@@ -65,7 +69,10 @@ describe("useActiveModule", () => {
     renderHook(() => useActiveModule());
 
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("ai-detection"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "ai-detection");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "ai-detection",
+    );
 
     // 3) /shadow-ai
     vi.clearAllMocks();
@@ -75,7 +82,10 @@ describe("useActiveModule", () => {
     renderHook(() => useActiveModule());
 
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("shadow-ai"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "shadow-ai");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "shadow-ai",
+    );
 
     // 4) default -> main
     vi.clearAllMocks();
@@ -85,7 +95,10 @@ describe("useActiveModule", () => {
     renderHook(() => useActiveModule());
 
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("main"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "main");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "main",
+    );
   });
 
   it("does not dispatch on navigation when detectedModule equals activeModule", () => {
@@ -113,7 +126,10 @@ describe("useActiveModule", () => {
     // evals
     act(() => result.current.setActiveModule("evals"));
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("evals"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "evals");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "evals",
+    );
     expect(navigate).toHaveBeenCalledWith("/evals");
 
     activeModuleValue = "evals";
@@ -123,8 +139,11 @@ describe("useActiveModule", () => {
     vi.clearAllMocks();
     act(() => result.current.setActiveModule("ai-detection"));
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("ai-detection"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "ai-detection");
-    expect(navigate).toHaveBeenCalledWith("/ai-detection");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "ai-detection",
+    );
+    expect(navigate).toHaveBeenCalledWith("/ai-detection/scan");
 
     activeModuleValue = "ai-detection";
     rerender();
@@ -133,8 +152,11 @@ describe("useActiveModule", () => {
     vi.clearAllMocks();
     act(() => result.current.setActiveModule("shadow-ai"));
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("shadow-ai"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "shadow-ai");
-    expect(navigate).toHaveBeenCalledWith("/shadow-ai");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "shadow-ai",
+    );
+    expect(navigate).toHaveBeenCalledWith("/shadow-ai/insights");
 
     activeModuleValue = "shadow-ai";
     rerender();
@@ -143,7 +165,10 @@ describe("useActiveModule", () => {
     vi.clearAllMocks();
     act(() => result.current.setActiveModule("main"));
     expect(dispatch).toHaveBeenCalledWith(setActiveModule("main"));
-    expect(localStorage.setItem).toHaveBeenCalledWith("verifywise_active_module", "main");
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "verifywise_active_module",
+      "main",
+    );
     expect(navigate).toHaveBeenCalledWith("/");
 
     activeModuleValue = "main";
@@ -154,14 +179,16 @@ describe("useActiveModule", () => {
     (useLocation as any).mockReturnValue({ pathname: "/" });
 
     // Case 1: appModule undefined -> should fallback to "main"
-    (useSelector as any).mockImplementation((selectorFn: any) => selectorFn({ ui: {} }));
+    (useSelector as any).mockImplementation((selectorFn: any) =>
+      selectorFn({ ui: {} }),
+    );
 
     const { result, rerender } = renderHook(() => useActiveModule());
     expect(result.current.activeModule).toBe("main");
 
     // Case 2: appModule exists but active undefined -> should fallback to "main"
     (useSelector as any).mockImplementation((selectorFn: any) =>
-      selectorFn({ ui: { appModule: {} } })
+      selectorFn({ ui: { appModule: {} } }),
     );
 
     rerender();

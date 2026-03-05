@@ -36,6 +36,7 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import useUsers from "../../../application/hooks/useUsers";
 import { getAllProjectRisks } from "../../../application/repository/projectRisk.repository";
 import { getUserById } from "../../../application/repository/user.repository";
+import { getTimeBasedGreeting } from "../../../application/utils/greetings";
 import { WelcomeVideoPlayer } from "../../components/FeatureVideos/WelcomeVideo";
 import { VideoPlayerModal } from "../../components/FeatureVideos/player/VideoPlayerModal";
 import { buildExploreConfig } from "../../components/FeatureVideos/shared/buildExploreConfig";
@@ -222,6 +223,11 @@ const StartHere = () => {
   }, [userId, userToken?.name]);
   const firstName = userName || "there";
 
+  const greeting = useMemo(
+    () => getTimeBasedGreeting(userName, userToken),
+    [userName, userToken]
+  );
+
   // Compute progress dynamically
   const progressDone = useMemo(() => {
     const accountCreated = true; // They're logged in
@@ -293,11 +299,24 @@ const StartHere = () => {
       <Stack sx={{ gap: "32px", minWidth: 0 }}>
         {/* Greeting */}
         <Box sx={{ animation: `${fadeInUp} 0.5s ease-out` }}>
-          <Typography sx={{ fontSize: 20, fontWeight: 700, color: theme.palette.text.primary }}>
-            Welcome back, {firstName}
+          <Typography variant="h5" sx={{ fontWeight: 400, fontSize: "20px" }}>
+            <Box component="span" sx={{ color: "#13715B" }}>
+              {greeting.greetingText}
+            </Box>
+            <Box component="span" sx={{ color: theme.palette.text.primary }}>
+              , {greeting.text.split(", ")[1]}
+            </Box>
           </Typography>
-          <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, mt: "4px" }}>
-            Continue your AI governance journey. Here's what's new and where to pick up.
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.text.secondary,
+              fontSize: 13,
+              fontWeight: 400,
+              mt: 0.5,
+            }}
+          >
+            Here is an overview of your AI governance journey
           </Typography>
         </Box>
 
@@ -582,15 +601,8 @@ const StartHere = () => {
                   slotProps={{
                     tooltip: {
                       sx: {
-                        fontSize: 11,
                         maxWidth: 200,
                         textAlign: "center",
-                        p: "4px 8px",
-                        bgcolor: "#1c2130",
-                        borderRadius: "4px",
-                        "& .MuiTooltip-arrow": {
-                          color: "#1c2130",
-                        },
                       },
                     },
                   }}

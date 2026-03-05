@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Stack } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
@@ -13,10 +11,9 @@ import Features from "./Features/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import ApiKeys from "./ApiKeys";
-import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
+import AuditLedger from "./AuditLedger";
 import TabBar, { TabItem } from "../../components/TabBar";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { usePluginRegistry } from "../../../application/contexts/PluginRegistry.context";
 import { PluginSlot } from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
@@ -30,6 +27,7 @@ const BUILT_IN_TABS = [
   "organization",
   "features",
   "apikeys",
+  "audit-ledger",
 ];
 
 export default function ProfilePage() {
@@ -40,6 +38,8 @@ export default function ProfilePage() {
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
   const isFeaturesDisabled = !allowedRoles.features?.manage?.includes(userRoleName);
+  // Audit ledger: Admin-only (toggle lives inside the tab itself)
+  const isAuditLedgerDisabled = userRoleName !== "Admin";
 
   // Get plugin tabs dynamically from the plugin registry
   const { getPluginTabs, installedPlugins, isLoading: pluginsLoading } = usePluginRegistry();
@@ -119,20 +119,13 @@ export default function ProfilePage() {
   };
 
   return (
-    <Stack className="vwhome">
-      <PageBreadcrumbs />
-      <PageHeader
-        title="Settings"
-        description="Manage your profile, security, team members, and application preferences."
-        rightContent={
-          <HelperIcon
-            articlePath="settings/user-management"
-            size="small"
-          />
-        }
-      />
-      <TipBox entityName="settings" />
+    <PageHeaderExtended
+      title="Settings"
+      description="Manage your profile, security, team members, and application preferences."
 
+      helpArticlePath="settings/user-management"
+      tipBoxEntity="settings"
+    >
       <TabContext value={activeTab}>
         <TabBar
           tabs={[
@@ -181,6 +174,17 @@ export default function ProfilePage() {
               disabled: isApiKeysDisabled,
               tooltip: "Generate keys for programmatic API access",
             },
+            ...(!isAuditLedgerDisabled
+              ? [
+                  {
+                    label: "Audit ledger",
+                    value: "audit-ledger",
+                    icon: "FileCheck" as TabItem["icon"],
+                    tooltip:
+                      "Tamper-proof log of all platform changes",
+                  },
+                ]
+              : []),
             // Dynamically add plugin tabs
             ...pluginTabs.map((tab) => ({
               label: tab.label,
@@ -220,6 +224,12 @@ export default function ProfilePage() {
           <ApiKeys />
         </TabPanel>
 
+        {!isAuditLedgerDisabled && (
+          <TabPanel value="audit-ledger">
+            <AuditLedger />
+          </TabPanel>
+        )}
+
         {/* Render plugin tab content dynamically */}
         {pluginTabs.some((tab) => tab.value === activeTab) && (
           <PluginSlot
@@ -229,6 +239,6 @@ export default function ProfilePage() {
           />
         )}
       </TabContext>
-    </Stack>
+    </PageHeaderExtended>
   );
 }

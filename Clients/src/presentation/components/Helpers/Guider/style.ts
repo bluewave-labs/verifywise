@@ -1,6 +1,6 @@
 import { useTheme } from "@mui/material";
 
-export const GuiderStyler = () => {
+export const useGuiderStyles = () => {
   const theme = useTheme();
 
   return {
@@ -11,7 +11,7 @@ export const GuiderStyler = () => {
       borderRadius: "50%",
       "& svg": {
         "& path": {
-          fill: "#667085",
+          fill: theme.palette.text.secondary,
         },
       },
       "&:focus": { outline: "none" },

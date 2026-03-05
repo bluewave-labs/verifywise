@@ -24,6 +24,20 @@ import {
   trackProjectRiskChanges,
   recordProjectRiskDeletion,
 } from "../utils/projectRiskChangeHistory.utils";
+import { notifyUserAssigned } from "../services/inAppNotification.service";
+import { QueryTypes } from "sequelize";
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
 
 export async function getAllRisks(
   req: Request,
@@ -82,6 +96,11 @@ export async function getRisksByProject(
 ): Promise<any> {
   const projectId = parseInt(req.params.id as string);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+
+  // Return empty array for non-numeric project IDs (e.g., plugin-sourced IDs like "plugin-prefix-2")
+  if (isNaN(projectId)) {
+    return res.status(200).json(STATUS_CODE[200]([]));
+  }
 
   logStructured(
     "processing",
@@ -298,6 +317,42 @@ export async function createRisk(
         req.userId!,
         req.tenantId!
       );
+
+      // Send risk owner assignment notification (fire-and-forget)
+      if (newProjectRisk.risk_owner) {
+        const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+        const assignerName = await getUserNameById(req.userId!);
+
+        // Get project name for context (use first associated project if available)
+        let projectName: string | undefined;
+        const projects = req.body.projects || [];
+        if (projects.length > 0) {
+          const projectResult = await sequelize.query<{ project_title: string }>(
+            `SELECT project_title FROM "${req.tenantId!}".projects WHERE id = :projectId`,
+            { replacements: { projectId: projects[0] }, type: QueryTypes.SELECT }
+          );
+          projectName = projectResult[0]?.project_title;
+        }
+
+        notifyUserAssigned(
+          req.tenantId!,
+          newProjectRisk.risk_owner,
+          {
+            entityType: "project_risk",
+            entityId: newProjectRisk.id!,
+            entityName: newProjectRisk.risk_name,
+            roleType: "Risk Owner",
+            entityUrl: `/risk-management?riskId=${newProjectRisk.id}`,
+          },
+          assignerName,
+          baseUrl,
+          {
+            projectName,
+            description: newProjectRisk.risk_description,
+          }
+        ).catch((err) => console.error("Failed to send risk owner notification:", err));
+      }
+
       return res.status(201).json(STATUS_CODE[201](newProjectRisk));
     }
 
@@ -443,6 +498,43 @@ export async function updateRiskById(
         "projectRisks.ctrl.ts"
       );
       await logEvent("Update", `Project risk updated: ID ${projectRiskId}`, req.userId!, req.tenantId!);
+
+      // Send risk owner assignment notification if owner changed (fire-and-forget)
+      const oldRiskOwner = existingProjectRisk.risk_owner;
+      const newRiskOwner = updatedProjectRisk.risk_owner;
+      if (newRiskOwner && newRiskOwner !== oldRiskOwner) {
+        const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+        const assignerName = await getUserNameById(req.userId!);
+
+        // Get project name for context
+        let projectName: string | undefined;
+        const projectsResult = await sequelize.query<{ project_title: string }>(
+          `SELECT p.project_title FROM "${req.tenantId!}".projects p
+           JOIN "${req.tenantId!}".project_risk_links prl ON p.id = prl.project_id
+           WHERE prl.risk_id = :riskId LIMIT 1`,
+          { replacements: { riskId: projectRiskId }, type: QueryTypes.SELECT }
+        );
+        projectName = projectsResult[0]?.project_title;
+
+        notifyUserAssigned(
+          req.tenantId!,
+          newRiskOwner,
+          {
+            entityType: "project_risk",
+            entityId: projectRiskId,
+            entityName: updatedProjectRisk.risk_name,
+            roleType: "Risk Owner",
+            entityUrl: `/risk-management?riskId=${projectRiskId}`,
+          },
+          assignerName,
+          baseUrl,
+          {
+            projectName,
+            description: updatedProjectRisk.risk_description,
+          }
+        ).catch((err) => console.error("Failed to send risk owner notification:", err));
+      }
+
       return res.status(200).json(STATUS_CODE[200](updatedProjectRisk));
     }
 

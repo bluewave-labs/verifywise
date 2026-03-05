@@ -302,8 +302,8 @@ export class DatasetModel extends Model<DatasetModel> implements IDataset {
       preprocessing_steps: this.preprocessing_steps,
       documentation_data: this.documentation_data || [],
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString?.() || this.created_at,
-      updated_at: this.updated_at?.toISOString?.() || this.updated_at,
+      created_at: (this.createdAt ?? this.created_at)?.toISOString?.() || this.createdAt || this.created_at,
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString?.() || this.updatedAt || this.updated_at,
       models: dataValues.models || [],
       projects: dataValues.projects || [],
     };

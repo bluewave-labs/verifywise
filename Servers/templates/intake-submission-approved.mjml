@@ -1,0 +1,31 @@
+<!-- submitterName, formName, submissionId, entityType -->
+<mjml>
+  <mj-head>
+    <mj-font name="Roboto" href="https://fonts.googleapis.com/css?family=Roboto:300,500"></mj-font>
+    <mj-attributes>
+      <mj-all font-family="Roboto, Helvetica, sans-serif"></mj-all>
+      <mj-text font-weight="300" font-size="14px" color="#616161" line-height="24px"></mj-text>
+      <mj-section padding="0px"></mj-section>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column width="100%">
+        <mj-text>
+          <p>Hello {{submitterName}},</p>
+          <p>
+            Great news! Your submission for <strong>{{formName}}</strong> has been approved.
+          </p>
+          <p>
+            <strong>Reference number:</strong> #{{submissionId}}<br>
+            <strong>Entity type:</strong> {{entityType}}
+          </p>
+          <p>
+            Your {{entityType}} has been created in the system and is now available for further processing.
+          </p>
+          <p>Thank you for your submission.</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

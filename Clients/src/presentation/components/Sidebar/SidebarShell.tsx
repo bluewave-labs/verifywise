@@ -11,7 +11,6 @@ import {
   Typography,
   Chip,
   Popover,
-  Slide,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,15 +25,13 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
+import "../Layout/icon-shake.css";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import VerifyWiseLogo from "../../assets/imgs/verifywise-logo.svg";
 import SidebarFooter from "./SidebarFooter";
 import { FlyingHearts } from "../FlyingHearts";
 
 declare const __APP_VERSION__: string;
-
-// Track if sidebar has been shown before (persists across module switches)
-let hasShownSidebarBefore = false;
 
 // Types for menu items
 export interface SidebarMenuItem {
@@ -122,31 +119,11 @@ const SidebarShell: FC<SidebarShellProps> = ({
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  // Sidebar mount state for slide-in animation
-  // Skip animation if sidebar has been shown before (e.g., when switching modules)
-  const [isMounted, setIsMounted] = useState(hasShownSidebarBefore);
-
   // Heart icon state (Easter egg)
   const [showHeartIcon, setShowHeartIcon] = useState(false);
   const [showFlyingHearts, setShowFlyingHearts] = useState(false);
   const [heartReturning, setHeartReturning] = useState(false);
   const heartTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Trigger slide-in after initial render (only on first app load)
-  useEffect(() => {
-    if (hasShownSidebarBefore) {
-      // Skip animation on module switch
-      setIsMounted(true);
-      return;
-    }
-
-    // First time showing sidebar - animate it
-    const timer = setTimeout(() => {
-      setIsMounted(true);
-      hasShownSidebarBefore = true;
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
 
   // VerifyWiseContext available for future use
   useContext(VerifyWiseContext);
@@ -432,6 +409,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                 : {
                     color: "#13715B !important",
                     stroke: "#13715B !important",
+                    animation: "icon-shake 400ms ease-in-out",
                   },
               "&:hover svg path": isDisabled
                 ? {}
@@ -526,7 +504,6 @@ const SidebarShell: FC<SidebarShellProps> = ({
   };
 
   return (
-    <Slide direction="right" in={isMounted} timeout={350} mountOnEnter>
       <Stack
         component="aside"
         className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
@@ -682,7 +659,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
             }}
             onClick={() => dispatch(toggleSidebar())}
           >
-            {delayedCollapsed ? (
+            {collapsed ? (
               <PanelLeftOpen size={16} strokeWidth={1.5} />
             ) : (
               <PanelLeftClose size={16} strokeWidth={1.5} />
@@ -1024,7 +1001,6 @@ const SidebarShell: FC<SidebarShellProps> = ({
           <FlyingHearts onComplete={() => setShowFlyingHearts(false)} />
         )}
       </Stack>
-    </Slide>
   );
 };
 

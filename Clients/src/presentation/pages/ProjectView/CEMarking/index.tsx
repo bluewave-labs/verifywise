@@ -22,7 +22,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { Info as GreyCircleInfoIcon } from "lucide-react";
 import { cardStyles } from "../../../themes";
 import { CEMarkingData, ConformityStepStatus, ConformityStep } from "../../../../domain/types/ceMarking";
-import VWLink from "../../../components/Link/VWLink";
+import { VWLink } from "../../../components/Link/VWLink";
 import Select from "../../../components/Inputs/Select";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import StandardModal from "../../../components/Modals/StandardModal";

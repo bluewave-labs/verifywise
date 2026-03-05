@@ -7,6 +7,7 @@ import ProgressBar from "../../../components/ProjectCard/ProgressBar";
 import { FC, memo, useCallback, useMemo } from "react";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import Risks from "../../../components/Risks";
+import IntakeSubmissionCard from "../IntakeSubmissionCard";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useProjectStatus from "../../../../application/hooks/useProjectStatus";
@@ -34,6 +35,10 @@ interface ProgressBarCardProps {
 const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
+  // Extract numeric ID for plugin-sourced IDs like "prefix-123"
+  const numericProjectId = projectId.includes("-")
+    ? parseInt(projectId.substring(projectId.lastIndexOf("-") + 1), 10) || 0
+    : parseInt(projectId, 10) || 0;
   const { project, projectOwner, error, isLoading } = useProjectData({
     projectId,
   });
@@ -47,7 +52,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
     controlsCompleted,
     requirementsCompleted,
   } = getProjectData({
-    projectId: parseInt(projectId),
+    projectId: numericProjectId,
     assessments: projectStatus.assessments,
     controls: projectStatus.controls,
   });
@@ -130,6 +135,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
             <Typography sx={styles.value}>{project.last_updated_by}</Typography>
           </Stack>
         </Stack>
+        <IntakeSubmissionCard projectId={numericProjectId} />
         <Stack direction="row" spacing={18} sx={{ pb: "56px" }} data-joyride-id="framework-progress">
           {progressBarCardRender({
             progress: controlsProgress,

@@ -18,6 +18,7 @@ import {
 } from "./automation/task.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import { getTaskEntityLinksQuery } from "./taskEntityLink.utils";
 
 interface GetTasksOptions {
   userId: number;
@@ -385,7 +386,7 @@ export const getTasksQuery = async (
     type: QueryTypes.SELECT,
   });
 
-  // Add assignees to each task following the project members pattern
+  // Add assignees and entity links to each task following the project members pattern
   for (const task of tasks) {
     const assignees = await sequelize.query(
       `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
@@ -398,6 +399,15 @@ export const getTasksQuery = async (
     (task.dataValues as any)["assignees"] = assignees.map(
       (a: any) => a.user_id
     );
+
+    // Fetch entity links for this task
+    const entityLinks = await getTaskEntityLinksQuery(task.id!, tenant);
+    (task.dataValues as any)["entity_links"] = entityLinks.map((link) => ({
+      id: link.id,
+      entity_id: link.entity_id,
+      entity_type: link.entity_type,
+      entity_name: link.entity_name,
+    }));
   }
 
   return tasks as TasksModel[];
@@ -475,6 +485,15 @@ export const getTaskByIdQuery = async (
     (task.dataValues as any)["assignee_names"] = assignee_names[0].map(
       (a) => a.full_name
     );
+
+    // Fetch entity links for this task
+    const entityLinks = await getTaskEntityLinksQuery(task.id!, tenant);
+    (task.dataValues as any)["entity_links"] = entityLinks.map((link) => ({
+      id: link.id,
+      entity_id: link.entity_id,
+      entity_type: link.entity_type,
+      entity_name: link.entity_name,
+    }));
 
     return task;
   }

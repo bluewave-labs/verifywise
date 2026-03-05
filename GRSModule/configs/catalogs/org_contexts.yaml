@@ -1,10 +1,11 @@
 version: org_contexts_v0.1
 org_contexts:
-  - context_id: ctx_slack_internal
-    org_context: "Internal support Slack channel"
+  # governance artifacts
+  - context_id: ctx_model_release_notes
+    org_context: "Model release notes / change log document"
 
-  - context_id: ctx_jira_ticket
-    org_context: "Jira ticket comment thread"
+  - context_id: ctx_compliance_review_ticket
+    org_context: "Compliance review ticket queue"
 
-  - context_id: ctx_email_internal
-    org_context: "Internal email thread"
+  - context_id: ctx_security_incident_channel
+    org_context: "Security incident response Slack channel"

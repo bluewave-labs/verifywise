@@ -12,7 +12,9 @@ const Features: React.FC = () => {
     <Stack sx={{ mt: 3, width: "100%" }}>
       <Stack sx={{ pt: theme.spacing(20) }}>
         <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}>
+          <Typography
+            sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}
+          >
             Features
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
@@ -20,16 +22,14 @@ const Features: React.FC = () => {
           </Typography>
         </Box>
 
-        <Box
-          sx={{
-            border: `1px solid ${theme.palette.border.light}`,
-            borderRadius: "4px",
-            p: "16px",
-            backgroundColor: theme.palette.background.main,
-          }}
-        >
+        <Stack sx={{ gap: "16px" }}>
+          {/* Model Lifecycle (plugin-managed) */}
           <Box
             sx={{
+              border: `1px solid ${theme.palette.border.light}`,
+              borderRadius: "4px",
+              p: "16px",
+              backgroundColor: theme.palette.background.main,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -48,7 +48,7 @@ const Features: React.FC = () => {
             </Box>
             <CustomizableButton
               variant="contained"
-              text="Manage Plugins"
+              text="Manage plugins"
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
@@ -59,7 +59,7 @@ const Features: React.FC = () => {
               onClick={() => navigate("/plugins")}
             />
           </Box>
-        </Box>
+        </Stack>
       </Stack>
     </Stack>
   );

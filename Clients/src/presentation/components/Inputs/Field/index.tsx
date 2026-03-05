@@ -45,6 +45,7 @@ interface FieldProps extends OriginalFieldProps {
   helperText?: string;
   InputProps?: TextFieldProps["InputProps"];
   formHelperTextProps?: TextFieldProps["FormHelperTextProps"];
+  autoFocus?: boolean;
 }
 
 const Field = forwardRef(
@@ -58,6 +59,7 @@ const Field = forwardRef(
       isOptional,
       optionalLabel,
       autoComplete,
+      autoFocus,
       placeholder,
       value,
       onChange,
@@ -104,7 +106,7 @@ const Field = forwardRef(
             sx={{ margin: 0, height: '22px' }}
           >
             {label}
-            {isRequired ? (
+            {isRequired && (
               <Typography
                 component="span"
                 ml={theme.spacing(1)}
@@ -112,10 +114,8 @@ const Field = forwardRef(
               >
                 *
               </Typography>
-            ) : (
-              ""
             )}
-            {isOptional ? (
+            {isOptional && (
               <Typography
                 component="span"
                 fontSize="inherit"
@@ -125,8 +125,6 @@ const Field = forwardRef(
               >
                 {optionalLabel || "(optional)"}
               </Typography>
-            ) : (
-              ""
             )}
           </Typography>
         )}
@@ -135,9 +133,10 @@ const Field = forwardRef(
           type={type === "password" ? (isVisible ? "text" : type) : type}
           id={id}
           autoComplete={autoComplete}
+          autoFocus={autoFocus}
           placeholder={placeholder}
-          multiline={type === "description"}
-          rows={type === "description" ? (rows || 4) : 1}
+          multiline={type === "description" || (rows !== undefined && rows > 1)}
+          rows={type === "description" ? (rows || 4) : (rows || 1)}
           value={value}
           onInput={onInput as React.FormEventHandler<HTMLDivElement>}
           onChange={onChange}
@@ -229,5 +228,7 @@ const Field = forwardRef(
     );
   }
 );
+
+Field.displayName = "Field";
 
 export default Field;

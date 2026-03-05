@@ -15,13 +15,11 @@ async def list_scorers(
   org_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
   """
-  List scorers for a tenant (optionally filtered by org_id).
-  Multi-tenancy is handled by the schema name, not a tenant column.
+  List scorers for a tenant, optionally filtered by org_id.
   """
 
   params: Dict[str, Any] = {}
 
-  # Build WHERE clause - org_id filter is optional
   if org_id:
     where_clause = "WHERE org_id = :org_id"
     params["org_id"] = org_id
@@ -49,7 +47,7 @@ async def list_scorers(
       ORDER BY created_at DESC
       '''
     ),
-    params if params else {},
+    params,
   )
 
   rows = result.mappings().all()
@@ -191,7 +189,6 @@ async def update_scorer(
     params["weight"] = weight
 
   if not updates:
-    # Nothing to update, just return current row
     result = await db.execute(
       text(
         f'''
@@ -331,7 +328,6 @@ async def get_latest_scorer(
   params: Dict[str, Any] = {}
   where_clauses = []
 
-  # org_id filter is optional
   if org_id:
     where_clauses.append("org_id = :org_id")
     params["org_id"] = org_id
@@ -360,7 +356,7 @@ async def get_latest_scorer(
       LIMIT 1
       '''
     ),
-    params if params else {},
+    params,
   )
 
   row = result.mappings().first()

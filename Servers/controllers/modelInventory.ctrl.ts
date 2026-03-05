@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
+import { notifyUserAssigned } from "../services/inAppNotification.service";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
 import {
   getAllModelInventoriesQuery,
@@ -19,6 +20,18 @@ import {
 } from "../utils/modelInventoryChangeHistory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+
+// Helper function to get user name
+async function getUserNameById(userId: number): Promise<string> {
+  const result = await sequelize.query<{ name: string; surname: string }>(
+    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  if (result[0]) {
+    return `${result[0].name} ${result[0].surname}`.trim();
+  }
+  return "Someone";
+}
 
 export async function getAllModelInventories(req: Request, res: Response) {
   logStructured(
@@ -117,7 +130,13 @@ export async function getModelInventoryById(req: Request, res: Response) {
 }
 
 export async function getModelByProjectId(req: Request, res: Response) {
-  const projectId = parseInt(Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId);
+  const projectIdParam = Array.isArray(req.params.projectId) ? req.params.projectId[0] : req.params.projectId;
+  const projectId = parseInt(projectIdParam);
+
+  // Return empty array for non-numeric project IDs (e.g., plugin-sourced IDs like "plugin-prefix-2")
+  if (isNaN(projectId)) {
+    return res.status(200).json(STATUS_CODE[200]([]));
+  }
 
   logStructured(
     "processing",
@@ -273,6 +292,35 @@ export async function createNewModelInventory(req: Request, res: Response) {
     );
 
     await transaction.commit();
+
+    // Notify approver if assigned
+    if (approver) {
+      const assignerName = await getUserNameById(req.userId!);
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+      // Build model context
+      const modelDetails = [
+        savedModelInventory.provider ? `Provider: ${savedModelInventory.provider}` : null,
+        savedModelInventory.version ? `Version: ${savedModelInventory.version}` : null,
+      ].filter(Boolean).join(" | ");
+
+      notifyUserAssigned(
+        req.tenantId!,
+        approver,
+        {
+          entityType: "Model Inventory",
+          entityId: savedModelInventory.id!,
+          entityName: savedModelInventory.model || `Model #${savedModelInventory.id}`,
+          roleType: "Approver",
+          entityUrl: `${baseUrl}/model-inventory?modelId=${savedModelInventory.id}`,
+        },
+        assignerName,
+        baseUrl,
+        {
+          description: modelDetails || undefined,
+        }
+      ).catch((err) => console.error("Failed to send approver notification:", err));
+    }
 
     logStructured(
       "successful",
@@ -435,6 +483,36 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     }
 
     await transaction.commit();
+
+    // Notify approver if changed to a new user
+    const oldApprover = (currentModelInventory as any).approver;
+    if (approver && approver !== oldApprover) {
+      const assignerName = await getUserNameById(req.userId!);
+      const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+      // Build model context
+      const modelDetails = [
+        savedModelInventory.provider ? `Provider: ${savedModelInventory.provider}` : null,
+        savedModelInventory.version ? `Version: ${savedModelInventory.version}` : null,
+      ].filter(Boolean).join(" | ");
+
+      notifyUserAssigned(
+        req.tenantId!,
+        approver,
+        {
+          entityType: "Model Inventory",
+          entityId: modelInventoryId,
+          entityName: savedModelInventory.model || `Model #${modelInventoryId}`,
+          roleType: "Approver",
+          entityUrl: `${baseUrl}/model-inventory?modelId=${modelInventoryId}`,
+        },
+        assignerName,
+        baseUrl,
+        {
+          description: modelDetails || undefined,
+        }
+      ).catch((err) => console.error("Failed to send approver notification:", err));
+    }
 
     logStructured(
       "successful",

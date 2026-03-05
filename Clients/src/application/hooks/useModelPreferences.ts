@@ -21,6 +21,7 @@ export interface ModelPreferences {
   judgeLlm: {
     provider: string;
     model: string;
+    endpointUrl?: string;
     temperature: number;
     maxTokens: number;
   };
@@ -83,6 +84,7 @@ export function useModelPreferences(projectId: string, orgId?: string | null) {
           judgeLlm: latestJudge ? {
             provider: latestJudge.config?.provider || "openai",
             model: latestJudge.config?.model || "gpt-4o",
+            endpointUrl: latestJudge.config?.endpointUrl || undefined,
             temperature: latestJudge.config?.temperature ?? 0.7,
             maxTokens: latestJudge.config?.maxTokens ?? 2048,
           } : {
@@ -176,6 +178,7 @@ export function useModelPreferences(projectId: string, orgId?: string | null) {
             config: {
               provider: prefs.judgeLlm.provider,
               model: prefs.judgeLlm.model,
+              ...(prefs.judgeLlm.endpointUrl ? { endpointUrl: prefs.judgeLlm.endpointUrl } : {}),
               temperature: prefs.judgeLlm.temperature,
               maxTokens: prefs.judgeLlm.maxTokens,
             },

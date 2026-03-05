@@ -15,7 +15,7 @@ import ChipInput from "../../Inputs/ChipInput";
 import { CustomizableButton } from "../../button/customizable-button";
 import Alert from "../../Alert";
 import TabBar from "../../TabBar";
-import LinkedRisksPopup from "../../LinkedRisks";
+import { LinkedRisksPopup } from "../../LinkedRisks";
 import StandardModal from "../../Modals/StandardModal";
 
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));

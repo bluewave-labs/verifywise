@@ -16,6 +16,7 @@ export interface IVendor {
   reviewer?: number | null; // optional field, can be filled by user
   review_date?: Date; // optional field, can be filled by user
   created_at?: Date;
+  updated_at?: Date;
   // Vendor scorecard fields - optional, will be filled by user
   data_sensitivity?:
     | "None"

@@ -7,11 +7,13 @@
  * @module pages/AIDetection/AIDetectionSidebar
  */
 
-import { Search, History, Settings } from "lucide-react";
+import { useCallback } from "react";
+import { Search, FolderGit2, History, Settings } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
   RecentSection,
 } from "../../components/Sidebar/SidebarShell";
+import { useUserGuideSidebarContext } from "../../components/UserGuide";
 import { Scan } from "../../../domain/ai-detection/types";
 
 interface RecentScan {
@@ -23,6 +25,7 @@ interface AIDetectionSidebarProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   historyCount?: number;
+  repositoryCount?: number;
   recentScans?: RecentScan[];
   onScanClick?: (scanId: number) => void;
 }
@@ -31,9 +34,13 @@ export default function AIDetectionSidebar({
   activeTab,
   onTabChange,
   historyCount = 0,
+  repositoryCount = 0,
   recentScans = [],
   onScanClick,
 }: AIDetectionSidebarProps) {
+  const { open: openUserGuide, openTab } = useUserGuideSidebarContext();
+  const openReleaseNotes = useCallback(() => openTab('whats-new'), [openTab]);
+
   // Menu items for AI Detection
   const flatItems: SidebarMenuItem[] = [
     {
@@ -44,8 +51,16 @@ export default function AIDetectionSidebar({
       disabled: false,
     },
     {
+      id: "repositories",
+      label: "Repositories",
+      value: "repositories",
+      icon: <FolderGit2 size={16} strokeWidth={1.5} />,
+      count: repositoryCount,
+      disabled: false,
+    },
+    {
       id: "history",
-      label: "History",
+      label: "Scan results",
       value: "history",
       icon: <History size={16} strokeWidth={1.5} />,
       count: historyCount,
@@ -93,6 +108,8 @@ export default function AIDetectionSidebar({
       isItemActive={isItemActive}
       onItemClick={handleItemClick}
       showReadyToSubscribe={false}
+      openUserGuide={openUserGuide}
+      openReleaseNotes={openReleaseNotes}
       enableFlyingHearts={false}
     />
   );

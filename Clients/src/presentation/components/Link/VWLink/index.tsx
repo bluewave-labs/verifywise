@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import { memo, useState } from "react";
 import { Link, Box } from "@mui/material";
 import { ExternalLink } from "lucide-react";
 import { IVWLinkProps } from "../../../types/link.types";
@@ -43,7 +43,7 @@ import { IVWLinkProps } from "../../../types/link.types";
  * ```
  */
 
-const VWLink: React.FC<IVWLinkProps> = memo(({
+export const VWLink = memo(function VWLink({
   url,
   children,
   onClick,
@@ -54,7 +54,7 @@ const VWLink: React.FC<IVWLinkProps> = memo(({
   className,
   ariaLabel,
   testId,
-}) => {
+}: IVWLinkProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const linkProps = url && openInNewTab
@@ -139,5 +139,3 @@ const VWLink: React.FC<IVWLinkProps> = memo(({
 });
 
 VWLink.displayName = "VWLink";
-
-export default VWLink;

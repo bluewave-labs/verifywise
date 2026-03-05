@@ -36,6 +36,9 @@ import {
   getComplianceMapping,
 } from "../services/aiDetection.service";
 import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
+import { calculateAndStoreRiskScore } from "../services/aiDetection/riskScoring";
+import { getRiskScoringConfigQuery, upsertRiskScoringConfigQuery } from "../utils/aiDetectionRiskScoring.utils";
+import { DEFAULT_DIMENSION_WEIGHTS } from "../config/riskScoringConfig";
 
 const FILE_NAME = "aiDetection.ctrl.ts";
 
@@ -764,6 +767,218 @@ export async function getComplianceMappingController(
     });
 
     return res.status(200).json(STATUS_CODE[200](compliance));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+// ============================================================================
+// Risk Scoring Controllers
+// ============================================================================
+
+/**
+ * Get risk score for a scan
+ * @route GET /ai-detection/scans/:scanId/risk-score
+ */
+export async function getRiskScoreController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting risk score for scan",
+    functionName: "getRiskScoreController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+    const scan = await getScan(scanId, ctx);
+
+    const riskScore = {
+      score: scan.scan.risk_score ?? null,
+      grade: scan.scan.risk_score_grade ?? null,
+      details: scan.scan.risk_score_details ?? null,
+      calculated_at: scan.scan.risk_score_calculated_at ?? null,
+    };
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved risk score for scan ${scanId}`,
+      functionName: "getRiskScoreController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](riskScore));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Recalculate risk score for a scan
+ * @route POST /ai-detection/scans/:scanId/risk-score/recalculate
+ */
+export async function recalculateRiskScoreController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Recalculating risk score for scan",
+    functionName: "recalculateRiskScoreController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const scanId = parseInt(Array.isArray(req.params.scanId) ? req.params.scanId[0] : req.params.scanId, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid scan ID"));
+    }
+
+    const ctx = buildServiceContext(req);
+
+    // Verify scan exists and is completed
+    const scan = await getScan(scanId, ctx);
+    if (scan.scan.status !== "completed") {
+      return res.status(422).json(STATUS_CODE[422]("Can only calculate risk score for completed scans"));
+    }
+
+    const repoName = `${scan.scan.repository_owner}/${scan.scan.repository_name}`;
+    const result = await calculateAndStoreRiskScore(scanId, repoName, ctx);
+
+    if (!result) {
+      return res.status(500).json(STATUS_CODE[500]("Failed to calculate risk score"));
+    }
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Recalculated risk score for scan ${scanId}: ${result.score} (${result.grade})`,
+      functionName: "recalculateRiskScoreController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](result));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Get risk scoring configuration
+ * @route GET /ai-detection/risk-scoring/config
+ */
+export async function getRiskScoringConfigController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Getting risk scoring config",
+    functionName: "getRiskScoringConfigController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const ctx = buildServiceContext(req);
+    const config = await getRiskScoringConfigQuery(ctx.tenantId);
+
+    // Return config or defaults
+    const response = config || {
+      id: null,
+      llm_enabled: false,
+      llm_key_id: null,
+      dimension_weights: DEFAULT_DIMENSION_WEIGHTS,
+      updated_by: null,
+      updated_at: null,
+    };
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved risk scoring config",
+      functionName: "getRiskScoringConfigController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](response));
+  } catch (error) {
+    return handleException(res, error);
+  }
+}
+
+/**
+ * Update risk scoring configuration
+ * @route PATCH /ai-detection/risk-scoring/config
+ */
+export async function updateRiskScoringConfigController(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  logProcessing({
+    description: "Updating risk scoring config",
+    functionName: "updateRiskScoringConfigController",
+    fileName: FILE_NAME,
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+
+  try {
+    const ctx = buildServiceContext(req);
+    const { llm_enabled, llm_key_id, dimension_weights } = req.body;
+
+    // Validate dimension weights if provided
+    if (dimension_weights) {
+      const requiredKeys = [
+        "data_sovereignty", "transparency", "security",
+        "autonomy", "supply_chain"
+      ];
+      const providedKeys = Object.keys(dimension_weights);
+      const extraKeys = providedKeys.filter((k) => !requiredKeys.includes(k));
+      if (extraKeys.length > 0) {
+        return res.status(400).json(STATUS_CODE[400](`Unknown dimension keys: ${extraKeys.join(", ")}`));
+      }
+      for (const key of requiredKeys) {
+        if (typeof dimension_weights[key] !== "number" || dimension_weights[key] < 0 || dimension_weights[key] > 1) {
+          return res.status(400).json(STATUS_CODE[400](`Invalid weight for ${key}: must be a number between 0 and 1`));
+        }
+      }
+      const total = requiredKeys.reduce((sum: number, k: string) => sum + dimension_weights[k], 0);
+      if (Math.abs(total - 1.0) > 0.01) {
+        return res.status(400).json(STATUS_CODE[400](`Dimension weights must sum to 1.0, got ${total.toFixed(2)}`));
+      }
+    }
+
+    const updated = await upsertRiskScoringConfigQuery(ctx.tenantId, {
+      llm_enabled,
+      llm_key_id,
+      dimension_weights,
+      updated_by: ctx.userId,
+    });
+
+    await logSuccess({
+      eventType: "Update",
+      description: "Updated risk scoring config",
+      functionName: "updateRiskScoringConfigController",
+      fileName: FILE_NAME,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
     return handleException(res, error);
   }

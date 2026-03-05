@@ -1,7 +1,10 @@
 import {
   MenuItem,
   Select as MuiSelect,
+  SelectChangeEvent,
   Stack,
+  SxProps,
+  Theme,
   Typography,
   useTheme,
   Checkbox,
@@ -20,12 +23,12 @@ interface MultiSelectProps {
   items: Array<{ _id: number; name: string; surname?: string }>;
   isRequired?: boolean;
   error?: string;
-  onChange: (event: any) => void;
-  sx?: any;
+  onChange: (event: SelectChangeEvent<number[]>) => void;
+  sx?: SxProps<Theme>;
   disabled?: boolean;
 }
 
-const MultiSelect: React.FC<MultiSelectProps> = ({
+function MultiSelect({
   id,
   label,
   placeholder,
@@ -36,23 +39,27 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   onChange,
   sx,
   disabled,
-}) => {
+}: MultiSelectProps) {
   const theme = useTheme();
 
   // Extract width, flexGrow, minWidth, maxWidth from sx prop to apply to wrapper Stack
-  const extractedLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
-    ? {
-        width: (sx as any).width,
-        flexGrow: (sx as any).flexGrow,
-        minWidth: (sx as any).minWidth,
-        maxWidth: (sx as any).maxWidth,
-      }
-    : {};
+  const extractedLayoutProps = (() => {
+    if (!sx || typeof sx !== 'object' || Array.isArray(sx)) return {};
+    const s = sx as Record<string, unknown>;
+    return {
+      width: s.width as string | number | undefined,
+      flexGrow: s.flexGrow as number | undefined,
+      minWidth: s.minWidth as string | number | undefined,
+      maxWidth: s.maxWidth as string | number | undefined,
+    };
+  })();
 
   // Create a copy of sx without layout props to pass to MuiSelect
-  const sxWithoutLayoutProps = sx && typeof sx === 'object' && !Array.isArray(sx)
-    ? Object.fromEntries(Object.entries(sx).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)))
-    : sx;
+  const sxWithoutLayoutProps = (() => {
+    if (!sx || typeof sx !== 'object' || Array.isArray(sx)) return sx;
+    const s = sx as Record<string, unknown>;
+    return Object.fromEntries(Object.entries(s).filter(([key]) => !['width', 'flexGrow', 'minWidth', 'maxWidth'].includes(key)));
+  })();
 
   const renderValue = (selected: number[]) => {
     if (selected.length === 0) {
@@ -151,6 +158,6 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       )}
     </Stack>
   );
-};
+}
 
 export default MultiSelect;

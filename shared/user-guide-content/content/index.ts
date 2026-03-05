@@ -3,6 +3,7 @@ import { welcomeContent } from './getting-started/welcome';
 import { installingContent } from './getting-started/installing';
 import { dashboardContent } from './getting-started/dashboard';
 import { quickStartContent } from './getting-started/quick-start';
+import { intakeFormsContent } from './ai-governance/intake-forms';
 import { modelInventoryContent } from './ai-governance/model-inventory';
 import { modelLifecycleContent } from './ai-governance/model-lifecycle';
 import { taskManagementContent } from './ai-governance/task-management';
@@ -37,8 +38,13 @@ import { runningExperimentsContent } from './llm-evals/running-experiments';
 import { managingDatasetsContent } from './llm-evals/managing-datasets';
 import { configuringScorersContent } from './llm-evals/configuring-scorers';
 import { biasAuditsContent } from './llm-evals/bias-audits';
+import { modelsContent } from './llm-evals/models';
+import { llmArenaContent } from './llm-evals/llm-arena';
 import { scanningContent } from './ai-detection/scanning';
+import { riskScoringContent } from './ai-detection/risk-scoring';
+import { repositoriesContent } from './ai-detection/repositories';
 import { historyContent } from './ai-detection/history';
+import { aiDetectionSettingsContent } from './ai-detection/settings';
 import { insightsContent } from './shadow-ai/insights';
 import { aiToolsContent } from './shadow-ai/ai-tools';
 import { userActivityContent } from './shadow-ai/user-activity';
@@ -55,6 +61,7 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'getting-started/dashboard': dashboardContent,
   'getting-started/quick-start': quickStartContent,
   // AI Governance
+  'ai-governance/intake-forms': intakeFormsContent,
   'ai-governance/model-inventory': modelInventoryContent,
   'ai-governance/model-lifecycle': modelLifecycleContent,
   'ai-governance/task-management': taskManagementContent,
@@ -97,9 +104,14 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'llm-evals/managing-datasets': managingDatasetsContent,
   'llm-evals/configuring-scorers': configuringScorersContent,
   'llm-evals/bias-audits': biasAuditsContent,
+  'llm-evals/models': modelsContent,
+  'llm-evals/llm-arena': llmArenaContent,
   // AI Detection
   'ai-detection/scanning': scanningContent,
+  'ai-detection/risk-scoring': riskScoringContent,
+  'ai-detection/repositories': repositoriesContent,
   'ai-detection/history': historyContent,
+  'ai-detection/settings': aiDetectionSettingsContent,
   // Shadow AI
   'shadow-ai/insights': insightsContent,
   'shadow-ai/ai-tools': aiToolsContent,

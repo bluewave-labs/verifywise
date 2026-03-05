@@ -15,7 +15,7 @@ export const maskApiKey = (key: string): string => {
 
 export const getLLMKeysQuery = async (tenant: string) => {
   const result = (await sequelize.query(
-    `SELECT id, name, url, model, created_at FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
+    `SELECT id, name, url, model, custom_headers, created_at FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
   )) as [LLMKeyModel[], number];
   return result[0];
 };
@@ -26,14 +26,14 @@ export const getLLMKeysQuery = async (tenant: string) => {
  */
 export const getLLMKeysWithKeyQuery = async (tenant: string) => {
   const result = (await sequelize.query(
-    `SELECT id, name, url, model, key, created_at FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
+    `SELECT id, name, url, model, key, custom_headers, created_at FROM "${tenant}".llm_keys ORDER BY created_at DESC;`,
   )) as [LLMKeyModel[], number];
   return result[0];
 };
 
 export const getLLMKeyQuery = async (tenant: string, name: string) => {
   const result = (await sequelize.query(
-    `SELECT id, name, url, model, created_at FROM "${tenant}".llm_keys WHERE name = :name;`,
+    `SELECT id, name, url, model, custom_headers, created_at FROM "${tenant}".llm_keys WHERE name = :name;`,
     {
       replacements: { name },
     },
@@ -48,13 +48,14 @@ export const createLLMKeyQuery = async (
 ) => {
   // Exclude 'key' from RETURNING to prevent exposing API key in response
   const result = (await sequelize.query(
-    `INSERT INTO "${tenant}".llm_keys (key, name, url, model) VALUES (:key, :name, :url, :model) RETURNING id, name, url, model, created_at;`,
+    `INSERT INTO "${tenant}".llm_keys (key, name, url, model, custom_headers) VALUES (:key, :name, :url, :model, :custom_headers) RETURNING id, name, url, model, custom_headers, created_at;`,
     {
       replacements: {
         key: data.key,
         name: data.name,
         url: data.url,
         model: data.model,
+        custom_headers: data.custom_headers ? JSON.stringify(data.custom_headers) : null,
       },
       transaction,
     },
@@ -68,11 +69,18 @@ export const updateLLMKeyByIdQuery = async (
   tenant: string,
   transaction: Transaction,
 ): Promise<LLMKeyModel | null> => {
-  const updateData: Partial<Record<keyof ILLMKey, any>> = {};
-  const setClause = ["name", "key", "url", "model"]
+  const updateData: Record<string, any> = {};
+  const fields = ["name", "key", "url", "model", "custom_headers"];
+  const setClause = fields
     .filter((f) => {
-      if (data[f as keyof ILLMKey] !== undefined && data[f as keyof ILLMKey]) {
-        updateData[f as keyof ILLMKey] = data[f as keyof ILLMKey];
+      const value = data[f as keyof typeof data];
+      // Allow null for custom_headers (to clear it) and url (to clear it)
+      if (value !== undefined) {
+        if (f === "custom_headers") {
+          updateData[f] = value ? JSON.stringify(value) : null;
+        } else {
+          updateData[f] = value;
+        }
         return true;
       }
       return false;
@@ -80,8 +88,10 @@ export const updateLLMKeyByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
+  if (!setClause) return null;
+
   // Exclude 'key' from RETURNING to prevent exposing API key in response
-  const query = `UPDATE "${tenant}".llm_keys SET ${setClause} WHERE id = :id RETURNING id, name, url, model, created_at;`;
+  const query = `UPDATE "${tenant}".llm_keys SET ${setClause} WHERE id = :id RETURNING id, name, url, model, custom_headers, created_at;`;
 
   updateData.id = id;
 
@@ -108,18 +118,18 @@ export const deleteLLMKeyQuery = async (id: number, tenant: string) => {
   return result.length > 0;
 };
 
-export const getLLMProviderUrl = (provider: LLMProvider): string => {
-  const urls: Record<LLMProvider, string> = {
-    Anthropic: "https://api.anthropic.com/v1",
-    OpenAI: "https://api.openai.com/v1/",
-    OpenRouter: "https://openrouter.ai/api/v1/",
-  };
+const standardProviderUrls: Record<string, string> = {
+  Anthropic: "https://api.anthropic.com/v1",
+  OpenAI: "https://api.openai.com/v1/",
+  OpenRouter: "https://openrouter.ai/api/v1/",
+};
 
-  return urls[provider];
+export const getLLMProviderUrl = (provider: LLMProvider): string => {
+  return standardProviderUrls[provider] || "";
 };
 
 export const isValidLLMProvider = (
   provider: string,
 ): provider is LLMProvider => {
-  return ["Anthropic", "OpenAI", "OpenRouter"].includes(provider);
+  return ["Anthropic", "OpenAI", "OpenRouter", "Custom"].includes(provider);
 };

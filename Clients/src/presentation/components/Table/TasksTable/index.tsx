@@ -28,6 +28,7 @@ import { ITasksTableProps } from "../../../types/interfaces/i.table";
 import { TaskModel } from "../../../../domain/models/Common/task/task.model";
 import { CategoryChip } from "../../Chip/CategoryChip/CategoryChip";
 import { DISPLAY_TO_PRIORITY_MAP, PRIORITY_DISPLAY_MAP } from "../../../constants/priorityOptions";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import { taskTableStyles } from "./styles";
 
 const SelectorVertical = (props: any) => (
@@ -162,6 +163,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   flashRowId,
   onPriorityChange,
   priorityOptions,
+  visibleColumns,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -196,6 +198,24 @@ const TasksTable: React.FC<ITasksTableProps> = ({
   }, [sortConfig]);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
+  // Column visibility helper — always show title and actions
+  const isVisible = useCallback(
+    (key: string) => {
+      if (!visibleColumns) return true;
+      return visibleColumns.has(key);
+    },
+    [visibleColumns]
+  );
+
+  // Filtered column list for the header
+  const visibleTableColumns = useMemo(
+    () =>
+      titleOfTableColumns.filter(
+        (col) => col.id === "title" || col.id === "actions" || isVisible(col.id)
+      ),
+    [isVisible]
+  );
 
   // Sorting handlers
   const handleSort = useCallback((columnId: string) => {
@@ -359,7 +379,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                   </TableCell>
 
                   {/* Priority */}
-                  <TableCell
+                  {isVisible("priority") && <TableCell
                     sx={{
                       ...cellStyle,
                       backgroundColor: sortConfig.key === "priority" ? singleTheme.tableColors.sortedColumn : undefined,
@@ -385,10 +405,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         size="small"
                       />
                     )}
-                  </TableCell>
+                  </TableCell>}
 
                   {/* Status */}
-                  <TableCell
+                  {isVisible("status") && <TableCell
                     sx={{
                       ...cellStyle,
                       backgroundColor: sortConfig.key === "status" ? singleTheme.tableColors.sortedColumn : undefined,
@@ -414,10 +434,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         size="small"
                       />
                     )}
-                  </TableCell>
+                  </TableCell>}
 
                   {/* Due Date */}
-                  <TableCell
+                  {isVisible("due_date") && <TableCell
                     sx={{
                       ...cellStyle,
                       backgroundColor: sortConfig.key === "due_date" ? singleTheme.tableColors.sortedColumn : undefined,
@@ -429,19 +449,15 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                           variant="body2"
                           sx={{
                             fontSize: 13,
-                            color: task.isOverdue
-                              ? "#dc2626"
+                            color: task.isOverdue && task.status !== TaskStatus.COMPLETED
+                              ? "error.main"
                               : "text.secondary",
-                            fontWeight: task.isOverdue ? 500 : 400,
+                            fontWeight: task.isOverdue && task.status !== TaskStatus.COMPLETED ? 500 : 400,
                           }}
                         >
-                          {new Date(task.due_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {displayFormattedDate(task.due_date)}
                         </Typography>
-                        {task.isOverdue ? (
+                        {task.status === TaskStatus.COMPLETED ? null : task.isOverdue ? (
                           <Chip label="Overdue" variant="error" />
                         ) : (
                           <DaysChip dueDate={task.due_date} />
@@ -456,10 +472,10 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         No due date
                       </Typography>
                     )}
-                  </TableCell>
+                  </TableCell>}
 
                   {/* Assignees */}
-                  <TableCell
+                  {isVisible("assignees") && <TableCell
                     sx={{
                       ...cellStyle,
                       backgroundColor: sortConfig.key === "assignees" ? singleTheme.tableColors.sortedColumn : undefined,
@@ -527,7 +543,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
                         Unassigned
                       </Typography>
                     )}
-                  </TableCell>
+                  </TableCell>}
 
                   {/* Actions */}
                   <TableCell
@@ -578,6 +594,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
       priorityOptions,
       onPriorityChange,
       theme,
+      isVisible,
     ]
   );
 
@@ -592,7 +609,7 @@ const TasksTable: React.FC<ITasksTableProps> = ({
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
             <SortableTableHeader
-              columns={titleOfTableColumns}
+              columns={visibleTableColumns}
               sortConfig={sortConfig}
               onSort={handleSort}
             />

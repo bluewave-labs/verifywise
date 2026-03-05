@@ -13,7 +13,7 @@ import { findByPlugin } from "../utils/pluginInstallation.utils";
  * Returns 404 if not installed, calls next() if installed.
  *
  * Usage:
- *   router.use(requirePlugin("model-lifecycle"));
+ *   router.use(requirePlugin("plugin-key"));
  */
 export function requirePlugin(pluginKey: string) {
   return async (req: Request, res: Response, next: NextFunction) => {

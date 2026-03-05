@@ -13,7 +13,7 @@ import { getBuiltinPlugins, isBuiltinPlugin } from "./builtinPlugins";
 import { sanitizeForLog } from "../../utils/validations/validation.utils";
 
 // Environment configuration
-export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/bluewave-labs/plugin-marketplace/main/plugins.json";
+export const PLUGIN_MARKETPLACE_URL = "https://raw.githubusercontent.com/verifywise-ai/plugin-marketplace/main/plugins.json";
 export const PLUGIN_MARKETPLACE_BASE_URL = PLUGIN_MARKETPLACE_URL.replace("/plugins.json", "");
 
 interface Plugin {
@@ -128,7 +128,13 @@ export class PluginService {
       let remotePlugins = marketplaceData.plugins.filter((p) => p.isPublished);
 
       // Merge built-in plugins (built-ins take precedence by key)
-      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished) as Plugin[];
+      const builtinPlugins = getBuiltinPlugins().filter((p) => p.isPublished).map((plugin) => {
+        // Transform relative iconUrl paths to full URLs for built-in plugins too
+        if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
+          return { ...plugin, iconUrl: `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}` };
+        }
+        return plugin;
+      }) as Plugin[];
       const builtinKeys = new Set(builtinPlugins.map((p) => p.key));
       const nonOverlapping = remotePlugins.filter((p) => !builtinKeys.has(p.key));
       let plugins = [...builtinPlugins, ...nonOverlapping];
@@ -155,6 +161,10 @@ export class PluginService {
         (p) => p.key === pluginKey && p.isPublished
       );
       if (builtinPlugin) {
+        // Transform relative iconUrl to full URL
+        if (builtinPlugin.iconUrl && !builtinPlugin.iconUrl.startsWith("http")) {
+          return { ...builtinPlugin, iconUrl: `${PLUGIN_MARKETPLACE_BASE_URL}/${builtinPlugin.iconUrl}` } as Plugin;
+        }
         return builtinPlugin as Plugin;
       }
 
@@ -187,7 +197,7 @@ export class PluginService {
         p.isPublished &&
         (p.name.toLowerCase().includes(lowerQuery) ||
           p.description.toLowerCase().includes(lowerQuery) ||
-          p.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)));
+          (p.tags || []).some((tag) => tag.toLowerCase().includes(lowerQuery)));
 
       // Include built-in plugins in search results
       const builtinMatches = (getBuiltinPlugins() as Plugin[]).filter(matchFilter);
@@ -340,6 +350,65 @@ export class PluginService {
     } catch (error: any) {
       console.error("[PluginService] Error fetching installed plugins:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Get data from plugin data providers
+   * This allows plugins to contribute data to core VerifyWise features
+   * @param providerType - The type of data provider (e.g., "use-cases")
+   * @param tenantId - The tenant ID
+   * @param sequelize - Sequelize instance for database access
+   */
+  static async getDataFromProviders(
+    providerType: string,
+    tenantId: string,
+    sequelize: any
+  ): Promise<any[]> {
+    try {
+      // Get all installed plugins for this tenant
+      const installations = await getInstalledPlugins(tenantId);
+      const results: any[] = [];
+
+      for (const installation of installations) {
+        if (installation.status !== "installed") continue;
+
+        // Built-in plugins don't have remote code to load data providers from
+        if (isBuiltinPlugin(installation.plugin_key)) continue;
+
+        try {
+          // Get plugin metadata from marketplace
+          const pluginMeta = await this.getPluginByKey(installation.plugin_key);
+          if (!pluginMeta) continue;
+
+          // Load the plugin code
+          const pluginCode = await this.loadPluginCode(pluginMeta);
+          if (!pluginCode) continue;
+
+          // Check if plugin has data providers
+          const dataProviders = pluginCode.dataProviders;
+          if (!dataProviders || !dataProviders[providerType]) continue;
+
+          const provider = dataProviders[providerType];
+          if (!provider.enabled) continue;
+
+          // Call the provider's getData function
+          console.log(`[PluginService] Fetching ${providerType} data from plugin: ${installation.plugin_key}`);
+          const data = await provider.getData({ sequelize, tenantId });
+
+          if (Array.isArray(data)) {
+            results.push(...data);
+          }
+        } catch (pluginError: any) {
+          console.error(`[PluginService] Error fetching data from plugin ${installation.plugin_key}:`, pluginError.message);
+          // Continue with other plugins even if one fails
+        }
+      }
+
+      return results;
+    } catch (error: any) {
+      console.error("[PluginService] Error in getDataFromProviders:", error);
+      return [];
     }
   }
 
@@ -520,7 +589,10 @@ export class PluginService {
         console.log(`[PluginService] No package.json found for plugin ${sanitizeForLog(plugin.key)} (pre-bundled plugin)`);
         return null;
       }
-      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}:`, error);
+      const errMsg = error.isAxiosError
+        ? `${error.message} (status: ${error.response?.status || 'N/A'}, url: ${error.config?.url || 'N/A'})`
+        : error.message;
+      console.error(`[PluginService] Error downloading package.json for ${sanitizeForLog(plugin.key)}: ${errMsg}`);
       throw new Error(`Failed to download package.json: ${error.message}`);
     }
   }
@@ -626,11 +698,13 @@ export class PluginService {
 
       const data = response.data as PluginMarketplace;
 
-      // Transform relative iconUrl paths to full URLs
+      // Transform relative iconUrl paths to full URLs and normalize optional array fields
       data.plugins = data.plugins.map((plugin) => {
         if (plugin.iconUrl && !plugin.iconUrl.startsWith("http")) {
           plugin.iconUrl = `${PLUGIN_MARKETPLACE_BASE_URL}/${plugin.iconUrl}`;
         }
+        plugin.tags = plugin.tags || [];
+        plugin.features = plugin.features || [];
         return plugin;
       });
 
@@ -651,8 +725,7 @@ export class PluginService {
       return pluginCode;
     } catch (error: any) {
       console.error(
-        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}:`,
-        error
+        `[PluginService] Error loading plugin ${sanitizeForLog(plugin.key)}: ${error.message}`
       );
       throw new Error(`Failed to load plugin code: ${error.message}`);
     }
@@ -664,6 +737,14 @@ export class PluginService {
    */
   private static async downloadAndLoadPlugin(plugin: Plugin): Promise<any> {
     try {
+      // Guard: built-in plugins should never reach here — they don't have remote code
+      if (plugin.pluginPath === "__builtin__" || plugin.entryPoint === "__builtin__") {
+        throw new Error(
+          `Built-in plugin '${sanitizeForLog(plugin.key)}' cannot be downloaded. ` +
+          `Ensure callers check isBuiltinPlugin() before calling loadPluginCode().`
+        );
+      }
+
       // 1. Setup paths
       const tempPath = path.join(__dirname, "../../../temp/plugins", plugin.key);
       const entryPointPath = path.join(tempPath, plugin.entryPoint);
@@ -761,7 +842,10 @@ export class PluginService {
       const pluginCode = require(entryPointPath);
       return pluginCode;
     } catch (error: any) {
-      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}:`, error);
+      const errMsg = error.isAxiosError
+        ? `${error.message} (status: ${error.response?.status || 'N/A'}, url: ${error.config?.url || 'N/A'})`
+        : error.message;
+      console.error(`[PluginService] Error downloading plugin ${sanitizeForLog(plugin.key)}: ${errMsg}`);
       throw new Error(`Failed to download plugin: ${error.message}`);
     }
   }

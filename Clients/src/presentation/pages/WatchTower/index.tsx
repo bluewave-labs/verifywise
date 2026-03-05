@@ -1,15 +1,11 @@
-import { Stack } from "@mui/material";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
-import HelperIcon from "../../components/HelperIcon";
-import PageHeader from "../../components/Layout/PageHeader";
-import TipBox from "../../components/TipBox";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabBar from "../../components/TabBar";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 
 const tabPanelStyle = {
   padding: 0,
@@ -33,55 +29,44 @@ const WatchTower = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"16px"}>
-      <PageBreadcrumbs />
+    <PageHeaderExtended
+      title="Event Tracker"
+      description="Event Tracker gives you a live window into VerifyWise. It records
+        every user action and system event, then lets you dive into the raw
+        logs for deeper troubleshooting. Use it to see who did what, spot
+        patterns, and keep your application healthy"
+      helpArticlePath="ai-governance/watchtower"
+      tipBoxEntity="event-tracker"
+    >
+      <TabContext value={tabValue}>
+        <TabBar
+          tabs={[
+            {
+              label: "Events",
+              value: "1",
+              icon: "Calendar",
+              tooltip: "Tracked events across your organization",
+            },
+            {
+              label: "Logs",
+              value: "2",
+              icon: "FileText",
+              tooltip: "Detailed system and audit logs",
+            },
+          ]}
+          activeTab={tabValue}
+          onChange={handleChange}
+        />
 
-      <Stack gap={"16px"}>
-      <PageHeader
-               title="Event Tracker"
-               description="Event Tracker gives you a live window into VerifyWise. It records
-                every user action and system event, then lets you dive into the raw
-                logs for deeper troubleshooting. Use it to see who did what, spot
-                patterns, and keep your application healthy"
-               rightContent={
-                  <HelperIcon
-                     articlePath="ai-governance/watchtower"
-                     size="small"
-                    />
-                 }
-             />
-        <TipBox entityName="event-tracker" />
+        <TabPanel value="1" sx={tabPanelStyle}>
+          <WatchTowerEvents />
+        </TabPanel>
 
-        <TabContext value={tabValue}>
-          <TabBar
-            tabs={[
-              {
-                label: "Events",
-                value: "1",
-                icon: "Calendar",
-                tooltip: "Tracked events across your organization",
-              },
-              {
-                label: "Logs",
-                value: "2",
-                icon: "FileText",
-                tooltip: "Detailed system and audit logs",
-              },
-            ]}
-            activeTab={tabValue}
-            onChange={handleChange}
-          />
-
-          <TabPanel value="1" sx={tabPanelStyle}>
-            <WatchTowerEvents />
-          </TabPanel>
-
-          <TabPanel value="2" sx={tabPanelStyle}>
-            <WatchTowerLogs />
-          </TabPanel>
-        </TabContext>
-      </Stack>
-    </Stack>
+        <TabPanel value="2" sx={tabPanelStyle}>
+          <WatchTowerLogs />
+        </TabPanel>
+      </TabContext>
+    </PageHeaderExtended>
   );
 };
 

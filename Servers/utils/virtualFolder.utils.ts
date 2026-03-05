@@ -42,10 +42,14 @@ export const getAllFoldersQuery = async (
   const result = await sequelize.query(
     `SELECT
       vf.*,
-      COALESCE(COUNT(ffm.id), 0)::INTEGER as file_count
+      (COALESCE(file_counts.cnt, 0) + COALESCE(policy_counts.cnt, 0))::INTEGER as file_count
     FROM "${tenant}".virtual_folders vf
-    LEFT JOIN "${tenant}".file_folder_mappings ffm ON vf.id = ffm.folder_id
-    GROUP BY vf.id
+    LEFT JOIN (
+      SELECT folder_id, COUNT(*) as cnt FROM "${tenant}".file_folder_mappings GROUP BY folder_id
+    ) file_counts ON vf.id = file_counts.folder_id
+    LEFT JOIN (
+      SELECT folder_id, COUNT(*) as cnt FROM "${tenant}".policy_folder_mappings GROUP BY folder_id
+    ) policy_counts ON vf.id = policy_counts.folder_id
     ORDER BY vf.name ASC`,
     {
       type: QueryTypes.SELECT,
@@ -112,11 +116,15 @@ export const getFolderByIdQuery = async (
   const result = await sequelize.query(
     `SELECT
       vf.*,
-      COALESCE(COUNT(ffm.id), 0)::INTEGER as file_count
+      (COALESCE(file_counts.cnt, 0) + COALESCE(policy_counts.cnt, 0))::INTEGER as file_count
     FROM "${tenant}".virtual_folders vf
-    LEFT JOIN "${tenant}".file_folder_mappings ffm ON vf.id = ffm.folder_id
-    WHERE vf.id = :id
-    GROUP BY vf.id`,
+    LEFT JOIN (
+      SELECT folder_id, COUNT(*) as cnt FROM "${tenant}".file_folder_mappings GROUP BY folder_id
+    ) file_counts ON vf.id = file_counts.folder_id
+    LEFT JOIN (
+      SELECT folder_id, COUNT(*) as cnt FROM "${tenant}".policy_folder_mappings GROUP BY folder_id
+    ) policy_counts ON vf.id = policy_counts.folder_id
+    WHERE vf.id = :id`,
     {
       replacements: { id },
       type: QueryTypes.SELECT,

@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: ghcr.io/bluewave-labs/verifywise-backend:latest
+        image: ghcr.io/verifywise-ai/verifywise-backend:latest
         imagePullPolicy: Always
         # Override the default command to run the worker
         command: ["node", "dist/jobs/worker.js"]

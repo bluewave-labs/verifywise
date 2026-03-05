@@ -135,8 +135,8 @@ const ButtonsSection: React.FC = () => {
           <SpecCard title="Font weight" value="500" note="Medium weight" onCopy={handleCopy} />
           <SpecCard title="Primary color" value="#13715B" note="Main action buttons" onCopy={handleCopy} />
           <SpecCard title="Primary hover" value="#0f604d" note="Hover state" onCopy={handleCopy} />
-          <SpecCard title="Secondary color" value="#6B7280" note="Utility buttons" onCopy={handleCopy} />
-          <SpecCard title="Error color" value="#DB504A" note="Destructive actions" onCopy={handleCopy} />
+          <SpecCard title="Secondary color" value="#F4F4F4" note="Utility buttons (light bg)" onCopy={handleCopy} />
+          <SpecCard title="Error color" value="#D32F2F" note="Destructive actions" onCopy={handleCopy} />
           <SpecCard title="Disabled bg" value="#E5E7EB" note="Disabled state" onCopy={handleCopy} />
           <SpecCard title="Disabled text" value="#9CA3AF" note="Disabled text" onCopy={handleCopy} />
           <SpecCard title="Transition" value="0.2s ease" note="All interactions" onCopy={handleCopy} />
@@ -324,11 +324,11 @@ const ButtonsSection: React.FC = () => {
 
         <Box sx={{ display: "flex", gap: "16px", flexWrap: "wrap", mb: "24px" }}>
           <ColorSwatch label="Primary" color="#13715B" hoverColor="#0f604d" onCopy={handleCopy} />
-          <ColorSwatch label="Secondary" color="#6B7280" hoverColor="#4B5563" onCopy={handleCopy} />
-          <ColorSwatch label="Success" color="#059669" hoverColor="#047857" onCopy={handleCopy} />
-          <ColorSwatch label="Warning" color="#D97706" hoverColor="#B45309" onCopy={handleCopy} />
-          <ColorSwatch label="Error" color="#DB504A" hoverColor="#B91C1C" onCopy={handleCopy} />
-          <ColorSwatch label="Info" color="#3B82F6" hoverColor="#2563EB" onCopy={handleCopy} />
+          <ColorSwatch label="Secondary" color="#F4F4F4" hoverColor="#e3e3e3" onCopy={handleCopy} />
+          <ColorSwatch label="Success" color="#138A5E" hoverColor="#0F5A47" onCopy={handleCopy} />
+          <ColorSwatch label="Warning" color="#795548" hoverColor="#5D4037" onCopy={handleCopy} />
+          <ColorSwatch label="Error" color="#D32F2F" hoverColor="#B71C1C" onCopy={handleCopy} />
+          <ColorSwatch label="Info" color="#1565C0" hoverColor="#0D47A1" onCopy={handleCopy} />
         </Box>
 
         <Box sx={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>

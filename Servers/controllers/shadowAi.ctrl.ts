@@ -7,7 +7,7 @@
 
 import { Request, Response } from "express";
 import { sequelize } from "../database/db";
-import { Transaction } from "sequelize";
+import { Transaction, QueryTypes } from "sequelize";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   logProcessing,
@@ -429,14 +429,55 @@ export async function startGovernance(req: Request, res: Response) {
         }
       );
 
+      // Initialize lifecycle review if requested
+      let lifecycleInitialized = false;
+      if (req.body.start_lifecycle) {
+        try {
+          await sequelize.query("SAVEPOINT lifecycle_init", { transaction });
+
+          const activeItems = await sequelize.query(
+            `SELECT i.id
+             FROM "${tenantId}".model_lifecycle_items i
+             INNER JOIN "${tenantId}".model_lifecycle_phases p ON i.phase_id = p.id
+             WHERE i.is_active = true AND p.is_active = true`,
+            { type: QueryTypes.SELECT, transaction }
+          ) as { id: number }[];
+
+          if (activeItems.length > 0) {
+            const valueTuples = activeItems
+              .map((_, idx) => `(:modelInventoryId, :itemId${idx}, :userId)`)
+              .join(", ");
+            const replacements: Record<string, unknown> = { modelInventoryId, userId };
+            activeItems.forEach((item, idx) => {
+              replacements[`itemId${idx}`] = item.id;
+            });
+
+            await sequelize.query(
+              `INSERT INTO "${tenantId}".model_lifecycle_values
+                 (model_inventory_id, item_id, updated_by)
+               VALUES ${valueTuples}
+               ON CONFLICT (model_inventory_id, item_id) DO NOTHING`,
+              { replacements, transaction }
+            );
+            lifecycleInitialized = true;
+          }
+
+          await sequelize.query("RELEASE SAVEPOINT lifecycle_init", { transaction });
+        } catch (lcError) {
+          await sequelize.query("ROLLBACK TO SAVEPOINT lifecycle_init", { transaction }).catch(() => {});
+          console.error(`[startGovernance] Lifecycle initialization failed for tool ${toolId}, continuing without it:`, lcError);
+        }
+      }
+
       await transaction.commit();
 
-      await logSuccess({ eventType: "Create", description: `governance started for tool: ${toolId}, MI: ${modelInventoryId}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
+      await logSuccess({ eventType: "Create", description: `governance started for tool: ${toolId}, MI: ${modelInventoryId}, lifecycle: ${lifecycleInitialized}`, functionName: fn, fileName: FILE_NAME, userId, tenantId });
 
       return res.status(201).json(
         STATUS_CODE[201]({
           model_inventory_id: modelInventoryId,
           tool_id: toolId,
+          lifecycle_initialized: lifecycleInitialized,
         })
       );
     } catch (innerError) {

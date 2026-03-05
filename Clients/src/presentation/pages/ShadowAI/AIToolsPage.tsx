@@ -41,15 +41,14 @@ import {
   ShadowAiToolStatus,
 } from "../../../domain/interfaces/i.shadowAi";
 import singleTheme from "../../themes/v1SingleTheme";
+import { palette } from "../../themes/palette";
 import { EmptyState } from "../../components/EmptyState";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Select from "../../components/Inputs/Select";
 import { DashboardHeaderCard } from "../../components/Cards/DashboardHeaderCard";
 import TablePaginationActions from "../../components/TablePagination";
 import GovernanceWizardModal from "./GovernanceWizardModal";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
-import TipBox from "../../components/TipBox";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import {
   SelectorVertical,
   SortableColumn,
@@ -74,19 +73,19 @@ const STATUS_CONFIG: Record<
   ShadowAiToolStatus,
   { label: string; color: string; bg: string }
 > = {
-  detected: { label: "Detected", color: "#3B82F6", bg: "#EFF6FF" },
-  under_review: { label: "Under review", color: "#F59E0B", bg: "#FFFBEB" },
-  approved: { label: "Approved", color: "#10B981", bg: "#ECFDF5" },
-  restricted: { label: "Restricted", color: "#F97316", bg: "#FFF7ED" },
-  blocked: { label: "Blocked", color: "#DC2626", bg: "#FEF2F2" },
-  dismissed: { label: "Dismissed", color: "#6B7280", bg: "#F9FAFB" },
+  detected: { label: "Detected", color: palette.status.info.text, bg: palette.status.info.bg },
+  under_review: { label: "Under review", color: palette.status.warning.text, bg: palette.status.warning.bg },
+  approved: { label: "Approved", color: palette.status.success.text, bg: palette.status.success.bg },
+  restricted: { label: "Restricted", color: palette.accent.orange.text, bg: palette.accent.orange.bg },
+  blocked: { label: "Blocked", color: palette.status.error.text, bg: palette.status.error.bg },
+  dismissed: { label: "Dismissed", color: palette.status.default.text, bg: palette.status.default.bg },
 };
 
 function ToolIcon({ vendor, size = 18 }: { vendor?: string; size?: number }) {
-  if (!vendor) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  if (!vendor) return <Bot size={size} strokeWidth={1.5} color={palette.text.disabled} />;
   const iconKey = VENDOR_ICON_MAP[vendor];
   const IconComponent = iconKey ? PROVIDER_ICONS[iconKey] : null;
-  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color="#9CA3AF" />;
+  if (!IconComponent) return <Bot size={size} strokeWidth={1.5} color={palette.text.disabled} />;
   return <IconComponent width={size} height={size} />;
 }
 
@@ -228,7 +227,10 @@ export default function AIToolsPage() {
   if (selectedTool) {
     const cfg = STATUS_CONFIG[selectedTool.status];
     return (
-      <Stack gap="16px">
+      <PageHeaderExtended
+        title={selectedTool.name}
+        description="AI tool details"
+      >
         <Stack direction="row" alignItems="center" gap="8px">
           <IconButton onClick={handleBack} size="small">
             <ArrowLeft size={16} strokeWidth={1.5} />
@@ -313,7 +315,7 @@ export default function AIToolsPage() {
 
             {/* Status change */}
             <Stack direction="row" alignItems="center" gap="8px">
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.secondary }}>
                 Status:
               </Typography>
               <Select
@@ -337,8 +339,8 @@ export default function AIToolsPage() {
                   text="Start governance"
                   variant="contained"
                   sx={{
-                    backgroundColor: "#13715B",
-                    "&:hover": { backgroundColor: "#0F5A47" },
+                    backgroundColor: palette.brand.primary,
+                    "&:hover": { backgroundColor: palette.brand.primaryHover },
                     height: 30,
                     fontSize: 12,
                   }}
@@ -364,76 +366,74 @@ export default function AIToolsPage() {
               }}
             />
 
-            {/* Departments */}
-            {selectedTool.departments && selectedTool.departments.length > 0 && (
-              <Stack>
-                <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
-                  Departments
-                </Typography>
-                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-                  <Table sx={{ tableLayout: "fixed" }}>
-                    <TableHead>
-                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>Department</TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Users</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {selectedTool.departments.map((d) => (
-                        <TableRow key={d.department} sx={singleTheme.tableStyles.primary.body.row}>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.department}</TableCell>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.user_count}</TableCell>
+            {/* Departments & Top users side by side */}
+            <Stack direction="row" gap="16px">
+              {selectedTool.departments && selectedTool.departments.length > 0 && (
+                <Stack sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
+                    Departments
+                  </Typography>
+                  <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                    <Table sx={{ tableLayout: "fixed" }}>
+                      <TableHead>
+                        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>Department</TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Users</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Stack>
-            )}
+                      </TableHead>
+                      <TableBody>
+                        {selectedTool.departments.map((d) => (
+                          <TableRow key={d.department} sx={singleTheme.tableStyles.primary.body.row}>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.department}</TableCell>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{d.user_count}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Stack>
+              )}
 
-            {/* Top users */}
-            {selectedTool.top_users && selectedTool.top_users.length > 0 && (
-              <Stack>
-                <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
-                  Top users
-                </Typography>
-                <TableContainer sx={singleTheme.tableStyles.primary.frame}>
-                  <Table sx={{ tableLayout: "fixed" }}>
-                    <TableHead>
-                      <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>User</TableCell>
-                        <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Events</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {selectedTool.top_users.map((u) => (
-                        <TableRow key={u.user_email} sx={singleTheme.tableStyles.primary.body.row}>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.user_email}</TableCell>
-                          <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.event_count}</TableCell>
+              {selectedTool.top_users && selectedTool.top_users.length > 0 && (
+                <Stack sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, mb: 1 }}>
+                    Top users
+                  </Typography>
+                  <TableContainer sx={singleTheme.tableStyles.primary.frame}>
+                    <Table sx={{ tableLayout: "fixed" }}>
+                      <TableHead>
+                        <TableRow sx={singleTheme.tableStyles.primary.header.row}>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "70%" }}>User</TableCell>
+                          <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>Events</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Stack>
-            )}
+                      </TableHead>
+                      <TableBody>
+                        {selectedTool.top_users.map((u) => (
+                          <TableRow key={u.user_email} sx={singleTheme.tableStyles.primary.body.row}>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.user_email}</TableCell>
+                            <TableCell sx={singleTheme.tableStyles.primary.body.cell}>{u.event_count}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Stack>
+              )}
+            </Stack>
           </Stack>
         )}
-      </Stack>
+      </PageHeaderExtended>
     );
   }
 
   // ─── List view ───
   return (
-    <Stack gap="16px">
-      <PageHeader
-        title="AI tools"
-        description="View and manage all AI tools detected in your organization's network traffic. Review risk scores, update tool statuses, and start formal governance for any discovered tool."
-        rightContent={
-          <HelperIcon articlePath="shadow-ai/ai-tools" size="small" />
-        }
-      />
-      <TipBox entityName="shadow-ai-tools" />
+    <PageHeaderExtended
+      title="AI tools"
+      description="View and manage all AI tools detected in your organization's network traffic. Review risk scores, update tool statuses, and start formal governance for any discovered tool."
+      helpArticlePath="shadow-ai/ai-tools"
+      tipBoxEntity="shadow-ai-tools"
+    >
 
       <Stack direction="row" justifyContent="flex-end">
         <Select
@@ -567,7 +567,7 @@ export default function AIToolsPage() {
           </Table>
         </TableContainer>
       )}
-    </Stack>
+    </PageHeaderExtended>
   );
 }
 

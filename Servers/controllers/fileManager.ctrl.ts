@@ -32,6 +32,8 @@ import {
   UpdateFileMetadataInput,
   ReviewStatus,
   UploadOrganizationFileOptions,
+  searchFilesByContent,
+  FileContentSearchOptions,
 } from "../repositories/file.repository";
 import { sequelize } from "../database/db";
 import { ApprovalWorkflowStepModel } from "../domain.layer/models/approvalWorkflow/approvalWorkflowStep.model";
@@ -53,6 +55,7 @@ import {
   trackEntityChanges,
   recordMultipleFieldChanges,
 } from "../utils/changeHistory.base.utils";
+import { extractText, normalizeText } from "../services/fileIngestion/textExtractor";
 
 /**
  * Helper function to validate and parse request authentication data
@@ -238,7 +241,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       if (!isNaN(parsed)) approvalWorkflowId = parsed;
     }
 
-    // Parse source from request body (e.g., "policy_editor", "File Manager", etc.)
+    // Parse source from request body
     const source: FileSource = (req.body.source as FileSource) || "File Manager";
 
     if (!file) {
@@ -257,7 +260,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     // Validate authentication
     const auth = validateAndParseAuth(req, res);
     if (!auth) {
-      return; // Response already sent by validateAndParseAuth
+      return;
     }
 
     const { userId, orgId, tenant } = auth;
@@ -296,6 +299,10 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       }
     }
 
+    // Variables to store transaction results
+    let uploadedFile: any;
+    let approvalRequestId: number | undefined;
+
     // Start transaction for file upload and approval request creation
     const transaction = await sequelize.transaction();
 
@@ -308,7 +315,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         transaction,
       };
 
-      const uploadedFile = await uploadOrganizationFile(
+      uploadedFile = await uploadOrganizationFile(
         file,
         userId,
         orgId,
@@ -317,7 +324,6 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       );
 
       // If approval workflow is specified, create an approval request
-      let approvalRequestId: number | undefined;
       if (approvalWorkflowId && uploadedFile.id) {
         // Get workflow steps with approvers
         const workflowStepsResult = await sequelize.query(
@@ -376,44 +382,81 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       }
 
       await transaction.commit();
-
-      // Send notifications to first step approvers after commit
-      if (approvalRequestId) {
-        try {
-          await notifyStepApprovers(tenant, approvalRequestId, 1, `File Approval: ${uploadedFile.filename}`);
-        } catch (notifyError) {
-          console.error("Failed to send approval notifications:", notifyError);
-          // Don't fail the request if notifications fail
-        }
-      }
-
-      await logSuccess({
-        eventType: "Create",
-        description: `File uploaded successfully: ${uploadedFile.filename}${approvalWorkflowId ? " (pending approval)" : ""}`,
-        functionName: "uploadFile",
-        fileName: "fileManager.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-      });
-
-      return res.status(201).json(
-        STATUS_CODE[201]({
-          id: uploadedFile.id,
-          filename: uploadedFile.filename,
-          size: uploadedFile.size,
-          mimetype: uploadedFile.mimetype,
-          upload_date: uploadedFile.upload_date,
-          uploaded_by: uploadedFile.uploaded_by,
-          modelId: uploadedFile.model_id,
-          review_status: approvalWorkflowId ? "pending_review" : "draft",
-          approval_workflow_id: approvalWorkflowId,
-          approval_request_id: approvalRequestId,
-        })
-      );
     } catch (error) {
       await transaction.rollback();
       throw error;
     }
+
+    // POST-COMMIT OPERATIONS (outside transaction try-catch)
+    // These are best-effort and should not fail the request
+
+    // Best-effort: extract text content for full-text search
+    try {
+      const rawText = await extractText(file.buffer, file.mimetype);
+      const normalized = rawText ? normalizeText(rawText) : "";
+
+      if (normalized && uploadedFile.id) {
+        await sequelize.query(
+          `UPDATE "${tenant}".files
+           SET content_text = :content_text,
+               content_search = to_tsvector('english', :content_text)
+           WHERE id = :fileId`,
+          {
+            replacements: {
+              content_text: normalized,
+              fileId: uploadedFile.id,
+            },
+            type: "UPDATE" as const,
+          }
+        );
+      }
+    } catch (extractionError) {
+      // Do not fail the request if extraction or indexing fails
+      console.error(
+        "Failed to extract or index file content for search:",
+        extractionError
+      );
+    }
+
+    // Send notifications to first step approvers
+    if (approvalRequestId) {
+      try {
+        await notifyStepApprovers(
+          tenant,
+          approvalRequestId,
+          1,
+          `File Approval: ${uploadedFile.filename}`
+        );
+      } catch (notifyError) {
+        console.error("Failed to send approval notifications:", notifyError);
+      }
+    }
+
+    await logSuccess({
+      eventType: "Create",
+      description: `File uploaded successfully: ${uploadedFile.filename}${
+        approvalWorkflowId ? " (pending approval)" : ""
+      }`,
+      functionName: "uploadFile",
+      fileName: "fileManager.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(201).json(
+      STATUS_CODE[201]({
+        id: uploadedFile.id,
+        filename: uploadedFile.filename,
+        size: uploadedFile.size,
+        mimetype: uploadedFile.mimetype,
+        upload_date: uploadedFile.upload_date,
+        uploaded_by: uploadedFile.uploaded_by,
+        modelId: uploadedFile.model_id,
+        review_status: approvalWorkflowId ? "pending_review" : "draft",
+        approval_workflow_id: approvalWorkflowId,
+        approval_request_id: approvalRequestId,
+      })
+    );
   } catch (error) {
     await logFailure({
       eventType: "Error",
@@ -516,6 +559,84 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Search organization-level files by extracted content (full-text search).
+ *
+ * GET /file-manager/search?q=...&page=&pageSize=
+ */
+export const searchFiles = async (req: Request, res: Response): Promise<any> => {
+  // Validate authentication
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return; // Response already sent
+
+  const { orgId, tenant } = auth;
+
+  const qParam = Array.isArray(req.query.q) ? req.query.q[0] : req.query.q;
+  const queryText = typeof qParam === "string" ? qParam.trim() : "";
+
+  if (!queryText) {
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Query parameter 'q' is required"));
+  }
+
+  const pageParam = req.query.page;
+  const pageSizeParam = req.query.pageSize;
+
+  const page = pageParam ? Number(Array.isArray(pageParam) ? pageParam[0] : pageParam) : 1;
+  const pageSize = pageSizeParam
+    ? Number(Array.isArray(pageSizeParam) ? pageSizeParam[0] : pageSizeParam)
+    : 20;
+
+  const paginationResult = validatePagination(page, pageSize);
+  if ("error" in paginationResult) {
+    return res.status(400).json(STATUS_CODE[400](paginationResult.error));
+  }
+
+  // validatePagination guarantees these are defined when there is no error
+  const validPage = paginationResult.page!;
+  const validPageSize = paginationResult.pageSize!;
+  const limit = validPageSize;
+  const offset = (validPage - 1) * validPageSize;
+
+  try {
+    const options: FileContentSearchOptions = {
+      limit,
+      offset,
+    };
+
+    const { files } = await searchFilesByContent(
+      orgId,
+      tenant,
+      queryText,
+      options
+    );
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        files,
+        page: validPage,
+        pageSize: validPageSize,
+        query: queryText,
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Error",
+      description: "Failed to search files by content",
+      functionName: "searchFiles",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res
+      .status(500)
+      .json(STATUS_CODE[500]("Internal server error while searching files"));
   }
 };
 

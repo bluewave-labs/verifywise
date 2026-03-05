@@ -11,14 +11,22 @@ import {
   hardDeleteTask,
 } from "../controllers/task.ctrl";
 
+import {
+  addTaskEntityLink,
+  getTaskEntityLinks,
+  removeTaskEntityLink,
+} from "../controllers/taskEntityLink.ctrl";
+
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/", authenticateJWT, getAllTasks);
 router.get("/:id", authenticateJWT, getTaskById);
+router.get("/:id/entities", authenticateJWT, getTaskEntityLinks);
 
 // POST requests
 router.post("/", authenticateJWT, createTask);
+router.post("/:id/entities", authenticateJWT, addTaskEntityLink);
 
 // PUT requests
 // Note: More specific routes must come before generic /:id routes
@@ -28,6 +36,7 @@ router.put("/:id", authenticateJWT, updateTask);
 // DELETE requests
 // Note: More specific routes must come before generic /:id routes
 router.delete("/:id/hard", authenticateJWT, hardDeleteTask);
+router.delete("/:id/entities/:linkId", authenticateJWT, removeTaskEntityLink);
 router.delete("/:id", authenticateJWT, deleteTask);
 
 export default router;

@@ -591,8 +591,8 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       reviewer: this.reviewer,
       review_date: this.review_date?.toISOString(),
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 

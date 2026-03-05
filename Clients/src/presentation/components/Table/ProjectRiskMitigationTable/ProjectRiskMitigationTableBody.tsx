@@ -32,7 +32,7 @@ interface ProjectRiskMitigationTableBodyProps {
   setCurrentPagingation: (pageNo: number) => void;
 }
 
-const navigteToNewTab = (url: string) => {
+const navigateToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
@@ -66,27 +66,27 @@ export const ProjectRiskMitigationTableBody: React.FC<
     const riskId = riskData.id;
     if (riskId) {
       if (riskData.type === "annexcategory") {
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?framework=iso-42001&annexId=${riskData.parent_id}&annexCategoryId=${riskData.meta_id}`
         );
       } else if (riskData.type === "subclause") {
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?framework=iso-42001&clauseId=${riskData.parent_id}&subClauseId=${riskData.meta_id}`
         );
       } else if (riskData.type === "control") {
-        navigteToNewTab(
+        navigateToNewTab(
           `/project-view?projectId=${riskData.project_id}&tab=frameworks&framework=eu-ai-act&controlId=${riskData.meta_id}`
         );
       } else if (riskData.type === "assessment") {
-        navigteToNewTab(
+        navigateToNewTab(
           `/project-view?projectId=${riskData.project_id}&tab=frameworks&framework=eu-ai-act&topicId=${riskData.sup_id}&questionId=${riskData.meta_id}`
         );
       } else if (riskData.type === "annexcontrol_27001") {
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?framework=iso-27001&annex27001Id=${riskData.parent_id}&annexControl27001Id=${riskData.meta_id}`
         );
       } else if (riskData.type === "annexsubclause_27001") {
-        navigteToNewTab(
+        navigateToNewTab(
           `/framework?framework=iso-27001&clause27001Id=${riskData.parent_id}&subClause27001Id=${riskData.meta_id}`
         );
       }

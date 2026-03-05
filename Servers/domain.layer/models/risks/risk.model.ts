@@ -498,8 +498,8 @@ export class RiskModel extends Model<RiskModel> implements IRisk {
       approval_status: this.approval_status,
       date_of_assessment: this.date_of_assessment,
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
     };
   }
 

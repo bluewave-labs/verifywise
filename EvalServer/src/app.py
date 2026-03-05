@@ -55,9 +55,36 @@ app.add_middleware(
 
 app.add_middleware(TenantMiddleware)
 
+async def cleanup_orphaned_experiments():
+    """Mark any experiments stuck in 'running' as failed on server restart."""
+    from database.db import get_db
+    from sqlalchemy import text
+    try:
+        async with get_db() as db:
+            result = await db.execute(text(
+                "SELECT schema_name FROM information_schema.schemata "
+                "WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast')"
+            ))
+            schemas = [row[0] for row in result.fetchall()]
+            for schema in schemas:
+                try:
+                    res = await db.execute(text(
+                        f'UPDATE "{schema}".llm_evals_experiments '
+                        f"SET status = 'failed', error_message = 'Server restarted during execution', "
+                        f"completed_at = NOW() WHERE status = 'running'"
+                    ))
+                    if res.rowcount > 0:
+                        logger.info(f"Marked {res.rowcount} orphaned experiment(s) as failed in schema '{schema}'")
+                except Exception:
+                    pass
+            await db.commit()
+    except Exception as e:
+        logger.warning(f"Orphaned experiment cleanup skipped: {e}")
+
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
     run_migrations()
+    await cleanup_orphaned_experiments()
 
 @app.get("/")
 def root():

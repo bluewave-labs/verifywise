@@ -214,8 +214,8 @@ export class TenantAutomationActionModel extends Model<TenantAutomationActionMod
       action_type: this.action_type?.toJSON(),
       params: this.params,
       order: this.order,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

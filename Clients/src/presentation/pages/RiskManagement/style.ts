@@ -160,33 +160,3 @@ export const aiRiskCardCaptionStyle = {
   textAlign: "center",
   lineHeight: 1.4,
 };
-
-// G. History Toggle Button
-export const historyToggleButtonStyle = (isActive: boolean) => ({
-  color: isActive ? singleTheme.buttons.primary.contained.backgroundColor : "#98A2B3",
-  padding: "4px",
-  borderRadius: singleTheme.borderRadius,
-  backgroundColor: isActive ? "#E6F4F1" : "transparent",
-  "&:hover": {
-    backgroundColor: isActive ? "#D1EDE6" : "#F2F4F7",
-  },
-});
-
-// H. Modal Content Layout
-export const riskModalContentRowStyle = {
-  width: "100%",
-  minHeight: 0,
-  alignItems: "stretch",
-  overflow: "hidden",
-  position: "relative",
-};
-
-export const riskModalFormContainerStyle = (isSidebarOpen: boolean) => ({
-  flex: isSidebarOpen ? "0 0 auto" : 1,
-  minWidth: 0,
-  minHeight: 0,
-  display: "flex",
-  flexDirection: "column",
-  overflowX: "hidden",
-  overflowY: "auto",
-});

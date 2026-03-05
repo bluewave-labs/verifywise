@@ -335,14 +335,14 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
           </Typography>
           <Stack spacing={2}>
             {[
-              { level: "1-3", color: getRiskLevelColor(2), label: "Very Low" },
+              { level: "1-3", color: getRiskLevelColor(2), label: "Very low" },
               { level: "4-7", color: getRiskLevelColor(6), label: "Low" },
               { level: "8-11", color: getRiskLevelColor(10), label: "Medium" },
               { level: "12-15", color: getRiskLevelColor(14), label: "High" },
               {
                 level: "16-25",
                 color: getRiskLevelColor(20),
-                label: "Very High",
+                label: "Very high",
               },
             ].map((item, idx) => (
               <Box
@@ -400,14 +400,14 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
               Risk Level:
             </Typography>
             {[
-              { level: "1-3", color: getRiskLevelColor(2), label: "Very Low" },
+              { level: "1-3", color: getRiskLevelColor(2), label: "Very low" },
               { level: "4-7", color: getRiskLevelColor(6), label: "Low" },
               { level: "8-11", color: getRiskLevelColor(10), label: "Medium" },
               { level: "12-15", color: getRiskLevelColor(14), label: "High" },
               {
                 level: "16-25",
                 color: getRiskLevelColor(20),
-                label: "Very High",
+                label: "Very high",
               },
             ].map((item, idx) => (
               <Box

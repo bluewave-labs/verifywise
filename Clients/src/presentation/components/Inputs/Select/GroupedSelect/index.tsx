@@ -62,7 +62,7 @@ interface GroupedSelectProps {
   emptyText?: string;
 }
 
-const GroupedSelect: React.FC<GroupedSelectProps> = ({
+function GroupedSelect({
   id,
   value,
   onChange,
@@ -75,7 +75,7 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
   loading,
   loadingText = "Loading...",
   emptyText = "No options available",
-}) => {
+}: GroupedSelectProps) {
   const theme = useTheme();
 
   const allItems = groups.flatMap((g) => g.items);
@@ -84,7 +84,7 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
   const renderValue = (selected: unknown) => {
     if (!selected || selected === "") {
       return (
-        <Typography sx={{ color: "#9ca3af", fontSize: 13 }}>
+        <Typography sx={{ color: theme.palette.text.disabled, fontSize: 13 }}>
           {loading ? loadingText : placeholder}
         </Typography>
       );
@@ -164,13 +164,13 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
                 transition: "color 0.2s ease, background-color 0.2s ease",
                 "&:hover": {
                   backgroundColor: theme.palette.background.accent,
-                  color: "#13715B",
+                  color: theme.palette.primary.main,
                 },
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.background.accent,
                   "&:hover": {
                     backgroundColor: theme.palette.background.accent,
-                    color: "#13715B",
+                    color: theme.palette.primary.main,
                   },
                 },
                 "& .MuiTouchRipple-root": {
@@ -192,7 +192,7 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
       >
         {/* Placeholder item */}
         <MenuItem value="" disabled sx={{ display: "none" }}>
-          <Typography sx={{ color: "#9ca3af", fontSize: 13 }}>
+          <Typography sx={{ color: theme.palette.text.disabled, fontSize: 13 }}>
             {loading ? loadingText : placeholder}
           </Typography>
         </MenuItem>
@@ -206,7 +206,7 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
               key={`group-${groupIndex}`}
               sx={{
                 position: "relative",
-                backgroundColor: "#fff",
+                backgroundColor: theme.palette.background.paper,
                 lineHeight: "32px",
                 py: 0.5,
                 mt: groupIndex > 0 ? 1 : 0,
@@ -244,7 +244,7 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
                     {item.label}
                   </Typography>
                   {item.description && (
-                    <Typography sx={{ fontSize: 11, color: "#9ca3af" }}>
+                    <Typography sx={{ fontSize: 11, color: theme.palette.text.disabled }}>
                       {item.description}
                     </Typography>
                   )}
@@ -258,7 +258,7 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
         {!hasItems && !loading && (
           <MenuItem disabled>
             <Typography
-              sx={{ fontSize: 13, color: "#9ca3af", fontStyle: "italic" }}
+              sx={{ fontSize: 13, color: theme.palette.text.disabled, fontStyle: "italic" }}
             >
               {emptyText}
             </Typography>
@@ -280,6 +280,6 @@ const GroupedSelect: React.FC<GroupedSelectProps> = ({
       )}
     </Stack>
   );
-};
+}
 
 export default GroupedSelect;

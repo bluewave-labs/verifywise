@@ -36,9 +36,39 @@ export function mapReportTypeToFileSource(
   | "Policy manager report"
   | "All reports" {
   // These values must match the enum_files_source in the database
-  if (Array.isArray(reportType) && reportType.length > 1) {
-    return "All reports";
+
+  // Handle array of section keys (new frontend format)
+  if (Array.isArray(reportType)) {
+    if (reportType.length > 1) {
+      return "All reports";
+    }
+    // Single-element array: unwrap and map below
+    reportType = reportType[0] || "all";
   }
+
+  // Map new backend section keys to FileSource enum values
+  const sectionKeyToFileSource: Record<string, string> = {
+    projectRisks: "Project risks report",
+    vendorRisks: "Vendors and risks report",
+    modelRisks: "Models and risks report",
+    compliance: "Compliance tracker report",
+    assessment: "Assessment tracker report",
+    clausesAndAnnexes: "Clauses and annexes report",
+    nistSubcategories: "All reports",
+    vendors: "Vendors and risks report",
+    models: "Models and risks report",
+    trainingRegistry: "Training registry report",
+    policyManager: "Policy manager report",
+    incidentManagement: "All reports",
+    all: "All reports",
+  };
+
+  // Check new backend key format first
+  if (sectionKeyToFileSource[reportType]) {
+    return sectionKeyToFileSource[reportType] as ReturnType<typeof mapReportTypeToFileSource>;
+  }
+
+  // Legacy report type strings (for backward compatibility)
   switch (reportType) {
     case "Project risks report":
       return "Project risks report";
@@ -59,8 +89,7 @@ export function mapReportTypeToFileSource(
     case "Policy manager report":
       return "Policy manager report";
     default:
-      // fallback or throw error
-      throw new Error(`Invalid report type for file source: ${reportType}`);
+      return "All reports";
   }
 }
 
@@ -227,6 +256,8 @@ export async function generateReportsV2(
     reportName,
     projectFrameworkId: projectFrameworkIdRaw,
     format = "docx", // Default to docx for backward compatibility
+    aiEnhanced,
+    llmKeyId,
   } = req.body;
 
   const projectId = parseInt(projectIdRaw);
@@ -276,6 +307,8 @@ export async function generateReportsV2(
         branding: {
           organizationName,
         },
+        aiEnhanced: aiEnhanced === true,
+        llmKeyId: llmKeyId ? parseInt(llmKeyId) : undefined,
       },
       userId!,
       req.tenantId!

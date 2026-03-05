@@ -22,7 +22,7 @@ export default function BulkUploadButton({
         gap: "8px",
         "&:hover": { borderColor: "#0e5a48", backgroundColor: "#f0faf7" },
       }}
-      text="Bulk Upload"
+      text="Bulk upload"
       icon={<Upload size={16} />}
       onClick={() => onTriggerModal?.("BulkUploadButton")}
       isDisabled={isDisabled}

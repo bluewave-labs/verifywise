@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { ChevronsUpDown, ChevronUp, ChevronDown, Info } from "lucide-react";
 import singleTheme from "../../themes/v1SingleTheme";
+import { palette } from "../../themes/palette";
 
 /** Period filter options shared by InsightsPage and UserActivityPage. */
 export const PERIOD_OPTIONS = [
@@ -157,7 +158,7 @@ export function SortableTableHead({
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", cursor: "help" }} onClick={(e) => e.stopPropagation()}>
-                    <Info size={13} strokeWidth={1.5} color="#9CA3AF" />
+                    <Info size={13} strokeWidth={1.5} color={palette.text.disabled} />
                   </Box>
                 </Tooltip>
               )}
@@ -166,7 +167,7 @@ export function SortableTableHead({
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    color: sortConfig.key === col.id ? "primary.main" : "#9CA3AF",
+                    color: sortConfig.key === col.id ? "primary.main" : palette.text.disabled,
                   }}
                 >
                   {sortConfig.key === col.id && sortConfig.direction === "asc" && <ChevronUp size={14} />}

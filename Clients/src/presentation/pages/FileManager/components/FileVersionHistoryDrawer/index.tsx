@@ -25,7 +25,7 @@ import {
   useEntityChangeHistory,
   EntityChangeHistoryEntry,
 } from "../../../../../application/hooks/useEntityChangeHistory";
-import VersionBadge from "../VersionBadge";
+import Chip from "../../../../components/Chip";
 import StatusBadge from "../StatusBadge";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -329,10 +329,16 @@ export const FileVersionHistoryDrawer: React.FC<FileVersionHistoryDrawerProps> =
                         )}
                       </Stack>
                       <Stack direction="row" alignItems="center" spacing={1}>
-                        <VersionBadge
-                          version={version.version}
-                          reviewStatus={version.review_status}
-                          size="small"
+                        <Chip
+                          label={`v${version.version || "1.0"}`}
+                          variant={
+                            version.review_status === "approved"
+                              ? "success"
+                              : version.review_status === "superseded"
+                                ? "default"
+                                : "info"
+                          }
+                          uppercase={false}
                         />
                         {version.review_status && (
                           <StatusBadge status={version.review_status} size="small" />

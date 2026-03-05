@@ -61,18 +61,6 @@ export interface DatasetTableProps {
   flashRowId?: number | string | null;
 }
 
-export interface DatasetChangeHistory {
-  id: number;
-  dataset_id: number;
-  action: "created" | "updated" | "deleted";
-  field_name?: string;
-  old_value?: string;
-  new_value?: string;
-  changed_by_user_id?: number;
-  changed_by_name?: string;
-  changed_at: Date | string;
-}
-
 export interface NewDatasetFormValues {
   name: string;
   description: string;
@@ -117,4 +105,6 @@ export interface NewDatasetProps {
   initialData?: NewDatasetFormValues;
   isEdit?: boolean;
   modelInventoryData?: IModelInventory[];
+  /** Entity ID for change history tracking (edit mode only) */
+  entityId?: number;
 }

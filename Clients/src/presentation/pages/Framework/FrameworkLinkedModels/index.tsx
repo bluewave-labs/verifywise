@@ -5,7 +5,7 @@ import { IModelInventory } from "../../../../domain/interfaces/i.modelInventory"
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import { ButtonToggle } from "../../../components/button-toggle";
-import LinkedModelsView from "../../../components/LinkedModelsView";
+import { LinkedModelsView } from "../../../components/LinkedModelsView";
 
 interface FrameworkLinkedModelsProps {
   organizationalProject: Project;

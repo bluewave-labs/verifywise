@@ -203,7 +203,7 @@ export class ModelRiskModel
 
     if (!this.target_date) {
       throw new ValidationException(
-        "Target date is required",
+        "Next review date is required",
         "target_date",
         this.target_date
       );
@@ -230,8 +230,8 @@ export class ModelRiskModel
       current_values: this.current_values,
       threshold: this.threshold,
       model_id: this.model_id,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 

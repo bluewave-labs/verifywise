@@ -11,14 +11,14 @@ import { DropDownsProps } from "../../../../domain/interfaces/i.widget";
 import { inputStyles } from "./style";
 import useUsers from "../../../../application/hooks/useUsers";
 
-const DropDowns: React.FC<DropDownsProps> = ({
+function DropDowns({
   elementId,
   state,
   setState,
   projectId,
   readOnly = false,
   setAuditedStatusModalOpen
-}) => {
+}: DropDownsProps) {
   const [status, setStatus] = useState("");
   const [approver, setApprover] = useState("");
   const [riskReview, setRiskReview] = useState("");
@@ -246,7 +246,6 @@ const DropDowns: React.FC<DropDownsProps> = ({
           marginBottom: theme.spacing(4),
         }}
       >
-        {" "}
         <Field
           type="description"
           sx={{
@@ -268,6 +267,6 @@ const DropDowns: React.FC<DropDownsProps> = ({
       </Stack>
     </Stack>
   );
-};
+}
 
 export default DropDowns;

@@ -27,25 +27,28 @@ interface AiSdkAdvisorParams {
       parameters: Record<string, unknown>;
     };
   }>;
-  provider: "Anthropic" | "OpenAI" | "OpenRouter";
+  provider: "Anthropic" | "OpenAI" | "OpenRouter" | "Custom";
+  headers?: Record<string, string>;
 }
 
 /**
  * Create the appropriate AI SDK model instance based on provider.
  */
-function createModel(params: Pick<AiSdkAdvisorParams, "provider" | "apiKey" | "baseURL" | "model">) {
+function createModel(params: Pick<AiSdkAdvisorParams, "provider" | "apiKey" | "baseURL" | "model" | "headers">) {
   if (params.provider === "Anthropic") {
     const anthropic = createAnthropic({
       apiKey: params.apiKey,
       baseURL: params.baseURL || undefined,
+      headers: params.headers,
     });
     return anthropic(params.model);
   }
 
-  // OpenAI and OpenRouter both use the OpenAI-compatible interface
+  // OpenAI, OpenRouter, and Custom all use the OpenAI-compatible interface
   const openai = createOpenAI({
     apiKey: params.apiKey,
     baseURL: params.baseURL,
+    headers: params.headers,
   });
   return openai(params.model);
 }

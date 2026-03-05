@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Stack, Typography, Card, CardContent, CircularProgress, useTheme } from "@mui/material";
+import { Box, Stack, Typography, CircularProgress, useTheme } from "@mui/material";
 import Chip from "../../components/Chip";
-import { ArrowLeft, XCircle, Users, UserCheck, Percent, AlertTriangle, HelpCircle, LucideIcon } from "lucide-react";
-import { cardStyles } from "../../themes";
+import { ArrowLeft, XCircle, Users, UserCheck, Percent, AlertTriangle, HelpCircle } from "lucide-react";
+import { StatCard } from "../../components/Cards/StatCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getStatusChip, getModeChip } from "./biasAuditHelpers";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
+import { palette } from "../../themes/palette";
 import {
   getBiasAuditResults,
   getBiasAuditStatus,
@@ -19,103 +20,19 @@ interface BiasAuditDetailProps {
   onBack: () => void;
 }
 
-function StatCard({ title, value, Icon, highlight }: { title: string; value: string; Icon: LucideIcon; highlight?: boolean }) {
-  const theme = useTheme();
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <Card
-      elevation={0}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      sx={{
-        ...(cardStyles.base(theme) as Record<string, unknown>),
-        background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
-        border: "1px solid #E5E7EB",
-        height: "100%",
-        minHeight: "80px",
-        position: "relative",
-        transition: "all 0.2s ease",
-        display: "flex",
-        flexDirection: "column",
-        boxSizing: "border-box",
-        borderRadius: "8px",
-        overflow: "hidden",
-        "&:hover": {
-          background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-          borderColor: "#D1D5DB",
-        },
-      }}
-    >
-      <CardContent
-        sx={{
-          p: "14px 16px",
-          position: "relative",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          overflow: "hidden",
-          "&:last-child": { pb: "14px" },
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "-20px",
-            right: "-20px",
-            opacity: isHovered ? 0.06 : 0.03,
-            transform: isHovered ? "translateY(-4px)" : "translateY(0px)",
-            zIndex: 0,
-            pointerEvents: "none",
-            transition: "opacity 0.2s ease, transform 0.3s ease",
-          }}
-        >
-          <Icon size={64} />
-        </Box>
-        <Box sx={{ position: "relative", zIndex: 1 }}>
-          <Typography
-            sx={{
-              color: "#6B7280",
-              fontSize: "11px",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              mb: 0.5,
-            }}
-          >
-            {title}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: "20px",
-              fontWeight: 600,
-              color: highlight ? "#B42318" : "#111827",
-              lineHeight: 1.3,
-            }}
-          >
-            {value}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ResultsTable({ table, threshold }: { table: CategoryTableResult; threshold: number }) {
+function ResultsTable({ table, threshold: _threshold }: { table: CategoryTableResult; threshold: number }) {
   const theme = useTheme();
   const headerCellSx = {
     fontSize: 12,
     fontWeight: 600,
     color: theme.palette.text.secondary,
     textAlign: "right" as const,
-    py: 1,
-    px: 2,
+    padding: "8px",
   };
 
   return (
     <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", mb: "16px", overflow: "hidden" }}>
-      <Box sx={{ px: 2, py: 1.5, backgroundColor: "#F9FAFB", borderBottom: `1px solid ${theme.palette.border.dark}` }}>
+      <Box sx={{ padding: "8px", backgroundColor: palette.background.accent, borderBottom: `1px solid ${theme.palette.border.dark}` }}>
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>{table.title}</Typography>
         {table.highest_group && (
           <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
@@ -142,31 +59,31 @@ function ResultsTable({ table, threshold }: { table: CategoryTableResult; thresh
               key={idx}
               sx={{
                 borderBottom: idx < table.rows.length - 1 ? `1px solid ${theme.palette.border.light}` : "none",
-                backgroundColor: row.flagged ? "#FEF2F2" : theme.palette.background.paper,
+                backgroundColor: row.flagged ? palette.status.error.bg : theme.palette.background.paper,
               }}
             >
-              <Box component="td" sx={{ py: 1.25, px: 2 }}>
+              <Box component="td" sx={{ padding: "8px" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>{row.category_name}</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{row.applicant_count.toLocaleString()}</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{row.selected_count.toLocaleString()}</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>{(row.selection_rate * 100).toFixed(1)}%</Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
-                <Typography sx={{ fontSize: 13, color: row.excluded ? "#98a2b3" : row.flagged ? "#B42318" : theme.palette.text.secondary, fontWeight: row.flagged ? 600 : 400 }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
+                <Typography sx={{ fontSize: 13, color: row.excluded ? palette.text.disabled : row.flagged ? palette.status.error.text : theme.palette.text.secondary, fontWeight: row.flagged ? 600 : 400 }}>
                   {row.excluded ? "Excluded (<2%)" : row.impact_ratio != null ? row.impact_ratio.toFixed(3) : "—"}
                 </Typography>
               </Box>
-              <Box component="td" sx={{ py: 1.25, px: 2, textAlign: "right" }}>
+              <Box component="td" sx={{ padding: "8px", textAlign: "right" }}>
                 {row.excluded ? (
-                  <Chip label="N/A" size="small" uppercase={false} backgroundColor="#F3F4F6" textColor="#6B7280" />
+                  <Chip label="N/A" size="small" uppercase={false} backgroundColor={palette.status.default.bg} textColor={palette.status.default.text} />
                 ) : row.flagged ? (
-                  <Chip label="Flag" size="small" uppercase={false} backgroundColor="#FEE2E2" textColor="#991B1B" />
+                  <Chip label="Flag" size="small" uppercase={false} backgroundColor={palette.status.error.bg} textColor={palette.status.error.text} />
                 ) : (
                   <Chip label="Pass" size="small" uppercase={false} variant="success" />
                 )}
@@ -318,8 +235,8 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
             variant="outlined"
             text={isDeleting ? "Deleting..." : "Delete"}
             onClick={() => setShowDeleteConfirm(true)}
-            disabled={isDeleting}
-            sx={{ height: 34, fontSize: 13, border: `1px solid ${theme.palette.border.dark}`, color: "#B42318", "&:hover": { backgroundColor: "#FEF3F2", border: "1px solid #FCA5A5" } }}
+            isDisabled={isDeleting}
+            sx={{ height: 34, fontSize: 13, border: `1px solid ${theme.palette.border.dark}`, color: palette.status.error.text, "&:hover": { backgroundColor: palette.status.error.bg, border: `1px solid ${palette.status.error.border}` } }}
           />
         </Stack>
       </Stack>
@@ -336,12 +253,12 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
 
       {/* Failed state */}
       {status === "failed" && (
-        <Box sx={{ border: "1px solid #FCA5A5", borderRadius: "4px", p: 3, backgroundColor: "#FEF2F2" }}>
+        <Box sx={{ border: `1px solid ${palette.status.error.border}`, borderRadius: "4px", p: 3, backgroundColor: palette.status.error.bg }}>
           <Stack direction="row" spacing={1.5} alignItems="flex-start">
-            <XCircle size={18} color="#991B1B" strokeWidth={1.5} />
+            <XCircle size={18} color={palette.status.error.text} strokeWidth={1.5} />
             <Stack spacing={0.5}>
-              <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#991B1B" }}>Audit failed</Typography>
-              <Typography sx={{ fontSize: 13, color: "#7F1D1D" }}>{error || "An unknown error occurred"}</Typography>
+              <Typography sx={{ fontSize: 13, fontWeight: 600, color: palette.status.error.text }}>Audit failed</Typography>
+              <Typography sx={{ fontSize: 13, color: palette.status.error.text }}>{error || "An unknown error occurred"}</Typography>
             </Stack>
           </Stack>
         </Box>
@@ -362,7 +279,7 @@ export default function BiasAuditDetail({ auditId, onBack }: BiasAuditDetailProp
           </Box>
 
           {/* Summary text */}
-          <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, mb: "16px", backgroundColor: "#F9FAFB" }}>
+          <Box sx={{ border: `1px solid ${theme.palette.border.dark}`, borderRadius: "4px", p: 2, mb: "16px", backgroundColor: palette.background.accent }}>
             <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary, lineHeight: 1.6 }}>{audit.results.summary}</Typography>
           </Box>
 

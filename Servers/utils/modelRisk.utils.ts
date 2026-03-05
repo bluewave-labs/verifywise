@@ -105,7 +105,8 @@ export async function createNewModelRiskQuery(
 export async function updateModelRiskByIdQuery(
   id: number,
   updatedModelRisk: Partial<IModelRisk>,
-  tenant: string
+  tenant: string,
+  transaction?: import("sequelize").Transaction
 ): Promise<ModelRiskModel | null> {
   const updated_at = new Date();
   const updateModelRisk: Partial<IModelRisk> = { updated_at };
@@ -148,6 +149,7 @@ export async function updateModelRiskByIdQuery(
     replacements: updateModelRisk,
     mapToModel: true,
     model: ModelRiskModel,
+    transaction,
   });
   return result[0] || null;
 }

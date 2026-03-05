@@ -17,7 +17,7 @@ The application consists of the following components:
 - Kubernetes cluster (Minikube for local, or cloud provider for production)
 - kubectl CLI tool
 - Kustomize (built into kubectl v1.14+)
-- Docker images available at `ghcr.io/bluewave-labs/verifywise-*`
+- Docker images available at `ghcr.io/verifywise-ai/verifywise-*`
 
 ### For Local Development
 - [Minikube](https://minikube.sigs.k8s.io/docs/start/) installed

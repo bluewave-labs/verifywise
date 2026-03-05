@@ -24,6 +24,8 @@ import {
   GENERIC_FORMATTERS,
 } from "../config/changeHistory.config";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
+import logger from "./logger/fileLogger";
+import { appendToAuditLedger } from "./auditLedger.utils";
 
 /**
  * Validates tenant identifier to prevent SQL injection
@@ -32,19 +34,32 @@ import { ValidationException } from "../domain.layer/exceptions/custom.exception
  * @throws {ValidationException} If tenant contains invalid characters
  */
 function validateTenant(tenant: string): void {
-  if (!/^[A-Za-z0-9_]{1,30}$/.test(tenant)) {
+  if (!/^[A-Za-z0-9]{10}$/.test(tenant)) {
     throw new ValidationException("Invalid tenant identifier");
   }
 }
 
 /**
- * Escapes a PostgreSQL identifier safely
+ * Escapes a PostgreSQL identifier safely (for tenant schema names)
  *
  * @param ident - The identifier to escape
  * @returns Safely escaped identifier wrapped in double quotes
  */
 function escapePgIdentifier(ident: string): string {
   validateTenant(ident);
+  return '"' + ident.replace(/"/g, '""') + '"';
+}
+
+/**
+ * Escapes a PostgreSQL identifier safely (for table/column names)
+ *
+ * @param ident - The identifier to escape (alphanumeric + underscores)
+ * @returns Safely escaped identifier wrapped in double quotes
+ */
+function escapePgName(ident: string): string {
+  if (!/^[A-Za-z_][A-Za-z0-9_]{0,62}$/.test(ident)) {
+    throw new ValidationException("Invalid SQL identifier");
+  }
   return '"' + ident.replace(/"/g, '""') + '"';
 }
 
@@ -76,10 +91,13 @@ export const recordEntityChange = async (
     const config = getEntityConfig(entityType);
     const schemaName = escapePgIdentifier(tenant);
 
+    const tableName = escapePgName(config.tableName);
+    const foreignKey = escapePgName(config.foreignKeyField);
+
     await sequelize.query(
-      `INSERT INTO ${schemaName}.${config.tableName}
-       (${config.foreignKeyField}, action, field_name, old_value, new_value, changed_by_user_id, changed_at, created_at)
-       VALUES (:entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW(), NOW())`,
+      `INSERT INTO ${schemaName}.${tableName}
+       (${foreignKey}, action, field_name, old_value, new_value, changed_by_user_id, changed_at)
+       VALUES (:entity_id, :action, :field_name, :old_value, :new_value, :changed_by_user_id, NOW())`,
       {
         replacements: {
           entity_id: entityId,
@@ -92,8 +110,21 @@ export const recordEntityChange = async (
         transaction,
       }
     );
+
+    // Append to tamper-proof audit ledger (fire-and-forget)
+    appendToAuditLedger({
+      tenantId: tenant,
+      entryType: "change_history",
+      userId: changedByUserId,
+      entityType,
+      entityId,
+      action,
+      fieldName: fieldName || null,
+      oldValue: oldValue || null,
+      newValue: newValue || null,
+    }).catch(err => logger.error(`[audit_ledger] write failed: ${err}`));
   } catch (error) {
-    console.error(`Error recording ${entityType} change:`, error);
+    logger.error(`Error recording ${entityType} change: ${error}`);
     throw error;
   }
 };
@@ -152,11 +183,14 @@ export const getEntityChangeHistory = async (
     const config = getEntityConfig(entityType);
     const schemaName = escapePgIdentifier(tenant);
 
+    const tableName = escapePgName(config.tableName);
+    const foreignKey = escapePgName(config.foreignKeyField);
+
     // Get total count
     const countResult: any[] = await sequelize.query(
       `SELECT COUNT(*) as count
-       FROM ${schemaName}.${config.tableName}
-       WHERE ${config.foreignKeyField} = :entity_id`,
+       FROM ${schemaName}.${tableName}
+       WHERE ${foreignKey} = :entity_id`,
       {
         replacements: { entity_id: entityId },
         type: QueryTypes.SELECT,
@@ -171,9 +205,9 @@ export const getEntityChangeHistory = async (
         u.name as user_name,
         u.surname as user_surname,
         u.email as user_email
-       FROM ${schemaName}.${config.tableName} ch
+       FROM ${schemaName}.${tableName} ch
        LEFT JOIN public.users u ON ch.changed_by_user_id = u.id
-       WHERE ch.${config.foreignKeyField} = :entity_id
+       WHERE ch.${foreignKey} = :entity_id
        ORDER BY ch.changed_at DESC
        LIMIT :limit OFFSET :offset`,
       {
@@ -188,7 +222,7 @@ export const getEntityChangeHistory = async (
       total,
     };
   } catch (error) {
-    console.error(`Error fetching ${entityType} change history:`, error);
+    logger.error(`Error fetching ${entityType} change history: ${error}`);
     throw error;
   }
 };
@@ -224,10 +258,8 @@ export const formatFieldValue = async (
     return await GENERIC_FORMATTERS.text(value);
   } catch (error) {
     // If formatter fails, log error and return raw value as fallback
-    console.error(
-      `Error formatting field "${fieldName}" for ${entityType}:`,
-      error,
-      `Value: ${JSON.stringify(value)}`
+    logger.error(
+      `Error formatting field "${fieldName}" for ${entityType}: ${error} Value: ${JSON.stringify(value)}`
     );
     // Return stringified raw value as safe fallback
     return String(value);

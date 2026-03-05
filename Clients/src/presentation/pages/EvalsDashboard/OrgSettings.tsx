@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import { Box, Stack, Typography, IconButton, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { Home, FlaskConical, Settings, Trash2, Plus } from "lucide-react";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
-import HelperIcon from "../../components/HelperIcon";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import Field from "../../components/Inputs/Field";
 import Select from "../../components/Inputs/Select";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import { getAllLlmApiKeys, addLlmApiKey, deleteLlmApiKey } from "../../../application/repository/deepEval.repository";
 import { useIsAdmin } from "../../../application/hooks/useIsAdmin";
+import { palette } from "../../themes/palette";
 
 interface SavedKey {
   provider: string;
@@ -277,19 +276,13 @@ export default function OrgSettings() {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
-      {alert && <Alert variant={alert.variant} body={alert.body} />}
-      <Box sx={{ mb: 6 }}>
-        <Box>
-          <PageBreadcrumbs items={breadcrumbs} />
-        </Box>
-        <PageHeader
-          title="Organization settings"
-          description="Configure LLM provider API keys for running evaluations across your organization"
-          rightContent={<HelperIcon articlePath="llm-evals/configuration" />}
-        />
-      </Box>
-
+    <PageHeaderExtended
+      title="Organization settings"
+      description="Configure LLM provider API keys for running evaluations across your organization"
+      helpArticlePath="llm-evals/configuration"
+      breadcrumbItems={breadcrumbs}
+      alert={alert ? <Alert variant={alert.variant} body={alert.body} /> : undefined}
+    >
       <Stack spacing={4} sx={{ maxWidth: 700 }}>
         {/* Saved Keys List */}
         {savedKeys.length > 0 && (
@@ -386,7 +379,7 @@ export default function OrgSettings() {
                 <Typography
                   sx={{
                     fontSize: 11,
-                    color: "#059669",
+                    color: palette.status.success.text,
                     mt: 0.5,
                     ml: 0.5,
                   }}
@@ -416,9 +409,9 @@ export default function OrgSettings() {
                 isDisabled={!selectedProvider || !newApiKey.trim() || !!apiKeyError}
                 startIcon={<Plus size={16} />}
                 sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  "&:hover": { backgroundColor: "#0f5a47" },
+                  backgroundColor: palette.brand.primary,
+                  border: `1px solid ${palette.brand.primary}`,
+                  "&:hover": { backgroundColor: palette.brand.primaryHover },
                   "&:disabled": {
                     backgroundColor: theme.palette.action.disabledBackground,
                     color: theme.palette.action.disabled,
@@ -462,29 +455,24 @@ export default function OrgSettings() {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
+          <CustomizableButton
+            variant="text"
+            text="Cancel"
             onClick={handleCancelRemove}
             sx={{
-              textTransform: "none",
               color: theme.palette.text.secondary,
             }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmRemove}
+          />
+          <CustomizableButton
             variant="contained"
             color="error"
-            disabled={saving}
-            sx={{
-              textTransform: "none",
-            }}
-          >
-            Remove
-          </Button>
+            text="Remove"
+            onClick={handleConfirmRemove}
+            isDisabled={saving}
+          />
         </DialogActions>
       </Dialog>
-    </Box>
+    </PageHeaderExtended>
   );
 }
 

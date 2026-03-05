@@ -41,80 +41,89 @@ interface FileManagementDialogProps {
   disabled?: boolean;
 }
 
-const FileListItem: React.FC<{
+function FileListItem({
+  file,
+  onDeleteClick,
+  onDownloadClick,
+  styles,
+  isPending = false,
+}: {
   file: FileData;
   onDeleteClick: (fileId: string, fileName: string) => void;
   onDownloadClick?: (fileId: string, fileName: string) => void;
   styles: ReturnType<typeof getStyles>;
   isPending?: boolean;
-}> = ({ file, onDeleteClick, onDownloadClick, styles, isPending = false }) => (
-  <Stack
-    direction="row"
-    justifyContent="space-between"
-    alignItems="center"
-    sx={{
-      ...styles.fileItem,
-      backgroundColor: isPending ? "#FFFBEB" : "transparent",
-      border: isPending ? "1px solid #FEF3C7" : undefined,
-      borderRadius: isPending ? "4px" : undefined,
-      padding: isPending ? "8px 12px" : styles.fileItem.padding,
-    }}
-  >
-    <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-      <FileIcon size={16} color={isPending ? "#92400E" : "#6B7280"} />
-      {!isPending && onDownloadClick ? (
-        <Link
-          component="button"
-          onClick={() => onDownloadClick(file.id, file.fileName)}
-          sx={styles.fileLink}
-        >
-          <Typography component="span" variant="body2" sx={styles.fileName}>
+}) {
+  const theme = useTheme();
+  return (
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{
+        ...styles.fileItem,
+        backgroundColor: isPending ? theme.palette.warning.light : "transparent",
+        border: isPending ? `1px solid ${theme.palette.warning.main}` : undefined,
+        borderRadius: isPending ? "4px" : undefined,
+        padding: isPending ? "8px 12px" : styles.fileItem.padding,
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+        <FileIcon size={16} color={isPending ? theme.palette.warning.dark : theme.palette.text.disabled} />
+        {!isPending && onDownloadClick ? (
+          <Link
+            component="button"
+            onClick={() => onDownloadClick(file.id, file.fileName)}
+            sx={styles.fileLink}
+          >
+            <Typography component="span" variant="body2" sx={styles.fileName}>
+              {file.fileName}
+            </Typography>
+          </Link>
+        ) : (
+          <Typography
+            component="span"
+            variant="body2"
+            sx={{
+              ...styles.fileName,
+              color: isPending ? theme.palette.warning.dark : undefined,
+            }}
+          >
             {file.fileName}
           </Typography>
-        </Link>
-      ) : (
-        <Typography
-          component="span"
-          variant="body2"
-          sx={{
-            ...styles.fileName,
-            color: isPending ? "#92400E" : undefined,
-          }}
-        >
-          {file.fileName}
-        </Typography>
-      )}
-      {isPending && (
-        <Typography
-          variant="caption"
-          sx={{ color: "#B45309", ml: 1 }}
-        >
-          (pending)
-        </Typography>
-      )}
-    </Stack>
-    <Stack direction="row" spacing={1}>
-      {!isPending && onDownloadClick && (
+        )}
+        {isPending && (
+          <Typography
+            variant="caption"
+            sx={{ color: theme.palette.warning.dark, ml: 1 }}
+          >
+            (pending)
+          </Typography>
+        )}
+      </Stack>
+      <Stack direction="row" spacing={1}>
+        {!isPending && onDownloadClick && (
+          <IconButton
+            size="small"
+            onClick={() => onDownloadClick(file.id, file.fileName)}
+            aria-label="Download"
+          >
+            <DownloadIcon size={16} />
+          </IconButton>
+        )}
         <IconButton
           size="small"
-          onClick={() => onDownloadClick(file.id, file.fileName)}
-          title="Download"
+          onClick={() => onDeleteClick(file.id, file.fileName)}
+          aria-label={isPending ? "Remove" : "Delete"}
         >
-          <DownloadIcon size={16} />
+          <DeleteIcon size={16} color={isPending ? theme.palette.warning.dark : undefined} />
         </IconButton>
-      )}
-      <IconButton
-        size="small"
-        onClick={() => onDeleteClick(file.id, file.fileName)}
-        title={isPending ? "Remove" : "Delete"}
-      >
-        <DeleteIcon size={16} color={isPending ? "#92400E" : undefined} />
-      </IconButton>
+      </Stack>
     </Stack>
-  </Stack>
-);
+  );
+}
 
-const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
+function FileManagementDialog({
   files,
   onClose,
   onRemoveFile,
@@ -124,11 +133,11 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
   acceptedTypes = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv",
   multiple = true,
   disabled = false,
-}) => {
+}: FileManagementDialogProps) {
   const theme = useTheme();
   const styles = getStyles(theme);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [deleteFileModal, setDeleteFileModal] = useState({
     isOpen: false,
     fileId: "",
@@ -215,18 +224,18 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
             disabled={disabled}
             sx={{
               borderRadius: 1,
-              border: "1px solid #D0D5DD",
-              color: "#344054",
+              border: `1px solid ${theme.palette.divider}`,
+              color: theme.palette.text.primary,
               textTransform: "none",
               "&:hover": {
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #D0D5DD",
+                backgroundColor: theme.palette.action.hover,
+                border: `1px solid ${theme.palette.divider}`,
               },
             }}
           >
             Add files
           </Button>
-          <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#6B7280" }}>
+          <Typography variant="caption" sx={{ display: "block", mt: 1, color: theme.palette.text.disabled }}>
             Supported formats: PDF, DOC, DOCX, XLS, XLSX, Images
           </Typography>
         </Box>
@@ -239,7 +248,7 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
             sx={{
               fontSize: 12,
               fontWeight: 600,
-              color: "#92400E",
+              color: theme.palette.warning.dark,
               mb: 1,
             }}
           >
@@ -266,7 +275,7 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
             sx={{
               fontSize: 12,
               fontWeight: 600,
-              color: "#344054",
+              color: theme.palette.text.primary,
               mb: 1,
             }}
           >
@@ -292,10 +301,10 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
           sx={{
             textAlign: "center",
             py: 4,
-            color: "#6B7280",
-            border: "2px dashed #D1D5DB",
+            color: theme.palette.text.disabled,
+            border: `2px dashed ${theme.palette.divider}`,
             borderRadius: 1,
-            backgroundColor: "#F9FAFB",
+            backgroundColor: theme.palette.action.hover,
             width: "100%",
             mb: 2,
           }}
@@ -303,7 +312,7 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
           <Typography variant="body2" sx={{ mb: 1 }}>
             No evidence files attached yet
           </Typography>
-          <Typography variant="caption" color="#9CA3AF">
+          <Typography variant="caption" color={theme.palette.text.secondary}>
             Click "Add files" to upload documentation
           </Typography>
         </Box>
@@ -330,6 +339,6 @@ const FileManagementDialog: React.FC<FileManagementDialogProps> = ({
       />
     </Stack>
   );
-};
+}
 
 export default FileManagementDialog;

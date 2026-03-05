@@ -7,12 +7,12 @@ Guidelines for building React components in VerifyWise, including file structure
 ### Single Component File
 
 ```tsx
-// UserProfile.tsx
+// UserProfile/index.tsx
 
 // 1. External imports
 import { useState } from 'react';
 import { Box, Typography, Avatar, Button } from '@mui/material';
-import { Edit as EditIcon } from '@mui/icons-material';
+import { Edit } from 'lucide-react';
 
 // 2. Internal imports
 import { useUser } from '@/hooks/useUser';
@@ -55,7 +55,7 @@ export function UserProfile({
       <Typography color="text.secondary">{user.email}</Typography>
       {showActions && isHovered && (
         <Button
-          startIcon={<EditIcon />}
+          startIcon={<Edit size={16} />}
           onClick={() => onEdit?.(user)}
         >
           Edit
@@ -84,8 +84,7 @@ For larger components with multiple files:
 ```
 components/
 └── UserProfile/
-    ├── index.ts                    # Exports
-    ├── UserProfile.tsx             # Main component
+    ├── index.tsx                   # Main component (directly exported)
     ├── UserProfile.test.tsx        # Tests
     ├── UserProfileSkeleton.tsx     # Loading skeleton
     ├── UserProfileActions.tsx      # Actions sub-component
@@ -94,11 +93,8 @@ components/
     └── types.ts                    # Component types
 ```
 
-```typescript
-// index.ts
-export { UserProfile } from './UserProfile';
-export type { UserProfileProps } from './types';
-```
+> **Note:** The main component code lives directly in `index.tsx`. No separate
+> re-export file is needed.
 
 ## Material-UI Usage
 
@@ -135,21 +131,22 @@ Always use theme values instead of hardcoded values.
 Use theme spacing units.
 
 ```tsx
-// Theme spacing: 1 unit = 8px by default
+// VerifyWise theme spacing: 1 unit = 2px (NOT the MUI default of 8px)
+// This means theme.spacing(4) = 8px, theme.spacing(8) = 16px
 
 // Shorthand props
-<Box p={2} />      // padding: 16px
-<Box m={3} />      // margin: 24px
-<Box px={2} />     // paddingLeft, paddingRight: 16px
-<Box my={1} />     // marginTop, marginBottom: 8px
-<Box pt={4} />     // paddingTop: 32px
+<Box p={4} />      // padding: 8px
+<Box m={6} />      // margin: 12px
+<Box px={4} />     // paddingLeft, paddingRight: 8px
+<Box my={2} />     // marginTop, marginBottom: 4px
+<Box pt={8} />     // paddingTop: 16px
 
 // In sx prop
 <Box
   sx={{
-    padding: 2,           // 16px
-    margin: (theme) => theme.spacing(3), // 24px
-    gap: 1,               // 8px (for flex/grid)
+    padding: 4,           // 8px (4 × 2px)
+    margin: (theme) => theme.spacing(6), // 12px
+    gap: 4,               // 8px (for flex/grid)
   }}
 />
 

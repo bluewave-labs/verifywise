@@ -134,7 +134,7 @@ const PageTour: React.FC<IPageTourProps> = ({
             arrow: {
               length: 8,
               spread: 12,
-            },
+            } as any,
           },
         }}
       />

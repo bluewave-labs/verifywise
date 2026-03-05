@@ -38,6 +38,7 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
+import IntakeSubmissionCard from "../IntakeSubmissionCard";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -299,13 +300,13 @@ const ProjectSettings = React.memo(
             riskClassificationItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.ai_risk_classification.toLowerCase(),
+                (project.ai_risk_classification || "").toLowerCase(),
             )?._id || 0,
           typeOfHighRiskRole:
             highRiskRoleItems.find(
               (item) =>
                 item.name.toLowerCase() ===
-                project.type_of_high_risk_role.toLowerCase(),
+                (project.type_of_high_risk_role || "").toLowerCase(),
             )?._id || 0,
           geography: project.geography ?? 1,
           targetIndustry: project.target_industry ?? "",
@@ -616,28 +617,9 @@ const ProjectSettings = React.memo(
         newErrors.startDate = startDate.message;
       }
 
-      const geography = selectValidation("Geography", values.geography);
-      if (!geography.accepted) {
-        newErrors.geography = geography.message;
-      }
-
       const owner = selectValidation("Owner", values.owner);
       if (!owner.accepted) {
         newErrors.owner = owner.message;
-      }
-      const riskClassification = selectValidation(
-        "AI risk classification",
-        values.riskClassification,
-      );
-      if (!riskClassification.accepted) {
-        newErrors.riskClassification = riskClassification.message;
-      }
-      const typeOfHighRiskRole = selectValidation(
-        "Type of high risk role",
-        values.typeOfHighRiskRole,
-      );
-      if (!typeOfHighRiskRole.accepted) {
-        newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
 
       // Skip framework validation if use-case has pending approval (no frameworks created yet)
@@ -1038,7 +1020,6 @@ const ProjectSettings = React.memo(
                     onChange={handleOnSelectChange("geography")}
                     items={geographyItems}
                     sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
-                    isRequired
                   />
 
                   {/* Use case status Row */}
@@ -1446,7 +1427,6 @@ const ProjectSettings = React.memo(
                         backgroundColor: theme.palette.background.main,
                       }}
                       error={errors.riskClassification}
-                      isRequired
                     />
                   </Stack>
 
@@ -1478,10 +1458,12 @@ const ProjectSettings = React.memo(
                       backgroundColor: theme.palette.background.main,
                     }}
                     error={errors.typeOfHighRiskRole}
-                    isRequired
                   />
                 </Box>
               </Box>
+
+              {/* Intake Form Submission */}
+              <IntakeSubmissionCard projectId={parseInt(projectId, 10) || 0} />
 
               {/* Save Button Row */}
               <Stack sx={{ width: "100%" }}>

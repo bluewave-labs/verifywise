@@ -1,53 +1,47 @@
 import { useState, useEffect, useCallback } from "react";
-import { IFeatureSettings } from "../../domain/interfaces/i.featureSettings";
 import {
-  getFeatureSettings as fetchSettings,
-  updateFeatureSettings as patchSettings,
+  getFeatureSettings,
+  updateFeatureSettings,
+  type FeatureSettings,
 } from "../repository/featureSettings.repository";
 
-interface UseFeatureSettingsResult {
-  featureSettings: IFeatureSettings | null;
-  loading: boolean;
-  error: string | null;
-  refresh: () => void;
-  updateSettings: (updates: Partial<Pick<IFeatureSettings, "lifecycle_enabled">>) => Promise<IFeatureSettings>;
-}
+export function useFeatureSettings() {
+  const [settings, setSettings] = useState<FeatureSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-/**
- * @deprecated The `lifecycle_enabled` flag is superseded by the plugin
- * installation system. Use `isPluginInstalled("model-lifecycle")` from
- * the `usePluginRegistry` hook instead.
- */
-export function useFeatureSettings(): UseFeatureSettingsResult {
-  const [featureSettings, setFeatureSettings] = useState<IFeatureSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchSettings = useCallback(async () => {
     try {
-      const data = await fetchSettings();
-      setFeatureSettings(data);
-    } catch (err) {
-      setError((err as Error).message || "Failed to load feature settings");
+      setIsLoading(true);
+      const data = await getFeatureSettings();
+      setSettings(data);
+    } catch (error) {
+      console.error("Failed to fetch feature settings:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchSettings();
+  }, [fetchSettings]);
 
-  const updateSettings = useCallback(
-    async (updates: Partial<Pick<IFeatureSettings, "lifecycle_enabled">>) => {
-      const updated = await patchSettings(updates);
-      setFeatureSettings(updated);
-      return updated;
+  const update = useCallback(
+    async (
+      updates: Partial<
+        Pick<FeatureSettings, "lifecycle_enabled" | "audit_ledger_enabled">
+      >
+    ) => {
+      try {
+        const updated = await updateFeatureSettings(updates);
+        setSettings(updated);
+        return updated;
+      } catch (error) {
+        console.error("Failed to update feature settings:", error);
+        throw error;
+      }
     },
     []
   );
 
-  return { featureSettings, loading, error, refresh: fetchData, updateSettings };
+  return { settings, isLoading, update, refetch: fetchSettings };
 }

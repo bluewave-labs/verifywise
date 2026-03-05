@@ -23,7 +23,7 @@ import TrainingTable from "./trainingTable";
 import NewTraining from "../../../presentation/components/Modals/NewTraining";
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { SearchBox } from "../../components/Search";
 import PageTour from "../../components/PageTour";
 import TrainingSteps from "./TrainingSteps";
@@ -463,7 +463,7 @@ const Training: React.FC = () => {
   // Define export columns for training table
   const exportColumns = useMemo(() => {
     return [
-      { id: "training_name", label: "Training Name" },
+      { id: "training_name", label: "Training name" },
       { id: "duration", label: "Duration" },
       { id: "provider", label: "Provider" },
       { id: "department", label: "Department" },
@@ -608,6 +608,7 @@ const Training: React.FC = () => {
           selectedTraining ? mapTrainingToFormData(selectedTraining) : undefined
         }
         isEdit={!!selectedTraining}
+        entityId={selectedTraining?.id ? Number(selectedTraining.id) : undefined}
       />
 
       <PageTour steps={TrainingSteps} run={true} tourKey="training-tour" />

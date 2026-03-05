@@ -8,12 +8,12 @@ interface DeleteFileModalProps {
   onDelete: () => void;
 }
 
-const DeleteFileModal = ({
+function DeleteFileModal({
   isOpen,
   fileName,
   onClose,
   onDelete,
-}: DeleteFileModalProps) => {
+}: DeleteFileModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -33,5 +33,5 @@ const DeleteFileModal = ({
       TitleFontSize={0}
     />
   );
-};
+}
 export default DeleteFileModal;

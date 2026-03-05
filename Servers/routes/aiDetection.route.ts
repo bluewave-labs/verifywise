@@ -34,6 +34,10 @@ import {
   exportAIBOMController,
   getDependencyGraphController,
   getComplianceMappingController,
+  getRiskScoreController,
+  recalculateRiskScoreController,
+  getRiskScoringConfigController,
+  updateRiskScoringConfigController,
 } from "../controllers/aiDetection.ctrl";
 
 const router = express.Router();
@@ -164,5 +168,33 @@ router.get("/scans/:scanId/dependency-graph", authenticateJWT, authorize(ALL_ROL
  * @returns { mappings: [...], checklist: [...], summary: {...} }
  */
 router.get("/scans/:scanId/compliance", authenticateJWT, authorize(ALL_ROLES), getComplianceMappingController);
+
+/**
+ * @route   GET /ai-detection/scans/:scanId/risk-score
+ * @desc    Get risk score with dimension breakdown for a scan
+ * @access  Private - All roles
+ */
+router.get("/scans/:scanId/risk-score", authenticateJWT, authorize(ALL_ROLES), getRiskScoreController);
+
+/**
+ * @route   POST /ai-detection/scans/:scanId/risk-score/recalculate
+ * @desc    Recalculate risk score for a completed scan
+ * @access  Private - Admin, Editor
+ */
+router.post("/scans/:scanId/risk-score/recalculate", authenticateJWT, authorize(WRITE_ROLES), recalculateRiskScoreController);
+
+/**
+ * @route   GET /ai-detection/risk-scoring/config
+ * @desc    Get risk scoring configuration (weights, LLM settings)
+ * @access  Private - All roles
+ */
+router.get("/risk-scoring/config", authenticateJWT, authorize(ALL_ROLES), getRiskScoringConfigController);
+
+/**
+ * @route   PATCH /ai-detection/risk-scoring/config
+ * @desc    Update risk scoring configuration
+ * @access  Private - Admin only
+ */
+router.patch("/risk-scoring/config", authenticateJWT, authorize(ADMIN_ONLY), updateRiskScoringConfigController);
 
 export default router;

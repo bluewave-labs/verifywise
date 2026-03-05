@@ -18,14 +18,13 @@ const CustomTextField = forwardRef<
       {...props}
       data-composer-input
       aria-label="Type your message"
-      rows={2}
+      rows={3}
       style={{
         width: '100%',
-        minHeight: '40px',
         resize: 'none',
         border: `1px solid ${theme.palette.border?.light ?? theme.palette.divider}`,
         borderRadius: Number(theme.shape.borderRadius) * 1.25,
-        padding: `${theme.spacing(1)} ${theme.spacing(1.5)}`,
+        padding: '8px',
         fontFamily: theme.typography.fontFamily,
         fontSize: theme.typography.body2.fontSize as string,
         lineHeight: 1.5,
@@ -51,7 +50,7 @@ export const CustomComposer: FC<CustomComposerProps> = ({ pageContext }) => {
       style={{
         borderTop: `1px solid ${theme.palette.border?.light ?? theme.palette.divider}`,
         backgroundColor: theme.palette.background.main ?? theme.palette.background.default,
-        padding: theme.spacing(1.5),
+        padding: '8px',
       }}
     >
       <Stack direction="row" gap="8px" alignItems="flex-end">
@@ -107,6 +106,19 @@ export const CustomComposer: FC<CustomComposerProps> = ({ pageContext }) => {
         }}
       >
         Press Enter to send • Shift+Enter for new line
+      </Stack>
+      <Stack
+        direction="row"
+        justifyContent="center"
+        sx={{
+          paddingTop: '8px',
+          paddingBottom: '0px',
+          fontSize: 10,
+          color: theme.palette.text.accent ?? theme.palette.text.disabled,
+          textAlign: 'center',
+        }}
+      >
+        AI advisor can make mistakes. Please double-check responses.
       </Stack>
     </ComposerPrimitive.Root>
   );

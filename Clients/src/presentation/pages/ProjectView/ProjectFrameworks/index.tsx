@@ -164,13 +164,13 @@ const ProjectFrameworks = ({
 
   const euAIActStatusOptions = [
     { value: "waiting", label: "Waiting" },
-    { value: "in progress", label: "In Progress" },
+    { value: "in progress", label: "In progress" },
     { value: "done", label: "Done" },
   ];
 
   const euAIActAssessmentsOptions = [
     { value: "not started", label: "Not started" },
-    { value: "in progress", label: "In Progress" },
+    { value: "in progress", label: "In progress" },
     { value: "done", label: "Done" },
   ];
 
@@ -194,7 +194,56 @@ const ProjectFrameworks = ({
   }, [tracker]);
 
   // Render built-in framework content
-  const renderBuiltInContent = useCallback(() => (
+  const renderBuiltInContent = useCallback(() => {
+    // Show empty state if no frameworks installed
+    if (projectFrameworks.length === 0 && !loading) {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 8,
+            textAlign: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              backgroundColor: "#f3f4f6",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mb: 3,
+            }}
+          >
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </Box>
+          <Box sx={{ fontSize: 18, fontWeight: 600, color: "#374151", mb: 1 }}>
+            No frameworks installed
+          </Box>
+          <Box sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mb: 3 }}>
+            This use case doesn't have any compliance frameworks yet.
+            Add a framework to start tracking controls and assessments.
+          </Box>
+          <Button
+            variant="contained"
+            sx={addButtonStyle}
+            onClick={() => setIsModalOpen(true)}
+            disabled={isManagingFrameworksDisabled}
+          >
+            Add Framework
+          </Button>
+        </Box>
+      );
+    }
+
+    return (
     <>
       <TabFilterBar
         statusFilter={statusFilter}
@@ -271,9 +320,11 @@ const ProjectFrameworks = ({
         )}
       </TabContext>
     </>
-  ), [
+    );
+  }, [
     statusFilter, applicabilityFilter, ownerFilter, approverFilter, dueDateFilter,
-    isEUAIAct, tracker, statusOptions, userOptions, tabs, refs, project, tabListStyle
+    isEUAIAct, tracker, statusOptions, userOptions, tabs, refs, project, tabListStyle,
+    projectFrameworks.length, loading, isManagingFrameworksDisabled, setIsModalOpen
   ]);
 
   if (error) {
@@ -375,7 +426,53 @@ const ProjectFrameworks = ({
       />
 
       {/* Default content when no plugin is loaded */}
-      {!hasCustomFrameworkPlugin && renderBuiltInContent()}
+      {!hasCustomFrameworkPlugin && projectFrameworks.length > 0 && renderBuiltInContent()}
+
+      {/* Empty state when no frameworks installed */}
+      {!hasCustomFrameworkPlugin && projectFrameworks.length === 0 && !loading && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 8,
+            textAlign: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              backgroundColor: "#f3f4f6",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mb: 3,
+            }}
+          >
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </Box>
+          <Box sx={{ fontSize: 18, fontWeight: 600, color: "#374151", mb: 1 }}>
+            No frameworks installed
+          </Box>
+          <Box sx={{ fontSize: 14, color: "#6b7280", maxWidth: 400, mb: 3 }}>
+            This use case doesn't have any compliance frameworks yet.
+            Add a framework to start tracking controls and assessments.
+          </Box>
+          <Button
+            variant="contained"
+            sx={addButtonStyle}
+            onClick={() => setIsModalOpen(true)}
+            disabled={isManagingFrameworksDisabled}
+          >
+            Add Framework
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

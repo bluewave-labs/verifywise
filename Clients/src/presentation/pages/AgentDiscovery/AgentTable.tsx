@@ -14,6 +14,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle } from "lucide-react";
+import IconButton from "../../components/IconButton";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { EmptyState } from "../../components/EmptyState";
 import Chip from "../../components/Chip";
@@ -27,33 +28,8 @@ import {
   agentPaginationSelect,
   agentPagination,
 } from "./style";
+import { AgentTableProps } from "src/domain/interfaces/i.agentDiscovery";
 
-export interface AgentPrimitiveRow {
-  id: number;
-  source_system: string;
-  primitive_type: string;
-  external_id: string;
-  display_name: string;
-  owner_id: string | null;
-  permissions: any[];
-  permission_categories: string[];
-  last_activity: string | null;
-  metadata: Record<string, any>;
-  review_status: string;
-  reviewed_by: number | null;
-  reviewed_at: string | null;
-  linked_model_inventory_id: number | null;
-  is_stale: boolean;
-  is_manual: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface AgentTableProps {
-  agents: AgentPrimitiveRow[];
-  isLoading: boolean;
-  onRowClick: (agent: AgentPrimitiveRow) => void;
-}
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -65,6 +41,7 @@ const TABLE_COLUMNS = [
   { id: "last_activity", label: "LAST ACTIVITY", sortable: true },
   { id: "review_status", label: "STATUS", sortable: true },
   { id: "stale", label: "", sortable: false },
+  { id: "actions", label: "", sortable: false },
 ];
 
 type SortDirection = "asc" | "desc" | null;
@@ -74,6 +51,9 @@ const AgentTable: React.FC<AgentTableProps> = ({
   agents,
   isLoading,
   onRowClick,
+  onEdit,
+  onDelete,
+  visibleColumns,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -82,6 +62,16 @@ const AgentTable: React.FC<AgentTableProps> = ({
     key: "",
     direction: null,
   });
+
+  // Filter columns based on visibility
+  const visibleColumnsArray = useMemo(() => {
+    if (!visibleColumns || visibleColumns.size === 0) return TABLE_COLUMNS;
+    return TABLE_COLUMNS.filter((col) => visibleColumns.has(col.id));
+  }, [visibleColumns]);
+
+  // Helper to check individual column visibility
+  const isColVisible = (id: string) =>
+    !visibleColumns || visibleColumns.size === 0 || visibleColumns.has(id);
 
   useEffect(() => {
     setPage(0);
@@ -180,7 +170,7 @@ const AgentTable: React.FC<AgentTableProps> = ({
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {TABLE_COLUMNS.map((column) => {
+        {visibleColumnsArray.map((column) => {
           const sortable = column.sortable;
           return (
             <TableCell
@@ -189,12 +179,12 @@ const AgentTable: React.FC<AgentTableProps> = ({
                 ...singleTheme.tableStyles.primary.header.cell,
                 ...(sortable
                   ? {
-                      cursor: "pointer",
-                      userSelect: "none",
-                      "&:hover": {
-                        backgroundColor: "rgba(0, 0, 0, 0.04)",
-                      },
-                    }
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.04)",
+                    },
+                  }
                   : {}),
               }}
               onClick={() => sortable && handleSort(column.label)}
@@ -260,43 +250,73 @@ const AgentTable: React.FC<AgentTableProps> = ({
             sx={singleTheme.tableStyles.primary.body.row}
             onClick={() => onRowClick(agent)}
           >
-            <TableCell sx={cellStyle}>{agent.display_name}</TableCell>
-            <TableCell sx={cellStyle}>{agent.source_system}</TableCell>
-            <TableCell sx={cellStyle}>{agent.primitive_type}</TableCell>
-            <TableCell sx={cellStyle}>
-              <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
-                {(agent.permission_categories || []).slice(0, 3).map((cat) => (
-                  <MuiChip
-                    key={cat}
-                    label={cat}
-                    size="small"
-                    sx={permissionChip}
-                  />
-                ))}
-                {(agent.permission_categories || []).length > 3 && (
-                  <MuiChip
-                    label={`+${agent.permission_categories.length - 3}`}
-                    size="small"
-                    sx={permissionChip}
+            {isColVisible('display_name') && (
+              <TableCell sx={cellStyle}>{agent.display_name}</TableCell>
+            )}
+            {isColVisible('source_system') && (
+              <TableCell sx={cellStyle}>{agent.source_system}</TableCell>
+            )}
+            {isColVisible('primitive_type') && (
+              <TableCell sx={cellStyle}>{agent.primitive_type}</TableCell>
+            )}
+            {isColVisible('permissions') && (
+              <TableCell sx={cellStyle}>
+                <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                  {(agent.permission_categories || []).slice(0, 3).map((cat) => (
+                    <MuiChip
+                      key={cat}
+                      label={cat}
+                      size="small"
+                      sx={permissionChip}
+                    />
+                  ))}
+                  {(agent.permission_categories || []).length > 3 && (
+                    <MuiChip
+                      label={`+${agent.permission_categories.length - 3}`}
+                      size="small"
+                      sx={permissionChip}
+                    />
+                  )}
+                </Stack>
+              </TableCell>
+            )}
+            {isColVisible('last_activity') && (
+              <TableCell sx={cellStyle}>
+                {formatDate(agent.last_activity)}
+              </TableCell>
+            )}
+            {isColVisible('review_status') && (
+              <TableCell sx={cellStyle}>
+                <Chip label={agent.review_status} />
+              </TableCell>
+            )}
+            {isColVisible('stale') && (
+              <TableCell sx={{ ...cellStyle, width: 40 }}>
+                {agent.is_stale && (
+                  <AlertTriangle
+                    size={14}
+                    strokeWidth={1.5}
+                    color="#F9A825"
                   />
                 )}
-              </Stack>
-            </TableCell>
-            <TableCell sx={cellStyle}>
-              {formatDate(agent.last_activity)}
-            </TableCell>
-            <TableCell sx={cellStyle}>
-              <Chip label={agent.review_status} />
-            </TableCell>
-            <TableCell sx={{ ...cellStyle, width: 40 }}>
-              {agent.is_stale && (
-                <AlertTriangle
-                  size={14}
-                  strokeWidth={1.5}
-                  color="#F9A825"
+              </TableCell>
+            )}
+            {isColVisible('actions') && (
+              <TableCell
+                sx={{ ...cellStyle, width: 40 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <IconButton
+                  id={agent.id}
+                  onEdit={() => onEdit(agent)}
+                  onDelete={() => onDelete(agent)}
+                  onMouseEvent={() => { }}
+                  warningTitle="Delete this agent?"
+                  warningMessage="When you delete this agent, all data related to this agent will be removed. This action is non-recoverable."
+                  type="Vendor"
                 />
-              )}
-            </TableCell>
+              </TableCell>
+            )}
           </TableRow>
         ))}
     </TableBody>
@@ -309,7 +329,7 @@ const AgentTable: React.FC<AgentTableProps> = ({
         {tableBody}
         <TableFooter>
           <TableRow sx={agentFooterRow(theme)}>
-            <TableCell colSpan={3} sx={agentShowingText(theme)}>
+            <TableCell colSpan={Math.max(1, visibleColumnsArray.length - 1)} sx={agentShowingText(theme)}>
               Showing {getRange} of {sortedData.length} agent(s)
             </TableCell>
             <TablePagination

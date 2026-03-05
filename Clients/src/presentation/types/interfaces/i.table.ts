@@ -242,6 +242,8 @@ export interface ITasksTableProps {
   // Priority change props
   onPriorityChange: (taskId: number) => (newPriority: string) => Promise<boolean>;
   priorityOptions: Array<string | CustomSelectOptionWithIcon>;
+  /** Optional set of visible column keys, controls which columns are shown */
+  visibleColumns?: Set<string>;
 }
 
 export interface ITableWithPlaceholderProps {

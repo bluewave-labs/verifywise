@@ -35,18 +35,18 @@ interface RadioProps {
   desc: string;
 }
 
-const Radio = (props: RadioProps) => {
+function Radio({ checked, value, id, size, onChange, title, desc }: RadioProps) {
   const theme = useTheme();
 
   return (
     <FormControlLabel
       className="custom-radio-button"
-      checked={props.checked}
-      value={props.value}
+      checked={checked}
+      value={value}
       control={
         <MUIRadio
-          id={props.id}
-          size={props.size}
+          id={id}
+          size={size}
           checkedIcon={<CircleDot size={16} />}
           sx={{
             color: "transparent",
@@ -58,17 +58,17 @@ const Radio = (props: RadioProps) => {
         />
       }
       onChange={(event) =>
-        props.onChange(event as ChangeEvent<HTMLInputElement>)
+        onChange(event as ChangeEvent<HTMLInputElement>)
       }
       label={
         <>
-          <Typography fontSize={13} color="text.tertiary">{props.title}</Typography>
+          <Typography fontSize={13} color="text.tertiary">{title}</Typography>
           <Typography
             component="h6"
             mt={theme.spacing(1)}
             color={theme.palette.text.secondary}
           >
-            {props.desc}
+            {desc}
           </Typography>
         </>
       }
@@ -88,6 +88,6 @@ const Radio = (props: RadioProps) => {
       }}
     />
   );
-};
+}
 
 export default Radio;

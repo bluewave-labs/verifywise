@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, type JSX } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon, FolderPlus as FolderPlusIcon } from "lucide-react";
-import PageHeaderExtended from "../../components/Layout/PageHeaderExtended";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
@@ -70,8 +71,23 @@ const MANAGE_ROLES = ["Admin", "Editor"];
  * Main component for managing files with virtual folder support.
  */
 const FileManager: React.FC = (): JSX.Element => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [runFileTour, setRunFileTour] = useState(false);
+
+  // Folder sidebar collapse state (persisted in localStorage)
+  const [folderSidebarCollapsed, setFolderSidebarCollapsed] = useState(() =>
+    localStorage.getItem("verifywise:folder-sidebar-collapsed") === "true"
+  );
+
+  const handleToggleFolderSidebar = useCallback(() => {
+    setFolderSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("verifywise:folder-sidebar-collapsed", String(next));
+      return next;
+    });
+  }, []);
   const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
@@ -202,23 +218,19 @@ const FileManager: React.FC = (): JSX.Element => {
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Only sync on initial load, not on subsequent hook updates
-    if (!hasInitialized && !initialLoading && initialFilesData.length > 0) {
-      setFilesData(initialFilesData);
-      setLoadingFiles(false);
-      setFilesError(initialError);
-      setHasInitialized(true);
-    }
-    // If still loading initially, reflect that
-    if (!hasInitialized && initialLoading) {
+    if (hasInitialized) return;
+
+    // Still loading - reflect that
+    if (initialLoading) {
       setLoadingFiles(true);
+      return;
     }
-    // Handle initial error
-    if (!hasInitialized && !initialLoading && initialError) {
-      setFilesError(initialError);
-      setLoadingFiles(false);
-      setHasInitialized(true);
-    }
+
+    // Loading finished (success or error) - sync state and mark initialized
+    setFilesData(initialFilesData);
+    setFilesError(initialError);
+    setLoadingFiles(false);
+    setHasInitialized(true);
   }, [initialFilesData, initialLoading, initialError, hasInitialized]);
 
   // RBAC: Get user role for permission checks
@@ -332,7 +344,12 @@ const FileManager: React.FC = (): JSX.Element => {
 
     // Refresh metadata to get the complete file info including review_status
     fetchFilesWithMetadata();
-  }, [selectedFolder, fetchFilesWithMetadata]);
+
+    // If viewing a specific folder, refresh folder files so the upload appears immediately
+    if (typeof selectedFolder === "number") {
+      refreshFiles(selectedFolder);
+    }
+  }, [selectedFolder, fetchFilesWithMetadata, refreshFiles]);
 
   // Handle file deleted - optimistically remove from state
   const handleFileDeleted = useCallback((fileId: string) => {
@@ -364,6 +381,15 @@ const FileManager: React.FC = (): JSX.Element => {
     setIsPreviewOpen(false);
     setPreviewFile(null);
   }, []);
+
+  // Open preview automatically when navigated from Wise Search.
+  useEffect(() => {
+    const state = location.state as { previewFileId?: number | string } | null;
+    if (state?.previewFileId) {
+      handleOpenPreview(state.previewFileId);
+      navigate(location.pathname + location.search, { replace: true, state: {} });
+    }
+  }, [location, handleOpenPreview, navigate]);
 
   // Metadata editor handlers
   const handleOpenMetadataEditor = useCallback(async (fileId: number | string) => {
@@ -698,6 +724,7 @@ const FileManager: React.FC = (): JSX.Element => {
       title="Evidence & documents"
       description="Organize and manage all files uploaded to the system."
       helpArticlePath="ai-governance/evidence-collection"
+
       tipBoxEntity="file-manager"
     >
       <PageTour
@@ -731,6 +758,8 @@ const FileManager: React.FC = (): JSX.Element => {
           onDeleteFolder={handleOpenDeleteFolder}
           loading={loadingFolders}
           canManage={canManageFolders}
+          collapsed={folderSidebarCollapsed}
+          onToggleCollapse={handleToggleFolderSidebar}
         />
 
         {/* File content area */}

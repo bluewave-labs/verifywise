@@ -235,6 +235,8 @@ export const CODE_EXTENSIONS = [
   ".r",
   ".R", // R
   ".jl", // Julia
+  ".yml",
+  ".yaml", // YAML (GitHub Actions workflows, docker-compose, etc.)
 ];
 
 /**
@@ -258,6 +260,11 @@ export const DEPENDENCY_FILES = [
   "mix.exs",
   "deps.edn",
   "Project.toml", // Julia
+  "Dockerfile", // Docker container definitions
+  "docker-compose.yml",
+  "docker-compose.yaml", // Docker Compose orchestration
+  "mcp.json", // MCP server configuration
+  "claude_desktop_config.json", // Claude Desktop MCP configuration
 ];
 
 /**
@@ -342,6 +349,11 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /openai\.beta\.threads\./,
             /client\.beta\.assistants\./,
             /client\.beta\.threads\./,
+            // Generic SDK client patterns (without openai. prefix)
+            /client\.chat\.completions\.create\s*\(/,
+            /client\.embeddings\.create\s*\(/,
+            /client\.images\.generate\s*\(/,
+            /client\.audio\.transcriptions\.create\s*\(/,
           ],
           secrets: [
             // OpenAI API keys (sk-... format, 40+ chars)
@@ -4257,6 +4269,204 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
   },
 
   // ============================================================================
+  // CI/CD & Infrastructure (GitHub Actions, Docker, MCP Config)
+  // ============================================================================
+  {
+    name: "CI/CD & Infrastructure",
+    findingType: "library",
+    patterns: [
+      // ========================
+      // GitHub Actions - AI Services
+      // ========================
+      {
+        name: "OpenAI (GitHub Actions)",
+        provider: "OpenAI",
+        description: "OpenAI API usage in CI/CD pipelines",
+        documentationUrl: "https://platform.openai.com/docs",
+        confidence: "high",
+        patterns: {
+          apiCalls: [
+            /uses:\s*openai\//,
+            /\$\{\{.*OPENAI_API_KEY.*\}\}/,
+          ],
+        },
+      },
+      {
+        name: "Anthropic (GitHub Actions)",
+        provider: "Anthropic",
+        description: "Anthropic Claude API usage in CI/CD pipelines",
+        documentationUrl: "https://docs.anthropic.com",
+        confidence: "high",
+        patterns: {
+          apiCalls: [
+            /\$\{\{.*ANTHROPIC_API_KEY.*\}\}/,
+          ],
+        },
+      },
+      {
+        name: "Azure OpenAI (GitHub Actions)",
+        provider: "Microsoft",
+        description: "Azure OpenAI Service usage in CI/CD pipelines",
+        documentationUrl: "https://learn.microsoft.com/azure/ai-services/openai",
+        confidence: "high",
+        patterns: {
+          apiCalls: [
+            /\$\{\{.*AZURE_OPENAI_API_KEY.*\}\}/,
+            /\$\{\{.*AZURE_OPENAI_ENDPOINT.*\}\}/,
+          ],
+        },
+      },
+      {
+        name: "Hugging Face (GitHub Actions)",
+        provider: "Hugging Face",
+        description: "Hugging Face API or models in CI/CD pipelines",
+        documentationUrl: "https://huggingface.co/docs",
+        confidence: "high",
+        patterns: {
+          apiCalls: [
+            /uses:\s*huggingface\//,
+            /\$\{\{.*HF_TOKEN.*\}\}/,
+            /\$\{\{.*HUGGING_FACE_HUB_TOKEN.*\}\}/,
+          ],
+        },
+      },
+      {
+        name: "Google AI (GitHub Actions)",
+        provider: "Google",
+        description: "Google AI/Vertex AI usage in CI/CD pipelines",
+        documentationUrl: "https://cloud.google.com/vertex-ai/docs",
+        confidence: "high",
+        patterns: {
+          apiCalls: [
+            /\$\{\{.*GOOGLE_AI_API_KEY.*\}\}/,
+            /\$\{\{.*GOOGLE_GENAI_API_KEY.*\}\}/,
+          ],
+        },
+      },
+      {
+        name: "Replicate (GitHub Actions)",
+        provider: "Replicate",
+        description: "Replicate API usage in CI/CD pipelines",
+        documentationUrl: "https://replicate.com/docs",
+        confidence: "high",
+        patterns: {
+          apiCalls: [
+            /\$\{\{.*REPLICATE_API_TOKEN.*\}\}/,
+          ],
+        },
+      },
+      // ========================
+      // Docker - AI/ML Containers
+      // ========================
+      {
+        name: "NVIDIA CUDA (Docker)",
+        provider: "NVIDIA",
+        description: "NVIDIA CUDA GPU containers for AI/ML workloads",
+        documentationUrl: "https://hub.docker.com/r/nvidia/cuda",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+nvidia\/cuda/i,
+            /FROM\s+\S*nvcr\.io/i,
+            /runtime:\s*nvidia/,
+          ],
+        },
+      },
+      {
+        name: "PyTorch (Docker)",
+        provider: "Meta",
+        description: "PyTorch container images for ML training and inference",
+        documentationUrl: "https://hub.docker.com/r/pytorch/pytorch",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+pytorch\/pytorch/i,
+            /FROM\s+\S*pytorch\S*gpu/i,
+          ],
+        },
+      },
+      {
+        name: "TensorFlow (Docker)",
+        provider: "Google",
+        description: "TensorFlow container images for ML workloads",
+        documentationUrl: "https://hub.docker.com/r/tensorflow/tensorflow",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+tensorflow\/tensorflow/i,
+            /FROM\s+\S*tensorflow\S*gpu/i,
+          ],
+        },
+      },
+      {
+        name: "Hugging Face Transformers (Docker)",
+        provider: "Hugging Face",
+        description: "Hugging Face container images for model inference",
+        documentationUrl: "https://huggingface.co/docs/transformers",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+huggingface\//i,
+            /ghcr\.io\/huggingface/,
+          ],
+        },
+      },
+      {
+        name: "Ollama (Docker)",
+        provider: "Ollama",
+        description: "Ollama local LLM server container",
+        documentationUrl: "https://ollama.com",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+ollama\/ollama/i,
+            /image:\s*ollama\/ollama/,
+          ],
+        },
+      },
+      {
+        name: "vLLM (Docker)",
+        provider: "vLLM",
+        description: "vLLM high-throughput LLM serving engine container",
+        documentationUrl: "https://docs.vllm.ai",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+vllm\/vllm/i,
+            /image:\s*vllm\/vllm/,
+          ],
+        },
+      },
+      {
+        name: "Triton Inference Server (Docker)",
+        provider: "NVIDIA",
+        description: "NVIDIA Triton Inference Server for model serving",
+        documentationUrl: "https://developer.nvidia.com/triton-inference-server",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+nvcr\.io\/nvidia\/tritonserver/i,
+            /image:\s*nvcr\.io\/nvidia\/tritonserver/,
+          ],
+        },
+      },
+      {
+        name: "MLflow (Docker)",
+        provider: "Databricks",
+        description: "MLflow model tracking and serving container",
+        documentationUrl: "https://mlflow.org/docs/latest",
+        confidence: "high",
+        patterns: {
+          dependencies: [
+            /FROM\s+\S*mlflow/i,
+            /image:\s*\S*mlflow/,
+          ],
+        },
+      },
+    ],
+  },
+
+  // ============================================================================
   // Hugging Face Model References
   // ============================================================================
   {
@@ -4750,6 +4960,10 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
             /Task\s*\([^)]*description\s*=/,
             /Crew\s*\([^)]*agents\s*=/,
             /\.kickoff\s*\(/,
+            /@agent\b/,
+            /@crew\b/,
+            /@CrewBase\b/,
+            /@flow\b/,
           ],
         },
       },
@@ -4874,6 +5088,7 @@ export const AI_DETECTION_PATTERNS: PatternCategory[] = [
           dependencies: [
             /^mcp[=<>~!\s]/m,
             /"@modelcontextprotocol\/sdk"\s*:/,
+            /"mcpServers"\s*:/,
           ],
           agentPatterns: [
             /Server\s*\(\s*\{[^}]*name\s*:/,

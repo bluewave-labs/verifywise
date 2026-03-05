@@ -4,7 +4,8 @@
     "lib": ["ES2023"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["node","vitest/globals"],
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "types": ["node", "vitest/globals"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

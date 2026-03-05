@@ -47,6 +47,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [contentWidth, setContentWidthLocal] = useState(DEFAULT_CONTENT_WIDTH);
+  const [isAdvisorEnlarged, setIsAdvisorEnlarged] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isHoveringHandle, setIsHoveringHandle] = useState(false);
   const [mouseY, setMouseY] = useState(0);
@@ -99,7 +100,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     return getDomainByPath(location.pathname);
   };
 
-  // Parse initial path on mount
+  // Parse initial path and switch to user-guide tab
   useEffect(() => {
     if (initialPath) {
       const parts = initialPath.split('/');
@@ -109,6 +110,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
           setArticleId(parts[1]);
         }
       }
+      setActiveTab('user-guide');
     }
   }, [initialPath]);
 
@@ -363,8 +365,27 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     }
   }
 
+  // Handle advisor enlarge toggle
+  const handleToggleAdvisorEnlarge = useCallback(() => {
+    setIsAdvisorEnlarged((prev) => {
+      const next = !prev;
+      const newWidth = next
+        ? Math.round(DEFAULT_CONTENT_WIDTH * 1.4)
+        : DEFAULT_CONTENT_WIDTH;
+      setContentWidth(newWidth);
+      return next;
+    });
+  }, [setContentWidth]);
+
+  // Guard against rapid open/close during CSS transition
+  const tabClickLockRef = useRef(false);
+
   // Handle tab click - open sidebar if closed, close if clicking active tab, or switch tab
   const handleTabClick = (tab: Tab) => {
+    if (tabClickLockRef.current) return;
+    tabClickLockRef.current = true;
+    setTimeout(() => { tabClickLockRef.current = false; }, 350);
+
     if (!isOpen) {
       onOpen();
       setActiveTab(tab);
@@ -374,6 +395,11 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
     } else {
       // Clicking a different tab switches to it
       setActiveTab(tab);
+      // Reset enlarge when switching away from advisor
+      if (isAdvisorEnlarged) {
+        setIsAdvisorEnlarged(false);
+        setContentWidth(DEFAULT_CONTENT_WIDTH);
+      }
     }
   };
 
@@ -442,7 +468,7 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
           position: 'absolute',
           left: 0,
           top: 0,
-          width: 8,
+          width: 4,
           height: '100%',
           cursor: 'ew-resize',
           zIndex: 20,
@@ -508,6 +534,8 @@ const SidebarWrapper: React.FC<SidebarWrapperProps> = ({
                 selectedLLMKeyId={selectedLLMKeyId}
                 onLLMKeyChange={handleLLMKeyChange}
                 onLLMKeysLoaded={handleLLMKeysLoaded}
+                isEnlarged={isAdvisorEnlarged}
+                onToggleEnlarge={handleToggleAdvisorEnlarge}
               />
             ): (
               <SidebarHeader

@@ -77,6 +77,9 @@ export const UserGuideSidebarProvider: React.FC<{ children: React.ReactNode }> =
   const open = useCallback((path?: string) => {
     setCurrentPath(path);
     setIsOpen(true);
+    if (path) {
+      setRequestedTab('user-guide');
+    }
   }, []);
 
   const close = useCallback(() => {

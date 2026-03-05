@@ -27,22 +27,27 @@ class UserProfile extends React.Component<UserProfileProps> {
 
 ### Component Declaration
 
-Use function declarations for components (not arrow functions).
+Both function declarations and arrow functions with `React.FC` are used throughout the codebase.
 
 ```tsx
-// Preferred: Function declaration
+// Function declaration
 function UserCard({ user }: UserCardProps) {
   return <Card>{user.name}</Card>;
 }
 
-// Also acceptable but less preferred
-const UserCard = ({ user }: UserCardProps) => {
+// Arrow function with React.FC (also widely used)
+const UserCard: React.FC<UserCardProps> = ({ user }) => {
   return <Card>{user.name}</Card>;
 };
 
 // Export named components
 export function UserCard({ user }: UserCardProps) {
   return <Card>{user.name}</Card>;
+}
+
+// Default export (common for page components)
+export default function UserPage() {
+  return <Container>...</Container>;
 }
 ```
 
@@ -115,24 +120,19 @@ export function UserCard({ userId, onSelect, variant = 'compact' }: UserCardProp
 
 ### Co-located Files
 
-Group related files together.
+Group related files together. The main component lives in `index.tsx`.
 
 ```
 components/
 └── UserCard/
-    ├── index.ts           # Re-exports
-    ├── UserCard.tsx       # Main component
+    ├── index.tsx          # Main component (directly exported)
     ├── UserCard.test.tsx  # Tests
-    ├── UserCard.styles.ts # Styled components (if needed)
     ├── UserAvatar.tsx     # Sub-component
     └── hooks.ts           # Component-specific hooks
 ```
 
-```typescript
-// index.ts
-export { UserCard } from './UserCard';
-export type { UserCardProps } from './UserCard';
-```
+> **Note:** In VerifyWise, components are typically exported directly from `index.tsx`
+> rather than using a separate re-export file. The component code lives in `index.tsx`.
 
 ## Props Patterns
 

@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
 import { Breadcrumbs } from "./index";
 import { PageBreadcrumbsProps } from "../../types/breadcrumbs.types";
-import DashboardActionButtons from "../Layout/DashboardActionButtons";
+import { DashboardActionButtons } from "../Layout/DashboardActionButtons";
 
 /**
  * A standardized PageBreadcrumbs component that follows the application's design patterns.

@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/bluewave-labs/verifywise-frontend:latest
+        image: ghcr.io/verifywise-ai/verifywise-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

@@ -193,6 +193,7 @@ export const getAllClausesWithSubClauseQuery = async (
       Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[],
       number,
     ];
+
     (
       clause as ISO27001ClauseStructModel & {
         subClauses: Partial<
@@ -300,6 +301,7 @@ export const getSubClauseByIdQuery = async (
       scs.key_questions AS key_questions,
       scs.evidence_examples AS evidence_examples,
       scs.clause_id AS clause_id,
+      scs.order_no AS order_no,
       sc.id AS id,
       sc.implementation_description AS implementation_description,
       sc.evidence_links AS evidence_links,
@@ -365,11 +367,18 @@ export const getMainClausesQuery = async (
     transaction
   )) as (ISO27001ClauseStructModel &
     Partial<ISO27001SubClauseStructModel & ISO27001SubClauseModel>[])[]; // wrong type
+
+  // Convert Sequelize models to plain objects to ensure subClauses survives JSON serialization
+  const clausesPlain = clausesStruct.map((clause: any) => ({
+    ...clause.dataValues,
+    subClauses: [] as any[],
+  }));
+
   let clausesStructMap = new Map();
-  for (let [i, clauseStruct] of clausesStruct.entries()) {
-    (clauseStruct.dataValues as any).subClauses = [];
-    clausesStructMap.set(clauseStruct.id, i);
+  for (let [i, clause] of clausesPlain.entries()) {
+    clausesStructMap.set(clause.id, i);
   }
+
   for (let subClauseId of subClauseIds) {
     const subClause = await getSubClauseByIdQuery(
       subClauseId,
@@ -377,12 +386,14 @@ export const getMainClausesQuery = async (
       transaction
     );
     if (subClause) {
-      (clausesStruct as any)[
-        clausesStructMap.get(subClause.clause_id!)
-      ].dataValues.subClauses.push(subClause);
+      const clauseIndex = clausesStructMap.get(subClause.clause_id!);
+      if (clauseIndex !== undefined) {
+        clausesPlain[clauseIndex].subClauses.push(subClause);
+      }
     }
   }
-  return clausesStruct;
+
+  return clausesPlain;
 };
 
 export const getAllAnnexesQuery = async (
@@ -509,6 +520,7 @@ export const getAnnexControlsByIdQuery = async (
       acs.key_questions AS key_questions,
       acs.evidence_examples AS evidence_examples,
       acs.annex_id AS annex_id,
+      acs.order_no AS order_no,
       ac.id AS id,
       ac.implementation_description AS implementation_description,
       ac.evidence_links AS evidence_links,

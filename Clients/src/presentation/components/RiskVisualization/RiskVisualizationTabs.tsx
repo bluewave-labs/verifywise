@@ -22,7 +22,7 @@ const RiskVisualizationTabs: React.FC<IRiskVisualizationTabsProps> = ({
       <TabContext value={value}>
         <TabBar
           tabs={[
-            { label: "Heat Map", value: "0", icon: "Grid3x3" },
+            { label: "Heat map", value: "0", icon: "Grid3x3" },
             { label: "Categories", value: "1", icon: "FolderKanban" },
           ]}
           activeTab={value}

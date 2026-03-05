@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { roleMap } from "./auth.middleware";
+import { checkPendingInvitationQuery } from "../utils/invitation.utils";
+import { getTenantHash } from "../tools/getTenantHash";
 
 const registerJWT = async (
   req: Request,
@@ -51,6 +53,17 @@ const registerJWT = async (
     if (Number(decoded.roleId) !== Number(roleId) || Number(decoded.organizationId) !== Number(organizationId) || !roleMap.has(Number(roleId))) {
       console.error("❌ Registration validation failed");
       return res.status(403).json({ message: 'Role or Organization mismatch' });
+    }
+
+    // Check if invitation is still pending (not revoked)
+    const tenantHash = getTenantHash(Number(decoded.organizationId));
+    const hasPendingInvitation = await checkPendingInvitationQuery(tenantHash, decoded.email);
+
+    if (!hasPendingInvitation) {
+      console.error("❌ Registration rejected: invitation was revoked or doesn't exist");
+      return res.status(403).json({
+        message: 'This invitation has been revoked. Please contact your administrator for a new invitation.'
+      });
     }
 
     // Proceed to next middleware or route handler

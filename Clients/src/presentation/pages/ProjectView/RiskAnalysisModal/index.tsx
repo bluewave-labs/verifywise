@@ -50,6 +50,10 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
   updateClassification,
 }) => {
   const theme = useTheme();
+  // Extract numeric ID for API calls (handles plugin-sourced IDs like "prefix-123")
+  const numericProjectId = projectId.includes("-")
+    ? parseInt(projectId.substring(projectId.lastIndexOf("-") + 1), 10) || 0
+    : parseInt(projectId, 10) || 0;
   const [currentQuestionId, setCurrentQuestionId] = useState<QuestionId>("Q1");
   const [answers, setAnswers] = useState<IQuestionnaireAnswers>({});
   const [showResults, setShowResults] = useState<boolean>(false);
@@ -184,7 +188,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
     const selectedRiskClass = getRiskClassificationType(classification.level);
 
     await updateProject({
-      id: Number(projectId),
+      id: numericProjectId,
       body: {
         id: projectId,
         ai_risk_classification: selectedRiskClass,

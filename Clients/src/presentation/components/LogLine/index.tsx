@@ -1,4 +1,3 @@
-import React from "react";
 import { Typography, Box, useTheme } from "@mui/material";
 
 interface LogLineProps {
@@ -6,7 +5,7 @@ interface LogLineProps {
   index: number;
 }
 
-const LogLine: React.FC<LogLineProps> = ({ line, index }) => {
+export function LogLine({ line, index }: LogLineProps) {
   const theme = useTheme();
 
   // Function to determine log level and apply appropriate styling
@@ -108,4 +107,3 @@ const LogLine: React.FC<LogLineProps> = ({ line, index }) => {
   );
 };
 
-export default LogLine;

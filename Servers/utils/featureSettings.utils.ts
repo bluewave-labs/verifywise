@@ -7,12 +7,18 @@
 import { sequelize } from "../database/db";
 import { Transaction } from "sequelize";
 
-export interface IFeatureSettings {
-  id?: number;
-  /** @deprecated Use plugin installation status (`isPluginInstalled("model-lifecycle")`) instead. */
+interface FeatureSettingsRow {
+  id: number;
   lifecycle_enabled: boolean;
-  updated_at?: string;
-  updated_by?: number | null;
+  audit_ledger_enabled: boolean;
+  updated_at: string;
+  updated_by: number | null;
+}
+
+interface FeatureSettingsUpdates {
+  lifecycle_enabled?: boolean;
+  audit_ledger_enabled?: boolean;
+  updated_by?: number;
 }
 
 /**
@@ -20,7 +26,7 @@ export interface IFeatureSettings {
  */
 export async function getFeatureSettingsQuery(
   tenant: string
-): Promise<IFeatureSettings> {
+): Promise<FeatureSettingsRow> {
   const [rows] = await sequelize.query(
     `SELECT * FROM "${tenant}".feature_settings WHERE id = 1`
   );
@@ -28,11 +34,15 @@ export async function getFeatureSettingsQuery(
   // Return defaults if no row exists yet
   if ((rows as any[]).length === 0) {
     return {
+      id: 1,
       lifecycle_enabled: true,
+      audit_ledger_enabled: true,
+      updated_at: new Date().toISOString(),
+      updated_by: null,
     };
   }
 
-  return (rows as IFeatureSettings[])[0];
+  return (rows as any[])[0];
 }
 
 /**
@@ -40,16 +50,22 @@ export async function getFeatureSettingsQuery(
  */
 export async function updateFeatureSettingsQuery(
   tenant: string,
-  updates: Partial<Omit<IFeatureSettings, "id" | "updated_at">>,
+  updates: FeatureSettingsUpdates,
   transaction?: Transaction
-): Promise<IFeatureSettings> {
-  const setClauses: string[] = ["updated_at = NOW()"];
-  const replacements: Record<string, unknown> = {};
+): Promise<FeatureSettingsRow> {
+  const setClauses = ["updated_at = NOW()"];
+  const replacements: Record<string, any> = {};
 
   if (updates.lifecycle_enabled !== undefined) {
     setClauses.push("lifecycle_enabled = :lifecycle_enabled");
     replacements.lifecycle_enabled = updates.lifecycle_enabled;
   }
+
+  if (updates.audit_ledger_enabled !== undefined) {
+    setClauses.push("audit_ledger_enabled = :audit_ledger_enabled");
+    replacements.audit_ledger_enabled = updates.audit_ledger_enabled;
+  }
+
   if (updates.updated_by !== undefined) {
     setClauses.push("updated_by = :updated_by");
     replacements.updated_by = updates.updated_by;
@@ -66,5 +82,5 @@ export async function updateFeatureSettingsQuery(
     }
   );
 
-  return (result as IFeatureSettings[])[0];
+  return (result as any[])[0];
 }

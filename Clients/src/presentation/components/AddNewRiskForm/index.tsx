@@ -41,6 +41,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import allowedRoles from "../../../application/constants/permissions";
 import { CustomizableButton } from "../button/customizable-button";
 import { RiskCalculator } from "../../tools/riskCalculator";
+import { HistorySidebar } from "../Common/HistorySidebar";
 import { getTabStyle } from "./style";
 import "./styles.module.css";
 
@@ -146,6 +147,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   usersLoading: usersLoadingProp,
   onSubmitRef,
   compactMode = false,
+  entityId,
 }) => {
   const theme = useTheme();
   const disableRipple =
@@ -809,6 +811,14 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               sx={tabStyle}
               disableRipple={disableRipple}
             />
+            {popupStatus === "edit" && entityId && (
+              <Tab
+                label="Activity"
+                value="activity"
+                sx={tabStyle}
+                disableRipple={disableRipple}
+              />
+            )}
           </TabList>
         </Box>
         <Suspense fallback={<div>Loading...</div>}>
@@ -846,6 +856,16 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               compactMode={compactMode}
             />
           </TabPanel>
+          {popupStatus === "edit" && entityId && (
+            <TabPanel value="activity" sx={{ p: 0 }}>
+              <HistorySidebar
+                inline
+                isOpen={true}
+                entityType="risk"
+                entityId={entityId}
+              />
+            </TabPanel>
+          )}
         </Suspense>
         {/* Only show internal button when not using StandardModal pattern (no onSubmitRef) */}
         {!onSubmitRef && (

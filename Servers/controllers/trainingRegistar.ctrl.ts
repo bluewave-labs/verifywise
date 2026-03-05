@@ -19,6 +19,12 @@ import {
 import logger from "../utils/logger/fileLogger";
 import { notifyTrainingAssigned } from "../services/inAppNotification.service";
 import { getAllUsersQuery } from "../utils/user.utils";
+import {
+  recordEntityCreation,
+  trackEntityChanges,
+  recordMultipleFieldChanges,
+  recordEntityDeletion,
+} from "../utils/changeHistory.base.utils";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -154,6 +160,26 @@ export async function createNewTrainingRegistar(
     );
 
     if (createdNewTrainingRegistar) {
+      // Record creation in change history
+      const trainingData = createdNewTrainingRegistar?.dataValues || createdNewTrainingRegistar;
+      const trainingId = trainingData?.id;
+      if (trainingId && req.userId) {
+        // Normalize numberOfPeople to people (DB column name) for change tracking
+        const normalizedData: Record<string, unknown> = {
+          ...newTrainingRegistar,
+          people: (newTrainingRegistar as any).numberOfPeople ?? (newTrainingRegistar as any).people,
+        };
+        delete (normalizedData as any).numberOfPeople;
+        await recordEntityCreation(
+          "training",
+          trainingId,
+          req.userId,
+          req.tenantId!,
+          normalizedData,
+          transaction
+        );
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: "Create",
@@ -250,6 +276,12 @@ export async function updateTrainingRegistarById(
     };
     delete updatedTrainingRegistar.numberOfPeople;
 
+    // Get existing data for change tracking
+    const existingTraining = await getTrainingRegistarByIdQuery(
+      trainingRegistarId,
+      req.tenantId!
+    );
+
     const trainingRegistar = await updateTrainingRegistarByIdQuery(
       trainingRegistarId,
       updatedTrainingRegistar,
@@ -258,6 +290,25 @@ export async function updateTrainingRegistarById(
     );
 
     if (trainingRegistar) {
+      // Record changes in change history
+      if (existingTraining && req.userId) {
+        const changes = await trackEntityChanges(
+          "training",
+          existingTraining,
+          updatedTrainingRegistar
+        );
+        if (changes.length > 0) {
+          await recordMultipleFieldChanges(
+            "training",
+            trainingRegistarId,
+            req.userId,
+            req.tenantId!,
+            changes,
+            transaction
+          );
+        }
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: "Update",
@@ -320,6 +371,11 @@ export async function deleteTrainingRegistarById(
     );
 
     if (deleteTrainingRegistar) {
+      // Record deletion in change history
+      if (req.userId) {
+        await recordEntityDeletion("training", trainingRegistarId, req.userId, req.tenantId!, transaction);
+      }
+
       await transaction.commit();
       await logSuccess({
         eventType: "Delete",

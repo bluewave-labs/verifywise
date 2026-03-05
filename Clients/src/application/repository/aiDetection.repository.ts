@@ -26,6 +26,11 @@ import {
   DependencyGraphResponse,
   ComplianceMappingResponse,
 } from "../../domain/ai-detection/types";
+import {
+  RiskScore,
+  RiskScoreResult,
+  RiskScoringConfig,
+} from "../../domain/ai-detection/riskScoringTypes";
 
 const BASE_URL = "/ai-detection";
 
@@ -509,6 +514,67 @@ export async function getComplianceMapping(
     {
       signal,
     }
+  );
+  return response.data.data;
+}
+
+// ============================================================================
+// Risk Scoring Operations
+// ============================================================================
+
+/**
+ * Get risk score for a scan
+ */
+export async function getRiskScore(
+  scanId: number,
+  signal?: AbortSignal,
+): Promise<RiskScore> {
+  const response = await apiServices.get<{ data: RiskScore }>(
+    `${BASE_URL}/scans/${scanId}/risk-score`,
+    { signal }
+  );
+  return response.data.data;
+}
+
+/**
+ * Recalculate risk score for a completed scan
+ */
+export async function recalculateRiskScore(
+  scanId: number,
+  signal?: AbortSignal,
+): Promise<RiskScoreResult> {
+  const response = await apiServices.post<{ data: RiskScoreResult }>(
+    `${BASE_URL}/scans/${scanId}/risk-score/recalculate`,
+    {},
+    { signal }
+  );
+  return response.data.data;
+}
+
+/**
+ * Get risk scoring configuration
+ */
+export async function getRiskScoringConfig(
+  signal?: AbortSignal,
+): Promise<RiskScoringConfig> {
+  const response = await apiServices.get<{ data: RiskScoringConfig }>(
+    `${BASE_URL}/risk-scoring/config`,
+    { signal }
+  );
+  return response.data.data;
+}
+
+/**
+ * Update risk scoring configuration
+ */
+export async function updateRiskScoringConfig(
+  config: Partial<Pick<RiskScoringConfig, "llm_enabled" | "llm_key_id" | "dimension_weights">>,
+  signal?: AbortSignal,
+): Promise<RiskScoringConfig> {
+  const response = await apiServices.patch<{ data: RiskScoringConfig }>(
+    `${BASE_URL}/risk-scoring/config`,
+    config,
+    { signal }
   );
   return response.data.data;
 }

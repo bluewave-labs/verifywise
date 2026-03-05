@@ -460,120 +460,161 @@ const useUser = () => useContext(UserContext);
 const useUserActions = () => useContext(UserActionsContext);
 ```
 
-## Redux Toolkit
+## Redux Toolkit (VerifyWise Setup)
 
-Use for complex global state that changes frequently.
+VerifyWise uses Redux Toolkit with `redux-persist` for client-side state management.
 
-### Store Setup
+### Store Structure
 
 ```typescript
-// store/index.ts
-import { configureStore } from '@reduxjs/toolkit';
-import { userReducer } from './slices/userSlice';
-import { notificationReducer } from './slices/notificationSlice';
+// application/redux/store.ts
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { persistReducer, persistStore } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+
+const persistConfig = {
+  key: "root",
+  storage,
+  whitelist: ["auth", "ui"],  // Only these slices are persisted
+};
+
+const rootReducer = combineReducers({
+  ui: uiSlice,
+  auth: authReducer,
+  files: fileReducer,
+});
 
 export const store = configureStore({
-  reducer: {
-    user: userReducer,
-    notifications: notificationReducer,
-  },
+  reducer: persistReducer(persistConfig, rootReducer),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 ```
 
-### Typed Hooks
+### Auth Slice (Core Slice)
+
+The auth slice is the primary Redux slice in VerifyWise:
 
 ```typescript
-// store/hooks.ts
-import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
-import type { RootState, AppDispatch } from './index';
-
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
-```
-
-### Creating Slices
-
-```typescript
-// store/slices/notificationSlice.ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface Notification {
-  id: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  message: string;
+// Auth state shape
+interface AuthState {
+  isLoading: boolean;
+  authToken: string;
+  user: string;
+  userExists: boolean;
+  success: boolean | null;
+  message: string | null;
+  expirationDate: number | null;
+  onboardingStatus: string;
+  isOrgCreator: boolean;
 }
 
-interface NotificationState {
-  items: Notification[];
-}
+// Key actions
+import { clearAuthState, setAuthToken, setUserExists } from "./auth/authSlice";
 
-const initialState: NotificationState = {
-  items: [],
-};
+// Logout
+dispatch(clearAuthState());
 
-const notificationSlice = createSlice({
-  name: 'notifications',
-  initialState,
-  reducers: {
-    addNotification: (state, action: PayloadAction<Omit<Notification, 'id'>>) => {
-      state.items.push({
-        ...action.payload,
-        id: Date.now().toString(),
-      });
-    },
-    removeNotification: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(n => n.id !== action.payload);
-    },
-    clearNotifications: (state) => {
-      state.items = [];
-    },
-  },
-});
-
-export const { addNotification, removeNotification, clearNotifications } =
-  notificationSlice.actions;
-
-export const notificationReducer = notificationSlice.reducer;
-
-// Selectors
-export const selectNotifications = (state: RootState) => state.notifications.items;
+// Set token after login
+dispatch(setAuthToken(token));
 ```
 
-### Usage in Components
+### Available Slices
+
+| Slice | Purpose | Persisted |
+|-------|---------|-----------|
+| `auth` | Authentication token, user info, onboarding | Yes |
+| `ui` | Sidebar state, modal state | Yes |
+| `files` | File upload state | No |
+
+### Version-Based Cache Invalidation
+
+The store automatically clears persisted data when the app version changes, ensuring users get fresh state on updates.
+
+### Using in Components
 
 ```tsx
-function NotificationCenter() {
-  const notifications = useAppSelector(selectNotifications);
-  const dispatch = useAppDispatch();
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/application/redux/store";
 
-  return (
-    <div>
-      {notifications.map(notification => (
-        <Alert
-          key={notification.id}
-          severity={notification.type}
-          onClose={() => dispatch(removeNotification(notification.id))}
-        >
-          {notification.message}
-        </Alert>
-      ))}
-    </div>
-  );
+function MyComponent() {
+  const { authToken, user } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
+
+  // Check role
+  const role = useSelector((state: RootState) => state.auth.role);
+  if (role !== "Admin") {
+    return <AccessDenied />;
+  }
+
+  return <AdminContent />;
+}
+```
+
+## Repository Pattern (Data Access)
+
+VerifyWise uses a repository pattern for API calls, located in `application/repository/`.
+
+### Repository Structure
+
+```typescript
+// application/repository/entity.repository.ts
+import CustomAxios from "@/infrastructure/api/customAxios";
+
+const BASE_URL = "/entities";
+
+export const entityRepository = {
+  async getAll(): Promise<Entity[]> {
+    const response = await CustomAxios.get(BASE_URL);
+    return response.data.data;
+  },
+
+  async getById(id: string): Promise<Entity> {
+    const response = await CustomAxios.get(`${BASE_URL}/${id}`);
+    return response.data.data;
+  },
+
+  async create(data: CreateEntityDto): Promise<Entity> {
+    const response = await CustomAxios.post(BASE_URL, data);
+    return response.data.data;
+  },
+
+  async update(id: string, data: UpdateEntityDto): Promise<Entity> {
+    const response = await CustomAxios.patch(`${BASE_URL}/${id}`, data);
+    return response.data.data;
+  },
+
+  async delete(id: string): Promise<void> {
+    await CustomAxios.delete(`${BASE_URL}/${id}`);
+  },
+};
+```
+
+### Using with React Query
+
+```typescript
+// application/hooks/useEntity.ts
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { entityRepository } from "@/application/repository/entity.repository";
+
+export function useEntity(id: string) {
+  return useQuery({
+    queryKey: ["entity", id],
+    queryFn: () => entityRepository.getById(id),
+    enabled: !!id,
+  });
 }
 
-// Dispatch from anywhere
-function SomeComponent() {
-  const dispatch = useAppDispatch();
+export function useCreateEntity() {
+  const queryClient = useQueryClient();
 
-  const handleError = (error: Error) => {
-    dispatch(addNotification({
-      type: 'error',
-      message: error.message,
-    }));
-  };
+  return useMutation({
+    mutationFn: entityRepository.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["entities"] });
+    },
+  });
 }
 ```
 

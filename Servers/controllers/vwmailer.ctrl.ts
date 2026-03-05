@@ -1,15 +1,12 @@
 import { Request, Response } from "express";
-import path from "path";
-import fs from "fs/promises";
-import { generateToken } from "../utils/jwt.utils";
-import { frontEndUrl } from "../config/constants";
-import { sendEmail } from "../services/emailService";
 import {
   logProcessing,
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
 import logger from "../utils/logger/fileLogger";
+import { createInvitationQuery } from "../utils/invitation.utils";
+import { sendInviteEmail } from "../utils/inviteEmail.utils";
 
 export const invite = async (
   _req: Request,
@@ -36,36 +33,28 @@ export const invite = async (
   );
 
   try {
-    // Read the MJML template file
-    const templatePath = path.resolve(
-      __dirname,
-      "../templates/account-creation-email.mjml"
-    );
-    const template = await fs.readFile(templatePath, "utf8");
-
-    const token = generateToken({
+    const { link, expiresAt, info } = await sendInviteEmail({
+      email: to,
       name,
       surname,
       roleId,
-      email: to,
       organizationId,
-    }) as string;
+    });
 
-    const link = `${frontEndUrl}/user-reg?${new URLSearchParams({
-      token,
-    }).toString()}`;
-
-    // Data to be replaced in the template
-    const data = { name, link };
-
-    // Send the email
-    const info = await sendEmail(
-      to,
-      "Create your account",
-      // "Please use the link to create your account.",
-      template,
-      data
-    );
+    // Persist invitation record
+    try {
+      await createInvitationQuery(
+        _req.tenantId!,
+        to,
+        name,
+        surname || "",
+        roleId,
+        _req.userId!,
+        expiresAt
+      );
+    } catch (invErr) {
+      console.error("Failed to persist invitation record:", invErr);
+    }
 
     if (info.error) {
       console.error("Error sending email:", info.error);

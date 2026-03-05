@@ -2,12 +2,31 @@
 
 .tab-item {
   transition: all 150ms ease;
+  background-color: transparent;
 }
 
 .tab-item:hover {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(19, 113, 91, 0.06) !important;
+}
+
+.tab-item.active {
+  background-color: #fff;
 }
 
 .tab-item.active:hover {
-  background-color: #fff;
+  background-color: #fff !important;
+}
+
+/* Subtle icon shake on hover */
+@keyframes icon-shake {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.tab-item:hover .tab-icon {
+  animation: icon-shake 400ms ease-in-out;
 }

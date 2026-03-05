@@ -1,6 +1,7 @@
 import React from "react";
 import { StatusTileCards, StatusTileItem } from "../../components/Cards/StatusTileCards";
 import { DatasetSummary as Summary } from "../../../domain/interfaces/i.dataset";
+import { palette } from "../../themes/palette";
 
 interface DatasetSummaryProps {
   summary: Summary;
@@ -14,11 +15,11 @@ const DatasetSummary: React.FC<DatasetSummaryProps> = ({
   selectedStatus,
 }) => {
   const items: StatusTileItem[] = [
-    { key: "total", label: "Total", count: summary.total, color: "#4B5563" },
-    { key: "draft", label: "Draft", count: summary.draft, color: "#9CA3AF" },
-    { key: "active", label: "Active", count: summary.active, color: "#4CAF50" },
-    { key: "deprecated", label: "Deprecated", count: summary.deprecated, color: "#FF9800" },
-    { key: "archived", label: "Archived", count: summary.archived, color: "#6B7280" },
+    { key: "total", label: "Total", count: summary.total, color: palette.text.tertiary },
+    { key: "draft", label: "Draft", count: summary.draft, color: palette.status.default.text },
+    { key: "active", label: "Active", count: summary.active, color: palette.status.success.text },
+    { key: "deprecated", label: "Deprecated", count: summary.deprecated, color: palette.risk.medium.text },
+    { key: "archived", label: "Archived", count: summary.archived, color: palette.text.accent },
   ];
 
   return (

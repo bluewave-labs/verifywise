@@ -8,11 +8,7 @@
 import React from "react";
 
 const BUILTIN_PLUGINS: Record<string, Record<string, React.LazyExoticComponent<React.ComponentType<any>>>> = {
-  "model-lifecycle": {
-    ModelLifecycleContent: React.lazy(
-      () => import("../../presentation/pages/ModelInventory/ModelDetailPage/ModelLifecycleContent")
-    ),
-  },
+  // Note: model-lifecycle is now a fully remote plugin with its own UI bundle
   "dataset-bulk-upload": {
     BulkUploadButton: React.lazy(
       () => import("../../presentation/pages/Datasets/BulkUpload/BulkUploadButton")

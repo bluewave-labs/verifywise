@@ -179,8 +179,8 @@ export class AutomationExecutionLogModel extends Model<AutomationExecutionLogMod
       status: this.status,
       error_message: this.error_message,
       execution_time_ms: this.execution_time_ms,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
+      created_at: (this.createdAt ?? this.created_at),
+      updated_at: (this.updatedAt ?? this.updated_at),
     };
   }
 }

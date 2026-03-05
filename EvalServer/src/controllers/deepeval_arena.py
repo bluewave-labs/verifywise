@@ -180,7 +180,13 @@ async def call_llm_model(
         
         else:
             # For other providers, try OpenAI-compatible API
-            client = openai.OpenAI(api_key=api_key, base_url=f"https://api.{provider}.com/v1")
+            provider_base_urls = {
+                "mistral": "https://api.mistral.ai/v1",
+                "xai": "https://api.x.ai/v1",
+                "openrouter": "https://openrouter.ai/api/v1",
+            }
+            base_url = provider_base_urls.get(provider.lower(), f"https://api.{provider}.com/v1")
+            client = openai.OpenAI(api_key=api_key, base_url=base_url)
             response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],

@@ -3,14 +3,12 @@ import {
   Stack,
   Typography,
   Box,
-  Button,
   MenuItem,
   ListItemIcon,
   ListItemText,
   Divider,
   Popover
 } from "@mui/material";
-import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo, useRef } from "react";
 import {
   CirclePlus as AddCircleOutlineIcon,
@@ -43,10 +41,8 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
-import PageHeader from "../../components/Layout/PageHeader";
+import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import { ButtonToggle } from "../../components/button-toggle";
-import TipBox from "../../components/TipBox";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
 import FrameworkRisks from "./FrameworkRisks";
@@ -343,40 +339,15 @@ const Framework = () => {
 
   const [linkedModelsCount, setLinkedModelsCount] = useState<number>(0);
 
-  // Status options following ProjectFrameworks pattern for ISO27001
-  const iso27001StatusOptions = [
-    { value: "not started", label: "Not Started" },
-    { value: "in progress", label: "In Progress" },
+  // Status options shared across all frameworks
+  const frameworkStatusOptions = [
+    { value: "not started", label: "Not started" },
+    { value: "in progress", label: "In progress" },
     { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting Approval" },
-    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "awaiting approval", label: "Awaiting approval" },
+    { value: "awaiting review", label: "Awaiting review" },
     { value: "draft", label: "Draft" },
-    // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs Rework" },
-  ];
-
-  // Status options for ISO42001 (same as project view)
-  const iso42001StatusOptions = [
-    { value: "not started", label: "Not Started" },
-    { value: "in progress", label: "In Progress" },
-    { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting Approval" },
-    { value: "awaiting review", label: "Awaiting Review" },
-    { value: "draft", label: "Draft" },
-    // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs Rework" },
-  ];
-
-  // Status options for NIST AI RMF (same as other frameworks)
-  const nistAiRmfStatusOptions = [
-    { value: "not started", label: "Not Started" },
-    { value: "in progress", label: "In Progress" },
-    { value: "implemented", label: "Implemented" },
-    { value: "awaiting approval", label: "Awaiting Approval" },
-    { value: "awaiting review", label: "Awaiting Review" },
-    { value: "draft", label: "Draft" },
-    // { value: "audited", label: "Audited" },
-    { value: "needs rework", label: "Needs Rework" },
+    { value: "needs rework", label: "Needs rework" },
   ];
 
   // User options for owner and reviewer filters
@@ -454,11 +425,13 @@ const Framework = () => {
         setSelectedFramework(nistAiRmfIndex);
       }
 
-      // Set tab based on parameters (simplified since we combined functions/categories)
-      if (subcategoryId) {
-        setNistAiRmfTabValue("subcategories");
-      } else {
-        setNistAiRmfTabValue("functions");
+      // Set tab based on functionId parameter (govern, map, measure, manage)
+      if (functionId) {
+        const validTabs = ["govern", "map", "measure", "manage"];
+        const normalizedFunctionId = functionId.toLowerCase();
+        if (validTabs.includes(normalizedFunctionId)) {
+          setNistAiRmfTabValue(normalizedFunctionId);
+        }
       }
     }
   }, [
@@ -663,7 +636,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso27001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -689,7 +662,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso27001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -743,7 +716,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso42001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -769,7 +742,7 @@ const Framework = () => {
                 onReviewerChange={setReviewerFilter}
                 onDueDateChange={setDueDateFilter}
                 onSearchTermChange={setSearchTerm}
-                statusOptions={iso42001StatusOptions}
+                statusOptions={frameworkStatusOptions}
                 ownerOptions={userOptions}
                 reviewerOptions={userOptions}
               />
@@ -818,9 +791,11 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "govern" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "govern" ? subcategoryId : null}
               />
             </TabPanel>
             <TabPanel value="map" sx={tabPanelStyle}>
@@ -829,9 +804,11 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "map" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "map" ? subcategoryId : null}
               />
             </TabPanel>
             <TabPanel value="measure" sx={tabPanelStyle}>
@@ -840,9 +817,11 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "measure" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "measure" ? subcategoryId : null}
               />
             </TabPanel>
             <TabPanel value="manage" sx={tabPanelStyle}>
@@ -851,9 +830,11 @@ const Framework = () => {
                 projectFrameworkId={getProjectFrameworkId("4") || ""}
                 statusFilter={statusFilter}
                 onStatusFilterChange={setStatusFilter}
-                statusOptions={nistAiRmfStatusOptions}
+                statusOptions={frameworkStatusOptions}
                 searchTerm={searchTerm}
                 onSearchTermChange={setSearchTerm}
+                initialCategoryId={functionId?.toLowerCase() === "manage" ? categoryId : null}
+                initialSubcategoryId={functionId?.toLowerCase() === "manage" ? subcategoryId : null}
               />
             </TabPanel>
           </TabContext>
@@ -890,28 +871,14 @@ const Framework = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
-      <PageBreadcrumbs />
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <PageHeader
-          title="Organizational Frameworks"
-          description="This page provides an overview of available AI and data governance frameworks to your organization."
-          rightContent={
-            <HelperIcon
-              articlePath="compliance/assessments"
-              size="small"
-            />
-          }
-        />
-        {/* Manage Project / New Project Button */}
-        <Box>
+    <Box ref={refs[0]}>
+      <PageHeaderExtended
+        title="Organizational Frameworks"
+        description="This page provides an overview of available AI and data governance frameworks to your organization."
+        helpArticlePath="compliance/assessments"
+        tipBoxEntity="framework"
+        actionButton={
+          <Box>
           {organizationalProject ? (
             <>
               <CustomizableButton
@@ -1030,34 +997,18 @@ const Framework = () => {
               </Popover>
             </>
           ) : (
-            <Button
+            <CustomizableButton
               variant="contained"
+              text="New Project"
               startIcon={<AddCircleOutlineIcon size={16} />}
               onClick={() => setIsProjectFormModalOpen(true)}
-              disabled={!allowedRoles.projects.create.includes(userRoleName)}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#0e5c47",
-                },
-                "&:disabled": {
-                  backgroundColor: "#cccccc",
-                  color: "#666666",
-                },
-              }}
-            >
-              New Project
-            </Button>
+              isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
+            />
           )}
-        </Box>
-      </Stack>
-
-      {/* Tips */}
-      <TipBox entityName="framework" />
-
-      {/* Only show framework content if organizational project exists */}
+          </Box>
+        }
+      >
+        {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <>
           <TabContext value={mainTabValue}>
@@ -1305,7 +1256,8 @@ const Framework = () => {
 
       {/* Page Tour */}
       <PageTour steps={FrameworkSteps} run={true} tourKey="framework-tour" />
-    </Stack>
+      </PageHeaderExtended>
+    </Box>
   );
 };
 

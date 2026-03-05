@@ -35,7 +35,7 @@ export interface IVendorRisksDialogProps {
 export interface AddNewVendorProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  value: string;
+  value?: string;
   onSuccess: () => void;
   existingVendor?: VendorModel | null;
   onChange?: () => void;

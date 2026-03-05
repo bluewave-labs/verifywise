@@ -2,12 +2,13 @@ import express, { Request, Response } from "express";
 import { sendEmail } from "../services/emailService";
 import fs from "fs";
 import path from "path";
-import { generateToken } from "../utils/jwt.utils";
+import { generateInviteToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { invite } from "../controllers/vwmailer.ctrl";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import rateLimit from "express-rate-limit";
 import { getUserByEmailQuery } from "../utils/user.utils";
+import authenticateJWT from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ const inviteLimiter = rateLimit({
   }
 });
 
-router.post("/invite", inviteLimiter, async (req, res) => {
+router.post("/invite", authenticateJWT, inviteLimiter, async (req, res) => {
   await invite(req, res, req.body);
 });
 
@@ -57,7 +58,7 @@ router.post("/reset-password", resetPasswordLimiter, async (req: Request, res: R
       );
       const template = fs.readFileSync(templatePath, "utf8");
 
-      const token = generateToken({
+      const token = generateInviteToken({
         name: name,
         email: to
       }) as string

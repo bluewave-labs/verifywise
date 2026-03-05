@@ -44,10 +44,10 @@ export class ModelInventoryModel
   version!: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.INTEGER,
     allowNull: true,
   })
-  approver?: string;
+  approver?: number;
 
   @Column({
     type: DataType.TEXT,
@@ -306,8 +306,8 @@ export class ModelInventoryModel
       hosting_provider: this.hosting_provider,
       security_assessment_data: this.security_assessment_data!= undefined ? this.security_assessment_data : [],
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
       projects: dataValues.projects || [],
       frameworks: dataValues.frameworks || [],
     };
@@ -344,8 +344,8 @@ export class ModelInventoryModel
       hosting_provider: this.hosting_provider,
       security_assessment_data: this.security_assessment_data!= undefined ? this.security_assessment_data : [],
       is_demo: this.is_demo,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      created_at: (this.createdAt ?? this.created_at)?.toISOString(),
+      updated_at: (this.updatedAt ?? this.updated_at)?.toISOString(),
       projects: dataValues.projects || [],
       frameworks: dataValues.frameworks || [],
     };
@@ -407,7 +407,7 @@ export class ModelInventoryModel
       provider: data.provider || "",
       model: data.model || "",
       version: data.version || "",
-      approver: data.approver || "",
+      approver: data.approver || undefined,
       capabilities: Array.isArray(data.capabilities)
         ? data.capabilities.join(", ")
         : data.capabilities || "",

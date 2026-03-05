@@ -1,16 +1,14 @@
-// PageHeaderExtended styles
-export const pageHeaderTitleSectionStyle = {
-  mt: "2px",
-};
+import { palette } from "../../themes/palette";
 
+// PageHeaderExtended styles
 export const pageHeaderSummaryCardsStyle = {
-  mb: "24px",
+  mb: "-3px",
 };
 
 // ApprovalButton styles
 export const approvalButtonStyle = {
-  background: '#F4F4F4',
-  color: '#344054',
+  background: palette.background.hover,
+  color: palette.text.secondary,
   fontWeight: 500,
   fontSize: '13px',
   height: '32px',
@@ -18,13 +16,13 @@ export const approvalButtonStyle = {
   padding: '8px 16px',
   borderRadius: '4px',
   textTransform: 'none' as const,
-  '&:hover': { color: '#13715B' },
+  '&:hover': { color: palette.brand.primary },
   transition: 'all 0.2s ease',
 };
 
 export const approvalCountBadgeStyle = {
-  backgroundColor: '#CBCFD7',
-  color: '#374151',
+  backgroundColor: palette.background.hover,
+  color: palette.text.secondary,
   px: '6px',
   py: '4px',
   ml: '8px',
@@ -43,27 +41,27 @@ export const approvalCountBadgeStyle = {
 export const actionButtonsStyles = {
   search: {
     backgroundColor: 'transparent',
-    color: '#666',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: '#d0d5dd' },
+    color: palette.text.tertiary,
+    border: `1px solid ${palette.border.light}`,
+    '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderColor: palette.border.dark },
   },
   approval_workflows: {
     backgroundColor: 'transparent',
-    color: '#13715B',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(19, 113, 91, 0.08)', borderColor: '#13715B' },
+    color: palette.accent.primary.text,
+    border: `1px solid ${palette.border.light}`,
+    '&:hover': { backgroundColor: palette.accent.primary.bg, borderColor: palette.accent.primary.border },
   },
   integrations: {
     backgroundColor: 'transparent',
-    color: '#8B5CF6',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(139, 92, 246, 0.08)', borderColor: '#8B5CF6' },
-    '&.Mui-disabled': { backgroundColor: 'transparent', color: '#8B5CF6', opacity: 0.5 },
+    color: palette.accent.purple.text,
+    border: `1px solid ${palette.border.light}`,
+    '&:hover': { backgroundColor: palette.accent.purple.bg, borderColor: palette.accent.purple.border },
+    '&.Mui-disabled': { backgroundColor: 'transparent', color: palette.accent.purple.text, opacity: 0.5 },
   },
   automations: {
     backgroundColor: 'transparent',
-    color: '#F97316',
-    border: '1px solid #e5e5e5',
-    '&:hover': { backgroundColor: 'rgba(249, 115, 22, 0.08)', borderColor: '#F97316' },
+    color: palette.accent.orange.text,
+    border: `1px solid ${palette.border.light}`,
+    '&:hover': { backgroundColor: palette.accent.orange.bg, borderColor: palette.accent.orange.border },
   },
 };

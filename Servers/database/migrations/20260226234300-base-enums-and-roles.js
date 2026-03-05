@@ -207,7 +207,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_risk_severity AS ENUM (
-            'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
+            'Critical', 'Major', 'Minor', 'Moderate', 'Negligible'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -428,10 +428,20 @@ module.exports = {
         END $$;
       `, { transaction });
 
-      // NIST AI RMF enum
+      // NIST AI RMF enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_nist_ai_rmf_status AS ENUM (
+            'Not started', 'Draft', 'In progress', 'Awaiting review',
+            'Awaiting approval', 'Implemented', 'Needs rework', 'Audited'
+          );
+        EXCEPTION WHEN duplicate_object THEN null;
+        END $$;
+      `, { transaction });
+
+      await queryInterface.sequelize.query(`
+        DO $$ BEGIN
+          CREATE TYPE enum_nist_ai_rmf_subcategories_status AS ENUM (
             'Not started', 'Draft', 'In progress', 'Awaiting review',
             'Awaiting approval', 'Implemented', 'Needs rework', 'Audited'
           );
@@ -449,7 +459,9 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           description VARCHAR(255) NOT NULL,
-          is_demo BOOLEAN DEFAULT false
+          is_demo BOOLEAN NOT NULL DEFAULT false,
+          created_at TIMESTAMP NOT NULL DEFAULT now(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
       `, { transaction });
 

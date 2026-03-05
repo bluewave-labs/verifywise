@@ -109,6 +109,9 @@ module.exports = {
       'ce_marking_audit_trail',
       'ce_marking_conformity_steps',
       'ce_markings',
+      // Audit & policy folders
+      'audit_ledger',
+      'policy_folder_mappings',
       // Misc tenant tables
       'file_access_logs',
       'advisor_conversations',
@@ -534,6 +537,7 @@ module.exports = {
           description TEXT,
           file_group_id UUID DEFAULT gen_random_uuid(),
           approval_workflow_id INTEGER,
+          approval_request_id INTEGER,
           content_text TEXT,
           content_search TSVECTOR
         );
@@ -546,6 +550,7 @@ module.exports = {
       await addColumn('files', 'expiry_date', 'DATE');
       await addColumn('files', 'file_group_id', 'UUID DEFAULT gen_random_uuid()');
       await addColumn('files', 'approval_workflow_id', 'INTEGER');
+      await addColumn('files', 'approval_request_id', 'INTEGER');
       await addColumn('files', 'content_text', 'TEXT');
       await addColumn('files', 'content_search', 'TSVECTOR');
     }
@@ -919,17 +924,18 @@ module.exports = {
           CREATE TABLE nist_ai_rmf_subcategories (
             id SERIAL PRIMARY KEY,
             organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
+            subcategory_meta_id INTEGER REFERENCES nist_ai_rmf_subcategories_struct(id) ON DELETE CASCADE,
+            projects_frameworks_id INTEGER NOT NULL,
             implementation_description TEXT,
-            status enum_nist_ai_rmf_status DEFAULT 'Not started',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP,
+            is_demo BOOLEAN DEFAULT FALSE,
+            status enum_nist_ai_rmf_subcategories_status DEFAULT 'Not started',
+            auditor_feedback TEXT,
             owner INTEGER REFERENCES users(id) ON DELETE SET NULL,
             reviewer INTEGER REFERENCES users(id) ON DELETE SET NULL,
             approver INTEGER REFERENCES users(id) ON DELETE SET NULL,
-            due_date DATE,
-            auditor_feedback TEXT,
-            subcategory_meta_id INTEGER REFERENCES nist_ai_rmf_subcategories_struct(id) ON DELETE CASCADE,
-            projects_frameworks_id INTEGER REFERENCES projects_frameworks(id) ON DELETE CASCADE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_demo BOOLEAN DEFAULT FALSE
+            due_date DATE
           );
         `);
       }
@@ -1465,6 +1471,7 @@ module.exports = {
           entity_id INTEGER NOT NULL,
           entity_name VARCHAR(255),
           created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
           UNIQUE(task_id, entity_type, entity_id)
         );
       `);
@@ -1959,13 +1966,13 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
           scan_id INTEGER,
-          finding_type VARCHAR(50),
+          finding_type VARCHAR(100),
           name VARCHAR(255),
           category VARCHAR(100),
           provider VARCHAR(100),
           description TEXT,
           documentation_url TEXT,
-          confidence NUMERIC(5,2),
+          confidence VARCHAR(20),
           severity VARCHAR(20),
           threat_type VARCHAR(100),
           risk_level VARCHAR(20),
@@ -2002,7 +2009,7 @@ module.exports = {
           repository_owner VARCHAR(255) NOT NULL,
           display_name VARCHAR(255),
           default_branch VARCHAR(255) DEFAULT 'main',
-          github_token_id INTEGER REFERENCES github_tokens(id) ON DELETE SET NULL,
+          github_token_id INTEGER,
           is_enabled BOOLEAN DEFAULT TRUE,
           schedule_enabled BOOLEAN DEFAULT FALSE,
           schedule_frequency VARCHAR(50),
@@ -2261,7 +2268,7 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
           title VARCHAR(255),
-          logo TEXT,
+          logo INTEGER,
           visible BOOLEAN DEFAULT TRUE,
           header_color VARCHAR(20),
           intro_visible BOOLEAN DEFAULT TRUE,
@@ -2404,7 +2411,7 @@ module.exports = {
           evidence_type VARCHAR(100),
           description TEXT,
           status VARCHAR(50) DEFAULT 'active',
-          expiry_date DATE,
+          expiry_date TIMESTAMP,
           mapped_model_ids INTEGER[],
           mapped_framework_ids INTEGER[],
           created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -2479,7 +2486,7 @@ module.exports = {
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
           user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
           entity_type VARCHAR(50),
-          entity_id INTEGER,
+          entity_id VARCHAR(100) NOT NULL,
           content TEXT,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
@@ -2528,13 +2535,110 @@ module.exports = {
         CREATE TABLE feature_settings (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          lifecycle_enabled BOOLEAN DEFAULT FALSE,
-          updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          updated_at TIMESTAMP DEFAULT NOW()
+          lifecycle_enabled BOOLEAN NOT NULL DEFAULT true,
+          audit_ledger_enabled BOOLEAN NOT NULL DEFAULT true,
+          updated_at TIMESTAMP DEFAULT now(),
+          updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL
         );
       `);
     } else {
       await addColumn('feature_settings', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
+    }
+
+    // audit_ledger
+    if (!(await tableExists('audit_ledger'))) {
+      // Create guard functions first
+      await queryInterface.sequelize.query(`
+        CREATE OR REPLACE FUNCTION audit_ledger_prevent_delete()
+        RETURNS trigger LANGUAGE plpgsql AS $func$
+        BEGIN
+          RAISE EXCEPTION 'DELETE on audit_ledger is prohibited — append-only table';
+        END;
+        $func$;
+      `);
+
+      await queryInterface.sequelize.query(`
+        CREATE OR REPLACE FUNCTION audit_ledger_guard_update()
+        RETURNS trigger LANGUAGE plpgsql AS $func$
+        BEGIN
+          IF OLD.entry_hash = RPAD('pending', 64, '0')
+             AND NEW.entry_hash ~ '^[a-f0-9]{64}$'
+             AND OLD.entry_type   = NEW.entry_type
+             AND OLD.user_id     IS NOT DISTINCT FROM NEW.user_id
+             AND OLD.occurred_at  = NEW.occurred_at
+             AND OLD.event_type  IS NOT DISTINCT FROM NEW.event_type
+             AND OLD.entity_type IS NOT DISTINCT FROM NEW.entity_type
+             AND OLD.entity_id   IS NOT DISTINCT FROM NEW.entity_id
+             AND OLD.action      IS NOT DISTINCT FROM NEW.action
+             AND OLD.field_name  IS NOT DISTINCT FROM NEW.field_name
+             AND OLD.old_value   IS NOT DISTINCT FROM NEW.old_value
+             AND OLD.new_value   IS NOT DISTINCT FROM NEW.new_value
+             AND OLD.description IS NOT DISTINCT FROM NEW.description
+             AND OLD.prev_hash    = NEW.prev_hash
+          THEN
+            RETURN NEW;
+          END IF;
+          RAISE EXCEPTION 'UPDATE on audit_ledger is prohibited — only sentinel hash finalization is allowed';
+        END;
+        $func$;
+      `);
+
+      await queryInterface.sequelize.query(`
+        CREATE TABLE audit_ledger (
+          id BIGSERIAL PRIMARY KEY,
+          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
+          entry_type VARCHAR(20) NOT NULL,
+          user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          event_type VARCHAR(20),
+          entity_type VARCHAR(60),
+          entity_id INTEGER,
+          action VARCHAR(20),
+          field_name TEXT,
+          old_value TEXT,
+          new_value TEXT,
+          description TEXT,
+          entry_hash CHAR(64) NOT NULL,
+          prev_hash CHAR(64) NOT NULL
+        );
+      `);
+
+      // Indexes
+      await createIndex('idx_audit_ledger_occurred_at', 'audit_ledger', 'occurred_at DESC');
+      await createIndex('idx_audit_ledger_user_id', 'audit_ledger', 'user_id');
+      await createIndex('idx_audit_ledger_entity', 'audit_ledger', 'entity_type, entity_id');
+
+      // Guard triggers
+      await queryInterface.sequelize.query(`
+        CREATE TRIGGER trg_audit_ledger_no_delete
+        BEFORE DELETE ON audit_ledger
+        FOR EACH ROW EXECUTE FUNCTION audit_ledger_prevent_delete();
+      `);
+
+      await queryInterface.sequelize.query(`
+        CREATE TRIGGER trg_audit_ledger_guard_update
+        BEFORE UPDATE ON audit_ledger
+        FOR EACH ROW EXECUTE FUNCTION audit_ledger_guard_update();
+      `);
+    } else {
+      await addColumn('audit_ledger', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
+    }
+
+    // policy_folder_mappings
+    if (!(await tableExists('policy_folder_mappings'))) {
+      await queryInterface.sequelize.query(`
+        CREATE TABLE policy_folder_mappings (
+          id SERIAL PRIMARY KEY,
+          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
+          policy_id INTEGER NOT NULL,
+          folder_id INTEGER NOT NULL REFERENCES virtual_folders(id) ON DELETE CASCADE,
+          assigned_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          assigned_at TIMESTAMPTZ DEFAULT now(),
+          UNIQUE(policy_id, folder_id)
+        );
+      `);
+    } else {
+      await addColumn('policy_folder_mappings', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
     }
 
     // slack_webhooks
@@ -3449,6 +3553,13 @@ module.exports = {
     await queryInterface.sequelize.query(`
       DO $$ BEGIN
         ALTER TABLE ce_marking_incidents ADD CONSTRAINT fk_ce_incidents_incident FOREIGN KEY (incident_id) REFERENCES ai_incident_managements(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
+
+    // AI detection repositories → github_tokens FK (deferred because github_tokens created later)
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ai_detection_repositories ADD CONSTRAINT fk_ai_detection_repos_github_token FOREIGN KEY (github_token_id) REFERENCES github_tokens(id) ON DELETE SET NULL;
       EXCEPTION WHEN duplicate_object THEN null; END $$;
     `);
 

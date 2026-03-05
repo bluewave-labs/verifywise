@@ -48,6 +48,24 @@ module.exports = {
     const tablesToDrop = [
       // Migration status
       'migration_status',
+      // ── Legacy public tables from old migrations (safe to drop) ──
+      // Old struct tables (renamed in new schema)
+      'annex_struct_iso',
+      'annex_struct_iso27001',
+      'nist_ai_rmf_categories',
+      'nist_ai_rmf_functions',
+      // Old public duplicates of tenant tables
+      'projectrisks',
+      'controlcategories',
+      'controls',
+      'subcontrols',
+      'topics',
+      'subtopics',
+      'questions',
+      // Shadow AI public tables (now tenant-scoped)
+      'shadow_ai_model_patterns',
+      'shadow_ai_tool_registry',
+      // ── End legacy tables ──
       // Automation tables
       'automation_triggers_actions',
       'automation_actions',
@@ -400,6 +418,9 @@ module.exports = {
         title TEXT NOT NULL,
         description TEXT,
         guidance TEXT,
+        summary TEXT,
+        questions TEXT[],
+        evidence_examples TEXT[],
         order_no INTEGER,
         is_demo BOOLEAN DEFAULT false
       );
@@ -410,8 +431,10 @@ module.exports = {
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         annex_id VARCHAR(50) NOT NULL,
+        sub_id INTEGER,
         title TEXT NOT NULL,
         description TEXT,
+        guidance TEXT,
         order_no INTEGER,
         is_demo BOOLEAN DEFAULT false
       );
@@ -442,6 +465,9 @@ module.exports = {
         title TEXT NOT NULL,
         description TEXT,
         guidance TEXT,
+        requirement_summary TEXT,
+        key_questions TEXT[],
+        evidence_examples TEXT[],
         order_no INTEGER,
         is_demo BOOLEAN DEFAULT false
       );
@@ -463,10 +489,14 @@ module.exports = {
       CREATE TABLE annexcontrols_struct_iso27001 (
         id SERIAL PRIMARY KEY,
         category_id INTEGER REFERENCES annexcategories_struct_iso27001(id) ON DELETE CASCADE,
+        annex_id INTEGER,
         control_id VARCHAR(50) NOT NULL,
         title TEXT NOT NULL,
         description TEXT,
         guidance TEXT,
+        requirement_summary TEXT,
+        key_questions TEXT[],
+        evidence_examples TEXT[],
         order_no INTEGER,
         is_demo BOOLEAN DEFAULT false
       );
@@ -570,18 +600,18 @@ module.exports = {
       CREATE TABLE nist_ai_rmf_subcategories (
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        subcategory_meta_id INTEGER REFERENCES nist_ai_rmf_subcategories_struct(id) ON DELETE CASCADE,
+        projects_frameworks_id INTEGER NOT NULL,
         implementation_description TEXT,
-        status VARCHAR(50) DEFAULT 'Not started',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP,
+        is_demo BOOLEAN DEFAULT FALSE,
+        status enum_nist_ai_rmf_subcategories_status DEFAULT 'Not started',
+        auditor_feedback TEXT,
         owner INTEGER REFERENCES users(id) ON DELETE SET NULL,
         reviewer INTEGER REFERENCES users(id) ON DELETE SET NULL,
         approver INTEGER REFERENCES users(id) ON DELETE SET NULL,
-        due_date DATE,
-        auditor_feedback TEXT,
-        subcategory_meta_id INTEGER REFERENCES nist_ai_rmf_subcategories_struct(id) ON DELETE CASCADE,
-        projects_frameworks_id INTEGER,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP,
-        is_demo BOOLEAN DEFAULT FALSE
+        due_date DATE
       );
     `);
 

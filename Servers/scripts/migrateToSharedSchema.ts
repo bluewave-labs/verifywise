@@ -49,7 +49,6 @@ import {
 const POSTGRES_ARRAY_COLUMNS: Record<string, string[]> = {
   answers_eu: ['dropdown_options'],
   evidence_hub: ['mapped_model_ids'],
-  nist_ai_rmf_subcategories: ['tags'],
   policy_manager: ['tags'],
   risks: ['risk_category'],
   // NOTE: shadow_ai_tools.domains is ARRAY in tenant but JSONB in public - handled by stringify

@@ -154,13 +154,14 @@ async function migrateNistSubcategories(queryInterface, orgId, tenantHash, newSt
       const [inserted] = await queryInterface.sequelize.query(
         `INSERT INTO public.nist_ai_rmf_subcategories
          (organization_id, implementation_description, status, owner, reviewer, approver, due_date,
-          auditor_feedback, subcategory_meta_id, projects_frameworks_id, created_at, is_demo)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          auditor_feedback, subcategory_meta_id, projects_frameworks_id, created_at, updated_at, is_demo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING id`,
         {
           bind: [orgId, row.implementation_description, row.status || 'Not started',
             row.owner, row.reviewer, row.approver, row.due_date, row.auditor_feedback,
-            newMetaId, row.projects_frameworks_id, row.created_at || new Date(), row.is_demo || false],
+            newMetaId, row.projects_frameworks_id, row.created_at || new Date(),
+            row.updated_at || null, row.is_demo || false],
           transaction
         }
       );

@@ -341,7 +341,7 @@ function normalizeSlateHtml(html: string): string {
   return n;
 }
 
-const sanitizeOptions: DOMPurify.Config = {
+const sanitizeOptions: Parameters<typeof DOMPurify.sanitize>[1] = {
   ALLOWED_TAGS: [
     "p", "br", "strong", "b", "em", "i", "u",
     "h1", "h2", "h3", "h4", "h5", "h6",

@@ -46,7 +46,6 @@ import {
   generateFieldId,
   generateSlug,
   DEFAULT_DESIGN_SETTINGS,
-  ENTITY_FIELD_MAPPINGS,
   analyzeMappingCoverage,
   createFieldFromMapping,
 } from "./types";
@@ -848,8 +847,6 @@ export function IntakeFormBuilder() {
                           const { missingRequired, missingOptional, typeMismatches } = mappingCoverage;
                           const allMapped = missingRequired.length === 0 && missingOptional.length === 0 && typeMismatches.length === 0;
                           const entityLabel = form.entityType === IntakeEntityType.USE_CASE ? "use case" : "model";
-                          const hasErrors = missingRequired.length > 0 || typeMismatches.length > 0;
-
                           const handleAddField = (m: typeof missingRequired[0]) => {
                             const newField = createFieldFromMapping(m, form.schema.fields.length);
                             setForm((prev) => ({

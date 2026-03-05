@@ -247,7 +247,7 @@ export default function AuditLedger() {
               text={isVerifying ? "Verifying..." : "Verify chain"}
               variant="contained"
               onClick={verify}
-              disabled={isVerifying}
+              isDisabled={isVerifying}
               sx={{ height: 34, minWidth: 120 }}
             />
           </Stack>

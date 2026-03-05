@@ -1,22 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Stack,
   Typography,
   CircularProgress,
   Chip,
+  IconButton,
 } from "@mui/material";
-import { FileText, Download, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { FileText, Download, Clock, CheckCircle, AlertTriangle, Eye, X, ExternalLink } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import Alert from "../../components/Alert";
 import ReportConfigModal from "./ReportConfigModal";
-import { generatePDFReport, generateCSVReport } from "./utils/reportGenerator";
-import type { ReportConfig, ReportExperimentData, ReportArenaData } from "./types";
+import type { ReportConfig } from "./types";
+import CustomAxios from "../../../infrastructure/api/customAxios";
 import {
   getAllExperiments,
-  getExperiment,
-  listArenaComparisons,
-  getArenaComparisonResults,
 } from "../../../application/repository/deepEval.repository";
 
 interface ReportPageProps {
@@ -61,6 +59,16 @@ export default function ReportPage({
     }
   });
 
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [pdfTitle, setPdfTitle] = useState("");
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    };
+  }, [pdfBlobUrl]);
+
   const loadExperiments = useCallback(async () => {
     try {
       setLoading(true);
@@ -86,104 +94,42 @@ export default function ReportPage({
   const handleGenerate = async (config: ReportConfig) => {
     setIsGenerating(true);
     try {
-      const experimentDataList: ReportExperimentData[] = [];
-
-      for (const expId of config.experimentIds) {
-        const detail = await getExperiment(expId);
-        const results = detail.results || detail;
-
-        const metricSummaries: Record<string, any> = {};
-        const metricThresholds: Record<string, number> = {};
-
-        if (results.metricSummaries || results.metric_summaries) {
-          const summaries = results.metricSummaries || results.metric_summaries;
-          for (const [key, val] of Object.entries(summaries) as [string, any][]) {
-            metricSummaries[key] = {
-              averageScore: val.averageScore ?? val.average_score ?? val.avg ?? 0,
-              passRate: val.passRate ?? val.pass_rate ?? 0,
-              minScore: val.minScore ?? val.min_score ?? val.min ?? 0,
-              maxScore: val.maxScore ?? val.max_score ?? val.max ?? 0,
-              totalEvaluated: val.totalEvaluated ?? val.total_evaluated ?? val.count ?? 0,
-            };
-          }
-        }
-
-        if (results.metricThresholds || results.metric_thresholds || detail.config?.metric_thresholds) {
-          const thresholds = results.metricThresholds || results.metric_thresholds || detail.config?.metric_thresholds || {};
-          for (const [key, val] of Object.entries(thresholds)) {
-            metricThresholds[key] = Number(val) || 0.5;
-          }
-        }
-
-        const detailedResults = config.includeDetailedSamples
-          ? (results.detailedResults || results.detailed_results || results.samples || []).map((s: any) => ({
-              sampleId: s.sampleId || s.sample_id || s.id || "",
-              protectedAttributes: s.protectedAttributes || s.protected_attributes || {},
-              input: s.input || s.query || "",
-              actualOutput: s.actualOutput || s.actual_output || s.output || s.response || "",
-              expectedOutput: s.expectedOutput || s.expected_output || "",
-              responseLength: s.responseLength || s.response_length || 0,
-              wordCount: s.wordCount || s.word_count || 0,
-              metricScores: s.metricScores || s.metric_scores || {},
-              timestamp: s.timestamp || "",
-            }))
-          : undefined;
-
-        experimentDataList.push({
-          id: detail.id || detail._id || expId,
-          name: detail.name || detail.config?.name || results.model || expId,
-          status: detail.status || "completed",
-          model: results.model || detail.config?.model?.model_name || "Unknown",
-          dataset: results.dataset || detail.config?.dataset?.name || "",
-          judge: detail.config?.judge?.model_name || detail.config?.judge?.name || "",
-          scorer: detail.config?.scorer?.name || "",
-          useCase: detail.config?.use_case || "",
-          totalSamples: results.totalSamples || results.total_samples || 0,
-          createdAt: detail.createdAt || detail.created_at || "",
-          completedAt: detail.completedAt || detail.completed_at || "",
-          duration: results.duration || detail.duration,
-          metricSummaries,
-          metricThresholds,
-          detailedResults,
-        });
-      }
-
-      let arenaData: ReportArenaData[] = [];
-      if (config.includeArena) {
-        try {
-          const arenaList = await listArenaComparisons(orgId ? { org_id: orgId } : undefined);
-          const comparisons = arenaList.comparisons || [];
-          for (const comp of comparisons.slice(0, 5)) {
-            try {
-              const result = await getArenaComparisonResults(comp.id || comp._id);
-              arenaData.push({
-                id: comp.id || comp._id,
-                name: comp.name || comp.id,
-                winner: result.winner || result.summary?.winner || "N/A",
-                contestants: (result.contestants || []).map((c: any) => ({
-                  model: c.model || c.name || "Unknown",
-                  wins: c.wins || 0,
-                  losses: c.losses || 0,
-                  ties: c.ties || 0,
-                  avgScore: c.avgScore || c.avg_score || 0,
-                })),
-                criteria: result.criteria || result.metrics || [],
-                rounds: result.rounds || result.total_rounds || 0,
-                createdAt: comp.created_at || comp.createdAt || "",
-              });
-            } catch {
-              // skip individual arena failures
-            }
-          }
-        } catch {
-          // arena data is optional
-        }
-      }
+      const response = await CustomAxios.post(
+        "/deepeval/reports/generate",
+        {
+          title: config.title,
+          format: config.format,
+          experimentIds: config.experimentIds,
+          sections: config.sections,
+          includeDetailedSamples: config.includeDetailedSamples,
+          includeArena: config.includeArena,
+          projectId,
+          orgName: orgName || orgId,
+        },
+        {
+          responseType: "blob",
+          timeout: 120000,
+        },
+      );
 
       if (config.format === "pdf") {
-        await generatePDFReport(config, experimentDataList, arenaData, projectName, orgName || orgId);
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+        const url = URL.createObjectURL(blob);
+        setPdfBlobUrl(url);
+        setPdfTitle(config.title || `${projectName} - Evaluation Report`);
+
+        setTimeout(() => {
+          pdfContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
       } else {
-        generateCSVReport(experimentDataList, projectName);
+        const blob = new Blob([response.data], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${(config.title || projectName).replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
       }
 
       const entry: ReportHistoryEntry = {
@@ -210,6 +156,24 @@ export default function ReportPage({
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDownloadCurrent = () => {
+    if (!pdfBlobUrl) return;
+    const a = document.createElement("a");
+    a.href = pdfBlobUrl;
+    a.download = `${pdfTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.pdf`;
+    a.click();
+  };
+
+  const handleOpenInNewTab = () => {
+    if (pdfBlobUrl) window.open(pdfBlobUrl, "_blank");
+  };
+
+  const closePdfViewer = () => {
+    if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    setPdfBlobUrl(null);
+    setPdfTitle("");
   };
 
   const completedCount = experiments.filter(e => e.status === "completed").length;
@@ -240,7 +204,17 @@ export default function ReportPage({
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.6, fontSize: 14 }}>
           Generate comprehensive evaluation reports from your experiment results.
-          Reports follow the EvalCards and Eval Factsheets standards for structured AI evaluation documentation.
+          Reports follow the{" "}
+          <Typography
+            component="a"
+            href="https://arxiv.org/abs/2206.11249"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ fontSize: 14, color: "#13715B", fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+          >
+            EvalCards
+          </Typography>{" "}
+          standard for structured AI evaluation documentation.
         </Typography>
       </Stack>
 
@@ -317,6 +291,56 @@ export default function ReportPage({
         )}
       </Box>
 
+      {/* PDF Viewer */}
+      {pdfBlobUrl && (
+        <Box
+          ref={pdfContainerRef}
+          sx={{
+            background: "#fff",
+            border: "1px solid #d0d5dd",
+            borderRadius: "4px",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              px: 2.5,
+              py: 1.5,
+              borderBottom: "1px solid #E5E7EB",
+              backgroundColor: "#F9FAFB",
+            }}
+          >
+            <Stack direction="row" alignItems="center" gap={1.5}>
+              <Eye size={16} color="#13715B" />
+              <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>
+                {pdfTitle}
+              </Typography>
+            </Stack>
+            <Stack direction="row" alignItems="center" gap={0.5}>
+              <IconButton size="small" onClick={handleDownloadCurrent} title="Download PDF">
+                <Download size={16} color="#6B7280" />
+              </IconButton>
+              <IconButton size="small" onClick={handleOpenInNewTab} title="Open in new tab">
+                <ExternalLink size={16} color="#6B7280" />
+              </IconButton>
+              <IconButton size="small" onClick={closePdfViewer} title="Close viewer">
+                <X size={16} color="#6B7280" />
+              </IconButton>
+            </Stack>
+          </Box>
+          <Box sx={{ width: "100%", height: "80vh", backgroundColor: "#525659" }}>
+            <iframe
+              src={pdfBlobUrl}
+              title="Report Preview"
+              style={{ width: "100%", height: "100%", border: "none" }}
+            />
+          </Box>
+        </Box>
+      )}
+
       {/* Report History */}
       {reportHistory.length > 0 && (
         <Box
@@ -354,8 +378,8 @@ export default function ReportPage({
                     sx={{
                       fontSize: 10,
                       height: 18,
-                      backgroundColor: entry.format === "PDF" ? "#ECFDF5" : "#ECFDF5",
-                      color: entry.format === "PDF" ? "#13715B" : "#065F46",
+                      backgroundColor: "#ECFDF5",
+                      color: "#13715B",
                     }}
                   />
                   <Chip
@@ -381,7 +405,7 @@ export default function ReportPage({
         </Box>
       )}
 
-      {/* Standards Info */}
+      {/* EvalCards Standard Info */}
       <Box
         sx={{
           background: "#F9FAFB",
@@ -391,19 +415,31 @@ export default function ReportPage({
         }}
       >
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#374054", mb: 1 }}>
-          Report standards
+          About EvalCards
         </Typography>
-        <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.7 }}>
-          Reports are structured following industry standards for AI evaluation documentation:
+        <Typography sx={{ fontSize: 12, color: "#6B7280", lineHeight: 1.8 }}>
+          Reports are structured following the{" "}
+          <Typography
+            component="a"
+            href="https://arxiv.org/abs/2206.11249"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ fontSize: 12, color: "#13715B", fontWeight: 600, textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+          >
+            EvalCards
+          </Typography>{" "}
+          standard — a structured documentation framework for AI evaluation results. Each report includes:
         </Typography>
-        <Stack spacing={0.5} sx={{ mt: 1 }}>
+        <Stack spacing={0.5} sx={{ mt: 1.5 }}>
           {[
-            ["EvalCards", "Structured evaluation documentation with metrics, context, and methodology"],
-            ["Eval Factsheets", "Standardized fields covering evaluation setup, scoring, and limitations"],
-            ["COMPL-AI", "EU AI Act compliance framework mapping for safety metrics"],
+            ["Evaluation context", "Model identity, dataset, judge configuration, and use case"],
+            ["Metric results", "Per-metric averages, pass/fail rates, and score distributions"],
+            ["Safety assessment", "Dedicated section for bias, toxicity, and hallucination metrics"],
+            ["Comparative analysis", "Arena comparison results when multiple models are evaluated"],
+            ["Methodology", "Scoring criteria, thresholds, and evaluation pipeline details"],
           ].map(([title, desc]) => (
             <Stack key={title} direction="row" gap={1} alignItems="baseline">
-              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#13715B", minWidth: 90 }}>
+              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#13715B", minWidth: 130, flexShrink: 0 }}>
                 {title}
               </Typography>
               <Typography sx={{ fontSize: 11, color: "#6B7280" }}>{desc}</Typography>

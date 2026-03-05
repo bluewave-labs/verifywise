@@ -185,7 +185,7 @@ export const EXPLORE_VIDEO_DATA: Record<string, ExploreVideoData> = {
         category: "DETECTION",
         title: "Tool detection\n& monitoring",
         description:
-          "Monitor network traffic and logs to detect unauthorized AI tool usage in real time.",
+          "Ingest events from your network tools and logs to track unauthorized AI tool usage.",
       },
       {
         number: "02",
@@ -234,7 +234,7 @@ export const EXPLORE_VIDEO_DATA: Record<string, ExploreVideoData> = {
         category: "TRACKING",
         title: "Due date\ntracking",
         description:
-          "Set review deadlines with automated reminders and overdue notifications.",
+          "Set review deadlines with automated due-soon reminders via email and Slack.",
       },
     ],
   },
@@ -297,7 +297,7 @@ export const EXPLORE_VIDEO_DATA: Record<string, ExploreVideoData> = {
         category: "COMPLIANCE",
         title: "Compliance\ncoverage",
         description:
-          "Ensure your team meets AI governance training requirements across all active frameworks.",
+          "Maintain a clear record of who has been trained for audit readiness and compliance reviews.",
       },
     ],
   },

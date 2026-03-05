@@ -41,7 +41,7 @@ export const FEATURES = [
     category: "INCIDENTS",
     title: "Incident\nmanagement",
     description:
-      "Detect, report, and resolve AI incidents with structured workflows and audit trails.",
+      "Report, track, and resolve AI incidents with structured workflows and audit trails.",
   },
   {
     number: "04",
@@ -69,7 +69,7 @@ export const FEATURES = [
     category: "AUTOMATION",
     title: "Automations\n& workflows",
     description:
-      "Rule-based automation engine with approval workflows, task routing, and Slack integration.",
+      "Rule-based automation engine with approval workflows, email notifications, and Slack integration.",
   },
   {
     number: "08",

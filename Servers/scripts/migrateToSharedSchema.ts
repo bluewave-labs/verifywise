@@ -1262,6 +1262,65 @@ export async function migrateToSharedSchema(options: {
       // be valid once the full struct data is loaded.
       await sequelize.query(`SET session_replication_role = replica;`, { transaction });
 
+      // ── Copy shared (non-tenant) tables from public → verifywise ──
+      // These tables are not tenant-scoped. They live in public and need to exist in verifywise.
+      const sharedTables = ['roles', 'organizations', 'users', 'tiers', 'subscriptions', 'subscription_history', 'frameworks'];
+      console.log("  Copying shared tables from public → verifywise...");
+      for (const table of sharedTables) {
+        // Check source exists
+        const [srcCheck] = await sequelize.query(
+          `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = :table) as exists`,
+          { replacements: { table }, type: QueryTypes.SELECT, transaction }
+        ) as any[];
+        if (!srcCheck.exists) continue;
+
+        // Check target exists
+        const [tgtCheck] = await sequelize.query(
+          `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'verifywise' AND table_name = :table) as exists`,
+          { replacements: { table }, type: QueryTypes.SELECT, transaction }
+        ) as any[];
+        if (!tgtCheck.exists) continue;
+
+        // Get common columns between source and target
+        const srcCols = (await sequelize.query(
+          `SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = :table ORDER BY ordinal_position`,
+          { replacements: { table }, type: QueryTypes.SELECT, transaction }
+        ) as any[]).map(r => r.column_name);
+        const tgtCols = new Set((await sequelize.query(
+          `SELECT column_name FROM information_schema.columns WHERE table_schema = 'verifywise' AND table_name = :table ORDER BY ordinal_position`,
+          { replacements: { table }, type: QueryTypes.SELECT, transaction }
+        ) as any[]).map(r => r.column_name));
+        const commonCols = srcCols.filter(c => tgtCols.has(c));
+        if (commonCols.length === 0) continue;
+
+        const colList = commonCols.map(c => `"${c}"`).join(', ');
+        const [countResult] = await sequelize.query(
+          `SELECT COUNT(*) as count FROM public."${table}"`,
+          { type: QueryTypes.SELECT, transaction }
+        ) as any[];
+        const count = parseInt(countResult.count, 10);
+        if (count === 0) continue;
+
+        await sequelize.query(
+          `INSERT INTO verifywise."${table}" (${colList})
+           SELECT ${colList} FROM public."${table}"
+           ON CONFLICT DO NOTHING`,
+          { transaction }
+        );
+
+        // Reset sequence so new inserts get correct IDs
+        if (commonCols.includes('id')) {
+          await sequelize.query(
+            `SELECT setval(pg_get_serial_sequence('verifywise."${table}"', 'id'), COALESCE((SELECT MAX(id) FROM verifywise."${table}"), 0))`,
+            { transaction }
+          );
+        }
+        console.log(`    ✓ ${table}: ${count} rows`);
+        tablesProcessed++;
+        rowsMigrated += count;
+      }
+      console.log("");
+
       // Global struct map for custom framework deduplication across orgs
       const globalStructMap: GlobalStructMap = {
         definitions: {},

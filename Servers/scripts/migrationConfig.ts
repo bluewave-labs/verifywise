@@ -66,6 +66,7 @@ export const MIGRATION_TABLE_ORDER = {
     'entity_graph_gap_rules',
     'entity_graph_views',
     // Other standalone tables
+    'audit_ledger',
     'advisor_conversations',
     'api_tokens',
     'bias_fairness_evaluations',
@@ -145,6 +146,8 @@ export const MIGRATION_TABLE_ORDER = {
     // File linking
     'file_entity_links',
     'file_folder_mappings',
+    // Policy folders
+    'policy_folder_mappings',
     // Approval
     'approval_requests',
     // Automation
@@ -346,6 +349,10 @@ export const FK_MAPPINGS: Record<string, Record<string, string>> = {
   },
   file_folder_mappings: {
     file_id: 'files',
+    folder_id: 'virtual_folders',
+  },
+  policy_folder_mappings: {
+    policy_id: 'policy_manager',
     folder_id: 'virtual_folders',
   },
   approval_requests: {

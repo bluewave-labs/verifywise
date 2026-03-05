@@ -9,7 +9,7 @@ import { IAutomation } from "../domain.layer/interfaces/i.automation";
 
 export const getAllAutomationTriggersQuery = async () => {
   const result = await sequelize.query(
-    `SELECT * FROM public.automation_triggers`,
+    `SELECT * FROM automation_triggers`,
     {
       mapToModel: true,
       model: AutomationTriggerModel
@@ -21,8 +21,8 @@ export const getAllAutomationTriggersQuery = async () => {
 export const getAllAutomationActionsByTriggerIdQuery = async (triggerId: number) => {
   const result = await sequelize.query(
     `SELECT aa.*
-     FROM public.automation_triggers_actions ata
-     JOIN public.automation_actions aa ON ata.action_id = aa.id
+     FROM automation_triggers_actions ata
+     JOIN automation_actions aa ON ata.action_id = aa.id
      WHERE ata.trigger_id = :triggerId
      ORDER BY ata.action_id`,
     {

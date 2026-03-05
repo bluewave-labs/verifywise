@@ -39,7 +39,7 @@ import { hasPendingApprovalQuery } from "../utils/approvalRequest.utils";
 // Helper function to get user name
 async function getUserNameById(userId: number): Promise<string> {
   const result = await sequelize.query<{ name: string; surname: string }>(
-    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    `SELECT name, surname FROM users WHERE id = :userId`,
     { replacements: { userId }, type: QueryTypes.SELECT }
   );
   if (result[0]) {
@@ -75,8 +75,8 @@ async function notifyEuAiActAssignment(
     const subcontrolResult = await sequelize.query<{ description: string; control_id: number; subcontrol_order_no: number; control_order_no: number }>(
       `SELECT scs.description, sc.control_id, scs.order_no as subcontrol_order_no, cs.order_no as control_order_no
        FROM subcontrols_eu sc
-       JOIN public.subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id
-       JOIN public.controls_struct_eu cs ON scs.control_id = cs.id
+       JOIN subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id
+       JOIN controls_struct_eu cs ON scs.control_id = cs.id
        WHERE sc.organization_id = :organizationId AND sc.id = :entityId`,
       { replacements: { organizationId: req.organizationId!, entityId }, type: QueryTypes.SELECT }
     );
@@ -103,7 +103,7 @@ async function notifyEuAiActAssignment(
         const controlResult = await sequelize.query<{ title: string }>(
           `SELECT cs.title
            FROM controls_eu c
-           JOIN public.controls_struct_eu cs ON c.control_meta_id = cs.id
+           JOIN controls_struct_eu cs ON c.control_meta_id = cs.id
            WHERE c.organization_id = :organizationId AND c.id = :controlId`,
           { replacements: { organizationId: req.organizationId!, controlId: resolvedControlId }, type: QueryTypes.SELECT }
         );
@@ -445,7 +445,7 @@ export async function saveControls(
         const currentSubcontrolResult = (await sequelize.query(
           `SELECT sc.owner, sc.reviewer, sc.approver, scs.title
            FROM subcontrols_eu sc
-           JOIN public.subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id
+           JOIN subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id
            WHERE sc.organization_id = :organizationId AND sc.id = :id;`,
           {
             replacements: { organizationId: req.organizationId!, id: parseInt(subcontrol.id) },

@@ -34,7 +34,7 @@ import { getUserProjects } from "../utils/user.utils";
 // Helper function to get user name
 async function getUserNameById(userId: number): Promise<string> {
   const result = await sequelize.query<{ name: string; surname: string }>(
-    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    `SELECT name, surname FROM users WHERE id = :userId`,
     { replacements: { userId }, type: QueryTypes.SELECT }
   );
   if (result[0]) {
@@ -61,9 +61,9 @@ async function notifyNistAiRmfAssignment(
     // Uses struct tables for hierarchy data
     const result = await sequelize.query<{ func_type: string; category_struct_id: number; category_id: number; subcategory_id: number; subcategory_description: string }>(
       `SELECT ss.function as func_type, cs.id as category_struct_id, cs.category_id, ss.subcategory_id, ss.description as subcategory_description
-       FROM public.nist_ai_rmf_subcategories s
-       JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
-       JOIN public.nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
+       FROM nist_ai_rmf_subcategories s
+       JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+       JOIN nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
        WHERE s.organization_id = :organizationId AND s.id = :entityId`,
       { replacements: { organizationId: req.organizationId!, entityId }, type: QueryTypes.SELECT }
     );
@@ -289,8 +289,8 @@ export async function updateNISTAIRMFSubcategoryById(
     // Join with struct table to get description (used as title for display)
     const currentSubcategoryResult = (await sequelize.query(
       `SELECT s.owner, s.reviewer, s.approver, ss.description as title
-       FROM public.nist_ai_rmf_subcategories s
-       LEFT JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+       FROM nist_ai_rmf_subcategories s
+       LEFT JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
        WHERE s.organization_id = :organizationId AND s.id = :id;`,
       {
         replacements: { organizationId: req.organizationId!, id: subcategoryId },

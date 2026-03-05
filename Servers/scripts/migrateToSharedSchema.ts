@@ -2,7 +2,7 @@
  * Migrate Tenant Data to Shared Schema
  *
  * This script migrates data from old tenant schemas (e.g., "abc123".projects)
- * to the new shared public schema (projects with organization_id).
+ * to the new shared verifywise schema (projects with organization_id).
  *
  * USAGE:
  *   npm run migrate:shared-schema
@@ -14,7 +14,7 @@
  *
  * WHAT THIS SCRIPT DOES:
  *   1. Finds all organizations with tenant schemas
- *   2. For each tenant, copies data from tenant schema to public schema
+ *   2. For each tenant, copies data from tenant schema to verifywise schema
  *   3. Remaps all foreign key references using in-memory mapping
  *   4. Validates row counts match
  *   5. Drops tenant schemas after successful migration (configurable)
@@ -27,6 +27,7 @@ import {
   FK_MAPPINGS,
   STRUCT_REFERENCES,
   SKIP_TABLES,
+  TARGET_TABLE_MAP,
   MIGRATION_KEY,
   BATCH_SIZE,
   getAllTablesInOrder,
@@ -40,18 +41,18 @@ import {
 // ============================================================
 
 /**
- * PostgreSQL ARRAY columns in the PUBLIC schema that should NOT be JSON.stringify'd
+ * PostgreSQL ARRAY columns in the VERIFYWISE schema that should NOT be JSON.stringify'd
  * These need to stay as JavaScript arrays for Sequelize to convert properly
  *
- * NOTE: Only include columns where BOTH tenant and public schemas use ARRAY type.
- * If public schema has JSONB but tenant has ARRAY, the array needs to be stringified.
+ * NOTE: Only include columns where BOTH tenant and verifywise schemas use ARRAY type.
+ * If verifywise schema has JSONB but tenant has ARRAY, the array needs to be stringified.
  */
 const POSTGRES_ARRAY_COLUMNS: Record<string, string[]> = {
   answers_eu: ['dropdown_options'],
   evidence_hub: ['mapped_model_ids'],
   policy_manager: ['tags'],
   risks: ['risk_category'],
-  // NOTE: shadow_ai_tools.domains is ARRAY in tenant but JSONB in public - handled by stringify
+  shadow_ai_tools: ['domains'],
 };
 
 /**
@@ -176,7 +177,7 @@ async function getRowCount(
   let query = `SELECT COUNT(*) as count FROM "${schemaName}"."${tableName}"`;
   const replacements: any = {};
 
-  if (organizationId !== undefined && schemaName === "public") {
+  if (organizationId !== undefined && schemaName === "verifywise") {
     query += ` WHERE organization_id = :organizationId`;
     replacements.organizationId = organizationId;
   }
@@ -192,6 +193,22 @@ async function getRowCount(
 /**
  * Get column names for a table (excluding 'id' and 'organization_id')
  */
+/**
+ * Tables with non-serial ID columns (VARCHAR/UUID) that must be explicitly inserted.
+ * These IDs are application-generated, not auto-incremented by PostgreSQL.
+ */
+const TABLES_WITH_STRING_ID: string[] = [
+  'llm_evals_organizations',
+  'llm_evals_projects',
+  'llm_evals_models',
+  'llm_evals_scorers',
+  'llm_evals_experiments',
+  'llm_evals_arena_comparisons',
+  'llm_evals_bias_audits',
+  'llm_evals_logs',
+  'llm_evals_metrics',
+];
+
 async function getTableColumns(
   schemaName: string,
   tableName: string,
@@ -205,13 +222,14 @@ async function getTableColumns(
     { replacements: { schemaName, tableName }, type: QueryTypes.SELECT, transaction }
   );
 
+  const keepId = TABLES_WITH_STRING_ID.includes(tableName);
   return (result as any[])
     .map((r) => r.column_name)
-    .filter((col) => col !== "id" && col !== "organization_id");
+    .filter((col) => col !== "organization_id" && (col !== "id" || keepId));
 }
 
 /**
- * Check if public table has organization_id column
+ * Check if verifywise table has organization_id column
  */
 async function hasOrganizationIdColumn(
   tableName: string,
@@ -220,7 +238,7 @@ async function hasOrganizationIdColumn(
   const result = await sequelize.query(
     `SELECT EXISTS (
       SELECT 1 FROM information_schema.columns
-      WHERE table_schema = 'public'
+      WHERE table_schema = 'verifywise'
         AND table_name = :tableName
         AND column_name = 'organization_id'
     ) as exists`,
@@ -234,7 +252,7 @@ async function hasOrganizationIdColumn(
 // ============================================================
 
 /**
- * Migrate a single table from tenant schema to public schema
+ * Migrate a single table from tenant schema to verifywise schema
  */
 async function migrateTable(
   orgId: number,
@@ -249,12 +267,8 @@ async function migrateTable(
     return { sourceCount: 0, migratedCount: 0 };
   }
 
-  // Check if target table exists in public schema
-  const targetExists = await tableExists("public", tableName, transaction);
-  if (!targetExists) {
-    console.log(`    ⊘ ${tableName}: target table doesn't exist in public schema`);
-    return { sourceCount: 0, migratedCount: 0 };
-  }
+  // Resolve target table name (handles renames like automation_actions -> automation_actions_data)
+  const targetTableName = TARGET_TABLE_MAP[tableName] || tableName;
 
   // Get row count
   const sourceCount = await getRowCount(tenantHash, tableName, transaction);
@@ -262,16 +276,10 @@ async function migrateTable(
     return { sourceCount: 0, migratedCount: 0 };
   }
 
-  // Get columns that exist in BOTH source (tenant) and target (public) tables
+  // Get columns that exist in BOTH source (tenant) and target (verifywise) tables
   // This handles schema mismatches where tenant has extra columns
   const sourceColumns = await getTableColumns(tenantHash, tableName, transaction);
-  const targetColumns = await getTableColumns("public", tableName, transaction);
-
-  // DEBUG: Print columns for critical tables
-  if (tableName === 'files' || tableName === 'vendorrisks') {
-    console.log(`    DEBUG ${tableName} sourceColumns: ${sourceColumns.join(', ')}`);
-    console.log(`    DEBUG ${tableName} targetColumns: ${targetColumns.join(', ')}`);
-  }
+  const targetColumns = await getTableColumns("verifywise", targetTableName, transaction);
 
   const targetColumnSet = new Set(targetColumns);
   const commonColumns = sourceColumns.filter(col => targetColumnSet.has(col));
@@ -279,21 +287,16 @@ async function migrateTable(
   // Debug logging for column detection
   if (sourceColumns.length !== commonColumns.length) {
     const skippedCols = sourceColumns.filter(col => !targetColumnSet.has(col));
-    console.log(`    ℹ️  ${tableName}: skipping columns not in public schema: ${skippedCols.join(', ')}`);
-  }
-
-  // DEBUG: Print final common columns for critical tables
-  if (tableName === 'files' || tableName === 'vendorrisks') {
-    console.log(`    DEBUG ${tableName} commonColumns: ${commonColumns.join(', ')}`);
+    console.log(`    ℹ️  ${tableName}: skipping columns not in verifywise schema: ${skippedCols.join(', ')}`);
   }
 
   if (commonColumns.length === 0) {
-    console.log(`    ⊘ ${tableName}: no common columns between tenant and public schema`);
+    console.log(`    ⊘ ${tableName}: no common columns between tenant and verifywise schema`);
     return { sourceCount: 0, migratedCount: 0 };
   }
 
   // Check if target has organization_id
-  const hasOrgId = await hasOrganizationIdColumn(tableName, transaction);
+  const hasOrgId = await hasOrganizationIdColumn(targetTableName, transaction);
 
   // Get FK mappings for this table
   const fkMappings = FK_MAPPINGS[tableName] || {};
@@ -340,9 +343,9 @@ async function migrateTable(
         if (fkMappings[col] && value !== null && value !== undefined) {
           const sourceTable = fkMappings[col];
 
-          // Skip remapping for struct references (meta_id columns point to public struct tables)
+          // Skip remapping for struct references (meta_id columns point to verifywise struct tables)
           if (isStructReference && col.endsWith("_meta_id")) {
-            // Keep original value - it references public schema struct data
+            // Keep original value - it references verifywise schema struct data
             insertData[col] = value;
           } else if (idMapping[sourceTable] && idMapping[sourceTable][value]) {
             // Remap to new ID
@@ -391,17 +394,11 @@ async function migrateTable(
       const placeholders = targetValues.map((_, i) => `$${i + 1}`).join(", ");
       const columnList = targetColumns.map((c) => `"${c}"`).join(", ");
 
-      // DEBUG: Print INSERT statement for first row of critical tables
-      if ((tableName === 'files' || tableName === 'vendorrisks') && offset === 0 && migratedCount === 0) {
-        console.log(`    DEBUG ${tableName} INSERT columnList: ${columnList}`);
-        console.log(`    DEBUG ${tableName} INSERT values count: ${targetValues.length}`);
-      }
-
       try {
         if (hasIdColumn) {
           // Table has id column - use RETURNING id for mapping
           const [insertResult] = await sequelize.query(
-            `INSERT INTO public."${tableName}" (${columnList})
+            `INSERT INTO "${targetTableName}" (${columnList})
              VALUES (${placeholders})
              RETURNING id`,
             {
@@ -419,7 +416,7 @@ async function migrateTable(
         } else {
           // Junction table without id column - just insert, no ID mapping needed
           await sequelize.query(
-            `INSERT INTO public."${tableName}" (${columnList})
+            `INSERT INTO "${targetTableName}" (${columnList})
              VALUES (${placeholders})`,
             {
               bind: targetValues,
@@ -436,7 +433,7 @@ async function migrateTable(
           if (hasIdColumn) {
             // Try to find existing row and add to mapping
             const existing = await sequelize.query(
-              `SELECT id FROM public."${tableName}"
+              `SELECT id FROM "${targetTableName}"
                WHERE organization_id = :orgId
                ORDER BY id
                LIMIT 1 OFFSET :offset`,
@@ -499,7 +496,7 @@ interface GlobalStructMap {
 }
 
 /**
- * Migrate custom framework data from tenant schema to public schema
+ * Migrate custom framework data from tenant schema to verifywise schema
  * using the struct/impl split pattern.
  */
 async function migrateCustomFrameworkData(
@@ -540,7 +537,7 @@ async function migrateCustomFrameworkData(
       defId = globalStructMap.definitions[pluginKey];
     } else {
       const existingDef = (await sequelize.query(
-        `SELECT id FROM public.custom_framework_definitions WHERE plugin_key = :pluginKey LIMIT 1`,
+        `SELECT id FROM custom_framework_definitions WHERE plugin_key = :pluginKey LIMIT 1`,
         { replacements: { pluginKey }, type: QueryTypes.SELECT, transaction }
       )) as any[];
 
@@ -548,7 +545,7 @@ async function migrateCustomFrameworkData(
         defId = existingDef[0].id;
       } else {
         const insertedDef = (await sequelize.query(
-          `INSERT INTO public.custom_framework_definitions
+          `INSERT INTO custom_framework_definitions
            (plugin_key, name, description, version, is_organizational, hierarchy_type,
             level_1_name, level_2_name, level_3_name, file_source, created_at, updated_at)
            VALUES (:pluginKey, :name, :description, :version, :isOrg, :hierarchyType,
@@ -580,7 +577,7 @@ async function migrateCustomFrameworkData(
 
     // 1b. Create per-org custom_frameworks record
     const insertedFw = (await sequelize.query(
-      `INSERT INTO public.custom_frameworks
+      `INSERT INTO custom_frameworks
        (organization_id, definition_id, plugin_key, name, description, version,
         is_organizational, hierarchy_type, level_1_name, level_2_name, level_3_name,
         file_source, created_at, updated_at)
@@ -616,7 +613,7 @@ async function migrateCustomFrameworkData(
 
         for (const l1 of l1Rows) {
           const inserted = (await sequelize.query(
-            `INSERT INTO public.custom_framework_level1_struct
+            `INSERT INTO custom_framework_level1_struct
              (definition_id, title, description, order_no, metadata, created_at)
              VALUES (:defId, :title, :description, :orderNo, :metadata::jsonb, :createdAt)
              RETURNING id`,
@@ -648,7 +645,7 @@ async function migrateCustomFrameworkData(
               const newL1Id = l1IdMap[l2.level1_id];
               if (!newL1Id) continue;
               const inserted = (await sequelize.query(
-                `INSERT INTO public.custom_framework_level2_struct
+                `INSERT INTO custom_framework_level2_struct
                  (level1_id, title, description, order_no, summary, questions, evidence_examples, metadata, created_at)
                  VALUES (:l1Id, :title, :description, :orderNo, :summary, :questions::text[], :evidenceExamples::text[], :metadata::jsonb, :createdAt)
                  RETURNING id`,
@@ -681,7 +678,7 @@ async function migrateCustomFrameworkData(
                   const newL2Id = l2IdMap[l3.level2_id];
                   if (!newL2Id) continue;
                   const inserted = (await sequelize.query(
-                    `INSERT INTO public.custom_framework_level3_struct
+                    `INSERT INTO custom_framework_level3_struct
                      (level2_id, title, description, order_no, summary, questions, evidence_examples, metadata, created_at)
                      VALUES (:l2Id, :title, :description, :orderNo, :summary, :questions::text[], :evidenceExamples::text[], :metadata::jsonb, :createdAt)
                      RETURNING id`,
@@ -769,7 +766,7 @@ async function migrateCustomFrameworkData(
       if (!newFwId) continue;
       try {
         const inserted = (await sequelize.query(
-          `INSERT INTO public.custom_framework_projects
+          `INSERT INTO custom_framework_projects
            (organization_id, framework_id, project_id, created_at)
            VALUES (:orgId, :fwId, :projectId, :createdAt)
            RETURNING id`,
@@ -783,7 +780,7 @@ async function migrateCustomFrameworkData(
       } catch (error: any) {
         if (error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
           const existing = (await sequelize.query(
-            `SELECT id FROM public.custom_framework_projects
+            `SELECT id FROM custom_framework_projects
              WHERE organization_id = :orgId AND framework_id = :fwId AND project_id = :projectId LIMIT 1`,
             { replacements: { orgId, fwId: newFwId, projectId: proj.project_id }, type: QueryTypes.SELECT, transaction }
           )) as any[];
@@ -808,7 +805,7 @@ async function migrateCustomFrameworkData(
       const newProjFwId = projFwIdMap[impl.project_framework_id];
       if (!newL2Id || !newProjFwId) continue;
       const inserted = (await sequelize.query(
-        `INSERT INTO public.custom_framework_level2_impl
+        `INSERT INTO custom_framework_level2_impl
          (organization_id, level2_id, project_framework_id, status, owner, reviewer, approver,
           due_date, implementation_details, evidence_links, feedback_links, auditor_feedback,
           is_demo, created_at, updated_at)
@@ -849,7 +846,7 @@ async function migrateCustomFrameworkData(
       const newL2ImplId = l2ImplIdMap[impl.level2_impl_id];
       if (!newL3Id || !newL2ImplId) continue;
       const inserted = (await sequelize.query(
-        `INSERT INTO public.custom_framework_level3_impl
+        `INSERT INTO custom_framework_level3_impl
          (organization_id, level3_id, level2_impl_id, status, owner, reviewer, approver,
           due_date, implementation_details, evidence_links, feedback_links, auditor_feedback,
           is_demo, created_at, updated_at)
@@ -895,7 +892,7 @@ async function migrateCustomFrameworkData(
       if (!newImplId) continue;
       try {
         await sequelize.query(
-          `INSERT INTO public."${riskTable}" (organization_id, "${implCol}", risk_id)
+          `INSERT INTO "${riskTable}" (organization_id, "${implCol}", risk_id)
            VALUES (:orgId, :implId, :riskId)
            ON CONFLICT ("${implCol}", risk_id) DO NOTHING`,
           { replacements: { orgId, implId: newImplId, riskId: risk.risk_id }, transaction }
@@ -925,7 +922,7 @@ async function migrateCustomFrameworkData(
         newFileId = filesMap[row.file_id];
       } else {
         const existingFile = (await sequelize.query(
-          `SELECT id FROM public.files WHERE id = :fileId AND organization_id = :orgId LIMIT 1`,
+          `SELECT id FROM files WHERE id = :fileId AND organization_id = :orgId LIMIT 1`,
           { replacements: { fileId: row.file_id, orgId }, type: QueryTypes.SELECT, transaction }
         )) as any[];
 
@@ -941,7 +938,7 @@ async function migrateCustomFrameworkData(
           const file = tenantFile[0];
           try {
             const inserted = (await sequelize.query(
-              `INSERT INTO public.files
+              `INSERT INTO files
                (organization_id, project_id, filename, file_path, type, size, source, uploaded_by, uploaded_time, updated_at)
                VALUES (:orgId, :projectId, :filename, :filePath, :fileType, :size, :source, :uploadedBy, :uploadedTime, :updatedAt)
                RETURNING id`,
@@ -972,7 +969,7 @@ async function migrateCustomFrameworkData(
 
       try {
         await sequelize.query(
-          `INSERT INTO public.file_entity_links
+          `INSERT INTO file_entity_links
            (organization_id, file_id, framework_type, entity_type, entity_id, project_id, link_type, created_by, created_at)
            VALUES (:orgId, :fileId, :frameworkType, :entityType, :entityId, :projectId, :linkType, :createdBy, :createdAt)
            ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
@@ -1109,7 +1106,7 @@ async function validateMigration(
 
     for (const tableName of allTables) {
       const sourceCount = await getRowCount(tenantHash, tableName);
-      const migratedCount = await getRowCount("public", tableName, undefined, org.id);
+      const migratedCount = await getRowCount("verifywise", tableName, undefined, org.id);
 
       const match = sourceCount === migratedCount;
       orgReport.tables[tableName] = {
@@ -1143,7 +1140,7 @@ async function migrationStatusTableExists(): Promise<boolean> {
   const result = await sequelize.query(
     `SELECT EXISTS (
       SELECT 1 FROM information_schema.tables
-      WHERE table_schema = 'public' AND table_name = 'migration_status'
+      WHERE table_schema = 'verifywise' AND table_name = 'migration_status'
     ) as exists`,
     { type: QueryTypes.SELECT }
   );
@@ -1296,6 +1293,12 @@ export async function migrateToSharedSchema(options: {
     const transaction = await sequelize.transaction();
 
     try {
+      // Disable FK constraint checks during migration.
+      // Struct tables (controls_struct_eu, etc.) may have fewer rows than the old schema
+      // since seed data is a summary. Meta_id references are preserved as-is and will
+      // be valid once the full struct data is loaded.
+      await sequelize.query(`SET session_replication_role = replica;`, { transaction });
+
       // Global struct map for custom framework deduplication across orgs
       const globalStructMap: GlobalStructMap = {
         definitions: {},
@@ -1336,6 +1339,9 @@ export async function migrateToSharedSchema(options: {
           organizations_migrated: organizationsMigrated,
         });
       }
+
+      // Re-enable FK constraint checks before commit
+      await sequelize.query(`SET session_replication_role = DEFAULT;`, { transaction });
 
       // All orgs succeeded — commit the single transaction
       await transaction.commit();

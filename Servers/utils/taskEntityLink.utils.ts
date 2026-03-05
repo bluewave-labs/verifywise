@@ -91,7 +91,7 @@ export async function entityExistsQuery(
   const tableName = getEntityTableName(entityType);
 
   const result = await sequelize.query<{ exists: boolean }>(
-    `SELECT EXISTS(SELECT 1 FROM public.${tableName} WHERE organization_id = :organizationId AND id = :entityId) as exists`,
+    `SELECT EXISTS(SELECT 1 FROM ${tableName} WHERE organization_id = :organizationId AND id = :entityId) as exists`,
     {
       replacements: { organizationId, entityId },
       type: QueryTypes.SELECT,
@@ -111,7 +111,7 @@ export async function createTaskEntityLinkQuery(
   transaction?: Transaction
 ): Promise<ITaskEntityLink> {
   const result = await sequelize.query<ITaskEntityLink>(
-    `INSERT INTO public.task_entity_links (organization_id, task_id, entity_id, entity_type, entity_name, created_at, updated_at)
+    `INSERT INTO task_entity_links (organization_id, task_id, entity_id, entity_type, entity_name, created_at, updated_at)
      VALUES (:organization_id, :task_id, :entity_id, :entity_type, :entity_name, NOW(), NOW())
      RETURNING *`,
     {
@@ -139,7 +139,7 @@ export async function getTaskEntityLinksQuery(
   transaction?: Transaction
 ): Promise<ITaskEntityLinkWithDetails[]> {
   const links = await sequelize.query<ITaskEntityLink & { entity_name?: string }>(
-    `SELECT * FROM public.task_entity_links
+    `SELECT * FROM task_entity_links
      WHERE organization_id = :organizationId AND task_id = :taskId
      ORDER BY created_at DESC`,
     {
@@ -179,9 +179,9 @@ export async function getTaskEntityLinksQuery(
             cs.category_id,
             ss.function as func_type,
             ss.description
-          FROM public.nist_ai_rmf_subcategories s
-          JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
-          JOIN public.nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
+          FROM nist_ai_rmf_subcategories s
+          JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+          JOIN nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
           WHERE s.organization_id = :organizationId AND s.id = :entityId`,
           {
             replacements: { organizationId, entityId: link.entity_id },
@@ -200,7 +200,7 @@ export async function getTaskEntityLinksQuery(
         const tableName = getEntityTableName(link.entity_type);
         const nameColumn = getEntityNameColumn(link.entity_type);
         const entityResult = await sequelize.query<{ name: string }>(
-          `SELECT ${nameColumn} as name FROM public.${tableName} WHERE organization_id = :organizationId AND id = :entityId`,
+          `SELECT ${nameColumn} as name FROM ${tableName} WHERE organization_id = :organizationId AND id = :entityId`,
           {
             replacements: { organizationId, entityId: link.entity_id },
             type: QueryTypes.SELECT,
@@ -236,7 +236,7 @@ export async function deleteTaskEntityLinkQuery(
   transaction?: Transaction
 ): Promise<boolean> {
   const result = await sequelize.query(
-    `DELETE FROM public.task_entity_links
+    `DELETE FROM task_entity_links
      WHERE organization_id = :organizationId AND id = :linkId AND task_id = :taskId
      RETURNING *`,
     {
@@ -258,7 +258,7 @@ export async function deleteAllTaskEntityLinksQuery(
   transaction?: Transaction
 ): Promise<number> {
   const result = await sequelize.query(
-    `DELETE FROM public.task_entity_links WHERE organization_id = :organizationId AND task_id = :taskId`,
+    `DELETE FROM task_entity_links WHERE organization_id = :organizationId AND task_id = :taskId`,
     {
       replacements: { organizationId, taskId },
       type: QueryTypes.DELETE,
@@ -281,7 +281,7 @@ export async function linkExistsQuery(
 ): Promise<boolean> {
   const result = await sequelize.query<{ exists: boolean }>(
     `SELECT EXISTS(
-      SELECT 1 FROM public.task_entity_links
+      SELECT 1 FROM task_entity_links
       WHERE organization_id = :organizationId AND task_id = :taskId AND entity_id = :entityId AND entity_type = :entityType
     ) as exists`,
     {
@@ -304,7 +304,7 @@ export async function getTasksForEntityQuery(
   transaction?: Transaction
 ): Promise<number[]> {
   const result = await sequelize.query<{ task_id: number }>(
-    `SELECT task_id FROM public.task_entity_links
+    `SELECT task_id FROM task_entity_links
      WHERE organization_id = :organizationId AND entity_id = :entityId AND entity_type = :entityType`,
     {
       replacements: { organizationId, entityId, entityType },

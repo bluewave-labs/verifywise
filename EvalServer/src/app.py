@@ -85,15 +85,15 @@ async def cleanup_orphaned_experiments():
     from sqlalchemy import text
     try:
         async with get_db() as db:
-            # First, try shared-schema (public.llm_evals_experiments)
+            # First, try shared-schema (llm_evals_experiments)
             try:
                 res = await db.execute(text(
-                    "UPDATE public.llm_evals_experiments "
+                    "UPDATE llm_evals_experiments "
                     "SET status = 'failed', error_message = 'Server restarted during execution', "
                     "completed_at = NOW() WHERE status = 'running'"
                 ))
                 if res.rowcount > 0:
-                    logger.info(f"Marked {res.rowcount} orphaned experiment(s) as failed in public schema")
+                    logger.info(f"Marked {res.rowcount} orphaned experiment(s) as failed in verifywise schema")
             except Exception:
                 pass
 

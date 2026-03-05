@@ -279,7 +279,7 @@ export const getFilesInFolderQuery = async (
       u.surname as uploader_surname
     FROM files f
     INNER JOIN file_folder_mappings ffm ON f.id = ffm.file_id AND ffm.organization_id = :organizationId
-    LEFT JOIN public.users u ON f.uploaded_by = u.id
+    LEFT JOIN users u ON f.uploaded_by = u.id
     LEFT JOIN projects p ON f.project_id = p.id AND p.organization_id = :organizationId
     WHERE f.organization_id = :organizationId AND ffm.folder_id = :folderId
     ORDER BY f.uploaded_time DESC`,
@@ -381,7 +381,7 @@ export const getUncategorizedFilesQuery = async (
       u.name as uploader_name,
       u.surname as uploader_surname
     FROM files f
-    LEFT JOIN public.users u ON f.uploaded_by = u.id
+    LEFT JOIN users u ON f.uploaded_by = u.id
     LEFT JOIN projects p ON f.project_id = p.id AND p.organization_id = :organizationId
     WHERE f.organization_id = :organizationId AND NOT EXISTS (
       SELECT 1 FROM file_folder_mappings ffm

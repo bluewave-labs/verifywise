@@ -12,7 +12,7 @@ export const getAllFrameworksQuery = async (
   organizationId: number
 ): Promise<FrameworkModel[]> => {
   const frameworks = await sequelize.query(
-    `SELECT * FROM public.frameworks ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM frameworks ORDER BY created_at DESC, id ASC;`,
     {
       mapToModel: true,
       model: FrameworkModel,
@@ -37,7 +37,7 @@ export const getAllFrameworkByIdQuery = async (
   organizationId: number
 ): Promise<FrameworkModel | null> => {
   const result = await sequelize.query(
-    `SELECT * FROM public.frameworks WHERE id = :id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM frameworks WHERE id = :id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id },
       mapToModel: true,
@@ -93,7 +93,7 @@ const canRemoveFrameworkFromProjectQuery = async (
     `SELECT (
       (SELECT COUNT(*) FROM projects_frameworks WHERE organization_id = :organizationId AND project_id = :projectId) +
       CASE
-        WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'custom_framework_projects')
+        WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'verifywise' AND table_name = 'custom_framework_projects')
         THEN (SELECT COUNT(*) FROM custom_framework_projects WHERE organization_id = :organizationId AND project_id = :projectId)
         ELSE 0
       END
@@ -120,7 +120,7 @@ export const canAddFrameworkToProjectQuery = async (
   }
 
   const [[{ is_framework_organizational }]] = (await sequelize.query(
-    `SELECT is_organizational AS is_framework_organizational FROM public.frameworks WHERE id = :frameworkId;`,
+    `SELECT is_organizational AS is_framework_organizational FROM frameworks WHERE id = :frameworkId;`,
     { replacements: { frameworkId }, transaction }
   )) as [[{ is_framework_organizational: boolean }], number];
   const [[{ is_project_organizational }]] = (await sequelize.query(

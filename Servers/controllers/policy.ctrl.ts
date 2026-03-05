@@ -312,7 +312,7 @@ export class PolicyController {
       // Send notifications to each reviewer
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const requesterUser = await sequelize.query(
-        `SELECT name, surname FROM public.users WHERE id = :userId`,
+        `SELECT name, surname FROM users WHERE id = :userId`,
         { replacements: { userId }, type: QueryTypes.SELECT }
       ) as { name: string; surname: string }[];
       const requesterName = requesterUser[0]
@@ -385,7 +385,7 @@ export class PolicyController {
       // Notify the policy author
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const reviewerUser = await sequelize.query(
-        `SELECT name, surname FROM public.users WHERE id = :reviewerId`,
+        `SELECT name, surname FROM users WHERE id = :reviewerId`,
         { replacements: { reviewerId }, type: QueryTypes.SELECT }
       ) as { name: string; surname: string }[];
       const reviewerName = reviewerUser[0]
@@ -459,7 +459,7 @@ export class PolicyController {
       // Notify the policy author
       const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const reviewerUser = await sequelize.query(
-        `SELECT name, surname FROM public.users WHERE id = :reviewerId`,
+        `SELECT name, surname FROM users WHERE id = :reviewerId`,
         { replacements: { reviewerId }, type: QueryTypes.SELECT }
       ) as { name: string; surname: string }[];
       const reviewerName = reviewerUser[0]

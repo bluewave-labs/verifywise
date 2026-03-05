@@ -30,7 +30,7 @@ export const countSubcategoriesNISTByProjectId = async (
 }> => {
   const result = (await sequelize.query(
     `SELECT COUNT(*) AS "totalSubcategories", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneSubcategories"
-     FROM public.nist_ai_rmf_subcategories
+     FROM nist_ai_rmf_subcategories
      WHERE organization_id = :organizationId AND projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: { organizationId, projects_frameworks_id: projectFrameworkId },
@@ -53,7 +53,7 @@ export const countSubcategoryAssignmentsNISTByProjectId = async (
     `SELECT
        COUNT(*) AS "totalSubcategories",
        SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedSubcategories"
-     FROM public.nist_ai_rmf_subcategories
+     FROM nist_ai_rmf_subcategories
      WHERE organization_id = :organizationId AND projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: { organizationId, projects_frameworks_id: projectFrameworkId },
@@ -84,7 +84,7 @@ export const getAllFunctionsWithCategoriesQuery = async (
 
   // Get distinct functions from categories_struct
   const functionsRaw = (await sequelize.query(
-    `SELECT DISTINCT function FROM public.nist_ai_rmf_categories_struct ORDER BY function`,
+    `SELECT DISTINCT function FROM nist_ai_rmf_categories_struct ORDER BY function`,
     { ...(transaction ? { transaction } : {}) }
   )) as [{ function: string }[], number];
 
@@ -103,7 +103,7 @@ export const getAllFunctionsWithCategoriesQuery = async (
   for (let func of functions) {
     const categories = (await sequelize.query(
       `SELECT cs.id, cs.category_id, cs.description, cs.order_no
-       FROM public.nist_ai_rmf_categories_struct cs
+       FROM nist_ai_rmf_categories_struct cs
        WHERE cs.function = :function
        ORDER BY cs.order_no ASC, cs.category_id ASC`,
       {
@@ -145,9 +145,9 @@ export const getAllCategoriesWithSubcategoriesQuery = async (
       ns.created_at,
       ns.is_demo,
       ss.function
-     FROM public.nist_ai_rmf_subcategories ns
-     JOIN public.nist_ai_rmf_subcategories_struct ss ON ns.subcategory_meta_id = ss.id
-     JOIN public.nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
+     FROM nist_ai_rmf_subcategories ns
+     JOIN nist_ai_rmf_subcategories_struct ss ON ns.subcategory_meta_id = ss.id
+     JOIN nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
      WHERE ns.organization_id = :organizationId AND ns.projects_frameworks_id = :projects_frameworks_id
      ORDER BY
        CASE ss.function
@@ -207,8 +207,8 @@ export const getSubcategoryByIdQuery = async (
       ns.auditor_feedback,
       ns.created_at,
       ns.updated_at
-    FROM public.nist_ai_rmf_subcategories ns
-    JOIN public.nist_ai_rmf_subcategories_struct ss ON ns.subcategory_meta_id = ss.id
+    FROM nist_ai_rmf_subcategories ns
+    JOIN nist_ai_rmf_subcategories_struct ss ON ns.subcategory_meta_id = ss.id
     WHERE ns.organization_id = :organizationId AND ns.id = :id;`,
     {
       replacements: { organizationId, id: subcategoryId },
@@ -240,7 +240,7 @@ export const createNISTAI_RMFFrameworkQuery = async (
   is_mock_data: boolean = false
 ) => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM public.projects_frameworks WHERE organization_id = :organizationId AND project_id = :project_id AND framework_id = 4`,
+    `SELECT id FROM projects_frameworks WHERE organization_id = :organizationId AND project_id = :project_id AND framework_id = 4`,
     {
       replacements: { organizationId, project_id: projectId },
       transaction,
@@ -272,7 +272,7 @@ export const createNewSubcategoriesQuery = async (
   // Get all subcategories from struct table
   const structSubcategories = (await sequelize.query(
     `SELECT id, function, subcategory_id, description, order_no
-     FROM public.nist_ai_rmf_subcategories_struct
+     FROM nist_ai_rmf_subcategories_struct
      ORDER BY
        CASE function
          WHEN 'GOVERN' THEN 1
@@ -290,7 +290,7 @@ export const createNewSubcategoriesQuery = async (
   // Create implementation record for each struct subcategory
   for (const structSubcat of structSubcategories) {
     const result = (await sequelize.query(
-      `INSERT INTO public.nist_ai_rmf_subcategories (
+      `INSERT INTO nist_ai_rmf_subcategories (
         organization_id, subcategory_meta_id, projects_frameworks_id, status, is_demo, created_at
       ) VALUES (
         :organizationId, :subcategory_meta_id, :projects_frameworks_id, :status, :is_demo, NOW()
@@ -375,14 +375,14 @@ export const updateSubcategoryQuery = async (
   if (setClause.length === 0) {
     // No fields to update, just get the current record
     result = (await sequelize.query(
-      `SELECT * FROM public.nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND id = :id`,
+      `SELECT * FROM nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND id = :id`,
       {
         replacements: { organizationId, id },
         transaction,
       }
     )) as [NISTAIMRFSubcategoryModel[], number];
   } else {
-    const query = `UPDATE public.nist_ai_rmf_subcategories SET ${setClause}, updated_at = NOW() WHERE organization_id = :organizationId AND id = :id RETURNING *;`;
+    const query = `UPDATE nist_ai_rmf_subcategories SET ${setClause}, updated_at = NOW() WHERE organization_id = :organizationId AND id = :id RETURNING *;`;
     result = (await sequelize.query(query, {
       replacements: updateSubcategory,
       transaction,
@@ -392,7 +392,7 @@ export const updateSubcategoryQuery = async (
   // Create file entity links for new uploaded files
   for (const file of uploadedFiles) {
     await sequelize.query(
-      `INSERT INTO public.file_entity_links
+      `INSERT INTO file_entity_links
         (organization_id, file_id, framework_type, entity_type, entity_id, link_type, created_at)
        VALUES (:organizationId, :fileId, 'nist_ai_rmf', 'subcategory', :entityId, 'evidence', NOW())
        ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
@@ -406,7 +406,7 @@ export const updateSubcategoryQuery = async (
   // Remove file entity links for deleted files
   for (const fileId of deletedFiles) {
     await sequelize.query(
-      `DELETE FROM public.file_entity_links
+      `DELETE FROM file_entity_links
        WHERE organization_id = :organizationId
          AND file_id = :fileId
          AND framework_type = 'nist_ai_rmf'
@@ -444,7 +444,7 @@ export const deleteSubcategoriesNISTByProjectIdQuery = async (
 ) => {
   // Get all subcategory IDs first to clean up file_entity_links
   const subcategoryIds = (await sequelize.query(
-    `SELECT id FROM public.nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { organizationId, projects_frameworks_id: projectFrameworkId },
       type: QueryTypes.SELECT,
@@ -464,7 +464,7 @@ export const deleteSubcategoriesNISTByProjectIdQuery = async (
   }
 
   const result = await sequelize.query(
-    `DELETE FROM public.nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND projects_frameworks_id = :projects_frameworks_id RETURNING *`,
+    `DELETE FROM nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND projects_frameworks_id = :projects_frameworks_id RETURNING *`,
     {
       replacements: { organizationId, projects_frameworks_id: projectFrameworkId },
       mapToModel: true,
@@ -485,7 +485,7 @@ export const deleteProjectFrameworkNISTQuery = async (
   transaction: Transaction
 ) => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM public.projects_frameworks WHERE organization_id = :organizationId AND project_id = :project_id AND framework_id = 4`,
+    `SELECT id FROM projects_frameworks WHERE organization_id = :organizationId AND project_id = :project_id AND framework_id = 4`,
     {
       replacements: { organizationId, project_id: projectId },
       transaction,
@@ -503,7 +503,7 @@ export const deleteProjectFrameworkNISTQuery = async (
   }
 
   const result = await sequelize.query(
-    `DELETE FROM public.projects_frameworks WHERE organization_id = :organizationId AND project_id = :project_id AND framework_id = 4 RETURNING *`,
+    `DELETE FROM projects_frameworks WHERE organization_id = :organizationId AND project_id = :project_id AND framework_id = 4 RETURNING *`,
     {
       replacements: { organizationId, project_id: projectId },
       transaction,

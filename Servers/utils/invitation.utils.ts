@@ -69,7 +69,7 @@ export const getInvitationsByOrganizationQuery = async (
             i.updated_at,
             r.name AS role_name
      FROM invitations i
-     LEFT JOIN public.roles r ON r.id = i.role_id
+     LEFT JOIN roles r ON r.id = i.role_id
      WHERE i.organization_id = :organizationId AND i.status = 'pending'
      ORDER BY i.created_at DESC`,
     { replacements: { organizationId } }
@@ -93,7 +93,7 @@ export const getInvitationByIdQuery = async (
   const result = (await sequelize.query(
     `SELECT i.*, r.name AS role_name
      FROM invitations i
-     LEFT JOIN public.roles r ON r.id = i.role_id
+     LEFT JOIN roles r ON r.id = i.role_id
      WHERE i.organization_id = :organizationId AND i.id = :id AND i.status = 'pending'`,
     { replacements: { organizationId, id } }
   )) as [InvitationRow[], number];

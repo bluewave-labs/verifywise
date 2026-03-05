@@ -45,7 +45,7 @@ import logger from "../utils/logger/fileLogger";
 // Helper function to get user name
 async function getUserNameById(userId: number): Promise<string> {
   const result = await sequelize.query<{ name: string; surname: string }>(
-    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    `SELECT name, surname FROM users WHERE id = :userId`,
     { replacements: { userId }, type: QueryTypes.SELECT }
   );
   if (result[0]) {
@@ -79,8 +79,8 @@ async function notifyIso42001Assignment(
       const result = await sequelize.query<{ clause_id: number; clause_no: number; clause_title: string; subclause_order_no: number; summary: string }>(
         `SELECT scs.clause_id, c.clause_no, c.title as clause_title, scs.order_no as subclause_order_no, scs.summary
          FROM subclauses_iso sc
-         JOIN public.subclauses_struct_iso scs ON sc.subclause_meta_id = scs.id
-         JOIN public.clauses_struct_iso c ON scs.clause_id = c.id
+         JOIN subclauses_struct_iso scs ON sc.subclause_meta_id = scs.id
+         JOIN clauses_struct_iso c ON scs.clause_id = c.id
          WHERE sc.organization_id = :organizationId AND sc.id = :entityId`,
         { replacements: { organizationId: req.organizationId!, entityId }, type: QueryTypes.SELECT }
       );
@@ -100,8 +100,8 @@ async function notifyIso42001Assignment(
       const result = await sequelize.query<{ annex_id: number; annex_no: number; annex_title: string; category_sub_id: number; category_description: string }>(
         `SELECT acs.annex_id, a.annex_no, a.title as annex_title, acs.sub_id as category_sub_id, acs.description as category_description
          FROM annexcategories_iso ac
-         JOIN public.annexcategories_struct_iso acs ON ac.annexcategory_meta_id = acs.id
-         JOIN public.annex_struct_iso a ON acs.annex_id = a.id
+         JOIN annexcategories_struct_iso acs ON ac.annexcategory_meta_id = acs.id
+         JOIN annex_struct_iso a ON acs.annex_id = a.id
          WHERE ac.organization_id = :organizationId AND ac.id = :entityId`,
         { replacements: { organizationId: req.organizationId!, entityId }, type: QueryTypes.SELECT }
       );
@@ -840,7 +840,7 @@ export async function saveClauses(
       `SELECT sc.owner, sc.reviewer, sc.approver, pf.project_id as project_id, scs.title as title
        FROM subclauses_iso sc
        JOIN projects_frameworks pf ON pf.id = sc.projects_frameworks_id AND pf.organization_id = sc.organization_id
-       LEFT JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
+       LEFT JOIN subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
        WHERE sc.organization_id = :organizationId AND sc.id = :id;`,
       {
         replacements: { organizationId: req.organizationId!, id: subClauseId },
@@ -966,7 +966,7 @@ export async function saveAnnexes(
       `SELECT ac.owner, ac.reviewer, ac.approver, pf.project_id as project_id, acs.title as title
        FROM annexcategories_iso ac
        JOIN projects_frameworks pf ON pf.id = ac.projects_frameworks_id AND pf.organization_id = ac.organization_id
-       LEFT JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+       LEFT JOIN annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
        WHERE ac.organization_id = :organizationId AND ac.id = :id;`,
       {
         replacements: { organizationId: req.organizationId!, id: annexCategoryId },

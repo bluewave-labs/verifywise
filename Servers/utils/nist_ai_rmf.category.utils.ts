@@ -40,7 +40,7 @@ export const getAllNISTAIRMFCategoriesByFunctionQuery = async (
 ): Promise<NISTCategory[]> => {
   const [results] = await sequelize.query(
     `SELECT id, function, category_id, description, order_no
-     FROM public.nist_ai_rmf_categories_struct
+     FROM nist_ai_rmf_categories_struct
      WHERE function = :functionName
      ORDER BY order_no ASC, category_id ASC`,
     { replacements: { functionName } }
@@ -58,7 +58,7 @@ export const getNISTAIRMFCategoryQuery = async (
 ): Promise<NISTCategory | null> => {
   const [results] = await sequelize.query(
     `SELECT id, function, category_id, description, order_no
-     FROM public.nist_ai_rmf_categories_struct
+     FROM nist_ai_rmf_categories_struct
      WHERE function = :functionName AND category_id = :categoryId`,
     { replacements: { functionName, categoryId } }
   );
@@ -75,7 +75,7 @@ export const getNISTAIRMFCategoryByIdQuery = async (
 ): Promise<NISTCategory | null> => {
   const [results] = await sequelize.query(
     `SELECT id, function, category_id, description, order_no
-     FROM public.nist_ai_rmf_categories_struct
+     FROM nist_ai_rmf_categories_struct
      WHERE id = :id`,
     { replacements: { id } }
   );
@@ -91,7 +91,7 @@ export const getAllNISTAIRMFCategoriesQuery = async (
 ): Promise<NISTCategory[]> => {
   const [results] = await sequelize.query(
     `SELECT id, function, category_id, description, order_no
-     FROM public.nist_ai_rmf_categories_struct
+     FROM nist_ai_rmf_categories_struct
      ORDER BY
        CASE function
          WHEN 'GOVERN' THEN 1

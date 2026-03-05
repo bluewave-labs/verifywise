@@ -183,7 +183,7 @@ export const createPolicyQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_added' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
     (TenantAutomationActionModel & {
@@ -197,7 +197,7 @@ export const createPolicyQuery = async (
     const automation = automations[0][0];
     if (automation["trigger_key"] === "policy_added") {
       const reviewer_names = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id IN(:reviewer_ids);`,
         {
           replacements: {
             reviewer_ids: createdPolicy.assigned_reviewer_ids || [],
@@ -334,7 +334,7 @@ export const updatePolicyByIdQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_updated' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
     (TenantAutomationActionModel & {
@@ -348,7 +348,7 @@ export const updatePolicyByIdQuery = async (
     const automation = automations[0][0];
     if (automation["trigger_key"] === "policy_updated") {
       const reviewer_names = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id IN(:reviewer_ids);`,
         {
           replacements: {
             reviewer_ids: (updatedPolicy as any).assigned_reviewer_ids || [],
@@ -418,7 +418,7 @@ export const deletePolicyByIdQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'policy_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
     (TenantAutomationActionModel & {
@@ -432,7 +432,7 @@ export const deletePolicyByIdQuery = async (
     const automation = automations[0][0];
     if (automation["trigger_key"] === "policy_deleted") {
       const reviewer_names = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN(:reviewer_ids);`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id IN(:reviewer_ids);`,
         {
           replacements: {
             reviewer_ids: deletedPolicyData.assigned_reviewer_ids || [],

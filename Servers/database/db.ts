@@ -101,7 +101,16 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
   host: conf.host!,
   port: Number(conf.port!),
   dialect: conf.dialect! as Dialect,
+  schema: "verifywise",
   logging: false,
+  define: {
+    schema: "verifywise",
+  },
+  hooks: {
+    afterConnect: async (connection: any) => {
+      await connection.query("SET search_path TO verifywise;");
+    },
+  },
   models: [
     RoleModel,
     AssessmentModel,

@@ -195,9 +195,9 @@ async function buildEntityUrlAsync(
       // Get function type and category info for NIST - join with struct tables
       const result = await sequelize.query<{ func_type: string; category_struct_id: number }>(
         `SELECT ss.function as func_type, cs.id as category_struct_id
-         FROM public.nist_ai_rmf_subcategories s
-         JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
-         JOIN public.nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
+         FROM nist_ai_rmf_subcategories s
+         JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+         JOIN nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
          WHERE s.organization_id = :organizationId AND s.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -214,7 +214,7 @@ async function buildEntityUrlAsync(
       const result = await sequelize.query<{ clause_id: number }>(
         `SELECT scs.clause_id
          FROM subclauses_iso sc
-         JOIN public.subclauses_struct_iso scs ON sc.subclause_meta_id = scs.id
+         JOIN subclauses_struct_iso scs ON sc.subclause_meta_id = scs.id
          WHERE sc.organization_id = :organizationId AND sc.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -229,7 +229,7 @@ async function buildEntityUrlAsync(
       const result = await sequelize.query<{ annex_id: number }>(
         `SELECT acs.annex_id
          FROM annexcategories_iso ac
-         JOIN public.annexcategories_struct_iso acs ON ac.annexcategory_meta_id = acs.id
+         JOIN annexcategories_struct_iso acs ON ac.annexcategory_meta_id = acs.id
          WHERE ac.organization_id = :organizationId AND ac.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -244,7 +244,7 @@ async function buildEntityUrlAsync(
       const result = await sequelize.query<{ clause_id: number }>(
         `SELECT scs.clause_id
          FROM subclauses_iso27001 sc
-         JOIN public.subclauses_struct_iso27001 scs ON sc.subclause_meta_id = scs.id
+         JOIN subclauses_struct_iso27001 scs ON sc.subclause_meta_id = scs.id
          WHERE sc.organization_id = :organizationId AND sc.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -259,7 +259,7 @@ async function buildEntityUrlAsync(
       const result = await sequelize.query<{ annex_id: number }>(
         `SELECT acs.annex_id
          FROM annexcontrols_iso27001 ac
-         JOIN public.annexcontrols_struct_iso27001 acs ON ac.annexcontrol_meta_id = acs.id
+         JOIN annexcontrols_struct_iso27001 acs ON ac.annexcontrol_meta_id = acs.id
          WHERE ac.organization_id = :organizationId AND ac.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -308,8 +308,8 @@ async function buildEntityUrlAsync(
          FROM answers_eu ae
          JOIN assessments a ON ae.assessment_id = a.id AND a.organization_id = ae.organization_id
          JOIN projects_frameworks pf ON a.projects_frameworks_id = pf.id AND pf.organization_id = a.organization_id
-         JOIN public.questions_struct_eu q ON ae.question_id = q.id
-         JOIN public.subtopics_struct_eu st ON q.subtopic_id = st.id
+         JOIN questions_struct_eu q ON ae.question_id = q.id
+         JOIN subtopics_struct_eu st ON q.subtopic_id = st.id
          WHERE ae.organization_id = :organizationId AND ae.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -327,8 +327,8 @@ async function buildEntityUrlAsync(
          FROM answers_iso ai
          JOIN assessments a ON ai.assessment_id = a.id AND a.organization_id = ai.organization_id
          JOIN projects_frameworks pf ON a.projects_frameworks_id = pf.id AND pf.organization_id = a.organization_id
-         JOIN public.questions_struct_iso q ON ai.question_id = q.id
-         JOIN public.subtopics_struct_iso st ON q.subtopic_id = st.id
+         JOIN questions_struct_iso q ON ai.question_id = q.id
+         JOIN subtopics_struct_iso st ON q.subtopic_id = st.id
          WHERE ai.organization_id = :organizationId AND ai.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -346,8 +346,8 @@ async function buildEntityUrlAsync(
          FROM answers_iso27001 ai
          JOIN assessments a ON ai.assessment_id = a.id AND a.organization_id = ai.organization_id
          JOIN projects_frameworks pf ON a.projects_frameworks_id = pf.id AND pf.organization_id = a.organization_id
-         JOIN public.questions_struct_iso27001 q ON ai.question_id = q.id
-         JOIN public.subtopics_struct_iso27001 st ON q.subtopic_id = st.id
+         JOIN questions_struct_iso27001 q ON ai.question_id = q.id
+         JOIN subtopics_struct_iso27001 st ON q.subtopic_id = st.id
          WHERE ai.organization_id = :organizationId AND ai.id = :entityId`,
         { replacements: { organizationId, entityId }, type: QueryTypes.SELECT }
       );
@@ -876,7 +876,7 @@ export const notifyTrainingAssigned = async (
 // Helper functions
 async function getUserById(userId: number): Promise<{ name: string; surname: string; email: string } | null> {
   const result = await sequelize.query<{ name: string; surname: string; email: string }>(
-    `SELECT name, surname, email FROM public.users WHERE id = :userId`,
+    `SELECT name, surname, email FROM users WHERE id = :userId`,
     {
       replacements: { userId },
       type: QueryTypes.SELECT,
@@ -887,7 +887,7 @@ async function getUserById(userId: number): Promise<{ name: string; surname: str
 
 async function getUserEmail(userId: number): Promise<{ email: string } | null> {
   const result = await sequelize.query<{ email: string }>(
-    `SELECT email FROM public.users WHERE id = :userId`,
+    `SELECT email FROM users WHERE id = :userId`,
     {
       replacements: { userId },
       type: QueryTypes.SELECT,
@@ -900,7 +900,7 @@ async function getUserEmails(userIds: number[]): Promise<Array<{ id: number; nam
   if (userIds.length === 0) return [];
 
   const result = await sequelize.query<{ id: number; name: string; surname: string; email: string }>(
-    `SELECT id, name, surname, email FROM public.users WHERE id IN (:userIds)`,
+    `SELECT id, name, surname, email FROM users WHERE id IN (:userIds)`,
     {
       replacements: { userIds },
       type: QueryTypes.SELECT,

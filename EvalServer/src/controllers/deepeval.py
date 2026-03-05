@@ -766,7 +766,6 @@ async def upload_deepeval_dataset_controller(
                     prompt_count=prompt_count,
                     dataset_type=dataset_type,
                     turn_type=turn_type,
-                    org_id=org_id,
                     created_by=user_id,
                 )
                 await db.commit()
@@ -994,7 +993,7 @@ async def list_user_datasets_controller(
     """
     try:
         async with get_db() as db:
-            items = await list_user_datasets(organization_id=organization_id, db=db, org_id=org_id)
+            items = await list_user_datasets(organization_id=organization_id, db=db)
             return JSONResponse(status_code=200, content={"datasets": items})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list user datasets: {e}")
@@ -1056,7 +1055,7 @@ async def list_deepeval_scorers_controller(
     """
     try:
         async with get_db() as db:
-            items = await list_scorers(organization_id=organization_id, db=db, org_id=org_id)
+            items = await list_scorers(organization_id=organization_id, db=db)
             return JSONResponse(status_code=200, content={"scorers": items})
     except Exception as e:
         error_str = str(e).lower()
@@ -1110,7 +1109,6 @@ async def create_deepeval_scorer_controller(
         async with get_db() as db:
             created = await create_scorer(
                 scorer_id=scorer_id,
-                org_id=org_id,
                 name=name,
                 description=description,
                 scorer_type=scorer_type,
@@ -1282,7 +1280,7 @@ async def list_deepeval_models_controller(
 
     try:
         async with get_db() as db:
-            items = await list_models(organization_id=organization_id, db=db, org_id=org_id)
+            items = await list_models(organization_id=organization_id, db=db)
             return JSONResponse(status_code=200, content={"models": items})
     except Exception as e:
         error_str = str(e).lower()
@@ -1329,7 +1327,6 @@ async def create_deepeval_model_controller(
         async with get_db() as db:
             created = await create_model(
                 model_id=model_id,
-                org_id=org_id,
                 name=name,
                 provider=provider,
                 endpoint_url=endpoint_url,
@@ -1425,7 +1422,7 @@ async def get_latest_model_controller(
 
     try:
         async with get_db() as db:
-            model = await get_latest_model(organization_id=organization_id, db=db, org_id=org_id)
+            model = await get_latest_model(organization_id=organization_id, db=db)
             return JSONResponse(status_code=200, content={"model": model})
     except Exception as e:
         error_str = str(e).lower()
@@ -1446,7 +1443,7 @@ async def get_latest_scorer_controller(
 
     try:
         async with get_db() as db:
-            scorer = await get_latest_scorer(organization_id=organization_id, db=db, org_id=org_id)
+            scorer = await get_latest_scorer(organization_id=organization_id, db=db)
             return JSONResponse(status_code=200, content={"scorer": scorer})
     except Exception as e:
         error_str = str(e).lower()

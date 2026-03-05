@@ -518,7 +518,6 @@ async def create_arena_comparison_controller(
                 comparison_id=comparison_id,
                 name=config_data.get("name", "Arena Comparison"),
                 description=config_data.get("description"),
-                org_id=config_data.get("orgId"),
                 contestants=contestants_config,
                 contestant_names=contestant_names,
                 metric_config=metric_config,
@@ -650,7 +649,7 @@ async def list_arena_comparisons_controller(
     """
     try:
         async with get_db() as db:
-            comparisons = await list_arena_comparisons(organization_id=organization_id, org_id=org_id, db=db)
+            comparisons = await list_arena_comparisons(organization_id=organization_id, db=db)
         
         return JSONResponse(
             status_code=200,

@@ -138,7 +138,7 @@ export const createNewTaskQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organization_id JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organization_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_added' AND a.is_active ORDER BY aa."order" ASC;`,
+    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organization_id JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organization_id JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_added' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organization_id: organizationId }, transaction }
   )) as [
     (TenantAutomationActionModel & {
@@ -152,14 +152,14 @@ export const createNewTaskQuery = async (
     const automation = automations[0][0];
     if (automation["trigger_key"] === "task_added") {
       const creator_name = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id = :creator_id;`,
         {
           replacements: { creator_id: createdTask.dataValues.creator_id },
           transaction,
         }
       )) as [{ full_name: string }[], number];
       const assignee_names = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id IN (:assignee_ids);`,
         {
           replacements: {
             assignee_ids: (createdTask.dataValues as any)["assignees"],
@@ -663,7 +663,7 @@ export const updateTaskByIdQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_updated' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
     (TenantAutomationActionModel & {
@@ -849,7 +849,7 @@ export const deleteTaskByIdQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+    FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
     (TenantAutomationActionModel & {

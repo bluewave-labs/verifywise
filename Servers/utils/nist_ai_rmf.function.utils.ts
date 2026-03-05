@@ -41,7 +41,7 @@ export const getAllNISTAIRMFfunctionsQuery = async (
 ): Promise<NISTFunction[]> => {
   // Get unique functions from nist_ai_rmf_categories_struct
   const [results] = await sequelize.query(
-    `SELECT DISTINCT function FROM public.nist_ai_rmf_categories_struct ORDER BY function`,
+    `SELECT DISTINCT function FROM nist_ai_rmf_categories_struct ORDER BY function`,
   );
 
   // Map to function objects with metadata

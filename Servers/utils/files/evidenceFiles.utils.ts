@@ -39,8 +39,8 @@ export async function getEvidenceFilesForEntity(
       f.uploaded_by,
       f.uploaded_time::text AS uploaded_time,
       COALESCE(f.source, 'File Manager') AS source
-    FROM public.file_entity_links fel
-    JOIN public.files f ON f.id = fel.file_id AND f.organization_id = fel.organization_id
+    FROM file_entity_links fel
+    JOIN files f ON f.id = fel.file_id AND f.organization_id = fel.organization_id
     WHERE fel.organization_id = :organizationId
       AND fel.framework_type = :frameworkType
       AND fel.entity_type = :entityType
@@ -80,8 +80,8 @@ export async function getEvidenceFilesForEntities(
       f.uploaded_by,
       f.uploaded_time::text AS uploaded_time,
       COALESCE(f.source, 'File Manager') AS source
-    FROM public.file_entity_links fel
-    JOIN public.files f ON f.id = fel.file_id AND f.organization_id = fel.organization_id
+    FROM file_entity_links fel
+    JOIN files f ON f.id = fel.file_id AND f.organization_id = fel.organization_id
     WHERE fel.organization_id = :organizationId
       AND fel.framework_type = :frameworkType
       AND fel.entity_type = :entityType

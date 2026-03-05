@@ -11,7 +11,7 @@
  * Higher levels depend on lower levels.
  */
 export const MIGRATION_TABLE_ORDER = {
-  // Level 0: No FK dependencies on other tenant tables (only references to public schema)
+  // Level 0: No FK dependencies on other tenant tables (only references to verifywise schema)
   level0: [
     // Core entities
     'projects',
@@ -75,6 +75,7 @@ export const MIGRATION_TABLE_ORDER = {
     'intake_forms',
     'mlflow_integrations',
     'risk_history',
+    'user_preferences',
   ],
 
   // Level 1: Depends on Level 0
@@ -295,14 +296,23 @@ export const FK_MAPPINGS: Record<string, Record<string, string>> = {
   file_access_logs: {
     file_id: 'files',
   },
+  ai_detection_findings: {
+    scan_id: 'ai_detection_scans',
+  },
   intake_submissions: {
     form_id: 'intake_forms',
+  },
+  shadow_ai_events: {
+    detected_tool_id: 'shadow_ai_tools',
   },
   shadow_ai_daily_rollups: {
     tool_id: 'shadow_ai_tools',
   },
   shadow_ai_monthly_rollups: {
     tool_id: 'shadow_ai_tools',
+  },
+  shadow_ai_alert_history: {
+    rule_id: 'shadow_ai_rules',
   },
   shadow_ai_rule_notifications: {
     rule_id: 'shadow_ai_rules',
@@ -483,7 +493,7 @@ export const EXCLUDED_COLUMNS: Record<string, string[]> = {
 
 /**
  * Tables that reference struct tables (meta_id columns).
- * These IDs should NOT be remapped - they reference public schema struct data.
+ * These IDs should NOT be remapped - they reference verifywise schema struct data.
  */
 export const STRUCT_REFERENCES = [
   'controls_eu',      // control_meta_id -> controls_struct_eu
@@ -519,6 +529,14 @@ export const SKIP_TABLES = [
   'custom_framework_level2_risks',
   'custom_framework_level3_risks',
 ];
+
+/**
+ * Table name mapping: old tenant table name -> new verifywise table name.
+ * Used when a table was renamed in the consolidated schema.
+ */
+export const TARGET_TABLE_MAP: Record<string, string> = {
+  automation_actions: 'automation_actions_data',
+};
 
 /**
  * Migration key for tracking in migration_status table

@@ -33,7 +33,7 @@ export const getPMMConfigByProjectIdQuery = async (
       (SELECT COUNT(*) FROM post_market_monitoring_questions WHERE organization_id = :organizationId AND config_id = c.id) as questions_count
     FROM post_market_monitoring_configs c
     LEFT JOIN projects p ON c.project_id = p.id AND p.organization_id = :organizationId
-    LEFT JOIN public.users u ON c.escalation_contact_id = u.id
+    LEFT JOIN users u ON c.escalation_contact_id = u.id
     WHERE c.organization_id = :organizationId AND c.project_id = :projectId;`,
     {
       replacements: { projectId, organizationId },
@@ -175,7 +175,7 @@ export const getActiveConfigsForNotificationHourQuery = async (
       u.email as escalation_contact_email
     FROM post_market_monitoring_configs c
     LEFT JOIN projects p ON c.project_id = p.id AND p.organization_id = :organizationId
-    LEFT JOIN public.users u ON c.escalation_contact_id = u.id
+    LEFT JOIN users u ON c.escalation_contact_id = u.id
     WHERE c.organization_id = :organizationId AND c.is_active = true AND c.notification_hour = :hour;`,
     { replacements: { hour, organizationId } }
   ) as [IPMMConfigWithDetails[], number];
@@ -393,8 +393,8 @@ export const getActiveCycleByConfigIdQuery = async (
     FROM post_market_monitoring_cycles c
     LEFT JOIN post_market_monitoring_configs cfg ON c.config_id = cfg.id AND cfg.organization_id = :organizationId
     LEFT JOIN projects p ON cfg.project_id = p.id AND p.organization_id = :organizationId
-    LEFT JOIN public.users u ON c.assigned_stakeholder_id = u.id
-    LEFT JOIN public.users cu ON c.completed_by = cu.id
+    LEFT JOIN users u ON c.assigned_stakeholder_id = u.id
+    LEFT JOIN users cu ON c.completed_by = cu.id
     WHERE c.organization_id = :organizationId AND c.config_id = :configId AND c.status IN ('pending', 'in_progress', 'escalated')
     ORDER BY c.cycle_number DESC
     LIMIT 1;`,
@@ -420,7 +420,7 @@ export const getActiveCycleByProjectIdQuery = async (
     FROM post_market_monitoring_cycles c
     LEFT JOIN post_market_monitoring_configs cfg ON c.config_id = cfg.id AND cfg.organization_id = :organizationId
     LEFT JOIN projects p ON cfg.project_id = p.id AND p.organization_id = :organizationId
-    LEFT JOIN public.users u ON c.assigned_stakeholder_id = u.id
+    LEFT JOIN users u ON c.assigned_stakeholder_id = u.id
     WHERE c.organization_id = :organizationId AND cfg.project_id = :projectId AND c.status IN ('pending', 'in_progress', 'escalated')
     ORDER BY c.cycle_number DESC
     LIMIT 1;`,
@@ -448,8 +448,8 @@ export const getCycleByIdQuery = async (
     FROM post_market_monitoring_cycles c
     LEFT JOIN post_market_monitoring_configs cfg ON c.config_id = cfg.id AND cfg.organization_id = :organizationId
     LEFT JOIN projects p ON cfg.project_id = p.id AND p.organization_id = :organizationId
-    LEFT JOIN public.users u ON c.assigned_stakeholder_id = u.id
-    LEFT JOIN public.users cu ON c.completed_by = cu.id
+    LEFT JOIN users u ON c.assigned_stakeholder_id = u.id
+    LEFT JOIN users cu ON c.completed_by = cu.id
     WHERE c.organization_id = :organizationId AND c.id = :cycleId;`,
     { replacements: { cycleId, organizationId } }
   ) as [IPMMCycleWithDetails[], number];
@@ -475,8 +475,8 @@ export const getPendingCyclesForProcessingQuery = async (
     FROM post_market_monitoring_cycles c
     JOIN post_market_monitoring_configs cfg ON c.config_id = cfg.id AND cfg.organization_id = :organizationId
     LEFT JOIN projects p ON cfg.project_id = p.id AND p.organization_id = :organizationId
-    LEFT JOIN public.users u ON c.assigned_stakeholder_id = u.id
-    LEFT JOIN public.users eu ON cfg.escalation_contact_id = eu.id
+    LEFT JOIN users u ON c.assigned_stakeholder_id = u.id
+    LEFT JOIN users eu ON cfg.escalation_contact_id = eu.id
     WHERE c.organization_id = :organizationId AND cfg.is_active = true
       AND c.status IN ('pending', 'in_progress', 'escalated');`,
     { replacements: { organizationId } }
@@ -777,7 +777,7 @@ export const getPMMReportsQuery = async (
      JOIN post_market_monitoring_cycles c ON r.cycle_id = c.id AND c.organization_id = :organizationId
      JOIN post_market_monitoring_configs cfg ON c.config_id = cfg.id AND cfg.organization_id = :organizationId
      LEFT JOIN projects p ON cfg.project_id = p.id AND p.organization_id = :organizationId
-     LEFT JOIN public.users u ON c.completed_by = u.id
+     LEFT JOIN users u ON c.completed_by = u.id
      LEFT JOIN files f ON r.file_id = f.id AND f.organization_id = :organizationId
      ${whereClause}
      ORDER BY r.generated_at DESC
@@ -886,7 +886,7 @@ export const getAssignedStakeholderQuery = async (
   // First try to get an assigned stakeholder from project members
   const result = await sequelize.query(
     `SELECT u.id, u.name, u.email
-     FROM public.users u
+     FROM users u
      JOIN projects_members pm ON u.id = pm.user_id AND pm.organization_id = :organizationId
      WHERE pm.project_id = :projectId
      ORDER BY pm.id ASC
@@ -901,7 +901,7 @@ export const getAssignedStakeholderQuery = async (
   // Fallback to project owner
   const ownerResult = await sequelize.query(
     `SELECT u.id, u.name, u.email
-     FROM public.users u
+     FROM users u
      JOIN projects p ON u.id = p.owner AND p.organization_id = :organizationId
      WHERE p.id = :projectId;`,
     { replacements: { projectId, organizationId } }
@@ -916,7 +916,7 @@ export const getProjectStakeholdersQuery = async (
 ): Promise<Array<{ id: number; name: string; email: string }>> => {
   const result = await sequelize.query(
     `SELECT DISTINCT u.id, u.name, u.email
-     FROM public.users u
+     FROM users u
      LEFT JOIN projects_members pm ON u.id = pm.user_id AND pm.organization_id = :organizationId AND pm.project_id = :projectId
      LEFT JOIN projects p ON u.id = p.owner AND p.organization_id = :organizationId AND p.id = :projectId
      WHERE pm.project_id = :projectId OR p.id = :projectId;`,

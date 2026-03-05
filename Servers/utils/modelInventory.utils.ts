@@ -237,7 +237,7 @@ export const createNewModelInventoryQuery = async (
         paa.key AS action_key,
         a.id AS automation_id,
         aa.*
-      FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id JOIN automation_actions_data aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE a.organization_id = :organization_id AND pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`,
+      FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id JOIN automation_actions_data aa ON a.id = aa.automation_id JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE a.organization_id = :organization_id AND pat.key = 'model_added' AND a.is_active ORDER BY aa."order" ASC;`,
       { replacements: { organization_id: organizationId }, transaction }
     )) as [
       (TenantAutomationActionModel & {
@@ -425,7 +425,7 @@ export const updateModelInventoryByIdQuery = async (
         paa.key AS action_key,
         a.id AS automation_id,
         aa.*
-      FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id JOIN automation_actions_data aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE a.organization_id = :organization_id AND pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`,
+      FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id JOIN automation_actions_data aa ON a.id = aa.automation_id JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE a.organization_id = :organization_id AND pat.key = 'model_updated' AND a.is_active ORDER BY aa."order" ASC;`,
       { replacements: { organization_id: organizationId }, transaction }
     )) as [
       (TenantAutomationActionModel & {
@@ -515,7 +515,7 @@ export const deleteModelInventoryByIdQuery = async (
         paa.key AS action_key,
         a.id AS automation_id,
         aa.*
-      FROM public.automation_triggers pat JOIN automations a ON a.trigger_id = pat.id JOIN automation_actions_data aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE a.organization_id = :organization_id AND pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
+      FROM automation_triggers pat JOIN automations a ON a.trigger_id = pat.id JOIN automation_actions_data aa ON a.id = aa.automation_id JOIN automation_actions paa ON aa.action_type_id = paa.id WHERE a.organization_id = :organization_id AND pat.key = 'model_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
       { replacements: { organization_id: organizationId }, transaction }
     )) as [
       (TenantAutomationActionModel & {

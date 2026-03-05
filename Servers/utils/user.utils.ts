@@ -138,7 +138,7 @@ export const getUserByIdQuery = async (
   transaction: Transaction | null = null
 ): Promise<UserModel> => {
   const users = await sequelize.query<UserModel>(
-    "SELECT * FROM public.users WHERE id = :id",
+    "SELECT * FROM users WHERE id = :id",
     {
       replacements: { id },
       model: UserModel,
@@ -180,7 +180,7 @@ export const doesUserBelongsToOrganizationQuery = async (
   organizationId: number
 ) => {
   const result = (await sequelize.query(
-    "SELECT COUNT(*) > 0 AS belongs FROM public.users WHERE id = :userId AND organization_id = :organizationId",
+    "SELECT COUNT(*) > 0 AS belongs FROM users WHERE id = :userId AND organization_id = :organizationId",
     {
       replacements: { userId, organizationId },
     }

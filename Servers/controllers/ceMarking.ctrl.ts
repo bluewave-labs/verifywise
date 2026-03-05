@@ -186,7 +186,7 @@ export const getCEMarking = async (req: Request, res: Response) => {
       // Get the EU AI Act framework ID (projects_frameworks.id) for this project
       // First, get the framework_id for "EU AI Act"
       const euAiActFrameworkResult = await sequelize.query(
-        `SELECT id FROM public.frameworks WHERE name = 'EU AI Act'`,
+        `SELECT id FROM frameworks WHERE name = 'EU AI Act'`,
         {
           type: QueryTypes.SELECT,
         }

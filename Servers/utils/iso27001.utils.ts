@@ -157,7 +157,7 @@ export const getAllClausesQuery = async (
 ) => {
   // Clauses are in public schema (shared framework structure)
   const clauses = await sequelize.query(
-    `SELECT * FROM public.clauses_struct_iso27001 ORDER BY id;`,
+    `SELECT * FROM clauses_struct_iso27001 ORDER BY id;`,
     {
       mapToModel: true,
       model: ISO27001ClauseStructModel,
@@ -173,7 +173,7 @@ export const getAllClausesWithSubClauseQuery = async (
   transaction: Transaction | null = null
 ) => {
   const clauses = (await sequelize.query(
-    `SELECT * FROM public.clauses_struct_iso27001 ORDER BY id;`,
+    `SELECT * FROM clauses_struct_iso27001 ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -182,7 +182,7 @@ export const getAllClausesWithSubClauseQuery = async (
 
   for (let clause of clauses[0]) {
     const subClauses = (await sequelize.query(
-      `SELECT sc.id, scs.title, scs.order_no, sc.status, sc.owner FROM public.subclauses_struct_iso27001 scs JOIN subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE sc.organization_id = :organizationId AND scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY scs.id;`,
+      `SELECT sc.id, scs.title, scs.order_no, sc.status, sc.owner FROM subclauses_struct_iso27001 scs JOIN subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE sc.organization_id = :organizationId AND scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY scs.id;`,
       {
         replacements: {
           organizationId,
@@ -214,7 +214,7 @@ export const getAllAnnexesWithSubAnnexQuery = async (
   transaction: Transaction | null = null
 ) => {
   const annexes = (await sequelize.query(
-    `SELECT * FROM public.annex_struct_iso27001 ORDER BY id;`,
+    `SELECT * FROM annex_struct_iso27001 ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -230,7 +230,7 @@ export const getAllAnnexesWithSubAnnexQuery = async (
               ac.id as instance_id, ac.implementation_description,
               ac.status, ac.owner, ac.reviewer, ac.approver, ac.due_date, ac.auditor_feedback,
               ac.projects_frameworks_id, ac.created_at, ac.is_demo
-         FROM public.annexcontrols_struct_iso27001 acs
+         FROM annexcontrols_struct_iso27001 acs
          LEFT JOIN annexcontrols_iso27001 ac
            ON ac.organization_id = :organizationId
           AND acs.id = ac.annexcontrol_meta_id
@@ -286,7 +286,7 @@ export const getClauseById = async (
   transaction: Transaction | null = null
 ) => {
   const clause = await sequelize.query(
-    `SELECT * FROM public.clauses_struct_iso27001 WHERE id = :id;`,
+    `SELECT * FROM clauses_struct_iso27001 WHERE id = :id;`,
     {
       replacements: { id: clauseId },
       mapToModel: true,
@@ -305,7 +305,7 @@ export const getSubClausesByClauseIdQuery = async (
   const subClauses = await sequelize.query(
     `SELECT sc.id, scs.title, scs.order_no, scs.clause_id, scs.requirement_summary, scs.key_questions, scs.evidence_examples,
             sc.owner AS owner, sc.reviewer AS reviewer, sc.due_date, sc.status
-    FROM subclauses_iso27001 sc JOIN public.subclauses_struct_iso27001 scs ON
+    FROM subclauses_iso27001 sc JOIN subclauses_struct_iso27001 scs ON
     sc.subclause_meta_id = scs.id WHERE sc.organization_id = :organizationId AND scs.clause_id = :id ORDER BY scs.id;`,
     {
       replacements: { organizationId, id: clauseId },
@@ -347,7 +347,7 @@ export const getSubClauseByIdQuery = async (
       sc.due_date AS due_date,
       sc.auditor_feedback AS auditor_feedback,
       sc.created_at AS created_at
-    FROM public.subclauses_struct_iso27001 scs JOIN subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id
+    FROM subclauses_struct_iso27001 scs JOIN subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id
     WHERE sc.organization_id = :organizationId AND sc.id = :id ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { organizationId, id: subClauseId },
@@ -447,7 +447,7 @@ export const getAllAnnexesQuery = async (
 ) => {
   // Annexes are in public schema (shared framework structure)
   const annexes = await sequelize.query(
-    `SELECT * FROM public.annex_struct_iso27001 ORDER BY id;`,
+    `SELECT * FROM annex_struct_iso27001 ORDER BY id;`,
     {
       mapToModel: true,
       model: ISO27001AnnexStructModel,
@@ -463,7 +463,7 @@ export const getAllAnnexesWithControlsQuery = async (
   transaction: Transaction | null = null
 ) => {
   const annexes = (await sequelize.query(
-    `SELECT * FROM public.annex_struct_iso27001 ORDER BY id;`,
+    `SELECT * FROM annex_struct_iso27001 ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -473,7 +473,7 @@ export const getAllAnnexesWithControlsQuery = async (
   for (let annex of annexes[0]) {
     const annexControls = (await sequelize.query(
       `SELECT acs.id, acs.title, acs.requirement_summary, acs.order_no, ac.status, ac.owner, ac.reviewer, ac.due_date
-      FROM public.annexcontrols_struct_iso27001 acs JOIN annexcontrols_iso27001 ac
+      FROM annexcontrols_struct_iso27001 acs JOIN annexcontrols_iso27001 ac
       ON acs.id = ac.annexcontrol_meta_id WHERE ac.organization_id = :organizationId AND acs.annex_id = :id
       AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
@@ -506,7 +506,7 @@ export const getAnnexByIdQuery = async (
   transaction: Transaction | null = null
 ) => {
   const annex = await sequelize.query(
-    `SELECT * FROM public.annex_struct_iso27001 WHERE id = :id;`,
+    `SELECT * FROM annex_struct_iso27001 WHERE id = :id;`,
     {
       replacements: { id: annexId },
       mapToModel: true,
@@ -524,7 +524,7 @@ export const getAnnexControlsByAnnexIdQuery = async (
 ) => {
   // Annex control structure is in public schema (shared framework structure)
   const annexControls = await sequelize.query(
-    `SELECT * FROM public.annexcontrols_struct_iso27001 WHERE annex_id = :id ORDER BY id;`,
+    `SELECT * FROM annexcontrols_struct_iso27001 WHERE annex_id = :id ORDER BY id;`,
     {
       replacements: { id: annexId },
       mapToModel: true,
@@ -579,7 +579,7 @@ export const getAnnexControlsByIdQuery = async (
       ac.due_date AS due_date,
       ac.auditor_feedback AS auditor_feedback,
       ac.created_at AS created_at
-    FROM public.annexcontrols_struct_iso27001 acs JOIN annexcontrols_iso27001 ac ON acs.id = ac.annexcontrol_meta_id
+    FROM annexcontrols_struct_iso27001 acs JOIN annexcontrols_iso27001 ac ON acs.id = ac.annexcontrol_meta_id
     WHERE ac.organization_id = :organizationId AND ac.id = :id ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { organizationId, id: annexControlId },
@@ -679,7 +679,7 @@ export const createNewClausesQuery = async (
     }
   )) as [{ id: number }[], number];
   const subClauses = (await sequelize.query(
-    `SELECT id FROM public.subclauses_struct_iso27001 ORDER BY id;`,
+    `SELECT id FROM subclauses_struct_iso27001 ORDER BY id;`,
     { transaction }
   )) as [{ id: number }[], number];
   const demoSubClauses = getDemoSubClauses() as {
@@ -759,7 +759,7 @@ export const createNewAnnexesQUery = async (
     }
   )) as [{ id: number }[], number];
   const annexControls = (await sequelize.query(
-    `SELECT id FROM public.annexcontrols_struct_iso27001 ORDER BY id;`,
+    `SELECT id FROM annexcontrols_struct_iso27001 ORDER BY id;`,
     { transaction }
   )) as [{ id: number }[], number];
   const demoAnnexControls = getDemoAnnexControls() as {

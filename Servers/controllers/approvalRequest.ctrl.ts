@@ -133,7 +133,7 @@ export async function createApprovalRequest(
       try {
         // Get requester name
         const requesterResult = await sequelize.query<{ name: string; surname: string }>(
-          `SELECT name, surname FROM public.users WHERE id = :userId`,
+          `SELECT name, surname FROM users WHERE id = :userId`,
           { replacements: { userId }, type: QueryTypes.SELECT }
         );
         const requester = requesterResult[0];
@@ -389,7 +389,7 @@ export async function approveRequest(
 
           // Get approver name
           const approverResult = await sequelize.query<{ name: string; surname: string }>(
-            `SELECT name, surname FROM public.users WHERE id = :userId`,
+            `SELECT name, surname FROM users WHERE id = :userId`,
             { replacements: { userId }, type: QueryTypes.SELECT }
           );
           const approver = approverResult[0];
@@ -553,7 +553,7 @@ export async function rejectRequest(
 
           // Get rejector name
           const rejectorResult = await sequelize.query<{ name: string; surname: string }>(
-            `SELECT name, surname FROM public.users WHERE id = :userId`,
+            `SELECT name, surname FROM users WHERE id = :userId`,
             { replacements: { userId }, type: QueryTypes.SELECT }
           );
           const rejector = rejectorResult[0];
@@ -561,7 +561,7 @@ export async function rejectRequest(
 
           // Get requester name
           const requesterResult = await sequelize.query<{ name: string; surname: string }>(
-            `SELECT name, surname FROM public.users WHERE id = :requesterId`,
+            `SELECT name, surname FROM users WHERE id = :requesterId`,
             { replacements: { requesterId: notificationInfo.requesterId }, type: QueryTypes.SELECT }
           );
           const requester = requesterResult[0];

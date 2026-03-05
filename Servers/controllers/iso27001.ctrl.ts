@@ -43,7 +43,7 @@ import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001Anne
 // Helper function to get user name
 async function getUserNameById(userId: number): Promise<string> {
   const result = await sequelize.query<{ name: string; surname: string }>(
-    `SELECT name, surname FROM public.users WHERE id = :userId`,
+    `SELECT name, surname FROM users WHERE id = :userId`,
     { replacements: { userId }, type: QueryTypes.SELECT }
   );
   if (result[0]) {
@@ -77,8 +77,8 @@ async function notifyIso27001Assignment(
       const result = await sequelize.query<{ clause_id: number; clause_arrangement: number; clause_title: string; subclause_order_no: number; requirement_summary: string }>(
         `SELECT scs.clause_id, c.arrangement as clause_arrangement, c.title as clause_title, scs.order_no as subclause_order_no, scs.requirement_summary
          FROM subclauses_iso27001 sc
-         JOIN public.subclauses_struct_iso27001 scs ON sc.subclause_meta_id = scs.id
-         JOIN public.clauses_struct_iso27001 c ON scs.clause_id = c.id
+         JOIN subclauses_struct_iso27001 scs ON sc.subclause_meta_id = scs.id
+         JOIN clauses_struct_iso27001 c ON scs.clause_id = c.id
          WHERE sc.organization_id = :organizationId AND sc.id = :entityId`,
         { replacements: { organizationId: req.organizationId!, entityId }, type: QueryTypes.SELECT }
       );
@@ -98,8 +98,8 @@ async function notifyIso27001Assignment(
       const result = await sequelize.query<{ annex_id: number; annex_arrangement: string; annex_order_no: number; annex_title: string; control_order_no: number; requirement_summary: string }>(
         `SELECT acs.annex_id, a.arrangement as annex_arrangement, a.order_no as annex_order_no, a.title as annex_title, acs.order_no as control_order_no, acs.requirement_summary
          FROM annexcontrols_iso27001 ac
-         JOIN public.annexcontrols_struct_iso27001 acs ON ac.annexcontrol_meta_id = acs.id
-         JOIN public.annex_struct_iso27001 a ON acs.annex_id = a.id
+         JOIN annexcontrols_struct_iso27001 acs ON ac.annexcontrol_meta_id = acs.id
+         JOIN annex_struct_iso27001 a ON acs.annex_id = a.id
          WHERE ac.organization_id = :organizationId AND ac.id = :entityId`,
         { replacements: { organizationId: req.organizationId!, entityId }, type: QueryTypes.SELECT }
       );
@@ -720,7 +720,7 @@ export async function saveClauses(
     const currentSubClauseResult = (await sequelize.query(
       `SELECT sc.owner, sc.reviewer, sc.approver, scs.title as title
        FROM subclauses_iso27001 sc
-       LEFT JOIN public.subclauses_struct_iso27001 scs ON scs.id = sc.subclause_meta_id
+       LEFT JOIN subclauses_struct_iso27001 scs ON scs.id = sc.subclause_meta_id
        WHERE sc.organization_id = :organizationId AND sc.id = :id;`,
       {
         replacements: { organizationId: req.organizationId!, id: subClauseId },
@@ -858,7 +858,7 @@ export async function saveAnnexes(
     const currentAnnexResult = (await sequelize.query(
       `SELECT ac.owner, ac.reviewer, ac.approver, acs.title as control_title
        FROM annexcontrols_iso27001 ac
-       LEFT JOIN public.annexcontrols_struct_iso27001 acs ON acs.id = ac.annexcontrol_meta_id
+       LEFT JOIN annexcontrols_struct_iso27001 acs ON acs.id = ac.annexcontrol_meta_id
        WHERE ac.organization_id = :organizationId AND ac.id = :id;`,
       {
         replacements: { organizationId: req.organizationId!, id: annexControlId },

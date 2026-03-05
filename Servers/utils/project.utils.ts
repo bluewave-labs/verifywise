@@ -100,7 +100,7 @@ export const getAllProjectsQuery = async (
           pf.id AS project_framework_id, pf.framework_id,
           f.name AS name
         FROM projects_frameworks pf
-        JOIN public.frameworks f ON pf.framework_id = f.id
+        JOIN frameworks f ON pf.framework_id = f.id
         WHERE pf.organization_id = :organizationId AND pf.project_id = :project_id`,
       {
         replacements: { organizationId, project_id: project.id },
@@ -148,7 +148,7 @@ export const getProjectByIdQuery = async (
         pf.id AS project_framework_id, pf.framework_id,
         f.name AS name
       FROM projects_frameworks pf
-      JOIN public.frameworks f ON pf.framework_id = f.id
+      JOIN frameworks f ON pf.framework_id = f.id
       WHERE pf.organization_id = :organizationId AND pf.project_id = :project_id`,
     {
       replacements: { organizationId, project_id: project.id },
@@ -166,7 +166,7 @@ export const getProjectByIdQuery = async (
   let ownerName = "Unassigned";
   if (project.owner) {
     const projectOwner = (await sequelize.query(
-      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+      `SELECT name || ' ' || surname AS full_name FROM users WHERE id = :owner_id;`,
       {
         replacements: { owner_id: project.owner },
       }
@@ -249,13 +249,13 @@ export const createNewProjectQuery = async (
   const allowedFrameworks: number[] = [];
   if (project.is_organizational === true) {
     const result = (await sequelize.query(
-      `SELECT id FROM public.frameworks WHERE is_organizational = true;`,
+      `SELECT id FROM frameworks WHERE is_organizational = true;`,
       { transaction }
     )) as [{ id: number }[], number];
     allowedFrameworks.push(...result[0].map((f) => f.id));
   } else {
     const result = (await sequelize.query(
-      `SELECT id FROM public.frameworks WHERE is_organizational = false;`,
+      `SELECT id FROM frameworks WHERE is_organizational = false;`,
       { transaction }
     )) as [{ id: number }[], number];
     allowedFrameworks.push(...result[0].map((f) => f.id));
@@ -360,10 +360,10 @@ export const createNewProjectQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat
+    FROM automation_triggers pat
     JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
     JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
-    JOIN public.automation_actions paa ON aa.action_type_id = paa.id
+    JOIN automation_actions paa ON aa.action_type_id = paa.id
     WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
@@ -378,7 +378,7 @@ export const createNewProjectQuery = async (
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_added") {
       const owner_name = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: createdProject.dataValues.owner },
           transaction,
@@ -562,10 +562,10 @@ export const updateProjectByIdQuery = async (
       paa.key AS action_key,
       a.id AS automation_id,
       aa.*
-    FROM public.automation_triggers pat
+    FROM automation_triggers pat
     JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
     JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
-    JOIN public.automation_actions paa ON aa.action_type_id = paa.id
+    JOIN automation_actions paa ON aa.action_type_id = paa.id
     WHERE pat.key = 'project_updated' AND a.is_active ORDER BY aa."order" ASC;`,
     { replacements: { organizationId }, transaction }
   )) as [
@@ -580,7 +580,7 @@ export const updateProjectByIdQuery = async (
     const automation = automations[0][0];
     if (automation["trigger_key"] === "project_updated") {
       const owner_name = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id = :owner_id;`,
         {
           replacements: { owner_id: updatedProject.dataValues.owner },
           transaction,
@@ -768,10 +768,10 @@ export const deleteProjectByIdQuery = async (
           paa.key AS action_key,
           a.id AS automation_id,
           aa.*
-        FROM public.automation_triggers pat
+        FROM automation_triggers pat
         JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
         JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
-        JOIN public.automation_actions paa ON aa.action_type_id = paa.id
+        JOIN automation_actions paa ON aa.action_type_id = paa.id
         WHERE pat.key = 'project_deleted' AND a.is_active ORDER BY aa."order" ASC;`,
         { replacements: { organizationId }, transaction }
       )) as [
@@ -786,7 +786,7 @@ export const deleteProjectByIdQuery = async (
         const automation = automations[0][0];
         if (automation["trigger_key"] === "project_deleted") {
           const owner_name = (await sequelize.query(
-            `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+            `SELECT name || ' ' || surname AS full_name FROM users WHERE id = :owner_id;`,
             {
               replacements: { owner_id: deletedProject.owner },
               transaction,

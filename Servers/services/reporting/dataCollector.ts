@@ -482,7 +482,7 @@ export class ReportDataCollector {
         vendorsQuery = `
           SELECT v.*, u.name as assignee_name, u.surname as assignee_surname
           FROM vendors v
-          LEFT JOIN public.users u ON v.assignee = u.id
+          LEFT JOIN users u ON v.assignee = u.id
           WHERE v.organization_id = :organizationId
           ORDER BY v.vendor_name ASC
         `;
@@ -493,7 +493,7 @@ export class ReportDataCollector {
           SELECT v.*, u.name as assignee_name, u.surname as assignee_surname
           FROM vendors v
           JOIN vendors_projects vp ON v.id = vp.vendor_id AND vp.organization_id = v.organization_id
-          LEFT JOIN public.users u ON v.assignee = u.id
+          LEFT JOIN users u ON v.assignee = u.id
           WHERE v.organization_id = :organizationId AND vp.project_id = :projectId
           ORDER BY v.vendor_name ASC
         `;
@@ -540,7 +540,7 @@ export class ReportDataCollector {
           SELECT vr.*, v.vendor_name as vendor_name, u.name as owner_name, u.surname as owner_surname
           FROM vendor_risks vr
           JOIN vendors v ON vr.vendor_id = v.id AND v.organization_id = vr.organization_id
-          LEFT JOIN public.users u ON vr.action_owner = u.id
+          LEFT JOIN users u ON vr.action_owner = u.id
           WHERE vr.organization_id = :organizationId
           ORDER BY vr.id ASC
         `;
@@ -551,7 +551,7 @@ export class ReportDataCollector {
           SELECT vr.*, v.vendor_name as vendor_name, u.name as owner_name, u.surname as owner_surname
           FROM vendor_risks vr
           JOIN vendors v ON vr.vendor_id = v.id AND v.organization_id = vr.organization_id
-          LEFT JOIN public.users u ON vr.action_owner = u.id
+          LEFT JOIN users u ON vr.action_owner = u.id
           JOIN vendors_projects vp ON v.id = vp.vendor_id AND vp.organization_id = v.organization_id
           WHERE vr.organization_id = :organizationId AND vp.project_id = :projectId
           ORDER BY vr.id ASC
@@ -753,7 +753,7 @@ export class ReportDataCollector {
         modelsQuery = `
           SELECT mi.*, u.name as owner_name, u.surname as owner_surname
           FROM model_inventories mi
-          LEFT JOIN public.users u ON mi.owner = u.id
+          LEFT JOIN users u ON mi.owner = u.id
           WHERE mi.organization_id = :organizationId
           ORDER BY mi.name ASC
         `;
@@ -764,7 +764,7 @@ export class ReportDataCollector {
           SELECT mi.*, u.name as owner_name, u.surname as owner_surname
           FROM model_inventories mi
           JOIN model_inventory_projects mip ON mi.id = mip.model_id AND mip.organization_id = mi.organization_id
-          LEFT JOIN public.users u ON mi.owner = u.id
+          LEFT JOIN users u ON mi.owner = u.id
           WHERE mi.organization_id = :organizationId AND mip.project_id = :projectId
           ORDER BY mi.name ASC
         `;
@@ -857,7 +857,7 @@ export class ReportDataCollector {
       const trainingQuery = `
         SELECT tr.*, u.name as assignee_name, u.surname as assignee_surname
         FROM training_registrar tr
-        LEFT JOIN public.users u ON tr.assignee = u.id
+        LEFT JOIN users u ON tr.assignee = u.id
         WHERE tr.organization_id = :organizationId
         ORDER BY tr.id ASC
       `;
@@ -895,7 +895,7 @@ export class ReportDataCollector {
       const policiesQuery = `
         SELECT p.*, u.name as owner_name, u.surname as owner_surname
         FROM policies p
-        LEFT JOIN public.users u ON p.owner = u.id
+        LEFT JOIN users u ON p.owner = u.id
         WHERE p.organization_id = :organizationId
         ORDER BY p.title ASC
       `;
@@ -1040,7 +1040,7 @@ export class ReportDataCollector {
         incidentsQuery = `
           SELECT aim.*, u.name as assignee_name, u.surname as assignee_surname
           FROM ai_incident_managements aim
-          LEFT JOIN public.users u ON aim.assignee = u.id
+          LEFT JOIN users u ON aim.assignee = u.id
           WHERE aim.organization_id = :organizationId
           ORDER BY aim.created_at DESC
         `;
@@ -1050,7 +1050,7 @@ export class ReportDataCollector {
         incidentsQuery = `
           SELECT aim.*, u.name as assignee_name, u.surname as assignee_surname
           FROM ai_incident_managements aim
-          LEFT JOIN public.users u ON aim.assignee = u.id
+          LEFT JOIN users u ON aim.assignee = u.id
           WHERE aim.organization_id = :organizationId AND aim.ai_project = :projectId
           ORDER BY aim.created_at DESC
         `;

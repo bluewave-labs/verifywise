@@ -2,7 +2,7 @@
 Migration Configuration for EvalServer Shared-Schema Migration
 
 Defines table order, FK mappings, and configuration for migrating
-data from tenant schemas to shared public schema.
+data from tenant schemas to shared verifywise schema.
 """
 
 from typing import Dict, List, Set
@@ -54,6 +54,7 @@ TABLE_NAME_ALIASES = {
     "evaluation_logs": "llm_evals_logs",
     "evaluation_metrics": "llm_evals_metrics",
     "evaluation_llm_api_keys": "llm_evals_api_keys",
+    "deepeval_models": "llm_evals_models",
 }
 
 # FK Mappings: Maps table columns to their source tables
@@ -100,7 +101,7 @@ FK_MAPPINGS: Dict[str, Dict[str, str]] = {
     },
 }
 
-# Columns that reference public.users (don't remap, keep as-is)
+# Columns that reference verifywise.users (don't remap, keep as-is)
 USER_REFERENCE_COLUMNS: Set[str] = {
     "user_id",
     "created_by",
@@ -113,6 +114,7 @@ EXCLUDED_COLUMNS: Dict[str, List[str]] = {
 
 # Tables with SERIAL/auto-increment IDs (need special handling)
 SERIAL_ID_TABLES: Set[str] = {
+    "llm_evals_api_keys",
     "llm_evals_datasets",
     "llm_evals_bias_audit_results",
 }

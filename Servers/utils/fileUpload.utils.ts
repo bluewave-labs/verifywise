@@ -159,7 +159,7 @@ export const getFileMetadataByProjectId = async (
   u.name AS uploader_name,
   u.surname AS uploader_surname
     FROM files f
-  JOIN public.users u ON f.uploaded_by = u.id
+  JOIN users u ON f.uploaded_by = u.id
     WHERE f.organization_id = :organizationId AND project_id = :project_id
     ORDER BY uploaded_time DESC, id ASC`;
   const result = await sequelize.query(query, {

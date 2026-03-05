@@ -857,7 +857,7 @@ export async function getTenantSlugById(
   organizationId: number
 ): Promise<string | null> {
   const result = await sequelize.query(
-    `SELECT slug FROM public.organizations WHERE id = :id`,
+    `SELECT slug FROM organizations WHERE id = :id`,
     {
       replacements: { id: organizationId },
       type: QueryTypes.SELECT,
@@ -898,7 +898,7 @@ export async function getUsersByIds(
   if (!userIds || userIds.length === 0) return [];
 
   const result = await sequelize.query(
-    `SELECT id, name, email FROM public.users WHERE id = ANY(:ids)`,
+    `SELECT id, name, email FROM users WHERE id = ANY(:ids)`,
     {
       replacements: { ids: userIds },
       type: QueryTypes.SELECT,

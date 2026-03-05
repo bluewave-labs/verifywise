@@ -115,7 +115,7 @@ export async function createTask(req: Request, res: Response): Promise<any> {
         try {
           // Get creator name
           const creatorResult = await sequelize.query<{ name: string; surname: string }>(
-            `SELECT name, surname FROM public.users WHERE id = :userId`,
+            `SELECT name, surname FROM users WHERE id = :userId`,
             { replacements: { userId }, type: QueryTypes.SELECT }
           );
           const creator = creatorResult[0];
@@ -498,7 +498,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       try {
         // Get updater name
         const updaterResult = await sequelize.query<{ name: string; surname: string }>(
-          `SELECT name, surname FROM public.users WHERE id = :userId`,
+          `SELECT name, surname FROM users WHERE id = :userId`,
           { replacements: { userId }, type: QueryTypes.SELECT }
         );
         const updater = updaterResult[0];

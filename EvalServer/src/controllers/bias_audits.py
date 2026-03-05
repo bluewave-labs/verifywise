@@ -352,7 +352,7 @@ async def list_bias_audits_controller(
     """List all bias audits for the organization."""
     try:
         async with get_db() as db:
-            audits = await list_bias_audits(organization_id, db, org_id=org_id, project_id=project_id)
+            audits = await list_bias_audits(organization_id, db, project_id=project_id)
         return JSONResponse(status_code=200, content={"audits": audits})
     except Exception as e:
         error_str = str(e).lower()

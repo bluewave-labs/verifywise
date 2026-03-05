@@ -19,9 +19,9 @@ export const getAllNISTAIRMFSubcategoriesByCategoryQuery = async (
             ss.description as title,
             ss.description as description,
             cs.id as category_id
-     FROM public.nist_ai_rmf_subcategories s
-     JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
-     JOIN public.nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
+     FROM nist_ai_rmf_subcategories s
+     JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+     JOIN nist_ai_rmf_categories_struct cs ON ss.category_struct_id = cs.id
      WHERE s.organization_id = :organizationId
        AND cs.function = :functionName
        AND cs.category_id = :categoryId
@@ -54,8 +54,8 @@ export const getAllNISTAIRMFSubcategoriesBycategoryIdAndtitleQuery = async (
             ss.description as title,
             ss.description as description,
             ss.category_struct_id as category_id
-     FROM public.nist_ai_rmf_subcategories s
-     JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+     FROM nist_ai_rmf_subcategories s
+     JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
      WHERE s.organization_id = :organizationId
        AND ss.category_struct_id = :categoryStructId
      ORDER BY ss.order_no ASC, ss.subcategory_id ASC`,
@@ -81,8 +81,8 @@ export const getNISTAIRMFSubcategoryByIdQuery = async (
             ss.description as title,
             ss.description as description,
             ss.category_struct_id as category_id
-     FROM public.nist_ai_rmf_subcategories s
-     LEFT JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+     FROM nist_ai_rmf_subcategories s
+     LEFT JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
      WHERE s.organization_id = :organizationId AND s.id = :id`,
     {
       replacements: { organizationId, id },
@@ -117,8 +117,8 @@ export const getNISTAIRMFSubcategoryRisksQuery = async (
 ): Promise<any[]> => {
   const risks = await sequelize.query(
     `SELECT pr.*
-     FROM public.risks pr
-     INNER JOIN public.nist_ai_rmf_subcategories__risks nsr
+     FROM risks pr
+     INNER JOIN nist_ai_rmf_subcategories__risks nsr
        ON pr.organization_id = nsr.organization_id AND pr.id = nsr.projects_risks_id
      WHERE nsr.organization_id = :organizationId AND nsr.nist_ai_rmf_subcategory_id = :subcategoryId
      ORDER BY pr.id ASC`,
@@ -206,7 +206,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
   let subcategoryResult: NISTAIMRFSubcategoryModel & { risks: number[] };
 
   if (setClause.length > 0) {
-    const query = `UPDATE public.nist_ai_rmf_subcategories SET ${setClause}, updated_at = NOW() WHERE organization_id = :organizationId AND id = :id RETURNING *;`;
+    const query = `UPDATE nist_ai_rmf_subcategories SET ${setClause}, updated_at = NOW() WHERE organization_id = :organizationId AND id = :id RETURNING *;`;
 
     updateFields.id = id;
     updateFields.organizationId = organizationId;
@@ -220,7 +220,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
   } else {
     // No fields to update, fetch current record
     const result = (await sequelize.query(
-      `SELECT * FROM public.nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND id = :id`,
+      `SELECT * FROM nist_ai_rmf_subcategories WHERE organization_id = :organizationId AND id = :id`,
       {
         replacements: { organizationId, id },
         transaction,
@@ -241,7 +241,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
 
   // Get current risks for this subcategory
   const risks = (await sequelize.query(
-    `SELECT projects_risks_id FROM public.nist_ai_rmf_subcategories__risks WHERE organization_id = :organizationId AND nist_ai_rmf_subcategory_id = :id`,
+    `SELECT projects_risks_id FROM nist_ai_rmf_subcategories__risks WHERE organization_id = :organizationId AND nist_ai_rmf_subcategory_id = :id`,
     {
       replacements: { organizationId, id },
       transaction,
@@ -257,7 +257,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
 
   // Delete old associations
   await sequelize.query(
-    `DELETE FROM public.nist_ai_rmf_subcategories__risks WHERE organization_id = :organizationId AND nist_ai_rmf_subcategory_id = :id;`,
+    `DELETE FROM nist_ai_rmf_subcategories__risks WHERE organization_id = :organizationId AND nist_ai_rmf_subcategory_id = :id;`,
     {
       replacements: { organizationId, id },
       transaction,
@@ -277,7 +277,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     });
 
     const subCategoryRisksInsertResult = (await sequelize.query(
-      `INSERT INTO public.nist_ai_rmf_subcategories__risks (organization_id, nist_ai_rmf_subcategory_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
+      `INSERT INTO nist_ai_rmf_subcategories__risks (organization_id, nist_ai_rmf_subcategory_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
       {
         replacements,
         transaction,
@@ -294,7 +294,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     for (const riskId of currentRisks) {
       // Check if the framework association already exists
       const existingAssoc = await sequelize.query(
-        `SELECT 1 FROM public.frameworks_risks WHERE organization_id = :organizationId AND risk_id = :riskId AND framework_id = :frameworkId`,
+        `SELECT 1 FROM frameworks_risks WHERE organization_id = :organizationId AND risk_id = :riskId AND framework_id = :frameworkId`,
         {
           replacements: { organizationId, riskId, frameworkId: NIST_AI_RMF_FRAMEWORK_ID },
           transaction,
@@ -304,7 +304,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
       // Only insert if association doesn't exist
       if ((existingAssoc[0] as any[]).length === 0) {
         await sequelize.query(
-          `INSERT INTO public.frameworks_risks (organization_id, risk_id, framework_id) VALUES (:organizationId, :riskId, :frameworkId)`,
+          `INSERT INTO frameworks_risks (organization_id, risk_id, framework_id) VALUES (:organizationId, :riskId, :frameworkId)`,
           {
             replacements: { organizationId, riskId, frameworkId: NIST_AI_RMF_FRAMEWORK_ID },
             transaction,
@@ -317,7 +317,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
   // Create file entity links for new uploaded files
   for (const file of uploadedFiles) {
     await sequelize.query(
-      `INSERT INTO public.file_entity_links
+      `INSERT INTO file_entity_links
         (organization_id, file_id, framework_type, entity_type, entity_id, link_type, created_at)
        VALUES (:organizationId, :fileId, 'nist_ai_rmf', 'subcategory', :entityId, 'evidence', NOW())
        ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
@@ -333,7 +333,7 @@ export const updateNISTAIRMFSubcategoryByIdQuery = async (
     const fileId = parseInt(fileIdStr);
     if (!isNaN(fileId)) {
       await sequelize.query(
-        `DELETE FROM public.file_entity_links
+        `DELETE FROM file_entity_links
          WHERE organization_id = :organizationId
            AND file_id = :fileId
            AND framework_type = 'nist_ai_rmf'
@@ -373,7 +373,7 @@ export const countNISTAIRMFSubcategoriesProgress = async (
     `SELECT
       COUNT(*) AS "totalSubcategories",
       SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneSubcategories"
-    FROM public.nist_ai_rmf_subcategories
+    FROM nist_ai_rmf_subcategories
     WHERE organization_id = :organizationId`,
     { replacements: { organizationId } }
   )) as [{ totalSubcategories: string; doneSubcategories: string }[], number];
@@ -398,7 +398,7 @@ export const countNISTAIRMFSubcategoriesAssignments = async (
     `SELECT
       COUNT(*) AS "totalSubcategories",
       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedSubcategories"
-    FROM public.nist_ai_rmf_subcategories
+    FROM nist_ai_rmf_subcategories
     WHERE organization_id = :organizationId`,
     { replacements: { organizationId } }
   )) as [{ totalSubcategories: string; assignedSubcategories: string }[], number];
@@ -427,8 +427,8 @@ export const countNISTAIRMFSubcategoriesAssignmentsByFunction = async (
       ss.function AS function_type,
       COUNT(s.id) AS total,
       SUM(CASE WHEN s.owner IS NOT NULL THEN 1 ELSE 0 END) AS assigned
-    FROM public.nist_ai_rmf_subcategories s
-    JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+    FROM nist_ai_rmf_subcategories s
+    JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
     WHERE s.organization_id = :organizationId
     GROUP BY ss.function
     ORDER BY
@@ -486,8 +486,8 @@ export const countNISTAIRMFSubcategoriesProgressByFunction = async (
       ss.function AS function_type,
       COUNT(s.id) AS total,
       SUM(CASE WHEN s.status = 'Implemented' THEN 1 ELSE 0 END) AS done
-    FROM public.nist_ai_rmf_subcategories s
-    JOIN public.nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
+    FROM nist_ai_rmf_subcategories s
+    JOIN nist_ai_rmf_subcategories_struct ss ON s.subcategory_meta_id = ss.id
     WHERE s.organization_id = :organizationId
     GROUP BY ss.function
     ORDER BY
@@ -550,7 +550,7 @@ export const getNISTAIRMFSubcategoriesStatusBreakdown = async (
       SUM(CASE WHEN status = 'Awaiting approval' THEN 1 ELSE 0 END) AS "awaitingApproval",
       SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "implemented",
       SUM(CASE WHEN status = 'Needs rework' THEN 1 ELSE 0 END) AS "needsRework"
-    FROM public.nist_ai_rmf_subcategories
+    FROM nist_ai_rmf_subcategories
     WHERE organization_id = :organizationId`,
     { replacements: { organizationId } }
   )) as [
@@ -612,7 +612,7 @@ export const getNISTAIRMFDashboardOverview = async (
   // Get all categories from struct (public schema)
   const categories = (await sequelize.query(
     `SELECT id, function, category_id, description, order_no
-     FROM public.nist_ai_rmf_categories_struct
+     FROM nist_ai_rmf_categories_struct
      ORDER BY
        CASE function
          WHEN 'GOVERN' THEN 1
@@ -636,8 +636,8 @@ export const getNISTAIRMFDashboardOverview = async (
       ss.subcategory_id,
       ss.description,
       ss.category_struct_id
-     FROM public.nist_ai_rmf_subcategories_struct ss
-     LEFT JOIN public.nist_ai_rmf_subcategories s
+     FROM nist_ai_rmf_subcategories_struct ss
+     LEFT JOIN nist_ai_rmf_subcategories s
        ON s.subcategory_meta_id = ss.id AND s.organization_id = :organizationId
      ORDER BY ss.order_no ASC, ss.subcategory_id ASC`,
     { replacements: { organizationId } }
@@ -702,7 +702,7 @@ export const updateNISTAIRMFSubcategoryStatusByIdQuery = async (
   }
 
   const query = `
-    UPDATE public.nist_ai_rmf_subcategories
+    UPDATE nist_ai_rmf_subcategories
     SET status = :status, updated_at = NOW()
     WHERE organization_id = :organizationId AND id = :id
     RETURNING *

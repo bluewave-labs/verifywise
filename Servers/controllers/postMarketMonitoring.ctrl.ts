@@ -814,7 +814,7 @@ export async function submitCycle(req: Request, res: Response): Promise<any> {
 
     // Get user info for report
     const userResult = await sequelize.query(
-      `SELECT name, surname FROM public.users WHERE id = :userId`,
+      `SELECT name, surname FROM users WHERE id = :userId`,
       { replacements: { userId } }
     ) as [Array<{ name: string; surname: string }>, number];
     const userName = userResult[0][0]
@@ -823,7 +823,7 @@ export async function submitCycle(req: Request, res: Response): Promise<any> {
 
     // Get organization info
     const orgResult = await sequelize.query(
-      `SELECT name FROM public.organizations WHERE id = :orgId`,
+      `SELECT name FROM organizations WHERE id = :orgId`,
       { replacements: { orgId: req.organizationId } }
     ) as [Array<{ name: string }>, number];
     const orgName = orgResult[0][0]?.name || "Organization";

@@ -3,7 +3,7 @@
 Migrate EvalServer Tenant Data to Shared Schema
 
 This script migrates data from old tenant schemas (e.g., "abc123".llm_evals_projects)
-to the new shared public schema (llm_evals_projects with organization_id).
+to the new shared verifywise schema (llm_evals_projects with organization_id).
 
 USAGE:
     python migrate_to_shared_schema.py
@@ -11,13 +11,13 @@ USAGE:
     python migrate_to_shared_schema.py --dry-run
 
 PREREQUISITES:
-    1. Run Alembic migrations first to create public schema tables
+    1. Run Alembic migrations first to create verifywise schema tables
     2. Backup your database before running this script
 
 WHAT THIS SCRIPT DOES:
     1. Checks migration_status table for previous runs
     2. Finds all organizations with tenant schemas
-    3. For each tenant, copies data from tenant schema to public schema
+    3. For each tenant, copies data from tenant schema to verifywise schema
     4. Remaps all foreign key references using in-memory mapping
     5. Validates row counts match
     6. Optionally drops tenant schemas after successful migration
@@ -155,7 +155,7 @@ async def get_row_count(
     if not exists:
         return 0
 
-    if organization_id is not None and schema_name == "public":
+    if organization_id is not None and schema_name == "verifywise":
         result = await session.execute(
             text(f'SELECT COUNT(*) FROM "{schema_name}"."{table_name}" WHERE organization_id = :org_id'),
             {"org_id": organization_id}
@@ -184,12 +184,12 @@ async def get_table_columns(session: AsyncSession, schema_name: str, table_name:
 
 
 async def has_organization_id_column(session: AsyncSession, table_name: str) -> bool:
-    """Check if public table has organization_id column."""
+    """Check if verifywise table has organization_id column."""
     result = await session.execute(
         text("""
             SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
-                WHERE table_schema = 'public'
+                WHERE table_schema = 'verifywise'
                   AND table_name = :table_name
                   AND column_name = 'organization_id'
             )
@@ -207,7 +207,7 @@ async def has_organization_id_column(session: AsyncSession, table_name: str) -> 
 async def ensure_migration_status_table(session: AsyncSession):
     """Create migration_status table if it doesn't exist."""
     await session.execute(text("""
-        CREATE TABLE IF NOT EXISTS public.evalserver_migration_status (
+        CREATE TABLE IF NOT EXISTS verifywise.evalserver_migration_status (
             migration_key VARCHAR(255) PRIMARY KEY,
             status VARCHAR(50) NOT NULL,
             organizations_migrated INTEGER DEFAULT 0,
@@ -231,7 +231,7 @@ async def get_migration_status(session: AsyncSession) -> Optional[Dict[str, Any]
         text("""
             SELECT status, organizations_migrated, organizations_total,
                    current_organization_id, current_table, error_message
-            FROM public.evalserver_migration_status
+            FROM verifywise.evalserver_migration_status
             WHERE migration_key = :key
         """),
         {"key": MIGRATION_KEY}
@@ -263,13 +263,13 @@ async def update_migration_status(session: AsyncSession, **kwargs):
             updates.append("completed_at = :now")
 
         await session.execute(
-            text(f"UPDATE public.evalserver_migration_status SET {', '.join(updates)} WHERE migration_key = :key"),
+            text(f"UPDATE verifywise.evalserver_migration_status SET {', '.join(updates)} WHERE migration_key = :key"),
             params
         )
     else:
         await session.execute(
             text("""
-                INSERT INTO public.evalserver_migration_status
+                INSERT INTO verifywise.evalserver_migration_status
                 (migration_key, status, organizations_migrated, organizations_total, started_at, created_at, updated_at)
                 VALUES (:key, :status, :orgs_migrated, :orgs_total, :now, :now, :now)
             """),
@@ -298,7 +298,7 @@ async def migrate_table(
     id_mapping: IdMapping,
     dry_run: bool = False
 ) -> TableMigrationResult:
-    """Migrate a single table from tenant schema to public schema."""
+    """Migrate a single table from tenant schema to verifywise schema."""
     result = TableMigrationResult()
 
     # Get actual source table name (handles aliases)
@@ -308,12 +308,6 @@ async def migrate_table(
     if source_table not in available_tables:
         return result
 
-    # Check if target table exists in public schema
-    target_exists = await table_exists(session, "public", table_name)
-    if not target_exists:
-        print(f"    ⊘ {table_name}: target table doesn't exist in public schema")
-        return result
-
     # Get row count
     source_count = await get_row_count(session, tenant_hash, source_table)
     result.source_count = source_count
@@ -321,9 +315,22 @@ async def migrate_table(
     if source_count == 0:
         return result
 
-    # Get columns from source table
+    # Get columns from both source and target tables
     source_columns = await get_table_columns(session, tenant_hash, source_table)
-    if not source_columns:
+    target_columns = await get_table_columns(session, "verifywise", table_name)
+    if not source_columns or not target_columns:
+        return result
+
+    # Only copy columns that exist in BOTH source and target
+    target_column_set = set(target_columns)
+    common_columns = [col for col in source_columns if col in target_column_set]
+
+    skipped_cols = [col for col in source_columns if col not in target_column_set]
+    if skipped_cols:
+        print(f"    ℹ️  {table_name}: skipping columns not in verifywise schema: {', '.join(skipped_cols)}")
+
+    if not common_columns:
+        print(f"    ⊘ {table_name}: no common columns between tenant and verifywise schema")
         return result
 
     # Check if target has organization_id
@@ -341,7 +348,7 @@ async def migrate_table(
 
     # Fetch all rows from source
     fetch_result = await session.execute(
-        text(f'SELECT * FROM "{tenant_hash}"."{source_table}" ORDER BY id' if "id" in source_columns
+        text(f'SELECT * FROM "{tenant_hash}"."{source_table}" ORDER BY id' if "id" in common_columns
              else f'SELECT * FROM "{tenant_hash}"."{source_table}"')
     )
     rows = fetch_result.mappings().all()
@@ -359,7 +366,7 @@ async def migrate_table(
         insert_data = {}
 
         # Copy columns, applying FK mappings where needed
-        for col in source_columns:
+        for col in common_columns:
             if col == "id" and is_serial_id_table:
                 # Skip SERIAL IDs - they'll be auto-generated
                 continue
@@ -375,7 +382,7 @@ async def migrate_table(
                 else:
                     insert_data[col] = value
             elif col in USER_REFERENCE_COLUMNS:
-                # Keep user references as-is (they point to public.users)
+                # Keep user references as-is (they point to verifywise.users)
                 insert_data[col] = value
             else:
                 insert_data[col] = value
@@ -399,7 +406,7 @@ async def migrate_table(
                 # For SERIAL ID tables, get the new ID from RETURNING
                 insert_result = await session.execute(
                     text(f"""
-                        INSERT INTO public."{table_name}" ({column_list})
+                        INSERT INTO verifywise."{table_name}" ({column_list})
                         VALUES ({placeholder_list})
                         RETURNING id
                     """),
@@ -413,7 +420,7 @@ async def migrate_table(
                 # For VARCHAR ID tables, just insert
                 await session.execute(
                     text(f"""
-                        INSERT INTO public."{table_name}" ({column_list})
+                        INSERT INTO verifywise."{table_name}" ({column_list})
                         VALUES ({placeholder_list})
                         ON CONFLICT DO NOTHING
                     """),
@@ -435,7 +442,6 @@ async def migrate_table(
             else:
                 raise
 
-    await session.commit()
     result.migrated_count = migrated_count
 
     if migrated_count > 0:
@@ -498,7 +504,9 @@ async def migrate_organization(
         if drop_schema_after and not dry_run:
             print(f"    🗑️  Dropping tenant schema {tenant_hash}...")
             await session.execute(text(f'DROP SCHEMA IF EXISTS "{tenant_hash}" CASCADE'))
-            await session.commit()
+
+        # Commit entire org migration as one transaction
+        await session.commit()
 
         print(f"  ✓ Organization {org_id} migrated successfully")
         return True, table_counts, None
@@ -549,7 +557,7 @@ async def migrate_to_shared_schema(
 
             # Get all organizations
             org_result = await session.execute(
-                text("SELECT id, name FROM public.organizations ORDER BY id")
+                text("SELECT id, name FROM verifywise.organizations ORDER BY id")
             )
             organizations = [{"id": row[0], "name": row[1]} for row in org_result.fetchall()]
 
@@ -691,7 +699,7 @@ async def check_and_run_migration(database_url: str) -> MigrationResult:
 
             # Check if any tenant schemas exist
             org_result = await session.execute(
-                text("SELECT id FROM public.organizations ORDER BY id")
+                text("SELECT id FROM verifywise.organizations ORDER BY id")
             )
             organizations = [row[0] for row in org_result.fetchall()]
 

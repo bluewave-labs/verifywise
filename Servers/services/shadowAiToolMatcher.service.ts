@@ -25,7 +25,7 @@ export async function loadToolRegistry(): Promise<IShadowAiToolRegistry[]> {
   const [rows] = await sequelize.query(
     `SELECT id, name, vendor, domains, category, models,
             trains_on_data, soc2_certified, gdpr_compliant
-     FROM public.shadow_ai_tool_registry
+     FROM shadow_ai_tool_registry
      ORDER BY name`
   );
 

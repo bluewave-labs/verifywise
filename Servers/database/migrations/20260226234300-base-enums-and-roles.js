@@ -15,13 +15,20 @@ module.exports = {
       console.log('🚀 Creating base ENUMs and roles...');
 
       // ========================================
+      // CREATE SCHEMA
+      // ========================================
+      await queryInterface.sequelize.query(`
+        CREATE SCHEMA IF NOT EXISTS verifywise;
+      `, { transaction });
+
+      // ========================================
       // CORE ENUMS
       // ========================================
 
       // Project status
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE projects_status_enum AS ENUM ('Not started', 'In progress', 'Under review', 'Completed', 'Closed', 'On hold', 'Rejected');
+          CREATE TYPE verifywise.projects_status_enum AS ENUM ('Not started', 'In progress', 'Under review', 'Completed', 'Closed', 'On hold', 'Rejected');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
@@ -29,7 +36,7 @@ module.exports = {
       // Project risk classification
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projects_ai_risk_classification AS ENUM (
+          CREATE TYPE verifywise.enum_projects_ai_risk_classification AS ENUM (
             'High risk', 'Limited risk', 'Minimal risk',
             'Prohibited', 'gpai', 'gpai_systemic', 'not_ai_system'
           );
@@ -40,7 +47,7 @@ module.exports = {
       // High risk role types
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projects_type_of_high_risk_role AS ENUM (
+          CREATE TYPE verifywise.enum_projects_type_of_high_risk_role AS ENUM (
             'Deployer', 'Provider', 'Distributor', 'Importer',
             'Product manufacturer', 'Authorized representative',
             'not_applicable'
@@ -52,7 +59,7 @@ module.exports = {
       // Vendor review status
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendors_review_status AS ENUM (
+          CREATE TYPE verifywise.enum_vendors_review_status AS ENUM (
             'Not started', 'In review', 'Reviewed', 'Requires follow-up', 'Superseded'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -62,7 +69,7 @@ module.exports = {
       // Vendor scorecard enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendors_data_sensitivity AS ENUM (
+          CREATE TYPE verifywise.enum_vendors_data_sensitivity AS ENUM (
             'None', 'Internal only', 'Personally identifiable information (PII)',
             'Financial data', 'Health data (e.g. HIPAA)',
             'Model weights or AI assets', 'Other sensitive data'
@@ -73,7 +80,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendors_business_criticality AS ENUM (
+          CREATE TYPE verifywise.enum_vendors_business_criticality AS ENUM (
             'Low (vendor supports non-core functions)',
             'Medium (affects operations but is replaceable)',
             'High (critical to core services or products)'
@@ -84,7 +91,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendors_past_issues AS ENUM (
+          CREATE TYPE verifywise.enum_vendors_past_issues AS ENUM (
             'None', 'Minor incident (e.g. small delay, minor bug)',
             'Major incident (e.g. data breach, legal issue)'
           );
@@ -94,7 +101,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendors_regulatory_exposure AS ENUM (
+          CREATE TYPE verifywise.enum_vendors_regulatory_exposure AS ENUM (
             'None', 'GDPR (EU)', 'HIPAA (US)', 'SOC 2',
             'ISO 27001', 'EU AI act', 'CCPA (california)', 'Other'
           );
@@ -105,7 +112,7 @@ module.exports = {
       // Training status
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_trainingregistar_status AS ENUM (
+          CREATE TYPE verifywise.enum_trainingregistar_status AS ENUM (
             'Planned', 'In Progress', 'Completed'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -115,7 +122,7 @@ module.exports = {
       // Event log types
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_event_logs_event_type AS ENUM (
+          CREATE TYPE verifywise.enum_event_logs_event_type AS ENUM (
             'Create', 'Read', 'Update', 'Delete', 'Login', 'Logout', 'Error'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -125,7 +132,7 @@ module.exports = {
       // Risk enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_ai_lifecycle_phase AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_ai_lifecycle_phase AS ENUM (
             'Problem definition & planning',
             'Data collection & processing',
             'Model development & training',
@@ -140,7 +147,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_risk_category AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_risk_category AS ENUM (
             'Strategic risk', 'Operational risk', 'Compliance risk', 'Financial risk',
             'Cybersecurity risk', 'Reputational risk', 'Legal risk', 'Technological risk',
             'Third-party/vendor risk', 'Environmental risk', 'Human resources risk',
@@ -152,7 +159,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_likelihood AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_likelihood AS ENUM (
             'Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -161,7 +168,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_severity AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_severity AS ENUM (
             'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -170,7 +177,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_risk_level_autocalculated AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_risk_level_autocalculated AS ENUM (
             'No risk', 'Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -179,7 +186,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_mitigation_status AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_mitigation_status AS ENUM (
             'Not Started', 'In Progress', 'Completed', 'On Hold', 'Deferred', 'Canceled', 'Requires review'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -188,7 +195,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_current_risk_level AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_current_risk_level AS ENUM (
             'Very Low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -197,7 +204,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_likelihood_mitigation AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_likelihood_mitigation AS ENUM (
             'Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -206,7 +213,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_projectrisks_risk_severity AS ENUM (
+          CREATE TYPE verifywise.enum_projectrisks_risk_severity AS ENUM (
             'Critical', 'Major', 'Minor', 'Moderate', 'Negligible'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -216,7 +223,7 @@ module.exports = {
       // Vendor risk enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendorrisks_likelihood AS ENUM (
+          CREATE TYPE verifywise.enum_vendorrisks_likelihood AS ENUM (
             'Rare', 'Unlikely', 'Possible', 'Likely', 'Almost certain'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -225,7 +232,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_vendorrisks_risk_severity AS ENUM (
+          CREATE TYPE verifywise.enum_vendorrisks_risk_severity AS ENUM (
             'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -235,7 +242,7 @@ module.exports = {
       // File source enum
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_files_source AS ENUM (
+          CREATE TYPE verifywise.enum_files_source AS ENUM (
             'Manual', 'Reporting', 'Policy', 'Vendor', 'Model',
             'Risk', 'Assessment', 'Control', 'Evidence', 'Training',
             'ISO42001Clause', 'ISO42001Annex', 'ISO27001Clause', 'ISO27001Annex',
@@ -258,14 +265,14 @@ module.exports = {
       // Control status enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_controls_status AS ENUM ('Waiting', 'In progress', 'Done');
+          CREATE TYPE verifywise.enum_controls_status AS ENUM ('Waiting', 'In progress', 'Done');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_controls_risk_review AS ENUM (
+          CREATE TYPE verifywise.enum_controls_risk_review AS ENUM (
             'Acceptable risk', 'Residual risk', 'Unacceptable risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -274,14 +281,14 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_subcontrols_status AS ENUM ('Waiting', 'In progress', 'Done');
+          CREATE TYPE verifywise.enum_subcontrols_status AS ENUM ('Waiting', 'In progress', 'Done');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_subcontrols_risk_review AS ENUM (
+          CREATE TYPE verifywise.enum_subcontrols_risk_review AS ENUM (
             'Acceptable risk', 'Residual risk', 'Unacceptable risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -290,7 +297,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_status_questions AS ENUM (
+          CREATE TYPE verifywise.enum_status_questions AS ENUM (
             'Not started', 'In progress', 'Done'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -300,7 +307,7 @@ module.exports = {
       // ISO status enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_subclauses_iso_status AS ENUM (
+          CREATE TYPE verifywise.enum_subclauses_iso_status AS ENUM (
             'Not started', 'Draft', 'In progress', 'Awaiting review',
             'Awaiting approval', 'Implemented', 'Audited', 'Needs rework'
           );
@@ -310,7 +317,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_annexcategories_iso_status AS ENUM (
+          CREATE TYPE verifywise.enum_annexcategories_iso_status AS ENUM (
             'Not started', 'Draft', 'In progress', 'Awaiting review',
             'Awaiting approval', 'Implemented', 'Audited', 'Needs rework'
           );
@@ -321,7 +328,7 @@ module.exports = {
       // Model inventory status
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_model_inventories_status AS ENUM (
+          CREATE TYPE verifywise.enum_model_inventories_status AS ENUM (
             'Approved', 'Restricted', 'Pending', 'Blocked'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -331,7 +338,7 @@ module.exports = {
       // Model risk enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_model_risks_risk_category AS ENUM (
+          CREATE TYPE verifywise.enum_model_risks_risk_category AS ENUM (
             'Performance', 'Bias & Fairness', 'Security', 'Data Quality', 'Compliance'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -340,7 +347,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_model_risks_risk_level AS ENUM (
+          CREATE TYPE verifywise.enum_model_risks_risk_level AS ENUM (
             'Low', 'Medium', 'High', 'Critical'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -349,7 +356,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_model_risks_status AS ENUM (
+          CREATE TYPE verifywise.enum_model_risks_status AS ENUM (
             'Open', 'In Progress', 'Resolved', 'Accepted'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -359,21 +366,21 @@ module.exports = {
       // Dataset enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_dataset_status AS ENUM ('Draft', 'Active', 'Deprecated', 'Archived');
+          CREATE TYPE verifywise.enum_dataset_status AS ENUM ('Draft', 'Active', 'Deprecated', 'Archived');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_dataset_type AS ENUM ('Training', 'Validation', 'Testing', 'Production', 'Reference');
+          CREATE TYPE verifywise.enum_dataset_type AS ENUM ('Training', 'Validation', 'Testing', 'Production', 'Reference');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_data_classification AS ENUM ('Public', 'Internal', 'Confidential', 'Restricted');
+          CREATE TYPE verifywise.enum_data_classification AS ENUM ('Public', 'Internal', 'Confidential', 'Restricted');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
@@ -381,14 +388,14 @@ module.exports = {
       // Task enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_tasks_priority AS ENUM ('Low', 'Medium', 'High');
+          CREATE TYPE verifywise.enum_tasks_priority AS ENUM ('Low', 'Medium', 'High');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_tasks_status AS ENUM ('Open', 'In Progress', 'Completed', 'Overdue', 'Deleted');
+          CREATE TYPE verifywise.enum_tasks_status AS ENUM ('Open', 'In Progress', 'Completed', 'Overdue', 'Deleted');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
@@ -396,7 +403,7 @@ module.exports = {
       // Notification enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_notification_type AS ENUM (
+          CREATE TYPE verifywise.enum_notification_type AS ENUM (
             'task_assigned', 'task_completed', 'task_updated',
             'review_requested', 'review_approved', 'review_rejected',
             'approval_requested', 'approval_approved', 'approval_rejected', 'approval_complete',
@@ -412,7 +419,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_notification_entity_type AS ENUM (
+          CREATE TYPE verifywise.enum_notification_entity_type AS ENUM (
             'project', 'task', 'policy', 'vendor', 'model', 'training',
             'file', 'use_case', 'risk', 'assessment', 'comment', 'user'
           );
@@ -423,7 +430,7 @@ module.exports = {
       // LLM Keys enum
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_llm_keys_provider AS ENUM ('Anthropic', 'OpenAI', 'OpenRouter', 'Custom');
+          CREATE TYPE verifywise.enum_llm_keys_provider AS ENUM ('Anthropic', 'OpenAI', 'OpenRouter', 'Custom');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
@@ -431,7 +438,7 @@ module.exports = {
       // NIST AI RMF enums
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_nist_ai_rmf_status AS ENUM (
+          CREATE TYPE verifywise.enum_nist_ai_rmf_status AS ENUM (
             'Not started', 'Draft', 'In progress', 'Awaiting review',
             'Awaiting approval', 'Implemented', 'Needs rework', 'Audited'
           );
@@ -441,7 +448,7 @@ module.exports = {
 
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE enum_nist_ai_rmf_subcategories_status AS ENUM (
+          CREATE TYPE verifywise.enum_nist_ai_rmf_subcategories_status AS ENUM (
             'Not started', 'Draft', 'In progress', 'Awaiting review',
             'Awaiting approval', 'Implemented', 'Needs rework', 'Audited'
           );
@@ -455,7 +462,7 @@ module.exports = {
       console.log('📋 Creating roles table...');
 
       await queryInterface.sequelize.query(`
-        CREATE TABLE IF NOT EXISTS roles (
+        CREATE TABLE verifywise.roles (
           id SERIAL PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           description VARCHAR(255) NOT NULL,
@@ -467,7 +474,7 @@ module.exports = {
 
       // Insert default roles
       await queryInterface.sequelize.query(`
-        INSERT INTO roles (id, name, description) VALUES
+        INSERT INTO verifywise.roles (id, name, description) VALUES
           (1, 'Admin', 'Administrator with full access to the system.'),
           (2, 'Reviewer', 'Reviewer with access to review compliance and reports.'),
           (3, 'Editor', 'Editor with permission to modify and update project details.'),
@@ -477,7 +484,7 @@ module.exports = {
 
       // Reset sequence
       await queryInterface.sequelize.query(`
-        SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));
+        SELECT setval('verifywise.roles_id_seq', (SELECT MAX(id) FROM verifywise.roles));
       `, { transaction });
 
       await transaction.commit();
@@ -497,7 +504,7 @@ module.exports = {
       console.log('🔄 Rolling back base ENUMs and roles...');
 
       // Drop roles table
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS roles CASCADE;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.roles CASCADE;`, { transaction });
 
       // Note: We don't drop ENUMs here as they may be used by other tables
       // ENUMs should be dropped last if needed

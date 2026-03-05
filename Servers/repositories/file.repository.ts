@@ -268,7 +268,7 @@ export async function getProjectFileMetadata(
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
+    JOIN users u ON f.uploaded_by = u.id
     WHERE f.organization_id = :organizationId AND project_id = :project_id
     ORDER BY uploaded_time DESC, id ASC`;
 
@@ -509,7 +509,7 @@ export async function getOrganizationFiles(
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
+    JOIN users u ON f.uploaded_by = u.id
     WHERE f.organization_id = :organizationId
       AND f.project_id IS NULL
       AND (f.source IS NULL OR f.source != 'policy_editor')
@@ -605,7 +605,7 @@ export async function getFileAccessLogs(
       u.name AS user_name,
       u.surname AS user_surname
     FROM file_access_logs fal
-    JOIN public.users u ON fal.accessed_by = u.id
+    JOIN users u ON fal.accessed_by = u.id
     WHERE fal.organization_id = :organizationId AND fal.file_id = :fileId
     ORDER BY fal.access_date DESC`;
 
@@ -726,7 +726,7 @@ export async function getFilesByModelId(
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
+    JOIN users u ON f.uploaded_by = u.id
     WHERE f.organization_id = :organizationId AND f.model_id = :modelId
     ORDER BY f.uploaded_time DESC`;
 
@@ -850,8 +850,8 @@ export async function getFileWithMetadata(
       m.name AS last_modifier_name,
       m.surname AS last_modifier_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
-    LEFT JOIN public.users m ON f.last_modified_by = m.id
+    JOIN users u ON f.uploaded_by = u.id
+    LEFT JOIN users m ON f.last_modified_by = m.id
     LEFT JOIN approval_workflows aw ON aw.organization_id = f.organization_id AND f.approval_workflow_id = aw.id
     WHERE f.organization_id = :organizationId AND f.id = :fileId`;
 
@@ -905,8 +905,8 @@ export async function getOrganizationFilesWithMetadata(
       m.name AS last_modifier_name,
       m.surname AS last_modifier_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
-    LEFT JOIN public.users m ON f.last_modified_by = m.id
+    JOIN users u ON f.uploaded_by = u.id
+    LEFT JOIN users m ON f.last_modified_by = m.id
     LEFT JOIN approval_workflows aw ON aw.organization_id = f.organization_id AND f.approval_workflow_id = aw.id
     WHERE f.organization_id = :organizationId
       AND f.project_id IS NULL
@@ -1127,7 +1127,7 @@ export async function getFileVersionHistory(
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
+    JOIN users u ON f.uploaded_by = u.id
     WHERE f.organization_id = :organizationId AND f.file_group_id = :fileGroupId
     ORDER BY f.uploaded_time DESC`;
 
@@ -1210,7 +1210,7 @@ export async function getFilesPendingApproval(
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM files f
-    JOIN public.users u ON f.uploaded_by = u.id
+    JOIN users u ON f.uploaded_by = u.id
     WHERE f.organization_id = :organizationId AND f.approval_workflow_id = :workflowId
       AND f.review_status = 'pending_review'
     ORDER BY f.uploaded_time DESC`;
@@ -1420,7 +1420,7 @@ export async function getFilesWithMetadataForEntity(
       u.surname AS uploader_surname
     FROM file_entity_links fel
     JOIN files f ON f.organization_id = fel.organization_id AND fel.file_id = f.id
-    JOIN public.users u ON f.uploaded_by = u.id
+    JOIN users u ON f.uploaded_by = u.id
     WHERE fel.organization_id = :organizationId
       AND fel.framework_type = :frameworkType
       AND fel.entity_type = :entityType

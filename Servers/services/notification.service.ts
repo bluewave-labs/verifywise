@@ -228,7 +228,7 @@ export const notifyStepApprovers = async (
     );
 
     // Build approval URL
-    const baseUrl = process.env.FRONTEND_URL || "https://app.verifywise.ai";
+    const baseUrl = process.env.FRONTEND_URL || "https://app.ai";
     const approvalUrl = `${baseUrl}/approval-requests/${requestId}`;
 
     // Send notification to each approver with full context
@@ -283,7 +283,7 @@ export const notifyRequesterApproved = async (
       }
     }
 
-    const baseUrl = process.env.FRONTEND_URL || "https://app.verifywise.ai";
+    const baseUrl = process.env.FRONTEND_URL || "https://app.ai";
     const useCaseUrl = `${baseUrl}/approval-requests/${requestId}`;
 
     await sendNotificationWithContext(organizationId, requesterId, {
@@ -328,7 +328,7 @@ export const notifyRequesterRejected = async (
       }
     }
 
-    const baseUrl = process.env.FRONTEND_URL || "https://app.verifywise.ai";
+    const baseUrl = process.env.FRONTEND_URL || "https://app.ai";
     const requestUrl = `${baseUrl}/approval-requests/${requestId}`;
 
     await sendNotificationWithContext(organizationId, requesterId, {
@@ -373,7 +373,7 @@ export const notifyRequesterStepCompleted = async (
       requesterName = fetchedContext.requester_name;
     }
 
-    const baseUrl = process.env.FRONTEND_URL || "https://app.verifywise.ai";
+    const baseUrl = process.env.FRONTEND_URL || "https://app.ai";
     const requestUrl = `${baseUrl}/approval-requests/${requestId}`;
 
     // Use sendInAppNotification directly with the step completion template

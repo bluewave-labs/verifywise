@@ -29,7 +29,7 @@ const getUserFilesMetaDataQuery = async (
       SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, f.review_status,
         p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
       FROM files f JOIN projects p ON p.id = f.project_id AND p.organization_id = :organizationId
-      JOIN public.users u ON f.uploaded_by = u.id
+      JOIN users u ON f.uploaded_by = u.id
       WHERE f.organization_id = :organizationId AND f.source::TEXT NOT ILIKE '%report%'
       ORDER BY f.uploaded_time DESC
       ${paginationClause};
@@ -44,7 +44,7 @@ const getUserFilesMetaDataQuery = async (
           p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
         FROM files f JOIN projects_of_user pu ON f.project_id = pu.project_id
         JOIN projects p ON p.id = pu.project_id AND p.organization_id = :organizationId
-        JOIN public.users u ON f.uploaded_by = u.id
+        JOIN users u ON f.uploaded_by = u.id
         WHERE f.organization_id = :organizationId AND f.source::TEXT NOT ILIKE '%report%'
         ORDER BY f.uploaded_time DESC
       ${paginationClause};`;
@@ -123,9 +123,9 @@ const getUserFilesMetaDataQuery = async (
             const parentQuery = `
               SELECT topic.id AS topic_id, subtopic.id AS subtopic_id
               FROM answers_eu ans
-              JOIN public.questions_struct_eu question ON question.id = ans.question_id
-              JOIN public.subtopics_struct_eu subtopic ON subtopic.id = question.subtopic_id
-              JOIN public.topics_struct_eu topic ON topic.id = subtopic.topic_id
+              JOIN questions_struct_eu question ON question.id = ans.question_id
+              JOIN subtopics_struct_eu subtopic ON subtopic.id = question.subtopic_id
+              JOIN topics_struct_eu topic ON topic.id = subtopic.topic_id
               WHERE ans.organization_id = :organizationId AND ans.id = :entityId`;
             const parentResult = (await sequelize.query(parentQuery, {
               replacements: { organizationId, entityId: link.entity_id },
@@ -147,7 +147,7 @@ const getUserFilesMetaDataQuery = async (
             const parentQuery = `
               SELECT scs.clause_id as clause_id
               FROM ${table} sc
-              JOIN public.${structTable} scs ON scs.id = sc.subclause_meta_id
+              JOIN ${structTable} scs ON scs.id = sc.subclause_meta_id
               WHERE sc.organization_id = :organizationId AND sc.id = :entityId`;
             const parentResult = (await sequelize.query(parentQuery, {
               replacements: { organizationId, entityId: link.entity_id },
@@ -162,7 +162,7 @@ const getUserFilesMetaDataQuery = async (
             const parentQuery = `
               SELECT acs.annex_id as annex_id
               FROM annexcontrols_iso27001 ac
-              JOIN public.annexcontrols_struct_iso27001 acs ON acs.id = ac.annexcontrol_meta_id
+              JOIN annexcontrols_struct_iso27001 acs ON acs.id = ac.annexcontrol_meta_id
               WHERE ac.organization_id = :organizationId AND ac.id = :entityId`;
             const parentResult = (await sequelize.query(parentQuery, {
               replacements: { organizationId, entityId: link.entity_id },
@@ -177,7 +177,7 @@ const getUserFilesMetaDataQuery = async (
             const parentQuery = `
               SELECT acs.annex_id as annex_id
               FROM annexcategories_iso ac
-              JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+              JOIN annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
               WHERE ac.organization_id = :organizationId AND ac.id = :entityId`;
             const parentResult = (await sequelize.query(parentQuery, {
               replacements: { organizationId, entityId: link.entity_id },

@@ -44,10 +44,10 @@ async function sendVendorReviewDateNotification() {
         a.id AS automation_id,
         a.params AS automation_params,
         aa.*
-      FROM public.automation_triggers pat
+      FROM automation_triggers pat
       JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
       JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
-      JOIN public.automation_actions paa ON aa.action_type_id = paa.id
+      JOIN automation_actions paa ON aa.action_type_id = paa.id
       WHERE pat.key = 'vendor_review_date_approaching' AND a.is_active
       ORDER BY aa."order" ASC;`,
       { replacements: { organizationId } }
@@ -241,10 +241,10 @@ async function sendReportNotification() {
         a.params AS automation_params,
         a.created_by AS user_id,
         aa.*
-      FROM public.automation_triggers pat
+      FROM automation_triggers pat
       JOIN automations a ON a.trigger_id = pat.id AND a.organization_id = :organizationId
       JOIN automation_actions_data aa ON a.id = aa.automation_id AND aa.organization_id = :organizationId
-      JOIN public.automation_actions paa ON aa.action_type_id = paa.id
+      JOIN automation_actions paa ON aa.action_type_id = paa.id
       WHERE pat.key = 'scheduled_report' AND a.is_active
       ORDER BY aa."order" ASC;`,
       { replacements: { organizationId } }
@@ -296,13 +296,13 @@ async function sendReportNotification() {
         number,
       ];
       const [[{ full_name }]] = (await sequelize.query(
-        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :userId;`,
+        `SELECT name || ' ' || surname AS full_name FROM users WHERE id = :userId;`,
         {
           replacements: { userId: projectDetails[0][0].owner },
         }
       )) as [{ full_name: string }[], number];
       const [[{ organization_name }]] = (await sequelize.query(
-        `SELECT name FROM public.organizations WHERE id = :orgId;`,
+        `SELECT name FROM organizations WHERE id = :orgId;`,
         {
           replacements: { orgId: org.id },
         }

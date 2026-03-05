@@ -52,15 +52,24 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table_schema="verifywise",
+        include_schemas=True,
     )
 
     with context.begin_transaction():
+        context.execute("SET search_path TO verifywise")
         context.run_migrations()
 
 def do_run_migrations(connection):
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        version_table_schema="verifywise",
+        include_schemas=True,
+    )
 
     with context.begin_transaction():
+        context.execute("SET search_path TO verifywise")
         context.run_migrations()
 
 async def run_async_migrations():

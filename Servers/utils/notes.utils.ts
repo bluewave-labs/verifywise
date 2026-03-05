@@ -104,7 +104,7 @@ export async function getNotesByEntityQuery(
     const notes = await sequelize.query(
       `SELECT n.*, u.id as "author.id", u.name as "author.name", u.surname as "author.surname", u.email as "author.email"
        FROM notes n
-       LEFT JOIN public.users u ON n.author_id = u.id
+       LEFT JOIN users u ON n.author_id = u.id
        WHERE n.attached_to = :attached_to
          AND n.attached_to_id = :attached_to_id
          AND n.organization_id = :organization_id
@@ -165,7 +165,7 @@ export async function getNoteByIdQuery(
     const result = await sequelize.query(
       `SELECT n.*, u.id as "author.id", u.name as "author.name", u.surname as "author.surname", u.email as "author.email"
        FROM notes n
-       LEFT JOIN public.users u ON n.author_id = u.id
+       LEFT JOIN users u ON n.author_id = u.id
        WHERE n.id = :id AND n.organization_id = :organization_id
        LIMIT 1`,
       {
@@ -344,7 +344,7 @@ export async function getNotesByAuthorQuery(
     const notes = await sequelize.query(
       `SELECT n.*, u.id as "author.id", u.name as "author.name", u.surname as "author.surname", u.email as "author.email"
        FROM notes n
-       LEFT JOIN public.users u ON n.author_id = u.id
+       LEFT JOIN users u ON n.author_id = u.id
        WHERE n.author_id = :author_id
          AND n.organization_id = :organization_id
        ORDER BY n.created_at DESC`,

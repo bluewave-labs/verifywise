@@ -226,8 +226,7 @@ async function migrateTable(
   tenantHash: string,
   tableName: string,
   idMapping: IdMapping,
-  transaction: Transaction,
-  cfIdMaps?: CustomFrameworkIdMaps
+  transaction: Transaction
 ): Promise<{ sourceCount: number; migratedCount: number }> {
   // Check if source table exists
   const sourceExists = await tableExists(tenantHash, tableName, transaction);
@@ -328,20 +327,6 @@ async function migrateTable(
         }
       }
 
-      // For file_entity_links: remap entity_id using custom framework ID maps
-      if (tableName === 'file_entity_links' && cfIdMaps && insertData.entity_id != null) {
-        const entityType = insertData.entity_type;
-        if (entityType === 'level2' && cfIdMaps.l2IdMap[insertData.entity_id]) {
-          insertData.entity_id = cfIdMaps.l2IdMap[insertData.entity_id];
-        } else if (entityType === 'level3' && cfIdMaps.l3IdMap[insertData.entity_id]) {
-          insertData.entity_id = cfIdMaps.l3IdMap[insertData.entity_id];
-        } else if (entityType === 'level2_impl' && cfIdMaps.l2ImplIdMap[insertData.entity_id]) {
-          insertData.entity_id = cfIdMaps.l2ImplIdMap[insertData.entity_id];
-        } else if (entityType === 'level3_impl' && cfIdMaps.l3ImplIdMap[insertData.entity_id]) {
-          insertData.entity_id = cfIdMaps.l3ImplIdMap[insertData.entity_id];
-        }
-      }
-
       // Build INSERT statement
       const targetCols = hasOrgId
         ? ["organization_id", ...commonColumns]
@@ -375,63 +360,61 @@ async function migrateTable(
       const placeholders = targetValues.map((_, i) => `$${i + 1}`).join(", ");
       const columnList = targetCols.map((c) => `"${c}"`).join(", ");
 
-      try {
-        if (hasIdColumn) {
-          // Table has id column - use RETURNING id for mapping
-          const [insertResult] = await sequelize.query(
-            `INSERT INTO "${targetTableName}" (${columnList})
-             VALUES (${placeholders})
-             RETURNING id`,
-            {
-              bind: targetValues,
-              type: QueryTypes.SELECT,
-              transaction,
-            }
-          );
+      if (hasIdColumn) {
+        // Use ON CONFLICT DO NOTHING to keep the transaction alive on duplicates.
+        // RETURNING id only returns rows for actual inserts, not conflicts.
+        const insertResult = await sequelize.query(
+          `INSERT INTO "${targetTableName}" (${columnList})
+           VALUES (${placeholders})
+           ON CONFLICT DO NOTHING
+           RETURNING id`,
+          {
+            bind: targetValues,
+            type: QueryTypes.SELECT,
+            transaction,
+          }
+        );
 
-          const newId = (insertResult as any)?.id;
+        if (insertResult.length > 0) {
+          // Row was inserted — map old ID to new ID
+          const newId = (insertResult[0] as any)?.id;
           if (newId !== undefined && oldId !== null) {
             idMapping[tableName][oldId] = newId;
           }
           migratedCount++;
         } else {
-          // Junction table without id column - just insert, no ID mapping needed
-          await sequelize.query(
-            `INSERT INTO "${targetTableName}" (${columnList})
-             VALUES (${placeholders})`,
-            {
-              bind: targetValues,
-              type: QueryTypes.INSERT,
-              transaction,
-            }
-          );
-          migratedCount++;
-        }
-      } catch (error) {
-        const err = error as any;
-        if (err.name === "SequelizeUniqueConstraintError" || err.code === "23505") {
-          if (hasIdColumn) {
+          // Conflict — row already exists. Find it and build the mapping.
+          // This handles re-running migration on partially migrated data.
+          if (oldId !== null && hasOrgId) {
             const existing = await sequelize.query(
               `SELECT id FROM "${targetTableName}"
-               WHERE organization_id = :orgId
+               WHERE organization_id = $1
                ORDER BY id
-               LIMIT 1 OFFSET :offset`,
+               LIMIT 1 OFFSET $2`,
               {
-                replacements: { orgId, offset: migratedCount },
+                bind: [orgId, migratedCount],
                 type: QueryTypes.SELECT,
                 transaction,
               }
             );
-            if (existing.length > 0 && oldId !== null) {
+            if (existing.length > 0) {
               idMapping[tableName][oldId] = (existing[0] as any).id;
               migratedCount++;
             }
-          } else {
-            // Junction table - duplicate row, skip
           }
-        } else {
-          throw error;
         }
+      } else {
+        await sequelize.query(
+          `INSERT INTO "${targetTableName}" (${columnList})
+           VALUES (${placeholders})
+           ON CONFLICT DO NOTHING`,
+          {
+            bind: targetValues,
+            type: QueryTypes.INSERT,
+            transaction,
+          }
+        );
+        migratedCount++;
       }
     }
 
@@ -484,33 +467,41 @@ interface CustomFrameworkIdMaps {
   l3ImplIdMap: Record<number, number>;
 }
 
-async function migrateCustomFrameworkData(
+/**
+ * Phase 1: Migrate custom framework definitions and struct data.
+ * Runs BEFORE general migration so cfIdMaps are available for file_entity_links.
+ * Returns struct-level ID maps (l2, l3) and framework ID map for phase 2.
+ */
+interface CfPhase1Result {
+  totalMigrated: number;
+  l2IdMap: Record<number, number>;
+  l3IdMap: Record<number, number>;
+  fwIdMap: Record<number, number>;
+  l1IdMap: Record<number, number>;
+}
+
+async function migrateCustomFrameworkPhase1(
   orgId: number,
   tenantHash: string,
   globalStructMap: GlobalStructMap,
   transaction: Transaction
-): Promise<{ totalMigrated: number; idMaps: CustomFrameworkIdMaps }> {
+): Promise<CfPhase1Result> {
   let totalMigrated = 0;
-  const emptyMaps: CustomFrameworkIdMaps = { l2IdMap: {}, l3IdMap: {}, l2ImplIdMap: {}, l3ImplIdMap: {} };
+  const emptyResult: CfPhase1Result = { totalMigrated: 0, l2IdMap: {}, l3IdMap: {}, fwIdMap: {}, l1IdMap: {} };
 
-  // Check if tenant has custom_frameworks
   const hasCF = await tableExists(tenantHash, 'custom_frameworks', transaction);
-  if (!hasCF) return { totalMigrated: 0, idMaps: emptyMaps };
+  if (!hasCF) return emptyResult;
 
   const tenantFrameworks = (await sequelize.query(
     `SELECT * FROM "${tenantHash}".custom_frameworks ORDER BY id`,
     { type: QueryTypes.SELECT, transaction }
   )) as any[];
-  if (tenantFrameworks.length === 0) return { totalMigrated: 0, idMaps: emptyMaps };
+  if (tenantFrameworks.length === 0) return emptyResult;
 
-  // ID mappings for this org
   const fwIdMap: Record<number, number> = {};
   const l1IdMap: Record<number, number> = {};
   const l2IdMap: Record<number, number> = {};
   const l3IdMap: Record<number, number> = {};
-  const projFwIdMap: Record<number, number> = {};
-  const l2ImplIdMap: Record<number, number> = {};
-  const l3ImplIdMap: Record<number, number> = {};
 
   for (const fw of tenantFrameworks) {
     const pluginKey = fw.plugin_key;
@@ -738,7 +729,35 @@ async function migrateCustomFrameworkData(
     }
   }
 
-  // 3. custom_framework_projects
+  if (totalMigrated > 0) console.log(`    ✓ custom_frameworks (phase 1 - defs/struct): ${tenantFrameworks.length} frameworks, ${totalMigrated} rows`);
+  return { totalMigrated, l2IdMap, l3IdMap, fwIdMap, l1IdMap };
+}
+
+/**
+ * Phase 2: Migrate custom framework project associations, impl data, and risks.
+ * Runs AFTER general migration so idMapping['projects'] and idMapping['risks'] are available.
+ */
+async function migrateCustomFrameworkPhase2(
+  orgId: number,
+  tenantHash: string,
+  phase1: CfPhase1Result,
+  idMapping: IdMapping,
+  transaction: Transaction
+): Promise<CustomFrameworkIdMaps> {
+  const emptyMaps: CustomFrameworkIdMaps = { l2IdMap: phase1.l2IdMap, l3IdMap: phase1.l3IdMap, l2ImplIdMap: {}, l3ImplIdMap: {} };
+  let totalMigrated = 0;
+
+  const hasCF = await tableExists(tenantHash, 'custom_frameworks', transaction);
+  if (!hasCF) return emptyMaps;
+
+  const { fwIdMap, l2IdMap, l3IdMap } = phase1;
+  if (Object.keys(fwIdMap).length === 0) return emptyMaps;
+
+  const projFwIdMap: Record<number, number> = {};
+  const l2ImplIdMap: Record<number, number> = {};
+  const l3ImplIdMap: Record<number, number> = {};
+
+  // 3. custom_framework_projects — remap project_id using idMapping['projects']
   const hasCFP = await tableExists(tenantHash, 'custom_framework_projects', transaction);
   if (hasCFP) {
     const projRows = (await sequelize.query(
@@ -749,30 +768,36 @@ async function migrateCustomFrameworkData(
     for (const proj of projRows) {
       const newFwId = fwIdMap[proj.framework_id];
       if (!newFwId) continue;
-      try {
-        const inserted = (await sequelize.query(
-          `INSERT INTO custom_framework_projects
-           (organization_id, framework_id, project_id, created_at)
-           VALUES (:orgId, :fwId, :projectId, :createdAt)
-           RETURNING id`,
-          {
-            replacements: { orgId, fwId: newFwId, projectId: proj.project_id, createdAt: proj.created_at || new Date() },
-            type: QueryTypes.SELECT, transaction,
-          }
-        )) as any[];
-        projFwIdMap[proj.id] = inserted[0].id;
-        totalMigrated++;
-      } catch (error: any) {
-        if (error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
-          const existing = (await sequelize.query(
-            `SELECT id FROM custom_framework_projects
-             WHERE organization_id = :orgId AND framework_id = :fwId AND project_id = :projectId LIMIT 1`,
-            { replacements: { orgId, fwId: newFwId, projectId: proj.project_id }, type: QueryTypes.SELECT, transaction }
-          )) as any[];
-          if (existing[0]?.id) projFwIdMap[proj.id] = existing[0].id;
-          totalMigrated++;
-        } else throw error;
+
+      // Remap project_id: old tenant ID → new verifywise ID
+      let newProjectId = proj.project_id;
+      if (idMapping['projects'] && idMapping['projects'][proj.project_id]) {
+        newProjectId = idMapping['projects'][proj.project_id];
       }
+
+      const insertResult = await sequelize.query(
+        `INSERT INTO custom_framework_projects
+         (organization_id, framework_id, project_id, created_at)
+         VALUES (:orgId, :fwId, :projectId, :createdAt)
+         ON CONFLICT DO NOTHING
+         RETURNING id`,
+        {
+          replacements: { orgId, fwId: newFwId, projectId: newProjectId, createdAt: proj.created_at || new Date() },
+          type: QueryTypes.SELECT, transaction,
+        }
+      ) as any[];
+      if (insertResult.length > 0) {
+        projFwIdMap[proj.id] = insertResult[0].id;
+      } else {
+        // Conflict — find existing
+        const existing = (await sequelize.query(
+          `SELECT id FROM custom_framework_projects
+           WHERE organization_id = :orgId AND framework_id = :fwId AND project_id = :projectId LIMIT 1`,
+          { replacements: { orgId, fwId: newFwId, projectId: newProjectId }, type: QueryTypes.SELECT, transaction }
+        )) as any[];
+        if (existing[0]?.id) projFwIdMap[proj.id] = existing[0].id;
+      }
+      totalMigrated++;
     }
     if (Object.keys(projFwIdMap).length > 0) console.log(`    ✓ custom_framework_projects: ${Object.keys(projFwIdMap).length} rows`);
   }
@@ -859,7 +884,7 @@ async function migrateCustomFrameworkData(
     if (Object.keys(l3ImplIdMap).length > 0) console.log(`    ✓ custom_framework_level3_impl: ${Object.keys(l3ImplIdMap).length} rows`);
   }
 
-  // 6. Risk tables
+  // 6. Risk tables — remap risk_id using idMapping['risks']
   for (const [riskTable, implIdMap, implCol] of [
     ['custom_framework_level2_risks', l2ImplIdMap, 'level2_impl_id'],
     ['custom_framework_level3_risks', l3ImplIdMap, 'level3_impl_id'],
@@ -875,25 +900,276 @@ async function migrateCustomFrameworkData(
     for (const risk of riskRows) {
       const newImplId = (implIdMap as Record<number, number>)[risk[implCol]];
       if (!newImplId) continue;
-      try {
-        await sequelize.query(
-          `INSERT INTO "${riskTable}" (organization_id, "${implCol}", risk_id)
-           VALUES (:orgId, :implId, :riskId)
-           ON CONFLICT ("${implCol}", risk_id) DO NOTHING`,
-          { replacements: { orgId, implId: newImplId, riskId: risk.risk_id }, transaction }
-        );
-        riskCount++;
-      } catch { /* ignore duplicates */ }
+
+      // Remap risk_id: old tenant ID → new verifywise ID
+      let newRiskId = risk.risk_id;
+      if (idMapping['risks'] && idMapping['risks'][risk.risk_id]) {
+        newRiskId = idMapping['risks'][risk.risk_id];
+      }
+
+      await sequelize.query(
+        `INSERT INTO "${riskTable}" (organization_id, "${implCol}", risk_id)
+         VALUES (:orgId, :implId, :riskId)
+         ON CONFLICT ("${implCol}", risk_id) DO NOTHING`,
+        { replacements: { orgId, implId: newImplId, riskId: newRiskId }, transaction }
+      );
+      riskCount++;
     }
     if (riskCount > 0) { console.log(`    ✓ ${riskTable}: ${riskCount} rows`); totalMigrated += riskCount; }
   }
 
-  // NOTE: file_entity_links for custom frameworks are handled by the general migration.
-  // The general migration copies files and file_entity_links, then remaps entity_id
-  // using the custom framework ID maps returned here.
+  if (totalMigrated > 0) console.log(`    ✓ custom_frameworks (phase 2 - projects/impl/risks): ${totalMigrated} rows`);
+  return { l2IdMap, l3IdMap, l2ImplIdMap, l3ImplIdMap };
+}
 
-  if (totalMigrated > 0) console.log(`    ✓ custom_frameworks: ${tenantFrameworks.length} frameworks, ${totalMigrated} total rows`);
-  return { totalMigrated, idMaps: { l2IdMap, l3IdMap, l2ImplIdMap, l3ImplIdMap } };
+// ============================================================
+// NIST AI RMF MIGRATION
+// ============================================================
+
+/**
+ * Migrate NIST AI RMF data from old tenant schema to verifywise schema.
+ *
+ * The old tenant table has inline metadata (index, title, description, category_id,
+ * evidence_links, tags) while the new verifywise schema uses a struct/impl split
+ * (subcategory_meta_id FK to nist_ai_rmf_subcategories_struct).
+ *
+ * This function:
+ * 1. Reads old subcategories from tenant schema
+ * 2. Matches each to its struct entry by description text or function+subcategory_id
+ * 3. Creates new impl rows with proper subcategory_meta_id and remapped projects_frameworks_id
+ * 4. Migrates nist_ai_rmf_subcategories__risks junction with remapped IDs
+ * 5. Converts old evidence_links JSON → file_entity_links rows
+ *
+ * Must run AFTER general migration (needs idMapping['projects_frameworks'], idMapping['risks'], idMapping['files']).
+ */
+async function migrateNistAiRmfData(
+  orgId: number,
+  tenantHash: string,
+  idMapping: IdMapping,
+  transaction: Transaction
+): Promise<{ subcategoriesMigrated: number; risksMigrated: number }> {
+  // Check if tenant has nist_ai_rmf_subcategories table
+  const hasSubcats = await tableExists(tenantHash, 'nist_ai_rmf_subcategories', transaction);
+  if (!hasSubcats) return { subcategoriesMigrated: 0, risksMigrated: 0 };
+
+  // Read old subcategories from tenant schema
+  const oldRows = (await sequelize.query(
+    `SELECT * FROM "${tenantHash}".nist_ai_rmf_subcategories ORDER BY id`,
+    { type: QueryTypes.SELECT, transaction }
+  )) as any[];
+
+  if (!oldRows.length) return { subcategoriesMigrated: 0, risksMigrated: 0 };
+
+  // Get struct subcategories for matching
+  const structRows = (await sequelize.query(
+    `SELECT id, function, subcategory_id, description, category_struct_id
+     FROM nist_ai_rmf_subcategories_struct`,
+    { type: QueryTypes.SELECT, transaction }
+  )) as any[];
+
+  // Build lookup by description (most reliable matching key for NIST standard text)
+  const structByDesc: Record<string, number> = {};
+  for (const s of structRows) {
+    if (s.description) {
+      structByDesc[s.description.trim().toLowerCase()] = s.id;
+    }
+  }
+
+  // Build lookup by function+subcategory_id (e.g., "GOVERN:1.1")
+  const structByFuncSubId: Record<string, number> = {};
+  for (const s of structRows) {
+    structByFuncSubId[`${s.function}:${s.subcategory_id}`] = s.id;
+  }
+
+  // Get categories struct for category_id → function mapping
+  // Old tenant category_id may reference these struct IDs directly
+  const categoryStructRows = (await sequelize.query(
+    `SELECT id, function, category_id FROM nist_ai_rmf_categories_struct`,
+    { type: QueryTypes.SELECT, transaction }
+  )) as any[];
+  const categoryFunctionMap: Record<number, string> = {};
+  for (const c of categoryStructRows) {
+    categoryFunctionMap[c.id] = c.function;
+  }
+
+  // Also check if old tenant has its own nist_ai_rmf_categories table
+  const hasOldCategories = await tableExists(tenantHash, 'nist_ai_rmf_categories', transaction);
+  let oldCategoryFunctionMap: Record<number, { function: string; index: number }> = {};
+  if (hasOldCategories) {
+    const oldCats = (await sequelize.query(
+      `SELECT * FROM "${tenantHash}".nist_ai_rmf_categories ORDER BY id`,
+      { type: QueryTypes.SELECT, transaction }
+    )) as any[];
+
+    // Old categories might have: id, title/function, index, function_id, etc.
+    // Try to extract function name from available fields
+    for (const cat of oldCats) {
+      const funcName = cat.function || cat.title || '';
+      oldCategoryFunctionMap[cat.id] = {
+        function: funcName.toUpperCase(),
+        index: cat.index ?? cat.category_id ?? cat.id,
+      };
+    }
+  }
+
+  // Migrate each subcategory
+  const nistIdMapping: Record<number, number> = {};
+  let migrated = 0;
+  let skipped = 0;
+
+  for (const row of oldRows) {
+    // Resolve projects_frameworks_id via FK mapping
+    let newPfId = row.projects_frameworks_id;
+    if (newPfId !== null && newPfId !== undefined) {
+      if (idMapping['projects_frameworks']?.[newPfId]) {
+        newPfId = idMapping['projects_frameworks'][newPfId];
+      } else {
+        // projects_frameworks_id not found in mapping — orphaned row, skip
+        skipped++;
+        continue;
+      }
+    } else {
+      skipped++;
+      continue;
+    }
+
+    // Find matching struct subcategory using multiple strategies
+    let structId: number | null = null;
+
+    // Strategy 1: Match by description text (old title or description matches struct description)
+    if (row.title) {
+      structId = structByDesc[row.title.trim().toLowerCase()] ?? null;
+    }
+    if (!structId && row.description) {
+      structId = structByDesc[row.description.trim().toLowerCase()] ?? null;
+    }
+
+    // Strategy 2: Match by function + subcategory_id using old category context
+    if (!structId && row.category_id != null && row.index != null) {
+      // Try old tenant categories first
+      const oldCat = oldCategoryFunctionMap[row.category_id];
+      if (oldCat) {
+        structId = structByFuncSubId[`${oldCat.function}:${oldCat.index}.${row.index}`] ?? null;
+      }
+      // Try struct categories (old category_id might reference struct directly)
+      if (!structId && categoryFunctionMap[row.category_id]) {
+        const func = categoryFunctionMap[row.category_id];
+        // The struct subcategory_id is "category_index.sub_index", we need the category's own index
+        const catStruct = categoryStructRows.find((c: any) => c.id === row.category_id);
+        if (catStruct) {
+          structId = structByFuncSubId[`${func}:${catStruct.category_id}.${row.index}`] ?? null;
+        }
+      }
+    }
+
+    if (!structId) {
+      console.log(`    ⚠️ NIST subcategory ${row.id}: no matching struct entry (title=${row.title?.substring(0, 40)}..., cat=${row.category_id}, idx=${row.index})`);
+      skipped++;
+      continue;
+    }
+
+    // Insert new impl row
+    const insertResult = (await sequelize.query(
+      `INSERT INTO nist_ai_rmf_subcategories (
+        organization_id, subcategory_meta_id, projects_frameworks_id,
+        implementation_description, status, auditor_feedback,
+        owner, reviewer, approver, due_date,
+        created_at, updated_at, is_demo
+      ) VALUES (
+        :orgId, :structId, :pfId,
+        :implDesc, :status, :auditorFeedback,
+        :owner, :reviewer, :approver, :dueDate,
+        :createdAt, :updatedAt, :isDemo
+      ) ON CONFLICT DO NOTHING RETURNING id`,
+      {
+        replacements: {
+          orgId,
+          structId,
+          pfId: newPfId,
+          implDesc: row.implementation_description || null,
+          status: row.status || 'Not started',
+          auditorFeedback: row.auditor_feedback || null,
+          owner: row.owner || null,
+          reviewer: row.reviewer || null,
+          approver: row.approver || null,
+          dueDate: row.due_date || null,
+          createdAt: row.created_at || new Date(),
+          updatedAt: row.updated_at || new Date(),
+          isDemo: row.is_demo || false,
+        },
+        type: QueryTypes.SELECT,
+        transaction,
+      }
+    )) as any[];
+
+    if (insertResult.length > 0) {
+      nistIdMapping[row.id] = insertResult[0].id;
+      migrated++;
+    }
+
+    // Convert old evidence_links JSON → file_entity_links rows
+    if (row.evidence_links && insertResult.length > 0) {
+      const newSubcatId = insertResult[0].id;
+      let evidenceArray: any[] = [];
+      try {
+        evidenceArray = typeof row.evidence_links === 'string'
+          ? JSON.parse(row.evidence_links)
+          : Array.isArray(row.evidence_links) ? row.evidence_links : [];
+      } catch { /* ignore parse errors */ }
+
+      for (const evidence of evidenceArray) {
+        const oldFileId = evidence.id || evidence.file_id;
+        if (!oldFileId) continue;
+        const newFileId = idMapping['files']?.[oldFileId] || oldFileId;
+        await sequelize.query(
+          `INSERT INTO file_entity_links
+            (organization_id, file_id, framework_type, entity_type, entity_id, link_type, created_at)
+           VALUES (:orgId, :fileId, 'nist_ai_rmf', 'subcategory', :entityId, 'evidence', NOW())
+           ON CONFLICT (file_id, framework_type, entity_type, entity_id) DO NOTHING`,
+          {
+            replacements: { orgId, fileId: newFileId, entityId: newSubcatId },
+            transaction,
+          }
+        );
+      }
+    }
+  }
+
+  // Store in idMapping for use by risk junction table and downstream mappings
+  idMapping['nist_ai_rmf_subcategories'] = nistIdMapping;
+
+  // Migrate nist_ai_rmf_subcategories__risks junction table
+  let risksMigrated = 0;
+  const hasRisksTable = await tableExists(tenantHash, 'nist_ai_rmf_subcategories__risks', transaction);
+  if (hasRisksTable) {
+    const oldRisks = (await sequelize.query(
+      `SELECT * FROM "${tenantHash}".nist_ai_rmf_subcategories__risks`,
+      { type: QueryTypes.SELECT, transaction }
+    )) as any[];
+
+    for (const risk of oldRisks) {
+      const newSubcatId = nistIdMapping[risk.nist_ai_rmf_subcategory_id];
+      const newRiskId = idMapping['risks']?.[risk.projects_risks_id];
+      if (!newSubcatId || !newRiskId) continue;
+
+      await sequelize.query(
+        `INSERT INTO nist_ai_rmf_subcategories__risks
+          (organization_id, nist_ai_rmf_subcategory_id, projects_risks_id)
+         VALUES (:orgId, :subcatId, :riskId)
+         ON CONFLICT DO NOTHING`,
+        {
+          replacements: { orgId, subcatId: newSubcatId, riskId: newRiskId },
+          transaction,
+        }
+      );
+      risksMigrated++;
+    }
+  }
+
+  if (migrated > 0 || risksMigrated > 0) {
+    console.log(`    ✓ nist_ai_rmf (dedicated): ${migrated} subcategories, ${risksMigrated} risks${skipped > 0 ? ` (${skipped} skipped)` : ''}`);
+  }
+  return { subcategoriesMigrated: migrated, risksMigrated };
 }
 
 // ============================================================
@@ -929,22 +1205,19 @@ async function migrateOrganization(
   // Initialize ID mapping for this organization
   const idMapping: IdMapping = {};
 
-  // Migrate custom framework tables first (struct/impl split)
-  const cfResult = await migrateCustomFrameworkData(orgId, tenantHash, globalStructMap, transaction);
-  if (cfResult.totalMigrated > 0) {
-    tableCounts['custom_frameworks (struct/impl)'] = { source: cfResult.totalMigrated, migrated: cfResult.totalMigrated };
+  // Phase 1: Migrate custom framework definitions and struct data
+  // This must run before general migration so struct ID maps are available
+  const cfPhase1 = await migrateCustomFrameworkPhase1(orgId, tenantHash, globalStructMap, transaction);
+  if (cfPhase1.totalMigrated > 0) {
+    tableCounts['custom_frameworks (phase 1)'] = { source: cfPhase1.totalMigrated, migrated: cfPhase1.totalMigrated };
   }
-
-  // Store custom framework ID maps so the general migration can remap
-  // file_entity_links entity_id for custom framework entity types
-  const cfIdMaps = cfResult.idMaps;
 
   // Get all tables in dependency order
   const allTables = getAllTablesInOrder();
 
-  // Migrate each table in order
+  // General migration: migrate all non-skipped tables
+  // This populates idMapping (including idMapping['projects'], idMapping['risks'])
   for (const tableName of allTables) {
-    // Skip tables that have dedicated migrations with special ID mapping
     if (SKIP_TABLES.includes(tableName)) {
       continue;
     }
@@ -955,8 +1228,7 @@ async function migrateOrganization(
         tenantHash,
         tableName,
         idMapping,
-        transaction,
-        cfIdMaps
+        transaction
       );
       tableCounts[tableName] = {
         source: result.sourceCount,
@@ -965,6 +1237,53 @@ async function migrateOrganization(
     } catch (error) {
       console.error(`    ✗ ${tableName}: ${(error as Error).message}`);
       throw error;
+    }
+  }
+
+  // Phase 2: Migrate custom framework projects, impl data, and risks
+  // Runs AFTER general migration so project_id and risk_id can be remapped
+  const cfIdMaps = await migrateCustomFrameworkPhase2(orgId, tenantHash, cfPhase1, idMapping, transaction);
+
+  // NIST AI RMF: dedicated migration (old schema has different column structure)
+  // Runs AFTER general migration so idMapping['projects_frameworks'], ['risks'], ['files'] are available
+  await migrateNistAiRmfData(orgId, tenantHash, idMapping, transaction);
+
+  // Post-fix: remap file_entity_links entity_id for custom framework entity types
+  if (cfIdMaps.l2ImplIdMap && Object.keys(cfIdMaps.l2ImplIdMap).length > 0) {
+    for (const [oldId, newId] of Object.entries(cfIdMaps.l2ImplIdMap)) {
+      await sequelize.query(
+        `UPDATE file_entity_links SET entity_id = :newId
+         WHERE organization_id = :orgId AND entity_type = 'level2_impl' AND entity_id = :oldId`,
+        { replacements: { orgId, oldId: Number(oldId), newId: Number(newId) }, transaction }
+      );
+    }
+  }
+  if (cfIdMaps.l3ImplIdMap && Object.keys(cfIdMaps.l3ImplIdMap).length > 0) {
+    for (const [oldId, newId] of Object.entries(cfIdMaps.l3ImplIdMap)) {
+      await sequelize.query(
+        `UPDATE file_entity_links SET entity_id = :newId
+         WHERE organization_id = :orgId AND entity_type = 'level3_impl' AND entity_id = :oldId`,
+        { replacements: { orgId, oldId: Number(oldId), newId: Number(newId) }, transaction }
+      );
+    }
+  }
+  // Remap struct-level entity_ids (level2, level3) using phase 1 maps
+  if (cfIdMaps.l2IdMap && Object.keys(cfIdMaps.l2IdMap).length > 0) {
+    for (const [oldId, newId] of Object.entries(cfIdMaps.l2IdMap)) {
+      await sequelize.query(
+        `UPDATE file_entity_links SET entity_id = :newId
+         WHERE organization_id = :orgId AND entity_type = 'level2' AND entity_id = :oldId`,
+        { replacements: { orgId, oldId: Number(oldId), newId: Number(newId) }, transaction }
+      );
+    }
+  }
+  if (cfIdMaps.l3IdMap && Object.keys(cfIdMaps.l3IdMap).length > 0) {
+    for (const [oldId, newId] of Object.entries(cfIdMaps.l3IdMap)) {
+      await sequelize.query(
+        `UPDATE file_entity_links SET entity_id = :newId
+         WHERE organization_id = :orgId AND entity_type = 'level3' AND entity_id = :oldId`,
+        { replacements: { orgId, oldId: Number(oldId), newId: Number(newId) }, transaction }
+      );
     }
   }
 

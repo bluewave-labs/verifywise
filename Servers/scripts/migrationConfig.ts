@@ -54,13 +54,9 @@ export const MIGRATION_TABLE_ORDER = {
     'ai_detection_risk_scoring_config',
     // Agent Discovery
     'agent_primitives',
-    // PMM
-    'post_market_monitoring_configs',
     // LLM Evals
     'llm_evals_organizations',
     'llm_evals_api_keys',
-    // CE Marking
-    'ce_markings',
     // Entity Graph
     'entity_graph_annotations',
     'entity_graph_gap_rules',
@@ -100,7 +96,10 @@ export const MIGRATION_TABLE_ORDER = {
     // Policy
     'policy_linked_objects',
     'policy_manager__assigned_reviewer_ids',
-    // PMM
+    // CE Marking (depends on projects)
+    'ce_markings',
+    // PMM (depends on projects)
+    'post_market_monitoring_configs',
     'post_market_monitoring_questions',
     // AI Detection
     'ai_detection_findings',
@@ -272,6 +271,12 @@ export const FK_MAPPINGS: Record<string, Record<string, string>> = {
   },
   policy_manager__assigned_reviewer_ids: {
     policy_manager_id: 'policy_manager',
+  },
+  ce_markings: {
+    project_id: 'projects',
+  },
+  post_market_monitoring_configs: {
+    project_id: 'projects',
   },
   post_market_monitoring_questions: {
     config_id: 'post_market_monitoring_configs',
@@ -519,13 +524,13 @@ export const STRUCT_REFERENCES = [
  * that handle special ID mapping (e.g., struct ID remapping).
  */
 export const SKIP_TABLES = [
-  // NIST AI RMF tables require special struct ID mapping
-  // Handled by: 20260304094343-migrate-nist-ai-rmf-data-to-shared-schema.js
+  // NOTE: nist_ai_rmf_subcategories is handled by general migration
+  // (STRUCT_REFERENCES preserves meta_id, FK_MAPPINGS remaps projects_frameworks_id)
+  // NIST AI RMF tables — old schema has different structure (inline data vs struct/impl split)
+  // Handled by migrateNistAiRmfData() which matches old rows to struct entries
   'nist_ai_rmf_subcategories',
   'nist_ai_rmf_subcategories__risks',
-  // Custom framework tables use struct/impl split — handled by dedicated migration
-  // Handled by: 20260303123943-migrate-plugin-framework-data-to-shared-schema.js
-  // and migrateCustomFrameworkData() in migrateToSharedSchema.ts
+  // Custom framework tables use struct/impl split — handled by migrateCustomFrameworkPhase1/Phase2
   'custom_frameworks',
   'custom_framework_level1',
   'custom_framework_level2',

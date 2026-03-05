@@ -263,6 +263,7 @@ module.exports = {
           clause_id VARCHAR(50) NOT NULL,
           title TEXT NOT NULL,
           description TEXT,
+          clause_no INTEGER,
           order_no INTEGER,
           is_demo BOOLEAN DEFAULT false
         );
@@ -285,10 +286,20 @@ module.exports = {
       `, { transaction });
 
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.annexcategories_struct_iso (
+        CREATE TABLE verifywise.annex_struct_iso (
           id SERIAL PRIMARY KEY,
           framework_id INTEGER NOT NULL REFERENCES verifywise.frameworks(id) ON DELETE CASCADE,
-          annex_id VARCHAR(50) NOT NULL,
+          title TEXT NOT NULL,
+          annex_no INTEGER,
+          order_no INTEGER,
+          is_demo BOOLEAN DEFAULT false
+        );
+      `, { transaction });
+
+      await queryInterface.sequelize.query(`
+        CREATE TABLE verifywise.annexcategories_struct_iso (
+          id SERIAL PRIMARY KEY,
+          annex_id INTEGER REFERENCES verifywise.annex_struct_iso(id) ON DELETE CASCADE,
           sub_id INTEGER,
           title TEXT NOT NULL,
           description TEXT,

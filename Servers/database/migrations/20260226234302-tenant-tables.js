@@ -1398,7 +1398,7 @@ module.exports = {
         CREATE TABLE verifywise.shadow_ai_tools (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
-          name VARCHAR(255) UNIQUE,
+          name VARCHAR(255) NOT NULL,
           vendor VARCHAR(255),
           domains TEXT[] NOT NULL,
           status VARCHAR(50) DEFAULT 'detected',
@@ -1417,7 +1417,8 @@ module.exports = {
           gdpr_compliant BOOLEAN,
           soc2_certified BOOLEAN,
           created_at TIMESTAMPTZ DEFAULT NOW(),
-          updated_at TIMESTAMPTZ DEFAULT NOW()
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(organization_id, name)
         );
       `, { transaction });
 
@@ -2224,7 +2225,7 @@ module.exports = {
           created_by INTEGER NOT NULL,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          UNIQUE(slug)
+          UNIQUE(organization_id, slug)
         );
       `, { transaction });
 

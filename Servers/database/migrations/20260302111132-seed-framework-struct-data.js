@@ -92,6 +92,7 @@ module.exports = {
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subclauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.clauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcategories_struct_iso;`, { transaction });
+      await queryInterface.sequelize.query(`DELETE FROM verifywise.annex_struct_iso;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subclauses_struct_iso;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.clauses_struct_iso;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subcontrols_struct_eu;`, { transaction });
@@ -217,14 +218,15 @@ module.exports = {
         // --- Clauses & Subclauses ---
         for (const clause of Clauses) {
           const clauseId = await insertReturningId(`
-            INSERT INTO verifywise.clauses_struct_iso(framework_id, clause_id, title, order_no, is_demo)
-            VALUES (:frameworkId, :clause_id, :title, :order_no, false)
+            INSERT INTO verifywise.clauses_struct_iso(framework_id, clause_id, title, clause_no, order_no, is_demo)
+            VALUES (:frameworkId, :clause_id, :title, :clause_no, :order_no, false)
             ON CONFLICT DO NOTHING
             RETURNING id
           `, {
             frameworkId: iso42001FrameworkId,
             clause_id: String(clause.clause_no),
             title: clause.title,
+            clause_no: clause.clause_no,
             order_no: clause.clause_no,
           });
 
@@ -252,17 +254,28 @@ module.exports = {
 
         // --- Annex & Annex Categories ---
         for (const annex of Annex) {
-          if (!annex.annexcategories) continue;
+          const annexId = await insertReturningId(`
+            INSERT INTO verifywise.annex_struct_iso(framework_id, title, annex_no, order_no, is_demo)
+            VALUES (:frameworkId, :title, :annex_no, :order_no, false)
+            ON CONFLICT DO NOTHING
+            RETURNING id
+          `, {
+            frameworkId: iso42001FrameworkId,
+            title: annex.title || `Annex ${annex.annex_no}`,
+            annex_no: annex.annex_no,
+            order_no: annex.annex_no,
+          });
+
+          if (!annexId || !annex.annexcategories) continue;
 
           for (const cat of annex.annexcategories) {
             await queryInterface.sequelize.query(`
-              INSERT INTO verifywise.annexcategories_struct_iso(framework_id, annex_id, sub_id, title, description, guidance, order_no, is_demo)
-              VALUES (:frameworkId, :annex_id, :sub_id, :title, :description, :guidance, :order_no, false)
+              INSERT INTO verifywise.annexcategories_struct_iso(annex_id, sub_id, title, description, guidance, order_no, is_demo)
+              VALUES (:annex_id, :sub_id, :title, :description, :guidance, :order_no, false)
               ON CONFLICT DO NOTHING
             `, {
               replacements: {
-                frameworkId: iso42001FrameworkId,
-                annex_id: `A.${annex.annex_no}`,
+                annex_id: annexId,
                 sub_id: cat.sub_id || cat.order_no,
                 title: cat.title,
                 description: cat.description || '',
@@ -438,6 +451,7 @@ module.exports = {
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subclauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.clauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcategories_struct_iso;`, { transaction });
+      await queryInterface.sequelize.query(`DELETE FROM verifywise.annex_struct_iso;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subclauses_struct_iso;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.clauses_struct_iso;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subcontrols_struct_eu;`, { transaction });

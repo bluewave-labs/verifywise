@@ -38,6 +38,7 @@ import AgentDiscovery from "../../presentation/pages/AgentDiscovery";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
+import StartHere from "../../presentation/pages/StartHere";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
@@ -97,6 +98,7 @@ export const createRoutes = (
       <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
+    <Route path="/start-here" element={<StartHere />} />
     <Route path="/overview" element={<VWHome />} />
     <Route path="/framework/:tab?" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />

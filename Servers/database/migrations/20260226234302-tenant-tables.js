@@ -1,18 +1,18 @@
 'use strict';
 
 /**
- * Tenant Tables Migration (Idempotent)
+ * Tenant Tables Migration
  *
- * Works for BOTH:
- * - Fresh installations: Creates tables with organization_id
- * - Existing databases: Adds organization_id to existing tables
+ * Strategy:
+ * - Drops and recreates all tenant tables for correct schema
+ * - files & file_entity_links are NOT dropped here (owned by public-schema-tables migration)
  *
  * Part 3 of the migration set.
  */
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    console.log('🚀 Ensuring tenant tables have organization_id...');
+    console.log('🚀 Setting up tenant tables...');
 
     // Helper: Check if table exists
     const tableExists = async (tableName) => {
@@ -63,9 +63,186 @@ module.exports = {
     };
 
     // ========================================
+    // DROP ALL TENANT TABLES (reverse dependency order)
+    // Files & file_entity_links are NOT dropped (owned by public-schema-tables migration)
+    // ========================================
+    console.log('🗑️  Dropping existing tenant tables for clean recreation...');
+
+    const tablesToDrop = [
+      // Intake
+      'intake_submissions',
+      'intake_forms',
+      // MLflow
+      'mlflow_model_records',
+      'mlflow_integrations',
+      // Bias evaluations
+      'bias_fairness_evaluations',
+      // Agent discovery
+      'agent_audit_log',
+      'agent_discovery_sync_log',
+      'agent_primitives',
+      // LLM Evals
+      'llm_evals_bias_audit_results',
+      'llm_evals_bias_audits',
+      'llm_evals_arena_comparisons',
+      'evaluation_llm_api_keys',
+      'llm_evals_api_keys',
+      'llm_evals_metrics',
+      'llm_evals_logs',
+      'llm_evals_experiments',
+      'llm_evals_models',
+      'llm_evals_scorers',
+      'llm_evals_datasets',
+      'llm_evals_projects',
+      'llm_evals_org_members',
+      'llm_evals_organizations',
+      // Post-market monitoring
+      'post_market_monitoring_reports',
+      'post_market_monitoring_responses',
+      'post_market_monitoring_cycles',
+      'post_market_monitoring_questions',
+      'post_market_monitoring_configs',
+      // CE marking
+      'ce_marking_incidents',
+      'ce_marking_evidences',
+      'ce_marking_policies',
+      'ce_marking_audit_trail',
+      'ce_marking_conformity_steps',
+      'ce_markings',
+      // Misc tenant tables
+      'file_access_logs',
+      'advisor_conversations',
+      'slack_webhooks',
+      'feature_settings',
+      'entity_graph_gap_rules',
+      'entity_graph_views',
+      'entity_graph_annotations',
+      'user_preferences',
+      'github_tokens',
+      'api_tokens',
+      'evidence_hub',
+      // Shadow AI
+      'shadow_ai_api_keys',
+      'shadow_ai_syslog_config',
+      'shadow_ai_settings',
+      'shadow_ai_rule_notifications',
+      'shadow_ai_alert_history',
+      'shadow_ai_rules',
+      'shadow_ai_monthly_rollups',
+      'shadow_ai_daily_rollups',
+      'shadow_ai_events',
+      'shadow_ai_tools',
+      // AI detection
+      'ai_detection_risk_scoring_config',
+      'ai_detection_repositories',
+      'ai_detection_findings',
+      'ai_detection_scans',
+      // AI trust center
+      'ai_trust_center_terms_and_contact',
+      'ai_trust_center_subprocessor',
+      'ai_trust_center_resources',
+      'ai_trust_center_compliance_badges',
+      'ai_trust_center_company_description',
+      'ai_trust_center_intro',
+      'ai_trust_center',
+      // Risk junction tables
+      'nist_ai_rmf_subcategories__risks',
+      'annexcontrols_iso27001__risks',
+      'subclauses_iso27001__risks',
+      'subclauses_iso__risks',
+      'answers_eu__risks',
+      'controls_eu__risks',
+      // History tables
+      'model_inventory_history',
+      'risk_history',
+      'training_change_history',
+      'task_change_history',
+      'dataset_change_histories',
+      'file_change_history',
+      'model_risk_change_history',
+      'model_inventory_change_history',
+      'use_case_change_history',
+      'incident_change_history',
+      'policy_change_history',
+      'project_risk_change_history',
+      'vendor_risk_change_history',
+      'vendor_change_history',
+      // Junction tables
+      'model_inventories_projects_frameworks',
+      'dataset_model_inventories',
+      'dataset_projects',
+      'policy_manager__assigned_reviewer_ids',
+      'policy_linked_objects',
+      'task_entity_links',
+      // Approval tables
+      'approval_step_approvers',
+      'approval_request_step_approvals',
+      'approval_request_steps',
+      'approval_requests',
+      'approval_workflow_steps',
+      'approval_workflows',
+      // Remaining
+      'share_links',
+      'notes',
+      'invitations',
+      'llm_keys',
+      'plugin_installations',
+      'notifications',
+      'automation_execution_logs',
+      'automation_actions_data',
+      'automations',
+      'ai_incident_managements',
+      'task_assignees',
+      'tasks',
+      'datasets',
+      'model_risks',
+      'model_inventories',
+      'policy_manager',
+      // NIST tenant tables
+      'nist_ai_rmf_subcategories',
+      // ISO tables
+      'annexcontrols_iso27001',
+      'subclauses_iso27001',
+      'annexcategories_iso__risks',
+      'annexcategories_iso',
+      'subclauses_iso',
+      // EU tables
+      'subcontrols_eu__risks',
+      'answers_eu',
+      'subcontrols_eu',
+      'controls_eu',
+      // Framework data
+      'assessments',
+      'projects_frameworks',
+      'projectscopes',
+      'vendorrisks',
+      // File organization (NOT files/file_entity_links - owned by public migration)
+      'file_folder_mappings',
+      'virtual_folders',
+      // Core junction/data tables
+      'frameworks_risks',
+      'projects_risks',
+      'risks',
+      'vendors_projects',
+      'event_logs',
+      'projects_members',
+      'trainingregistar',
+      'vendors',
+      'projects',
+    ];
+
+    for (const table of tablesToDrop) {
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS ${table} CASCADE;`);
+    }
+
+    // Drop sequences used by tenant tables
+    await queryInterface.sequelize.query(`DROP SEQUENCE IF EXISTS project_uc_id_seq CASCADE;`);
+    await queryInterface.sequelize.query(`DROP SEQUENCE IF EXISTS incident_id_seq CASCADE;`);
+
+    // ========================================
     // PROJECTS
     // ========================================
-    console.log('📋 Ensuring projects table...');
+    console.log('📋 Creating projects table...');
 
     if (!(await tableExists('projects'))) {
       // Fresh install - create sequence and table
@@ -147,7 +324,8 @@ module.exports = {
           regulatory_exposure enum_vendors_regulatory_exposure,
           risk_score INTEGER,
           is_demo BOOLEAN NOT NULL DEFAULT false,
-          created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now()
+          created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
         );
       `);
     } else {
@@ -817,8 +995,8 @@ module.exports = {
           is_demo BOOLEAN NOT NULL DEFAULT false,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-          provider VARCHAR(255),
-          model VARCHAR(255)
+          provider VARCHAR(255) NOT NULL,
+          model VARCHAR(255) NOT NULL
         );
       `);
     } else {
@@ -848,7 +1026,7 @@ module.exports = {
           key_metrics TEXT,
           current_values TEXT,
           threshold VARCHAR(255),
-          model_id INTEGER REFERENCES model_inventories(id) ON DELETE SET NULL,
+          model_id INTEGER REFERENCES model_inventories(id) ON DELETE CASCADE,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           is_deleted BOOLEAN DEFAULT false,
@@ -966,6 +1144,7 @@ module.exports = {
           approval_date TIMESTAMP,
           approval_notes TEXT,
           archived BOOLEAN DEFAULT FALSE,
+          is_demo BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           UNIQUE(organization_id, incident_id)
@@ -982,7 +1161,7 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
           name TEXT NOT NULL,
-          trigger_id INTEGER,
+          trigger_id INTEGER REFERENCES automation_triggers(id) ON DELETE RESTRICT,
           params JSONB DEFAULT '{}',
           is_active BOOLEAN DEFAULT TRUE,
           created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -1000,7 +1179,7 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
           automation_id INTEGER REFERENCES automations(id) ON DELETE CASCADE,
-          action_type_id INTEGER,
+          action_type_id INTEGER REFERENCES automation_actions(id) ON DELETE RESTRICT,
           params JSONB DEFAULT '{}',
           "order" INTEGER DEFAULT 1
         );
@@ -1082,16 +1261,16 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
           key TEXT NOT NULL,
-          name enum_llm_keys_provider,
+          name enum_llm_keys_provider NOT NULL,
           url TEXT,
-          model TEXT,
-          custom_headers JSONB,
-          created_at TIMESTAMPTZ DEFAULT NOW(),
-          UNIQUE(organization_id, key)
+          model TEXT NOT NULL,
+          custom_headers JSONB DEFAULT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
       `);
     } else {
       await addColumn('llm_keys', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
+      await addColumn('llm_keys', 'custom_headers', 'JSONB DEFAULT NULL');
     }
 
     // invitations
@@ -1104,11 +1283,11 @@ module.exports = {
           name VARCHAR(255),
           surname VARCHAR(255),
           role_id INTEGER REFERENCES roles(id),
-          status VARCHAR(20) DEFAULT 'pending',
+          status VARCHAR(20) NOT NULL DEFAULT 'pending',
           invited_by INTEGER REFERENCES users(id),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          expires_at TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          expires_at TIMESTAMP NOT NULL,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `);
     } else {
@@ -1162,7 +1341,7 @@ module.exports = {
           id SERIAL PRIMARY KEY,
           organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
           workflow_title VARCHAR(255) NOT NULL,
-          entity_type VARCHAR(50) CHECK (entity_type IN ('use_case', 'file')),
+          entity_type VARCHAR(50) CHECK (entity_type IN ('use_case', 'project', 'file')),
           description TEXT,
           created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
           is_active BOOLEAN DEFAULT true,
@@ -1226,13 +1405,14 @@ module.exports = {
         CREATE TABLE approval_request_steps (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          request_id INTEGER REFERENCES approval_requests(id) ON DELETE CASCADE,
+          request_id INTEGER NOT NULL REFERENCES approval_requests(id) ON DELETE CASCADE,
           step_number INTEGER NOT NULL,
-          step_name VARCHAR(255),
-          status VARCHAR(50) DEFAULT 'Pending',
+          step_name VARCHAR(255) NOT NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'In Progress', 'Approved', 'Rejected')),
           date_assigned TIMESTAMP,
           date_completed TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(request_id, step_number)
         );
       `);
     } else {
@@ -1245,12 +1425,13 @@ module.exports = {
         CREATE TABLE approval_request_step_approvals (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          request_step_id INTEGER REFERENCES approval_request_steps(id) ON DELETE CASCADE,
-          approver_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          approval_result VARCHAR(50),
+          request_step_id INTEGER NOT NULL REFERENCES approval_request_steps(id) ON DELETE CASCADE,
+          approver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          approval_result VARCHAR(50) NOT NULL DEFAULT 'Pending' CHECK (approval_result IN ('Pending', 'Approved', 'Rejected')),
           comments TEXT,
           approved_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(request_step_id, approver_id)
         );
       `);
     } else {
@@ -1263,9 +1444,10 @@ module.exports = {
         CREATE TABLE approval_step_approvers (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          workflow_step_id INTEGER REFERENCES approval_workflow_steps(id) ON DELETE CASCADE,
-          approver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          created_at TIMESTAMP DEFAULT NOW()
+          workflow_step_id INTEGER NOT NULL REFERENCES approval_workflow_steps(id) ON DELETE CASCADE,
+          approver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(workflow_step_id, approver_id)
         );
       `);
     } else {
@@ -1815,12 +1997,12 @@ module.exports = {
         CREATE TABLE ai_detection_repositories (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          repository_url TEXT,
-          repository_name VARCHAR(255),
-          repository_owner VARCHAR(255),
+          repository_url VARCHAR(500) NOT NULL,
+          repository_name VARCHAR(255) NOT NULL,
+          repository_owner VARCHAR(255) NOT NULL,
           display_name VARCHAR(255),
-          default_branch VARCHAR(255),
-          github_token_id INTEGER,
+          default_branch VARCHAR(255) DEFAULT 'main',
+          github_token_id INTEGER REFERENCES github_tokens(id) ON DELETE SET NULL,
           is_enabled BOOLEAN DEFAULT TRUE,
           schedule_enabled BOOLEAN DEFAULT FALSE,
           schedule_frequency VARCHAR(50),
@@ -1830,11 +2012,13 @@ module.exports = {
           schedule_day_of_month INTEGER,
           last_scan_id INTEGER,
           last_scan_status VARCHAR(50),
-          last_scan_at TIMESTAMP,
-          next_scan_at TIMESTAMP,
-          created_by INTEGER,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          last_scan_at TIMESTAMPTZ,
+          next_scan_at TIMESTAMPTZ,
+          risk_score INTEGER,
+          created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(organization_id, repository_owner, repository_name)
         );
       `);
     } else {
@@ -1864,15 +2048,15 @@ module.exports = {
         CREATE TABLE shadow_ai_tools (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          name VARCHAR(255),
+          name VARCHAR(255) UNIQUE,
           vendor VARCHAR(255),
-          domains JSONB,
-          status VARCHAR(50) DEFAULT 'unreviewed',
+          domains TEXT[] NOT NULL,
+          status VARCHAR(50) DEFAULT 'detected',
           risk_score INTEGER,
           total_events INTEGER DEFAULT 0,
           total_users INTEGER DEFAULT 0,
-          first_detected_at TIMESTAMP,
-          last_seen_at TIMESTAMP,
+          first_detected_at TIMESTAMPTZ,
+          last_seen_at TIMESTAMPTZ,
           governance_owner_id INTEGER,
           model_inventory_id INTEGER,
           risk_entry_id INTEGER,
@@ -1882,8 +2066,8 @@ module.exports = {
           data_residency VARCHAR(100),
           gdpr_compliant BOOLEAN,
           soc2_certified BOOLEAN,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -1894,20 +2078,20 @@ module.exports = {
     if (!(await tableExists('shadow_ai_events'))) {
       await queryInterface.sequelize.query(`
         CREATE TABLE shadow_ai_events (
-          id SERIAL PRIMARY KEY,
+          id BIGSERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          detected_tool_id INTEGER,
-          user_email VARCHAR(255),
+          detected_tool_id INTEGER REFERENCES shadow_ai_tools(id) ON DELETE SET NULL,
+          user_email VARCHAR(255) NOT NULL,
           department VARCHAR(255),
           job_title VARCHAR(255),
           manager_email VARCHAR(255),
           action VARCHAR(50),
           http_method VARCHAR(10),
           uri_path TEXT,
-          destination TEXT,
+          destination VARCHAR(512),
           detected_model VARCHAR(255),
-          event_timestamp TIMESTAMP,
-          ingested_at TIMESTAMP DEFAULT NOW()
+          event_timestamp TIMESTAMPTZ,
+          ingested_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -1920,14 +2104,15 @@ module.exports = {
         CREATE TABLE shadow_ai_daily_rollups (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          rollup_date DATE,
-          tool_id INTEGER,
-          user_email VARCHAR(255),
+          rollup_date DATE NOT NULL,
+          tool_id INTEGER REFERENCES shadow_ai_tools(id) ON DELETE CASCADE,
+          user_email VARCHAR(255) NOT NULL,
           department VARCHAR(255),
           total_events INTEGER DEFAULT 0,
           post_events INTEGER DEFAULT 0,
           blocked_events INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(organization_id, rollup_date, user_email, tool_id)
         );
       `);
     } else {
@@ -1940,14 +2125,15 @@ module.exports = {
         CREATE TABLE shadow_ai_monthly_rollups (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          rollup_month DATE,
-          tool_id INTEGER,
+          rollup_month DATE NOT NULL,
+          tool_id INTEGER REFERENCES shadow_ai_tools(id) ON DELETE CASCADE,
           department VARCHAR(255),
           total_events INTEGER DEFAULT 0,
           post_events INTEGER DEFAULT 0,
           blocked_events INTEGER DEFAULT 0,
           unique_users INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(organization_id, rollup_month, tool_id, department)
         );
       `);
     } else {
@@ -1960,16 +2146,16 @@ module.exports = {
         CREATE TABLE shadow_ai_rules (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          name VARCHAR(255),
+          name VARCHAR(255) NOT NULL,
           description TEXT,
-          trigger_type VARCHAR(50),
-          trigger_config JSONB,
-          actions JSONB,
-          cooldown_minutes INTEGER DEFAULT 60,
+          trigger_type VARCHAR(100) NOT NULL,
+          trigger_config JSONB NOT NULL,
+          actions JSONB NOT NULL,
+          cooldown_minutes INTEGER DEFAULT 1440,
           is_active BOOLEAN DEFAULT TRUE,
-          created_by INTEGER,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -1982,12 +2168,12 @@ module.exports = {
         CREATE TABLE shadow_ai_alert_history (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          rule_id INTEGER,
+          rule_id INTEGER REFERENCES shadow_ai_rules(id) ON DELETE SET NULL,
           rule_name VARCHAR(255),
-          trigger_type VARCHAR(50),
+          trigger_type VARCHAR(100),
           trigger_data JSONB,
           actions_taken JSONB,
-          fired_at TIMESTAMP DEFAULT NOW()
+          fired_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -2000,9 +2186,10 @@ module.exports = {
         CREATE TABLE shadow_ai_rule_notifications (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          rule_id INTEGER,
-          user_id INTEGER,
-          created_at TIMESTAMP DEFAULT NOW()
+          rule_id INTEGER REFERENCES shadow_ai_rules(id) ON DELETE CASCADE,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(organization_id, rule_id, user_id)
         );
       `);
     } else {
@@ -2015,12 +2202,12 @@ module.exports = {
         CREATE TABLE shadow_ai_settings (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          rate_limit_max_events_per_hour INTEGER DEFAULT 10000,
-          retention_events_days INTEGER DEFAULT 90,
+          rate_limit_max_events_per_hour INTEGER DEFAULT 0,
+          retention_events_days INTEGER DEFAULT 30,
           retention_daily_rollups_days INTEGER DEFAULT 365,
-          retention_alert_history_days INTEGER DEFAULT 180,
-          updated_by INTEGER,
-          updated_at TIMESTAMP DEFAULT NOW()
+          retention_alert_history_days INTEGER DEFAULT 90,
+          updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          updated_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -2033,10 +2220,10 @@ module.exports = {
         CREATE TABLE shadow_ai_syslog_config (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          is_active BOOLEAN DEFAULT FALSE,
+          is_active BOOLEAN DEFAULT true,
           source_identifier VARCHAR(255),
           parser_type VARCHAR(50),
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -2049,13 +2236,13 @@ module.exports = {
         CREATE TABLE shadow_ai_api_keys (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          label VARCHAR(255),
-          key_prefix VARCHAR(10),
-          key_hash VARCHAR(64),
+          label VARCHAR(255) NOT NULL,
+          key_prefix VARCHAR(20) NOT NULL,
+          key_hash VARCHAR(255) NOT NULL UNIQUE,
           is_active BOOLEAN DEFAULT TRUE,
-          last_used_at TIMESTAMP,
-          created_by INTEGER,
-          created_at TIMESTAMP DEFAULT NOW()
+          last_used_at TIMESTAMPTZ,
+          created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
         );
       `);
     } else {
@@ -2216,14 +2403,20 @@ module.exports = {
           evidence_name VARCHAR(255),
           evidence_type VARCHAR(100),
           description TEXT,
+          status VARCHAR(50) DEFAULT 'active',
           expiry_date DATE,
           mapped_model_ids INTEGER[],
+          mapped_framework_ids INTEGER[],
+          created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         );
       `);
     } else {
       await addColumn('evidence_hub', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
+      await addColumn('evidence_hub', 'status', "VARCHAR(50) DEFAULT 'active'");
+      await addColumn('evidence_hub', 'mapped_framework_ids', 'INTEGER[]');
+      await addColumn('evidence_hub', 'created_by', 'INTEGER REFERENCES users(id) ON DELETE SET NULL');
     }
 
     // api_tokens
@@ -2350,14 +2543,21 @@ module.exports = {
         CREATE TABLE slack_webhooks (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          name VARCHAR(255) NOT NULL,
-          webhook_url TEXT NOT NULL,
-          channel VARCHAR(255),
-          description TEXT,
-          is_active BOOLEAN DEFAULT TRUE,
-          created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          access_token VARCHAR(255) NOT NULL,
+          access_token_iv VARCHAR(255) NOT NULL,
+          scope VARCHAR(255) NOT NULL,
+          user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          team_name VARCHAR(255) NOT NULL,
+          team_id VARCHAR(255) NOT NULL,
+          channel VARCHAR(255) NOT NULL,
+          channel_id VARCHAR(255) NOT NULL,
+          configuration_url VARCHAR(255) NOT NULL,
+          url VARCHAR(255) NOT NULL,
+          url_iv VARCHAR(255) NOT NULL,
+          is_active BOOLEAN NOT NULL DEFAULT TRUE,
+          routing_type TEXT[],
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `);
     } else {
@@ -2411,7 +2611,7 @@ module.exports = {
         CREATE TABLE ce_markings (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          project_id INTEGER NOT NULL,
+          project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
           is_high_risk_ai_system BOOLEAN DEFAULT false,
           role_in_product VARCHAR(50) DEFAULT 'standalone',
           annex_iii_category VARCHAR(50) DEFAULT 'annex_iii_5',
@@ -2458,7 +2658,8 @@ module.exports = {
           due_date DATE,
           completed_date DATE,
           created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          updated_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(ce_marking_id, step_number)
         );
       `);
     } else {
@@ -2543,7 +2744,7 @@ module.exports = {
         CREATE TABLE post_market_monitoring_configs (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          project_id INTEGER,
+          project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
           is_active BOOLEAN DEFAULT FALSE,
           frequency_value INTEGER NOT NULL DEFAULT 30,
           frequency_unit TEXT CHECK (frequency_unit IN ('days', 'weeks', 'months')) DEFAULT 'days',
@@ -2568,7 +2769,7 @@ module.exports = {
         CREATE TABLE post_market_monitoring_questions (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          config_id INTEGER,
+          config_id INTEGER REFERENCES post_market_monitoring_configs(id) ON DELETE CASCADE,
           question_text TEXT NOT NULL,
           question_type TEXT CHECK (question_type IN ('yes_no', 'multi_select', 'multi_line_text')) NOT NULL,
           options JSONB DEFAULT '[]',
@@ -2591,7 +2792,7 @@ module.exports = {
         CREATE TABLE post_market_monitoring_cycles (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          config_id INTEGER,
+          config_id INTEGER REFERENCES post_market_monitoring_configs(id) ON DELETE CASCADE,
           cycle_number INTEGER NOT NULL,
           status TEXT CHECK (status IN ('pending', 'in_progress', 'completed', 'escalated')) DEFAULT 'pending',
           started_at TIMESTAMP DEFAULT NOW(),
@@ -2614,8 +2815,8 @@ module.exports = {
         CREATE TABLE post_market_monitoring_responses (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          cycle_id INTEGER,
-          question_id INTEGER,
+          cycle_id INTEGER REFERENCES post_market_monitoring_cycles(id) ON DELETE CASCADE,
+          question_id INTEGER REFERENCES post_market_monitoring_questions(id) ON DELETE CASCADE,
           response_value JSONB,
           is_flagged BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -2633,8 +2834,8 @@ module.exports = {
         CREATE TABLE post_market_monitoring_reports (
           id SERIAL PRIMARY KEY,
           organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          cycle_id INTEGER,
-          file_id INTEGER,
+          cycle_id INTEGER REFERENCES post_market_monitoring_cycles(id) ON DELETE CASCADE,
+          file_id INTEGER REFERENCES files(id) ON DELETE SET NULL,
           context_snapshot JSONB NOT NULL DEFAULT '{}',
           generated_at TIMESTAMP DEFAULT NOW(),
           generated_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -2946,159 +3147,9 @@ module.exports = {
       await addColumn('llm_evals_bias_audit_results', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
     }
 
-    // =====================================================
-    // ADDITIONAL CHANGE HISTORY TABLES
-    // =====================================================
-    console.log('  Creating additional change history tables...');
-
-    // vendor_risk_change_history
-    if (!(await tableExists('vendor_risk_change_history'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE vendor_risk_change_history (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          vendor_risk_id INTEGER NOT NULL,
-          action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
-          field_name VARCHAR(255),
-          old_value TEXT,
-          new_value TEXT,
-          changed_by_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-          changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
-          created_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-    } else {
-      await addColumn('vendor_risk_change_history', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
-
-    // task_change_history
-    if (!(await tableExists('task_change_history'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE task_change_history (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          task_id INTEGER NOT NULL,
-          action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
-          field_name VARCHAR(255),
-          old_value TEXT,
-          new_value TEXT,
-          changed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          changed_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-    } else {
-      await addColumn('task_change_history', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
-
-    // training_change_history
-    if (!(await tableExists('training_change_history'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE training_change_history (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          training_id INTEGER NOT NULL,
-          action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
-          field_name VARCHAR(255),
-          old_value TEXT,
-          new_value TEXT,
-          changed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          changed_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-    } else {
-      await addColumn('training_change_history', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
-
-    // model_risk_change_history
-    if (!(await tableExists('model_risk_change_history'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE model_risk_change_history (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          model_risk_id INTEGER NOT NULL,
-          action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
-          field_name VARCHAR(255),
-          old_value TEXT,
-          new_value TEXT,
-          changed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          changed_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-    } else {
-      await addColumn('model_risk_change_history', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
-
-    // incident_change_history
-    if (!(await tableExists('incident_change_history'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE incident_change_history (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          incident_id INTEGER NOT NULL,
-          action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
-          field_name VARCHAR(255),
-          old_value TEXT,
-          new_value TEXT,
-          changed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-          changed_at TIMESTAMP NOT NULL DEFAULT NOW(),
-          created_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-    } else {
-      await addColumn('incident_change_history', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
-
-    // =====================================================
-    // MISC TABLES
-    // =====================================================
-    console.log('  Creating misc tables...');
-
-    // llm_keys
-    if (!(await tableExists('llm_keys'))) {
-      // Create enum type if not exists
-      await queryInterface.sequelize.query(`
-        DO $$ BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_llm_keys_provider') THEN
-            CREATE TYPE enum_llm_keys_provider AS ENUM ('Anthropic', 'OpenAI', 'OpenRouter', 'Custom');
-          END IF;
-        END $$;
-      `);
-      await queryInterface.sequelize.query(`
-        CREATE TABLE llm_keys (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          key TEXT NOT NULL,
-          name VARCHAR(50) NOT NULL,
-          url TEXT,
-          model TEXT NOT NULL,
-          custom_headers JSONB DEFAULT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        );
-      `);
-    } else {
-      await addColumn('llm_keys', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
-
-    // invitations
-    if (!(await tableExists('invitations'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE invitations (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          email VARCHAR(255) NOT NULL,
-          name VARCHAR(255),
-          surname VARCHAR(255),
-          role_id INT REFERENCES roles(id),
-          status VARCHAR(20) NOT NULL DEFAULT 'pending',
-          invited_by INT REFERENCES users(id),
-          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          expires_at TIMESTAMP NOT NULL,
-          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-    } else {
-      await addColumn('invitations', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
+    // NOTE: Duplicate table definitions for vendor_risk_change_history, task_change_history,
+    // training_change_history, model_risk_change_history, incident_change_history, llm_keys,
+    // and invitations were removed from this section. They are defined earlier in this migration.
 
     // agent_primitives
     if (!(await tableExists('agent_primitives'))) {
@@ -3327,8 +3378,79 @@ module.exports = {
     }
 
     // =====================================================
+    // INDEXES
+    // =====================================================
+    console.log('📋 Creating indexes...');
+
+    // Shadow AI indexes
+    await createIndex('idx_shadow_ai_events_timestamp', 'shadow_ai_events', 'organization_id, event_timestamp');
+    await createIndex('idx_shadow_ai_events_user', 'shadow_ai_events', 'organization_id, user_email');
+    await createIndex('idx_shadow_ai_events_tool', 'shadow_ai_events', 'organization_id, detected_tool_id');
+    await createIndex('idx_shadow_ai_daily_rollups_date', 'shadow_ai_daily_rollups', 'organization_id, rollup_date');
+    await createIndex('idx_shadow_ai_daily_rollups_tool', 'shadow_ai_daily_rollups', 'organization_id, tool_id');
+    await createIndex('idx_shadow_ai_alert_cooldown', 'shadow_ai_alert_history', 'rule_id, fired_at');
+
+    // AI incident management indexes
+    await createIndex('idx_ai_incidents_severity', 'ai_incident_managements', 'organization_id, severity');
+    await createIndex('idx_ai_incidents_status', 'ai_incident_managements', 'organization_id, status');
+    await createIndex('idx_ai_incidents_approval', 'ai_incident_managements', 'organization_id, approval_status');
+    await createIndex('idx_ai_incidents_created', 'ai_incident_managements', 'organization_id, created_at');
+
+    // AI detection indexes
+    await createIndex('idx_ai_detection_findings_type', 'ai_detection_findings', 'organization_id, finding_type');
+    await createIndex('idx_ai_detection_scans_status', 'ai_detection_scans', 'organization_id, status');
+
+    // Partial unique index: prevent concurrent active scans for same repo
+    await queryInterface.sequelize.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_scans_unique_active
+      ON ai_detection_scans (organization_id, repository_owner, repository_name)
+      WHERE status IN ('pending', 'cloning', 'scanning');
+    `);
+
+    // Slack webhooks index
+    await createIndex('idx_slack_webhooks_team', 'slack_webhooks', 'team_id');
+
+    // Invitations partial unique index: only one pending invite per email per org
+    await queryInterface.sequelize.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_invitations_pending_email
+      ON invitations(organization_id, email) WHERE status = 'pending';
+    `);
+
+    // =====================================================
     // FK CONSTRAINTS
     // =====================================================
+
+    // CE marking FK constraints
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ce_marking_conformity_steps ADD CONSTRAINT fk_ce_conformity_ce_marking FOREIGN KEY (ce_marking_id) REFERENCES ce_markings(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ce_marking_audit_trail ADD CONSTRAINT fk_ce_audit_ce_marking FOREIGN KEY (ce_marking_id) REFERENCES ce_markings(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ce_marking_policies ADD CONSTRAINT fk_ce_policies_ce_marking FOREIGN KEY (ce_marking_id) REFERENCES ce_markings(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ce_marking_evidences ADD CONSTRAINT fk_ce_evidences_ce_marking FOREIGN KEY (ce_marking_id) REFERENCES ce_markings(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ce_marking_incidents ADD CONSTRAINT fk_ce_incidents_ce_marking FOREIGN KEY (ce_marking_id) REFERENCES ce_markings(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        ALTER TABLE ce_marking_incidents ADD CONSTRAINT fk_ce_incidents_incident FOREIGN KEY (incident_id) REFERENCES ai_incident_managements(id) ON DELETE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `);
 
     // Add FK constraints if tables have approval_workflow_id
     if (await columnExists('projects', 'approval_workflow_id') && await tableExists('approval_workflows')) {

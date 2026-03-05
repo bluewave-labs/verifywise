@@ -21,7 +21,7 @@ module.exports = {
       // Project status
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
-          CREATE TYPE projects_status_enum AS ENUM ('Not started', 'In progress', 'Completed', 'On hold', 'Cancelled');
+          CREATE TYPE projects_status_enum AS ENUM ('Not started', 'In progress', 'Under review', 'Completed', 'Closed', 'On hold', 'Rejected');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
       `, { transaction });
@@ -30,8 +30,8 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projects_ai_risk_classification AS ENUM (
-            'high risk', 'limited risk', 'minimal risk',
-            'prohibited', 'gpai', 'gpai_systemic', 'not_ai_system'
+            'High risk', 'Limited risk', 'Minimal risk',
+            'Prohibited', 'gpai', 'gpai_systemic', 'not_ai_system'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -41,8 +41,8 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projects_type_of_high_risk_role AS ENUM (
-            'deployer', 'provider', 'distributor', 'importer',
-            'product manufacturer', 'authorized representative',
+            'Deployer', 'Provider', 'Distributor', 'Importer',
+            'Product manufacturer', 'Authorized representative',
             'not_applicable'
           );
         EXCEPTION WHEN duplicate_object THEN null;
@@ -53,7 +53,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_vendors_review_status AS ENUM (
-            'Active', 'Under review', 'Not active', 'Pending', 'Approved', 'Rejected'
+            'Not started', 'In review', 'Reviewed', 'Requires follow-up', 'Superseded'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -106,7 +106,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_trainingregistar_status AS ENUM (
-            'Not started', 'In progress', 'Completed', 'Cancelled'
+            'Planned', 'In Progress', 'Completed'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -126,8 +126,13 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_ai_lifecycle_phase AS ENUM (
-            'Design', 'Development', 'Testing', 'Deployment',
-            'Operation', 'Monitoring', 'Decommissioning'
+            'Problem definition & planning',
+            'Data collection & processing',
+            'Model development & training',
+            'Model validation & testing',
+            'Deployment & integration',
+            'Monitoring & maintenance',
+            'Decommissioning & retirement'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -136,8 +141,10 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_risk_category AS ENUM (
-            'Technical', 'Operational', 'Compliance', 'Ethical',
-            'Security', 'Privacy', 'Financial', 'Reputational'
+            'Strategic risk', 'Operational risk', 'Compliance risk', 'Financial risk',
+            'Cybersecurity risk', 'Reputational risk', 'Legal risk', 'Technological risk',
+            'Third-party/vendor risk', 'Environmental risk', 'Human resources risk',
+            'Geopolitical risk', 'Fraud risk', 'Data privacy risk', 'Health and safety risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -146,7 +153,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_likelihood AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high'
+            'Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -155,7 +162,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_severity AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high'
+            'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -164,7 +171,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_risk_level_autocalculated AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high', 'Critical'
+            'No risk', 'Very low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -173,7 +180,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_mitigation_status AS ENUM (
-            'Not started', 'In progress', 'Completed', 'Accepted', 'Transferred'
+            'Not Started', 'In Progress', 'Completed', 'On Hold', 'Deferred', 'Canceled', 'Requires review'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -182,7 +189,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_current_risk_level AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high', 'Critical'
+            'Very Low risk', 'Low risk', 'Medium risk', 'High risk', 'Very high risk'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -191,7 +198,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_likelihood_mitigation AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high'
+            'Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -200,7 +207,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_projectrisks_risk_severity AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high'
+            'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -210,7 +217,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_vendorrisks_likelihood AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high'
+            'Rare', 'Unlikely', 'Possible', 'Likely', 'Almost certain'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -219,7 +226,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_vendorrisks_risk_severity AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high'
+            'Negligible', 'Minor', 'Moderate', 'Major', 'Catastrophic'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -232,7 +239,17 @@ module.exports = {
             'Manual', 'Reporting', 'Policy', 'Vendor', 'Model',
             'Risk', 'Assessment', 'Control', 'Evidence', 'Training',
             'ISO42001Clause', 'ISO42001Annex', 'ISO27001Clause', 'ISO27001Annex',
-            'NIST_AI_RMF', 'Incident', 'PMM', 'Plugin'
+            'NIST_AI_RMF', 'Incident', 'PMM', 'Plugin',
+            'Assessment tracker group', 'Compliance tracker group',
+            'Project risks report', 'Compliance tracker report', 'Assessment tracker report',
+            'Vendors and risks report', 'All reports',
+            'Management system clauses group', 'Reference controls group',
+            'Main clauses group', 'Annex controls group', 'ISO 27001 report',
+            'Clauses and annexes report',
+            'Models and risks report', 'Training registry report', 'Policy manager report',
+            'Subcategories group', 'AI trust center group',
+            'Post-Market Monitoring report',
+            'File Manager', 'policy_editor', 'dataset_bulk_upload'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -274,7 +291,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_status_questions AS ENUM (
-            'Not started', 'Draft', 'In progress', 'Completed', 'Not applicable'
+            'Not started', 'In progress', 'Done'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -284,7 +301,8 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_subclauses_iso_status AS ENUM (
-            'Not started', 'Draft', 'In progress', 'Implemented', 'Not applicable'
+            'Not started', 'Draft', 'In progress', 'Awaiting review',
+            'Awaiting approval', 'Implemented', 'Audited', 'Needs rework'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -293,7 +311,8 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_annexcategories_iso_status AS ENUM (
-            'Not started', 'Draft', 'In progress', 'Implemented', 'Not applicable'
+            'Not started', 'Draft', 'In progress', 'Awaiting review',
+            'Awaiting approval', 'Implemented', 'Audited', 'Needs rework'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -303,8 +322,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_model_inventories_status AS ENUM (
-            'Pending', 'Approved', 'Rejected', 'Retired',
-            'Development', 'Testing', 'Production', 'Deprecated'
+            'Approved', 'Restricted', 'Pending', 'Blocked'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -314,9 +332,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_model_risks_risk_category AS ENUM (
-            'Technical', 'Operational', 'Compliance', 'Ethical',
-            'Security', 'Privacy', 'Financial', 'Reputational',
-            'Performance', 'Bias', 'Fairness'
+            'Performance', 'Bias & Fairness', 'Security', 'Data Quality', 'Compliance'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -325,7 +341,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_model_risks_risk_level AS ENUM (
-            'Very low', 'Low', 'Medium', 'High', 'Very high', 'Critical'
+            'Low', 'Medium', 'High', 'Critical'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -334,7 +350,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_model_risks_status AS ENUM (
-            'Open', 'In progress', 'Resolved', 'Accepted', 'Closed'
+            'Open', 'In Progress', 'Resolved', 'Accepted'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
@@ -416,7 +432,8 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE enum_nist_ai_rmf_status AS ENUM (
-            'Not started', 'Draft', 'In progress', 'Implemented', 'Not applicable', 'Awaiting review'
+            'Not started', 'Draft', 'In progress', 'Awaiting review',
+            'Awaiting approval', 'Implemented', 'Needs rework', 'Audited'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;

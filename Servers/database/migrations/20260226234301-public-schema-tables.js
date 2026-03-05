@@ -1,17 +1,18 @@
 'use strict';
 
 /**
- * Public Schema Tables Migration (Idempotent)
+ * Public Schema Tables Migration
  *
- * Works for BOTH fresh installations AND existing databases.
- * Every operation is idempotent - safe to run multiple times.
+ * Strategy:
+ * - organizations & users: CREATE IF NOT EXISTS + addColumn (preserve user data)
+ * - All other tables: DROP CASCADE + CREATE (ensures correct schema)
  */
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    console.log('🚀 Ensuring public schema tables exist...');
+    console.log('🚀 Setting up public schema tables...');
 
-    // Helper to add column if not exists
+    // Helper to add column if not exists (only used for organizations & users)
     const addColumnIfNotExists = async (table, column, definition) => {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
@@ -39,7 +40,68 @@ module.exports = {
     };
 
     // ========================================
-    // ORGANIZATIONS
+    // DROP ALL TABLES (except organizations & users)
+    // Reverse dependency order ensures clean drops
+    // ========================================
+    console.log('🗑️  Dropping existing tables for clean recreation...');
+
+    const tablesToDrop = [
+      // Migration status
+      'migration_status',
+      // Automation tables
+      'automation_triggers_actions',
+      'automation_actions',
+      'automation_triggers',
+      // Custom framework tables (reverse dependency order)
+      'custom_framework_level3_risks',
+      'custom_framework_level2_risks',
+      'custom_framework_level3_impl',
+      'custom_framework_level2_impl',
+      'custom_framework_projects',
+      'custom_frameworks',
+      'custom_framework_level3_struct',
+      'custom_framework_level2_struct',
+      'custom_framework_level1_struct',
+      'custom_framework_definitions',
+      // NIST implementation tables
+      'nist_ai_rmf_subcategories__risks',
+      'nist_ai_rmf_subcategories',
+      // NIST struct tables
+      'nist_ai_rmf_subcategories_struct',
+      'nist_ai_rmf_categories_struct',
+      // File tables
+      'file_entity_links',
+      'files',
+      // ISO 27001 struct tables
+      'annexcontrols_struct_iso27001',
+      'annexcategories_struct_iso27001',
+      'subclauses_struct_iso27001',
+      'clauses_struct_iso27001',
+      // ISO 42001 struct tables
+      'annexcategories_struct_iso',
+      'subclauses_struct_iso',
+      'clauses_struct_iso',
+      // EU AI Act struct tables
+      'subcontrols_struct_eu',
+      'controls_struct_eu',
+      'controlcategories_struct_eu',
+      'questions_struct_eu',
+      'subtopics_struct_eu',
+      'topics_struct_eu',
+      // Subscription tables
+      'subscription_history',
+      'subscriptions',
+      'tiers',
+      // Frameworks
+      'frameworks',
+    ];
+
+    for (const table of tablesToDrop) {
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS ${table} CASCADE;`);
+    }
+
+    // ========================================
+    // ORGANIZATIONS (preserve data)
     // ========================================
     console.log('📋 Ensuring organizations table...');
 
@@ -51,6 +113,7 @@ module.exports = {
         tenant_id VARCHAR(20) UNIQUE,
         onboarding_status VARCHAR(50) DEFAULT 'pending',
         subscription_id INTEGER,
+        slug VARCHAR(255) UNIQUE,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
@@ -60,15 +123,40 @@ module.exports = {
     await addColumnIfNotExists('organizations', 'tenant_id', 'VARCHAR(20) UNIQUE');
     await addColumnIfNotExists('organizations', 'onboarding_status', "VARCHAR(50) DEFAULT 'pending'");
     await addColumnIfNotExists('organizations', 'subscription_id', 'INTEGER');
+    await addColumnIfNotExists('organizations', 'slug', 'VARCHAR(255) UNIQUE');
     await addColumnIfNotExists('organizations', 'updated_at', 'TIMESTAMP DEFAULT NOW()');
 
     await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_organizations_tenant_id ON organizations(tenant_id);`);
+
+    // Auto-update updated_at trigger for organizations
+    await queryInterface.sequelize.query(`
+      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+
+    await queryInterface.sequelize.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_trigger WHERE tgname = 'set_updated_at' AND tgrelid = 'organizations'::regclass
+        ) THEN
+          CREATE TRIGGER set_updated_at
+          BEFORE UPDATE ON organizations
+          FOR EACH ROW
+          EXECUTE FUNCTION update_updated_at_column();
+        END IF;
+      END $$;
+    `);
 
     // NOTE: roles table is created by 20260226234300-base-enums-and-roles.js
     // Do not create or modify it here
 
     // ========================================
-    // USERS
+    // USERS (preserve data)
     // ========================================
     console.log('📋 Ensuring users table...');
 
@@ -79,131 +167,132 @@ module.exports = {
         surname VARCHAR(255),
         email VARCHAR(255) NOT NULL,
         password_hash VARCHAR(255),
-        role INTEGER REFERENCES roles(id),
+        role_id INTEGER REFERENCES roles(id),
         organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-        profile_photo TEXT,
+        profile_photo_id INTEGER,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         last_login TIMESTAMP,
         is_demo BOOLEAN DEFAULT false
       );
     `);
 
-    await addColumnIfNotExists('users', 'surname', 'VARCHAR(255)');
-    await addColumnIfNotExists('users', 'profile_photo', 'TEXT');
-    await addColumnIfNotExists('users', 'last_login', 'TIMESTAMP');
-    await addColumnIfNotExists('users', 'is_demo', 'BOOLEAN DEFAULT false');
-
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_users_organization_id ON users(organization_id);`);
-
-    // ========================================
-    // TIERS & SUBSCRIPTIONS
-    // ========================================
-    console.log('📋 Ensuring tiers and subscriptions tables...');
-
-    await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS tiers (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        price_monthly DECIMAL(10, 2),
-        price_yearly DECIMAL(10, 2),
-        features JSONB DEFAULT '[]',
-        max_users INTEGER,
-        max_projects INTEGER,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-      );
-    `);
-
-    // Ensure name column can hold values and has unique constraint
-    await queryInterface.sequelize.query(`ALTER TABLE tiers ALTER COLUMN name TYPE VARCHAR(255);`);
-
-    // Drop legacy check constraint that may block new tier names
+    // Rename role → role_id for existing databases (original migration used 'role')
     await queryInterface.sequelize.query(`
       DO $$ BEGIN
-        ALTER TABLE tiers DROP CONSTRAINT IF EXISTS tiers_name_check;
-      EXCEPTION WHEN undefined_object THEN null;
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'role'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'role_id'
+        ) THEN
+          ALTER TABLE users RENAME COLUMN role TO role_id;
+        END IF;
       END $$;
     `);
 
-    await addColumnIfNotExists('tiers', 'description', 'TEXT');
-    await addColumnIfNotExists('tiers', 'price_monthly', 'DECIMAL(10, 2)');
-    await addColumnIfNotExists('tiers', 'price_yearly', 'DECIMAL(10, 2)');
-    await addColumnIfNotExists('tiers', 'features', "JSONB DEFAULT '[]'");
-    await addColumnIfNotExists('tiers', 'max_users', 'INTEGER');
-    await addColumnIfNotExists('tiers', 'max_projects', 'INTEGER');
-    await addColumnIfNotExists('tiers', 'is_active', 'BOOLEAN DEFAULT true');
-    await addConstraintIfNotExists('tiers', 'tiers_name_unique', 'UNIQUE (name)');
+    await addColumnIfNotExists('users', 'surname', 'VARCHAR(255)');
+    await addColumnIfNotExists('users', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
+    await addColumnIfNotExists('users', 'profile_photo_id', 'INTEGER');
+    await addColumnIfNotExists('users', 'last_login', 'TIMESTAMP');
+    await addColumnIfNotExists('users', 'is_demo', 'BOOLEAN DEFAULT false');
 
-    // Insert default tiers (now constraint exists)
+    // Rename profile_photo → profile_photo_id for existing databases (old migrations used profile_photo TEXT)
     await queryInterface.sequelize.query(`
-      INSERT INTO tiers (name, description, features, max_users, max_projects) VALUES
-        ('Free', 'Free tier with limited features', '["basic_compliance"]', 3, 1),
-        ('Professional', 'Professional tier for small teams', '["basic_compliance", "advanced_reporting", "integrations"]', 10, 5),
-        ('Enterprise', 'Enterprise tier with all features', '["basic_compliance", "advanced_reporting", "integrations", "sso", "audit_logs", "custom_frameworks"]', NULL, NULL)
-      ON CONFLICT (name) DO NOTHING;
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'profile_photo' AND data_type = 'text'
+        ) THEN
+          ALTER TABLE users DROP COLUMN profile_photo;
+          ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo_id INTEGER;
+        END IF;
+      END $$;
+    `);
+
+    await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_users_organization_id ON users(organization_id);`);
+
+    // ========================================
+    // TIERS & SUBSCRIPTIONS (drop + recreate)
+    // ========================================
+    console.log('📋 Creating tiers and subscriptions tables...');
+
+    await queryInterface.sequelize.query(`
+      CREATE TABLE tiers (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(10) NOT NULL CHECK (name IN ('Free', 'Team', 'Growth', 'Enterprise')),
+        price INTEGER NOT NULL DEFAULT 0,
+        features JSONB NOT NULL DEFAULT '{}',
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // Insert default tiers
+    await queryInterface.sequelize.query(`
+      INSERT INTO tiers (name, price, features) VALUES
+        ('Free', 0, '{"seats": 2, "projects": 1, "frameworks": 1}'),
+        ('Team', 139, '{"seats": 0, "projects": 10, "frameworks": 0}'),
+        ('Growth', 299, '{"seats": 0, "projects": 50, "frameworks": 0}'),
+        ('Enterprise', 799, '{"seats": 0, "projects": 0, "frameworks": 0}')
+      ON CONFLICT DO NOTHING;
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS subscriptions (
+      CREATE TABLE subscriptions (
         id SERIAL PRIMARY KEY,
-        organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-        tier_id INTEGER REFERENCES tiers(id),
-        status VARCHAR(50) NOT NULL DEFAULT 'active',
-        start_date TIMESTAMP NOT NULL DEFAULT NOW(),
-        end_date TIMESTAMP,
-        billing_cycle VARCHAR(20) DEFAULT 'monthly',
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+        organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        tier_id INTEGER NOT NULL REFERENCES tiers(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        stripe_sub_id VARCHAR(255) NOT NULL UNIQUE,
+        status VARCHAR(10) NOT NULL CHECK (status IN ('active', 'inactive', 'canceled')),
+        start_date TIMESTAMP WITH TIME ZONE NOT NULL,
+        end_date TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT chk_subscriptions_date_range CHECK (end_date IS NULL OR start_date < end_date)
       );
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS subscription_history (
+      CREATE TABLE subscription_history (
         id SERIAL PRIMARY KEY,
-        subscription_id INTEGER REFERENCES subscriptions(id) ON DELETE CASCADE,
-        action VARCHAR(50) NOT NULL,
-        old_tier_id INTEGER REFERENCES tiers(id),
-        new_tier_id INTEGER REFERENCES tiers(id),
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        subscription_id INTEGER NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'upgraded', 'downgraded', 'canceled')),
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
     `);
 
     // Add FK from organizations to subscriptions
     await addConstraintIfNotExists('organizations', 'fk_organizations_subscription',
-      'FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL');
+      'FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL ON UPDATE CASCADE');
 
     // ========================================
-    // FRAMEWORKS
+    // FRAMEWORKS (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring frameworks table...');
+    console.log('📋 Creating frameworks table...');
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS frameworks (
+      CREATE TABLE frameworks (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
         version VARCHAR(50),
+        is_organizational BOOLEAN DEFAULT false,
         is_active BOOLEAN DEFAULT true,
         is_demo BOOLEAN DEFAULT false,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
 
-    await addColumnIfNotExists('frameworks', 'description', 'TEXT');
-    await addColumnIfNotExists('frameworks', 'version', 'VARCHAR(50)');
-    await addColumnIfNotExists('frameworks', 'is_active', 'BOOLEAN DEFAULT true');
-    await addColumnIfNotExists('frameworks', 'is_demo', 'BOOLEAN DEFAULT false');
-    await addColumnIfNotExists('frameworks', 'created_at', 'TIMESTAMP DEFAULT NOW()');
-
     await queryInterface.sequelize.query(`
-      INSERT INTO frameworks (id, name, description, version) VALUES
-        (1, 'EU AI Act', 'European Union Artificial Intelligence Act', '1.0'),
-        (2, 'ISO 42001', 'AI Management System Standard', '2023'),
-        (3, 'ISO 27001', 'Information Security Management', '2022'),
-        (4, 'NIST AI RMF', 'NIST AI Risk Management Framework', '1.0')
+      INSERT INTO frameworks (id, name, description, version, is_organizational) VALUES
+        (1, 'EU AI Act', 'European Union Artificial Intelligence Act', '1.0', false),
+        (2, 'ISO 42001', 'AI Management System Standard', '2023', true),
+        (3, 'ISO 27001', 'Information Security Management', '2022', true),
+        (4, 'NIST AI RMF', 'NIST AI Risk Management Framework', '1.0', true)
       ON CONFLICT (id) DO NOTHING;
     `);
 
@@ -213,12 +302,12 @@ module.exports = {
     `);
 
     // ========================================
-    // EU AI ACT STRUCTURE TABLES
+    // EU AI ACT STRUCTURE TABLES (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring EU AI Act structure tables...');
+    console.log('📋 Creating EU AI Act structure tables...');
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS topics_struct_eu (
+      CREATE TABLE topics_struct_eu (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
@@ -228,7 +317,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS subtopics_struct_eu (
+      CREATE TABLE subtopics_struct_eu (
         id SERIAL PRIMARY KEY,
         topic_id INTEGER REFERENCES topics_struct_eu(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
@@ -238,21 +327,24 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS questions_struct_eu (
+      CREATE TABLE questions_struct_eu (
         id SERIAL PRIMARY KEY,
         subtopic_id INTEGER REFERENCES subtopics_struct_eu(id) ON DELETE CASCADE,
+        order_no INTEGER,
         question TEXT NOT NULL,
         hint TEXT,
         priority_level VARCHAR(50),
         answer_type VARCHAR(50) DEFAULT 'Long text',
         input_type VARCHAR(50),
+        evidence_required BOOLEAN NOT NULL DEFAULT false,
+        is_required BOOLEAN NOT NULL DEFAULT false,
         dropdown_options TEXT[],
         is_demo BOOLEAN DEFAULT false
       );
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS controlcategories_struct_eu (
+      CREATE TABLE controlcategories_struct_eu (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
@@ -262,7 +354,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS controls_struct_eu (
+      CREATE TABLE controls_struct_eu (
         id SERIAL PRIMARY KEY,
         control_category_id INTEGER REFERENCES controlcategories_struct_eu(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
@@ -273,7 +365,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS subcontrols_struct_eu (
+      CREATE TABLE subcontrols_struct_eu (
         id SERIAL PRIMARY KEY,
         control_id INTEGER REFERENCES controls_struct_eu(id) ON DELETE CASCADE,
         title TEXT NOT NULL,
@@ -284,12 +376,12 @@ module.exports = {
     `);
 
     // ========================================
-    // ISO 42001 STRUCTURE TABLES
+    // ISO 42001 STRUCTURE TABLES (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring ISO 42001 structure tables...');
+    console.log('📋 Creating ISO 42001 structure tables...');
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS clauses_struct_iso (
+      CREATE TABLE clauses_struct_iso (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         clause_id VARCHAR(50) NOT NULL,
@@ -301,7 +393,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS subclauses_struct_iso (
+      CREATE TABLE subclauses_struct_iso (
         id SERIAL PRIMARY KEY,
         clause_id INTEGER REFERENCES clauses_struct_iso(id) ON DELETE CASCADE,
         subclause_id VARCHAR(50) NOT NULL,
@@ -314,7 +406,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS annexcategories_struct_iso (
+      CREATE TABLE annexcategories_struct_iso (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         annex_id VARCHAR(50) NOT NULL,
@@ -326,12 +418,12 @@ module.exports = {
     `);
 
     // ========================================
-    // ISO 27001 STRUCTURE TABLES
+    // ISO 27001 STRUCTURE TABLES (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring ISO 27001 structure tables...');
+    console.log('📋 Creating ISO 27001 structure tables...');
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS clauses_struct_iso27001 (
+      CREATE TABLE clauses_struct_iso27001 (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         clause_id VARCHAR(50) NOT NULL,
@@ -343,7 +435,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS subclauses_struct_iso27001 (
+      CREATE TABLE subclauses_struct_iso27001 (
         id SERIAL PRIMARY KEY,
         clause_id INTEGER REFERENCES clauses_struct_iso27001(id) ON DELETE CASCADE,
         subclause_id VARCHAR(50) NOT NULL,
@@ -356,7 +448,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS annexcategories_struct_iso27001 (
+      CREATE TABLE annexcategories_struct_iso27001 (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         annex_id VARCHAR(50) NOT NULL,
@@ -368,7 +460,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS annexcontrols_struct_iso27001 (
+      CREATE TABLE annexcontrols_struct_iso27001 (
         id SERIAL PRIMARY KEY,
         category_id INTEGER REFERENCES annexcategories_struct_iso27001(id) ON DELETE CASCADE,
         control_id VARCHAR(50) NOT NULL,
@@ -381,13 +473,9 @@ module.exports = {
     `);
 
     // ========================================
-    // FILES AND FILE LINKS
+    // FILES AND FILE LINKS (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring files tables...');
-
-    // Drop and recreate to ensure correct schema
-    await queryInterface.sequelize.query(`DROP TABLE IF EXISTS file_entity_links CASCADE`);
-    await queryInterface.sequelize.query(`DROP TABLE IF EXISTS files CASCADE`);
+    console.log('📋 Creating files tables...');
 
     await queryInterface.sequelize.query(`
       CREATE TABLE files (
@@ -414,6 +502,7 @@ module.exports = {
         description TEXT,
         file_group_id UUID DEFAULT gen_random_uuid(),
         approval_workflow_id INTEGER,
+        approval_request_id INTEGER,
         content_text TEXT,
         content_search TSVECTOR
       );
@@ -442,13 +531,12 @@ module.exports = {
     await queryInterface.sequelize.query(`CREATE INDEX idx_file_entity_links_file ON file_entity_links(file_id);`);
 
     // ========================================
-    // NIST AI RMF STRUCTURE TABLES
+    // NIST AI RMF STRUCTURE TABLES (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring NIST AI RMF structure tables...');
+    console.log('📋 Creating NIST AI RMF structure tables...');
 
-    // nist_ai_rmf_categories_struct - static category data
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS nist_ai_rmf_categories_struct (
+      CREATE TABLE nist_ai_rmf_categories_struct (
         id SERIAL PRIMARY KEY,
         framework_id INTEGER NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
         function VARCHAR(20) NOT NULL,
@@ -460,9 +548,8 @@ module.exports = {
       );
     `);
 
-    // nist_ai_rmf_subcategories_struct - static subcategory data
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS nist_ai_rmf_subcategories_struct (
+      CREATE TABLE nist_ai_rmf_subcategories_struct (
         id SERIAL PRIMARY KEY,
         category_struct_id INTEGER NOT NULL REFERENCES nist_ai_rmf_categories_struct(id) ON DELETE CASCADE,
         function VARCHAR(20) NOT NULL,
@@ -475,13 +562,12 @@ module.exports = {
     `);
 
     // ========================================
-    // NIST AI RMF IMPLEMENTATION TABLES
+    // NIST AI RMF IMPLEMENTATION TABLES (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring NIST AI RMF implementation tables...');
+    console.log('📋 Creating NIST AI RMF implementation tables...');
 
-    // nist_ai_rmf_subcategories - per-project implementation records
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS nist_ai_rmf_subcategories (
+      CREATE TABLE nist_ai_rmf_subcategories (
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         implementation_description TEXT,
@@ -499,13 +585,12 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_nist_subcat_org ON nist_ai_rmf_subcategories(organization_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_nist_subcat_meta ON nist_ai_rmf_subcategories(subcategory_meta_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_nist_subcat_pf ON nist_ai_rmf_subcategories(projects_frameworks_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_nist_subcat_org ON nist_ai_rmf_subcategories(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_nist_subcat_meta ON nist_ai_rmf_subcategories(subcategory_meta_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_nist_subcat_pf ON nist_ai_rmf_subcategories(projects_frameworks_id);`);
 
-    // nist_ai_rmf_subcategories__risks - risk linking
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS nist_ai_rmf_subcategories__risks (
+      CREATE TABLE nist_ai_rmf_subcategories__risks (
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         nist_ai_rmf_subcategory_id INTEGER NOT NULL REFERENCES nist_ai_rmf_subcategories(id) ON DELETE CASCADE,
         projects_risks_id INTEGER NOT NULL,
@@ -513,18 +598,17 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_nist_risks_org ON nist_ai_rmf_subcategories__risks(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_nist_risks_org ON nist_ai_rmf_subcategories__risks(organization_id);`);
 
     // ========================================
-    // CUSTOM FRAMEWORK TABLES (for plugins)
+    // CUSTOM FRAMEWORK TABLES (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring custom framework tables...');
+    console.log('📋 Creating custom framework tables...');
 
     // ---- Struct tables (shared, no organization_id) ----
 
-    // custom_framework_definitions - one row per plugin_key
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_definitions (
+      CREATE TABLE custom_framework_definitions (
         id SERIAL PRIMARY KEY,
         plugin_key VARCHAR(100) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -541,11 +625,10 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cfd_plugin_key ON custom_framework_definitions(plugin_key);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cfd_plugin_key ON custom_framework_definitions(plugin_key);`);
 
-    // custom_framework_level1_struct
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level1_struct (
+      CREATE TABLE custom_framework_level1_struct (
         id SERIAL PRIMARY KEY,
         definition_id INTEGER NOT NULL REFERENCES custom_framework_definitions(id) ON DELETE CASCADE,
         title VARCHAR(500) NOT NULL,
@@ -556,11 +639,10 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cfl1s_definition ON custom_framework_level1_struct(definition_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cfl1s_definition ON custom_framework_level1_struct(definition_id);`);
 
-    // custom_framework_level2_struct
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level2_struct (
+      CREATE TABLE custom_framework_level2_struct (
         id SERIAL PRIMARY KEY,
         level1_id INTEGER NOT NULL REFERENCES custom_framework_level1_struct(id) ON DELETE CASCADE,
         title VARCHAR(500) NOT NULL,
@@ -574,11 +656,10 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cfl2s_level1 ON custom_framework_level2_struct(level1_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cfl2s_level1 ON custom_framework_level2_struct(level1_id);`);
 
-    // custom_framework_level3_struct
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level3_struct (
+      CREATE TABLE custom_framework_level3_struct (
         id SERIAL PRIMARY KEY,
         level2_id INTEGER NOT NULL REFERENCES custom_framework_level2_struct(id) ON DELETE CASCADE,
         title VARCHAR(500) NOT NULL,
@@ -592,13 +673,12 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cfl3s_level2 ON custom_framework_level3_struct(level2_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cfl3s_level2 ON custom_framework_level3_struct(level2_id);`);
 
     // ---- Per-org tables ----
 
-    // custom_frameworks - per-org record with definition_id FK
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_frameworks (
+      CREATE TABLE custom_frameworks (
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         definition_id INTEGER REFERENCES custom_framework_definitions(id),
@@ -617,13 +697,12 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_org_id ON custom_frameworks(organization_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_plugin_key ON custom_frameworks(plugin_key);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_definition_id ON custom_frameworks(definition_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_org_id ON custom_frameworks(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_plugin_key ON custom_frameworks(plugin_key);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_definition_id ON custom_frameworks(definition_id);`);
 
-    // custom_framework_projects - project-framework association
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_projects (
+      CREATE TABLE custom_framework_projects (
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         framework_id INTEGER NOT NULL REFERENCES custom_frameworks(id) ON DELETE CASCADE,
@@ -633,11 +712,10 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_projects_org ON custom_framework_projects(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_projects_org ON custom_framework_projects(organization_id);`);
 
-    // custom_framework_level2_impl - level 2 implementation records (FK to struct)
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level2_impl (
+      CREATE TABLE custom_framework_level2_impl (
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         level2_id INTEGER NOT NULL REFERENCES custom_framework_level2_struct(id) ON DELETE CASCADE,
@@ -657,13 +735,12 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_level2_impl_org ON custom_framework_level2_impl(organization_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_level2_impl_l2 ON custom_framework_level2_impl(level2_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_level2_impl_pf ON custom_framework_level2_impl(project_framework_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_level2_impl_org ON custom_framework_level2_impl(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_level2_impl_l2 ON custom_framework_level2_impl(level2_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_level2_impl_pf ON custom_framework_level2_impl(project_framework_id);`);
 
-    // custom_framework_level3_impl - level 3 implementation records (FK to struct)
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level3_impl (
+      CREATE TABLE custom_framework_level3_impl (
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         level3_id INTEGER NOT NULL REFERENCES custom_framework_level3_struct(id) ON DELETE CASCADE,
@@ -683,13 +760,12 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_level3_impl_org ON custom_framework_level3_impl(organization_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_level3_impl_l3 ON custom_framework_level3_impl(level3_id);`);
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_level3_impl_l2impl ON custom_framework_level3_impl(level2_impl_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_level3_impl_org ON custom_framework_level3_impl(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_level3_impl_l3 ON custom_framework_level3_impl(level3_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_level3_impl_l2impl ON custom_framework_level3_impl(level2_impl_id);`);
 
-    // custom_framework_level2_risks - risk linking for level 2
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level2_risks (
+      CREATE TABLE custom_framework_level2_risks (
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         level2_impl_id INTEGER NOT NULL REFERENCES custom_framework_level2_impl(id) ON DELETE CASCADE,
         risk_id INTEGER NOT NULL,
@@ -697,11 +773,10 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_l2_risks_org ON custom_framework_level2_risks(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_l2_risks_org ON custom_framework_level2_risks(organization_id);`);
 
-    // custom_framework_level3_risks - risk linking for level 3
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS custom_framework_level3_risks (
+      CREATE TABLE custom_framework_level3_risks (
         organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
         level3_impl_id INTEGER NOT NULL REFERENCES custom_framework_level3_impl(id) ON DELETE CASCADE,
         risk_id INTEGER NOT NULL,
@@ -709,89 +784,91 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS idx_cf_l3_risks_org ON custom_framework_level3_risks(organization_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_cf_l3_risks_org ON custom_framework_level3_risks(organization_id);`);
 
     // ========================================
-    // AUTOMATION DEFINITIONS
+    // AUTOMATION DEFINITIONS (drop + recreate)
     // ========================================
-    console.log('📋 Ensuring automation definition tables...');
-
-    // Note: Existing schema uses 'key' column instead of 'name'
-    const [triggersExists] = await queryInterface.sequelize.query(`
-      SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables
-        WHERE table_name = 'automation_triggers'
-      ) as exists;
-    `);
-
-    if (!triggersExists[0].exists) {
-      // Fresh install - create with new schema
-      await queryInterface.sequelize.query(`
-        CREATE TABLE automation_triggers (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL UNIQUE,
-          description TEXT,
-          entity_type VARCHAR(100),
-          trigger_type VARCHAR(100) NOT NULL,
-          is_active BOOLEAN DEFAULT true,
-          created_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-
-      await queryInterface.sequelize.query(`
-        INSERT INTO automation_triggers (name, description, entity_type, trigger_type) VALUES
-          ('vendor_review_due', 'Triggered when vendor review date approaches', 'vendor', 'scheduled'),
-          ('policy_due_soon', 'Triggered when policy review date approaches', 'policy', 'scheduled'),
-          ('risk_created', 'Triggered when a new risk is created', 'risk', 'entity_created'),
-          ('risk_updated', 'Triggered when a risk is updated', 'risk', 'entity_updated'),
-          ('model_deployed', 'Triggered when a model is deployed', 'model', 'entity_updated'),
-          ('task_overdue', 'Triggered when a task becomes overdue', 'task', 'scheduled'),
-          ('vendor_created', 'Triggered when a new vendor is created', 'vendor', 'entity_created'),
-          ('project_created', 'Triggered when a new project is created', 'project', 'entity_created'),
-          ('scheduled_report', 'Triggered on a schedule for report generation', 'report', 'scheduled')
-        ON CONFLICT DO NOTHING;
-      `);
-    }
-
-    const [actionsExists] = await queryInterface.sequelize.query(`
-      SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables
-        WHERE table_name = 'automation_actions'
-      ) as exists;
-    `);
-
-    if (!actionsExists[0].exists) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE automation_actions (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL UNIQUE,
-          description TEXT,
-          action_type VARCHAR(100) NOT NULL,
-          required_params JSONB DEFAULT '[]',
-          is_active BOOLEAN DEFAULT true,
-          created_at TIMESTAMP NOT NULL DEFAULT NOW()
-        );
-      `);
-
-      await queryInterface.sequelize.query(`
-        INSERT INTO automation_actions (name, description, action_type, required_params) VALUES
-          ('send_email', 'Send email notification', 'notification', '["to", "subject", "template"]'),
-          ('send_slack_message', 'Send Slack message', 'notification', '["webhook_id", "message"]'),
-          ('create_task', 'Create a new task', 'entity_action', '["title", "description"]'),
-          ('update_status', 'Update entity status', 'entity_action', '["status"]'),
-          ('send_in_app_notification', 'Send in-app notification', 'notification', '["user_ids", "message"]'),
-          ('generate_report', 'Generate a report', 'report', '["report_type", "format"]')
-        ON CONFLICT DO NOTHING;
-      `);
-    }
-
-    // ========================================
-    // MIGRATION STATUS TABLE
-    // ========================================
-    console.log('📋 Ensuring migration_status table...');
+    console.log('📋 Creating automation definition tables...');
 
     await queryInterface.sequelize.query(`
-      CREATE TABLE IF NOT EXISTS migration_status (
+      CREATE TABLE automation_triggers (
+        id SERIAL PRIMARY KEY,
+        key TEXT UNIQUE NOT NULL,
+        label TEXT NOT NULL,
+        event_name TEXT NOT NULL,
+        description TEXT
+      );
+    `);
+
+    await queryInterface.sequelize.query(`
+      INSERT INTO automation_triggers (key, label, event_name, description) VALUES
+        ('vendor_added', 'Vendor Added', 'vendor.added', 'Triggered when a new vendor is added.'),
+        ('model_added', 'Model Added', 'model.added', 'Triggered when a new model is added.'),
+        ('vendor_review_date_approaching', 'Vendor Review Date Approaching', 'vendor.review_date_approaching', 'Triggered when a vendor review date is approaching.'),
+        ('project_added', 'Project Added', 'project.added', 'Triggered when a new project is added.'),
+        ('task_added', 'Task Added', 'task.added', 'Triggered when a new task is added.'),
+        ('risk_added', 'Risk Added', 'risk.added', 'Triggered when a new risk is added.'),
+        ('training_added', 'Training Added', 'training.added', 'Triggered when a new training is added.'),
+        ('policy_added', 'Policy Added', 'policy.added', 'Triggered when a new policy is added.'),
+        ('incident_added', 'Incident Added', 'incident.added', 'Triggered when a new incident is added.'),
+        ('vendor_updated', 'Vendor Updated', 'vendor.updated', 'Triggered when a vendor is updated.'),
+        ('model_updated', 'Model Updated', 'model.updated', 'Triggered when a model is updated.'),
+        ('project_updated', 'Project Updated', 'project.updated', 'Triggered when a project is updated.'),
+        ('task_updated', 'Task Updated', 'task.updated', 'Triggered when a task is updated.'),
+        ('risk_updated', 'Risk Updated', 'risk.updated', 'Triggered when a risk is updated.'),
+        ('training_updated', 'Training Updated', 'training.updated', 'Triggered when a training is updated.'),
+        ('policy_updated', 'Policy Updated', 'policy.updated', 'Triggered when a policy is updated.'),
+        ('incident_updated', 'Incident Updated', 'incident.updated', 'Triggered when an incident is updated.'),
+        ('vendor_deleted', 'Vendor Deleted', 'vendor.deleted', 'Triggered when a vendor is deleted.'),
+        ('model_deleted', 'Model Deleted', 'model.deleted', 'Triggered when a model is deleted.'),
+        ('project_deleted', 'Project Deleted', 'project.deleted', 'Triggered when a project is deleted.'),
+        ('task_deleted', 'Task Deleted', 'task.deleted', 'Triggered when a task is deleted.'),
+        ('risk_deleted', 'Risk Deleted', 'risk.deleted', 'Triggered when a risk is deleted.'),
+        ('training_deleted', 'Training Deleted', 'training.deleted', 'Triggered when a training is deleted.'),
+        ('policy_deleted', 'Policy Deleted', 'policy.deleted', 'Triggered when a policy is deleted.'),
+        ('incident_deleted', 'Incident Deleted', 'incident.deleted', 'Triggered when an incident is deleted.'),
+        ('scheduled_report', 'Scheduled Report', 'report.scheduled', 'Triggered on a schedule to generate and email reports.');
+    `);
+
+    await queryInterface.sequelize.query(`
+      CREATE TABLE automation_actions (
+        id SERIAL PRIMARY KEY,
+        key TEXT UNIQUE NOT NULL,
+        label TEXT NOT NULL,
+        description TEXT,
+        default_params JSONB DEFAULT '{}'
+      );
+    `);
+
+    await queryInterface.sequelize.query(`
+      INSERT INTO automation_actions (key, label, description, default_params) VALUES
+        ('send_email', 'Send Email', 'Sends an email to specified recipients.', '{"to": [], "subject": "Notification", "body": "This is an automated notification.", "replacements": {}}'::jsonb);
+    `);
+
+    await queryInterface.sequelize.query(`
+      CREATE TABLE automation_triggers_actions (
+        trigger_id INTEGER REFERENCES automation_triggers(id) ON DELETE CASCADE,
+        action_id INTEGER REFERENCES automation_actions(id) ON DELETE CASCADE,
+        PRIMARY KEY (trigger_id, action_id)
+      );
+    `);
+
+    // Populate trigger-action associations
+    await queryInterface.sequelize.query(`
+      INSERT INTO automation_triggers_actions (trigger_id, action_id)
+        SELECT t.id, a.id
+        FROM automation_triggers t, automation_actions a
+        WHERE a.key = 'send_email';
+    `);
+
+    // ========================================
+    // MIGRATION STATUS TABLE (drop + recreate)
+    // ========================================
+    console.log('📋 Creating migration_status table...');
+
+    await queryInterface.sequelize.query(`
+      CREATE TABLE migration_status (
         id SERIAL PRIMARY KEY,
         migration_key VARCHAR(100) UNIQUE NOT NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'pending',
@@ -808,9 +885,7 @@ module.exports = {
       );
     `);
 
-    await queryInterface.sequelize.query(`
-      CREATE INDEX IF NOT EXISTS idx_migration_status_key ON migration_status(migration_key);
-    `);
+    await queryInterface.sequelize.query(`CREATE INDEX idx_migration_status_key ON migration_status(migration_key);`);
 
     // ========================================
     // HELPER FUNCTION FOR TIMESTAMPS
@@ -835,6 +910,7 @@ module.exports = {
     // Tables in reverse dependency order
     const tables = [
       'migration_status',
+      'automation_triggers_actions',
       'automation_actions',
       'automation_triggers',
       // Custom framework tables (reverse dependency order)
@@ -889,6 +965,7 @@ module.exports = {
 
     await queryInterface.sequelize.query(`
       DROP FUNCTION IF EXISTS update_evaluation_llm_api_keys_updated_at();
+      DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
     `);
 
     console.log('✅ Rollback completed!');

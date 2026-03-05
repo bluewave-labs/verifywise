@@ -216,6 +216,75 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
 
   return (
     <Stack spacing={6}>
+      {/* AI-Enhanced Report Toggle */}
+      {hasKeys && (
+        <Stack>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Sparkles size={16} color="#13715B" />
+              <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                AI-enhanced report
+              </Typography>
+            </Box>
+            <Toggle
+              checked={values.aiEnhanced}
+              onChange={(e) =>
+                onValuesChange({ ...values, aiEnhanced: e.target.checked })
+              }
+            />
+          </Box>
+          {values.aiEnhanced && (
+            <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                AI will analyze your data and enrich the following sections with
+                generated insights:
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {[
+                  "Executive Summary",
+                  "Key Findings",
+                  "Risk Highlights",
+                  "Recommendations",
+                ].map((label) => (
+                  <Chip
+                    key={label}
+                    label={label}
+                    size="small"
+                    uppercase={false}
+                    backgroundColor="#E6F0EC"
+                    textColor="#13715B"
+                    icon={
+                      <Sparkles size={12} color="#13715B" />
+                    }
+                  />
+                ))}
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: theme.palette.text.accent,
+                }}
+              >
+                A standard report typically takes 5 to 10 seconds to generate.
+                With AI enhancement enabled, expect 15 to 30 seconds as the
+                model analyzes your data and produces additional insights.
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
+      )}
+
       {/* Use Case / Organizational Project Selection */}
       <Suspense fallback={<div>Loading...</div>}>
         <Select
@@ -346,63 +415,6 @@ const GenerateReportFrom: React.FC<ReportProps> = ({
         </ToggleButtonGroup>
       </Stack>
 
-      {/* AI-Enhanced Report Toggle */}
-      {hasKeys && (
-        <Stack>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Sparkles size={16} color="#13715B" />
-              <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
-                AI-enhanced report
-              </Typography>
-            </Box>
-            <Toggle
-              checked={values.aiEnhanced}
-              onChange={(e) =>
-                onValuesChange({ ...values, aiEnhanced: e.target.checked })
-              }
-            />
-          </Box>
-          {values.aiEnhanced && (
-            <Stack spacing={1.5} sx={{ mt: 1.5 }}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                {[
-                  "Executive Summary",
-                  "Key Findings",
-                  "Risk Highlights",
-                  "Recommendations",
-                ].map((label) => (
-                  <Chip
-                    key={label}
-                    label={label}
-                    size="small"
-                    uppercase={false}
-                    backgroundColor="#E6F0EC"
-                    textColor="#13715B"
-                    icon={
-                      <Sparkles size={12} color="#13715B" />
-                    }
-                  />
-                ))}
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: "11px",
-                  color: theme.palette.text.accent,
-                }}
-              >
-                Standard: ~5-10s | AI-Enhanced: ~15-30s
-              </Typography>
-            </Stack>
-          )}
-        </Stack>
-      )}
     </Stack>
   );
 };

@@ -209,11 +209,7 @@ export default function ReportPage({
   };
 
   const handleViewReport = async (entry: ReportHistoryEntry) => {
-    if (!entry.experimentIds || entry.experimentIds.length === 0) {
-      setAlert({ variant: "warning", body: "Cannot regenerate: no experiment IDs stored for this report." });
-      setTimeout(() => setAlert(null), 4000);
-      return;
-    }
+    if (!entry.experimentIds || entry.experimentIds.length === 0) return;
     setRegeneratingId(entry.id);
     try {
       const blob = await generateReport(
@@ -238,11 +234,7 @@ export default function ReportPage({
   };
 
   const handleDownloadReport = async (entry: ReportHistoryEntry) => {
-    if (!entry.experimentIds || entry.experimentIds.length === 0) {
-      setAlert({ variant: "warning", body: "Cannot regenerate: no experiment IDs stored for this report." });
-      setTimeout(() => setAlert(null), 4000);
-      return;
-    }
+    if (!entry.experimentIds || entry.experimentIds.length === 0) return;
     setRegeneratingId(entry.id);
     try {
       const format = entry.format.toLowerCase();
@@ -544,43 +536,52 @@ export default function ReportPage({
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell} onClick={(e) => e.stopPropagation()}>
-                      <Stack direction="row" spacing={0.5}>
-                        {entry.format === "PDF" && (
-                          <Tooltip title="View report">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleViewReport(entry)}
-                              disabled={regeneratingId === entry.id}
-                              sx={{ padding: 0.5 }}
-                            >
-                              {regeneratingId === entry.id ? (
-                                <CircularProgress size={14} />
-                              ) : (
-                                <Eye size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
-                              )}
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        <Tooltip title="Download report">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDownloadReport(entry)}
-                            disabled={regeneratingId === entry.id}
-                            sx={{ padding: 0.5 }}
-                          >
-                            <Download size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Remove from history">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleRemoveReport(entry.id)}
-                            sx={{ padding: 0.5 }}
-                          >
-                            <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
+                      {(() => {
+                        const canRegenerate = entry.experimentIds && entry.experimentIds.length > 0;
+                        return (
+                          <Stack direction="row" spacing={0.5}>
+                            {entry.format === "PDF" && (
+                              <Tooltip title={canRegenerate ? "View report" : "Legacy entry — generate a new report to view"}>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleViewReport(entry)}
+                                    disabled={!canRegenerate || regeneratingId === entry.id}
+                                    sx={{ padding: 0.5 }}
+                                  >
+                                    {regeneratingId === entry.id ? (
+                                      <CircularProgress size={14} />
+                                    ) : (
+                                      <Eye size={16} strokeWidth={1.5} color={canRegenerate ? theme.palette.text.secondary : theme.palette.action.disabled} />
+                                    )}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                            <Tooltip title={canRegenerate ? "Download report" : "Legacy entry — generate a new report to download"}>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDownloadReport(entry)}
+                                  disabled={!canRegenerate || regeneratingId === entry.id}
+                                  sx={{ padding: 0.5 }}
+                                >
+                                  <Download size={16} strokeWidth={1.5} color={canRegenerate ? theme.palette.text.secondary : theme.palette.action.disabled} />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                            <Tooltip title="Remove from history">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleRemoveReport(entry.id)}
+                                sx={{ padding: 0.5 }}
+                              >
+                                <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        );
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))}

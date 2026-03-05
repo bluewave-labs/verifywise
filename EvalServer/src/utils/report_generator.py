@@ -265,6 +265,10 @@ def generate_pdf_report(
         rightMargin=MARGIN,
         topMargin=MARGIN,
         bottomMargin=MARGIN + 5 * mm,
+        title=title,
+        author="VerifyWise",
+        subject="LLM Evaluation Report",
+        creator="VerifyWise AI Governance Platform",
     )
 
     story: List = []

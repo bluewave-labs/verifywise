@@ -41,7 +41,7 @@ export const getLLMKeyStatus = async (req: Request, res: Response) => {
     fileName,
   );
   try {
-    const llmKeys = await getLLMKeysQuery(req.tenantId!);
+    const llmKeys = await getLLMKeysQuery(req.organizationId!);
     const providers = [
       ...new Set(llmKeys.map((k: any) => k.name as string)),
     ];

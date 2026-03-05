@@ -114,7 +114,7 @@ export async function generateReport(
         const { generateAISummaries } = await import("./aiSummarizer");
         reportData.aiSummaries = await generateAISummaries(
           reportData,
-          reportData.metadata.tenantId,
+          reportData.metadata.organizationId,
           request.llmKeyId
         );
       } catch (error) {

@@ -2398,21 +2398,7 @@ module.exports = {
       await addColumn('file_access_logs', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
     }
 
-    // automation_actions
-    if (!(await tableExists('automation_actions'))) {
-      await queryInterface.sequelize.query(`
-        CREATE TABLE automation_actions (
-          id SERIAL PRIMARY KEY,
-          organization_id INTEGER REFERENCES organizations(id) ON DELETE CASCADE,
-          automation_id INTEGER,
-          action_type_id INTEGER,
-          params JSONB DEFAULT '{}',
-          "order" INTEGER DEFAULT 1
-        );
-      `);
-    } else {
-      await addColumn('automation_actions', 'organization_id', 'INTEGER REFERENCES organizations(id) ON DELETE CASCADE');
-    }
+    // NOTE: automation_actions_data already created above (line ~996)
 
     // =====================================================
     // CE MARKING TABLES

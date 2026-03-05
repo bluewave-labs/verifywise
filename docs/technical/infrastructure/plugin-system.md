@@ -5112,6 +5112,30 @@ const [[{ can_remove }]] = await sequelize.query(
 
 ---
 
+## File Linking for Plugins
+
+Use the `file_entity_links` table for proper file associations in plugins:
+
+```typescript
+// Link file to plugin entity
+await sequelize.query(`
+  INSERT INTO "${tenantId}".file_entity_links
+  (file_id, framework_type, entity_type, entity_id, project_id, created_by)
+  VALUES (:fileId, :pluginKey, 'level2', :entityId, :projectId, :userId)
+`, { replacements: { fileId, pluginKey, entityId, projectId, userId } });
+
+// Get files for plugin entity
+const files = await sequelize.query(`
+  SELECT f.* FROM "${tenantId}".files f
+  INNER JOIN "${tenantId}".file_entity_links fel ON f.id = fel.file_id
+  WHERE fel.framework_type = :pluginKey
+    AND fel.entity_type = :entityType
+    AND fel.entity_id = :entityId
+`, { replacements: { pluginKey, entityType, entityId } });
+```
+
+---
+
 ## Related Documentation
 
 - [Architecture Overview](../architecture/overview.md)

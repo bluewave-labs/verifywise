@@ -34,9 +34,17 @@ const SectionSidebar = ({
         top: stickyTop,
         alignSelf: "flex-start",
         display: { xs: "none", md: "block" },
+        backgroundColor: theme.palette.background.main,
+        borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
+        borderRadius: 0,
+        padding: "12px 0",
       }}
     >
-      <List disablePadding>
+      <List
+        component="nav"
+        disablePadding
+        sx={{ padding: "0 16px" }}
+      >
         {sections.map((section) => {
           const isActive = activeSection === section.id;
           const SectionIcon = section.Icon;
@@ -51,9 +59,9 @@ const SectionSidebar = ({
               onClick={() => onSelect(section.id)}
               sx={{
                 height: "32px",
-                gap: theme.spacing(4),
+                gap: "8px",
                 borderRadius: theme.shape.borderRadius,
-                px: theme.spacing(4),
+                padding: "0 8px",
                 justifyContent: "flex-start",
                 background: isActive
                   ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
@@ -86,7 +94,7 @@ const SectionSidebar = ({
                   alignItems: "center",
                   justifyContent: "center",
                   width: "16px",
-                  mr: 0,
+                  marginRight: 0,
                   "& svg": {
                     color: isActive
                       ? "#13715B !important"

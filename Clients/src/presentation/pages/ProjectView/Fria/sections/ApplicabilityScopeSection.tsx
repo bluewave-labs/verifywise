@@ -103,8 +103,8 @@ function ApplicabilityScopeSection({
         boxShadow: "none",
       }}
     >
-      <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
-        <Stack spacing={2.5}>
+      <CardContent sx={{ padding: "16px", "&:last-child": { paddingBottom: "16px" } }}>
+        <Stack spacing={0} gap="8px">
           {/* Section header */}
           <Box>
             <Typography
@@ -132,7 +132,7 @@ function ApplicabilityScopeSection({
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 2,
+              gap: "8px",
             }}
           >
             <Select
@@ -163,7 +163,7 @@ function ApplicabilityScopeSection({
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 2,
+              gap: "8px",
             }}
           >
             <Select
@@ -192,7 +192,7 @@ function ApplicabilityScopeSection({
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 2,
+              gap: "8px",
             }}
           >
             <DatePicker

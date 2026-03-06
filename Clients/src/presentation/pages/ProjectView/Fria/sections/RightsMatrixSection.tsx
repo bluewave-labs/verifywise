@@ -105,8 +105,8 @@ function RightsMatrixSection({
         boxShadow: "none",
       }}
     >
-      <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
-        <Stack spacing={2.5}>
+      <CardContent sx={{ padding: "16px", "&:last-child": { paddingBottom: "16px" } }}>
+        <Stack spacing={0} gap="8px">
           {/* Section header */}
           <Box>
             <Typography
@@ -134,7 +134,7 @@ function RightsMatrixSection({
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-              gap: 2,
+              gap: "8px",
             }}
           >
             {localRights.map((right, index) => (
@@ -150,14 +150,14 @@ function RightsMatrixSection({
                   transition: "border-color 0.15s ease, background-color 0.15s ease",
                 }}
               >
-                <Stack spacing={1.5}>
+                <Stack spacing={0} gap="8px">
                   {/* Right title + flag checkbox */}
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "flex-start",
                       justifyContent: "space-between",
-                      gap: 1,
+                      gap: "8px",
                     }}
                   >
                     <Box>
@@ -198,12 +198,12 @@ function RightsMatrixSection({
 
                   {/* Expanded fields when flagged */}
                   {right.flagged && (
-                    <Stack spacing={1.5}>
+                    <Stack spacing={0} gap="8px">
                       <Box
                         sx={{
                           display: "grid",
                           gridTemplateColumns: "1fr 1fr",
-                          gap: 1.5,
+                          gap: "8px",
                         }}
                       >
                         <Select

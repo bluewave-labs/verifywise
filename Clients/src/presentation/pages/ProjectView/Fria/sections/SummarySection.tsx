@@ -66,8 +66,8 @@ function SummarySection({
         boxShadow: "none",
       }}
     >
-      <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
-        <Stack spacing={2.5}>
+      <CardContent sx={{ padding: "16px", "&:last-child": { paddingBottom: "16px" } }}>
+        <Stack spacing={0} gap="8px">
           {/* Section header */}
           <Box>
             <Typography
@@ -100,8 +100,8 @@ function SummarySection({
             }}
             aria-label="Assessment summary"
           >
-            <Stack spacing={0.75}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+            <Stack spacing={0} gap="8px">
+              <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                 <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
                   Assessment:{" "}
                   <Box component="span" sx={{ fontWeight: 600 }}>
@@ -132,7 +132,7 @@ function SummarySection({
 
             {/* Flagged rights chips */}
             {flaggedRights.length > 0 && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 1.5 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px", mt: 1.5 }}>
                 {flaggedRights.map((right) => (
                   <Chip
                     key={right.id}

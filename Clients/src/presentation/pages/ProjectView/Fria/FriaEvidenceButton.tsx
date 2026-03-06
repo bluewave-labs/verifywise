@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Typography, Stack, Dialog, DialogContent, IconButton, CircularProgress } from "@mui/material";
+import { useState, useEffect, useCallback } from "react";
+import { Box, Typography, Stack } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Paperclip, X, Upload, Trash2 } from "lucide-react";
+import { Paperclip, X, Upload } from "lucide-react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import { FilePickerModal } from "../../../components/FilePickerModal";
+import FileUploadModal from "../../../components/Modals/FileUpload";
 import { friaRepository } from "../../../../application/repository/fria.repository";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
 
@@ -19,205 +20,6 @@ interface EvidenceFile {
   file_name: string;
   file_type?: string;
 }
-
-interface UploadState {
-  file: File | null;
-  uploading: boolean;
-  error: string | null;
-}
-
-const FriaUploadModal = ({
-  open,
-  onClose,
-  onUploaded,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onUploaded: (fileId: number, fileName: string) => void;
-}) => {
-  const theme = useTheme();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [state, setState] = useState<UploadState>({
-    file: null,
-    uploading: false,
-    error: null,
-  });
-  const [dragging, setDragging] = useState(false);
-
-  const handleClose = () => {
-    if (state.uploading) return;
-    setState({ file: null, uploading: false, error: null });
-    onClose();
-  };
-
-  const handleFileChange = (file: File | null) => {
-    if (!file) return;
-    setState({ file, uploading: false, error: null });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFileChange(e.target.files?.[0] ?? null);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(false);
-    handleFileChange(e.dataTransfer.files?.[0] ?? null);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(true);
-  };
-
-  const handleDragLeave = () => setDragging(false);
-
-  const handleUpload = async () => {
-    if (!state.file) return;
-    setState((prev) => ({ ...prev, uploading: true, error: null }));
-    try {
-      const response = await uploadFileToManager({
-        file: state.file,
-        source: "fria_evidence",
-      });
-      const fileId = response?.data?.id;
-      if (!fileId) throw new Error("Upload failed: no file ID returned");
-      onUploaded(fileId, state.file.name);
-      setState({ file: null, uploading: false, error: null });
-    } catch {
-      setState((prev) => ({
-        ...prev,
-        uploading: false,
-        error: "Upload failed. Please try again.",
-      }));
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setState({ file: null, uploading: false, error: null });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: "4px",
-          border: `1px solid ${theme.palette.divider}`,
-        },
-      }}
-    >
-      <DialogContent sx={{ p: 3, position: "relative" }}>
-        <IconButton
-          onClick={handleClose}
-          disabled={state.uploading}
-          sx={{ position: "absolute", top: 8, right: 8 }}
-          disableRipple
-        >
-          <X size={16} />
-        </IconButton>
-
-        <Typography sx={{ fontWeight: 600, fontSize: 16, mb: 2 }}>
-          Upload new file
-        </Typography>
-
-        <Box
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => !state.file && fileInputRef.current?.click()}
-          sx={{
-            border: `2px dashed ${dragging ? theme.palette.primary.main : theme.palette.divider}`,
-            borderRadius: "4px",
-            p: 3,
-            textAlign: "center",
-            cursor: state.file ? "default" : "pointer",
-            backgroundColor: dragging
-              ? `${theme.palette.primary.main}08`
-              : theme.palette.background.default,
-            transition: "border-color 0.15s, background-color 0.15s",
-            minHeight: 120,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-          }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            onChange={handleInputChange}
-          />
-
-          {state.file ? (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                width: "100%",
-                justifyContent: "center",
-              }}
-            >
-              <Paperclip size={14} color={theme.palette.text.secondary} />
-              <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, flexShrink: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 300 }}>
-                {state.file.name}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={(e) => { e.stopPropagation(); handleRemoveFile(); }}
-                disabled={state.uploading}
-                sx={{ p: "2px" }}
-              >
-                <Trash2 size={13} color={theme.palette.text.secondary} />
-              </IconButton>
-            </Box>
-          ) : (
-            <>
-              <Upload size={24} color={theme.palette.text.secondary} />
-              <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
-                <span style={{ color: "#3b82f6" }}>Click to upload</span> or drag and drop
-              </Typography>
-              <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary }}>
-                Any file type accepted
-              </Typography>
-            </>
-          )}
-        </Box>
-
-        {state.error && (
-          <Typography sx={{ fontSize: 12, color: theme.palette.error.main, mt: 1 }}>
-            {state.error}
-          </Typography>
-        )}
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: "8px" }}>
-          <CustomizableButton
-            text="Cancel"
-            variant="outlined"
-            onClick={handleClose}
-            disabled={state.uploading}
-            sx={{ height: 34 }}
-          />
-          <CustomizableButton
-            text={state.uploading ? "Uploading..." : "Upload"}
-            variant="contained"
-            onClick={handleUpload}
-            disabled={!state.file || state.uploading}
-            startIcon={state.uploading ? <CircularProgress size={12} color="inherit" /> : undefined}
-            sx={{ height: 34 }}
-          />
-        </Box>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 const FriaEvidenceButton = ({
   friaId,
@@ -259,8 +61,10 @@ const FriaEvidenceButton = ({
     }
   };
 
-  const handleUploaded = async (fileId: number) => {
+  const handleUploadSuccess = async (fileResponse: any) => {
     setUploadOpen(false);
+    const fileId = fileResponse?.data?.id ?? fileResponse?.id;
+    if (!fileId) return;
     setIsLoading(true);
     try {
       await friaRepository.linkEvidence(friaId, fileId, entityType);
@@ -295,7 +99,7 @@ const FriaEvidenceButton = ({
             fontSize: 12,
             color: theme.palette.text.secondary,
             textTransform: "none",
-            p: "4px 8px",
+            padding: "4px 8px",
           }}
         />
         <CustomizableButton
@@ -309,7 +113,7 @@ const FriaEvidenceButton = ({
             fontSize: 12,
             color: theme.palette.text.secondary,
             textTransform: "none",
-            p: "4px 8px",
+            padding: "4px 8px",
           }}
         />
         {files.length > 0 && (
@@ -320,9 +124,8 @@ const FriaEvidenceButton = ({
                 sx={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 0.5,
-                  px: 1,
-                  py: 0.25,
+                  gap: "4px",
+                  padding: "2px 8px",
                   borderRadius: "4px",
                   border: `1px solid ${theme.palette.divider}`,
                   backgroundColor: theme.palette.background.default,
@@ -359,10 +162,24 @@ const FriaEvidenceButton = ({
         title={`Attach evidence to ${entityType.replace(/_/g, " ")}`}
       />
 
-      <FriaUploadModal
-        open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
-        onUploaded={handleUploaded}
+      <FileUploadModal
+        uploadProps={{
+          open: uploadOpen,
+          onClose: () => setUploadOpen(false),
+          onSuccess: handleUploadSuccess,
+          uploadEndpoint: "/file-manager",
+          allowedFileTypes: [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "image/png",
+            "image/jpeg",
+            "text/plain",
+            "text/csv",
+          ],
+        }}
       />
     </Box>
   );

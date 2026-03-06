@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Stack,
   Typography,
   Card,
   CardContent,
   Collapse,
   CircularProgress,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { History, ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
@@ -28,10 +32,6 @@ interface FriaVersionHistoryProps {
   currentVersion: number;
 }
 
-/**
- * Formats an ISO date string to a human-readable format.
- * e.g. "2026-03-06T14:22:00.000Z" → "6 Mar 2026, 14:22"
- */
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
@@ -92,8 +92,7 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          px: 2.5,
-          py: 1.75,
+          padding: "14px 16px",
           cursor: "pointer",
           userSelect: "none",
           backgroundColor: theme.palette.background.paper,
@@ -102,9 +101,9 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
           },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <History size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
-          <Typography variant="body2" fontWeight={600} color="text.primary">
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
             Version history
           </Typography>
         </Box>
@@ -116,182 +115,162 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
       </Box>
 
       <Collapse in={panelOpen} timeout="auto" unmountOnExit>
-        <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+        <CardContent sx={{ padding: 0, "&:last-child": { paddingBottom: 0 } }}>
           {isLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
               <CircularProgress size={24} />
             </Box>
           )}
 
           {error && (
-            <Box sx={{ px: 2.5, py: 2 }}>
-              <Typography variant="body2" color="error">
+            <Box sx={{ padding: "16px" }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.error.main }}>
                 {error}
               </Typography>
             </Box>
           )}
 
           {!isLoading && !error && versions.length === 0 && (
-            <Box sx={{ px: 2.5, py: 3 }}>
-              <Typography variant="body2" color="text.secondary">
+            <Box sx={{ padding: "24px 16px" }}>
+              <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
                 No version history available.
               </Typography>
             </Box>
           )}
 
           {!isLoading && !error && versions.length > 0 && (
-            <Stack divider={<Box sx={{ borderTop: "1px solid #d0d5dd" }} />}>
-              {/* Table header */}
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "80px 1fr 160px 160px 36px",
-                  px: 2.5,
-                  py: 1,
-                  backgroundColor: "#f9fafb",
-                  borderTop: "1px solid #d0d5dd",
-                }}
-              >
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  Version
-                </Typography>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  Reason
-                </Typography>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  Created by
-                </Typography>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  Date
-                </Typography>
-                <Box />
-              </Box>
+            <Table size="small">
+              <TableHead>
+                <TableRow
+                  sx={{
+                    backgroundColor: "#f9fafb",
+                    borderTop: "1px solid #d0d5dd",
+                  }}
+                >
+                  <TableCell sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.secondary, textTransform: "uppercase", padding: "8px 16px" }}>
+                    Version
+                  </TableCell>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.secondary, textTransform: "uppercase", padding: "8px 16px" }}>
+                    Reason
+                  </TableCell>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.secondary, textTransform: "uppercase", padding: "8px 16px" }}>
+                    Created by
+                  </TableCell>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 600, color: theme.palette.text.secondary, textTransform: "uppercase", padding: "8px 16px" }}>
+                    Date
+                  </TableCell>
+                  <TableCell sx={{ width: 36, padding: "8px" }} />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {versions.map((v) => {
+                  const isCurrent = v.version === currentVersion;
+                  const isRowExpanded = expandedRow === v.id;
 
-              {versions.map((v) => {
-                const isCurrent = v.version === currentVersion;
-                const isRowExpanded = expandedRow === v.id;
-
-                return (
-                  <Box key={v.id}>
-                    {/* Version row */}
-                    <Box
-                      onClick={() => v.snapshot_data && handleRowToggle(v.id)}
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: "80px 1fr 160px 160px 36px",
-                        alignItems: "center",
-                        px: 2.5,
-                        py: 1.25,
-                        cursor: v.snapshot_data ? "pointer" : "default",
-                        "&:hover": v.snapshot_data
-                          ? { backgroundColor: theme.palette.action.hover }
-                          : {},
-                      }}
-                    >
-                      {/* Version badge */}
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Chip
-                          label={`v${v.version}`}
-                          variant="info"
-                          size="small"
-                          uppercase={false}
-                        />
-                        {isCurrent && (
-                          <Chip
-                            label="Current"
-                            variant="success"
-                            size="small"
-                            uppercase={false}
-                          />
-                        )}
-                      </Box>
-
-                      {/* Reason */}
-                      <Typography
-                        variant="body2"
-                        color="text.primary"
+                  return (
+                    <>
+                      <TableRow
+                        key={v.id}
+                        onClick={() => v.snapshot_data && handleRowToggle(v.id)}
+                        hover={!!v.snapshot_data}
                         sx={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          pr: 1,
+                          cursor: v.snapshot_data ? "pointer" : "default",
                         }}
                       >
-                        {v.snapshot_reason || "—"}
-                      </Typography>
-
-                      {/* Created by */}
-                      <Typography variant="body2" color="text.secondary">
-                        {v.created_by_name || "—"}
-                      </Typography>
-
-                      {/* Date */}
-                      <Typography variant="body2" color="text.secondary">
-                        {v.created_at ? formatDate(v.created_at) : "—"}
-                      </Typography>
-
-                      {/* Expand chevron */}
-                      <Box sx={{ display: "flex", justifyContent: "center" }}>
-                        {v.snapshot_data && (
-                          <Box
-                            sx={{
-                              color: theme.palette.text.secondary,
-                              display: "flex",
-                              alignItems: "center",
-                              transition: "transform 0.15s ease",
-                              transform: isRowExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                            }}
-                          >
-                            <ChevronRight size={14} strokeWidth={1.5} />
+                        <TableCell sx={{ padding: "10px 16px" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <Chip
+                              label={`v${v.version}`}
+                              variant="info"
+                              size="small"
+                              uppercase={false}
+                            />
+                            {isCurrent && (
+                              <Chip
+                                label="Current"
+                                variant="success"
+                                size="small"
+                                uppercase={false}
+                              />
+                            )}
                           </Box>
-                        )}
-                      </Box>
-                    </Box>
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 13, color: theme.palette.text.primary, padding: "10px 16px", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {v.snapshot_reason || "—"}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 13, color: theme.palette.text.secondary, padding: "10px 16px" }}>
+                          {v.created_by_name || "—"}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 13, color: theme.palette.text.secondary, padding: "10px 16px" }}>
+                          {v.created_at ? formatDate(v.created_at) : "—"}
+                        </TableCell>
+                        <TableCell sx={{ width: 36, padding: "10px 8px", textAlign: "center" }}>
+                          {v.snapshot_data && (
+                            <Box
+                              sx={{
+                                color: theme.palette.text.secondary,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "transform 0.15s ease",
+                                transform: isRowExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                              }}
+                            >
+                              <ChevronRight size={14} strokeWidth={1.5} />
+                            </Box>
+                          )}
+                        </TableCell>
+                      </TableRow>
 
-                    {/* Expanded snapshot data */}
-                    <Collapse in={isRowExpanded} timeout="auto" unmountOnExit>
-                      <Box
-                        sx={{
-                          borderTop: "1px solid #d0d5dd",
-                          backgroundColor: "#f9fafb",
-                          px: 2.5,
-                          py: 2,
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          fontWeight={600}
-                          sx={{ display: "block", mb: 1 }}
-                        >
-                          Snapshot data
-                        </Typography>
-                        <Box
-                          component="pre"
-                          sx={{
-                            m: 0,
-                            p: 1.5,
-                            backgroundColor: "#fff",
-                            border: "1px solid #d0d5dd",
-                            borderRadius: "4px",
-                            fontSize: 11,
-                            fontFamily: "monospace",
-                            overflowX: "auto",
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-all",
-                            color: theme.palette.text.primary,
-                            maxHeight: 320,
-                            overflowY: "auto",
-                          }}
-                        >
-                          {JSON.stringify(v.snapshot_data, null, 2)}
-                        </Box>
-                      </Box>
-                    </Collapse>
-                  </Box>
-                );
-              })}
-            </Stack>
+                      {/* Expanded snapshot data */}
+                      {isRowExpanded && v.snapshot_data && (
+                        <TableRow key={`${v.id}-expanded`}>
+                          <TableCell colSpan={5} sx={{ padding: 0 }}>
+                            <Box
+                              sx={{
+                                backgroundColor: "#f9fafb",
+                                padding: "16px",
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  color: theme.palette.text.secondary,
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                Snapshot data
+                              </Typography>
+                              <Box
+                                component="pre"
+                                sx={{
+                                  margin: 0,
+                                  padding: "12px",
+                                  backgroundColor: "#fff",
+                                  border: "1px solid #d0d5dd",
+                                  borderRadius: "4px",
+                                  fontSize: 11,
+                                  fontFamily: "monospace",
+                                  overflowX: "auto",
+                                  whiteSpace: "pre-wrap",
+                                  wordBreak: "break-all",
+                                  color: theme.palette.text.primary,
+                                  maxHeight: 320,
+                                  overflowY: "auto",
+                                }}
+                              >
+                                {JSON.stringify(v.snapshot_data, null, 2)}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Collapse>

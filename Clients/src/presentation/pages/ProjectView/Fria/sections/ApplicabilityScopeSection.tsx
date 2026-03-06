@@ -125,6 +125,36 @@ function ApplicabilityScopeSection({
             >
               Determine if this AI system requires a FRIA under EU AI Act Article 27.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_6" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 6
+              </a>{" "}
+              defines classification rules for high-risk AI systems.{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#anx_I" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Annex I
+              </a>{" "}
+              lists Union harmonisation legislation, and{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#anx_III" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Annex III
+              </a>{" "}
+              enumerates high-risk use-case areas. A FRIA is mandatory under{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(1)
+              </a>{" "}
+              for deployers that are bodies governed by public law or private entities providing public services.
+            </Box>
           </Box>
 
           {/* Row 1: high-risk classification */}

@@ -95,6 +95,24 @@ function AffectedPersonsSection({
             >
               Identify the categories of natural persons and groups likely to be affected by the AI system.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(1)(a)
+              </a>{" "}
+              requires identifying the categories of natural persons and groups likely to be affected. Recital 96 highlights special consideration for vulnerable groups including minors, persons with disabilities, and those in asymmetric power relationships.
+            </Box>
           </Box>
 
           {/* Affected groups description */}

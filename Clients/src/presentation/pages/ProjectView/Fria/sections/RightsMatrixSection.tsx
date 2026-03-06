@@ -127,6 +127,28 @@ function RightsMatrixSection({
             >
               Assess the potential impact of the AI system on each fundamental right from the EU Charter.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(1)(b)–(d)
+              </a>{" "}
+              requires assessing impacts on the right to human dignity, personal data protection, privacy, non-discrimination, equality, and other rights in the{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A12012P%2FTXT" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                EU Charter of Fundamental Rights
+              </a>
+              . Flag any right where the system may have a material adverse impact.
+            </Box>
           </Box>
 
           {/* Rights grid */}

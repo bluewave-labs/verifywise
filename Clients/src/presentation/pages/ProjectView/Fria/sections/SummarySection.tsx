@@ -88,6 +88,28 @@ function SummarySection({
             >
               Review the overall assessment and record the deployment decision.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(5)
+              </a>{" "}
+              requires deployers to inform the market surveillance authority of the outcome of the assessment, and to use the results as input when notifying authorities under{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_49" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 49(1)
+              </a>
+              . The FRIA must be kept up to date and repeated when circumstances materially change.
+            </Box>
           </Box>
 
           {/* Auto-generated summary (read-only) */}

@@ -77,6 +77,24 @@ function OrgProfileSection({ assessment, onUpdate, isSaving }: OrgProfileSection
             >
               Identify the deployer organisation and the AI system under assessment.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(1)
+              </a>{" "}
+              requires deployers of high-risk AI systems to perform a fundamental rights impact assessment before putting the system into use.
+            </Box>
           </Box>
 
           {/* Read-only fields */}

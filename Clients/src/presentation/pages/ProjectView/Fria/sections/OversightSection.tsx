@@ -80,6 +80,32 @@ function OversightSection({
             >
               Describe the measures in place to ensure human oversight, transparency, and the ability to contest AI-driven decisions.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_14" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 14
+              </a>{" "}
+              mandates human oversight for high-risk AI systems, including the ability to intervene or override.{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_13" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 13
+              </a>{" "}
+              requires transparency and provision of information to deployers.{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(1)(g)
+              </a>{" "}
+              requires the FRIA to describe accountability and governance processes, including complaint and redress mechanisms.
+            </Box>
           </Box>
 
           <Field

@@ -87,6 +87,28 @@ function ConsultationSection({
             >
               Record the consultation process and approvals required before deploying the AI system.
             </Typography>
+            <Box
+              sx={{
+                marginTop: "8px",
+                padding: "8px 12px",
+                backgroundColor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "4px",
+                fontSize: 12,
+                color: theme.palette.text.secondary,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>EU AI Act reference:</strong>{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(3)
+              </a>{" "}
+              requires deployers to notify the relevant market surveillance authority of the FRIA results.{" "}
+              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+                Article 27(4)
+              </a>{" "}
+              states that where data protection impact assessments (DPIAs) are already required, the FRIA may complement that process. Consultation with your DPO and legal team is recommended.
+            </Box>
           </Box>
 
           {/* Review status grid — 3 columns */}

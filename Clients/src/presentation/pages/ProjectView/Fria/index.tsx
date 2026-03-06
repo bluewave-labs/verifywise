@@ -2,17 +2,30 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Box,
   Stack,
-  Typography,
-  LinearProgress,
   CircularProgress,
+  Typography,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
   AlertTriangle,
-  CheckCircle,
   Send,
+  Gauge,
+  ShieldAlert,
+  CheckCircle,
+  Building2,
+  Scale,
+  Users,
+  Shield,
+  Eye,
+  MessageSquare,
+  FileCheck,
 } from "lucide-react";
-import Chip from "../../../components/Chip";
+import { StatCard } from "../../../components/Cards/StatCard";
+import { palette } from "../../../themes/palette";
 import { useFria } from "../../../../application/hooks/useFria";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import OrgProfileSection from "./sections/OrgProfileSection";
@@ -30,14 +43,14 @@ interface FriaProps {
 }
 
 const SECTIONS = [
-  { id: "org-profile", label: "Organisation & system profile", number: 1 },
-  { id: "applicability", label: "Applicability & scope", number: 2 },
-  { id: "affected-persons", label: "Affected persons & groups", number: 3 },
-  { id: "rights-matrix", label: "Fundamental rights matrix", number: 4 },
-  { id: "specific-risks", label: "Specific risks of harm", number: 5 },
-  { id: "oversight", label: "Human oversight & transparency", number: 6 },
-  { id: "consultation", label: "Stakeholder consultation", number: 7 },
-  { id: "summary", label: "Summary & recommendation", number: 8 },
+  { id: "org-profile", label: "Organisation & system profile", number: 1, Icon: Building2 },
+  { id: "applicability", label: "Applicability & scope", number: 2, Icon: Scale },
+  { id: "affected-persons", label: "Affected persons & groups", number: 3, Icon: Users },
+  { id: "rights-matrix", label: "Fundamental rights matrix", number: 4, Icon: Shield },
+  { id: "specific-risks", label: "Specific risks of harm", number: 5, Icon: AlertTriangle },
+  { id: "oversight", label: "Human oversight & transparency", number: 6, Icon: Eye },
+  { id: "consultation", label: "Stakeholder consultation", number: 7, Icon: MessageSquare },
+  { id: "summary", label: "Summary & recommendation", number: 8, Icon: FileCheck },
 ];
 
 const FriaAssessment = ({ projectId }: FriaProps) => {
@@ -46,7 +59,6 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
     assessment,
     rights,
     riskItems,
-    modelLinks,
     isLoading,
     error,
     isSaving,
@@ -107,75 +119,69 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
   if (!assessment) return null;
 
+  const riskSubtitle =
+    assessment.risk_score > 70
+      ? "High risk — review required"
+      : assessment.risk_score > 40
+      ? "Moderate risk level"
+      : "Low risk level";
+
   return (
-    <Stack spacing={3}>
-      {/* Status header */}
+    <Stack spacing={0} gap="16px">
+      {/* Stat cards row */}
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 3,
-          p: 2,
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: "4px",
-          backgroundColor: theme.palette.background.paper,
-          flexWrap: "wrap",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "8px",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 180 }}>
-          <Typography variant="body2" color="text.secondary">
-            Completion
-          </Typography>
-          <Box sx={{ flex: 1, minWidth: 80 }}>
-            <LinearProgress
-              variant="determinate"
-              value={assessment.completion_pct}
-              sx={{ height: 6, borderRadius: 3 }}
-            />
-          </Box>
-          <Typography variant="body2" fontWeight={600}>
-            {assessment.completion_pct}%
-          </Typography>
-        </Box>
+        <StatCard
+          title="Completion"
+          value={`${assessment.completion_pct}%`}
+          Icon={Gauge}
+          subtitle="of assessment complete"
+        />
+        <StatCard
+          title="Risk score"
+          value={`${assessment.risk_score}/100`}
+          Icon={ShieldAlert}
+          subtitle={riskSubtitle}
+          highlight={assessment.risk_score > 70}
+        />
+        <StatCard
+          title="Rights flagged"
+          value={assessment.rights_flagged}
+          Icon={AlertTriangle}
+          subtitle={`of ${rights.length} rights`}
+          highlight={assessment.rights_flagged > 0}
+        />
+        <StatCard
+          title="Status"
+          value={assessment.status}
+          Icon={CheckCircle}
+          subtitle={`Version ${assessment.version}`}
+        />
+      </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            Risk score
-          </Typography>
-          <Typography variant="body2" fontWeight={600}>
-            {assessment.risk_score}/100
-          </Typography>
-        </Box>
-
-        <Chip label={assessment.risk_level} size="small" />
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          {assessment.rights_flagged > 0 ? (
-            <AlertTriangle size={14} color={theme.palette.warning.main} />
-          ) : (
-            <CheckCircle size={14} color={theme.palette.success.main} />
-          )}
-          <Typography variant="body2">
-            {assessment.rights_flagged} right{assessment.rights_flagged !== 1 ? "s" : ""} flagged
-          </Typography>
-        </Box>
-
-        <Chip label={assessment.status} size="small" />
-
-        <Box sx={{ ml: "auto" }}>
-          <CustomizableButton
-            text="Submit for review"
-            variant="contained"
-            onClick={() => submitFria("Submitted for review")}
-            disabled={isSaving || assessment.status === "completed" || assessment.status === "approved"}
-            startIcon={<Send size={14} />}
-            sx={{ height: 34 }}
-          />
-        </Box>
+      {/* Submit button — right-aligned */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <CustomizableButton
+          text="Submit for review"
+          variant="contained"
+          onClick={() => submitFria("Submitted for review")}
+          disabled={
+            isSaving ||
+            assessment.status === "completed" ||
+            assessment.status === "approved"
+          }
+          startIcon={<Send size={14} />}
+          sx={{ height: 34 }}
+        />
       </Box>
 
       {/* Main layout: sidebar + content */}
-      <Box sx={{ display: "flex", gap: 3 }}>
+      <Box sx={{ display: "flex", gap: "16px" }}>
         {/* Section navigation sidebar */}
         <Box
           sx={{
@@ -187,56 +193,97 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
             display: { xs: "none", md: "block" },
           }}
         >
-          <Stack spacing={0.5}>
-            {SECTIONS.map((section) => (
-              <Box
-                key={section.id}
-                onClick={() => scrollToSection(section.id)}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  px: 1.5,
-                  py: 1,
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  backgroundColor:
-                    activeSection === section.id
-                      ? `${theme.palette.primary.main}10`
-                      : "transparent",
-                  borderLeft:
-                    activeSection === section.id
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : "2px solid transparent",
-                  "&:hover": {
-                    backgroundColor: theme.palette.action.hover,
-                  },
-                }}
-              >
-                <Typography
-                  variant="body2"
+          <List disablePadding>
+            {SECTIONS.map((section) => {
+              const isActive = activeSection === section.id;
+              const SectionIcon = section.Icon;
+
+              return (
+                <ListItemButton
+                  key={section.id}
+                  disableRipple
+                  onClick={() => scrollToSection(section.id)}
                   sx={{
-                    fontSize: 12,
-                    fontWeight: activeSection === section.id ? 600 : 400,
-                    color:
-                      activeSection === section.id
-                        ? theme.palette.primary.main
-                        : theme.palette.text.secondary,
+                    height: "32px",
+                    gap: theme.spacing(4),
+                    borderRadius: theme.shape.borderRadius,
+                    px: theme.spacing(4),
+                    justifyContent: "flex-start",
+                    background: isActive
+                      ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                      : "transparent",
+                    border: isActive
+                      ? "1px solid #E8E8E8"
+                      : "1px solid transparent",
+                    "&:hover": {
+                      background: isActive
+                        ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
+                        : "#FAFAFA",
+                      border: isActive
+                        ? "1px solid #E8E8E8"
+                        : "1px solid transparent",
+                    },
+                    "&:hover svg": {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                    "&:hover svg path": {
+                      stroke: "#13715B !important",
+                    },
                   }}
                 >
-                  {section.number}. {section.label}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "16px",
+                      mr: 0,
+                      "& svg": {
+                        color: isActive
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
+                        stroke: isActive
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
+                        transition: "color 0.2s ease, stroke 0.2s ease",
+                      },
+                      "& svg path": {
+                        stroke: isActive
+                          ? "#13715B !important"
+                          : `${theme.palette.text.tertiary} !important`,
+                      },
+                    }}
+                  >
+                    <SectionIcon size={16} strokeWidth={1.5} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${section.number}. ${section.label}`}
+                    sx={{
+                      "& .MuiListItemText-primary": {
+                        fontSize: "13px",
+                        fontWeight: isActive ? 600 : 400,
+                        color: isActive
+                          ? palette.text.primary
+                          : theme.palette.text.secondary,
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              );
+            })}
+          </List>
         </Box>
 
         {/* Scrollable sections */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack spacing={3}>
+          <Stack spacing={0} gap="16px">
             <div
               id="org-profile"
-              ref={(el) => { sectionRefs.current["org-profile"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["org-profile"] = el;
+              }}
             >
               <OrgProfileSection
                 assessment={assessment}
@@ -247,7 +294,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="applicability"
-              ref={(el) => { sectionRefs.current["applicability"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["applicability"] = el;
+              }}
             >
               <ApplicabilityScopeSection
                 assessment={assessment}
@@ -258,7 +307,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="affected-persons"
-              ref={(el) => { sectionRefs.current["affected-persons"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["affected-persons"] = el;
+              }}
             >
               <AffectedPersonsSection
                 assessment={assessment}
@@ -269,7 +320,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="rights-matrix"
-              ref={(el) => { sectionRefs.current["rights-matrix"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["rights-matrix"] = el;
+              }}
             >
               <RightsMatrixSection
                 friaId={assessment.id}
@@ -281,7 +334,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="specific-risks"
-              ref={(el) => { sectionRefs.current["specific-risks"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["specific-risks"] = el;
+              }}
             >
               <SpecificRisksSection
                 assessment={assessment}
@@ -297,7 +352,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="oversight"
-              ref={(el) => { sectionRefs.current["oversight"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["oversight"] = el;
+              }}
             >
               <OversightSection
                 assessment={assessment}
@@ -308,7 +365,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="consultation"
-              ref={(el) => { sectionRefs.current["consultation"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["consultation"] = el;
+              }}
             >
               <ConsultationSection
                 assessment={assessment}
@@ -319,7 +378,9 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
             <div
               id="summary"
-              ref={(el) => { sectionRefs.current["summary"] = el; }}
+              ref={(el) => {
+                sectionRefs.current["summary"] = el;
+              }}
             >
               <SummarySection
                 assessment={assessment}

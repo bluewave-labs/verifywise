@@ -1,4 +1,4 @@
-import { CustomAxios } from "../../infrastructure/api/customAxios";
+import CustomAxios from "../../infrastructure/api/customAxios";
 
 const BASE_URL = "/fria";
 

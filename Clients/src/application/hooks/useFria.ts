@@ -135,15 +135,16 @@ export function useFria(projectId: string) {
           updatedRights
         );
         setRights(result);
-        // Refetch to get updated scores
-        await fetchFria();
+        // Refresh only the assessment scores without resetting the full data
+        const fresh = await friaRepository.getFria(projectId);
+        setAssessment(fresh.assessment);
       } catch (err: any) {
         setError(err?.message || "Failed to update rights");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, fetchFria]
+    [assessment, projectId]
   );
 
   const addRiskItem = useCallback(
@@ -152,14 +153,17 @@ export function useFria(projectId: string) {
       setIsSaving(true);
       try {
         await friaRepository.addRiskItem(assessment.id, data);
-        await fetchFria();
+        // Refresh assessment scores and risk items without resetting rights
+        const fresh = await friaRepository.getFria(projectId);
+        setAssessment(fresh.assessment);
+        setRiskItems(fresh.riskItems || []);
       } catch (err: any) {
         setError(err?.message || "Failed to add risk item");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, fetchFria]
+    [assessment, projectId]
   );
 
   const updateRiskItem = useCallback(
@@ -168,14 +172,17 @@ export function useFria(projectId: string) {
       setIsSaving(true);
       try {
         await friaRepository.updateRiskItem(assessment.id, itemId, data);
-        await fetchFria();
+        // Refresh assessment scores and risk items without resetting rights
+        const fresh = await friaRepository.getFria(projectId);
+        setAssessment(fresh.assessment);
+        setRiskItems(fresh.riskItems || []);
       } catch (err: any) {
         setError(err?.message || "Failed to update risk item");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, fetchFria]
+    [assessment, projectId]
   );
 
   const deleteRiskItem = useCallback(
@@ -184,14 +191,17 @@ export function useFria(projectId: string) {
       setIsSaving(true);
       try {
         await friaRepository.deleteRiskItem(assessment.id, itemId);
-        await fetchFria();
+        // Refresh assessment scores and risk items without resetting rights
+        const fresh = await friaRepository.getFria(projectId);
+        setAssessment(fresh.assessment);
+        setRiskItems(fresh.riskItems || []);
       } catch (err: any) {
         setError(err?.message || "Failed to delete risk item");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, fetchFria]
+    [assessment, projectId]
   );
 
   const linkModel = useCallback(

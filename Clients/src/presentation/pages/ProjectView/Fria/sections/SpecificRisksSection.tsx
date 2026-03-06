@@ -5,12 +5,6 @@ import {
   CardContent,
   IconButton,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -49,23 +43,6 @@ const SEVERITY_OPTIONS = [
   { _id: "High", name: "High" },
 ];
 
-const TABLE_CELL_SX = {
-  fontSize: 13,
-  py: 1,
-  px: 1.5,
-  verticalAlign: "top",
-  borderBottom: "1px solid #d0d5dd",
-};
-
-const TABLE_HEAD_CELL_SX = {
-  fontSize: 12,
-  fontWeight: 600,
-  py: 1,
-  px: 1.5,
-  borderBottom: "1px solid #d0d5dd",
-  whiteSpace: "nowrap" as const,
-};
-
 function RiskRow({
   item,
   onUpdateRiskItem,
@@ -103,42 +80,94 @@ function RiskRow({
     };
 
   return (
-    <TableRow>
-      <TableCell sx={TABLE_CELL_SX} style={{ minWidth: 160 }}>
-        <Field
-          id={`risk-desc-${item.id}`}
-          value={riskDescription}
-          type="description"
-          rows={2}
-          placeholder="Describe risk…"
-          onChange={(e) => setRiskDescription(e.target.value)}
-          onBlur={handleTextBlur("risk_description", riskDescription, item.risk_description)}
+    <Box
+      sx={{
+        border: "1px solid #d0d5dd",
+        borderRadius: "4px",
+        padding: "16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+      }}
+    >
+      {/* Top row: Risk description + delete button */}
+      <Box sx={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+        <Box sx={{ flex: 1 }}>
+          <Field
+            id={`risk-desc-${item.id}`}
+            value={riskDescription}
+            type="description"
+            rows={2}
+            placeholder="Describe risk…"
+            onChange={(e) => setRiskDescription(e.target.value)}
+            onBlur={handleTextBlur("risk_description", riskDescription, item.risk_description)}
+            disabled={isSaving}
+          />
+        </Box>
+        <IconButton
+          size="small"
+          onClick={() => onDeleteRiskItem(item.id)}
           disabled={isSaving}
-        />
-      </TableCell>
-      <TableCell sx={TABLE_CELL_SX} style={{ minWidth: 110 }}>
+          aria-label="Delete risk item"
+          sx={{
+            color: "text.secondary",
+            "&:hover": { color: "error.main" },
+            mt: "2px",
+            flexShrink: 0,
+          }}
+        >
+          <Trash2 size={14} strokeWidth={1.5} />
+        </IconButton>
+      </Box>
+
+      {/* Middle row: Likelihood, Severity, Linked risk */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "8px",
+        }}
+      >
         <Select
           id={`likelihood-${item.id}`}
+          label="Likelihood"
           placeholder="Select…"
           value={item.likelihood ?? ""}
           items={LIKELIHOOD_OPTIONS}
           onChange={handleSelectChange("likelihood")}
           disabled={isSaving}
         />
-      </TableCell>
-      <TableCell sx={TABLE_CELL_SX} style={{ minWidth: 110 }}>
         <Select
           id={`severity-${item.id}`}
+          label="Severity"
           placeholder="Select…"
           value={item.severity ?? ""}
           items={SEVERITY_OPTIONS}
           onChange={handleSelectChange("severity")}
           disabled={isSaving}
         />
-      </TableCell>
-      <TableCell sx={TABLE_CELL_SX} style={{ minWidth: 160 }}>
+        <Field
+          id={`linked-risk-${item.id}`}
+          label="Linked risk"
+          value={linkedRiskName}
+          placeholder="Linked risk…"
+          onChange={(e) => setLinkedRiskName(e.target.value)}
+          onBlur={handleTextBlur("linked_risk_name", linkedRiskName, item.linked_risk_name)}
+          disabled={isSaving}
+        />
+      </Box>
+
+      {/* Bottom row: Existing controls, Further action */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "8px",
+        }}
+      >
         <Field
           id={`existing-controls-${item.id}`}
+          label="Existing controls"
           value={existingControls}
           type="description"
           rows={2}
@@ -147,10 +176,9 @@ function RiskRow({
           onBlur={handleTextBlur("existing_controls", existingControls, item.existing_controls)}
           disabled={isSaving}
         />
-      </TableCell>
-      <TableCell sx={TABLE_CELL_SX} style={{ minWidth: 160 }}>
         <Field
           id={`further-action-${item.id}`}
+          label="Further action"
           value={furtherAction}
           type="description"
           rows={2}
@@ -159,29 +187,8 @@ function RiskRow({
           onBlur={handleTextBlur("further_action", furtherAction, item.further_action)}
           disabled={isSaving}
         />
-      </TableCell>
-      <TableCell sx={TABLE_CELL_SX} style={{ minWidth: 140 }}>
-        <Field
-          id={`linked-risk-${item.id}`}
-          value={linkedRiskName}
-          placeholder="Linked risk…"
-          onChange={(e) => setLinkedRiskName(e.target.value)}
-          onBlur={handleTextBlur("linked_risk_name", linkedRiskName, item.linked_risk_name)}
-          disabled={isSaving}
-        />
-      </TableCell>
-      <TableCell sx={{ ...TABLE_CELL_SX, width: 48 }} align="center">
-        <IconButton
-          size="small"
-          onClick={() => onDeleteRiskItem(item.id)}
-          disabled={isSaving}
-          aria-label="Delete risk item"
-          sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}
-        >
-          <Trash2 size={14} strokeWidth={1.5} />
-        </IconButton>
-      </TableCell>
-    </TableRow>
+      </Box>
+    </Box>
   );
 }
 
@@ -275,7 +282,7 @@ function SpecificRisksSection({
             disabled={isSaving}
           />
 
-          {/* Risk register table */}
+          {/* Risk register card list */}
           <Box>
             <Typography
               sx={{
@@ -288,61 +295,34 @@ function SpecificRisksSection({
               Risk register
             </Typography>
 
-            <TableContainer
-              sx={{
-                border: "1px solid #d0d5dd",
-                borderRadius: "4px",
-                overflowX: "auto",
-              }}
-            >
-              <Table size="small" aria-label="Risk register table">
-                <TableHead>
-                  <TableRow
-                    sx={{
-                      backgroundColor: theme.palette.background.default,
-                    }}
-                  >
-                    <TableCell sx={TABLE_HEAD_CELL_SX}>Risk description</TableCell>
-                    <TableCell sx={TABLE_HEAD_CELL_SX}>Likelihood</TableCell>
-                    <TableCell sx={TABLE_HEAD_CELL_SX}>Severity</TableCell>
-                    <TableCell sx={TABLE_HEAD_CELL_SX}>Existing controls</TableCell>
-                    <TableCell sx={TABLE_HEAD_CELL_SX}>Further action</TableCell>
-                    <TableCell sx={TABLE_HEAD_CELL_SX}>Linked risk</TableCell>
-                    <TableCell sx={{ ...TABLE_HEAD_CELL_SX, width: 48 }} />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {riskItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        align="center"
-                        sx={{
-                          py: 3,
-                          fontSize: 13,
-                          color: theme.palette.text.secondary,
-                          borderBottom: "none",
-                        }}
-                      >
-                        No risk items yet. Add a risk to get started.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    riskItems.map((item) => (
-                      <RiskRow
-                        key={item.id}
-                        item={item}
-                        onUpdateRiskItem={onUpdateRiskItem}
-                        onDeleteRiskItem={onDeleteRiskItem}
-                        isSaving={isSaving}
-                      />
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            {riskItems.length === 0 ? (
+              <Box
+                sx={{
+                  border: "1px solid #d0d5dd",
+                  borderRadius: "4px",
+                  padding: "24px",
+                  textAlign: "center",
+                  fontSize: 13,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                No risk items yet. Add a risk to get started.
+              </Box>
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {riskItems.map((item) => (
+                  <RiskRow
+                    key={item.id}
+                    item={item}
+                    onUpdateRiskItem={onUpdateRiskItem}
+                    onDeleteRiskItem={onDeleteRiskItem}
+                    isSaving={isSaving}
+                  />
+                ))}
+              </Box>
+            )}
 
-            <Box sx={{ mt: 1.5, display: "flex", gap: 1 }}>
+            <Box sx={{ mt: 1.5, display: "flex", gap: "8px" }}>
               <CustomizableButton
                 text="Add risk"
                 variant="outlined"

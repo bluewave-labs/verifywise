@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -6,6 +6,8 @@ import {
   IconButton,
   Stack,
   Typography,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { SelectChangeEvent } from "@mui/material/Select";
@@ -19,6 +21,7 @@ import {
 } from "../../../../../application/hooks/useFria";
 import FriaEvidenceButton from "../FriaEvidenceButton";
 import FriaRiskImportModal from "../FriaRiskImportModal";
+import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
 
 interface SpecificRisksSectionProps {
   assessment: FriaAssessment;
@@ -43,16 +46,23 @@ const SEVERITY_OPTIONS = [
   { _id: "High", name: "High" },
 ];
 
+interface ProjectRiskOption {
+  _id: string;
+  name: string;
+}
+
 function RiskRow({
   item,
   onUpdateRiskItem,
   onDeleteRiskItem,
   isSaving,
+  projectRiskOptions,
 }: {
   item: FriaRiskItem;
   onUpdateRiskItem: (itemId: number, data: Partial<FriaRiskItem>) => void;
   onDeleteRiskItem: (itemId: number) => void;
   isSaving: boolean;
+  projectRiskOptions: ProjectRiskOption[];
 }) {
   const [riskDescription, setRiskDescription] = useState(
     item.risk_description ?? ""
@@ -62,9 +72,6 @@ function RiskRow({
   );
   const [furtherAction, setFurtherAction] = useState(
     item.further_action ?? ""
-  );
-  const [linkedRiskName, setLinkedRiskName] = useState(
-    item.linked_risk_name ?? ""
   );
 
   const handleTextBlur =
@@ -146,13 +153,24 @@ function RiskRow({
           onChange={handleSelectChange("severity")}
           disabled={isSaving}
         />
-        <Field
+        <Select
           id={`linked-risk-${item.id}`}
           label="Linked risk"
-          value={linkedRiskName}
-          placeholder="Linked risk…"
-          onChange={(e) => setLinkedRiskName(e.target.value)}
-          onBlur={handleTextBlur("linked_risk_name", linkedRiskName, item.linked_risk_name)}
+          placeholder="Select risk…"
+          value={item.linked_project_risk_id ? String(item.linked_project_risk_id) : ""}
+          items={[{ _id: "", name: "None" }, ...projectRiskOptions]}
+          onChange={(e: SelectChangeEvent<unknown>) => {
+            const val = e.target.value as string;
+            if (val === "") {
+              onUpdateRiskItem(item.id, { linked_project_risk_id: null, linked_risk_name: null });
+            } else {
+              const selected = projectRiskOptions.find((r) => r._id === val);
+              onUpdateRiskItem(item.id, {
+                linked_project_risk_id: parseInt(val),
+                linked_risk_name: selected?.name ?? null,
+              });
+            }
+          }}
           disabled={isSaving}
         />
       </Box>
@@ -204,6 +222,36 @@ function SpecificRisksSection({
 }: SpecificRisksSectionProps) {
   const theme = useTheme();
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [allProjectRisks, setAllProjectRisks] = useState<ProjectRiskOption[]>([]);
+  const [filterByProject, setFilterByProject] = useState(true);
+
+  // Fetch project risks for the linked risk dropdown
+  useEffect(() => {
+    const fetchRisks = async () => {
+      try {
+        const response = await getAllProjectRisksByProjectId({
+          projectId: String(assessment.project_id),
+          filter: "active",
+        });
+        const risks = response.data || response || [];
+        setAllProjectRisks(
+          Array.isArray(risks)
+            ? risks.map((r: any) => ({
+                _id: String(r.id),
+                name: r.risk_name || r.title || `Risk #${r.id}`,
+              }))
+            : []
+        );
+      } catch {
+        setAllProjectRisks([]);
+      }
+    };
+    fetchRisks();
+  }, [assessment.project_id]);
+
+  const projectRiskOptions = filterByProject
+    ? allProjectRisks
+    : allProjectRisks;
 
   const [riskScenarios, setRiskScenarios] = useState(
     assessment.risk_scenarios ?? ""
@@ -284,16 +332,32 @@ function SpecificRisksSection({
 
           {/* Risk register card list */}
           <Box>
-            <Typography
-              sx={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                mb: 1.5,
-              }}
-            >
-              Risk register
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+              <Typography
+                sx={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                }}
+              >
+                Risk register
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={filterByProject}
+                    onChange={(e) => setFilterByProject(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                    This use case only
+                  </Typography>
+                }
+                sx={{ marginRight: 0 }}
+              />
+            </Box>
 
             {riskItems.length === 0 ? (
               <Box
@@ -317,17 +381,18 @@ function SpecificRisksSection({
                     onUpdateRiskItem={onUpdateRiskItem}
                     onDeleteRiskItem={onDeleteRiskItem}
                     isSaving={isSaving}
+                    projectRiskOptions={projectRiskOptions}
                   />
                 ))}
               </Box>
             )}
 
-            <Box sx={{ mt: 1.5, display: "flex", gap: "8px" }}>
+            <Box sx={{ marginTop: "8px", display: "flex", gap: "8px" }}>
               <CustomizableButton
                 text="Add risk"
                 variant="outlined"
                 startIcon={<Plus size={14} strokeWidth={1.5} />}
-                onClick={() => onAddRiskItem({ risk_description: "" })}
+                onClick={() => onAddRiskItem({ risk_description: "New risk" })}
                 disabled={isSaving}
                 sx={{ height: 34, fontSize: 13 }}
               />

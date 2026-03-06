@@ -154,13 +154,11 @@ const VWProjectView = () => {
   }, [numericProjectId, refreshKey]);
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
-    if (tabParam) {
-      searchParams.delete("tab");
-      searchParams.delete("framework");
-      searchParams.delete("topicId");
-      searchParams.delete("questionId");
-      setSearchParams(searchParams);
-    }
+    searchParams.set("tab", newValue);
+    searchParams.delete("framework");
+    searchParams.delete("topicId");
+    searchParams.delete("questionId");
+    setSearchParams(searchParams);
     setValue(newValue);
   };
 

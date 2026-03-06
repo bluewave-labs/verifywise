@@ -5,7 +5,6 @@ import { SearchBox } from "../../components/Search";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import AgentStatusCards from "./AgentStatusCards";
-import AgentTable, { AgentPrimitiveRow } from "./AgentTable";
 import ReviewAgentModal from "../../components/Modals/AgentDiscovery/ReviewAgentModal";
 import ManualAgentModal from "../../components/Modals/AgentDiscovery/ManualAgentModal";
 import {
@@ -27,6 +26,10 @@ import {
   useGroupByState,
 } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
+import { useColumnVisibility, ColumnConfig } from "../../../application/hooks/useColumnVisibility";
+import { ColumnSelector } from "../../components/Table/ColumnSelector";
+import { AgentPrimitiveRow } from "src/domain/interfaces/i.agentDiscovery";
+import AgentTable from "./AgentTable";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -55,6 +58,29 @@ const AgentDiscovery: React.FC = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Column visibility
+  type AgentColumn = 'display_name' | 'source_system' | 'primitive_type' | 'permissions' | 'last_activity' | 'review_status' | 'stale' | 'actions';
+
+  const AGENT_COLUMNS: ColumnConfig<AgentColumn>[] = useMemo(
+    () => [
+      { key: 'display_name', label: 'Name', defaultVisible: true, alwaysVisible: true },
+      { key: 'source_system', label: 'Source', defaultVisible: true },
+      { key: 'primitive_type', label: 'Type', defaultVisible: true },
+      { key: 'permissions', label: 'Permissions', defaultVisible: true },
+      { key: 'last_activity', label: 'Last activity', defaultVisible: true },
+      { key: 'review_status', label: 'Status', defaultVisible: true },
+      { key: 'stale', label: 'Stale', defaultVisible: true },
+      { key: 'actions', label: 'Actions', defaultVisible: true, alwaysVisible: true },
+    ],
+    []
+  );
+
+  const { visibleColumns, allColumns, toggleColumn, resetToDefaults } =
+    useColumnVisibility<AgentColumn>({
+      tableId: 'agent-discovery-table',
+      columns: AGENT_COLUMNS,
+    });
 
   // Modals
   const [selectedAgent, setSelectedAgent] = useState<AgentPrimitiveRow | null>(null);
@@ -345,6 +371,12 @@ const AgentDiscovery: React.FC = () => {
               ]}
               onGroupChange={handleGroupChange}
             />
+            <ColumnSelector
+              columns={allColumns}
+              visibleColumns={visibleColumns}
+              onToggleColumn={toggleColumn}
+              onResetToDefaults={resetToDefaults}
+            />
             <SearchBox
               placeholder="Search agents..."
               value={searchTerm}
@@ -390,6 +422,7 @@ const AgentDiscovery: React.FC = () => {
             onRowClick={handleRowClick}
             onEdit={handleEditAgent}
             onDelete={handleDeleteAgent}
+            visibleColumns={visibleColumns}
           />
         )}
       />

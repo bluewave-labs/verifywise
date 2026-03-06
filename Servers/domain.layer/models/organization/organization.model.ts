@@ -79,6 +79,12 @@ export class OrganizationModel
   })
   onboarding_status?: string;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  tenant_id?: string;
+
   /**
    * Creates a new organization with validation
    *

@@ -87,7 +87,6 @@ import intakeFormRoutes from "./routes/intakeForm.route";
 import auditLedgerRoutes from "./routes/auditLedger.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
-import { addAgentDiscoveryTables } from "./scripts/addAgentDiscoveryTables";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -257,12 +256,31 @@ try {
     }
   })();
 
-  // Run agent discovery tenant migrations (idempotent, safe on every boot)
+  // Check and run tenant-to-shared-schema data migration
   (async () => {
     try {
-      await addAgentDiscoveryTables();
+      const { checkAndRunMigration, printValidationReport } = require("./scripts/migrateToSharedSchema");
+      console.log("🔄 Checking for pending data migrations...");
+      const result = await checkAndRunMigration();
+
+      if (result.status === "completed" || result.status === "already_completed") {
+        console.log("✅ Data migration already completed");
+      } else if (result.status === "just_completed") {
+        console.log("✅ Data migration completed successfully!");
+        console.log(`   Organizations migrated: ${result.organizationsMigrated}`);
+        console.log(`   Total rows migrated: ${result.rowsMigrated}`);
+        if (result.validationReport) {
+          printValidationReport(result.validationReport);
+        }
+      } else if (result.status === "failed") {
+        console.error("❌ Data migration failed:", result.error);
+        console.log("⚠️  Server will start but old tenant data may not be accessible");
+      } else if (result.status === "no_tenants") {
+        console.log("ℹ️  No tenant schemas found, skipping migration");
+      }
     } catch (error) {
-      console.error("Agent discovery table migration failed:", error);
+      console.error("Data migration check failed:", error);
+      // Server continues to start even if migration check fails
     }
   })();
 

@@ -6,7 +6,10 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from contextlib import asynccontextmanager
 from .config import settings
 
-engine = create_async_engine(settings.sqlalchemy_database_url)
+engine = create_async_engine(
+    settings.sqlalchemy_database_url,
+    connect_args={"server_settings": {"search_path": "verifywise"}},
+)
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
 

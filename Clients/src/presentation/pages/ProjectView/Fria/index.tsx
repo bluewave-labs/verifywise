@@ -167,7 +167,6 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
           onClick={() => submitFria("Submitted for review")}
           disabled={
             isSaving ||
-            assessment.status === "completed" ||
             assessment.status === "approved"
           }
           startIcon={<Send size={14} />}

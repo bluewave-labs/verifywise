@@ -610,7 +610,7 @@ export async function submitFria(req: Request, res: Response): Promise<any> {
 
       await updateFriaQuery(
         friaId,
-        { status: "completed" },
+        { status: "completed", version: fria.version + 1 },
         organizationId,
         userId,
         transaction

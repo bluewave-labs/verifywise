@@ -183,6 +183,9 @@ const StartHere = () => {
     () => localStorage.getItem("verifywise_start_here_progress_dismissed") === "true"
   );
   const [welcomeVideoOpen, setWelcomeVideoOpen] = useState(false);
+  const [expertsDismissed, setExpertsDismissed] = useState(
+    () => localStorage.getItem("verifywise_start_here_experts_dismissed") === "true"
+  );
   const [exploreVideoTitle, setExploreVideoTitle] = useState<string | null>(null);
 
   const exploreVideoConfig = useMemo(
@@ -658,6 +661,82 @@ const StartHere = () => {
             })}
           </Stack>
         </Box>
+
+        {/* Row 4: Your experts */}
+        {!expertsDismissed && (
+        <Box sx={{ animation: `${fadeInUp} 0.5s ease-out 0.4s both` }}>
+          <Typography sx={{ fontSize: 15, fontWeight: 600, mb: "12px" }}>
+            Your experts
+          </Typography>
+          <Stack direction="row" alignItems="flex-start" sx={{ gap: "12px", position: "relative", width: "fit-content" }}>
+            {[
+              { name: "Ulas Ozguven", photo: "https://verifywise.ai/images/team/ulas.jpeg" },
+              { name: "David Pinkney", photo: "https://verifywise.ai/images/avatars/DavidPinkney.jpg" },
+            ].map((expert) => (
+              <Stack
+                key={expert.name}
+                onClick={() => window.open("https://verifywise.ai/contact", "_blank", "noopener,noreferrer")}
+                alignItems="center"
+                sx={{
+                  gap: "8px",
+                  p: "16px",
+                  borderRadius: "8px",
+                  border: `1px solid ${theme.palette.border.light}`,
+                  minWidth: 160,
+                  cursor: "pointer",
+                  transition: "border-color 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  "&:hover": {
+                    borderColor: theme.palette.border.dark,
+                    transform: "translateY(-2px)",
+                  },
+                }}
+              >
+                <Box
+                  component="img"
+                  src={expert.photo}
+                  alt={expert.name}
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+                <Typography sx={{ fontSize: 13, fontWeight: 600, textAlign: "center" }}>
+                  {expert.name}
+                </Typography>
+                <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, textAlign: "center" }}>
+                  AI governance expert
+                </Typography>
+                <Box
+                  component="img"
+                  src="/verifywise-logo.png"
+                  alt="VerifyWise"
+                  sx={{ height: 16, mt: "2px", opacity: 0.7 }}
+                />
+              </Stack>
+            ))}
+            <Typography
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpertsDismissed(true);
+                localStorage.setItem("verifywise_start_here_experts_dismissed", "true");
+              }}
+              sx={{
+                position: "absolute",
+                top: -24,
+                right: 0,
+                fontSize: 11,
+                color: theme.palette.text.accent,
+                cursor: "pointer",
+                "&:hover": { color: theme.palette.text.secondary },
+              }}
+            >
+              Dismiss
+            </Typography>
+          </Stack>
+        </Box>
+        )}
       </Stack>
 
       {/* ── Right sidebar ── */}

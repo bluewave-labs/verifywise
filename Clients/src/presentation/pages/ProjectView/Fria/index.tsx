@@ -4,12 +4,7 @@ import {
   Stack,
   CircularProgress,
   Typography,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import {
   AlertTriangle,
   Send,
@@ -25,7 +20,7 @@ import {
   FileCheck,
 } from "lucide-react";
 import { StatCard } from "../../../components/Cards/StatCard";
-import { palette } from "../../../themes/palette";
+import SectionSidebar, { SectionItem } from "../../../components/SectionSidebar";
 import { useFria } from "../../../../application/hooks/useFria";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import OrgProfileSection from "./sections/OrgProfileSection";
@@ -42,19 +37,18 @@ interface FriaProps {
   projectId: string;
 }
 
-const SECTIONS = [
-  { id: "org-profile", label: "Organisation & system profile", number: 1, Icon: Building2 },
-  { id: "applicability", label: "Applicability & scope", number: 2, Icon: Scale },
-  { id: "affected-persons", label: "Affected persons & groups", number: 3, Icon: Users },
-  { id: "rights-matrix", label: "Fundamental rights matrix", number: 4, Icon: Shield },
-  { id: "specific-risks", label: "Specific risks of harm", number: 5, Icon: AlertTriangle },
-  { id: "oversight", label: "Human oversight & transparency", number: 6, Icon: Eye },
-  { id: "consultation", label: "Stakeholder consultation", number: 7, Icon: MessageSquare },
-  { id: "summary", label: "Summary & recommendation", number: 8, Icon: FileCheck },
+const SECTIONS: SectionItem[] = [
+  { id: "org-profile", label: "1. Organisation & system profile", Icon: Building2 },
+  { id: "applicability", label: "2. Applicability & scope", Icon: Scale },
+  { id: "affected-persons", label: "3. Affected persons & groups", Icon: Users },
+  { id: "rights-matrix", label: "4. Fundamental rights matrix", Icon: Shield },
+  { id: "specific-risks", label: "5. Specific risks of harm", Icon: AlertTriangle },
+  { id: "oversight", label: "6. Human oversight & transparency", Icon: Eye },
+  { id: "consultation", label: "7. Stakeholder consultation", Icon: MessageSquare },
+  { id: "summary", label: "8. Summary & recommendation", Icon: FileCheck },
 ];
 
 const FriaAssessment = ({ projectId }: FriaProps) => {
-  const theme = useTheme();
   const {
     assessment,
     rights,
@@ -182,99 +176,11 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
       {/* Main layout: sidebar + content */}
       <Box sx={{ display: "flex", gap: "16px" }}>
-        {/* Section navigation sidebar */}
-        <Box
-          sx={{
-            width: 240,
-            flexShrink: 0,
-            position: "sticky",
-            top: 80,
-            alignSelf: "flex-start",
-            display: { xs: "none", md: "block" },
-          }}
-        >
-          <List disablePadding>
-            {SECTIONS.map((section) => {
-              const isActive = activeSection === section.id;
-              const SectionIcon = section.Icon;
-
-              return (
-                <ListItemButton
-                  key={section.id}
-                  disableRipple
-                  onClick={() => scrollToSection(section.id)}
-                  sx={{
-                    height: "32px",
-                    gap: theme.spacing(4),
-                    borderRadius: theme.shape.borderRadius,
-                    px: theme.spacing(4),
-                    justifyContent: "flex-start",
-                    background: isActive
-                      ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
-                      : "transparent",
-                    border: isActive
-                      ? "1px solid #E8E8E8"
-                      : "1px solid transparent",
-                    "&:hover": {
-                      background: isActive
-                        ? "linear-gradient(135deg, #F7F7F7 0%, #F2F2F2 100%)"
-                        : "#FAFAFA",
-                      border: isActive
-                        ? "1px solid #E8E8E8"
-                        : "1px solid transparent",
-                    },
-                    "&:hover svg": {
-                      color: "#13715B !important",
-                      stroke: "#13715B !important",
-                    },
-                    "&:hover svg path": {
-                      stroke: "#13715B !important",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "16px",
-                      mr: 0,
-                      "& svg": {
-                        color: isActive
-                          ? "#13715B !important"
-                          : `${theme.palette.text.tertiary} !important`,
-                        stroke: isActive
-                          ? "#13715B !important"
-                          : `${theme.palette.text.tertiary} !important`,
-                        transition: "color 0.2s ease, stroke 0.2s ease",
-                      },
-                      "& svg path": {
-                        stroke: isActive
-                          ? "#13715B !important"
-                          : `${theme.palette.text.tertiary} !important`,
-                      },
-                    }}
-                  >
-                    <SectionIcon size={16} strokeWidth={1.5} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={`${section.number}. ${section.label}`}
-                    sx={{
-                      "& .MuiListItemText-primary": {
-                        fontSize: "13px",
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive
-                          ? palette.text.primary
-                          : theme.palette.text.secondary,
-                      },
-                    }}
-                  />
-                </ListItemButton>
-              );
-            })}
-          </List>
-        </Box>
+        <SectionSidebar
+          sections={SECTIONS}
+          activeSection={activeSection}
+          onSelect={scrollToSection}
+        />
 
         {/* Scrollable sections */}
         <Box sx={{ flex: 1, minWidth: 0 }}>

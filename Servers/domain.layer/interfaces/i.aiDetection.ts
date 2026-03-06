@@ -405,6 +405,9 @@ export interface IParsedGitHubUrl {
 export interface IServiceContext {
   userId: number;
   role: string;
+  /** Organization ID (number) for organization_id column queries */
+  organizationId: number;
+  /** Tenant hash (string) for schema-qualified queries and cache keys */
   tenantId: string;
 }
 

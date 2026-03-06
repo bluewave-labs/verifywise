@@ -125,7 +125,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
     if (typeof value === "number") {
       try {
         const users = await sequelize.query<UserQueryResult>(
-          `SELECT id, name, surname, email FROM public.users WHERE id = :userId`,
+          `SELECT id, name, surname, email FROM users WHERE id = :userId`,
           {
             replacements: { userId: value },
             type: QueryTypes.SELECT,
@@ -181,7 +181,7 @@ export const GENERIC_FORMATTERS: { [key: string]: FieldFormatter } = {
 
     try {
       const users = await sequelize.query<UserQueryResult>(
-        `SELECT id, name, surname, email FROM public.users WHERE id IN (:userIds)`,
+        `SELECT id, name, surname, email FROM users WHERE id IN (:userIds)`,
         {
           replacements: { userIds },
           type: QueryTypes.SELECT,

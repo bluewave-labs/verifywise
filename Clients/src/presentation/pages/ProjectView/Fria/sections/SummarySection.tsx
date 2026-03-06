@@ -93,54 +93,75 @@ function SummarySection({
           {/* Auto-generated summary (read-only) */}
           <Box
             sx={{
-              p: 2,
+              padding: "16px",
               border: "1px solid #d0d5dd",
               borderRadius: "4px",
               backgroundColor: theme.palette.background.default,
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
             }}
             aria-label="Assessment summary"
           >
-            <Stack spacing={0} gap="8px">
-              <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
-                  Assessment:{" "}
-                  <Box component="span" sx={{ fontWeight: 600 }}>
-                    {assessment.completion_pct}% complete
-                  </Box>
-                  {" | "}Risk score:{" "}
-                  <Box component="span" sx={{ fontWeight: 600 }}>
-                    {assessment.risk_score}/100
-                  </Box>
+            {/* Summary rows */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "8px",
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, marginBottom: "4px" }}>
+                  Completion
                 </Typography>
-                <Chip label={assessment.risk_level} size="small" />
-                <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
-                  {" | "}
-                  <Box component="span" sx={{ fontWeight: 600 }}>
-                    {assessment.rights_flagged}
-                  </Box>{" "}
-                  right{assessment.rights_flagged !== 1 ? "s" : ""} flagged
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
+                  {assessment.completion_pct}%
                 </Typography>
               </Box>
-
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
-                  Status:
+              <Box>
+                <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, marginBottom: "4px" }}>
+                  Risk score
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
+                    {assessment.risk_score}/100
+                  </Typography>
+                  <Chip label={assessment.risk_level} size="small" />
+                </Box>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, marginBottom: "4px" }}>
+                  Rights flagged
+                </Typography>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: theme.palette.text.primary }}>
+                  {assessment.rights_flagged} of {rights.length}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, marginBottom: "4px" }}>
+                  Status
                 </Typography>
                 <Chip label={assessment.status} size="small" />
               </Box>
-            </Stack>
+            </Box>
 
-            {/* Flagged rights chips */}
+            {/* Flagged rights */}
             {flaggedRights.length > 0 && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px", mt: 1.5 }}>
-                {flaggedRights.map((right) => (
-                  <Chip
-                    key={right.id}
-                    label={right.right_title}
-                    variant="warning"
-                    size="small"
-                  />
-                ))}
+              <Box>
+                <Typography sx={{ fontSize: 11, color: theme.palette.text.secondary, marginBottom: "8px" }}>
+                  Flagged rights
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {flaggedRights.map((right) => (
+                    <Chip
+                      key={right.id}
+                      label={right.right_title}
+                      variant="warning"
+                      size="small"
+                    />
+                  ))}
+                </Box>
               </Box>
             )}
           </Box>

@@ -35,8 +35,8 @@ const SectionSidebar = ({
         alignSelf: "flex-start",
         display: { xs: "none", md: "block" },
         backgroundColor: theme.palette.background.main,
-        borderRight: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
-        borderRadius: 0,
+        border: `1px solid ${theme.palette.border?.dark || "#d0d5dd"}`,
+        borderRadius: "4px",
         padding: "12px 0",
       }}
     >

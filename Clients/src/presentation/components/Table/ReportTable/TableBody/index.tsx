@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { TableBody, TableCell, TableRow, Chip, Box } from "@mui/material";
 import { Sparkles } from "lucide-react";
 import IconButton from "../../../IconButton";
@@ -18,10 +18,13 @@ const ReportTableBody: React.FC<IReportTableProps> = ({
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const isColumnVisible = (key: string): boolean => {
-    if (!visibleColumns || visibleColumns.size === 0) return true;
-    return visibleColumns.has(key);
-  };
+  const isColumnVisible = useCallback(
+    (key: string): boolean => {
+      if (!visibleColumns || visibleColumns.size === 0) return true;
+      return visibleColumns.has(key);
+    },
+    [visibleColumns]
+  );
 
   const handleRemoveReport = async (reportId: number) => {
     onRemoveReport(reportId);

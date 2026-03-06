@@ -1,6 +1,6 @@
 # VerifyWise - Development Guide
 
-> **Last Updated:** 2026-03-05
+> **Last Updated:** 2026-03-06
 
 This document contains core rules and patterns for all development in the VerifyWise codebase. For detailed feature documentation, see the [Reference Index](#detailed-references) at the bottom.
 
@@ -127,14 +127,24 @@ cd Servers
 npx sequelize migration:create --name my-migration-name
 ```
 
-### Migration Pattern
+### Schema Rules
 
-All tables live in `verifywise` schema. Use `search_path` (set via Sequelize `afterConnect` hook) — do NOT use explicit `public.` or `verifywise.` prefixes in application SQL. Consolidated migrations use explicit `verifywise.` prefix in DDL only.
+All tables live in the `verifywise` PostgreSQL schema. The `public` schema only holds extensions.
+
+- **Application SQL:** Use **unqualified** table names (e.g., `SELECT * FROM projects`). Resolved via `search_path = verifywise` set in Sequelize `afterConnect` hook.
+- **NEVER** use `public.tablename` or `verifywise.tablename` in application code (controllers, utils, services).
+- **Consolidated DDL migrations** (`20260226234300` through `20260226234302`): Use explicit `verifywise.` prefix for CREATE TABLE, CREATE TYPE, etc.
+- **Framework struct tables** (shared, no org_id): `*_struct_*` tables in `20260226234301-public-schema-tables.js`
+- **Tenant-scoped tables** (with org_id): in `20260226234302-tenant-tables.js`
+- **Seed data:** `20260302111132-seed-framework-struct-data.js`
+
+### Migration Pattern
 
 ```javascript
 'use strict';
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Use unqualified table names — search_path resolves to verifywise
     await queryInterface.addColumn('users', 'new_field', {
       type: Sequelize.STRING, allowNull: true
     });
@@ -144,6 +154,10 @@ module.exports = {
   }
 };
 ```
+
+### Data Migration (Legacy Tenant Schemas)
+
+`Servers/scripts/migrateToSharedSchema.ts` migrates data from old `{tenantHash}` schemas → `verifywise` schema with `organization_id`. Config in `Servers/scripts/migrationConfig.ts` defines table order, FK mappings, and skip lists. Dedicated handlers exist for NIST AI RMF and custom frameworks (struct/impl split).
 
 ### Running Migrations
 
@@ -164,7 +178,7 @@ npx sequelize db:migrate:undo    # Rollback last
 
 1. **Route** (`Servers/routes/{entity}.route.ts`) — Define endpoints, apply `authenticateJWT`
 2. **Controller** (`Servers/controllers/{entity}.ctrl.ts`) — Handle request, validate, call utils, use `logProcessing`/`logSuccess`/`logFailure`, return `STATUS_CODE[xxx](...)`
-3. **Utils** (`Servers/utils/{entity}.utils.ts`) — Raw SQL via `sequelize.query()` with `"${tenantId}".table_name` and `:replacements`
+3. **Utils** (`Servers/utils/{entity}.utils.ts`) — Raw SQL via `sequelize.query()` with unqualified table names and `:replacements` (including `organization_id` for tenant isolation)
 4. **Model** (`Servers/domain.layer/models/{entity}/`) — Sequelize-typescript decorators
 
 **Don't forget:** Register new routes in `Servers/index.ts`:
@@ -316,8 +330,8 @@ VITE_IS_MULTI_TENANT=false
 | Route definitions (BE) | `Servers/routes/*.ts` |
 | Route definitions (FE) | `Clients/src/application/config/routes.tsx` |
 | Database models | `Servers/domain.layer/models/` |
-| Tenant hash | `Servers/tools/getTenantHash.ts` |
-| Create tenant script | `Servers/scripts/createNewTenant.ts` |
+| Shared schema migration | `Servers/scripts/migrateToSharedSchema.ts` |
+| Migration config | `Servers/scripts/migrationConfig.ts` |
 | Auth middleware | `Servers/middleware/auth.middleware.ts` |
 | Axios config | `Clients/src/infrastructure/api/customAxios.ts` |
 | Redux store | `Clients/src/application/redux/store.ts` |

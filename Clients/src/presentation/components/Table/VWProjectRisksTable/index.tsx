@@ -49,11 +49,7 @@ const SortableTableHead: React.FC<{
   columns: typeof columns;
   sortConfig: SortConfig;
   onSort: (columnId: string) => void;
-  visibleColumns?: Set<string>;
-}> = ({ columns, sortConfig, onSort, visibleColumns }) => {
-  const filteredColumns = visibleColumns
-    ? columns.filter((col) => visibleColumns.has(col.id))
-    : columns;
+}> = ({ columns, sortConfig, onSort }) => {
   const theme = useTheme();
 
   return (
@@ -64,7 +60,7 @@ const SortableTableHead: React.FC<{
       }}
     >
       <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-        {filteredColumns.map((column) => (
+        {columns.map((column) => (
           <TableCell
             key={column.id}
             sx={{
@@ -336,10 +332,9 @@ const VWProjectRisksTable = ({
         }}
       >
         <SortableTableHead
-          columns={columns}
+          columns={filteredColumns}
           sortConfig={sortConfig}
           onSort={handleSort}
-          visibleColumns={visibleColumns}
         />
         {sortedRows.length !== 0 ? (
           <VWProjectRisksTableBody

@@ -86,6 +86,7 @@ import invitationRoutes from "./routes/invitation.route";
 import intakeFormRoutes from "./routes/intakeForm.route";
 import auditLedgerRoutes from "./routes/auditLedger.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
+import friaRoutes from "./routes/fria.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -246,6 +247,7 @@ try {
   app.use("/api/intake", intakeFormRoutes);
   app.use("/api/audit-ledger", auditLedgerRoutes);
   app.use("/api/feature-settings", featureSettingsRoutes);
+  app.use("/api/fria", friaRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

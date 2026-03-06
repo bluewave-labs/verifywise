@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
-import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck, Scale } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -10,6 +10,7 @@ import RisksView from "./RisksView";
 import ProjectSettings from "./ProjectSettings";
 import Activity from "./Activity";
 import PostMarketMonitoring from "./PostMarketMonitoring";
+import FriaAssessment from "./Fria";
 import PageTour from "../../components/PageTour";
 import ProjectViewSteps from "./ProjectViewSteps";
 import { EmptyState } from "../../components/EmptyState";
@@ -147,6 +148,15 @@ const ProjectView = () => {
                   />
                   <Tab
                     label={createTabLabelWithCount({
+                      label: "FRIA",
+                      icon: <Scale size={14} />,
+                    })}
+                    value="fria"
+                    sx={tabStyle}
+                    disableRipple={disableRipple}
+                  />
+                  <Tab
+                    label={createTabLabelWithCount({
                       label: "Settings",
                       icon: <Settings size={14} />,
                     })}
@@ -194,6 +204,9 @@ const ProjectView = () => {
                   projectId={projectId}
                 />
               </TabPanel> */}
+              <TabPanel value="fria" sx={{ p: "32px 0 0" }}>
+                <FriaAssessment projectId={projectId} />
+              </TabPanel>
               <TabPanel value="settings" sx={{ p: "32px 0 0" }}>
                 <ProjectSettings />
               </TabPanel>

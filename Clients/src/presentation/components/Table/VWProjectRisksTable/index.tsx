@@ -130,7 +130,15 @@ const VWProjectRisksTable = ({
   page,
   flashRow,
   hidePagination = false,
+  visibleColumns,
 }: IVWProjectRisksTable) => {
+  const filteredColumns = useMemo(
+    () =>
+      visibleColumns
+        ? columns.filter((col) => visibleColumns.has(col.id))
+        : columns,
+    [visibleColumns]
+  );
   const theme = useTheme();
 
   // Initialize rowsPerPage from localStorage or default to 5
@@ -324,7 +332,7 @@ const VWProjectRisksTable = ({
         }}
       >
         <SortableTableHead
-          columns={columns}
+          columns={filteredColumns}
           sortConfig={sortConfig}
           onSort={handleSort}
         />
@@ -338,11 +346,12 @@ const VWProjectRisksTable = ({
             onDeleteRisk={onDeleteRisk}
             flashRow={flashRow}
             sortConfig={sortConfig}
+            visibleColumns={visibleColumns}
           />
         ) : (
           <TableBody>
             <TableRow>
-              <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+              <TableCell colSpan={filteredColumns.length} sx={{ border: "none", p: 0 }}>
                 <EmptyState message="There is currently no data in this table." />
               </TableCell>
             </TableRow>
@@ -351,7 +360,7 @@ const VWProjectRisksTable = ({
         {!hidePagination && (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+              <TableCell colSpan={filteredColumns.length} sx={{ border: "none", p: 0 }}>
                 <Box
                   sx={{
                     display: "flex",

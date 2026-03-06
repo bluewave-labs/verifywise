@@ -435,7 +435,7 @@ export async function updateRiskItem(req: Request, res: Response): Promise<any> 
       return res.status(400).json(STATUS_CODE[400]("Invalid item ID"));
     }
 
-    const updated = await updateFriaRiskItemQuery(itemId, req.body, organizationId);
+    const updated = await updateFriaRiskItemQuery(itemId, req.body, organizationId, undefined, friaId);
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Risk item not found"));
     }
@@ -469,7 +469,7 @@ export async function deleteRiskItem(req: Request, res: Response): Promise<any> 
       return res.status(400).json(STATUS_CODE[400]("Invalid item ID"));
     }
 
-    await deleteFriaRiskItemQuery(itemId, organizationId);
+    await deleteFriaRiskItemQuery(itemId, organizationId, undefined, friaId);
 
     // Recompute score
     const fria: any = await getFriaByIdQuery(friaId, organizationId);

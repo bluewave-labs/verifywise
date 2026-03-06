@@ -1,4 +1,5 @@
 import CustomAxios from "../../infrastructure/api/customAxios";
+import { FriaAssessment, FriaRight, FriaRiskItem } from "../hooks/useFria";
 
 const BASE_URL = "/fria";
 
@@ -8,14 +9,14 @@ export const friaRepository = {
     return response.data.data;
   },
 
-  updateFria: async (projectId: string | number, data: Record<string, any>) => {
+  updateFria: async (projectId: string | number, data: Partial<FriaAssessment>) => {
     const response = await CustomAxios.put(`${BASE_URL}/${projectId}`, data);
     return response.data.data;
   },
 
   updateRights: async (
     friaId: number,
-    rights: Array<Record<string, any>>
+    rights: Partial<FriaRight>[]
   ) => {
     const response = await CustomAxios.put(`${BASE_URL}/${friaId}/rights`, {
       rights,
@@ -23,12 +24,7 @@ export const friaRepository = {
     return response.data.data;
   },
 
-  getRiskItems: async (friaId: number) => {
-    const response = await CustomAxios.get(`${BASE_URL}/${friaId}/risk-items`);
-    return response.data.data;
-  },
-
-  addRiskItem: async (friaId: number, data: Record<string, any>) => {
+  addRiskItem: async (friaId: number, data: Partial<FriaRiskItem>) => {
     const response = await CustomAxios.post(
       `${BASE_URL}/${friaId}/risk-items`,
       data
@@ -39,7 +35,7 @@ export const friaRepository = {
   updateRiskItem: async (
     friaId: number,
     itemId: number,
-    data: Record<string, any>
+    data: Partial<FriaRiskItem>
   ) => {
     const response = await CustomAxios.patch(
       `${BASE_URL}/${friaId}/risk-items/${itemId}`,
@@ -83,13 +79,6 @@ export const friaRepository = {
 
   getVersions: async (friaId: number) => {
     const response = await CustomAxios.get(`${BASE_URL}/${friaId}/versions`);
-    return response.data.data;
-  },
-
-  getVersion: async (friaId: number, version: number) => {
-    const response = await CustomAxios.get(
-      `${BASE_URL}/${friaId}/versions/${version}`
-    );
     return response.data.data;
   },
 

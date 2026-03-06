@@ -1,16 +1,12 @@
 import { useState } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import Field from "../../../../components/Inputs/Field";
 import Checkbox from "../../../../components/Inputs/Checkbox";
 import { FriaAssessment } from "../../../../../application/hooks/useFria";
 import FriaEvidenceButton from "../FriaEvidenceButton";
+import FriaSectionCard from "../FriaSectionCard";
+import { EU_ACT_LINK } from "../friaConstants";
 
 interface AffectedPersonsSectionProps {
   assessment: FriaAssessment;
@@ -65,130 +61,88 @@ function AffectedPersonsSection({
   };
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderColor: "#d0d5dd",
-        borderRadius: "4px",
-        boxShadow: "none",
-      }}
+    <FriaSectionCard
+      title="3. Affected persons &amp; groups"
+      subtitle="Identify the categories of natural persons and groups likely to be affected by the AI system."
+      euActContent={
+        <>
+          <strong>EU AI Act reference:</strong>{" "}
+          <a href={`${EU_ACT_LINK}#art_27`} target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+            Article 27(1)(a)
+          </a>{" "}
+          requires identifying the categories of natural persons and groups likely to be affected. Recital 96 highlights special consideration for vulnerable groups including minors, persons with disabilities, and those in asymmetric power relationships.
+        </>
+      }
     >
-      <CardContent sx={{ padding: "16px", "&:last-child": { paddingBottom: "16px" } }}>
-        <Stack spacing={0} gap="8px">
-          {/* Section header */}
-          <Box>
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                mb: 0.5,
-              }}
-            >
-              3. Affected persons &amp; groups
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 13,
-                color: theme.palette.text.secondary,
-              }}
-            >
-              Identify the categories of natural persons and groups likely to be affected by the AI system.
-            </Typography>
-            <Box
-              sx={{
-                marginTop: "8px",
-                padding: "8px 12px",
-                backgroundColor: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: "4px",
-                fontSize: 12,
-                color: theme.palette.text.secondary,
-                lineHeight: 1.6,
-              }}
-            >
-              <strong>EU AI Act reference:</strong>{" "}
-              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
-                Article 27(1)(a)
-              </a>{" "}
-              requires identifying the categories of natural persons and groups likely to be affected. Recital 96 highlights special consideration for vulnerable groups including minors, persons with disabilities, and those in asymmetric power relationships.
-            </Box>
-          </Box>
+      <Field
+        id="affected-groups"
+        label="Affected groups description"
+        placeholder="Describe the categories of natural persons that interact with or are affected by the AI system…"
+        type="description"
+        rows={4}
+        value={affectedGroups}
+        onChange={(e) => setAffectedGroups(e.target.value)}
+        onBlur={handleAffectedGroupsBlur}
+        disabled={isSaving}
+      />
 
-          {/* Affected groups description */}
-          <Field
-            id="affected-groups"
-            label="Affected groups description"
-            placeholder="Describe the categories of natural persons that interact with or are affected by the AI system…"
-            type="description"
-            rows={4}
-            value={affectedGroups}
-            onChange={(e) => setAffectedGroups(e.target.value)}
-            onBlur={handleAffectedGroupsBlur}
-            disabled={isSaving}
-          />
+      <Field
+        id="vulnerability-context"
+        label="Vulnerability context"
+        placeholder="Explain any specific vulnerabilities or characteristics of affected groups that heighten potential impact…"
+        type="description"
+        rows={4}
+        value={vulnerabilityContext}
+        onChange={(e) => setVulnerabilityContext(e.target.value)}
+        onBlur={handleVulnerabilityContextBlur}
+        disabled={isSaving}
+      />
 
-          {/* Vulnerability context */}
-          <Field
-            id="vulnerability-context"
-            label="Vulnerability context"
-            placeholder="Explain any specific vulnerabilities or characteristics of affected groups that heighten potential impact…"
-            type="description"
-            rows={4}
-            value={vulnerabilityContext}
-            onChange={(e) => setVulnerabilityContext(e.target.value)}
-            onBlur={handleVulnerabilityContextBlur}
-            disabled={isSaving}
-          />
+      <Box>
+        <Typography
+          sx={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: theme.palette.text.secondary,
+            mb: 1.5,
+          }}
+        >
+          Vulnerable group flags
+        </Typography>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr 1fr",
+              sm: "1fr 1fr 1fr",
+              md: "1fr 1fr 1fr 1fr",
+            },
+            gap: "8px",
+          }}
+        >
+          {VULNERABLE_GROUP_FLAGS.map((group) => {
+            const isChecked = (assessment.group_flags ?? []).includes(
+              group.key
+            );
+            return (
+              <Checkbox
+                key={group.key}
+                id={`flag-${group.key}`}
+                label={group.label}
+                isChecked={isChecked}
+                value={group.key}
+                onChange={(e) =>
+                  handleFlagChange(group.key, e.target.checked)
+                }
+                isDisabled={isSaving}
+              />
+            );
+          })}
+        </Box>
+      </Box>
 
-          {/* Vulnerable group flags */}
-          <Box>
-            <Typography
-              sx={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-                mb: 1.5,
-              }}
-            >
-              Vulnerable group flags
-            </Typography>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr 1fr",
-                  sm: "1fr 1fr 1fr",
-                  md: "1fr 1fr 1fr 1fr",
-                },
-                gap: "8px",
-              }}
-            >
-              {VULNERABLE_GROUP_FLAGS.map((group) => {
-                const isChecked = (assessment.group_flags ?? []).includes(
-                  group.key
-                );
-                return (
-                  <Checkbox
-                    key={group.key}
-                    id={`flag-${group.key}`}
-                    label={group.label}
-                    isChecked={isChecked}
-                    value={group.key}
-                    onChange={(e) =>
-                      handleFlagChange(group.key, e.target.checked)
-                    }
-                    isDisabled={isSaving}
-                  />
-                );
-              })}
-            </Box>
-          </Box>
-
-          <FriaEvidenceButton friaId={assessment.id} entityType="section_3" />
-        </Stack>
-      </CardContent>
-    </Card>
+      <FriaEvidenceButton friaId={assessment.id} entityType="section_3" />
+    </FriaSectionCard>
   );
 }
 

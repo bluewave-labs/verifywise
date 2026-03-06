@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -168,9 +168,8 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
                   const isRowExpanded = expandedRow === v.id;
 
                   return (
-                    <>
+                    <React.Fragment key={v.id}>
                       <TableRow
-                        key={v.id}
                         onClick={() => v.snapshot_data && handleRowToggle(v.id)}
                         hover={!!v.snapshot_data}
                         sx={{
@@ -224,7 +223,7 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
 
                       {/* Expanded snapshot data */}
                       {isRowExpanded && v.snapshot_data && (
-                        <TableRow key={`${v.id}-expanded`}>
+                        <TableRow>
                           <TableCell colSpan={5} sx={{ padding: 0 }}>
                             <Box
                               sx={{
@@ -266,7 +265,7 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </TableBody>

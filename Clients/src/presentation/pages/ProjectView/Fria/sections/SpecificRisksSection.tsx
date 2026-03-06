@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Card,
-  CardContent,
   IconButton,
-  Stack,
   Typography,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { SelectChangeEvent } from "@mui/material/Select";
@@ -21,6 +16,8 @@ import {
 } from "../../../../../application/hooks/useFria";
 import FriaEvidenceButton from "../FriaEvidenceButton";
 import FriaRiskImportModal from "../FriaRiskImportModal";
+import FriaSectionCard from "../FriaSectionCard";
+import { EU_ACT_LINK } from "../friaConstants";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
 
 interface SpecificRisksSectionProps {
@@ -97,7 +94,6 @@ function RiskRow({
         gap: "8px",
       }}
     >
-      {/* Top row: Risk description + delete button */}
       <Box sx={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
         <Box sx={{ flex: 1 }}>
           <Field
@@ -127,7 +123,6 @@ function RiskRow({
         </IconButton>
       </Box>
 
-      {/* Middle row: Likelihood, Severity, Linked risk */}
       <Box
         sx={{
           display: "grid",
@@ -175,7 +170,6 @@ function RiskRow({
         />
       </Box>
 
-      {/* Bottom row: Existing controls, Further action */}
       <Box
         sx={{
           display: "grid",
@@ -222,10 +216,8 @@ function SpecificRisksSection({
 }: SpecificRisksSectionProps) {
   const theme = useTheme();
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [allProjectRisks, setAllProjectRisks] = useState<ProjectRiskOption[]>([]);
-  const [filterByProject, setFilterByProject] = useState(true);
+  const [projectRiskOptions, setProjectRiskOptions] = useState<ProjectRiskOption[]>([]);
 
-  // Fetch project risks for the linked risk dropdown
   useEffect(() => {
     const fetchRisks = async () => {
       try {
@@ -234,24 +226,20 @@ function SpecificRisksSection({
           filter: "active",
         });
         const risks = response.data || response || [];
-        setAllProjectRisks(
+        setProjectRiskOptions(
           Array.isArray(risks)
-            ? risks.map((r: any) => ({
+            ? risks.map((r: { id: number; risk_name?: string; title?: string }) => ({
                 _id: String(r.id),
                 name: r.risk_name || r.title || `Risk #${r.id}`,
               }))
             : []
         );
       } catch {
-        setAllProjectRisks([]);
+        setProjectRiskOptions([]);
       }
     };
     fetchRisks();
   }, [assessment.project_id]);
-
-  const projectRiskOptions = filterByProject
-    ? allProjectRisks
-    : allProjectRisks;
 
   const [riskScenarios, setRiskScenarios] = useState(
     assessment.risk_scenarios ?? ""
@@ -273,180 +261,124 @@ function SpecificRisksSection({
   };
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderColor: "#d0d5dd",
-        borderRadius: "4px",
-        boxShadow: "none",
-      }}
+    <FriaSectionCard
+      title="5. Specific risks of harm"
+      subtitle="Identify specific risks of harm that the AI system may pose to fundamental rights."
+      euActContent={
+        <>
+          <strong>EU AI Act reference:</strong>{" "}
+          <a href={`${EU_ACT_LINK}#art_27`} target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+            Article 27(1)(e)–(f)
+          </a>{" "}
+          requires identifying specific risks to health, safety, and fundamental rights, and describing measures to mitigate those risks.{" "}
+          <a href={`${EU_ACT_LINK}#art_9`} target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+            Article 9
+          </a>{" "}
+          (risk management system) provides the broader framework for identifying and addressing AI-related risks.
+        </>
+      }
     >
-      <CardContent sx={{ padding: "16px", "&:last-child": { paddingBottom: "16px" } }}>
-        <Stack spacing={0} gap="8px">
-          {/* Section header */}
-          <Box>
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                mb: 0.5,
-              }}
-            >
-              5. Specific risks of harm
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 13,
-                color: theme.palette.text.secondary,
-              }}
-            >
-              Identify specific risks of harm that the AI system may pose to fundamental rights.
-            </Typography>
-            <Box
-              sx={{
-                marginTop: "8px",
-                padding: "8px 12px",
-                backgroundColor: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: "4px",
-                fontSize: 12,
-                color: theme.palette.text.secondary,
-                lineHeight: 1.6,
-              }}
-            >
-              <strong>EU AI Act reference:</strong>{" "}
-              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
-                Article 27(1)(e)–(f)
-              </a>{" "}
-              requires identifying specific risks to health, safety, and fundamental rights, and describing measures to mitigate those risks.{" "}
-              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_9" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
-                Article 9
-              </a>{" "}
-              (risk management system) provides the broader framework for identifying and addressing AI-related risks.
-            </Box>
-          </Box>
+      <Field
+        id="risk-scenarios"
+        label="Risk scenarios"
+        placeholder="Describe the specific risk scenarios and how fundamental rights may be affected…"
+        type="description"
+        rows={4}
+        value={riskScenarios}
+        onChange={(e) => setRiskScenarios(e.target.value)}
+        onBlur={handleRiskScenariosBlur}
+        disabled={isSaving}
+      />
 
-          {/* Textarea fields */}
-          <Field
-            id="risk-scenarios"
-            label="Risk scenarios"
-            placeholder="Describe the specific risk scenarios and how fundamental rights may be affected…"
-            type="description"
-            rows={4}
-            value={riskScenarios}
-            onChange={(e) => setRiskScenarios(e.target.value)}
-            onBlur={handleRiskScenariosBlur}
-            disabled={isSaving}
-          />
+      <Field
+        id="provider-info-used"
+        label="Provider information used"
+        placeholder="Describe what technical documentation, conformity assessments or other provider information was used in this analysis…"
+        type="description"
+        rows={3}
+        value={providerInfoUsed}
+        onChange={(e) => setProviderInfoUsed(e.target.value)}
+        onBlur={handleProviderInfoBlur}
+        disabled={isSaving}
+      />
 
-          <Field
-            id="provider-info-used"
-            label="Provider information used"
-            placeholder="Describe what technical documentation, conformity assessments or other provider information was used in this analysis…"
-            type="description"
-            rows={3}
-            value={providerInfoUsed}
-            onChange={(e) => setProviderInfoUsed(e.target.value)}
-            onBlur={handleProviderInfoBlur}
-            disabled={isSaving}
-          />
-
-          {/* Risk register card list */}
-          <Box>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                }}
-              >
-                Risk register
-              </Typography>
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={filterByProject}
-                    onChange={(e) => setFilterByProject(e.target.checked)}
-                  />
-                }
-                label={
-                  <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-                    This use case only
-                  </Typography>
-                }
-                sx={{ marginRight: 0 }}
-              />
-            </Box>
-
-            {riskItems.length === 0 ? (
-              <Box
-                sx={{
-                  border: "1px solid #d0d5dd",
-                  borderRadius: "4px",
-                  padding: "24px",
-                  textAlign: "center",
-                  fontSize: 13,
-                  color: theme.palette.text.secondary,
-                }}
-              >
-                No risk items yet. Add a risk to get started.
-              </Box>
-            ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {riskItems.map((item) => (
-                  <RiskRow
-                    key={item.id}
-                    item={item}
-                    onUpdateRiskItem={onUpdateRiskItem}
-                    onDeleteRiskItem={onDeleteRiskItem}
-                    isSaving={isSaving}
-                    projectRiskOptions={projectRiskOptions}
-                  />
-                ))}
-              </Box>
-            )}
-
-            <Box sx={{ marginTop: "8px", display: "flex", gap: "8px" }}>
-              <CustomizableButton
-                text="Add risk"
-                variant="outlined"
-                startIcon={<Plus size={14} strokeWidth={1.5} />}
-                onClick={() => onAddRiskItem({ risk_description: "New risk" })}
-                disabled={isSaving}
-                sx={{ height: 34, fontSize: 13 }}
-              />
-              <CustomizableButton
-                text="Import from project risks"
-                variant="outlined"
-                startIcon={<Download size={14} strokeWidth={1.5} />}
-                onClick={() => setImportModalOpen(true)}
-                disabled={isSaving}
-                sx={{ height: 34, fontSize: 13 }}
-              />
-            </Box>
-          </Box>
-
-          <FriaEvidenceButton friaId={assessment.id} entityType="section_5" />
-
-          <FriaRiskImportModal
-            open={importModalOpen}
-            onClose={() => setImportModalOpen(false)}
-            projectId={projectId}
-            existingLinkedRiskIds={riskItems
-              .filter((r) => r.linked_project_risk_id)
-              .map((r) => r.linked_project_risk_id as number)}
-            onImport={(risks) => {
-              for (const risk of risks) {
-                onAddRiskItem(risk);
-              }
+      <Box>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+          <Typography
+            sx={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: theme.palette.text.primary,
             }}
+          >
+            Risk register
+          </Typography>
+        </Box>
+
+        {riskItems.length === 0 ? (
+          <Box
+            sx={{
+              border: "1px solid #d0d5dd",
+              borderRadius: "4px",
+              padding: "24px",
+              textAlign: "center",
+              fontSize: 13,
+              color: theme.palette.text.secondary,
+            }}
+          >
+            No risk items yet. Add a risk to get started.
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {riskItems.map((item) => (
+              <RiskRow
+                key={item.id}
+                item={item}
+                onUpdateRiskItem={onUpdateRiskItem}
+                onDeleteRiskItem={onDeleteRiskItem}
+                isSaving={isSaving}
+                projectRiskOptions={projectRiskOptions}
+              />
+            ))}
+          </Box>
+        )}
+
+        <Box sx={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+          <CustomizableButton
+            text="Add risk"
+            variant="outlined"
+            startIcon={<Plus size={14} strokeWidth={1.5} />}
+            onClick={() => onAddRiskItem({ risk_description: "New risk" })}
+            disabled={isSaving}
+            sx={{ height: 34, fontSize: 13 }}
           />
-        </Stack>
-      </CardContent>
-    </Card>
+          <CustomizableButton
+            text="Import from project risks"
+            variant="outlined"
+            startIcon={<Download size={14} strokeWidth={1.5} />}
+            onClick={() => setImportModalOpen(true)}
+            disabled={isSaving}
+            sx={{ height: 34, fontSize: 13 }}
+          />
+        </Box>
+      </Box>
+
+      <FriaEvidenceButton friaId={assessment.id} entityType="section_5" />
+
+      <FriaRiskImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        projectId={projectId}
+        existingLinkedRiskIds={riskItems
+          .filter((r) => r.linked_project_risk_id)
+          .map((r) => r.linked_project_risk_id as number)}
+        onImport={(risks) => {
+          for (const risk of risks) {
+            onAddRiskItem(risk);
+          }
+        }}
+      />
+    </FriaSectionCard>
   );
 }
 

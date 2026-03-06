@@ -39,7 +39,14 @@ const FriaRiskImportModal = ({
   onImport,
 }: FriaRiskImportModalProps) => {
   const theme = useTheme();
-  const [risks, setRisks] = useState<any[]>([]);
+  const [risks, setRisks] = useState<Array<{
+    id: number;
+    risk_name?: string;
+    risk_description?: string;
+    likelihood?: string;
+    severity?: string;
+    final_risk_level?: string;
+  }>>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,8 +55,8 @@ const FriaRiskImportModal = ({
     setIsLoading(true);
     setSelectedIds([]);
     getAllProjectRisksByProjectId({ projectId, filter: "active" })
-      .then((data: any) => {
-        const riskList = data?.data || data || [];
+      .then((data: { data?: unknown[] } | unknown[]) => {
+        const riskList = (data && typeof data === "object" && "data" in data ? data.data : data) || [];
         setRisks(Array.isArray(riskList) ? riskList : []);
       })
       .catch(() => setRisks([]))

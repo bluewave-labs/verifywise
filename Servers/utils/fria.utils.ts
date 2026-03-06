@@ -342,7 +342,8 @@ export const updateFriaRiskItemQuery = async (
   itemId: number,
   data: Record<string, any>,
   organizationId: number,
-  transaction?: Transaction
+  transaction?: Transaction,
+  friaId?: number
 ) => {
   const allowedFields = [
     "risk_description", "likelihood", "severity",
@@ -351,7 +352,7 @@ export const updateFriaRiskItemQuery = async (
   ];
 
   const setClauses: string[] = [];
-  const replacements: Record<string, any> = { itemId, organizationId };
+  const replacements: Record<string, any> = { itemId, organizationId, ...(friaId ? { friaId } : {}) };
 
   for (const field of allowedFields) {
     if (data[field] !== undefined) {
@@ -367,7 +368,7 @@ export const updateFriaRiskItemQuery = async (
   const query = `
     UPDATE fria_risk_items
     SET ${setClauses.join(", ")}
-    WHERE id = :itemId AND organization_id = :organizationId
+    WHERE id = :itemId AND organization_id = :organizationId${friaId ? " AND fria_id = :friaId" : ""}
     RETURNING *
   `;
   const results = await sequelize.query(query, {
@@ -381,16 +382,17 @@ export const updateFriaRiskItemQuery = async (
 export const deleteFriaRiskItemQuery = async (
   itemId: number,
   organizationId: number,
-  transaction?: Transaction
+  transaction?: Transaction,
+  friaId?: number
 ) => {
   const query = `
     DELETE FROM fria_risk_items
-    WHERE id = :itemId AND organization_id = :organizationId
+    WHERE id = :itemId AND organization_id = :organizationId${friaId ? " AND fria_id = :friaId" : ""}
     RETURNING id
   `;
   const results = await sequelize.query(query, {
     type: QueryTypes.DELETE,
-    replacements: { itemId, organizationId },
+    replacements: { itemId, organizationId, ...(friaId ? { friaId } : {}) },
     transaction,
   });
   return results;

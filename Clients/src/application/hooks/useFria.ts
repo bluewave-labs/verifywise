@@ -98,8 +98,8 @@ export function useFria(projectId: string) {
       setRights(data.rights || []);
       setRiskItems(data.riskItems || []);
       setModelLinks(data.modelLinks || []);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load FRIA");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load FRIA");
     } finally {
       setIsLoading(false);
     }
@@ -116,8 +116,8 @@ export function useFria(projectId: string) {
       try {
         const updated = await friaRepository.updateFria(projectId, data);
         setAssessment(updated);
-      } catch (err: any) {
-        setError(err?.message || "Failed to update FRIA");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to update FRIA");
       } finally {
         setIsSaving(false);
       }
@@ -138,8 +138,8 @@ export function useFria(projectId: string) {
         // Refresh only the assessment scores without resetting the full data
         const fresh = await friaRepository.getFria(projectId);
         setAssessment(fresh.assessment);
-      } catch (err: any) {
-        setError(err?.message || "Failed to update rights");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to update rights");
       } finally {
         setIsSaving(false);
       }
@@ -157,8 +157,8 @@ export function useFria(projectId: string) {
         const fresh = await friaRepository.getFria(projectId);
         setAssessment(fresh.assessment);
         setRiskItems(fresh.riskItems || []);
-      } catch (err: any) {
-        setError(err?.message || "Failed to add risk item");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to add risk item");
       } finally {
         setIsSaving(false);
       }
@@ -176,8 +176,8 @@ export function useFria(projectId: string) {
         const fresh = await friaRepository.getFria(projectId);
         setAssessment(fresh.assessment);
         setRiskItems(fresh.riskItems || []);
-      } catch (err: any) {
-        setError(err?.message || "Failed to update risk item");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to update risk item");
       } finally {
         setIsSaving(false);
       }
@@ -195,8 +195,8 @@ export function useFria(projectId: string) {
         const fresh = await friaRepository.getFria(projectId);
         setAssessment(fresh.assessment);
         setRiskItems(fresh.riskItems || []);
-      } catch (err: any) {
-        setError(err?.message || "Failed to delete risk item");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to delete risk item");
       } finally {
         setIsSaving(false);
       }
@@ -210,8 +210,8 @@ export function useFria(projectId: string) {
       try {
         await friaRepository.linkModel(assessment.id, modelId);
         await fetchFria();
-      } catch (err: any) {
-        setError(err?.message || "Failed to link model");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to link model");
       }
     },
     [assessment, fetchFria]
@@ -223,8 +223,8 @@ export function useFria(projectId: string) {
       try {
         await friaRepository.unlinkModel(assessment.id, modelId);
         await fetchFria();
-      } catch (err: any) {
-        setError(err?.message || "Failed to unlink model");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to unlink model");
       }
     },
     [assessment, fetchFria]
@@ -237,8 +237,8 @@ export function useFria(projectId: string) {
       try {
         await friaRepository.submitFria(assessment.id, reason);
         await fetchFria();
-      } catch (err: any) {
-        setError(err?.message || "Failed to submit FRIA");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to submit FRIA");
       } finally {
         setIsSaving(false);
       }

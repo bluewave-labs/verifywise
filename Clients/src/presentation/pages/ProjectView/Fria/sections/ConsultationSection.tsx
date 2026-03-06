@@ -1,17 +1,12 @@
 import { useState } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Stack,
-  Typography,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { Box } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material/Select";
 import Field from "../../../../components/Inputs/Field";
 import Select from "../../../../components/Inputs/Select";
 import { FriaAssessment } from "../../../../../application/hooks/useFria";
 import FriaEvidenceButton from "../FriaEvidenceButton";
+import FriaSectionCard from "../FriaSectionCard";
+import { EU_ACT_LINK } from "../friaConstants";
 
 interface ConsultationSectionProps {
   assessment: FriaAssessment;
@@ -30,8 +25,6 @@ function ConsultationSection({
   onUpdate,
   isSaving,
 }: ConsultationSectionProps) {
-  const theme = useTheme();
-
   const [stakeholdersConsulted, setStakeholdersConsulted] = useState(
     assessment.stakeholders_consulted ?? ""
   );
@@ -57,137 +50,95 @@ function ConsultationSection({
     };
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderColor: "#d0d5dd",
-        borderRadius: "4px",
-        boxShadow: "none",
-      }}
+    <FriaSectionCard
+      title="7. Stakeholder consultation &amp; sign-off"
+      subtitle="Record the consultation process and approvals required before deploying the AI system."
+      euActContent={
+        <>
+          <strong>EU AI Act reference:</strong>{" "}
+          <a href={`${EU_ACT_LINK}#art_27`} target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+            Article 27(3)
+          </a>{" "}
+          requires deployers to notify the relevant market surveillance authority of the FRIA results.{" "}
+          <a href={`${EU_ACT_LINK}#art_27`} target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
+            Article 27(4)
+          </a>{" "}
+          states that where data protection impact assessments (DPIAs) are already required, the FRIA may complement that process. Consultation with your DPO and legal team is recommended.
+        </>
+      }
     >
-      <CardContent sx={{ padding: "16px", "&:last-child": { paddingBottom: "16px" } }}>
-        <Stack spacing={0} gap="8px">
-          {/* Section header */}
-          <Box>
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                mb: 0.5,
-              }}
-            >
-              7. Stakeholder consultation &amp; sign-off
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 13,
-                color: theme.palette.text.secondary,
-              }}
-            >
-              Record the consultation process and approvals required before deploying the AI system.
-            </Typography>
-            <Box
-              sx={{
-                marginTop: "8px",
-                padding: "8px 12px",
-                backgroundColor: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: "4px",
-                fontSize: 12,
-                color: theme.palette.text.secondary,
-                lineHeight: 1.6,
-              }}
-            >
-              <strong>EU AI Act reference:</strong>{" "}
-              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
-                Article 27(3)
-              </a>{" "}
-              requires deployers to notify the relevant market surveillance authority of the FRIA results.{" "}
-              <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689#art_27" target="_blank" rel="noopener noreferrer" style={{ color: "#13715B" }}>
-                Article 27(4)
-              </a>{" "}
-              states that where data protection impact assessments (DPIAs) are already required, the FRIA may complement that process. Consultation with your DPO and legal team is recommended.
-            </Box>
-          </Box>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
+          gap: "8px",
+        }}
+      >
+        <Select
+          id="legal-review"
+          label="Legal review status"
+          placeholder="Select…"
+          value={assessment.legal_review ?? ""}
+          items={REVIEW_STATUS_OPTIONS}
+          onChange={handleSelectChange("legal_review")}
+          disabled={isSaving}
+        />
 
-          {/* Review status grid — 3 columns */}
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-              gap: "8px",
-            }}
-          >
-            <Select
-              id="legal-review"
-              label="Legal review status"
-              placeholder="Select…"
-              value={assessment.legal_review ?? ""}
-              items={REVIEW_STATUS_OPTIONS}
-              onChange={handleSelectChange("legal_review")}
-              disabled={isSaving}
-            />
+        <Select
+          id="dpo-review"
+          label="DPO review status"
+          placeholder="Select…"
+          value={assessment.dpo_review ?? ""}
+          items={REVIEW_STATUS_OPTIONS}
+          onChange={handleSelectChange("dpo_review")}
+          disabled={isSaving}
+        />
 
-            <Select
-              id="dpo-review"
-              label="DPO review status"
-              placeholder="Select…"
-              value={assessment.dpo_review ?? ""}
-              items={REVIEW_STATUS_OPTIONS}
-              onChange={handleSelectChange("dpo_review")}
-              disabled={isSaving}
-            />
+        <Select
+          id="owner-approval"
+          label="Owner approval status"
+          placeholder="Select…"
+          value={assessment.owner_approval ?? ""}
+          items={REVIEW_STATUS_OPTIONS}
+          onChange={handleSelectChange("owner_approval")}
+          disabled={isSaving}
+        />
+      </Box>
 
-            <Select
-              id="owner-approval"
-              label="Owner approval status"
-              placeholder="Select…"
-              value={assessment.owner_approval ?? ""}
-              items={REVIEW_STATUS_OPTIONS}
-              onChange={handleSelectChange("owner_approval")}
-              disabled={isSaving}
-            />
-          </Box>
+      <Field
+        id="stakeholders-consulted"
+        label="Stakeholders consulted"
+        placeholder="List the individuals, teams, or external parties consulted during this assessment…"
+        type="description"
+        rows={3}
+        value={stakeholdersConsulted}
+        onChange={(e) => setStakeholdersConsulted(e.target.value)}
+        onBlur={handleTextBlur(
+          "stakeholders_consulted",
+          stakeholdersConsulted,
+          assessment.stakeholders_consulted
+        )}
+        disabled={isSaving}
+      />
 
-          {/* Stakeholders consulted */}
-          <Field
-            id="stakeholders-consulted"
-            label="Stakeholders consulted"
-            placeholder="List the individuals, teams, or external parties consulted during this assessment…"
-            type="description"
-            rows={3}
-            value={stakeholdersConsulted}
-            onChange={(e) => setStakeholdersConsulted(e.target.value)}
-            onBlur={handleTextBlur(
-              "stakeholders_consulted",
-              stakeholdersConsulted,
-              assessment.stakeholders_consulted
-            )}
-            disabled={isSaving}
-          />
+      <Field
+        id="consultation-notes"
+        label="Consultation notes"
+        placeholder="Summarise the key findings, concerns raised, and outcomes from the consultation process…"
+        type="description"
+        rows={4}
+        value={consultationNotes}
+        onChange={(e) => setConsultationNotes(e.target.value)}
+        onBlur={handleTextBlur(
+          "consultation_notes",
+          consultationNotes,
+          assessment.consultation_notes
+        )}
+        disabled={isSaving}
+      />
 
-          {/* Consultation notes */}
-          <Field
-            id="consultation-notes"
-            label="Consultation notes"
-            placeholder="Summarise the key findings, concerns raised, and outcomes from the consultation process…"
-            type="description"
-            rows={4}
-            value={consultationNotes}
-            onChange={(e) => setConsultationNotes(e.target.value)}
-            onBlur={handleTextBlur(
-              "consultation_notes",
-              consultationNotes,
-              assessment.consultation_notes
-            )}
-            disabled={isSaving}
-          />
-
-          <FriaEvidenceButton friaId={assessment.id} entityType="section_7" />
-        </Stack>
-      </CardContent>
-    </Card>
+      <FriaEvidenceButton friaId={assessment.id} entityType="section_7" />
+    </FriaSectionCard>
   );
 }
 

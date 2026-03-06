@@ -6,7 +6,6 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import { FilePickerModal } from "../../../components/FilePickerModal";
 import FileUploadModal from "../../../components/Modals/FileUpload";
 import { friaRepository } from "../../../../application/repository/fria.repository";
-import { uploadFileToManager } from "../../../../application/repository/file.repository";
 
 interface FriaEvidenceButtonProps {
   friaId: number;
@@ -53,15 +52,15 @@ const FriaEvidenceButton = ({
         await friaRepository.linkEvidence(friaId, parseInt(file.id), entityType);
       }
       await fetchEvidence();
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      console.error("Failed to link evidence:", err);
     } finally {
       setIsLoading(false);
       setPickerOpen(false);
     }
   };
 
-  const handleUploadSuccess = async (fileResponse: any) => {
+  const handleUploadSuccess = async (fileResponse: { data?: { id?: number }; id?: number }) => {
     setUploadOpen(false);
     const fileId = fileResponse?.data?.id ?? fileResponse?.id;
     if (!fileId) return;
@@ -69,8 +68,8 @@ const FriaEvidenceButton = ({
     try {
       await friaRepository.linkEvidence(friaId, fileId, entityType);
       await fetchEvidence();
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      console.error("Failed to link uploaded evidence:", err);
     } finally {
       setIsLoading(false);
     }
@@ -80,8 +79,8 @@ const FriaEvidenceButton = ({
     try {
       await friaRepository.unlinkEvidence(friaId, linkId);
       setFiles((prev) => prev.filter((f) => f.link_id !== linkId));
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      console.error("Failed to remove evidence:", err);
     }
   };
 

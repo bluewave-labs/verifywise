@@ -180,6 +180,7 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
           sections={SECTIONS}
           activeSection={activeSection}
           onSelect={scrollToSection}
+          width={300}
         />
 
         {/* Scrollable sections */}

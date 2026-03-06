@@ -96,7 +96,7 @@ export const getAllKeysForOrganizationQuery = async (
   organizationId: number,
 ): Promise<IMaskedKey[]> => {
   const keys = await sequelize.query(
-    `SELECT id, provider, encrypted_api_key, created_at, updated_at
+    `SELECT id, provider, api_key_encrypted, created_at, updated_at
      FROM llm_evals_api_keys
      WHERE organization_id = :organizationId
      ORDER BY created_at DESC`,
@@ -107,8 +107,8 @@ export const getAllKeysForOrganizationQuery = async (
   return keys[0].map(key => {
     let maskedKey = '***';
     try {
-      if (key.encrypted_api_key) {
-        const plainKey = decrypt(key.encrypted_api_key);
+      if (key.api_key_encrypted) {
+        const plainKey = decrypt(key.api_key_encrypted);
         maskedKey = maskApiKey(plainKey);
       }
     } catch (err) {
@@ -170,14 +170,14 @@ export const createKeyQuery = async (
     // Update existing key
     result = await sequelize.query(
       `UPDATE llm_evals_api_keys
-       SET encrypted_api_key = :encrypted_api_key, updated_at = NOW()
+       SET api_key_encrypted = :api_key_encrypted, updated_at = NOW()
        WHERE organization_id = :organizationId AND provider = :provider
-       RETURNING id, provider, encrypted_api_key, created_at, updated_at`,
+       RETURNING id, provider, api_key_encrypted, created_at, updated_at`,
       {
         replacements: {
           organizationId,
           provider,
-          encrypted_api_key: encryptedKey,
+          api_key_encrypted: encryptedKey,
         },
         transaction,
       }
@@ -185,14 +185,14 @@ export const createKeyQuery = async (
   } else {
     // Insert new key
     result = await sequelize.query(
-      `INSERT INTO llm_evals_api_keys (organization_id, provider, encrypted_api_key)
-       VALUES (:organizationId, :provider, :encrypted_api_key)
-       RETURNING id, provider, encrypted_api_key, created_at, updated_at`,
+      `INSERT INTO llm_evals_api_keys (organization_id, provider, api_key_encrypted)
+       VALUES (:organizationId, :provider, :api_key_encrypted)
+       RETURNING id, provider, api_key_encrypted, created_at, updated_at`,
       {
         replacements: {
           organizationId,
           provider,
-          encrypted_api_key: encryptedKey,
+          api_key_encrypted: encryptedKey,
         },
         transaction,
       }
@@ -222,7 +222,7 @@ export const getDecryptedKeysForOrganizationQuery = async (
   organizationId: number,
 ): Promise<Record<string, string>> => {
   const keys = await sequelize.query(
-    `SELECT provider, encrypted_api_key FROM llm_evals_api_keys WHERE organization_id = :organizationId`,
+    `SELECT provider, api_key_encrypted FROM llm_evals_api_keys WHERE organization_id = :organizationId`,
     { replacements: { organizationId } }
   ) as [IEvaluationLlmApiKey[], number];
 
@@ -230,8 +230,8 @@ export const getDecryptedKeysForOrganizationQuery = async (
   const decryptedKeys: Record<string, string> = {};
   for (const key of keys[0]) {
     try {
-      if (key.encrypted_api_key) {
-        decryptedKeys[key.provider] = decrypt(key.encrypted_api_key);
+      if (key.api_key_encrypted) {
+        decryptedKeys[key.provider] = decrypt(key.api_key_encrypted);
       }
     } catch (err) {
       console.warn(`Failed to decrypt key for provider ${key.provider}:`, err);
@@ -280,18 +280,18 @@ export const getDecryptedKeyForProviderQuery = async (
   validateProvider(provider);
 
   const result = await sequelize.query(
-    `SELECT encrypted_api_key FROM llm_evals_api_keys WHERE organization_id = :organizationId AND provider = :provider`,
+    `SELECT api_key_encrypted FROM llm_evals_api_keys WHERE organization_id = :organizationId AND provider = :provider`,
     {
       replacements: { organizationId, provider },
     }
   ) as [IEvaluationLlmApiKey[], number];
 
-  if (result[0].length === 0 || !result[0][0].encrypted_api_key) {
+  if (result[0].length === 0 || !result[0][0].api_key_encrypted) {
     return null;
   }
 
   try {
-    return decrypt(result[0][0].encrypted_api_key);
+    return decrypt(result[0][0].api_key_encrypted);
   } catch (err) {
     console.error("Failed to decrypt key for provider:", provider, err);
     return null;

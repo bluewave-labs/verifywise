@@ -4,6 +4,8 @@ import {
   Stack,
   CircularProgress,
   Typography,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   AlertTriangle,
@@ -32,6 +34,8 @@ import OversightSection from "./sections/OversightSection";
 import ConsultationSection from "./sections/ConsultationSection";
 import SummarySection from "./sections/SummarySection";
 import FriaVersionHistory from "./FriaVersionHistory";
+import StandardModal from "../../../components/Modals/StandardModal";
+import Field from "../../../components/Inputs/Field";
 
 interface FriaProps {
   projectId: string;
@@ -56,6 +60,7 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
     isLoading,
     error,
     isSaving,
+    lastSaveStatus,
     updateAssessment,
     updateRights,
     addRiskItem,
@@ -66,6 +71,28 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
 
   const [activeSection, setActiveSection] = useState("org-profile");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitReason, setSubmitReason] = useState("");
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    severity: "success" | "error";
+    message: string;
+  }>({ open: false, severity: "success", message: "" });
+
+  // Show snackbar when save status changes
+  useEffect(() => {
+    if (lastSaveStatus === "saved") {
+      setSnackbar({ open: true, severity: "success", message: "Changes saved" });
+    } else if (lastSaveStatus === "error") {
+      setSnackbar({ open: true, severity: "error", message: "Failed to save changes" });
+    }
+  }, [lastSaveStatus]);
+
+  const handleSubmitConfirm = useCallback(async () => {
+    await submitFria(submitReason || "Submitted for review");
+    setShowSubmitModal(false);
+    setSubmitReason("");
+  }, [submitFria, submitReason]);
 
   const scrollToSection = useCallback((sectionId: string) => {
     setActiveSection(sectionId);
@@ -164,7 +191,7 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
         <CustomizableButton
           text="Submit for review"
           variant="contained"
-          onClick={() => submitFria("Submitted for review")}
+          onClick={() => setShowSubmitModal(true)}
           disabled={
             isSaving ||
             assessment.status === "approved"
@@ -305,6 +332,44 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
           </Stack>
         </Box>
       </Box>
+      {/* Submit confirmation modal */}
+      <StandardModal
+        isOpen={showSubmitModal}
+        onClose={() => {
+          setShowSubmitModal(false);
+          setSubmitReason("");
+        }}
+        title="Submit for review"
+        description={`This will submit version ${assessment.version + 1} of the FRIA for review. You can optionally add a note.`}
+        onSubmit={handleSubmitConfirm}
+        submitButtonText="Submit"
+      >
+        <Field
+          id="submit-reason"
+          label="Note (optional)"
+          value={submitReason}
+          onChange={(e) => setSubmitReason(e.target.value)}
+          placeholder="e.g. Initial assessment complete"
+          type="description"
+        />
+      </StandardModal>
+
+      {/* Save feedback snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ fontSize: 13 }}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 };

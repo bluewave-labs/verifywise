@@ -1,5 +1,13 @@
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
+import {
+  IFriaAssessmentJSON,
+  IFriaRight,
+  IFriaRiskItemJSON,
+  IFriaModelLinkJSON,
+  IFriaSnapshotJSON,
+  IFriaScoreResult,
+} from "../domain.layer/interfaces/i.fria";
 
 // The 10 fundamental rights from EU Charter
 export const DEFAULT_RIGHTS = [
@@ -22,7 +30,7 @@ export const DEFAULT_RIGHTS = [
 export const getFriaByProjectIdQuery = async (
   projectId: number,
   organizationId: number
-) => {
+): Promise<IFriaAssessmentJSON | null> => {
   const query = `
     SELECT fa.*,
       u_created.name || ' ' || u_created.surname as created_by_name,
@@ -43,13 +51,13 @@ export const getFriaByProjectIdQuery = async (
     type: QueryTypes.SELECT,
     replacements: { projectId, organizationId },
   });
-  return results[0] || null;
+  return (results[0] as IFriaAssessmentJSON) || null;
 };
 
 export const getFriaByIdQuery = async (
   friaId: number,
   organizationId: number
-) => {
+): Promise<IFriaAssessmentJSON | null> => {
   const query = `
     SELECT fa.*,
       u_created.name || ' ' || u_created.surname as created_by_name,
@@ -68,7 +76,7 @@ export const getFriaByIdQuery = async (
     type: QueryTypes.SELECT,
     replacements: { friaId, organizationId },
   });
-  return results[0] || null;
+  return (results[0] as IFriaAssessmentJSON) || null;
 };
 
 export const createFriaQuery = async (
@@ -80,7 +88,7 @@ export const createFriaQuery = async (
   },
   organizationId: number,
   transaction?: Transaction
-) => {
+): Promise<IFriaAssessmentJSON | null> => {
   const query = `
     INSERT INTO fria_assessments (
       organization_id, project_id, version, status,
@@ -112,9 +120,9 @@ export const updateFriaQuery = async (
   organizationId: number,
   userId: number,
   transaction?: Transaction
-) => {
+): Promise<IFriaAssessmentJSON | null> => {
   const allowedFields = [
-    "status", "assessment_owner", "assessment_date", "operational_context",
+    "status", "version", "assessment_owner", "assessment_date", "operational_context",
     "is_high_risk", "high_risk_basis", "deployer_type", "annex_iii_category",
     "first_use_date", "review_cycle", "period_frequency", "fria_rationale",
     "affected_groups", "vulnerability_context", "group_flags",
@@ -166,7 +174,7 @@ export const updateFriaQuery = async (
 export const getFriaRightsQuery = async (
   friaId: number,
   organizationId: number
-) => {
+): Promise<IFriaRight[]> => {
   const query = `
     SELECT * FROM fria_rights
     WHERE fria_id = :friaId AND organization_id = :organizationId
@@ -277,7 +285,7 @@ export const bulkUpsertFriaRightsQuery = async (
 export const getFriaRiskItemsQuery = async (
   friaId: number,
   organizationId: number
-) => {
+): Promise<IFriaRiskItemJSON[]> => {
   const query = `
     SELECT fri.*,
       r.risk_name as linked_risk_name,
@@ -405,7 +413,7 @@ export const deleteFriaRiskItemQuery = async (
 export const getFriaModelLinksQuery = async (
   friaId: number,
   organizationId: number
-) => {
+): Promise<IFriaModelLinkJSON[]> => {
   const query = `
     SELECT fml.*, mi.provider, mi.model, mi.version, mi.status as model_status
     FROM fria_model_links fml
@@ -493,7 +501,7 @@ export const createFriaSnapshotQuery = async (
 export const getFriaSnapshotsQuery = async (
   friaId: number,
   organizationId: number
-) => {
+): Promise<IFriaSnapshotJSON[]> => {
   const query = `
     SELECT fs.*, u.name || ' ' || u.surname as created_by_name
     FROM fria_snapshots fs
@@ -511,7 +519,7 @@ export const getFriaSnapshotByVersionQuery = async (
   friaId: number,
   version: number,
   organizationId: number
-) => {
+): Promise<IFriaSnapshotJSON | null> => {
   const query = `
     SELECT fs.*, u.name || ' ' || u.surname as created_by_name
     FROM fria_snapshots fs
@@ -522,7 +530,7 @@ export const getFriaSnapshotByVersionQuery = async (
     type: QueryTypes.SELECT,
     replacements: { friaId, version, organizationId },
   });
-  return results[0] || null;
+  return (results[0] as IFriaSnapshotJSON) || null;
 };
 
 // ========================================
@@ -531,9 +539,9 @@ export const getFriaSnapshotByVersionQuery = async (
 
 export const computeFriaScore = (
   fria: Record<string, any>,
-  rights: Array<Record<string, any>>,
-  riskItems: Array<Record<string, any>>
-) => {
+  rights: IFriaRight[],
+  riskItems: IFriaRiskItemJSON[]
+): IFriaScoreResult => {
   // Count flagged rights
   const rightsFlagged = rights.filter((r) => r.flagged).length;
 
@@ -551,8 +559,8 @@ export const computeFriaScore = (
   const likelihoodMap: Record<string, number> = { Low: 1, Medium: 2, High: 3 };
   const severityMap: Record<string, number> = { Low: 1, Medium: 2, High: 3 };
   for (const item of riskItems) {
-    const l = likelihoodMap[item.likelihood] || 0;
-    const s = severityMap[item.severity] || 0;
+    const l = likelihoodMap[item.likelihood || ""] || 0;
+    const s = severityMap[item.severity || ""] || 0;
     riskScore += l * s * 3;
   }
 
@@ -585,8 +593,12 @@ export const computeFriaScore = (
   const filledFields = sectionFields.filter((v) => v !== null && v !== undefined && v !== "").length;
   const totalFields = sectionFields.length;
 
-  // Rights contribute to completion if any are flagged
-  const rightsComplete = rightsFlagged > 0 ? 1 : 0;
+  // Rights contribute to completion if any right has been assessed
+  // (flagged, or has severity/confidence/impact set — meaning the user reviewed it)
+  const rightsAssessed = rights.some(
+    (r) => r.flagged || r.severity > 0 || r.confidence > 0 || r.impact_pathway || r.mitigation
+  );
+  const rightsComplete = rightsAssessed ? 1 : 0;
   // Risk items contribute if any exist
   const risksComplete = riskItems.length > 0 ? 1 : 0;
 
@@ -594,5 +606,12 @@ export const computeFriaScore = (
     ((filledFields + rightsComplete + risksComplete) / (totalFields + 2)) * 100
   );
 
-  return { riskScore, riskLevel, completionPct, rightsFlagged };
+  return {
+    riskScore, riskLevel, completionPct, rightsFlagged,
+    // Snake-case aliases for direct use with updateFriaQuery
+    risk_score: riskScore,
+    risk_level: riskLevel,
+    completion_pct: completionPct,
+    rights_flagged: rightsFlagged,
+  };
 };

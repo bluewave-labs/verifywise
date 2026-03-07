@@ -36,9 +36,9 @@ const FILE_NAME = "fria.ctrl.ts";
 /**
  * Get FRIA for a project. Auto-creates if none exists.
  */
-export async function getFria(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function getFria(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting getFria",
@@ -56,7 +56,7 @@ export async function getFria(req: Request, res: Response): Promise<any> {
     }
 
     // Verify project access
-    const projectResult: any[] = await sequelize.query(
+    const projectResult = await sequelize.query<{ id: number; project_title: string; owner: number | null }>(
       `SELECT id, project_title, owner FROM projects WHERE id = :projectId AND organization_id = :organizationId`,
       { replacements: { projectId, organizationId }, type: QueryTypes.SELECT }
     );
@@ -65,7 +65,7 @@ export async function getFria(req: Request, res: Response): Promise<any> {
       return res.status(404).json(STATUS_CODE[404]("Project not found"));
     }
 
-    let fria: any = await getFriaByProjectIdQuery(projectId, organizationId);
+    let fria = await getFriaByProjectIdQuery(projectId, organizationId);
 
     // Auto-create FRIA if none exists
     if (!fria) {
@@ -73,7 +73,7 @@ export async function getFria(req: Request, res: Response): Promise<any> {
       try {
         const project = projectResult[0];
 
-        const newFria: any = await createFriaQuery(
+        const newFria = await createFriaQuery(
           {
             project_id: projectId,
             created_by: userId,
@@ -83,8 +83,13 @@ export async function getFria(req: Request, res: Response): Promise<any> {
           transaction
         );
 
+        if (!newFria) {
+          await transaction.rollback();
+          return res.status(500).json(STATUS_CODE[500]("Failed to create FRIA"));
+        }
+
         // Initialize all 10 rights rows
-        await initializeFriaRightsQuery(newFria.id, organizationId, transaction);
+        await initializeFriaRightsQuery(newFria.id!, organizationId, transaction);
 
         await transaction.commit();
 
@@ -95,7 +100,7 @@ export async function getFria(req: Request, res: Response): Promise<any> {
             userId,
             eventType: "Create",
             entityType: "fria",
-            entityId: newFria.id,
+            entityId: newFria.id!,
             description: `FRIA auto-created for project ${projectId}`,
           });
         } catch {}
@@ -107,11 +112,15 @@ export async function getFria(req: Request, res: Response): Promise<any> {
       }
     }
 
+    if (!fria) {
+      return res.status(500).json(STATUS_CODE[500]("Failed to load FRIA"));
+    }
+
     // Fetch related data
     const [rights, riskItems, modelLinks] = await Promise.all([
-      getFriaRightsQuery(fria.id, organizationId),
-      getFriaRiskItemsQuery(fria.id, organizationId),
-      getFriaModelLinksQuery(fria.id, organizationId),
+      getFriaRightsQuery(fria.id!, organizationId),
+      getFriaRiskItemsQuery(fria.id!, organizationId),
+      getFriaModelLinksQuery(fria.id!, organizationId),
     ]);
 
     await logSuccess({
@@ -148,9 +157,9 @@ export async function getFria(req: Request, res: Response): Promise<any> {
 /**
  * Update FRIA assessment fields and recompute score.
  */
-export async function updateFria(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function updateFria(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting updateFria",
@@ -168,30 +177,24 @@ export async function updateFria(req: Request, res: Response): Promise<any> {
       return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
     }
 
-    const existing: any = await getFriaByProjectIdQuery(projectId, organizationId);
+    const existing = await getFriaByProjectIdQuery(projectId, organizationId);
     if (!existing) {
       return res.status(404).json(STATUS_CODE[404]("FRIA not found for this project"));
     }
 
     const transaction = await sequelize.transaction();
     try {
-      const updated: any = await updateFriaQuery(
-        existing.id, data, organizationId, userId, transaction
-      );
+      // Fetch rights and risk items for score computation
+      const rights = await getFriaRightsQuery(existing.id!, organizationId);
+      const riskItems = await getFriaRiskItemsQuery(existing.id!, organizationId);
 
-      // Recompute score
-      const rights = await getFriaRightsQuery(existing.id, organizationId);
-      const riskItems = await getFriaRiskItemsQuery(existing.id, organizationId);
-      const scores = computeFriaScore(updated || existing, rights, riskItems);
+      // Merge user data with fresh scores in a single UPDATE
+      const merged = { ...existing, ...data };
+      const scores = computeFriaScore(merged, rights, riskItems);
 
       await updateFriaQuery(
-        existing.id,
-        {
-          completion_pct: scores.completionPct,
-          risk_score: scores.riskScore,
-          risk_level: scores.riskLevel,
-          rights_flagged: scores.rightsFlagged,
-        },
+        existing.id!,
+        { ...data, ...scores },
         organizationId,
         userId,
         transaction
@@ -208,7 +211,7 @@ export async function updateFria(req: Request, res: Response): Promise<any> {
           userId,
           eventType: "Update",
           entityType: "fria",
-          entityId: existing.id,
+          entityId: existing.id!,
           description: `FRIA updated for project ${projectId}`,
         });
       } catch {}
@@ -244,9 +247,9 @@ export async function updateFria(req: Request, res: Response): Promise<any> {
 /**
  * Bulk upsert all 10 rights for a FRIA.
  */
-export async function updateFriaRights(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function updateFriaRights(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting updateFriaRights",
@@ -264,7 +267,7 @@ export async function updateFriaRights(req: Request, res: Response): Promise<any
       return res.status(400).json(STATUS_CODE[400]("Invalid FRIA ID or rights data"));
     }
 
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
     if (!fria) {
       return res.status(404).json(STATUS_CODE[404]("FRIA not found"));
     }
@@ -277,18 +280,7 @@ export async function updateFriaRights(req: Request, res: Response): Promise<any
       const riskItems = await getFriaRiskItemsQuery(friaId, organizationId);
       const scores = computeFriaScore(fria, updatedRights, riskItems);
 
-      await updateFriaQuery(
-        friaId,
-        {
-          completion_pct: scores.completionPct,
-          risk_score: scores.riskScore,
-          risk_level: scores.riskLevel,
-          rights_flagged: scores.rightsFlagged,
-        },
-        organizationId,
-        userId,
-        transaction
-      );
+      await updateFriaQuery(friaId, scores, organizationId, userId, transaction);
 
       await transaction.commit();
 
@@ -337,9 +329,9 @@ export async function updateFriaRights(req: Request, res: Response): Promise<any
 /**
  * Get risk items for a FRIA.
  */
-export async function getRiskItems(req: Request, res: Response): Promise<any> {
+export async function getRiskItems(req: Request, res: Response): Promise<Response> {
   try {
-    const organizationId = (req as any).organizationId as number;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
 
     if (!friaId || isNaN(friaId)) {
@@ -356,9 +348,9 @@ export async function getRiskItems(req: Request, res: Response): Promise<any> {
 /**
  * Add a risk item to a FRIA.
  */
-export async function addRiskItem(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function addRiskItem(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting addRiskItem",
@@ -379,11 +371,13 @@ export async function addRiskItem(req: Request, res: Response): Promise<any> {
     const item = await addFriaRiskItemQuery(friaId, data, organizationId);
 
     // Recompute score
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
-    const rights = await getFriaRightsQuery(friaId, organizationId);
-    const riskItems = await getFriaRiskItemsQuery(friaId, organizationId);
-    const scores = computeFriaScore(fria, rights, riskItems);
-    await updateFriaQuery(friaId, scores, organizationId, userId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
+    if (fria) {
+      const rights = await getFriaRightsQuery(friaId, organizationId);
+      const riskItems = await getFriaRiskItemsQuery(friaId, organizationId);
+      const scores = computeFriaScore(fria, rights, riskItems);
+      await updateFriaQuery(friaId, scores, organizationId, userId);
+    }
 
     try {
       await appendToAuditLedger({
@@ -424,10 +418,10 @@ export async function addRiskItem(req: Request, res: Response): Promise<any> {
 /**
  * Update a risk item.
  */
-export async function updateRiskItem(req: Request, res: Response): Promise<any> {
+export async function updateRiskItem(req: Request, res: Response): Promise<Response> {
   try {
-    const userId = (req as any).userId as number;
-    const organizationId = (req as any).organizationId as number;
+    const userId = req.userId!;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const itemId = parseInt(req.params.itemId as string);
 
@@ -441,7 +435,7 @@ export async function updateRiskItem(req: Request, res: Response): Promise<any> 
     }
 
     // Recompute score
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
     if (fria) {
       const rights = await getFriaRightsQuery(friaId, organizationId);
       const riskItems = await getFriaRiskItemsQuery(friaId, organizationId);
@@ -458,10 +452,10 @@ export async function updateRiskItem(req: Request, res: Response): Promise<any> 
 /**
  * Delete a risk item.
  */
-export async function deleteRiskItem(req: Request, res: Response): Promise<any> {
+export async function deleteRiskItem(req: Request, res: Response): Promise<Response> {
   try {
-    const userId = (req as any).userId as number;
-    const organizationId = (req as any).organizationId as number;
+    const userId = req.userId!;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const itemId = parseInt(req.params.itemId as string);
 
@@ -472,7 +466,7 @@ export async function deleteRiskItem(req: Request, res: Response): Promise<any> 
     await deleteFriaRiskItemQuery(itemId, organizationId, undefined, friaId);
 
     // Recompute score
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
     if (fria) {
       const rights = await getFriaRightsQuery(friaId, organizationId);
       const riskItems = await getFriaRiskItemsQuery(friaId, organizationId);
@@ -501,9 +495,9 @@ export async function deleteRiskItem(req: Request, res: Response): Promise<any> 
 /**
  * Get linked models for a FRIA.
  */
-export async function getModelLinks(req: Request, res: Response): Promise<any> {
+export async function getModelLinks(req: Request, res: Response): Promise<Response> {
   try {
-    const organizationId = (req as any).organizationId as number;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
 
     if (!friaId || isNaN(friaId)) {
@@ -520,9 +514,9 @@ export async function getModelLinks(req: Request, res: Response): Promise<any> {
 /**
  * Link a model to a FRIA.
  */
-export async function linkModel(req: Request, res: Response): Promise<any> {
+export async function linkModel(req: Request, res: Response): Promise<Response> {
   try {
-    const organizationId = (req as any).organizationId as number;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const modelId = parseInt(req.params.modelId as string);
 
@@ -540,9 +534,9 @@ export async function linkModel(req: Request, res: Response): Promise<any> {
 /**
  * Unlink a model from a FRIA.
  */
-export async function unlinkModel(req: Request, res: Response): Promise<any> {
+export async function unlinkModel(req: Request, res: Response): Promise<Response> {
   try {
-    const organizationId = (req as any).organizationId as number;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const modelId = parseInt(req.params.modelId as string);
 
@@ -560,9 +554,9 @@ export async function unlinkModel(req: Request, res: Response): Promise<any> {
 /**
  * Submit FRIA: create snapshot, change status to completed.
  */
-export async function submitFria(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function submitFria(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting submitFria",
@@ -580,7 +574,7 @@ export async function submitFria(req: Request, res: Response): Promise<any> {
       return res.status(400).json(STATUS_CODE[400]("Invalid FRIA ID"));
     }
 
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
     if (!fria) {
       return res.status(404).json(STATUS_CODE[404]("FRIA not found"));
     }
@@ -610,7 +604,7 @@ export async function submitFria(req: Request, res: Response): Promise<any> {
 
       await updateFriaQuery(
         friaId,
-        { status: "completed", version: fria.version + 1 },
+        { status: "submitted", version: fria.version + 1 },
         organizationId,
         userId,
         transaction
@@ -661,9 +655,9 @@ export async function submitFria(req: Request, res: Response): Promise<any> {
 /**
  * Get all version snapshots for a FRIA.
  */
-export async function getVersions(req: Request, res: Response): Promise<any> {
+export async function getVersions(req: Request, res: Response): Promise<Response> {
   try {
-    const organizationId = (req as any).organizationId as number;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
 
     if (!friaId || isNaN(friaId)) {
@@ -680,9 +674,9 @@ export async function getVersions(req: Request, res: Response): Promise<any> {
 /**
  * Get a specific version snapshot.
  */
-export async function getVersion(req: Request, res: Response): Promise<any> {
+export async function getVersion(req: Request, res: Response): Promise<Response> {
   try {
-    const organizationId = (req as any).organizationId as number;
+    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const version = parseInt(req.params.version as string);
 
@@ -721,9 +715,9 @@ const FRIA_SECTION_TYPES = [
  * If ?section=section_1 is provided, returns evidence for that section only.
  * Otherwise returns evidence for all 8 sections grouped by entity type.
  */
-export async function getFriaEvidence(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function getFriaEvidence(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting getFriaEvidence",
@@ -741,12 +735,12 @@ export async function getFriaEvidence(req: Request, res: Response): Promise<any>
       return res.status(400).json(STATUS_CODE[400]("Invalid FRIA ID"));
     }
 
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
     if (!fria) {
       return res.status(404).json(STATUS_CODE[404]("FRIA not found"));
     }
 
-    let evidence: any;
+    let evidence: unknown;
 
     if (section) {
       evidence = await getEvidenceFilesForEntity(
@@ -794,9 +788,9 @@ export async function getFriaEvidence(req: Request, res: Response): Promise<any>
  * Link a file as evidence to a FRIA section.
  * Body: { file_id, entity_type } where entity_type is like "section_1", "right_dignity", etc.
  */
-export async function linkFriaEvidence(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function linkFriaEvidence(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting linkFriaEvidence",
@@ -818,7 +812,7 @@ export async function linkFriaEvidence(req: Request, res: Response): Promise<any
       return res.status(400).json(STATUS_CODE[400]("Missing file_id or entity_type"));
     }
 
-    const fria: any = await getFriaByIdQuery(friaId, organizationId);
+    const fria = await getFriaByIdQuery(friaId, organizationId);
     if (!fria) {
       return res.status(404).json(STATUS_CODE[404]("FRIA not found"));
     }
@@ -860,9 +854,9 @@ export async function linkFriaEvidence(req: Request, res: Response): Promise<any
 /**
  * Unlink an evidence file from a FRIA by link ID.
  */
-export async function unlinkFriaEvidence(req: Request, res: Response): Promise<any> {
-  const userId = (req as any).userId as number;
-  const organizationId = (req as any).organizationId as number;
+export async function unlinkFriaEvidence(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
 
   logProcessing({
     description: "starting unlinkFriaEvidence",

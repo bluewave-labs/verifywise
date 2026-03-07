@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { friaRepository } from "../repository/fria.repository";
 
 export interface FriaRight {
@@ -87,6 +87,7 @@ export function useFria(projectId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [lastSaveStatus, setLastSaveStatus] = useState<"saved" | "error" | null>(null);
 
   const fetchFria = useCallback(async () => {
     if (!projectId) return;
@@ -109,99 +110,143 @@ export function useFria(projectId: string) {
     fetchFria();
   }, [fetchFria]);
 
+  // Debounce assessment updates — accumulate fields and flush after 500ms
+  const pendingUpdate = useRef<Partial<FriaAssessment>>({});
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flushUpdate = useCallback(async () => {
+    if (!projectId) return;
+    const data = { ...pendingUpdate.current };
+    pendingUpdate.current = {};
+    if (Object.keys(data).length === 0) return;
+
+    setIsSaving(true);
+    setLastSaveStatus(null);
+    try {
+      const updated = await friaRepository.updateFria(projectId, data);
+      setAssessment(updated);
+      setLastSaveStatus("saved");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update FRIA");
+      setLastSaveStatus("error");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [projectId]);
+
   const updateAssessment = useCallback(
-    async (data: Partial<FriaAssessment>) => {
-      if (!projectId) return;
-      setIsSaving(true);
-      try {
-        const updated = await friaRepository.updateFria(projectId, data);
-        setAssessment(updated);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to update FRIA");
-      } finally {
-        setIsSaving(false);
-      }
+    (data: Partial<FriaAssessment>) => {
+      pendingUpdate.current = { ...pendingUpdate.current, ...data };
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(flushUpdate, 500);
     },
-    [projectId]
+    [flushUpdate]
   );
+
+  // Fire-and-forget flush on unmount (no state updates)
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        const data = { ...pendingUpdate.current };
+        pendingUpdate.current = {};
+        if (Object.keys(data).length > 0 && projectId) {
+          friaRepository.updateFria(projectId, data).catch(() => {});
+        }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  // Re-fetch assessment for updated scores after mutations
+  const refreshAssessment = useCallback(async () => {
+    const fresh = await friaRepository.getFria(projectId);
+    setAssessment(fresh.assessment);
+  }, [projectId]);
 
   const updateRights = useCallback(
     async (updatedRights: Partial<FriaRight>[]) => {
       if (!assessment) return;
       setIsSaving(true);
+      setLastSaveStatus(null);
       try {
         const result = await friaRepository.updateRights(
           assessment.id,
           updatedRights
         );
         setRights(result);
-        // Refresh only the assessment scores without resetting the full data
-        const fresh = await friaRepository.getFria(projectId);
-        setAssessment(fresh.assessment);
+        await refreshAssessment();
+        setLastSaveStatus("saved");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to update rights");
+        setLastSaveStatus("error");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, projectId]
+    [assessment, refreshAssessment]
   );
 
   const addRiskItem = useCallback(
     async (data: Partial<FriaRiskItem>) => {
       if (!assessment) return;
       setIsSaving(true);
+      setLastSaveStatus(null);
       try {
-        await friaRepository.addRiskItem(assessment.id, data);
-        // Refresh assessment scores and risk items without resetting rights
-        const fresh = await friaRepository.getFria(projectId);
-        setAssessment(fresh.assessment);
-        setRiskItems(fresh.riskItems || []);
+        const newItem = await friaRepository.addRiskItem(assessment.id, data);
+        setRiskItems((prev) => [...prev, newItem]);
+        await refreshAssessment();
+        setLastSaveStatus("saved");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to add risk item");
+        setLastSaveStatus("error");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, projectId]
+    [assessment, refreshAssessment]
   );
 
   const updateRiskItem = useCallback(
     async (itemId: number, data: Partial<FriaRiskItem>) => {
       if (!assessment) return;
       setIsSaving(true);
+      setLastSaveStatus(null);
       try {
-        await friaRepository.updateRiskItem(assessment.id, itemId, data);
-        // Refresh assessment scores and risk items without resetting rights
-        const fresh = await friaRepository.getFria(projectId);
-        setAssessment(fresh.assessment);
-        setRiskItems(fresh.riskItems || []);
+        const updated = await friaRepository.updateRiskItem(assessment.id, itemId, data);
+        setRiskItems((prev) =>
+          prev.map((item) => (item.id === itemId ? updated : item))
+        );
+        await refreshAssessment();
+        setLastSaveStatus("saved");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to update risk item");
+        setLastSaveStatus("error");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, projectId]
+    [assessment, refreshAssessment]
   );
 
   const deleteRiskItem = useCallback(
     async (itemId: number) => {
       if (!assessment) return;
       setIsSaving(true);
+      setLastSaveStatus(null);
       try {
         await friaRepository.deleteRiskItem(assessment.id, itemId);
-        // Refresh assessment scores and risk items without resetting rights
-        const fresh = await friaRepository.getFria(projectId);
-        setAssessment(fresh.assessment);
-        setRiskItems(fresh.riskItems || []);
+        setRiskItems((prev) => prev.filter((item) => item.id !== itemId));
+        await refreshAssessment();
+        setLastSaveStatus("saved");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to delete risk item");
+        setLastSaveStatus("error");
       } finally {
         setIsSaving(false);
       }
     },
-    [assessment, projectId]
+    [assessment, refreshAssessment]
   );
 
   const linkModel = useCallback(
@@ -233,6 +278,12 @@ export function useFria(projectId: string) {
   const submitFria = useCallback(
     async (reason?: string) => {
       if (!assessment) return;
+      // Flush any pending debounced field updates before submitting
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = null;
+        await flushUpdate();
+      }
       setIsSaving(true);
       try {
         await friaRepository.submitFria(assessment.id, reason);
@@ -243,7 +294,7 @@ export function useFria(projectId: string) {
         setIsSaving(false);
       }
     },
-    [assessment, fetchFria]
+    [assessment, fetchFria, flushUpdate]
   );
 
   return {
@@ -254,6 +305,7 @@ export function useFria(projectId: string) {
     isLoading,
     error,
     isSaving,
+    lastSaveStatus,
     fetchFria,
     updateAssessment,
     updateRights,

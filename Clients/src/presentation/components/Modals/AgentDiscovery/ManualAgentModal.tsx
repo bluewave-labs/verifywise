@@ -13,7 +13,7 @@ import SelectComponent from "../../Inputs/Select";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
-import { AgentPrimitiveRow } from "../../../pages/AgentDiscovery/AgentTable";
+import { AgentPrimitiveRow } from "../../../../domain/interfaces/i.agentDiscovery";
 
 interface ManualAgentModalProps {
   isOpen: boolean;

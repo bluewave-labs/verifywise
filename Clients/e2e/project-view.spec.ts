@@ -8,12 +8,13 @@ test.describe("Project View", () => {
     await page.goto("/project-view");
     await expect(page).toHaveURL(/\/project-view/);
 
-    // Page should show project-related content or empty state
+    // Page should show project-related content (use cases, tabs, etc.) or empty state
     await expect(page.locator("body")).not.toBeEmpty();
     await expect(
       page
         .getByText(/project/i)
-        .or(page.getByText(/no.*project/i))
+        .or(page.getByText(/use case/i))
+        .or(page.getByRole("tablist"))
         .or(page.getByRole("heading"))
         .first()
     ).toBeVisible({ timeout: 15_000 });

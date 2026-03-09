@@ -54,6 +54,7 @@ export function VideoPlayerModal({
       const t = setTimeout(() => player.play(), 400);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export function VideoPlayerModal({
       const t = setTimeout(() => triggerExit(), 800);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [player.finished, visible, exiting]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const triggerExit = useCallback(() => {

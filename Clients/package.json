@@ -125,7 +125,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "baseline-browser-mapping": "^2.10.0",
     "concurrently": "^9.2.1",
-    "dotenv-webpack": "^8.1.0",
+    "dotenv-webpack": "^9.0.0",
     "jsdom": "^28.1.0",
     "typescript": "^5.5.3",
     "url-loader": "^4.1.1",

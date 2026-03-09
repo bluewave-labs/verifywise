@@ -2,9 +2,17 @@
 import { Router } from 'express';
 import { PolicyController } from '../controllers/policy.ctrl';
 import authenticateJWT from '../middleware/auth.middleware';
+import multer from 'multer';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
 
 const router = Router();
 
+// POST /policies/import/docx - Import DOCX and convert to HTML
+router.post('/import/docx', authenticateJWT, upload.single('file'), PolicyController.importDocx);
 
 // GET /policies - Get all policies
 router.get('/', authenticateJWT, PolicyController.getAllPolicies);

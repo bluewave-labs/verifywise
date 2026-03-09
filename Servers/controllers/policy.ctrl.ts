@@ -21,6 +21,7 @@ import {
   generatePolicyDOCX,
   generateFilename,
 } from "../services/policies/policyExporter";
+import mammoth from "mammoth";
 import {
   notifyReviewRequested,
   notifyReviewApproved,
@@ -268,6 +269,52 @@ export class PolicyController {
       return res.send(docxBuffer);
     } catch (error) {
       console.error("Error exporting policy as DOCX:", error);
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Import DOCX and convert to HTML
+  static async importDocx(req: Request, res: Response) {
+    try {
+      if (!req.file) {
+        return res.status(400).json(STATUS_CODE[400]("No file uploaded"));
+      }
+
+      const allowedMimes = [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/octet-stream",
+      ];
+      const hasDocxExtension = req.file.originalname?.toLowerCase().endsWith(".docx");
+      if (!allowedMimes.includes(req.file.mimetype) || !hasDocxExtension) {
+        return res.status(400).json(STATUS_CODE[400]("Only .docx files are supported"));
+      }
+
+      const result = await mammoth.convertToHtml(
+        { buffer: req.file.buffer },
+        {
+          styleMap: [
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh",
+            "p[style-name='Heading 3'] => h3:fresh",
+            "p[style-name='Heading 4'] => h3:fresh",
+            "p[style-name='Heading 5'] => h3:fresh",
+            "p[style-name='Heading 6'] => h3:fresh",
+          ],
+        }
+      );
+
+      // Post-process: downgrade h4-h6 to h3, strip class attributes
+      let html = result.value;
+      html = html.replace(/<(\/?)h[456](\s|>)/gi, "<$1h3$2");
+      html = html.replace(/\s+class="[^"]*"/g, "");
+
+      const warnings = result.messages
+        .filter((m) => m.type === "warning")
+        .map((m) => m.message);
+
+      return res.status(200).json(STATUS_CODE[200]({ html, warnings }));
+    } catch (error) {
+      console.error("Error importing DOCX:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

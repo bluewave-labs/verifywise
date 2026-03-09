@@ -10,7 +10,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('risk_portfolio_snapshots', {
+    await queryInterface.createTable({ tableName: 'risk_portfolio_snapshots', schema: 'verifywise' }, {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -62,7 +62,7 @@ module.exports = {
 
     // Index for efficient trend queries
     await queryInterface.addIndex(
-      'risk_portfolio_snapshots',
+      { tableName: 'risk_portfolio_snapshots', schema: 'verifywise' },
       ['organization_id', 'snapshot_date'],
       { name: 'idx_risk_portfolio_snapshots_org_date' }
     );
@@ -71,7 +71,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('risk_portfolio_snapshots');
+    await queryInterface.dropTable({ tableName: 'risk_portfolio_snapshots', schema: 'verifywise' });
     console.log('Successfully dropped risk_portfolio_snapshots table.');
   },
 };

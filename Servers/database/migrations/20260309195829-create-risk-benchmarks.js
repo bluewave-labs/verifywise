@@ -11,7 +11,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('risk_benchmarks', {
+    await queryInterface.createTable({ tableName: 'risk_benchmarks', schema: 'verifywise' }, {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -125,7 +125,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('risk_benchmarks');
+    await queryInterface.dropTable({ tableName: 'risk_benchmarks', schema: 'verifywise' });
     console.log('Successfully dropped risk_benchmarks table.');
   },
 };

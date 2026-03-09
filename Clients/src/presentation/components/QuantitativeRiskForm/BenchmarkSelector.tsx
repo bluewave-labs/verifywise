@@ -1,4 +1,4 @@
-import { FC, useState, useCallback } from "react";
+import { FC, useCallback } from "react";
 import {
   Stack,
   Typography,
@@ -6,13 +6,9 @@ import {
   Autocomplete,
   TextField,
   Box,
-  Chip,
 } from "@mui/material";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
-import {
-  useBenchmarks,
-  useBenchmarkFilters,
-} from "../../../application/hooks/useQuantitativeRisk";
+import { useBenchmarks } from "../../../application/hooks/useQuantitativeRisk";
 import { IRiskBenchmark } from "../../../domain/interfaces/i.quantitativeRisk";
 import { getAutocompleteStyles } from "../../utils/inputStyles";
 
@@ -30,14 +26,7 @@ const BenchmarkSelector: FC<BenchmarkSelectorProps> = ({
   disabled = false,
 }) => {
   const theme = useTheme();
-  const [selectedIndustry, setSelectedIndustry] = useState<string | undefined>();
-  const [selectedAiRiskType, setSelectedAiRiskType] = useState<string | undefined>();
-
-  const { filters } = useBenchmarkFilters();
-  const { benchmarks, isLoading } = useBenchmarks(
-    selectedIndustry,
-    selectedAiRiskType
-  );
+  const { benchmarks, isLoading } = useBenchmarks();
 
   const handleBenchmarkSelect = useCallback(
     (_: React.SyntheticEvent, value: IRiskBenchmark | null) => {
@@ -70,42 +59,6 @@ const BenchmarkSelector: FC<BenchmarkSelectorProps> = ({
         values. You can adjust them after applying.
       </Typography>
 
-      {/* Filter chips */}
-      <Stack direction="row" sx={{ gap: 1, flexWrap: "wrap" }}>
-        {filters.industries.map((industry) => (
-          <Chip
-            key={industry}
-            label={industry}
-            size="small"
-            variant={selectedIndustry === industry ? "filled" : "outlined"}
-            color={selectedIndustry === industry ? "primary" : "default"}
-            onClick={() =>
-              setSelectedIndustry(
-                selectedIndustry === industry ? undefined : industry
-              )
-            }
-            sx={{ fontSize: 12 }}
-          />
-        ))}
-      </Stack>
-      <Stack direction="row" sx={{ gap: 1, flexWrap: "wrap" }}>
-        {filters.aiRiskTypes.map((type) => (
-          <Chip
-            key={type}
-            label={type}
-            size="small"
-            variant={selectedAiRiskType === type ? "filled" : "outlined"}
-            color={selectedAiRiskType === type ? "primary" : "default"}
-            onClick={() =>
-              setSelectedAiRiskType(
-                selectedAiRiskType === type ? undefined : type
-              )
-            }
-            sx={{ fontSize: 12 }}
-          />
-        ))}
-      </Stack>
-
       {/* Benchmark selector */}
       <Autocomplete
         id="benchmark-selector"
@@ -113,8 +66,9 @@ const BenchmarkSelector: FC<BenchmarkSelectorProps> = ({
         options={benchmarks}
         loading={isLoading}
         disabled={disabled}
+        groupBy={(option) => option.industry}
         getOptionLabel={(option) =>
-          `${option.category} (${option.industry} - ${option.ai_risk_type})`
+          `${option.category} (${option.ai_risk_type})`
         }
         renderOption={(props, option) => {
           const { key, ...optionProps } = props;
@@ -127,13 +81,35 @@ const BenchmarkSelector: FC<BenchmarkSelectorProps> = ({
                 <Typography
                   sx={{ fontSize: 11, color: theme.palette.text.tertiary }}
                 >
-                  {option.industry} &middot; {option.ai_risk_type}
-                  {option.regulation ? ` &middot; ${option.regulation}` : ""}
+                  {option.ai_risk_type}
+                  {option.regulation ? ` \u00B7 ${option.regulation}` : ""}
                 </Typography>
               </Stack>
             </Box>
           );
         }}
+        renderGroup={(params) => (
+          <li key={params.key}>
+            <Box
+              sx={{
+                position: "sticky",
+                top: "-8px",
+                zIndex: 1,
+                padding: "6px 12px",
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                color: theme.palette.text.secondary,
+                backgroundColor: theme.palette.action.hover,
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              {params.group}
+            </Box>
+            <ul style={{ padding: 0 }}>{params.children}</ul>
+          </li>
+        )}
         popupIcon={<GreyDownArrowIcon size={20} />}
         renderInput={(params) => (
           <TextField

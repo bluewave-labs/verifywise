@@ -497,14 +497,14 @@ module.exports = {
       created_at: new Date(),
     }));
 
-    await queryInterface.bulkInsert('risk_benchmarks', rows);
+    await queryInterface.bulkInsert({ tableName: 'risk_benchmarks', schema: 'verifywise' }, rows);
     console.log(`Successfully seeded ${rows.length} risk benchmarks.`);
   },
 
   async down(queryInterface, Sequelize) {
     // Remove all seeded benchmarks by matching on known categories
     const categories = [...new Set(benchmarks.map((b) => b.category))];
-    await queryInterface.bulkDelete('risk_benchmarks', {
+    await queryInterface.bulkDelete({ tableName: 'risk_benchmarks', schema: 'verifywise' }, {
       category: categories,
     });
     console.log('Successfully removed seeded risk benchmarks.');

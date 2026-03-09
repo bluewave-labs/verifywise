@@ -105,8 +105,8 @@ const ALESummaryCard: FC<ALESummaryCardProps> = ({ fields }) => {
             </Typography>
             <Typography
               sx={{
-                fontSize: metric.highlight ? 20 : 16,
-                fontWeight: metric.highlight ? 700 : 600,
+                fontSize: 16,
+                fontWeight: 600,
                 color: metric.color || theme.palette.text.primary,
               }}
             >

@@ -1,5 +1,5 @@
 import { FC, useCallback } from "react";
-import { Stack, Typography, useTheme, Divider } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import Field from "../Inputs/Field";
 import { IQuantitativeRiskFields } from "../../../domain/interfaces/i.quantitativeRisk";
 import { IRiskBenchmark } from "../../../domain/interfaces/i.quantitativeRisk";
@@ -211,8 +211,6 @@ const QuantitativeRiskForm: FC<QuantitativeRiskFormProps> = ({
       {/* Benchmark selector */}
       <BenchmarkSelector onApply={handleBenchmarkApply} disabled={disabled} />
 
-      <Divider />
-
       {/* Event Frequency */}
       <Stack sx={{ gap: 2 }}>
         <Typography
@@ -241,8 +239,6 @@ const QuantitativeRiskForm: FC<QuantitativeRiskFormProps> = ({
         )}
       </Stack>
 
-      <Divider />
-
       {/* Loss Magnitude */}
       <Stack sx={{ gap: 2 }}>
         <Typography
@@ -270,8 +266,6 @@ const QuantitativeRiskForm: FC<QuantitativeRiskFormProps> = ({
         {renderThreePointRow("Reputational damage", "loss_reputational", "$")}
       </Stack>
 
-      <Divider />
-
       {/* Mitigation & ROI */}
       <MitigationROI
         controlEffectiveness={values.control_effectiveness}
@@ -284,8 +278,6 @@ const QuantitativeRiskForm: FC<QuantitativeRiskFormProps> = ({
         }
         disabled={disabled}
       />
-
-      <Divider />
 
       {/* Live ALE Summary */}
       <ALESummaryCard fields={fairFields} />

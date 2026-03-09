@@ -225,6 +225,7 @@ export interface IRiskTableProps {
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface ITasksTableProps {
@@ -255,4 +256,5 @@ export interface ITableWithPlaceholderProps {
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
   vendorRisks?: VendorRisk[];
+  visibleColumns?: Set<string>;
 }

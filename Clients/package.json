@@ -28,7 +28,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^10.0.1",
-    "@mui/lab": "^7.0.1-beta.20",
+    "@mui/lab": "^7.0.1-beta.23",
     "@mui/material": "^7.3.8",
     "@mui/styled-engine-sc": "^7.3.8",
     "@mui/x-charts": "^8.27.0",

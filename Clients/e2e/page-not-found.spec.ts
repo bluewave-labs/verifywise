@@ -45,12 +45,8 @@ test.describe("Page Not Found (404)", () => {
   test("provides a way to navigate back", async ({ authedPage: page }) => {
     await page.goto("/this-page-does-not-exist-e2e-test");
 
-    // Should provide a link or button to go back to home/dashboard
-    const backLink = page
-      .getByRole("link", { name: /home|back|dashboard/i })
-      .or(page.getByRole("button", { name: /home|back|dashboard/i }))
-      .or(page.getByText(/go.*back/i))
-      .or(page.getByText(/return/i));
+    // Should provide a way to go back to home/dashboard
+    const backLink = page.getByText(/back to home/i);
     await expect(backLink.first()).toBeVisible({ timeout: 10_000 });
   });
 });

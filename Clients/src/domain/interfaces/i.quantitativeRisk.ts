@@ -85,6 +85,10 @@ export interface IPortfolioSummary {
   risk_count: number;
   risk_reduction: number;
   overall_roi: number | null;
+  loss_regulatory: number;
+  loss_operational: number;
+  loss_litigation: number;
+  loss_reputational: number;
 }
 
 /** Portfolio snapshot for trend tracking */

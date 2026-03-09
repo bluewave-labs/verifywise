@@ -95,6 +95,10 @@ export interface IPortfolioSummary {
   risk_count: number;
   risk_reduction: number; // total_ale - total_residual_ale
   overall_roi: number | null; // (risk_reduction - total_mitigation_cost) / total_mitigation_cost * 100
+  loss_regulatory: number;
+  loss_operational: number;
+  loss_litigation: number;
+  loss_reputational: number;
 }
 
 /** Portfolio snapshot for trend tracking */

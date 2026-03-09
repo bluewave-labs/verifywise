@@ -159,12 +159,20 @@ export async function getPortfolioByOrg(
     total_residual_ale: string;
     total_mitigation_cost: string;
     risk_count: string;
+    loss_regulatory: string;
+    loss_operational: string;
+    loss_litigation: string;
+    loss_reputational: string;
   }>(
     `SELECT
       COALESCE(SUM(ale_estimate), 0) AS total_ale,
       COALESCE(SUM(residual_ale), 0) AS total_residual_ale,
       COALESCE(SUM(mitigation_cost_annual), 0) AS total_mitigation_cost,
-      COUNT(*) AS risk_count
+      COUNT(*) AS risk_count,
+      COALESCE(SUM(loss_regulatory_likely), 0) AS loss_regulatory,
+      COALESCE(SUM(loss_operational_likely), 0) AS loss_operational,
+      COALESCE(SUM(loss_litigation_likely), 0) AS loss_litigation,
+      COALESCE(SUM(loss_reputational_likely), 0) AS loss_reputational
     FROM risks
     WHERE organization_id = :organizationId
       AND is_deleted = false
@@ -193,6 +201,10 @@ export async function getPortfolioByOrg(
               10000
           ) / 100
         : null,
+    loss_regulatory: Number(result?.loss_regulatory) || 0,
+    loss_operational: Number(result?.loss_operational) || 0,
+    loss_litigation: Number(result?.loss_litigation) || 0,
+    loss_reputational: Number(result?.loss_reputational) || 0,
   };
 }
 
@@ -208,12 +220,20 @@ export async function getPortfolioByProject(
     total_residual_ale: string;
     total_mitigation_cost: string;
     risk_count: string;
+    loss_regulatory: string;
+    loss_operational: string;
+    loss_litigation: string;
+    loss_reputational: string;
   }>(
     `SELECT
       COALESCE(SUM(r.ale_estimate), 0) AS total_ale,
       COALESCE(SUM(r.residual_ale), 0) AS total_residual_ale,
       COALESCE(SUM(r.mitigation_cost_annual), 0) AS total_mitigation_cost,
-      COUNT(*) AS risk_count
+      COUNT(*) AS risk_count,
+      COALESCE(SUM(r.loss_regulatory_likely), 0) AS loss_regulatory,
+      COALESCE(SUM(r.loss_operational_likely), 0) AS loss_operational,
+      COALESCE(SUM(r.loss_litigation_likely), 0) AS loss_litigation,
+      COALESCE(SUM(r.loss_reputational_likely), 0) AS loss_reputational
     FROM risks r
     JOIN projects_risks pr ON r.id = pr.risk_id
     WHERE r.organization_id = :organizationId
@@ -244,6 +264,10 @@ export async function getPortfolioByProject(
               10000
           ) / 100
         : null,
+    loss_regulatory: Number(result?.loss_regulatory) || 0,
+    loss_operational: Number(result?.loss_operational) || 0,
+    loss_litigation: Number(result?.loss_litigation) || 0,
+    loss_reputational: Number(result?.loss_reputational) || 0,
   };
 }
 

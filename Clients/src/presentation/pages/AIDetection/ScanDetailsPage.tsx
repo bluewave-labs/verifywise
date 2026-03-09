@@ -104,7 +104,8 @@ type TabValue =
   | "models"
   | "rag"
   | "agents"
-  | "compliance";
+  | "compliance"
+  | "vulnerabilities";
 
 
 // ============================================================================
@@ -1023,6 +1024,152 @@ function mapSuggestionToMitigationForm(s: SuggestedRisk): Partial<MitigationForm
 }
 
 // ============================================================================
+// Vulnerability Finding Row Component
+// ============================================================================
+
+const VULN_TYPE_LABELS: Record<string, { label: string; owaspId: string }> = {
+  prompt_injection: { label: "Prompt injection", owaspId: "LLM01" },
+  pii_exposure: { label: "PII exposure", owaspId: "LLM06" },
+  excessive_agency: { label: "Excessive agency", owaspId: "LLM05" },
+  jailbreak_risk: { label: "Jailbreak risk", owaspId: "LLM02" },
+};
+
+interface VulnerabilityFindingRowProps {
+  finding: Finding;
+  repositoryOwner: string;
+  repositoryName: string;
+}
+
+function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName }: VulnerabilityFindingRowProps) {
+  const [expanded, setExpanded] = useState(false);
+  const vulnMeta = VULN_TYPE_LABELS[finding.finding_type] || { label: finding.finding_type, owaspId: "" };
+  const riskColor = finding.risk_level === "high" ? palette.risk.high : finding.risk_level === "medium" ? palette.risk.medium : palette.risk.low;
+
+  const getFileUrl = (filePath: string, lineNumber: number | null): string | null => {
+    if (!repositoryOwner || !repositoryName) return null;
+    const lineRef = lineNumber ? `#L${lineNumber}` : "";
+    return `https://github.com/${repositoryOwner}/${repositoryName}/blob/HEAD/${filePath}${lineRef}`;
+  };
+
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${riskColor.border || palette.border.dark}`,
+        borderLeft: `3px solid ${riskColor.text || palette.text.primary}`,
+        borderRadius: "4px",
+        mb: "8px",
+        backgroundColor: palette.background.main,
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          p: "12px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          cursor: "pointer",
+        }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
+          <IconButton size="small" sx={{ p: 0 }}>
+            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </IconButton>
+          <Chip
+            label={finding.risk_level || "medium"}
+            variant={finding.risk_level === "high" ? "high" : finding.risk_level === "medium" ? "medium" : "low"}
+          />
+          <Chip
+            label={vulnMeta.owaspId}
+            variant="medium"
+          />
+          <Typography
+            sx={{
+              fontSize: 13,
+              fontWeight: 500,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {finding.description || finding.name}
+          </Typography>
+        </Box>
+        <Typography sx={{ fontSize: 12, color: palette.text.tertiary, ml: "8px", flexShrink: 0 }}>
+          {vulnMeta.label}
+        </Typography>
+      </Box>
+
+      <Collapse in={expanded}>
+        <Box sx={{ px: "16px", pb: "16px" }}>
+          {/* Data flow summary */}
+          {finding.data_flow_summary && (
+            <Box sx={{ mb: "12px" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: "4px" }}>
+                Data flow
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  color: palette.text.primary,
+                  backgroundColor: palette.background.fill,
+                  p: "8px",
+                  borderRadius: "4px",
+                  fontFamily: "monospace",
+                }}
+              >
+                {finding.data_flow_summary}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Mitigation */}
+          {finding.mitigation && (
+            <Box sx={{ mb: "12px" }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: "4px" }}>
+                Recommended mitigation
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.primary }}>
+                {finding.mitigation}
+              </Typography>
+            </Box>
+          )}
+
+          {/* File paths */}
+          {finding.file_paths && finding.file_paths.length > 0 && (
+            <Box>
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: "4px" }}>
+                Affected files
+              </Typography>
+              {finding.file_paths.map((fp, idx) => {
+                const fileUrl = getFileUrl(fp.path, fp.line_number);
+                return (
+                  <Box key={idx} sx={{ display: "flex", alignItems: "center", gap: "4px", mb: "2px" }}>
+                    <FileCode size={12} color={palette.text.tertiary} />
+                    {fileUrl ? (
+                      <VWLink href={fileUrl} target="_blank">
+                        <Typography sx={{ fontSize: 12 }}>
+                          {fp.path}{fp.line_number ? `:${fp.line_number}` : ""}
+                        </Typography>
+                      </VWLink>
+                    ) : (
+                      <Typography sx={{ fontSize: 12, color: palette.text.secondary }}>
+                        {fp.path}{fp.line_number ? `:${fp.line_number}` : ""}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+        </Box>
+      </Collapse>
+    </Box>
+  );
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -1044,6 +1191,7 @@ export default function ScanDetailsPage() {
   const [securitySummary, setSecuritySummary] = useState<SecuritySummary | null>(
     null
   );
+  const [vulnerabilityFindings, setVulnerabilityFindings] = useState<Finding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -1171,6 +1319,7 @@ export default function ScanDetailsPage() {
           agentFindingsResponse,
           securityFindingsResponse,
           summaryResponse,
+          vulnFindingsResponses,
         ] = await Promise.all([
           getScan(scanId),
           getScanFindings(scanId, { page: 1, limit: 50, finding_type: "library" }),
@@ -1181,6 +1330,12 @@ export default function ScanDetailsPage() {
           getScanFindings(scanId, { page: 1, limit: 50, finding_type: "agent" }),
           getScanSecurityFindings(scanId, { page: 1, limit: 50 }),
           getScanSecuritySummary(scanId),
+          Promise.all([
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "prompt_injection" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "pii_exposure" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "excessive_agency" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "jailbreak_risk" }),
+          ]),
         ]);
         setScan(scanResponse);
         setFindings(findingsResponse.findings);
@@ -1198,6 +1353,10 @@ export default function ScanDetailsPage() {
         setSecurityFindings(securityFindingsResponse.findings);
         setSecurityTotalPages(securityFindingsResponse.pagination.total_pages);
         setSecuritySummary(summaryResponse);
+        // Combine all vulnerability findings
+        setVulnerabilityFindings(
+          vulnFindingsResponses.flatMap((r) => r.findings)
+        );
       } catch {
         // Error loading scan - component will show empty state
       } finally {
@@ -1844,6 +2003,13 @@ export default function ScanDetailsPage() {
               icon: "Key",
               count: scan.summary.by_finding_type?.secret || 0,
               tooltip: "Exposed API keys and credentials",
+            },
+            {
+              label: "Vulnerabilities",
+              value: "vulnerabilities",
+              icon: "ShieldAlert",
+              count: vulnerabilityFindings.length,
+              tooltip: "LLM-specific vulnerabilities (prompt injection, PII exposure, excessive agency, jailbreak risk)",
             },
             {
               label: "Security",
@@ -3163,6 +3329,117 @@ export default function ScanDetailsPage() {
             )}
           </Box>
         )}
+        {/* Vulnerabilities Tab */}
+        {activeTab === "vulnerabilities" && (
+          <Box sx={{ mt: "8px" }}>
+            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+              LLM-specific vulnerability findings detected through code analysis.
+              These identify insecure patterns in how AI/LLM components are used.
+            </Typography>
+
+            {/* Vulnerability Summary Cards */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: "8px",
+                mb: "16px",
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: palette.background.main,
+                  border: `1px solid ${palette.border.dark}`,
+                  borderRadius: "4px",
+                  p: 2,
+                  textAlign: "center",
+                }}
+              >
+                <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                  {vulnerabilityFindings.length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                  Total
+                </Typography>
+              </Box>
+              {(["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"] as const).map((type) => {
+                const count = vulnerabilityFindings.filter((f) => f.finding_type === type).length;
+                const labels: Record<string, string> = {
+                  prompt_injection: "Prompt injection",
+                  pii_exposure: "PII exposure",
+                  excessive_agency: "Excessive agency",
+                  jailbreak_risk: "Jailbreak risk",
+                };
+                return (
+                  <Box
+                    key={type}
+                    sx={{
+                      backgroundColor: count > 0 ? palette.risk.high.bg : palette.background.main,
+                      border: `1px solid ${count > 0 ? palette.risk.high.border : palette.border.dark}`,
+                      borderRadius: "4px",
+                      p: 2,
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 600,
+                        color: count > 0 ? palette.risk.high.text : palette.text.primary,
+                      }}
+                    >
+                      {count}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                      {labels[type]}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+
+            {/* Vulnerability Findings List */}
+            {vulnerabilityFindings.length === 0 ? (
+              <Box
+                sx={{
+                  backgroundColor: palette.status.success.bg,
+                  border: `1px solid ${palette.status.success.border}`,
+                  borderRadius: "4px",
+                  p: 4,
+                  textAlign: "center",
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                  <ShieldCheck size={48} color={palette.status.success.text} />
+                </Box>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 500, color: palette.status.success.text, mb: 1 }}
+                >
+                  No LLM vulnerabilities detected
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 1 }}>
+                  <Info size={14} color={palette.text.tertiary} />
+                  <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                    Enable vulnerability scanning in settings for deep LLM analysis.
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <Box>
+                {vulnerabilityFindings.map((finding) => (
+                  <VulnerabilityFindingRow
+                    key={finding.id}
+                    finding={finding}
+                    repositoryOwner={scan.scan.repository_owner}
+                    repositoryName={scan.scan.repository_name}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
+
       </TabContext>
 
       {/* AI Dependency Graph Modal */}

@@ -75,7 +75,11 @@ export type FindingType =
   | "secret"
   | "model_ref"
   | "rag_component"
-  | "agent";
+  | "agent"
+  | "prompt_injection"
+  | "pii_exposure"
+  | "excessive_agency"
+  | "jailbreak_risk";
 
 export interface Finding {
   id: number;
@@ -97,6 +101,40 @@ export interface Finding {
   license_name?: string | null;
   license_risk?: LicenseRiskLevel | null;
   license_source?: LicenseSource | null;
+  // Vulnerability detection fields
+  mitigation?: string | null;
+  data_flow_summary?: string | null;
+  vulnerability_details?: Record<string, unknown> | null;
+}
+
+// ============================================================================
+// Vulnerability Finding Types
+// ============================================================================
+
+export type VulnerabilityFindingType =
+  | "prompt_injection"
+  | "pii_exposure"
+  | "excessive_agency"
+  | "jailbreak_risk";
+
+export const VULNERABILITY_FINDING_TYPES: VulnerabilityFindingType[] = [
+  "prompt_injection",
+  "pii_exposure",
+  "excessive_agency",
+  "jailbreak_risk",
+];
+
+export interface VulnerabilityFindingsBySeverity {
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
+export interface VulnerabilitySummary {
+  total: number;
+  by_severity: VulnerabilityFindingsBySeverity;
+  by_type: Record<VulnerabilityFindingType, number>;
 }
 
 // ============================================================================

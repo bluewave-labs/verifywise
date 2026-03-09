@@ -118,6 +118,20 @@ function getDimensionsForFinding(finding: FindingForScoring): DimensionKey[] {
     dimensions.push("supply_chain");
   }
 
+  // Vulnerability findings
+  if (finding_type === "prompt_injection") {
+    dimensions.push("security", "data_sovereignty");
+  }
+  if (finding_type === "pii_exposure") {
+    dimensions.push("data_sovereignty", "security");
+  }
+  if (finding_type === "excessive_agency") {
+    dimensions.push("autonomy", "security");
+  }
+  if (finding_type === "jailbreak_risk") {
+    dimensions.push("security", "transparency");
+  }
+
   return dimensions;
 }
 
@@ -271,11 +285,21 @@ function buildLLMPrompt(
     .map((d) => `${d.label}: ${dimensionScores[d.key].score}/100 (${dimensionScores[d.key].penalty_count} penalties)`)
     .join("\n");
 
+  // Vulnerability findings summary
+  const vulnTypes = ["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"];
+  const vulnFindings = findings.filter((f) => vulnTypes.includes(f.finding_type));
+  const vulnerabilityFindings = vulnFindings.length > 0
+    ? vulnFindings
+        .map((f, i) => `${i + 1}. [${f.finding_type}] ${f.name} - confidence: ${f.confidence}, risk: ${f.risk_level}`)
+        .join("\n")
+    : "No LLM vulnerability findings detected.";
+
   return LLM_RISK_SCORING_PROMPT
     .replace("{{repository_name}}", repositoryName)
     .replace("{{total_findings}}", String(findings.length))
     .replace("{{findings_summary}}", findingsSummary)
     .replace("{{top_findings}}", topFindings)
+    .replace("{{vulnerability_findings}}", vulnerabilityFindings)
     .replace("{{dimension_scores}}", dimScores);
 }
 

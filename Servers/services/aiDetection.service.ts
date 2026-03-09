@@ -93,6 +93,9 @@ import {
   CACHE_KEYS,
 } from "../utils/cache.utils";
 import { calculateAndStoreRiskScore } from "./aiDetection/riskScoring";
+import { scanFileForVulnerabilityIndicators, buildAnalysisContext, VulnerabilityCandidate } from "./aiDetection/vulnerabilityPreFilter";
+import { analyzeVulnerabilities } from "./aiDetection/vulnerabilityAnalyzer";
+import { getRiskScoringConfigQuery } from "../utils/aiDetectionRiskScoring.utils";
 
 // ============================================================================
 // Types
@@ -1241,7 +1244,53 @@ async function executeScan(
     }
 
     // ========================================================================
-    // Model Security Scanning (Phase 2)
+    // LLM Vulnerability Pre-Filter (Phase 2)
+    // ========================================================================
+    let vulnerabilityCandidates: VulnerabilityCandidate[] = [];
+    const vulnerabilityFileContents = new Map<string, string>();
+    let vulnerabilityFindings: ICreateFindingInput[] = [];
+
+    try {
+      // Check if vulnerability scanning is enabled for this org
+      const riskConfig = await getRiskScoringConfigQuery(ctx.organizationId);
+      const vulnScanEnabled = riskConfig?.vulnerability_scan_enabled &&
+        riskConfig?.llm_enabled && riskConfig?.llm_key_id;
+
+      if (vulnScanEnabled && !signal?.aborted) {
+        // Re-scan code files for vulnerability indicators
+        for (const file of filesToScan) {
+          if (signal?.aborted) break;
+          try {
+            const content = await readFileContent(file.fullPath);
+            const candidates = scanFileForVulnerabilityIndicators(content, file.path);
+            if (candidates.length > 0) {
+              vulnerabilityCandidates.push(...candidates);
+              vulnerabilityFileContents.set(file.path, content);
+            }
+          } catch {
+            // Skip unreadable files
+          }
+        }
+
+        // Run LLM analysis on candidates
+        if (vulnerabilityCandidates.length > 0 && riskConfig!.llm_key_id) {
+          const context = buildAnalysisContext(vulnerabilityCandidates, vulnerabilityFileContents);
+          vulnerabilityFindings = await analyzeVulnerabilities(
+            context,
+            riskConfig!.llm_key_id,
+            ctx.organizationId,
+            scanId
+          );
+        }
+      }
+    } catch (err) {
+      // Graceful degradation: vulnerability scan failure does not fail the overall scan
+      logger.warn(`Vulnerability scan failed for scan ${scanId}, continuing without vulnerability findings:`, err);
+      vulnerabilityFindings = [];
+    }
+
+    // ========================================================================
+    // Model Security Scanning (Phase 3)
     // ========================================================================
     const modelSecurityFindings: ICreateModelSecurityFindingInput[] = [];
     const MAX_MODEL_FILE_SIZE = 500 * 1024 * 1024; // 500MB local limit (more generous than API)
@@ -1434,6 +1483,11 @@ async function executeScan(
         await createFindingsBatchQuery(findingInputs, ctx.organizationId, transaction);
       }
 
+      // Store vulnerability findings
+      if (vulnerabilityFindings.length > 0) {
+        await createFindingsBatchQuery(vulnerabilityFindings, ctx.organizationId, transaction);
+      }
+
       // Store model security findings (deduplicate by name+provider to avoid ON CONFLICT errors)
       if (modelSecurityFindings.length > 0) {
         // Deduplicate security findings by aggregating file paths
@@ -1460,7 +1514,7 @@ async function executeScan(
       const deduplicatedSecurityCount = modelSecurityFindings.length > 0
         ? new Set(modelSecurityFindings.map(f => `${f.name}::${f.provider}`)).size
         : 0;
-      const totalFindings = findingsMap.size + deduplicatedSecurityCount;
+      const totalFindings = findingsMap.size + deduplicatedSecurityCount + vulnerabilityFindings.length;
       const completedAt = new Date();
       const durationMs = progressState.startedAt
         ? completedAt.getTime() - progressState.startedAt.getTime()

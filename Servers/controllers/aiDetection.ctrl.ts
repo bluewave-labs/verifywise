@@ -939,7 +939,7 @@ export async function updateRiskScoringConfigController(
 
   try {
     const ctx = buildServiceContext(req);
-    const { llm_enabled, llm_key_id, dimension_weights } = req.body;
+    const { llm_enabled, llm_key_id, dimension_weights, vulnerability_scan_enabled } = req.body;
 
     // Validate dimension weights if provided
     if (dimension_weights) {
@@ -963,10 +963,16 @@ export async function updateRiskScoringConfigController(
       }
     }
 
+    // Validate vulnerability_scan_enabled requires llm_enabled
+    const effectiveVulnScan = vulnerability_scan_enabled !== undefined
+      ? (vulnerability_scan_enabled && (llm_enabled !== false))
+      : undefined;
+
     const updated = await upsertRiskScoringConfigQuery(req.organizationId!, {
       llm_enabled,
       llm_key_id,
       dimension_weights,
+      vulnerability_scan_enabled: effectiveVulnScan,
       updated_by: ctx.userId,
     });
 

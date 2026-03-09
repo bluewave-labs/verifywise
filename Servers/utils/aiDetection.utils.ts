@@ -484,6 +484,9 @@ export async function createFindingsBatchQuery(
       :license_name_${index},
       :license_risk_${index},
       :license_source_${index},
+      :mitigation_${index},
+      :data_flow_summary_${index},
+      :vulnerability_details_${index},
       NOW()
     )`;
   });
@@ -505,6 +508,10 @@ export async function createFindingsBatchQuery(
     replacements[`license_name_${index}`] = input.license_name || null;
     replacements[`license_risk_${index}`] = input.license_risk || null;
     replacements[`license_source_${index}`] = input.license_source || null;
+    replacements[`mitigation_${index}`] = input.mitigation || null;
+    replacements[`data_flow_summary_${index}`] = input.data_flow_summary || null;
+    replacements[`vulnerability_details_${index}`] = input.vulnerability_details
+      ? JSON.stringify(input.vulnerability_details) : null;
   });
 
   const query = `
@@ -525,6 +532,9 @@ export async function createFindingsBatchQuery(
       license_name,
       license_risk,
       license_source,
+      mitigation,
+      data_flow_summary,
+      vulnerability_details,
       created_at
     ) VALUES ${values.join(", ")}
     ON CONFLICT (scan_id, name, provider) DO UPDATE SET
@@ -533,7 +543,10 @@ export async function createFindingsBatchQuery(
       license_id = COALESCE(EXCLUDED.license_id, ai_detection_findings.license_id),
       license_name = COALESCE(EXCLUDED.license_name, ai_detection_findings.license_name),
       license_risk = COALESCE(EXCLUDED.license_risk, ai_detection_findings.license_risk),
-      license_source = COALESCE(EXCLUDED.license_source, ai_detection_findings.license_source);
+      license_source = COALESCE(EXCLUDED.license_source, ai_detection_findings.license_source),
+      mitigation = COALESCE(EXCLUDED.mitigation, ai_detection_findings.mitigation),
+      data_flow_summary = COALESCE(EXCLUDED.data_flow_summary, ai_detection_findings.data_flow_summary),
+      vulnerability_details = COALESCE(EXCLUDED.vulnerability_details, ai_detection_findings.vulnerability_details);
   `;
 
   await sequelize.query(query, {

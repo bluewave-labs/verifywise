@@ -85,6 +85,7 @@ export default function SettingsPage() {
     { ...DEFAULT_DIMENSION_WEIGHTS }
   );
   const [llmKeys, setLlmKeys] = useState<LLMKeysModel[]>([]);
+  const [vulnerabilityScanEnabled, setVulnerabilityScanEnabled] = useState(false);
 
   // Load token status on mount
   const loadTokenStatus = useCallback(async () => {
@@ -116,6 +117,7 @@ export default function SettingsPage() {
       setLlmEnabled(config.llm_enabled);
       setLlmKeyId(config.llm_key_id);
       setDimensionWeights(config.dimension_weights);
+      setVulnerabilityScanEnabled(config.vulnerability_scan_enabled ?? false);
 
       const keys = keysResponse?.data?.data || keysResponse?.data || [];
       setLlmKeys(Array.isArray(keys) ? keys : []);
@@ -230,6 +232,7 @@ export default function SettingsPage() {
         llm_enabled: llmEnabled,
         llm_key_id: llmEnabled ? llmKeyId : null,
         dimension_weights: dimensionWeights,
+        vulnerability_scan_enabled: llmEnabled ? vulnerabilityScanEnabled : false,
       });
       setRiskConfig(updated);
       setAlert({ variant: "success", body: "Risk scoring settings saved" });
@@ -477,6 +480,45 @@ export default function SettingsPage() {
                         </Typography>
                       </Box>
                     )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* Vulnerability scanning toggle */}
+              <Box
+                sx={{
+                  border: `1px solid ${palette.border.dark}`,
+                  borderRadius: "4px",
+                  p: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  opacity: llmEnabled ? 1 : 0.5,
+                }}
+              >
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: palette.text.primary }}>
+                  Vulnerability scanning
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography sx={{ fontSize: 13, color: palette.text.secondary }}>
+                      Use LLM analysis to detect prompt injection, PII exposure, excessive agency,
+                      and jailbreak risks in scanned code. Uses additional LLM API tokens per scan.
+                    </Typography>
+                  </Box>
+                  <Toggle
+                    checked={vulnerabilityScanEnabled}
+                    onChange={(e) => setVulnerabilityScanEnabled(e.target.checked)}
+                    size="small"
+                    disabled={!llmEnabled}
+                  />
+                </Box>
+                {!llmEnabled && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Info size={12} color={palette.text.tertiary} strokeWidth={1.5} />
+                    <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+                      Enable LLM-enhanced analysis above to use vulnerability scanning.
+                    </Typography>
                   </Box>
                 )}
               </Box>

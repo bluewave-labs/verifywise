@@ -29,6 +29,7 @@ export interface RiskScoringConfig {
   llm_enabled: boolean;
   llm_key_id: number | null;
   dimension_weights: Record<DimensionKey, number>;
+  vulnerability_scan_enabled: boolean;
   updated_by: number | null;
   updated_at: string;
 }
@@ -81,6 +82,7 @@ export async function upsertRiskScoringConfigQuery(
     llm_enabled?: boolean;
     llm_key_id?: number | null;
     dimension_weights?: Record<DimensionKey, number>;
+    vulnerability_scan_enabled?: boolean;
     updated_by: number;
   }
 ): Promise<RiskScoringConfig> {
@@ -109,6 +111,10 @@ export async function upsertRiskScoringConfigQuery(
       setClauses.push("dimension_weights = :dimension_weights");
       replacements.dimension_weights = JSON.stringify(data.dimension_weights);
     }
+    if (data.vulnerability_scan_enabled !== undefined) {
+      setClauses.push("vulnerability_scan_enabled = :vulnerability_scan_enabled");
+      replacements.vulnerability_scan_enabled = data.vulnerability_scan_enabled;
+    }
 
     const query = `
       UPDATE ai_detection_risk_scoring_config
@@ -126,9 +132,9 @@ export async function upsertRiskScoringConfigQuery(
   } else {
     const query = `
       INSERT INTO ai_detection_risk_scoring_config
-        (organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at)
+        (organization_id, llm_enabled, llm_key_id, dimension_weights, vulnerability_scan_enabled, updated_by, updated_at)
       VALUES
-        (:organizationId, :llm_enabled, :llm_key_id, :dimension_weights, :updated_by, NOW())
+        (:organizationId, :llm_enabled, :llm_key_id, :dimension_weights, :vulnerability_scan_enabled, :updated_by, NOW())
       RETURNING *;
     `;
 
@@ -140,6 +146,7 @@ export async function upsertRiskScoringConfigQuery(
         dimension_weights: JSON.stringify(
           data.dimension_weights ?? DEFAULT_DIMENSION_WEIGHTS
         ),
+        vulnerability_scan_enabled: data.vulnerability_scan_enabled ?? false,
         updated_by: data.updated_by,
       },
     });

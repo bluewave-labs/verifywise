@@ -93,7 +93,11 @@ export type FindingType =
   | "secret"
   | "model_ref"
   | "rag_component"
-  | "agent";
+  | "agent"
+  | "prompt_injection"
+  | "pii_exposure"
+  | "excessive_agency"
+  | "jailbreak_risk";
 
 /**
  * Valid governance status values for findings
@@ -154,6 +158,10 @@ export interface IFinding {
   license_name?: string | null;
   license_risk?: LicenseRiskLevel | null;
   license_source?: LicenseSource | null;
+  // Vulnerability detection fields
+  mitigation?: string | null;
+  data_flow_summary?: string | null;
+  vulnerability_details?: Record<string, unknown> | null;
   created_at?: Date;
 }
 
@@ -177,6 +185,10 @@ export interface ICreateFindingInput {
   license_name?: string | null;
   license_risk?: LicenseRiskLevel | null;
   license_source?: LicenseSource | null;
+  // Vulnerability detection fields
+  mitigation?: string | null;
+  data_flow_summary?: string | null;
+  vulnerability_details?: Record<string, unknown> | null;
 }
 
 // ============================================================================
@@ -280,6 +292,10 @@ export interface IFindingResponse {
   license_name?: string | null;
   license_risk?: LicenseRiskLevel | null;
   license_source?: LicenseSource | null;
+  // Vulnerability detection fields
+  mitigation?: string | null;
+  data_flow_summary?: string | null;
+  vulnerability_details?: Record<string, unknown> | null;
 }
 
 /**

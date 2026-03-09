@@ -33,7 +33,7 @@ export const DIMENSION_DEFINITIONS: DimensionDefinition[] = [
     label: "Data sovereignty",
     description: "Risk of data leaving the organization via cloud AI providers",
     defaultWeight: 0.25,
-    relevantFindingTypes: ["api_call", "rag_component", "library"],
+    relevantFindingTypes: ["api_call", "rag_component", "library", "prompt_injection", "pii_exposure"],
   },
   {
     key: "transparency",
@@ -47,14 +47,14 @@ export const DIMENSION_DEFINITIONS: DimensionDefinition[] = [
     label: "Security",
     description: "Credential exposure and vulnerability risk",
     defaultWeight: 0.20,
-    relevantFindingTypes: ["secret", "api_call"],
+    relevantFindingTypes: ["secret", "api_call", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"],
   },
   {
     key: "autonomy",
     label: "Autonomy",
     description: "Level of autonomous AI decision-making without human oversight",
     defaultWeight: 0.15,
-    relevantFindingTypes: ["agent"],
+    relevantFindingTypes: ["agent", "excessive_agency"],
   },
   {
     key: "supply_chain",
@@ -79,6 +79,10 @@ export const DEFAULT_DIMENSION_WEIGHTS: Record<DimensionKey, number> = {
 
 export const BASE_PENALTIES: Record<string, number> = {
   secret: 20,
+  prompt_injection: 18,
+  pii_exposure: 16,
+  excessive_agency: 14,
+  jailbreak_risk: 12,
   agent: 12,
   api_call: 8,
   rag_component: 6,
@@ -167,6 +171,9 @@ Total findings: {{total_findings}}
 
 ## Top 10 Highest-Risk Findings
 {{top_findings}}
+
+## Vulnerability Findings
+{{vulnerability_findings}}
 
 ## Current Rule-Based Dimension Scores
 {{dimension_scores}}

@@ -62,6 +62,7 @@ export interface RiskScoringConfig {
   llm_enabled: boolean;
   llm_key_id: number | null;
   dimension_weights: Record<DimensionKey, number>;
+  vulnerability_scan_enabled: boolean;
   updated_by: number | null;
   updated_at: string | null;
 }

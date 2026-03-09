@@ -26,7 +26,7 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, Suspense, lazy, useRef } from "react";
+import { useState, useEffect, Suspense, lazy, useRef, useCallback } from "react";
 import { CustomizableButton } from "../../button/customizable-button";
 import TabBar from "../../TabBar";
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
@@ -407,6 +407,70 @@ const VWISO27001ClauseDrawerDialog = ({
     }));
   };
 
+  // Auto-save infrastructure
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formDataRef = useRef(formData);
+  const dateRef = useRef(date);
+  formDataRef.current = formData;
+  dateRef.current = date;
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
+
+  const triggerAutoSave = useCallback(
+    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
+      if (!fetchedSubClause?.id) return;
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+      autoSaveTimerRef.current = setTimeout(async () => {
+        try {
+          const currentFormData = formDataRef.current;
+          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
+          const fd = new FormData();
+          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
+          fd.append("status", overrides?.status ?? (idStatusMap.get(currentFormData.status) || "Not started"));
+          fd.append("owner", overrides?.owner ?? currentFormData.owner);
+          fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
+          fd.append("approver", overrides?.approver ?? currentFormData.approver);
+          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
+          if (effectiveDate) fd.append("due_date", effectiveDate.toString());
+          fd.append("user_id", userId?.toString() || "1");
+          fd.append("delete", JSON.stringify([]));
+          fd.append("risksMitigated", JSON.stringify([]));
+          fd.append("risksDelete", JSON.stringify([]));
+          fd.append("project_id", project_id.toString());
+
+          await updateEntityById({
+            routeUrl: `/iso-27001/saveClauses/${fetchedSubClause.id}`,
+            body: fd,
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        } catch {
+          // Silent fail for auto-save — user can still use the Save button
+        }
+      }, 300);
+    },
+    [fetchedSubClause?.id, userId, project_id]
+  );
+
+  const autoSaveField = useCallback(
+    (field: string, value: string) => {
+      triggerAutoSave({ [field]: value });
+    },
+    [triggerAutoSave]
+  );
+
+  const handleDateAutoSave = useCallback(
+    (newDate: Dayjs | null) => {
+      setDate(newDate);
+      triggerAutoSave({}, newDate);
+    },
+    [triggerAutoSave]
+  );
+
   const handleSelectChange =
     (field: string) => (event: SelectChangeEvent<string | number>) => {
       const value = event.target.value.toString();
@@ -421,6 +485,7 @@ const VWISO27001ClauseDrawerDialog = ({
         setAuditedStatusModalOpen(true);
       }
       handleFieldChange(field, value);
+      autoSaveField(field, value);
     };
 
   // ========================================================================
@@ -1037,9 +1102,7 @@ const VWISO27001ClauseDrawerDialog = ({
                   label="Due date:"
                   sx={inputStyles}
                   date={date}
-                  handleDateChange={(newDate) => {
-                    setDate(newDate);
-                  }}
+                  handleDateChange={handleDateAutoSave}
                   disabled={isEditingDisabled}
                 />
 

@@ -24,7 +24,7 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useState, useEffect, lazy, Suspense, useRef } from "react";
+import { useState, useEffect, lazy, Suspense, useRef, useCallback } from "react";
 import TabBar from "../../TabBar";
 import StandardModal from "../../Modals/StandardModal";
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
@@ -359,6 +359,70 @@ const VWISO27001AnnexDrawerDialog = ({
     }));
   };
 
+  // Auto-save infrastructure
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formDataRef = useRef(formData);
+  const dateRef = useRef(date);
+  formDataRef.current = formData;
+  dateRef.current = date;
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
+
+  const triggerAutoSave = useCallback(
+    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
+      if (!fetchedAnnex?.id) return;
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+      autoSaveTimerRef.current = setTimeout(async () => {
+        try {
+          const currentFormData = formDataRef.current;
+          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
+          const fd = new FormData();
+          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
+          fd.append("status", overrides?.status ?? currentFormData.status);
+          if (overrides?.owner ?? currentFormData.owner?.trim()) fd.append("owner", overrides?.owner ?? currentFormData.owner);
+          if (overrides?.reviewer ?? currentFormData.reviewer?.trim()) fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
+          if (overrides?.approver ?? currentFormData.approver?.trim()) fd.append("approver", overrides?.approver ?? currentFormData.approver);
+          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
+          if (effectiveDate) fd.append("due_date", effectiveDate.toString());
+          fd.append("user_id", userId?.toString() || "1");
+          fd.append("project_id", project_id.toString());
+          fd.append("delete", JSON.stringify([]));
+          fd.append("risksMitigated", JSON.stringify([]));
+          fd.append("risksDelete", JSON.stringify([]));
+
+          await updateEntityById({
+            routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnex.id}`,
+            body: fd,
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        } catch {
+          // Silent fail for auto-save — user can still use the Save button
+        }
+      }, 300);
+    },
+    [fetchedAnnex?.id, userId, project_id]
+  );
+
+  const autoSaveField = useCallback(
+    (field: string, value: string) => {
+      triggerAutoSave({ [field]: value });
+    },
+    [triggerAutoSave]
+  );
+
+  const handleDateAutoSave = useCallback(
+    (newDate: Dayjs | null) => {
+      setDate(newDate);
+      triggerAutoSave({}, newDate);
+    },
+    [triggerAutoSave]
+  );
+
   const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     const value = event.target.value.toString();
     if (
@@ -372,6 +436,7 @@ const VWISO27001AnnexDrawerDialog = ({
       setAuditedStatusModalOpen(true);
     }
     handleFieldChange(field, value);
+    autoSaveField(field, value);
   };
 
   // Risk management functions
@@ -620,7 +685,6 @@ const VWISO27001AnnexDrawerDialog = ({
             setAlert,
           });
           onSaveSuccess?.(true, "Annex control saved successfully");
-          onClose();
         } else {
           throw new Error(
             `Failed to save annex control. Status: ${
@@ -933,9 +997,7 @@ const VWISO27001AnnexDrawerDialog = ({
                 sx={inputStyles}
                 date={date}
                 disabled={isEditingDisabled}
-                handleDateChange={(newDate) => {
-                  setDate(newDate);
-                }}
+                handleDateChange={handleDateAutoSave}
               />
               <Stack>
                 <Typography fontSize={13} sx={{ marginBottom: "5px" }}>

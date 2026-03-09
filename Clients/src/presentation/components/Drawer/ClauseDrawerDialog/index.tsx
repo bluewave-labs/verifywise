@@ -11,7 +11,7 @@
  * - Notes: Collaboration notes (lazy-loaded)
  */
 
-import React, { useState, useEffect, Suspense, lazy, useRef } from "react";
+import React, { useState, useEffect, Suspense, lazy, useRef, useCallback } from "react";
 import {
   Box,
   Button,
@@ -349,8 +349,73 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
     }));
   };
 
+  // Auto-save infrastructure
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formDataRef = useRef(formData);
+  const dateRef = useRef(date);
+  formDataRef.current = formData;
+  dateRef.current = date;
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
+
+  const triggerAutoSave = useCallback(
+    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
+      if (!subclause?.id) return;
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+      autoSaveTimerRef.current = setTimeout(async () => {
+        try {
+          const currentFormData = formDataRef.current;
+          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
+          const fd = new FormData();
+          fd.append("status", overrides?.status ?? currentFormData.status);
+          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
+          if (overrides?.owner ?? currentFormData.owner) fd.append("owner", overrides?.owner ?? currentFormData.owner);
+          if (overrides?.reviewer ?? currentFormData.reviewer) fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
+          if (overrides?.approver ?? currentFormData.approver) fd.append("approver", overrides?.approver ?? currentFormData.approver);
+          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
+          if (effectiveDate) fd.append("due_date", effectiveDate.toISOString());
+          fd.append("user_id", userId?.toString() || "1");
+          fd.append("delete", JSON.stringify([]));
+          fd.append("risksMitigated", JSON.stringify([]));
+          fd.append("risksDelete", JSON.stringify([]));
+
+          await updateEntityById({
+            routeUrl: `/iso-42001/saveClauses/${subclause.id}`,
+            body: fd,
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        } catch {
+          // Silent fail for auto-save — user can still use the Save button
+        }
+      }, 300);
+    },
+    [subclause?.id, userId]
+  );
+
+  const autoSaveField = useCallback(
+    (field: string, value: string) => {
+      triggerAutoSave({ [field]: value });
+    },
+    [triggerAutoSave]
+  );
+
+  const handleDateAutoSave = useCallback(
+    (newDate: Dayjs | null) => {
+      setDate(newDate);
+      triggerAutoSave({}, newDate);
+    },
+    [triggerAutoSave]
+  );
+
   const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
-    handleFieldChange(field, event.target.value.toString());
+    const value = event.target.value.toString();
+    handleFieldChange(field, value);
+    autoSaveField(field, value);
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -936,9 +1001,7 @@ const ISO42001ClauseDrawerDialog: React.FC<ISO42001ClauseDrawerProps> = ({
                   sx={inputStyles}
                   date={date}
                   disabled={isEditingDisabled}
-                  handleDateChange={(newDate) => {
-                    setDate(newDate);
-                  }}
+                  handleDateChange={handleDateAutoSave}
                 />
 
                 <Stack>

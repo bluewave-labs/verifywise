@@ -11,7 +11,7 @@
  * - Notes: Collaboration notes (lazy-loaded)
  */
 
-import React, { useState, useEffect, Suspense, lazy, useRef } from "react";
+import React, { useState, useEffect, Suspense, lazy, useRef, useCallback } from "react";
 import {
   Box,
   Button,
@@ -507,13 +507,62 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
     }));
   };
 
+  // Auto-save infrastructure
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
+
+  const triggerAutoSave = useCallback(
+    (overrides?: Record<string, string>) => {
+      if (!questionProp?.answer_id) return;
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+      autoSaveTimerRef.current = setTimeout(async () => {
+        try {
+          const currentFormData = formDataRef.current;
+          const fd = new FormData();
+          fd.append("answer", overrides?.answer ?? currentFormData.answer);
+          fd.append("status", overrides?.status ?? (idStatusMap.get(currentFormData.status) || "Not started"));
+          fd.append("user_id", userId?.toString() || "1");
+          fd.append("project_id", currentProjectId.toString());
+          fd.append("delete", JSON.stringify([]));
+          fd.append("risksDelete", JSON.stringify([]));
+          fd.append("risksMitigated", JSON.stringify([]));
+
+          await updateEUAIActAnswerById({
+            answerId: questionProp.answer_id,
+            body: fd,
+          });
+        } catch {
+          // Silent fail for auto-save — user can still use the Save button
+        }
+      }, 300);
+    },
+    [questionProp?.answer_id, userId, currentProjectId]
+  );
+
+  const autoSaveField = useCallback(
+    (field: string, value: string) => {
+      triggerAutoSave({ [field]: value });
+    },
+    [triggerAutoSave]
+  );
+
   const handleAnswerChange = (answer: string) => {
     const cleanedAnswer = answer?.replace(/^<p>|<\/p>$/g, "") || "";
     handleFieldChange("answer", cleanedAnswer || "");
   };
 
   const handleSelectChange = (field: keyof EUAIActFormData) => (event: SelectChangeEvent<string | number>) => {
-    handleFieldChange(field, event.target.value.toString());
+    const value = event.target.value.toString();
+    handleFieldChange(field, value);
+    autoSaveField(field, value);
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {

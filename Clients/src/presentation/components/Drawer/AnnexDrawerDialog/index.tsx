@@ -11,6 +11,7 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 import { FileData } from "../../../../domain/types/File";
@@ -21,6 +22,10 @@ import {
   Trash2 as DeleteIcon,
   Eye as ViewIcon,
   FileText as FileIcon,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+
 } from "lucide-react";
 import Checkbox from "../../Inputs/Checkbox";
 import Field from "../../Inputs/Field";
@@ -29,7 +34,9 @@ import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
 import TabBar from "../../TabBar";
 import StandardModal from "../../Modals/StandardModal";
-import { useState, useEffect, lazy, Suspense, useRef } from "react";
+import { useState, useEffect, lazy, Suspense, useRef, useMemo, useCallback } from "react";
+import { ISO_42001_CONTROLS } from "../../../../presentation/pages/Framework/ISO42001/data/iso-42001-controls";
+import { ISO_42001_GUIDANCE } from "../../../../presentation/pages/Framework/ISO42001/data/iso-42001-guidance";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { CustomizableButton } from "../../button/customizable-button";
@@ -136,6 +143,7 @@ const VWISO42001AnnexDrawerDialog = ({
   const tabs = [
     { label: "Details", value: "details", icon: "FileText" as const },
     { label: "Evidence", value: "evidence", icon: "FolderOpen" as const },
+    { label: "Guidance", value: "guidance", icon: "BookOpen" as const },
     { label: "Cross mappings", value: "cross-mappings", icon: "Link" as const },
     { label: "Notes", value: "notes", icon: "MessageSquare" as const },
   ];
@@ -459,6 +467,105 @@ const VWISO42001AnnexDrawerDialog = ({
     }));
   };
 
+  // Auto-save infrastructure
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formDataRef = useRef(formData);
+  const dateRef = useRef(date);
+  formDataRef.current = formData;
+  dateRef.current = date;
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
+
+  const triggerAutoSave = useCallback(
+    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
+      if (!fetchedAnnex?.id) return;
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+      autoSaveTimerRef.current = setTimeout(async () => {
+        try {
+          const currentFormData = formDataRef.current;
+          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
+          const fd = new FormData();
+          fd.append("is_applicable", overrides?.is_applicable ?? currentFormData.is_applicable.toString());
+          fd.append("justification_for_exclusion", overrides?.justification_for_exclusion ?? currentFormData.justification_for_exclusion);
+          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
+          fd.append("status", overrides?.status ?? currentFormData.status);
+          fd.append("owner", overrides?.owner ?? currentFormData.owner);
+          fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
+          fd.append("approver", overrides?.approver ?? currentFormData.approver);
+          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
+          if (effectiveDate) fd.append("due_date", effectiveDate.toString());
+          fd.append("user_id", userId?.toString() || "1");
+          fd.append("project_id", project_id.toString());
+          fd.append("delete", JSON.stringify([]));
+          fd.append("risksMitigated", JSON.stringify([]));
+          fd.append("risksDelete", JSON.stringify([]));
+
+          await UpdateAnnexCategoryById({
+            routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex.id}`,
+            body: fd,
+          });
+        } catch {
+          // Silent fail for auto-save — user can still use the Save button
+        }
+      }, 300);
+    },
+    [fetchedAnnex?.id, userId, project_id]
+  );
+
+  const autoSaveField = useCallback(
+    (field: string, value: string | boolean) => {
+      triggerAutoSave({ [field]: String(value) });
+    },
+    [triggerAutoSave]
+  );
+
+  const handleDateAutoSave = useCallback(
+    (newDate: Dayjs | null) => {
+      setDate(newDate);
+      triggerAutoSave({}, newDate);
+    },
+    [triggerAutoSave]
+  );
+
+  // Derive annexRef for data lookups
+  const annexRef = useMemo(() => {
+    if (!annex) return "";
+    const annexNo = (annex as any).annex_no;
+    const orderNo = (control as any).order_no;
+    if (!annexNo || !orderNo) return "";
+    return `A.${annexNo}.${orderNo}`;
+  }, [annex, control]);
+
+  const controlData = useMemo(
+    () => ISO_42001_CONTROLS.find((c) => c.annexRef === annexRef),
+    [annexRef]
+  );
+
+  const guidanceData = useMemo(
+    () => ISO_42001_GUIDANCE.find((g) => g.annexRef === annexRef),
+    [annexRef]
+  );
+
+  // Match suggested evidence against uploaded file names
+  const matchedEvidence = useMemo(() => {
+    if (!controlData) return new Set<number>();
+    const fileNames = evidenceFiles.map((f) => f.fileName.toLowerCase());
+    const matched = new Set<number>();
+    controlData.suggestedEvidence.forEach((item, idx) => {
+      const keywords = item.toLowerCase().split(/\s+/);
+      if (fileNames.some((name) => keywords.some((kw) => kw.length > 3 && name.includes(kw)))) {
+        matched.add(idx);
+      }
+    });
+    return matched;
+  }, [controlData, evidenceFiles]);
+
   const handleSelectChange = (field: string) => (event: SelectChangeEvent<string | number>) => {
     const value = event.target.value.toString();
     if (
@@ -472,6 +579,7 @@ const VWISO42001AnnexDrawerDialog = ({
       setAuditedStatusModalOpen(true);
     }
     handleFieldChange(field, value);
+    autoSaveField(field, value);
   };
 
   // Add handleSave function before the return statement
@@ -566,8 +674,6 @@ const VWISO42001AnnexDrawerDialog = ({
         if (fetchedAnnex?.id) {
           await fetchLinkedRisks();
         }
-
-        onClose();
       } else {
         throw new Error("Failed to save annex category");
       }
@@ -681,9 +787,15 @@ const VWISO42001AnnexDrawerDialog = ({
                   borderRadius: "4px",
                 }}
               >
-                <Typography fontSize={13}>
-                  <strong>Guidance:</strong> {formData.guidance}
-                </Typography>
+                {guidanceData ? (
+                  <Typography fontSize={13}>
+                    <strong>Guidance:</strong> {guidanceData.purpose}
+                  </Typography>
+                ) : (
+                  <Typography fontSize={13}>
+                    <strong>Guidance:</strong> {formData.guidance}
+                  </Typography>
+                )}
               </Stack>
 
               {/* Applicability Section */}
@@ -700,13 +812,14 @@ const VWISO42001AnnexDrawerDialog = ({
                     label="Applicable"
                     isChecked={formData.is_applicable}
                     value={"Applicable"}
-                    onChange={() =>
+                    onChange={() => {
                       setFormData((prev) => ({
                         ...prev,
                         is_applicable: true,
                         justification_for_exclusion: "",
-                      }))
-                    }
+                      }));
+                      autoSaveField("is_applicable", "true");
+                    }}
                     size="small"
                     isDisabled={isEditingDisabled}
                   />
@@ -715,12 +828,13 @@ const VWISO42001AnnexDrawerDialog = ({
                     label="Not applicable"
                     isChecked={!formData.is_applicable}
                     value={"Not Applicable"}
-                    onChange={() =>
+                    onChange={() => {
                       setFormData((prev) => ({
                         ...prev,
                         is_applicable: false,
-                      }))
-                    }
+                      }));
+                      autoSaveField("is_applicable", "false");
+                    }}
                     size="small"
                     isDisabled={isEditingDisabled}
                   />
@@ -860,9 +974,7 @@ const VWISO42001AnnexDrawerDialog = ({
                   sx={inputStyles}
                   date={date}
                   disabled={!formData.is_applicable || isEditingDisabled}
-                  handleDateChange={(newDate) => {
-                    setDate(newDate);
-                  }}
+                  handleDateChange={handleDateAutoSave}
                 />
 
                 <Stack>
@@ -893,6 +1005,56 @@ const VWISO42001AnnexDrawerDialog = ({
           {/* Tab 2: Evidence */}
           <TabPanel value="evidence" sx={{ padding: "15px 20px" }}>
             <Stack spacing={3}>
+              {/* Suggested Evidence Checklist */}
+              {controlData && controlData.suggestedEvidence.length > 0 && (
+                <Box>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
+                    Suggested evidence
+                  </Typography>
+                  <Stack spacing={0.5}>
+                    {controlData.suggestedEvidence.map((item, idx) => {
+                      const isMatched = matchedEvidence.has(idx);
+                      return (
+                        <Stack
+                          key={idx}
+                          direction="row"
+                          alignItems="center"
+                          spacing={1}
+                          sx={{
+                            cursor: isMatched ? "default" : "pointer",
+                            "&:hover": isMatched ? {} : { backgroundColor: "background.accent" },
+                            borderRadius: "4px",
+                            p: 0.5,
+                            px: 1,
+                          }}
+                          onClick={() => {
+                            if (!isMatched) {
+                              document.getElementById("evidence-file-input")?.click();
+                            }
+                          }}
+                        >
+                          {isMatched ? (
+                            <CheckSquare size={15} color="#138A5E" />
+                          ) : (
+                            <Square size={15} color={theme.palette.text.tertiary} />
+                          )}
+                          <Typography
+                            sx={{
+                              fontSize: 12,
+                              textDecoration: isMatched ? "line-through" : "none",
+                              color: isMatched ? "text.tertiary" : "text.primary",
+                            }}
+                          >
+                            {item}
+                          </Typography>
+                        </Stack>
+                      );
+                    })}
+                  </Stack>
+                  <Divider sx={{ mt: 2 }} />
+                </Box>
+              )}
+
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                 Evidence files
               </Typography>
@@ -1333,7 +1495,83 @@ const VWISO42001AnnexDrawerDialog = ({
             </Stack>
           </TabPanel>
 
-          {/* Tab 4: Notes */}
+          {/* Tab 4: Guidance */}
+          <TabPanel value="guidance" sx={{ padding: "15px 20px" }}>
+            {guidanceData ? (
+              <Stack spacing={3}>
+                {/* Purpose */}
+                <Box sx={{ backgroundColor: "#f0faf7", borderRadius: "4px", padding: "12px 16px" }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1, color: "#13715B" }}>
+                    Purpose
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, lineHeight: 1.6 }}>
+                    {guidanceData.purpose}
+                  </Typography>
+                </Box>
+
+                {/* Implementation steps */}
+                {guidanceData.steps && guidanceData.steps.length > 0 && (
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
+                      Implementation steps
+                    </Typography>
+                    <ol style={{ margin: 0, paddingLeft: 20 }}>
+                      {guidanceData.steps.map((step: string, idx: number) => (
+                        <li key={idx} style={{ fontSize: 13, lineHeight: 1.8, color: "#344054" }}>
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                  </Box>
+                )}
+
+                {/* Pitfalls */}
+                {guidanceData.pitfalls && guidanceData.pitfalls.length > 0 && (
+                  <Box sx={{ backgroundColor: "#FFF8E1", borderRadius: "4px", padding: "12px 16px" }}>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                      <AlertTriangle size={14} color="#795548" />
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#795548" }}>
+                        Common pitfalls
+                      </Typography>
+                    </Stack>
+                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                      {guidanceData.pitfalls.map((pitfall: string, idx: number) => (
+                        <li key={idx} style={{ fontSize: 13, lineHeight: 1.8, color: "#795548" }}>
+                          {pitfall}
+                        </li>
+                      ))}
+                    </ul>
+                  </Box>
+                )}
+
+                {/* Related controls */}
+                {guidanceData.relatedControls && guidanceData.relatedControls.length > 0 && (
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1 }}>
+                      Related controls
+                    </Typography>
+                    <Stack direction="row" flexWrap="wrap" gap={1}>
+                      {guidanceData.relatedControls.map((ref: string) => (
+                        <Chip
+                          key={ref}
+                          label={ref}
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontFamily: "monospace", fontSize: 12 }}
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+              </Stack>
+            ) : (
+              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                {formData.guidance || "No guidance available for this control."}
+              </Typography>
+            )}
+          </TabPanel>
+
+          {/* Tab 5: Notes */}
           <TabPanel value="notes" sx={{ padding: "15px 20px" }}>
             <Suspense fallback={<CircularProgress />}>
               <NotesTab

@@ -54,7 +54,7 @@ export async function getProjectPortfolio(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = parseInt(req.params.projectId as string);
 
   logStructured(
     "processing",
@@ -126,8 +126,8 @@ export async function applyBenchmark(
   req: Request,
   res: Response
 ): Promise<any> {
-  const riskId = parseInt(req.params.riskId);
-  const benchmarkId = parseInt(req.params.benchmarkId);
+  const riskId = parseInt(req.params.riskId as string);
+  const benchmarkId = parseInt(req.params.benchmarkId as string);
 
   logStructured(
     "processing",

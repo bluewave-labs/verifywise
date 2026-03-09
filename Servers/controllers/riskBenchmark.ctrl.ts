@@ -40,7 +40,7 @@ export async function getBenchmarkById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id as string);
 
   logStructured(
     "processing",
@@ -67,7 +67,7 @@ export async function getBenchmarkById(
 }
 
 export async function getBenchmarkFilters(
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<any> {
   try {

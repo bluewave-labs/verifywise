@@ -237,10 +237,6 @@ export const ENTITY_TIPS: EntityTips = {
       header: "User roles control access to sensitive information.",
       content: "Not everyone needs access to all governance data. Use roles to grant appropriate access levels: viewers for stakeholders, editors for governance team members, and admins for system owners. Role-based access protects sensitive information.",
     },
-    {
-      header: "Integration settings connect VerifyWise to your existing tools.",
-      content: "If your organization uses other systems for task management, documentation, or communication, integration settings can connect them to VerifyWise. These connections reduce duplicate data entry and keep information synchronized across platforms.",
-    },
   ],
   "shadow-ai-insights": [
     {

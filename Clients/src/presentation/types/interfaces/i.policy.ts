@@ -22,6 +22,7 @@ export interface PolicyTableProps {
   onOpen: (id: number) => void;
   onDelete: (id: number) => void;
   onLinkedObjects: (id: number) => void;
+  onAssignToFolder?: (id: number) => void;
   onRefresh?: () => void;
   isLoading?: boolean;
   error?: Error | null;
@@ -36,17 +37,6 @@ export interface PolicyStatusCardProps {
   policies: PolicyManagerModel[];
   onCardClick?: (status: string) => void;
   selectedStatus?: string | null;
-}
-
-/**
- * Props for policy detail modal component
- */
-export interface PolicyDetailModalProps {
-  policy: PolicyManagerModel | null;
-  tags: string[];
-  template?: import("../../../domain/interfaces/i.policy").PolicyTemplate;
-  onClose: () => void;
-  onSaved: (successMessage?: string) => void;
 }
 
 /**

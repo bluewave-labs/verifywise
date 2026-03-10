@@ -204,6 +204,7 @@ export interface IReportTableProps {
     key: string;
     direction: "asc" | "desc" | null;
   };
+  visibleColumns?: Set<string>;
 }
 
 export interface IReportTablePropsExtended {
@@ -213,6 +214,7 @@ export interface IReportTablePropsExtended {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface IRiskTableProps {
@@ -223,6 +225,7 @@ export interface IRiskTableProps {
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface ITasksTableProps {
@@ -242,6 +245,8 @@ export interface ITasksTableProps {
   // Priority change props
   onPriorityChange: (taskId: number) => (newPriority: string) => Promise<boolean>;
   priorityOptions: Array<string | CustomSelectOptionWithIcon>;
+  /** Optional set of visible column keys, controls which columns are shown */
+  visibleColumns?: Set<string>;
 }
 
 export interface ITableWithPlaceholderProps {
@@ -251,4 +256,5 @@ export interface ITableWithPlaceholderProps {
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
   vendorRisks?: VendorRisk[];
+  visibleColumns?: Set<string>;
 }

@@ -83,6 +83,7 @@ const LABEL_TO_VARIANT: Record<string, ChipVariant> = {
   "under review": "warning",
   draft: "default",
   superseded: "default",
+  resubmitted: "info",
   expired: "warning",
   blocked: "error",
   rejected: "error",
@@ -243,6 +244,7 @@ const Chip: React.FC<IChipProps> = ({
   uppercase = true,
   backgroundColor,
   textColor,
+  icon,
 }) => {
   const colors = getChipColors(label, variant, backgroundColor, textColor);
   const height = SIZE_HEIGHT[size];
@@ -268,12 +270,13 @@ const Chip: React.FC<IChipProps> = ({
         border: `1px solid ${borderColor}`,
         color: colors.textColor,
         fontSize: 11,
-        fontWeight: 500,
+        fontWeight: 400,
         textTransform: uppercase ? "uppercase" : "none",
         whiteSpace: "nowrap",
         lineHeight: 1,
       }}
     >
+      {icon && <Box component="span" sx={{ display: "inline-flex", alignItems: "center", mr: 0.5 }}>{icon}</Box>}
       {label}
     </Box>
   );

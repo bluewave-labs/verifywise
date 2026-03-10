@@ -28,6 +28,7 @@ import SharedView from "../../presentation/pages/SharedView";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
+import PolicyEditorPage from "../../presentation/pages/PolicyDashboard/PolicyEditorPage";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import ModelLifecycleDetail from "../../presentation/pages/ModelInventory/ModelLifecycleDetail";
@@ -37,6 +38,7 @@ import AgentDiscovery from "../../presentation/pages/AgentDiscovery";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
+import StartHere from "../../presentation/pages/StartHere";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import StyleGuide from "../../presentation/pages/StyleGuide";
@@ -96,6 +98,7 @@ export const createRoutes = (
       <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
+    <Route path="/start-here" element={<StartHere />} />
     <Route path="/overview" element={<VWHome />} />
     <Route path="/framework/:tab?" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
@@ -106,6 +109,8 @@ export const createRoutes = (
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/ai-trust-center/:tab" element={<AITrustCenter />} />
+    <Route path="/policies/new" element={<PolicyEditorPage />} />
+    <Route path="/policies/:id/edit" element={<PolicyEditorPage />} />
     <Route path="/policies" element={<PolicyDashboard />}>
       <Route index element={<PolicyDashboard />} /> {/* Default tab */}
       <Route path="templates" element={<PolicyDashboard />} /> {/* Policy Templates tab */}

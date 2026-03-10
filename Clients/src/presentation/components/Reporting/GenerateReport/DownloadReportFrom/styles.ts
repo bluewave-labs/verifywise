@@ -4,10 +4,10 @@ export const styles = {
     padding: 30
   },
   titleText: {
-    fontSize: 16, 
-    color: "#344054", 
-    fontWeight: "bold", 
-    mb: 4
+    fontSize: 16,
+    color: "#344054",
+    fontWeight: "bold",
+    mb: 2
   },
   baseText: {
     color: "#344054",

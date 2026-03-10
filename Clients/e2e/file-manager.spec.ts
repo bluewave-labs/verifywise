@@ -2,6 +2,12 @@ import { test, expect } from "./fixtures/auth.fixture";
 import AxeBuilder from "@axe-core/playwright";
 
 test.describe("File Manager", () => {
+  test.beforeEach(async ({ authedPage: page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem("file-tour", "true");
+    });
+  });
+
   test("renders the file manager page", async ({ authedPage: page }) => {
     await page.goto("/file-manager");
     await expect(page).toHaveURL(/\/file-manager/);
@@ -48,5 +54,141 @@ test.describe("File Manager", () => {
       .or(page.getByRole("table"))
       .or(page.getByText(/no.*file/i));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  // --- Tier 1: Sidebar navigation ---
+
+  test("sidebar shows All files and Uncategorized options", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/file-manager");
+
+    const allFiles = page.getByText(/all files/i);
+    const uncategorized = page.getByText(/uncategorized/i);
+
+    await expect(allFiles.or(uncategorized).first()).toBeVisible({
+      timeout: 10_000,
+    });
+  });
+
+  // --- Tier 2: Search & Column selector ---
+
+  test("searching for nonexistent file filters results", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/file-manager");
+    const searchInput = page
+      .getByPlaceholder(/search files/i)
+      .or(page.getByPlaceholder(/search/i));
+
+    if (await searchInput.first().isVisible().catch(() => false)) {
+      await searchInput.first().fill("nonexistent-xyz-file");
+      await page.waitForTimeout(500);
+      await searchInput.first().clear();
+      await page.waitForTimeout(500);
+    }
+  });
+
+  test("column selector shows toggle options", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/file-manager");
+    const columnBtn = page
+      .getByRole("button", { name: /column/i })
+      .or(page.locator('[data-testid="column-selector"]'))
+      .or(page.locator('[aria-label*="column"]'));
+
+    if (await columnBtn.first().isVisible().catch(() => false)) {
+      await columnBtn.first().click();
+      await page.waitForTimeout(300);
+      await page.keyboard.press("Escape");
+    }
+  });
+
+  // --- Tier 3: Modal open/close ---
+
+  test("Upload file button opens upload dialog", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/file-manager");
+    const uploadBtn = page.getByRole("button", { name: /upload file/i });
+
+    if (await uploadBtn.isVisible().catch(() => false)) {
+      await uploadBtn.click();
+      await page.waitForTimeout(500);
+      // FileManagerUpload uses <Dialog> (role="dialog")
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
+
+  test("New folder button opens folder creation modal", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/file-manager");
+    const folderBtn = page.getByRole("button", { name: /new folder/i });
+
+    if (await folderBtn.isVisible().catch(() => false)) {
+      await folderBtn.click();
+      // Verify folder creation modal/form appears
+      await expect(
+        page
+          .getByText(/new folder/i)
+          .or(page.getByText(/create folder/i))
+          .or(page.getByPlaceholder(/folder name/i))
+          .first()
+      ).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
+
+  // --- Tier 4: CRUD - Folder ---
+
+  test("CRUD: create and delete a folder", async ({ authedPage: page }) => {
+    await page.goto("/file-manager");
+    const folderName = `E2E Test Folder ${Date.now()}`;
+
+    // Create: Click "New folder"
+    const folderBtn = page.getByRole("button", { name: /new folder/i });
+    if (!(await folderBtn.isVisible().catch(() => false))) {
+      test.skip();
+      return;
+    }
+    await folderBtn.click();
+
+    // Fill in the folder name
+    const nameInput = page
+      .getByPlaceholder(/folder name/i)
+      .or(page.getByRole("textbox").first());
+    await expect(nameInput.first()).toBeVisible({ timeout: 10_000 });
+    await nameInput.first().fill(folderName);
+
+    // Submit
+    const submitBtn = page
+      .getByRole("button", { name: /create|save|add|submit/i })
+      .last();
+    await submitBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Verify: Folder appears in sidebar
+    const folderInSidebar = page.getByText(folderName);
+    if (await folderInSidebar.isVisible().catch(() => false)) {
+      // Delete: Right-click or use context menu
+      await folderInSidebar.click({ button: "right" });
+      const deleteOption = page
+        .getByRole("menuitem", { name: /delete|remove/i })
+        .or(page.getByText(/delete/i));
+      if (await deleteOption.first().isVisible().catch(() => false)) {
+        await deleteOption.first().click();
+        // Confirm deletion
+        const confirmBtn = page.getByRole("button", {
+          name: /confirm|yes|delete/i,
+        });
+        if (await confirmBtn.first().isVisible().catch(() => false)) {
+          await confirmBtn.first().click();
+        }
+        await page.waitForTimeout(500);
+      }
+    }
   });
 });

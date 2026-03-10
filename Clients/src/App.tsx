@@ -19,7 +19,7 @@ import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { DeploymentManager } from "./application/utils/deploymentHelpers";
 import UpdateBanner from "./presentation/components/UpdateBanner";
 import { CommandPalette } from "./presentation/components/CommandPalette";
@@ -102,6 +102,7 @@ const ConditionalThemeWrapper = ({ children }: { children: React.ReactNode }) =>
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
@@ -117,27 +118,24 @@ function App() {
   //   reconnectDelay: 3000,
   // });
 
-  // Onboarding should ONLY show on the dashboard (/) route
-  const isDashboardRoute = location.pathname === '/';
+  // Onboarding should show on dashboard (/) or start-here page
+  const isOnboardingRoute = location.pathname === '/' || location.pathname === '/start-here';
 
   // Derive modal visibility from onboarding state and current route
   // Only show modal if:
   // 1. User is authenticated (has token and userId)
   // 2. Onboarding state is loaded (not loading)
   // 3. Onboarding is not complete (first login)
-  // 4. Currently on dashboard route (/)
+  // 4. Currently on dashboard or start-here route
   const showModal = useMemo(
-    () => token && userId && !isOnboardingLoading && !state.isComplete && isDashboardRoute,
-    [token, userId, isOnboardingLoading, state.isComplete, isDashboardRoute]
+    () => token && userId && !isOnboardingLoading && !state.isComplete && isOnboardingRoute,
+    [token, userId, isOnboardingLoading, state.isComplete, isOnboardingRoute]
   );
 
-  const handleOnboardingComplete = useCallback(() => {
+  const handleOnboardingDone = useCallback(() => {
     completeOnboarding();
-  }, [completeOnboarding]);
-
-  const handleOnboardingSkip = useCallback(() => {
-    completeOnboarding();
-  }, [completeOnboarding]);
+    navigate("/start-here");
+  }, [completeOnboarding, navigate]);
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
@@ -277,8 +275,8 @@ function App() {
                 </CommandPaletteErrorBoundary>
                 {showModal && (
                   <SetupModal
-                    onComplete={handleOnboardingComplete}
-                    onSkip={handleOnboardingSkip}
+                    onComplete={handleOnboardingDone}
+                    onSkip={handleOnboardingDone}
                   />
                 )}
                 <Routes>

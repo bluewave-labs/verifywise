@@ -581,6 +581,7 @@ export function IntakeFormsListPage() {
                 { _id: "pending", name: "Pending" },
                 { _id: "approved", name: "Approved" },
                 { _id: "rejected", name: "Rejected" },
+                { _id: "superseded", name: "Superseded" },
               ]}
               sx={{ width: 180, backgroundColor: theme.palette.background.main }}
             />
@@ -622,12 +623,14 @@ export function IntakeFormsListPage() {
                       <TableRow
                         key={submission.id}
                         onClick={() => {
+                          if (submission.status === "superseded") return;
                           setSelectedSubmissionId(submission.id);
                           setPreviewOpen(true);
                         }}
                         sx={{
                           ...singleTheme.tableStyles.primary.body.row,
-                          cursor: "pointer",
+                          cursor: submission.status === "superseded" ? "default" : "pointer",
+                          ...(submission.status === "superseded" && { opacity: 0.5 }),
                         }}
                       >
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -648,7 +651,12 @@ export function IntakeFormsListPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <Chip label={submission.status} />
+                          <Stack direction="row" alignItems="center" gap="8px">
+                            <Chip label={submission.status} />
+                            {submission.resubmissionCount > 0 && submission.status !== "superseded" && (
+                              <Chip label="resubmitted" />
+                            )}
+                          </Stack>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                           <RiskTierChip submission={submission} />
@@ -659,25 +667,27 @@ export function IntakeFormsListPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                          <CustomizableButton
-                            variant="outlined"
-                            onClick={() => {
-                              setSelectedSubmissionId(submission.id);
-                              setPreviewOpen(true);
-                            }}
-                            sx={{
-                              height: 28,
-                              fontSize: "12px",
-                              borderColor: theme.palette.border.dark,
-                              color: theme.palette.text.secondary,
-                              "&:hover": {
-                                borderColor: theme.palette.primary.main,
-                                backgroundColor: theme.palette.background.fill,
-                              },
-                            }}
-                          >
-                            Review
-                          </CustomizableButton>
+                          {submission.status !== "superseded" && (
+                            <CustomizableButton
+                              variant="outlined"
+                              onClick={() => {
+                                setSelectedSubmissionId(submission.id);
+                                setPreviewOpen(true);
+                              }}
+                              sx={{
+                                height: 28,
+                                fontSize: "12px",
+                                borderColor: theme.palette.border.dark,
+                                color: theme.palette.text.secondary,
+                                "&:hover": {
+                                  borderColor: theme.palette.primary.main,
+                                  backgroundColor: theme.palette.background.fill,
+                                },
+                              }}
+                            >
+                              Review
+                            </CustomizableButton>
+                          )}
                         </TableCell>
                       </TableRow>
                     );

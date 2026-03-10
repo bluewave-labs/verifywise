@@ -8,9 +8,6 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Collapse,
   useTheme,
 } from "@mui/material";
@@ -49,7 +46,6 @@ import {
   generateFieldId,
   generateSlug,
   DEFAULT_DESIGN_SETTINGS,
-  ENTITY_FIELD_MAPPINGS,
   analyzeMappingCoverage,
   createFieldFromMapping,
 } from "./types";
@@ -79,6 +75,7 @@ export function IntakeFormBuilder() {
   const { formId } = useParams<{ formId?: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const entityTypeParam = searchParams.get("entityType");
   const theme = useTheme();
 
   // --- Builder state ---
@@ -125,7 +122,6 @@ export function IntakeFormBuilder() {
         })
         .finally(() => setIsLoadingForm(false));
     } else if (formId === "new") {
-      const entityTypeParam = searchParams.get("entityType");
       const entityType = entityTypeParam === IntakeEntityType.MODEL
         ? IntakeEntityType.MODEL
         : IntakeEntityType.USE_CASE;
@@ -133,7 +129,7 @@ export function IntakeFormBuilder() {
       setSelectedFieldId(null);
       setIsDirty(false);
     }
-  }, [formId, isEditing, searchParams]);
+  }, [formId, isEditing, entityTypeParam]);
 
   // Load LLM keys & users (once)
   useEffect(() => {
@@ -265,7 +261,7 @@ export function IntakeFormBuilder() {
         ...form,
         slug: form.slug || generateSlug(form.name),
         recipients: form.recipients ?? [],
-        riskTierSystem: form.riskTierSystem ?? "generic",
+        riskTierSystem: form.riskTierSystem ?? "eu_ai_act",
         llmKeyId: form.llmKeyId ?? null,
         suggestedQuestionsEnabled: form.suggestedQuestionsEnabled ?? false,
       };
@@ -316,7 +312,7 @@ export function IntakeFormBuilder() {
         ...form,
         slug: form.slug || generateSlug(form.name),
         recipients: form.recipients ?? [],
-        riskTierSystem: form.riskTierSystem ?? "generic",
+        riskTierSystem: form.riskTierSystem ?? "eu_ai_act",
         llmKeyId: form.llmKeyId ?? null,
         suggestedQuestionsEnabled: form.suggestedQuestionsEnabled ?? false,
         status: IntakeFormStatus.ACTIVE,
@@ -759,14 +755,16 @@ export function IntakeFormBuilder() {
                     onDescriptionChange={(description) => updateForm({ description })}
                     collectContactInfo
                   />
-                  <SuggestedQuestionsPanel
-                    ref={suggestedPanelRef}
-                    fieldCount={form.schema.fields.length}
-                    existingFieldLabels={form.schema.fields.map((f) => f.label)}
-                    entityType={form.entityType}
-                    llmKeyId={form.llmKeyId}
-                    onAdd={addField}
-                  />
+                  {form.suggestedQuestionsEnabled && (
+                    <SuggestedQuestionsPanel
+                      ref={suggestedPanelRef}
+                      fieldCount={form.schema.fields.length}
+                      existingFieldLabels={form.schema.fields.map((f) => f.label)}
+                      entityType={form.entityType}
+                      llmKeyId={form.llmKeyId}
+                      onAdd={addField}
+                    />
+                  )}
                 </Box>
                 {builderMode === "design" ? (
                   <DesignPanel
@@ -849,8 +847,6 @@ export function IntakeFormBuilder() {
                           const { missingRequired, missingOptional, typeMismatches } = mappingCoverage;
                           const allMapped = missingRequired.length === 0 && missingOptional.length === 0 && typeMismatches.length === 0;
                           const entityLabel = form.entityType === IntakeEntityType.USE_CASE ? "use case" : "model";
-                          const hasErrors = missingRequired.length > 0 || typeMismatches.length > 0;
-
                           const handleAddField = (m: typeof missingRequired[0]) => {
                             const newField = createFieldFromMapping(m, form.schema.fields.length);
                             setForm((prev) => ({
@@ -994,82 +990,6 @@ export function IntakeFormBuilder() {
                               mb: "4px",
                             }}
                           >
-                            Risk tier system
-                          </Typography>
-                          <RadioGroup
-                            value={form.riskTierSystem ?? "generic"}
-                            onChange={(e) =>
-                              updateForm({
-                                riskTierSystem: e.target.value,
-                              })
-                            }
-                            sx={{ pl: "16px", gap: "8px" }}
-                          >
-                            <FormControlLabel
-                              value="generic"
-                              sx={{ mr: 0 }}
-                              control={
-                                <Radio
-                                  size="small"
-                                  sx={{
-                                    color: theme.palette.text.accent,
-                                    "&.Mui-checked": {
-                                      color: theme.palette.primary.main,
-                                    },
-                                    p: 0.5,
-                                  }}
-                                />
-                              }
-                              label={
-                                <Typography
-                                  sx={{
-                                    fontSize: 13,
-                                    color: theme.palette.text.secondary,
-                                  }}
-                                >
-                                  Generic (Low / Med / High / Critical)
-                                </Typography>
-                              }
-                            />
-                            <FormControlLabel
-                              value="eu_ai_act"
-                              sx={{ mr: 0 }}
-                              control={
-                                <Radio
-                                  size="small"
-                                  sx={{
-                                    color: theme.palette.text.accent,
-                                    "&.Mui-checked": {
-                                      color: theme.palette.primary.main,
-                                    },
-                                    p: 0.5,
-                                  }}
-                                />
-                              }
-                              label={
-                                <Typography
-                                  sx={{
-                                    fontSize: 13,
-                                    color: theme.palette.text.secondary,
-                                  }}
-                                >
-                                  EU AI Act (Minimal / Limited / High /
-                                  Unacceptable)
-                                </Typography>
-                              }
-                            />
-                          </RadioGroup>
-                        </Box>
-
-                        <Box>
-                          <Typography
-                            sx={{
-                              fontSize: 13,
-                              fontWeight: 500,
-                              color: theme.palette.text.secondary,
-                              mb: "4px",
-                            }}
-                          >
                             LLM key
                           </Typography>
                           <Select
@@ -1152,7 +1072,7 @@ export function IntakeFormBuilder() {
                             <Typography
                               sx={{ fontSize: "11px", color: theme.palette.text.accent }}
                             >
-                              Show AI-suggested questions to form submitters
+                              Show AI-suggested questions while building the form
                             </Typography>
                           </Box>
                         </Box>

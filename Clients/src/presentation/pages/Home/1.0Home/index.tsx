@@ -13,6 +13,7 @@ import { CustomizableButton } from "../../../components/button/customizable-butt
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import StandardModal from "../../../components/Modals/StandardModal";
+import AiOrNotScreening from "../../../components/Modals/AiOrNotScreening";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 
 const Home = () => {
@@ -27,6 +28,7 @@ const Home = () => {
   } = useContext(VerifyWiseContext);
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] =
     useState<boolean>(false);
+  const [isScreeningOpen, setIsScreeningOpen] = useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
 
@@ -71,7 +73,7 @@ const Home = () => {
   // Auto-open create modal when navigating from "Add new..." dropdown
   useEffect(() => {
     if (location.state?.openCreateModal) {
-      setIsProjectFormModalOpen(true);
+      setIsScreeningOpen(true);
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
       navigate(location.pathname, { replace: true, state: {} });
@@ -106,7 +108,7 @@ const Home = () => {
                 gap: 2,
               }}
               icon={<AddCircleOutlineIcon size={16} />}
-              onClick={() => setIsProjectFormModalOpen(true)}
+              onClick={() => setIsScreeningOpen(true)}
               isDisabled={!allowedRoles.projects.create.includes(userRoleName)}
             />
           </div>
@@ -135,6 +137,17 @@ const Home = () => {
           onClose={handleProjectFormModalClose}
         />
       </StandardModal>
+      <AiOrNotScreening
+        isOpen={isScreeningOpen}
+        onClose={() => setIsScreeningOpen(false)}
+        onSkip={() => {
+          setIsScreeningOpen(false);
+          setIsProjectFormModalOpen(true);
+        }}
+        onComplete={() => {
+          setIsProjectFormModalOpen(true);
+        }}
+      />
       <PageTour
         steps={HomeSteps}
         run={runHomeTour}

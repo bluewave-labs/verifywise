@@ -19,6 +19,8 @@ import Alert from "../../Alert";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useIsAdmin } from "../../../../application/hooks/useIsAdmin";
+import { useLLMKeyStatus } from "../../../../application/hooks/useLLMKeyStatus";
+import AIKeyBanner from "./AIKeyBanner";
 import {
   IGenerateReportProps,
   ReportFormat,
@@ -38,6 +40,7 @@ interface BasicFormValues {
   projectFrameworkId: number;
   reportName: string;
   format: ReportFormat;
+  aiEnhanced: boolean;
 }
 
 const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
@@ -50,6 +53,8 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   const { users } = useUsers();
   const { data: projects } = useProjects();
   const isAdmin = useIsAdmin();
+  const { data: llmKeyStatus } = useLLMKeyStatus();
+  const hasKeys = llmKeyStatus?.hasKeys ?? false;
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -65,6 +70,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
     projectFrameworkId: 1,
     reportName: "",
     format: "pdf",
+    aiEnhanced: false,
   });
 
   // Section selection for Page 2
@@ -164,6 +170,7 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
       frameworkId: basicFormValues.framework,
       projectFrameworkId: basicFormValues.projectFrameworkId,
       format: basicFormValues.format,
+      aiEnhanced: basicFormValues.aiEnhanced,
     };
 
     const reportDownloadResponse = await handleAutoDownload(body);
@@ -412,7 +419,10 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
         <Stack sx={{ minHeight: currentPage === "status" ? "200px" : "auto" }}>
           {currentPage === "status" ? (
             <Suspense fallback={<div>Loading...</div>}>
-              <DownloadReportForm statusCode={responseStatusCode} />
+              <DownloadReportForm
+                statusCode={responseStatusCode}
+                aiEnhanced={basicFormValues.aiEnhanced}
+              />
             </Suspense>
           ) : currentPage === "sections" ? (
             <Suspense fallback={<div>Loading...</div>}>
@@ -421,15 +431,22 @@ const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
                 isOrganizational={isOrganizational}
                 selection={sectionSelection}
                 onSelectionChange={setSectionSelection}
+                aiEnhanced={basicFormValues.aiEnhanced}
               />
             </Suspense>
           ) : (
             <Suspense fallback={<div>Loading...</div>}>
+              {!hasKeys && (
+                <Box sx={{ mb: 3 }}>
+                  <AIKeyBanner onClose={handleOnCloseModal} />
+                </Box>
+              )}
               <GenerateReportFrom
                 reportType={reportType}
                 values={basicFormValues}
                 onValuesChange={setBasicFormValues}
                 onValidateRef={validateFormRef}
+                hasKeys={hasKeys}
               />
             </Suspense>
           )}

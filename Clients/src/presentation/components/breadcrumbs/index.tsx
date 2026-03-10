@@ -78,13 +78,19 @@ function Breadcrumbs({
       icon: getRouteIcon(homePath),
     });
 
-    // Build path progressively
+    // Build path progressively, skipping numeric-only intermediate segments
     let currentPath = "";
     pathSegments.forEach((segment, index) => {
       currentPath += `/${segment}`;
 
       // Skip adding current page if showCurrentPage is false and this is the last segment
       if (!showCurrentPage && index === pathSegments.length - 1) {
+        return;
+      }
+
+      // Skip numeric-only intermediate segments (e.g., "38" in /policies/38/edit)
+      // These create 404 breadcrumbs and are not meaningful navigation targets
+      if (/^\d+$/.test(segment) && index < pathSegments.length - 1) {
         return;
       }
 

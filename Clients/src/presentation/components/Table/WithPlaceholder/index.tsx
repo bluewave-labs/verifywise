@@ -138,6 +138,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   onEdit,
   hidePagination = false,
   vendorRisks = [],
+  visibleColumns,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -194,6 +195,22 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
+
+  const isVisible = useCallback(
+    (key: string) => {
+      if (!visibleColumns) return true;
+      return visibleColumns.has(key);
+    },
+    [visibleColumns]
+  );
+
+  const visibleTableColumns = useMemo(
+    () =>
+      titleOfTableColumns.filter(
+        (col) => col.id === "vendor_name" || col.id === "actions" || isVisible(col.id)
+      ),
+    [isVisible]
+  );
 
   // Sorting handlers
   const handleSort = useCallback((columnId: string) => {
@@ -368,7 +385,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     showName={true}
                   />
                 </TableCell>
-                <TableCell
+                {isVisible("assignee") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -381,8 +398,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                           user._id === row.assignee
                       )?.name || "Unassigned"
                     : "Unassigned"}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("review_status") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -392,8 +409,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   {row.review_status}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("risk") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -418,8 +435,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       </Typography>
                     );
                   })()}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("scorecard") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -467,8 +484,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       );
                     })()}
                   </Box>
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("review_date") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -478,7 +495,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   {row.review_date
                     ? displayFormattedDate(row.review_date.toString())
                     : "No review date"}
-                </TableCell>
+                </TableCell>}
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
@@ -520,6 +537,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       sortConfig.key,
       getVendorRiskCount,
       hidePagination,
+      isVisible,
     ]
   );
 
@@ -534,7 +552,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
             <SortableTableHead
-              columns={titleOfTableColumns}
+              columns={visibleTableColumns}
               sortConfig={sortConfig}
               onSort={handleSort}
             />

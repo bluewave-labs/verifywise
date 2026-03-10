@@ -30,8 +30,9 @@ export async function getAllTags(): Promise<string[]> {
 
 export async function getPolicyById(id: string): Promise<PolicyManagerModel> {
   try {
-    const response = await apiServices.get<{message: string; data: PolicyManagerModel}>(`/policies/${id}`);
-    return extractData<PolicyManagerModel>(response);
+    const response = await apiServices.get<{message: string; data: PolicyManagerModel | PolicyManagerModel[]}>(`/policies/${id}`);
+    const data = extractData<PolicyManagerModel | PolicyManagerModel[]>(response);
+    return Array.isArray(data) ? data[0] : data;
   } catch (error: any) {
     throw new APIError(`Failed to fetch policy with ID ${id}`, error?.response?.status, error);
   }

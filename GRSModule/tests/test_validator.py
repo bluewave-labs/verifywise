@@ -13,9 +13,8 @@ from __future__ import annotations
 
 import pytest
 
+from validate.signals import DIMENSION_PATTERNS, SIGNAL_PATTERNS
 from validate.validator import (
-    DIMENSION_PATTERNS,
-    SIGNAL_PATTERNS,
     ValidateConfig,
     _has_dimension_trigger,
     _has_signal_gate,

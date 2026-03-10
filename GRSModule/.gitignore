@@ -5,6 +5,3 @@ build/
 
 # Virtual environments
 .venv/
-
-# Folders
-datasets/

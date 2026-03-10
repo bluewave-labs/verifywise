@@ -1,4 +1,4 @@
-.PHONY: seeds render perturb all
+.PHONY: seeds render perturb all export-parquet
 
 seeds:
 	uv run grs-scenarios generate --stage seeds
@@ -31,3 +31,6 @@ run-scenario-viewer:
 	uv run streamlit run viewer.py
 
 all: seeds render perturb validate
+
+export-parquet:
+	uv run python scripts/export_parquet.py --dataset-dir datasets/grs_scenarios_v0.1

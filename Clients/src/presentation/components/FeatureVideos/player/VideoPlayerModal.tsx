@@ -112,6 +112,7 @@ export function VideoPlayerModal({
       <Box
         role="dialog"
         aria-modal="true"
+        className="feature-video-player"
         sx={{
           position: "relative",
           width: "min(960px, 90vw)",

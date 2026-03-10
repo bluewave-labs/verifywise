@@ -80,3 +80,8 @@ html.dark-mode .wise-search-banner {
 html.dark-mode .gs-card {
   filter: invert(1) hue-rotate(180deg);
 }
+
+/* Feature videos: counter-invert so rendered compositions keep original colors */
+html.dark-mode .feature-video-player {
+  filter: invert(1) hue-rotate(180deg);
+}

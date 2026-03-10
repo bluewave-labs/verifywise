@@ -1321,10 +1321,17 @@ export default function PolicyEditorPage() {
   };
 
   // ── DOCX import ──────────────────────────────────────────────────
+  const MAX_DOCX_SIZE = 10 * 1024 * 1024; // 10 MB (matches backend multer limit)
+
   const handleDocxFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = ""; // reset so same file can be re-selected
+
+    if (file.size > MAX_DOCX_SIZE) {
+      setImportError("File is too large. Maximum size is 10 MB.");
+      return;
+    }
 
     // If editor has content, show confirmation dialog
     if (editor && !editor.isEmpty) {
@@ -1350,9 +1357,9 @@ export default function PolicyEditorPage() {
     }
   };
 
-  const confirmImport = () => {
+  const confirmImport = async () => {
     if (pendingImportFile) {
-      processDocxImport(pendingImportFile);
+      await processDocxImport(pendingImportFile);
     }
     setPendingImportFile(null);
   };
@@ -2314,6 +2321,7 @@ export default function PolicyEditorPage() {
       {/* Import confirmation dialog */}
       <ConfirmationModal
         isOpen={pendingImportFile !== null}
+        isLoading={isImporting}
         title="Replace existing content?"
         body={
           <Typography sx={{ fontSize: 13, color: "#475467" }}>

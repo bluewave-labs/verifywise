@@ -22,12 +22,14 @@ import {
   generateFilename,
 } from "../services/policies/policyExporter";
 import mammoth from "mammoth";
+import sanitizeHtml from "sanitize-html";
 import {
   notifyReviewRequested,
   notifyReviewApproved,
   notifyReviewRejected,
 } from "../services/inAppNotification.service";
 import { NotificationEntityType } from "../domain.layer/interfaces/i.notification";
+import logger from "../utils/logger/fileLogger";
 
 export class PolicyController {
   // Get all policies
@@ -244,15 +246,14 @@ export class PolicyController {
       }
 
       const policy = policyResult[0] as IPolicy;
-      console.log("Exporting DOCX for policy:", policy.title);
-      console.log("Content HTML:", policy.content_html?.substring(0, 1000));
+      logger.debug(`Exporting DOCX for policy ${policyId}: ${policy.title}`);
 
       const docxBuffer = await generatePolicyDOCX(
         policy.title,
         policy.content_html || "",
         req.organizationId!
       );
-      console.log("Generated DOCX buffer size:", docxBuffer.length);
+      logger.debug(`Generated DOCX buffer for policy ${policyId}: ${docxBuffer.length} bytes`);
 
       const filename = generateFilename(policy.title, "docx");
 
@@ -268,7 +269,7 @@ export class PolicyController {
 
       return res.send(docxBuffer);
     } catch (error) {
-      console.error("Error exporting policy as DOCX:", error);
+      logger.error("Error exporting policy as DOCX:", error as Error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -308,13 +309,26 @@ export class PolicyController {
       html = html.replace(/<(\/?)h[456](\s|>)/gi, "<$1h3$2");
       html = html.replace(/\s+class="[^"]*"/g, "");
 
+      // Server-side sanitization (defense-in-depth)
+      html = sanitizeHtml(html, {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+          "h1", "h2", "h3", "img", "sup", "sub", "u", "s",
+        ]),
+        allowedAttributes: {
+          ...sanitizeHtml.defaults.allowedAttributes,
+          img: ["src", "alt", "width", "height"],
+          a: ["href", "target", "rel"],
+        },
+        allowedSchemes: ["http", "https", "data"],
+      });
+
       const warnings = result.messages
         .filter((m) => m.type === "warning")
         .map((m) => m.message);
 
       return res.status(200).json(STATUS_CODE[200]({ html, warnings }));
     } catch (error) {
-      console.error("Error importing DOCX:", error);
+      logger.error("Error importing DOCX:", error as Error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

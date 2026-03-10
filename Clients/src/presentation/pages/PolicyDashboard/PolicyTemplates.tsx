@@ -9,6 +9,8 @@ import { PolicyTemplateCategory } from "../../../domain/enums/policy.enum";
 import TagChip from "../../components/Tags/TagChip";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { ColumnSelector } from "../../components/Table/ColumnSelector";
+import { useColumnVisibility, ColumnConfig } from "../../../application/hooks/useColumnVisibility";
 import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
@@ -21,6 +23,16 @@ const tableHeaders = [
   { id: "title", name: "Title" },
   { id: "tags", name: "Tags" },
   { id: "description", name: "Description" },
+];
+
+type PolicyTemplateColumnKey = "title" | "id" | "tags" | "description" | "actions";
+
+const POLICY_TEMPLATE_TABLE_COLUMNS: ColumnConfig<PolicyTemplateColumnKey>[] = [
+  { key: "title", label: "Title", defaultVisible: true, alwaysVisible: true },
+  { key: "id", label: "ID", defaultVisible: true },
+  { key: "tags", label: "Tags", defaultVisible: true },
+  { key: "description", label: "Description", defaultVisible: true },
+  { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true } as ColumnConfig<"actions">, // Add actions column config
 ];
 
 const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
@@ -125,6 +137,19 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
+  const { visibleColumns, allColumns, toggleColumn, resetToDefaults } =
+    useColumnVisibility({ tableId: "policy-templates-table", columns: POLICY_TEMPLATE_TABLE_COLUMNS });
+
+  const isVisible = useCallback(
+    (key: string) => !visibleColumns || visibleColumns.size === 0 || visibleColumns.has(key as PolicyTemplateColumnKey),
+    [visibleColumns]
+  );
+
+  const visibleTableHeaders = useMemo(
+    () => tableHeaders.filter((col) => col.id === "title" || isVisible(col.id)),
+    [isVisible]
+  );
+
   return (
     <Stack>
       <Stack direction="row" spacing={2} alignItems="center" mb={8}>
@@ -142,6 +167,14 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
             { id: 'category', label: 'Category' },
           ]}
           onGroupChange={handleGroupChange}
+        />
+
+        {/* Column Selector */}
+        <ColumnSelector
+          columns={allColumns}
+          visibleColumns={visibleColumns}
+          onToggleColumn={toggleColumn}
+          onResetToDefaults={resetToDefaults}
         />
 
         {/* Search */}
@@ -165,10 +198,10 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
           ungroupedData={filteredPolicyTemplates}
           renderTable={(data, options) => (
             <CustomizablePolicyTable
-              data={{ rows: data.map(p => ({ ...p, id: p.id })), cols: tableHeaders }}
+              data={{ rows: data.map(p => ({ ...p, id: p.id })), cols: visibleTableHeaders }}
               paginated
-              setSelectedRow={() => {}}
-              setAnchorEl={() => {}}
+              setSelectedRow={() => { }}
+              setAnchorEl={() => { }}
               onRowClick={(id: string) => handleSelectPolicyTemplate(Number(id))}
               hidePagination={options?.hidePagination}
               renderRow={(policy, sortConfig) => (
@@ -179,15 +212,17 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                   sx={{ ...singleTheme.tableStyles.primary.body.row }}
                   onClick={() => handleSelectPolicyTemplate(policy.id)}
                 >
-                  <TableCell
-                    sx={{
-                      ...cellStyle,
-                      fontWeight: 500,
-                      backgroundColor: sortConfig?.key?.toLowerCase().includes("id") ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    {policy.id}
-                  </TableCell>
+                  {isVisible("id") && (
+                    <TableCell
+                      sx={{
+                        ...cellStyle,
+                        fontWeight: 500,
+                        backgroundColor: sortConfig?.key?.toLowerCase().includes("id") ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      {policy.id}
+                    </TableCell>
+                  )}
                   <TableCell
                     sx={{
                       ...cellStyle,
@@ -199,29 +234,33 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
                   >
                     {policy.title}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      ...cellStyle,
-                      backgroundColor: sortConfig?.key?.toLowerCase().includes("tags") ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    <Stack direction="row" gap={1} flexWrap="wrap">
-                      {policy.tags.map((tag: string, index: number) => (
-                        <TagChip key={`${tag}-${index}`} tag={tag} />
-                      ))}
-                    </Stack>
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...cellStyle,
-                      maxWidth: 250,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      backgroundColor: sortConfig?.key?.toLowerCase().includes("description") ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    {policy.description}
-                  </TableCell>
+                  {isVisible("tags") && (
+                    <TableCell
+                      sx={{
+                        ...cellStyle,
+                        backgroundColor: sortConfig?.key?.toLowerCase().includes("tags") ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      <Stack direction="row" gap={1} flexWrap="wrap">
+                        {policy.tags.map((tag: string, index: number) => (
+                          <TagChip key={`${tag}-${index}`} tag={tag} />
+                        ))}
+                      </Stack>
+                    </TableCell>
+                  )}
+                  {isVisible("description") && (
+                    <TableCell
+                      sx={{
+                        ...cellStyle,
+                        maxWidth: 250,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        backgroundColor: sortConfig?.key?.toLowerCase().includes("description") ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      {policy.description}
+                    </TableCell>
+                  )}
                 </TableRow>
               )}
             />

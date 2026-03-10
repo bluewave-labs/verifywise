@@ -10,7 +10,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The Settings page has two tabs: **GitHub integration** for configuring repository access tokens, and **Risk scoring** for enabling LLM-enhanced analysis, customizing dimension weights, and configuring vulnerability detection types.',
+      text: 'The Settings page has 2 tabs: **GitHub integration** for repository access tokens, and **Risk scoring** for LLM-enhanced analysis, dimension weights, and vulnerability detection types.',
     },
     {
       type: 'heading',
@@ -61,7 +61,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'callout',
-      text: 'Tokens are stored securely on the server. They are never exposed in the browser after being saved.',
+      text: 'Tokens are stored encrypted on the server and aren\'t exposed in the browser after saving.',
     },
     {
       type: 'heading',
@@ -81,7 +81,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Toggle **LLM-enhanced analysis** to enable AI-powered scoring. When enabled, the risk scoring engine sends anonymized finding summaries to your configured LLM to produce a narrative analysis, actionable recommendations, and suggested risks.',
+      text: 'Toggle **LLM-enhanced analysis** on to enable AI-powered scoring. The risk scoring engine will send anonymized finding summaries to your configured LLM, which produces a written analysis, recommendations, and suggested risks.',
     },
     {
       type: 'paragraph',
@@ -90,7 +90,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     {
       type: 'callout',
       variant: 'info',
-      text: 'Without LLM enhancement, risk scores are calculated using rule-based analysis only. The score is still accurate but does not include narrative summaries, recommendations, or suggested risks.',
+      text: 'Without LLM enhancement, risk scores use rule-based analysis only. The score is still accurate but won\'t include written summaries, recommendations, or suggested risks.',
     },
     {
       type: 'heading',
@@ -100,7 +100,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Adjust the sliders to control how much each risk dimension contributes to the overall score. The five dimensions are:',
+      text: 'Use the sliders to control how much each risk dimension contributes to the overall score. The 5 dimensions:',
     },
     {
       type: 'bullet-list',
@@ -114,7 +114,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The total weight across all dimensions must equal 100%. A validation message appears if the total is too high or too low. Click **Reset to defaults** to restore the original weight distribution. After changing weights, click **Save** and recalculate any existing scores to apply the new weights.',
+      text: 'Weights must total 100%. A validation message shows if they don\'t. Click **Reset to defaults** to go back to the original distribution. After changing weights, click **Save** and recalculate existing scores to apply them.',
     },
     {
       type: 'heading',
@@ -124,7 +124,7 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'When LLM-enhanced analysis is enabled, a **Vulnerability detection** section appears with toggles for each of the 10 OWASP LLM Top 10 vulnerability types. Enable or disable individual types based on your organization\'s priorities:',
+      text: 'When LLM-enhanced analysis is on, a **Vulnerability detection** section appears with toggles for each OWASP LLM Top 10 type. Turn individual types on or off based on what matters to your team:',
     },
     {
       type: 'bullet-list',
@@ -143,13 +143,13 @@ export const aiDetectionSettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Disabled types are skipped during the LLM analysis phase, reducing both scan time and API costs. The regex pre-filter still runs for all types regardless of these settings.',
+      text: 'Disabled types are skipped during LLM analysis, which cuts scan time and API costs. The regex pre-filter still runs for all types regardless.',
     },
     {
       type: 'callout',
       variant: 'tip',
       title: 'Reducing noise',
-      text: 'If certain vulnerability types consistently produce false positives for your codebase, disable them here to focus on the types most relevant to your technology stack.',
+      text: 'If certain types keep producing false positives for your codebase, turn them off here so you can focus on what\'s actually relevant.',
     },
     {
       type: 'article-links',

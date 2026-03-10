@@ -16,11 +16,12 @@ import {
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import IconButton from "../../IconButton";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
-import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert, TrendingDown, Grid3X3, ListChecks } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../types/interfaces/i.table";
@@ -642,9 +643,25 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       {!vendorRisks || vendorRisks.length === 0 ? (
         <EmptyState
           icon={ShieldAlert}
-          message="No risks identified. Risks will appear here as they are added."
+          message="No risks identified yet. Document and track risks related to your AI systems."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={TrendingDown}
+            title="Identify AI-specific risks"
+            description="Document risks related to bias, data quality, security, transparency, and model drift. Cover both technical and organizational risks."
+          />
+          <EmptyStateTip
+            icon={Grid3X3}
+            title="Assess likelihood and impact"
+            description="Rate each risk by likelihood and impact. The risk score and level help you prioritize what needs attention first."
+          />
+          <EmptyStateTip
+            icon={ListChecks}
+            title="Create treatment plans"
+            description="Define mitigation strategies for each risk and track their progress. Link treatments to specific controls for full traceability."
+          />
+        </EmptyState>
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>

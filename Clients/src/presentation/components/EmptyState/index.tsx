@@ -1,5 +1,5 @@
-import type { FC } from "react";
-import { Stack, Typography, useTheme } from "@mui/material";
+import type { FC, ReactNode } from "react";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
 import type { LucideIcon } from "lucide-react";
 import { Inbox } from "lucide-react";
 import EmptyIllustration from "./EmptyIllustration";
@@ -28,17 +28,23 @@ interface EmptyStateProps {
    * Contextual icon for the illustration (defaults to Inbox)
    */
   icon?: LucideIcon;
+  /**
+   * Optional content below the message (typically EmptyStateTip components)
+   */
+  children?: ReactNode;
 }
 
 /**
  * Reusable EmptyState component for tables and lists.
  * Displays an abstract SVG illustration with a contextual icon.
+ * Optionally renders collapsible tips below the message.
  */
 export const EmptyState: FC<EmptyStateProps> = ({
   message = "There is currently no data in this table.",
   imageAlt = "No data available",
   showBorder = false,
   icon = Inbox,
+  children,
 }) => {
   const theme = useTheme();
 
@@ -52,7 +58,7 @@ export const EmptyState: FC<EmptyStateProps> = ({
           backgroundColor: theme.palette.background.main,
         }),
         pt: "48px",
-        pb: 12,
+        pb: children ? 6 : 12,
       }}
       role="status"
       aria-label={imageAlt}
@@ -72,6 +78,22 @@ export const EmptyState: FC<EmptyStateProps> = ({
       >
         {message}
       </Typography>
+      {children && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+            mt: 4,
+            width: "100%",
+            maxWidth: 440,
+            px: 2,
+            pb: 2,
+          }}
+        >
+          {children}
+        </Box>
+      )}
     </Stack>
   );
 };

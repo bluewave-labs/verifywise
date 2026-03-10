@@ -1487,7 +1487,7 @@ export async function migrateToSharedSchema(options: {
   try {
     // Get all organizations
     const organizations = (await sequelize.query(
-      `SELECT id, name FROM public.organizations ORDER BY id`,
+      `SELECT id, name FROM organizations ORDER BY id`,
       { type: QueryTypes.SELECT }
     )) as { id: number; name: string }[];
 
@@ -1745,7 +1745,7 @@ export async function checkAndRunMigration(): Promise<MigrationResult> {
 
   // Get all organizations from public schema (source of old data)
   const organizations = (await sequelize.query(
-    `SELECT id FROM public.organizations ORDER BY id`,
+    `SELECT id FROM organizations ORDER BY id`,
     { type: QueryTypes.SELECT }
   )) as { id: number }[];
 

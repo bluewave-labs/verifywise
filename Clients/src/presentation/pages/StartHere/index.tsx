@@ -224,8 +224,6 @@ const StartHere = () => {
       })
       .catch(() => setUserName(userToken?.name || ""));
   }, [userId, userToken?.name]);
-  const firstName = userName || "there";
-
   const greeting = useMemo(
     () => getTimeBasedGreeting(userName, userToken),
     [userName, userToken]

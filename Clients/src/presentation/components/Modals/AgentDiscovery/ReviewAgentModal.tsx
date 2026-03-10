@@ -15,7 +15,7 @@ import { X, Link as LinkIcon, Unlink } from "lucide-react";
 import VWChip from "../../Chip";
 import { CustomizableButton } from "../../button/customizable-button";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { AgentPrimitiveRow } from "../../../pages/AgentDiscovery/AgentTable";
+import { AgentPrimitiveRow } from "../../../../domain/interfaces/i.agentDiscovery";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import LinkModelModal from "./LinkModelModal";
 
@@ -177,7 +177,7 @@ const ReviewAgentModal: React.FC<ReviewAgentModalProps> = ({
               <TabPanel value="categories" sx={{ p: "8px 0 0 0" }}>
                 <Stack direction="row" flexWrap="wrap" gap={0.5}>
                   {(agent.permission_categories || []).length > 0 ? (
-                    agent.permission_categories.map((cat) => (
+                    agent.permission_categories.map((cat: string) => (
                       <MuiChip
                         key={cat}
                         label={cat}

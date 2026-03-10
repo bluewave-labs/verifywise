@@ -204,6 +204,7 @@ export interface IReportTableProps {
     key: string;
     direction: "asc" | "desc" | null;
   };
+  visibleColumns?: Set<string>;
 }
 
 export interface IReportTablePropsExtended {
@@ -213,6 +214,7 @@ export interface IReportTablePropsExtended {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface IRiskTableProps {
@@ -223,6 +225,7 @@ export interface IRiskTableProps {
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
   hidePagination?: boolean;
+  visibleColumns?: Set<string>;
 }
 
 export interface ITasksTableProps {
@@ -253,4 +256,5 @@ export interface ITableWithPlaceholderProps {
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
   vendorRisks?: VendorRisk[];
+  visibleColumns?: Set<string>;
 }

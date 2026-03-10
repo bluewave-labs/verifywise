@@ -61,7 +61,13 @@ export type VulnerabilityTypeKey =
   | "prompt_injection"
   | "pii_exposure"
   | "excessive_agency"
-  | "jailbreak_risk";
+  | "jailbreak_risk"
+  | "training_data_poisoning"
+  | "model_dos"
+  | "supply_chain"
+  | "insecure_plugin"
+  | "overreliance"
+  | "model_theft";
 
 export interface VulnerabilityTypeInfo {
   key: VulnerabilityTypeKey;
@@ -99,6 +105,48 @@ export const VULNERABILITY_TYPES: VulnerabilityTypeInfo[] = [
     description:
       "Detects LLM output flowing to code execution, SQL queries, HTML rendering, or system commands without validation, enabling jailbreak-to-RCE or injection attacks.",
   },
+  {
+    key: "training_data_poisoning",
+    name: "Training data poisoning",
+    owaspId: "LLM03",
+    description:
+      "Detects unsafe model loading patterns and models downloaded from untrusted sources without integrity checks, risking arbitrary code execution or data poisoning.",
+  },
+  {
+    key: "model_dos",
+    name: "Model denial of service",
+    owaspId: "LLM04",
+    description:
+      "Detects missing token limits, input validation, timeouts, or rate limiting on LLM API calls, enabling resource exhaustion or unbounded generation costs.",
+  },
+  {
+    key: "supply_chain",
+    name: "Supply chain vulnerabilities",
+    owaspId: "LLM05",
+    description:
+      "Detects unpinned AI package versions, models loaded from untrusted sources without checksum verification, and trust_remote_code enabled in dependencies.",
+  },
+  {
+    key: "insecure_plugin",
+    name: "Insecure plugin design",
+    owaspId: "LLM07",
+    description:
+      "Detects tool or plugin definitions without input validation or schemas, MCP servers without authentication, and raw user input flowing to tool execution.",
+  },
+  {
+    key: "overreliance",
+    name: "Overreliance",
+    owaspId: "LLM09",
+    description:
+      "Detects LLM output used for automated decisions without human review, missing confidence thresholds, and silent failure handling without fallback mechanisms.",
+  },
+  {
+    key: "model_theft",
+    name: "Model theft",
+    owaspId: "LLM10",
+    description:
+      "Detects model weight files served over HTTP without authentication, placed in public directories, or bundled in client-side assets without access control.",
+  },
 ];
 
 export const DEFAULT_VULNERABILITY_TYPES_ENABLED: Record<VulnerabilityTypeKey, boolean> = {
@@ -106,6 +154,12 @@ export const DEFAULT_VULNERABILITY_TYPES_ENABLED: Record<VulnerabilityTypeKey, b
   pii_exposure: true,
   excessive_agency: true,
   jailbreak_risk: true,
+  training_data_poisoning: true,
+  model_dos: true,
+  supply_chain: true,
+  insecure_plugin: true,
+  overreliance: true,
+  model_theft: true,
 };
 
 export interface RiskScoringConfig {

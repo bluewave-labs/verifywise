@@ -79,7 +79,13 @@ export type FindingType =
   | "prompt_injection"
   | "pii_exposure"
   | "excessive_agency"
-  | "jailbreak_risk";
+  | "jailbreak_risk"
+  | "training_data_poisoning"
+  | "model_dos"
+  | "supply_chain"
+  | "insecure_plugin"
+  | "overreliance"
+  | "model_theft";
 
 export interface Finding {
   id: number;
@@ -115,13 +121,25 @@ export type VulnerabilityFindingType =
   | "prompt_injection"
   | "pii_exposure"
   | "excessive_agency"
-  | "jailbreak_risk";
+  | "jailbreak_risk"
+  | "training_data_poisoning"
+  | "model_dos"
+  | "supply_chain"
+  | "insecure_plugin"
+  | "overreliance"
+  | "model_theft";
 
 export const VULNERABILITY_FINDING_TYPES: VulnerabilityFindingType[] = [
   "prompt_injection",
   "pii_exposure",
   "excessive_agency",
   "jailbreak_risk",
+  "training_data_poisoning",
+  "model_dos",
+  "supply_chain",
+  "insecure_plugin",
+  "overreliance",
+  "model_theft",
 ];
 
 export interface VulnerabilityFindingsBySeverity {

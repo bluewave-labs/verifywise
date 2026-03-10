@@ -553,7 +553,7 @@ export default function HistoryPage() {
         const grade = scan.risk_score_grade;
         const color = getGradeColor(grade);
         return (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <Box
               sx={{
                 px: 0.75,

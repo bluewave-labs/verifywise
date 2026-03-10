@@ -28,13 +28,25 @@ export type VulnerabilityTypeKey =
   | "prompt_injection"
   | "pii_exposure"
   | "excessive_agency"
-  | "jailbreak_risk";
+  | "jailbreak_risk"
+  | "training_data_poisoning"
+  | "model_dos"
+  | "supply_chain"
+  | "insecure_plugin"
+  | "overreliance"
+  | "model_theft";
 
 export const ALL_VULNERABILITY_TYPES: VulnerabilityTypeKey[] = [
   "prompt_injection",
   "pii_exposure",
   "excessive_agency",
   "jailbreak_risk",
+  "training_data_poisoning",
+  "model_dos",
+  "supply_chain",
+  "insecure_plugin",
+  "overreliance",
+  "model_theft",
 ];
 
 export interface RiskScoringConfig {
@@ -76,6 +88,12 @@ function defaultVulnerabilityTypesEnabled(): Record<VulnerabilityTypeKey, boolea
     pii_exposure: true,
     excessive_agency: true,
     jailbreak_risk: true,
+    training_data_poisoning: true,
+    model_dos: true,
+    supply_chain: true,
+    insecure_plugin: true,
+    overreliance: true,
+    model_theft: true,
   };
 }
 

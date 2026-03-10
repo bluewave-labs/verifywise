@@ -33,35 +33,35 @@ export const DIMENSION_DEFINITIONS: DimensionDefinition[] = [
     label: "Data sovereignty",
     description: "Risk of data leaving the organization via cloud AI providers",
     defaultWeight: 0.25,
-    relevantFindingTypes: ["api_call", "rag_component", "library", "prompt_injection", "pii_exposure"],
+    relevantFindingTypes: ["api_call", "rag_component", "library", "prompt_injection", "pii_exposure", "model_theft"],
   },
   {
     key: "transparency",
     label: "Transparency",
     description: "Ability to explain and audit AI system behavior",
     defaultWeight: 0.20,
-    relevantFindingTypes: ["model_ref", "library", "agent"],
+    relevantFindingTypes: ["model_ref", "library", "agent", "overreliance"],
   },
   {
     key: "security",
     label: "Security",
     description: "Credential exposure and vulnerability risk",
     defaultWeight: 0.20,
-    relevantFindingTypes: ["secret", "api_call", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"],
+    relevantFindingTypes: ["secret", "api_call", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk", "training_data_poisoning", "model_dos", "insecure_plugin", "model_theft"],
   },
   {
     key: "autonomy",
     label: "Autonomy",
     description: "Level of autonomous AI decision-making without human oversight",
     defaultWeight: 0.15,
-    relevantFindingTypes: ["agent", "excessive_agency"],
+    relevantFindingTypes: ["agent", "excessive_agency", "overreliance", "model_dos", "insecure_plugin"],
   },
   {
     key: "supply_chain",
     label: "Supply chain",
     description: "Third-party AI dependency and provider concentration risk",
     defaultWeight: 0.20,
-    relevantFindingTypes: ["dependency", "library", "api_call"],
+    relevantFindingTypes: ["dependency", "library", "api_call", "supply_chain", "training_data_poisoning"],
   },
 ];
 
@@ -78,18 +78,41 @@ export const DEFAULT_DIMENSION_WEIGHTS: Record<DimensionKey, number> = {
 // ============================================================================
 
 export const BASE_PENALTIES: Record<string, number> = {
+  // Actual risk indicators — keep high penalties
   secret: 20,
   prompt_injection: 18,
   pii_exposure: 16,
+  training_data_poisoning: 16,
   excessive_agency: 14,
+  supply_chain: 14,
+  model_theft: 14,
   jailbreak_risk: 12,
-  agent: 12,
-  api_call: 8,
-  rag_component: 6,
-  model_ref: 4,
-  library: 2,
-  dependency: 1,
+  insecure_plugin: 12,
+  model_dos: 10,
+  overreliance: 10,
+  // Inventory items — lower penalties since presence alone is not a risk,
+  // only penalize when combined with high risk_level or confidence
+  agent: 5,
+  api_call: 3,
+  rag_component: 2,
+  model_ref: 1,
+  library: 0.5,
+  dependency: 0.2,
 };
+
+/**
+ * Finding types that are inventory items (governance-relevant but not
+ * inherently risky). These are only penalized when their risk_level
+ * is medium or high — low-risk inventory items are informational only.
+ */
+export const INVENTORY_FINDING_TYPES = new Set([
+  "library",
+  "dependency",
+  "api_call",
+  "model_ref",
+  "rag_component",
+  "agent",
+]);
 
 // ============================================================================
 // Multipliers

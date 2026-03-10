@@ -244,7 +244,7 @@ export async function getScanFindingsController(
     }
 
     // Validate finding_type if provided
-    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"];
+    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk", "training_data_poisoning", "model_dos", "supply_chain", "insecure_plugin", "overreliance", "model_theft"];
     if (findingType && !validFindingTypes.includes(findingType)) {
       return res
         .status(400)
@@ -908,6 +908,12 @@ export async function getRiskScoringConfigController(
         pii_exposure: true,
         excessive_agency: true,
         jailbreak_risk: true,
+        training_data_poisoning: true,
+        model_dos: true,
+        supply_chain: true,
+        insecure_plugin: true,
+        overreliance: true,
+        model_theft: true,
       },
       updated_by: null,
       updated_at: null,
@@ -984,7 +990,7 @@ export async function updateRiskScoringConfigController(
 
     // Validate vulnerability_types_enabled if provided
     if (vulnerability_types_enabled !== undefined) {
-      const validKeys = ["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"];
+      const validKeys = ["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk", "training_data_poisoning", "model_dos", "supply_chain", "insecure_plugin", "overreliance", "model_theft"];
       const providedKeys = Object.keys(vulnerability_types_enabled);
       const invalidKeys = providedKeys.filter((k) => !validKeys.includes(k));
       if (invalidKeys.length > 0) {

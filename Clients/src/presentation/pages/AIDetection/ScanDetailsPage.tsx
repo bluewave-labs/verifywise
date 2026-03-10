@@ -18,11 +18,19 @@ import {
   FileCode,
   CheckCircle2,
   ShieldCheck,
+  ShieldAlert,
+  ShieldOff,
   Info,
   Package,
   AlertCircle,
   AlertTriangle,
   Eye,
+  Unplug,
+  Timer,
+  Link2,
+  Plug,
+  Brain,
+  Lock,
   ThumbsUp,
   Flag,
   MoreHorizontal,
@@ -66,6 +74,7 @@ import {
   getComplianceMapping,
   recalculateRiskScore,
 } from "../../../application/repository/aiDetection.repository";
+import VWTooltip from "../../components/VWTooltip";
 import { RiskScoreCard } from "./components/RiskScoreCard";
 import {
   ScanResponse,
@@ -330,145 +339,74 @@ interface FilePathItemProps {
 }
 
 function FilePathItem({ path, lineNumber, matchedText, fileUrl }: FilePathItemProps) {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const hasCodeContext = matchedText && matchedText.includes("│");
   const hasContent = !!matchedText;
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    if (hasContent) {
-      event.preventDefault();
-      event.stopPropagation();
-      setAnchorEl(event.currentTarget);
-    }
-  };
+  const codePreviewContent = hasContent ? matchedText : null;
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const codePreviewContent = hasCodeContext ? (
+  const filePathRow = (
     <Box
       sx={{
-        backgroundColor: "#1e1e1e",
-        color: "#d4d4d4",
-        p: "12px",
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        py: 0.5,
+        px: 1,
         fontFamily: "monospace",
-        fontSize: "11px",
-        whiteSpace: "pre",
-        maxWidth: "600px",
-        overflow: "auto",
+        fontSize: 13,
+        cursor: fileUrl ? "pointer" : "default",
+        "&:hover": {
+          backgroundColor: palette.background.hover,
+        },
+        borderRadius: "4px",
       }}
     >
-      {matchedText}
+      {fileUrl ? (
+        <a
+          href={fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            fontFamily: "monospace",
+            color: palette.text.primary,
+            wordBreak: "break-all",
+            textDecoration: "none",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+          onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+        >
+          {path}
+          {lineNumber && (
+            <span style={{ color: palette.text.tertiary, marginLeft: "4px" }}>
+              :{lineNumber}
+            </span>
+          )}
+        </a>
+      ) : (
+        <span style={{ fontFamily: "monospace", color: palette.text.primary, wordBreak: "break-all" }}>
+          {path}
+          {lineNumber && (
+            <span style={{ color: palette.text.tertiary, marginLeft: "4px" }}>
+              :{lineNumber}
+            </span>
+          )}
+        </span>
+      )}
     </Box>
-  ) : matchedText ? (
-    <Box
-      sx={{
-        backgroundColor: "#1e1e1e",
-        color: "#ce9178",
-        p: "8px 12px",
-        fontFamily: "monospace",
-        fontSize: "12px",
-        maxWidth: "400px",
-        wordBreak: "break-all",
-      }}
-    >
-      {matchedText}
-    </Box>
-  ) : null;
-
-  return (
-    <>
-      <Box
-        onClick={handleClick}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          py: 0.5,
-          px: 1,
-          fontFamily: "monospace",
-          fontSize: 13,
-          cursor: hasContent ? "pointer" : "default",
-          "&:hover": hasContent ? {
-            backgroundColor: palette.background.hover,
-            "& .click-for-code-hint": { opacity: 0.7 },
-          } : {},
-          borderRadius: "4px",
-          backgroundColor: anchorEl ? palette.border.light : "transparent",
-        }}
-      >
-        {fileUrl ? (
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              fontFamily: "monospace",
-              color: palette.text.primary,
-              wordBreak: "break-all",
-              textDecoration: "none",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-          >
-            {path}
-            {lineNumber && (
-              <span style={{ color: palette.text.tertiary, marginLeft: "4px" }}>
-                :{lineNumber}
-              </span>
-            )}
-          </a>
-        ) : (
-          <span style={{ fontFamily: "monospace", color: palette.text.primary, wordBreak: "break-all" }}>
-            {path}
-            {lineNumber && (
-              <span style={{ color: palette.text.tertiary, marginLeft: "4px" }}>
-                :{lineNumber}
-              </span>
-            )}
-          </span>
-        )}
-        {hasContent && (
-          <Box
-            component="span"
-            className="click-for-code-hint"
-            sx={{
-              ml: "auto",
-              color: palette.text.tertiary,
-              fontSize: "11px",
-              opacity: 0,
-              transition: "opacity 0.15s ease",
-            }}
-          >
-            (click for code)
-          </Box>
-        )}
-      </Box>
-      <Popover
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        disableScrollLock={false}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 0.5,
-              borderRadius: "6px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              overflow: "hidden",
-              position: "fixed",
-            },
-          },
-        }}
-      >
-        {codePreviewContent}
-      </Popover>
-    </>
   );
+
+  if (hasContent && codePreviewContent) {
+    return (
+      <VWTooltip
+        content={codePreviewContent}
+        placement="bottom-start"
+      >
+        {filePathRow}
+      </VWTooltip>
+    );
+  }
+
+  return filePathRow;
 }
 
 // ============================================================================
@@ -492,7 +430,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
 
   const getFileUrl = (filePath: string, lineNumber: number | null): string | null => {
     if (!repositoryOwner || !repositoryName) return null;
-    const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/main/${filePath}`;
+    const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/HEAD/${filePath}`;
     return lineNumber ? `${baseUrl}#L${lineNumber}` : baseUrl;
   };
 
@@ -788,7 +726,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
 
   const getFileUrl = (filePath: string, lineNumber: number | null): string | null => {
     if (!repositoryOwner || !repositoryName) return null;
-    const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/main/${filePath}`;
+    const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/HEAD/${filePath}`;
     return lineNumber ? `${baseUrl}#L${lineNumber}` : baseUrl;
   };
 
@@ -1029,140 +967,338 @@ function mapSuggestionToMitigationForm(s: SuggestedRisk): Partial<MitigationForm
 
 const VULN_TYPE_LABELS: Record<string, { label: string; owaspId: string }> = {
   prompt_injection: { label: "Prompt injection", owaspId: "LLM01" },
-  pii_exposure: { label: "PII exposure", owaspId: "LLM06" },
-  excessive_agency: { label: "Excessive agency", owaspId: "LLM05" },
-  jailbreak_risk: { label: "Jailbreak risk", owaspId: "LLM02" },
+  jailbreak_risk: { label: "Insecure output handling", owaspId: "LLM02" },
+  training_data_poisoning: { label: "Training data poisoning", owaspId: "LLM03" },
+  model_dos: { label: "Model denial of service", owaspId: "LLM04" },
+  supply_chain: { label: "Supply chain vulnerabilities", owaspId: "LLM05" },
+  pii_exposure: { label: "Sensitive information disclosure", owaspId: "LLM06" },
+  insecure_plugin: { label: "Insecure plugin design", owaspId: "LLM07" },
+  excessive_agency: { label: "Excessive agency", owaspId: "LLM08" },
+  overreliance: { label: "Overreliance", owaspId: "LLM09" },
+  model_theft: { label: "Model theft", owaspId: "LLM10" },
 };
 
 interface VulnerabilityFindingRowProps {
   finding: Finding;
   repositoryOwner: string;
   repositoryName: string;
+  scanId: number;
+  onGovernanceChange?: (findingId: number, status: GovernanceStatus | null) => void;
+  onStatusMessage?: (variant: "success" | "error", body: string) => void;
 }
 
-function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName }: VulnerabilityFindingRowProps) {
+function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovernanceChange, onStatusMessage }: VulnerabilityFindingRowProps) {
   const [expanded, setExpanded] = useState(false);
+  const [governanceAnchor, setGovernanceAnchor] = useState<HTMLElement | null>(null);
+  const [localStatus, setLocalStatus] = useState<GovernanceStatus | null>(finding.governance_status || null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const vulnMeta = VULN_TYPE_LABELS[finding.finding_type] || { label: finding.finding_type, owaspId: "" };
-  const riskColor = finding.risk_level === "high" ? palette.risk.high : finding.risk_level === "medium" ? palette.risk.medium : palette.risk.low;
 
   const getFileUrl = (filePath: string, lineNumber: number | null): string | null => {
     if (!repositoryOwner || !repositoryName) return null;
-    const lineRef = lineNumber ? `#L${lineNumber}` : "";
-    return `https://github.com/${repositoryOwner}/${repositoryName}/blob/HEAD/${filePath}${lineRef}`;
+    const baseUrl = `https://github.com/${repositoryOwner}/${repositoryName}/blob/HEAD/${filePath}`;
+    return lineNumber ? `${baseUrl}#L${lineNumber}` : baseUrl;
   };
+
+  const handleGovernanceClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    setGovernanceAnchor(event.currentTarget);
+  };
+
+  const handleGovernanceClose = () => {
+    setGovernanceAnchor(null);
+  };
+
+  const handleStatusChange = async (newStatus: GovernanceStatus | null) => {
+    handleGovernanceClose();
+    if (newStatus === localStatus) return;
+
+    setIsUpdating(true);
+    try {
+      await updateFindingGovernanceStatus(scanId, finding.id, newStatus);
+      setLocalStatus(newStatus);
+      onGovernanceChange?.(finding.id, newStatus);
+      const statusLabel = newStatus ? GOVERNANCE_STATUS_CONFIG[newStatus].label : "unreviewed";
+      onStatusMessage?.("success", `Status updated to ${statusLabel}`);
+    } catch {
+      setLocalStatus(finding.governance_status || null);
+      onStatusMessage?.("error", "Failed to update governance status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const StatusIcon = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].icon : MoreHorizontal;
+  const statusColor = localStatus ? GOVERNANCE_STATUS_CONFIG[localStatus].color : palette.text.tertiary;
 
   return (
     <Box
       sx={{
-        border: `1px solid ${riskColor.border || palette.border.dark}`,
-        borderLeft: `3px solid ${riskColor.text || palette.text.primary}`,
+        border: `1px solid ${palette.border.light}`,
         borderRadius: "4px",
         mb: "8px",
         backgroundColor: palette.background.main,
-        overflow: "hidden",
       }}
     >
+      {/* Header */}
       <Box
         sx={{
-          p: "12px 16px",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          p: "8px",
           cursor: "pointer",
+          "&:hover": {
+            backgroundColor: palette.background.accent,
+          },
         }}
         onClick={() => setExpanded(!expanded)}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
-          <IconButton size="small" sx={{ p: 0 }}>
-            {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          </IconButton>
-          <Chip
-            label={finding.risk_level || "medium"}
-            variant={finding.risk_level === "high" ? "high" : finding.risk_level === "medium" ? "medium" : "low"}
-          />
-          <Chip
-            label={vulnMeta.owaspId}
-            variant="medium"
-          />
-          <Typography
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {finding.description || finding.name}
-          </Typography>
-        </Box>
-        <Typography sx={{ fontSize: 12, color: palette.text.tertiary, ml: "8px", flexShrink: 0 }}>
-          {vulnMeta.label}
-        </Typography>
-      </Box>
+        <IconButton size="small" sx={{ mr: 1 }}>
+          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </IconButton>
 
-      <Collapse in={expanded}>
-        <Box sx={{ px: "16px", pb: "16px" }}>
-          {/* Data flow summary */}
-          {finding.data_flow_summary && (
-            <Box sx={{ mb: "12px" }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: "4px" }}>
-                Data flow
+        <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+          <Box>
+            <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+              {finding.description || finding.name}
+            </Typography>
+            {finding.data_flow_summary && (
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mt: 0.5 }}>
+                {finding.data_flow_summary}
               </Typography>
-              <Typography
+            )}
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Risk Level Badge */}
+          {finding.risk_level && (
+            <Tooltip title={RISK_LEVEL_CONFIG[finding.risk_level]?.tooltip || ""} arrow placement="top">
+              <Box
                 sx={{
-                  fontSize: 12,
-                  color: palette.text.primary,
-                  backgroundColor: palette.background.fill,
-                  p: "8px",
+                  px: "8px",
+                  py: "2px",
                   borderRadius: "4px",
-                  fontFamily: "monospace",
+                  backgroundColor: RISK_LEVEL_CONFIG[finding.risk_level]?.bgColor,
+                  border: `1px solid ${RISK_LEVEL_CONFIG[finding.risk_level]?.color}20`,
                 }}
               >
-                {finding.data_flow_summary}
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: RISK_LEVEL_CONFIG[finding.risk_level]?.color,
+                  }}
+                >
+                  {RISK_LEVEL_CONFIG[finding.risk_level]?.label}
+                </Typography>
+              </Box>
+            </Tooltip>
+          )}
+          {/* OWASP Badge */}
+          {vulnMeta.owaspId && (
+            <Box
+              sx={{
+                px: "8px",
+                py: "2px",
+                borderRadius: "4px",
+                backgroundColor: palette.accent.indigo.bg,
+                border: `1px solid ${palette.accent.indigo.text}20`,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  fontWeight: 500,
+                  color: palette.accent.indigo.text,
+                }}
+              >
+                {vulnMeta.owaspId}
               </Typography>
             </Box>
           )}
+          {/* Cross-reference badge */}
+          {finding.vulnerability_details?.related_finding_types &&
+           (finding.vulnerability_details.related_finding_types as string[]).length > 0 && (
+            <Tooltip
+              title={`Also detected in: ${(finding.vulnerability_details.related_finding_types as string[]).map((t: string) => {
+                const labels: Record<string, string> = {
+                  library: "Libraries",
+                  agent: "Agents",
+                  model_ref: "Models",
+                  api_call: "API calls",
+                  secret: "Secrets",
+                  rag_component: "RAG",
+                  dependency: "Dependencies",
+                };
+                return labels[t] || t;
+              }).join(", ")} tab`}
+              arrow
+              placement="top"
+            >
+              <Box
+                sx={{
+                  px: "6px",
+                  py: "2px",
+                  borderRadius: "4px",
+                  backgroundColor: palette.accent.teal.bg,
+                  border: `1px solid ${palette.accent.teal.text}20`,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Link2 size={10} color={palette.accent.teal.text} />
+                <Typography sx={{ fontSize: "11px", color: palette.accent.teal.text }}>
+                  Cross-ref
+                </Typography>
+              </Box>
+            </Tooltip>
+          )}
+          <Box sx={{ minWidth: 120, display: "flex", justifyContent: "center" }}>
+            <Chip
+              label={vulnMeta.label}
+              variant="default"
+              size="small"
+            />
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
+            <FileCode size={14} color={palette.text.tertiary} />
+            <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+              {finding.file_count || finding.file_paths?.length || 0} {(finding.file_count || finding.file_paths?.length || 0) === 1 ? "file" : "files"}
+            </Typography>
+          </Box>
+          {/* Governance Status Button */}
+          <Tooltip title={localStatus ? `Status: ${GOVERNANCE_STATUS_CONFIG[localStatus].label}` : "Set status"} arrow placement="top">
+            <IconButton
+              size="small"
+              onClick={handleGovernanceClick}
+              disabled={isUpdating}
+              sx={{
+                border: `1px solid ${palette.border.light}`,
+                borderRadius: "4px",
+                p: "4px",
+                "&:hover": { backgroundColor: palette.background.hover },
+              }}
+            >
+              <StatusIcon size={16} color={statusColor} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
 
+      {/* Governance Status Popover */}
+      <Popover
+        open={Boolean(governanceAnchor)}
+        anchorEl={governanceAnchor}
+        onClose={handleGovernanceClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.5,
+              borderRadius: "4px",
+              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              border: `1px solid ${palette.border.light}`,
+            },
+          },
+        }}
+      >
+        <Box sx={{ p: 1, minWidth: 140 }}>
+          {(Object.entries(GOVERNANCE_STATUS_CONFIG) as [GovernanceStatus, typeof GOVERNANCE_STATUS_CONFIG[GovernanceStatus]][]).map(
+            ([status, config]) => (
+              <Box
+                key={status}
+                onClick={() => handleStatusChange(status)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  p: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  backgroundColor: localStatus === status ? palette.background.hover : "transparent",
+                  "&:hover": { backgroundColor: palette.background.hover },
+                }}
+              >
+                <config.icon size={14} color={config.color} />
+                <Typography sx={{ fontSize: "13px" }}>{config.label}</Typography>
+              </Box>
+            )
+          )}
+          {localStatus && (
+            <>
+              <Box sx={{ borderTop: `1px solid ${palette.border.light}`, my: 0.5 }} />
+              <Box
+                onClick={() => handleStatusChange(null)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  p: "6px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: palette.background.hover },
+                }}
+              >
+                <MoreHorizontal size={14} color={palette.text.tertiary} />
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>Clear status</Typography>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Popover>
+
+      {/* Expanded Content */}
+      <Collapse in={expanded}>
+        <Box sx={{ p: "8px", borderTop: `1px solid ${palette.border.light}` }}>
           {/* Mitigation */}
           {finding.mitigation && (
-            <Box sx={{ mb: "12px" }}>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: "4px" }}>
+            <Box sx={{ mb: "8px" }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, mb: "4px" }}>
                 Recommended mitigation
               </Typography>
-              <Typography sx={{ fontSize: 12, color: palette.text.primary }}>
+              <Typography variant="body2" sx={{ color: palette.text.secondary }}>
                 {finding.mitigation}
               </Typography>
             </Box>
           )}
 
           {/* File paths */}
-          {finding.file_paths && finding.file_paths.length > 0 && (
-            <Box>
-              <Typography sx={{ fontSize: 12, fontWeight: 600, color: palette.text.secondary, mb: "4px" }}>
-                Affected files
+          <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+            Found in:
+          </Typography>
+          <Box
+            sx={{
+              maxHeight: 200,
+              overflow: "auto",
+              backgroundColor: palette.background.accent,
+              borderRadius: "4px",
+              p: 1,
+            }}
+          >
+            {finding.file_paths?.slice(0, 20).map((fp, idx) => (
+              <FilePathItem
+                key={idx}
+                path={fp.path}
+                lineNumber={fp.line_number}
+                matchedText={fp.matched_text}
+                fileUrl={getFileUrl(fp.path, fp.line_number)}
+              />
+            ))}
+            {(finding.file_paths?.length || 0) > 20 && (
+              <Typography
+                variant="body2"
+                sx={{ color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
+              >
+                And {(finding.file_paths?.length || 0) - 20} more files...
               </Typography>
-              {finding.file_paths.map((fp, idx) => {
-                const fileUrl = getFileUrl(fp.path, fp.line_number);
-                return (
-                  <Box key={idx} sx={{ display: "flex", alignItems: "center", gap: "4px", mb: "2px" }}>
-                    <FileCode size={12} color={palette.text.tertiary} />
-                    {fileUrl ? (
-                      <VWLink href={fileUrl} target="_blank">
-                        <Typography sx={{ fontSize: 12 }}>
-                          {fp.path}{fp.line_number ? `:${fp.line_number}` : ""}
-                        </Typography>
-                      </VWLink>
-                    ) : (
-                      <Typography sx={{ fontSize: 12, color: palette.text.secondary }}>
-                        {fp.path}{fp.line_number ? `:${fp.line_number}` : ""}
-                      </Typography>
-                    )}
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
+            )}
+          </Box>
         </Box>
       </Collapse>
     </Box>
@@ -1332,9 +1468,15 @@ export default function ScanDetailsPage() {
           getScanSecuritySummary(scanId),
           Promise.all([
             getScanFindings(scanId, { page: 1, limit: 50, finding_type: "prompt_injection" }),
-            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "pii_exposure" }),
-            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "excessive_agency" }),
             getScanFindings(scanId, { page: 1, limit: 50, finding_type: "jailbreak_risk" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "training_data_poisoning" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "model_dos" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "supply_chain" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "pii_exposure" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "insecure_plugin" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "excessive_agency" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "overreliance" }),
+            getScanFindings(scanId, { page: 1, limit: 50, finding_type: "model_theft" }),
           ]),
         ]);
         setScan(scanResponse);
@@ -2661,7 +2803,8 @@ export default function ScanDetailsPage() {
             <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
               Security vulnerabilities found in model files. Serialized models can contain malicious code that executes when loaded.
             </Typography>
-            {/* Security Summary Cards */}
+            {/* Security Summary Cards - only show when there are findings */}
+            {(securitySummary?.total || 0) > 0 && (
             <Box
               sx={{
                 display: "grid",
@@ -2795,6 +2938,7 @@ export default function ScanDetailsPage() {
                 </Typography>
               </Box>
             </Box>
+            )}
 
             {/* Security Findings List */}
             <Box sx={{ mb: 2 }}>
@@ -3020,31 +3164,19 @@ export default function ScanDetailsPage() {
                   <Typography sx={{ fontSize: "15px", fontWeight: 500, mb: 2 }}>
                     Requirements by category
                   </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                     {Object.entries(complianceData.summary.byCategory).map(([category, count]) => {
                       const config = COMPLIANCE_CATEGORY_CONFIG[category as ComplianceCategory];
                       if (!config || count === 0) return null;
                       return (
-                        <Box
+                        <Chip
                           key={category}
-                          sx={{
-                            px: "12px",
-                            py: "6px",
-                            borderRadius: "4px",
-                            backgroundColor: config.bgColor,
-                            border: `1px solid ${config.color}30`,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <Typography sx={{ fontSize: "13px", fontWeight: 500, color: config.color }}>
-                            {config.label}
-                          </Typography>
-                          <Typography sx={{ fontSize: "13px", color: config.color }}>
-                            ({count})
-                          </Typography>
-                        </Box>
+                          label={`${config.label} (${count})`}
+                          backgroundColor={config.bgColor}
+                          textColor={config.color}
+                          uppercase={false}
+                          size="small"
+                        />
                       );
                     })}
                   </Box>
@@ -3139,7 +3271,7 @@ export default function ScanDetailsPage() {
                                       }}
                                     >
                                       <FileText size={12} color={palette.text.tertiary} />
-                                      <Typography sx={{ fontSize: "11px", color: palette.text.tertiary }}>
+                                      <Typography sx={{ fontSize: "12px", color: palette.text.tertiary }}>
                                         {item.articleRef}
                                       </Typography>
                                     </Box>
@@ -3156,7 +3288,7 @@ export default function ScanDetailsPage() {
                                           cursor: "help",
                                         }}
                                       >
-                                        <Typography sx={{ fontSize: "11px", color: categoryConfig.color }}>
+                                        <Typography sx={{ fontSize: "12px", color: categoryConfig.color }}>
                                           {categoryConfig.label}
                                         </Typography>
                                       </Box>
@@ -3253,13 +3385,13 @@ export default function ScanDetailsPage() {
                                                   }}
                                                 >
                                                   {getProviderIcon(finding.name, 14)}
-                                                  <Typography sx={{ fontSize: "12px", color: palette.text.secondary }}>
+                                                  <Typography sx={{ fontSize: "13px", color: palette.text.secondary }}>
                                                     {finding.name}
                                                   </Typography>
                                                 </Box>
                                               ))}
                                               {findings.length > 10 && (
-                                                <Typography sx={{ fontSize: "12px", color: palette.text.tertiary, alignSelf: "center" }}>
+                                                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, alignSelf: "center" }}>
                                                   +{findings.length - 10} more
                                                 </Typography>
                                               )}
@@ -3268,12 +3400,12 @@ export default function ScanDetailsPage() {
                                             {/* Documentation needs for this type */}
                                             {documentationNeeds.length > 0 && (
                                               <Box sx={{ mt: "8px" }}>
-                                                <Typography sx={{ fontSize: "12px", fontWeight: 500, color: palette.text.tertiary, mb: "4px" }}>
+                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.tertiary, mb: "4px" }}>
                                                   For each {typeLabel.toLowerCase()}, document:
                                                 </Typography>
                                                 <Box component="ul" sx={{ m: 0, pl: "16px" }}>
                                                   {documentationNeeds.map((need, idx) => (
-                                                    <Typography component="li" key={idx} sx={{ fontSize: "12px", color: palette.text.tertiary }}>
+                                                    <Typography component="li" key={idx} sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                                                       {need}
                                                     </Typography>
                                                   ))}
@@ -3284,12 +3416,12 @@ export default function ScanDetailsPage() {
                                             {/* Risk factors for this type */}
                                             {riskFactors.length > 0 && (
                                               <Box sx={{ mt: "8px" }}>
-                                                <Typography sx={{ fontSize: "12px", fontWeight: 500, color: palette.status.warning.text, mb: "4px" }}>
+                                                <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.status.warning.text, mb: "4px" }}>
                                                   Risks to consider:
                                                 </Typography>
                                                 <Box component="ul" sx={{ m: 0, pl: "16px" }}>
                                                   {riskFactors.map((risk, idx) => (
-                                                    <Typography component="li" key={idx} sx={{ fontSize: "12px", color: palette.text.tertiary }}>
+                                                    <Typography component="li" key={idx} sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                                                       {risk}
                                                     </Typography>
                                                   ))}
@@ -3341,59 +3473,39 @@ export default function ScanDetailsPage() {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "repeat(5, 1fr)",
+                gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
                 gap: "8px",
-                mb: "16px",
+                mb: "8px",
               }}
             >
-              <Box
-                sx={{
-                  backgroundColor: palette.background.main,
-                  border: `1px solid ${palette.border.dark}`,
-                  borderRadius: "4px",
-                  p: 2,
-                  textAlign: "center",
-                }}
-              >
-                <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                  {vulnerabilityFindings.length}
-                </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
-                  Total
-                </Typography>
-              </Box>
-              {(["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"] as const).map((type) => {
+              <StatCard
+                title="Total"
+                value={vulnerabilityFindings.length}
+                Icon={ShieldAlert}
+                tooltip="Total LLM vulnerability findings across all OWASP Top 10 for LLM types"
+              />
+              {([
+                { type: "prompt_injection", icon: AlertCircle, tooltip: "LLM01 — Untrusted input injected into system prompts" },
+                { type: "jailbreak_risk", icon: Unplug, tooltip: "LLM02 — LLM output flowing to dangerous sinks" },
+                { type: "training_data_poisoning", icon: ShieldOff, tooltip: "LLM03 — Unsafe model loading or untrusted training data" },
+                { type: "model_dos", icon: Timer, tooltip: "LLM04 — Missing token limits or input validation" },
+                { type: "supply_chain", icon: Link2, tooltip: "LLM05 — Risky AI package versions or untrusted model sources" },
+                { type: "pii_exposure", icon: Eye, tooltip: "LLM06 — PII passed to or from LLM calls without redaction" },
+                { type: "insecure_plugin", icon: Plug, tooltip: "LLM07 — Plugins accepting raw input without validation" },
+                { type: "excessive_agency", icon: Cpu, tooltip: "LLM08 — Agents with overly broad tool access" },
+                { type: "overreliance", icon: Brain, tooltip: "LLM09 — LLM output used for decisions without validation" },
+                { type: "model_theft", icon: Lock, tooltip: "LLM10 — Model weights exposed without access controls" },
+              ] as const).map(({ type, icon, tooltip }) => {
                 const count = vulnerabilityFindings.filter((f) => f.finding_type === type).length;
-                const labels: Record<string, string> = {
-                  prompt_injection: "Prompt injection",
-                  pii_exposure: "PII exposure",
-                  excessive_agency: "Excessive agency",
-                  jailbreak_risk: "Jailbreak risk",
-                };
                 return (
-                  <Box
+                  <StatCard
                     key={type}
-                    sx={{
-                      backgroundColor: count > 0 ? palette.risk.high.bg : palette.background.main,
-                      border: `1px solid ${count > 0 ? palette.risk.high.border : palette.border.dark}`,
-                      borderRadius: "4px",
-                      p: 2,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        fontWeight: 600,
-                        color: count > 0 ? palette.risk.high.text : palette.text.primary,
-                      }}
-                    >
-                      {count}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
-                      {labels[type]}
-                    </Typography>
-                  </Box>
+                    title={VULN_TYPE_LABELS[type]?.label || type}
+                    value={count}
+                    Icon={icon}
+                    highlight={count > 0}
+                    tooltip={tooltip}
+                  />
                 );
               })}
             </Box>
@@ -3433,6 +3545,8 @@ export default function ScanDetailsPage() {
                     finding={finding}
                     repositoryOwner={scan.scan.repository_owner}
                     repositoryName={scan.scan.repository_name}
+                    scanId={scanId}
+                    onStatusMessage={showAlert}
                   />
                 ))}
               </Box>

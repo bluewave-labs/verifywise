@@ -1102,6 +1102,80 @@ export async function startScan(
 }
 
 /**
+ * Cross-reference vulnerability findings with non-vulnerability findings
+ * that share the same file paths. Updates vulnerability_details JSONB
+ * with related_finding_ids and related_finding_types so the UI can
+ * show connections between vulnerability and library/agent/security tabs.
+ */
+async function crossReferenceFindings(scanId: number, organizationId: number): Promise<void> {
+  // 1. Get all findings for this scan
+  const [allFindings] = await sequelize.query(
+    `SELECT id, finding_type, file_paths, vulnerability_details
+     FROM ai_detection_findings
+     WHERE scan_id = :scanId AND organization_id = :organizationId`,
+    { replacements: { scanId, organizationId } }
+  ) as [Array<{
+    id: number;
+    finding_type: string;
+    file_paths: Array<{ path: string; line_number: number | null; matched_text: string }> | null;
+    vulnerability_details: Record<string, unknown> | null;
+  }>, unknown];
+
+  // 2. Separate vulnerability vs non-vulnerability findings
+  const vulnTypes = new Set([
+    "prompt_injection", "jailbreak_risk", "training_data_poisoning", "model_dos",
+    "supply_chain", "pii_exposure", "insecure_plugin", "excessive_agency",
+    "overreliance", "model_theft",
+  ]);
+
+  const vulnFindings = allFindings.filter((f) => vulnTypes.has(f.finding_type));
+  const otherFindings = allFindings.filter((f) => !vulnTypes.has(f.finding_type));
+
+  if (vulnFindings.length === 0 || otherFindings.length === 0) return;
+
+  // 3. Build a map of file paths to non-vuln finding IDs
+  const fileToFindings = new Map<string, { id: number; finding_type: string }[]>();
+  for (const f of otherFindings) {
+    const paths = f.file_paths || [];
+    for (const fp of paths) {
+      const key = fp.path;
+      if (!fileToFindings.has(key)) fileToFindings.set(key, []);
+      fileToFindings.get(key)!.push({ id: f.id, finding_type: f.finding_type });
+    }
+  }
+
+  // 4. For each vuln finding, find related non-vuln findings by shared file paths
+  for (const vf of vulnFindings) {
+    const vfPaths = vf.file_paths || [];
+    const relatedSet = new Map<number, string>(); // id -> finding_type
+
+    for (const fp of vfPaths) {
+      const matches = fileToFindings.get(fp.path) || [];
+      for (const m of matches) {
+        relatedSet.set(m.id, m.finding_type);
+      }
+    }
+
+    if (relatedSet.size === 0) continue;
+
+    // 5. Merge into existing vulnerability_details
+    const existingDetails = vf.vulnerability_details || {};
+    const updatedDetails = {
+      ...existingDetails,
+      related_finding_ids: Array.from(relatedSet.keys()),
+      related_finding_types: [...new Set(relatedSet.values())],
+    };
+
+    await sequelize.query(
+      `UPDATE ai_detection_findings
+       SET vulnerability_details = :details
+       WHERE id = :id AND organization_id = :organizationId`,
+      { replacements: { details: JSON.stringify(updatedDetails), id: vf.id, organizationId } }
+    );
+  }
+}
+
+/**
  * Execute the actual scan process asynchronously using git clone
  */
 async function executeScan(
@@ -1262,6 +1336,12 @@ async function executeScan(
         pii_exposure: true,
         excessive_agency: true,
         jailbreak_risk: true,
+        training_data_poisoning: true,
+        model_dos: true,
+        supply_chain: true,
+        insecure_plugin: true,
+        overreliance: true,
+        model_theft: true,
       };
 
       if (vulnScanEnabled && !signal?.aborted) {
@@ -1545,6 +1625,12 @@ async function executeScan(
 
       progressState.status = "completed";
       progressState.progress = 100;
+
+      // Cross-reference vulnerability findings with library/agent/security findings
+      // that share file paths (fire-and-forget, non-blocking)
+      crossReferenceFindings(scanId, ctx.organizationId).catch((err) => {
+        logger.warn(`Cross-reference pass failed for scan ${scanId}, skipping:`, err);
+      });
 
       // Update linked repository's last_scan fields
       updateLinkedRepositoryLastScan(scanId, "completed", ctx.organizationId).catch((err) => {

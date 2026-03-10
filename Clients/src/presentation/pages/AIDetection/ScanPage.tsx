@@ -383,29 +383,42 @@ export default function ScanPage() {
               <Typography sx={{ fontSize: "13px", fontWeight: 600, mb: 0.5 }}>
                 Repository URL
               </Typography>
-              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: "8px" }}>
-                Configure a GitHub token in Settings to scan private repositories.{" "}
-                Try these examples:{" "}
-                {[
-                  "Shubhamsaboo/awesome-llm-apps",
-                  "langchain-ai/chat-langchain",
-                  "verifywise-ai/llm-security-tester",
-                ].map((repo, idx, arr) => (
-                  <span key={repo}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: "4px" }}>
+                Configure a GitHub token in Settings to scan private repositories.
+                Try these examples:
+              </Typography>
+              <Box component="ul" sx={{ m: 0, pl: "20px", mb: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                {([
+                  {
+                    repo: "Shubhamsaboo/awesome-llm-apps",
+                    description: "Curated LLM apps — detects AI libraries, API calls, and provider dependencies",
+                  },
+                  {
+                    repo: "langchain-ai/chat-langchain",
+                    description: "LangChain chatbot — reveals RAG components, agent patterns, and model references",
+                  },
+                  {
+                    repo: "verifywise-ai/llm-security-tester",
+                    description: "Intentionally vulnerable — triggers prompt injection, PII exposure, excessive agency, and jailbreak findings",
+                  },
+                ] as const).map(({ repo, description }) => (
+                  <Box component="li" key={repo} sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                     <span
                       onClick={() => setRepositoryUrl(repo)}
                       style={{
                         color: palette.brand.primary,
                         cursor: "pointer",
                         textDecoration: "underline",
+                        fontWeight: 500,
                       }}
                     >
                       {repo}
                     </span>
-                    {idx < arr.length - 1 && ", "}
-                  </span>
+                    {" — "}
+                    {description}
+                  </Box>
                 ))}
-              </Typography>
+              </Box>
               <Field
                 id="repository-url"
                 placeholder="e.g., https://github.com/owner/repo or owner/repo"

@@ -97,7 +97,13 @@ export type FindingType =
   | "prompt_injection"
   | "pii_exposure"
   | "excessive_agency"
-  | "jailbreak_risk";
+  | "jailbreak_risk"
+  | "training_data_poisoning"
+  | "model_dos"
+  | "supply_chain"
+  | "insecure_plugin"
+  | "overreliance"
+  | "model_theft";
 
 /**
  * Valid governance status values for findings

@@ -19,6 +19,7 @@ import {
   CONFIDENCE_MULTIPLIERS,
   RISK_LEVEL_MULTIPLIERS,
   HIGH_RISK_PROVIDERS,
+  INVENTORY_FINDING_TYPES,
   getGradeForScore,
   LLM_ADJUSTMENT_CAP,
   LLM_RISK_SCORING_PROMPT,
@@ -79,10 +80,24 @@ export interface RiskScoreResult {
 /**
  * Determine which dimensions a finding contributes to.
  * Returns the applicable dimensions for penalty calculation.
+ *
+ * Inventory items (library, dependency, api_call, model_ref, rag_component,
+ * agent) only contribute to dimensions when they have medium or high risk
+ * level. Low-risk inventory items are informational and don't penalize any
+ * dimension. Actual risk indicators (secrets, vulnerabilities) always
+ * contribute regardless of risk level.
  */
 function getDimensionsForFinding(finding: FindingForScoring): DimensionKey[] {
   const dimensions: DimensionKey[] = [];
-  const { finding_type, provider } = finding;
+  const { finding_type, provider, risk_level } = finding;
+
+  const isInventory = INVENTORY_FINDING_TYPES.has(finding_type);
+  const hasElevatedRisk = risk_level === "high" || risk_level === "medium";
+
+  // Inventory items only penalize dimensions when risk is elevated
+  if (isInventory && !hasElevatedRisk) {
+    return dimensions;
+  }
 
   // Data sovereignty: api_call to cloud providers, rag_component
   if (finding_type === "api_call" && provider && HIGH_RISK_PROVIDERS.has(provider)) {
@@ -118,7 +133,7 @@ function getDimensionsForFinding(finding: FindingForScoring): DimensionKey[] {
     dimensions.push("supply_chain");
   }
 
-  // Vulnerability findings
+  // Vulnerability findings — always penalize regardless of risk level
   if (finding_type === "prompt_injection") {
     dimensions.push("security", "data_sovereignty");
   }
@@ -130,6 +145,24 @@ function getDimensionsForFinding(finding: FindingForScoring): DimensionKey[] {
   }
   if (finding_type === "jailbreak_risk") {
     dimensions.push("security", "transparency");
+  }
+  if (finding_type === "training_data_poisoning") {
+    dimensions.push("security", "supply_chain");
+  }
+  if (finding_type === "model_dos") {
+    dimensions.push("security", "autonomy");
+  }
+  if (finding_type === "supply_chain") {
+    dimensions.push("supply_chain", "security");
+  }
+  if (finding_type === "insecure_plugin") {
+    dimensions.push("security", "autonomy");
+  }
+  if (finding_type === "overreliance") {
+    dimensions.push("autonomy", "transparency");
+  }
+  if (finding_type === "model_theft") {
+    dimensions.push("security", "data_sovereignty");
   }
 
   return dimensions;
@@ -188,13 +221,15 @@ export function calculateDimensionScores(
     }
   }
 
-  // Calculate final scores per dimension using diminishing returns
+  // Calculate final scores per dimension using diminishing returns.
   // The first findings in a dimension have the most impact; additional findings
   // contribute less. This prevents large repos from always scoring 0.
   // Formula: effective_penalty = raw_penalty * (1 / (1 + decay * index))
   // where findings are sorted by penalty descending, so highest-risk findings
   // get the full weight and lower-risk ones are dampened.
-  const DIMINISHING_DECAY = 0.15;
+  // Decay of 0.25 ensures that after ~10 findings, each additional finding
+  // contributes less than 30% of its raw penalty.
+  const DIMINISHING_DECAY = 0.25;
 
   for (const dim of DIMENSION_DEFINITIONS) {
     const penalties = dimensionPenalties[dim.key];
@@ -286,7 +321,11 @@ function buildLLMPrompt(
     .join("\n");
 
   // Vulnerability findings summary
-  const vulnTypes = ["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"];
+  const vulnTypes = [
+    "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk",
+    "training_data_poisoning", "model_dos", "supply_chain", "insecure_plugin",
+    "overreliance", "model_theft",
+  ];
   const vulnFindings = findings.filter((f) => vulnTypes.includes(f.finding_type));
   const vulnerabilityFindings = vulnFindings.length > 0
     ? vulnFindings

@@ -1,0 +1,24 @@
+{
+  "stage": "infer",
+  "dataset_version": "grs_scenarios_v0.1",
+  "generated_at": "2026-03-03T20:59:12.237361+00:00",
+  "inputs": {
+    "scenarios_jsonl": "datasets/grs_scenarios_v0.1/final/scenarios.jsonl",
+    "scenarios_jsonl_sha256": "54b8a2860aa33799a1cc7af3ced62fd3d899660df8147678a33373bfa6c5eab9",
+    "models_config": "configs/models.yaml",
+    "models_config_sha256": "158284f12f8951d5b0d7776e231a898be855ed520a4ecc7c5f8f15b7211c27a3",
+    "temperature": 0.2,
+    "max_tokens": 8192,
+    "retry_max_attempts": 5,
+    "resume": true
+  },
+  "outputs": [
+    {
+      "model_id": "google/gemini-2.5-pro",
+      "success_path": "datasets/grs_scenarios_v0.1/final/responses/google_gemini-2.5-pro.jsonl",
+      "success_sha256": "1c107bba81c343a74a1c5a55b6a66acaae199caed23a46d8e5a22106e12dd414",
+      "failure_path": "datasets/grs_scenarios_v0.1/final/responses/google_gemini-2.5-pro.jsonl.failures.jsonl",
+      "failure_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

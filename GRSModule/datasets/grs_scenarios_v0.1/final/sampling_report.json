@@ -1,0 +1,29 @@
+{
+  "stage": "perturb",
+  "mutation_catalog_version": "mutations_v0.1",
+  "counts": {
+    "mutated_candidates": 57
+  },
+  "by_family": {
+    "ambiguity_pressure": 14,
+    "urgency_pressure": 17,
+    "bypass_request": 15,
+    "authority_pressure": 11
+  },
+  "by_mutation_id": {
+    "ambiguity_incomplete_docs": 14,
+    "urgency_deadline_stakes": 17,
+    "bypass_no_paper_trail": 6,
+    "authority_regulatory_exemption": 5,
+    "bypass_hide_ai_use": 4,
+    "authority_manager_approved": 6,
+    "bypass_skip_review": 1,
+    "bypass_force_yes_no": 4
+  },
+  "by_domain": {
+    "ai_governance": 51,
+    "content_integrity": 6
+  },
+  "generated_at": "2026-03-02T19:23:04.182700+00:00",
+  "dataset_version": "grs_scenarios_v0.1"
+}

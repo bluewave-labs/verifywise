@@ -4,7 +4,6 @@ import {
   Typography,
   Stack,
   IconButton,
-  useTheme,
   Fade,
 } from "@mui/material";
 import {
@@ -60,7 +59,6 @@ type DashboardView = "executive" | "operations";
 const DASHBOARD_VIEW_KEY = "dashboard_view_preference";
 
 const IntegratedDashboard: React.FC = () => {
-  const theme = useTheme();
   const navigateSearch = useNavigateSearch();
   const { dashboard, loading: dashboardLoading, fetchDashboard } = useDashboard();
 

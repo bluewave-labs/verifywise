@@ -244,7 +244,7 @@ export async function getScanFindingsController(
     }
 
     // Validate finding_type if provided
-    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent"];
+    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"];
     if (findingType && !validFindingTypes.includes(findingType)) {
       return res
         .status(400)
@@ -902,6 +902,13 @@ export async function getRiskScoringConfigController(
       llm_enabled: false,
       llm_key_id: null,
       dimension_weights: DEFAULT_DIMENSION_WEIGHTS,
+      vulnerability_scan_enabled: false,
+      vulnerability_types_enabled: {
+        prompt_injection: true,
+        pii_exposure: true,
+        excessive_agency: true,
+        jailbreak_risk: true,
+      },
       updated_by: null,
       updated_at: null,
     };
@@ -939,7 +946,7 @@ export async function updateRiskScoringConfigController(
 
   try {
     const ctx = buildServiceContext(req);
-    const { llm_enabled, llm_key_id, dimension_weights, vulnerability_scan_enabled } = req.body;
+    const { llm_enabled, llm_key_id, dimension_weights, vulnerability_scan_enabled, vulnerability_types_enabled } = req.body;
 
     // Validate dimension weights if provided
     if (dimension_weights) {
@@ -964,15 +971,38 @@ export async function updateRiskScoringConfigController(
     }
 
     // Validate vulnerability_scan_enabled requires llm_enabled
-    const effectiveVulnScan = vulnerability_scan_enabled !== undefined
-      ? (vulnerability_scan_enabled && (llm_enabled !== false))
-      : undefined;
+    // Check persisted config when llm_enabled is not in the request body
+    let effectiveVulnScan: boolean | undefined = undefined;
+    if (vulnerability_scan_enabled !== undefined) {
+      let effectiveLlmEnabled = llm_enabled;
+      if (effectiveLlmEnabled === undefined) {
+        const existingConfig = await getRiskScoringConfigQuery(req.organizationId!);
+        effectiveLlmEnabled = existingConfig?.llm_enabled ?? false;
+      }
+      effectiveVulnScan = vulnerability_scan_enabled && effectiveLlmEnabled;
+    }
+
+    // Validate vulnerability_types_enabled if provided
+    if (vulnerability_types_enabled !== undefined) {
+      const validKeys = ["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk"];
+      const providedKeys = Object.keys(vulnerability_types_enabled);
+      const invalidKeys = providedKeys.filter((k) => !validKeys.includes(k));
+      if (invalidKeys.length > 0) {
+        return res.status(400).json(STATUS_CODE[400](`Unknown vulnerability types: ${invalidKeys.join(", ")}`));
+      }
+      for (const key of providedKeys) {
+        if (typeof vulnerability_types_enabled[key] !== "boolean") {
+          return res.status(400).json(STATUS_CODE[400](`vulnerability_types_enabled.${key} must be a boolean`));
+        }
+      }
+    }
 
     const updated = await upsertRiskScoringConfigQuery(req.organizationId!, {
       llm_enabled,
       llm_key_id,
       dimension_weights,
       vulnerability_scan_enabled: effectiveVulnScan,
+      vulnerability_types_enabled,
       updated_by: ctx.userId,
     });
 

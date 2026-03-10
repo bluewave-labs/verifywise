@@ -389,8 +389,7 @@ export default function ScanPage() {
                 {[
                   "Shubhamsaboo/awesome-llm-apps",
                   "langchain-ai/chat-langchain",
-                  "GitGuardian/sample_secrets",
-                  "nomic-ai/gpt4all",
+                  "verifywise-ai/llm-security-tester",
                 ].map((repo, idx, arr) => (
                   <span key={repo}>
                     <span

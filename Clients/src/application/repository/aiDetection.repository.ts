@@ -571,7 +571,7 @@ export async function getRiskScoringConfig(
  * Update risk scoring configuration
  */
 export async function updateRiskScoringConfig(
-  config: Partial<Pick<RiskScoringConfig, "llm_enabled" | "llm_key_id" | "dimension_weights" | "vulnerability_scan_enabled">>,
+  config: Partial<Pick<RiskScoringConfig, "llm_enabled" | "llm_key_id" | "dimension_weights" | "vulnerability_scan_enabled" | "vulnerability_types_enabled">>,
   signal?: AbortSignal,
 ): Promise<RiskScoringConfig> {
   const response = await apiServices.patch<{ data: RiskScoringConfig }>(

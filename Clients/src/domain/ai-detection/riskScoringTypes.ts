@@ -57,12 +57,64 @@ export interface RiskScoreResult {
   details: RiskScoreDetails;
 }
 
+export type VulnerabilityTypeKey =
+  | "prompt_injection"
+  | "pii_exposure"
+  | "excessive_agency"
+  | "jailbreak_risk";
+
+export interface VulnerabilityTypeInfo {
+  key: VulnerabilityTypeKey;
+  name: string;
+  owaspId: string;
+  description: string;
+}
+
+export const VULNERABILITY_TYPES: VulnerabilityTypeInfo[] = [
+  {
+    key: "prompt_injection",
+    name: "Prompt injection",
+    owaspId: "LLM01",
+    description:
+      "Detects untrusted user input concatenated into LLM prompts without sanitization, which can allow attackers to override system instructions or extract sensitive data.",
+  },
+  {
+    key: "pii_exposure",
+    name: "PII exposure",
+    owaspId: "LLM06",
+    description:
+      "Detects personally identifiable information (names, emails, SSNs, financial or health data) passed to LLM APIs without redaction, risking data leakage through model providers.",
+  },
+  {
+    key: "excessive_agency",
+    name: "Excessive agency",
+    owaspId: "LLM08",
+    description:
+      "Detects AI agents configured with overly broad tool access (filesystem, shell, network) without human-in-the-loop approval for destructive operations.",
+  },
+  {
+    key: "jailbreak_risk",
+    name: "Jailbreak risk",
+    owaspId: "LLM02",
+    description:
+      "Detects LLM output flowing to code execution, SQL queries, HTML rendering, or system commands without validation, enabling jailbreak-to-RCE or injection attacks.",
+  },
+];
+
+export const DEFAULT_VULNERABILITY_TYPES_ENABLED: Record<VulnerabilityTypeKey, boolean> = {
+  prompt_injection: true,
+  pii_exposure: true,
+  excessive_agency: true,
+  jailbreak_risk: true,
+};
+
 export interface RiskScoringConfig {
   id: number | null;
   llm_enabled: boolean;
   llm_key_id: number | null;
   dimension_weights: Record<DimensionKey, number>;
   vulnerability_scan_enabled: boolean;
+  vulnerability_types_enabled: Record<VulnerabilityTypeKey, boolean>;
   updated_by: number | null;
   updated_at: string | null;
 }

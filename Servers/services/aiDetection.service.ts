@@ -1256,13 +1256,22 @@ async function executeScan(
       const vulnScanEnabled = riskConfig?.vulnerability_scan_enabled &&
         riskConfig?.llm_enabled && riskConfig?.llm_key_id;
 
+      // Determine which vulnerability types are enabled
+      const enabledTypes = riskConfig?.vulnerability_types_enabled ?? {
+        prompt_injection: true,
+        pii_exposure: true,
+        excessive_agency: true,
+        jailbreak_risk: true,
+      };
+
       if (vulnScanEnabled && !signal?.aborted) {
         // Re-scan code files for vulnerability indicators
         for (const file of filesToScan) {
           if (signal?.aborted) break;
           try {
             const content = await readFileContent(file.fullPath);
-            const candidates = scanFileForVulnerabilityIndicators(content, file.path);
+            const candidates = scanFileForVulnerabilityIndicators(content, file.path)
+              .filter((c) => enabledTypes[c.vulnerabilityType as keyof typeof enabledTypes] !== false);
             if (candidates.length > 0) {
               vulnerabilityCandidates.push(...candidates);
               vulnerabilityFileContents.set(file.path, content);

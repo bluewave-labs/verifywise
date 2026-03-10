@@ -423,7 +423,7 @@ export interface IServiceContext {
   role: string;
   /** Organization ID (number) for organization_id column queries */
   organizationId: number;
-  /** Tenant hash (string) for schema-qualified queries and cache keys */
+  /** Tenant hash (string) for cache keys */
   tenantId: string;
 }
 

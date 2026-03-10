@@ -24,12 +24,35 @@ function validateOrganizationId(organizationId: number): void {
 // Types
 // ============================================================================
 
+export type VulnerabilityTypeKey =
+  | "prompt_injection"
+  | "pii_exposure"
+  | "excessive_agency"
+  | "jailbreak_risk";
+
+export const ALL_VULNERABILITY_TYPES: VulnerabilityTypeKey[] = [
+  "prompt_injection",
+  "pii_exposure",
+  "excessive_agency",
+  "jailbreak_risk",
+];
+
 export interface RiskScoringConfig {
   id: number;
   llm_enabled: boolean;
   llm_key_id: number | null;
   dimension_weights: Record<DimensionKey, number>;
   vulnerability_scan_enabled: boolean;
+  vulnerability_types_enabled: Record<VulnerabilityTypeKey, boolean>;
+  updated_by: number | null;
+  updated_at: string;
+}
+
+export interface VulnerabilityConfig {
+  id: number;
+  organization_id: number;
+  vulnerability_scan_enabled: boolean;
+  vulnerability_types_enabled: Record<VulnerabilityTypeKey, boolean> | null;
   updated_by: number | null;
   updated_at: string;
 }
@@ -45,6 +68,15 @@ export interface FindingForScoring {
   name: string;
   category: string;
   file_count: number;
+}
+
+function defaultVulnerabilityTypesEnabled(): Record<VulnerabilityTypeKey, boolean> {
+  return {
+    prompt_injection: true,
+    pii_exposure: true,
+    excessive_agency: true,
+    jailbreak_risk: true,
+  };
 }
 
 // ============================================================================
@@ -69,7 +101,36 @@ export async function getRiskScoringConfigQuery(
     type: QueryTypes.SELECT,
   });
 
-  return (results as RiskScoringConfig[])[0] || null;
+  const config = (results as RiskScoringConfig[])[0] || null;
+  if (!config) return null;
+
+  // Merge vulnerability config from separate table
+  const vulnConfig = await getVulnerabilityConfigQuery(organizationId);
+  config.vulnerability_scan_enabled = vulnConfig?.vulnerability_scan_enabled ?? false;
+  config.vulnerability_types_enabled = vulnConfig?.vulnerability_types_enabled ?? defaultVulnerabilityTypesEnabled();
+
+  return config;
+}
+
+/**
+ * Get vulnerability scan config for an organization from the dedicated table.
+ */
+export async function getVulnerabilityConfigQuery(
+  organizationId: number
+): Promise<VulnerabilityConfig | null> {
+  validateOrganizationId(organizationId);
+  const query = `
+    SELECT * FROM ai_detection_vulnerability_config
+    WHERE organization_id = :organizationId
+    LIMIT 1;
+  `;
+
+  const results = await sequelize.query(query, {
+    replacements: { organizationId },
+    type: QueryTypes.SELECT,
+  });
+
+  return (results as VulnerabilityConfig[])[0] || null;
 }
 
 /**
@@ -83,12 +144,25 @@ export async function upsertRiskScoringConfigQuery(
     llm_key_id?: number | null;
     dimension_weights?: Record<DimensionKey, number>;
     vulnerability_scan_enabled?: boolean;
+    vulnerability_types_enabled?: Record<VulnerabilityTypeKey, boolean>;
     updated_by: number;
   }
 ): Promise<RiskScoringConfig> {
   validateOrganizationId(organizationId);
 
-  const existing = await getRiskScoringConfigQuery(organizationId);
+  // Fetch existing config from the base risk scoring table (without merged vuln config)
+  const baseQuery = `
+    SELECT * FROM ai_detection_risk_scoring_config
+    WHERE organization_id = :organizationId
+    ORDER BY id DESC LIMIT 1;
+  `;
+  const baseResults = await sequelize.query(baseQuery, {
+    replacements: { organizationId },
+    type: QueryTypes.SELECT,
+  });
+  const existing = (baseResults as RiskScoringConfig[])[0] || null;
+
+  let config: RiskScoringConfig;
 
   if (existing) {
     const setClauses: string[] = ["updated_at = NOW()"];
@@ -111,10 +185,6 @@ export async function upsertRiskScoringConfigQuery(
       setClauses.push("dimension_weights = :dimension_weights");
       replacements.dimension_weights = JSON.stringify(data.dimension_weights);
     }
-    if (data.vulnerability_scan_enabled !== undefined) {
-      setClauses.push("vulnerability_scan_enabled = :vulnerability_scan_enabled");
-      replacements.vulnerability_scan_enabled = data.vulnerability_scan_enabled;
-    }
 
     const query = `
       UPDATE ai_detection_risk_scoring_config
@@ -128,13 +198,13 @@ export async function upsertRiskScoringConfigQuery(
       type: QueryTypes.SELECT,
     });
 
-    return (results as RiskScoringConfig[])[0];
+    config = (results as RiskScoringConfig[])[0];
   } else {
     const query = `
       INSERT INTO ai_detection_risk_scoring_config
-        (organization_id, llm_enabled, llm_key_id, dimension_weights, vulnerability_scan_enabled, updated_by, updated_at)
+        (organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at)
       VALUES
-        (:organizationId, :llm_enabled, :llm_key_id, :dimension_weights, :vulnerability_scan_enabled, :updated_by, NOW())
+        (:organizationId, :llm_enabled, :llm_key_id, :dimension_weights, :updated_by, NOW())
       RETURNING *;
     `;
 
@@ -146,13 +216,79 @@ export async function upsertRiskScoringConfigQuery(
         dimension_weights: JSON.stringify(
           data.dimension_weights ?? DEFAULT_DIMENSION_WEIGHTS
         ),
-        vulnerability_scan_enabled: data.vulnerability_scan_enabled ?? false,
         updated_by: data.updated_by,
       },
     });
 
-    return (results as RiskScoringConfig[])[0];
+    config = (results as RiskScoringConfig[])[0];
   }
+
+  // Upsert vulnerability scan config in the dedicated table
+  if (data.vulnerability_scan_enabled !== undefined || data.vulnerability_types_enabled !== undefined) {
+    await upsertVulnerabilityConfigQuery(organizationId, {
+      vulnerability_scan_enabled: data.vulnerability_scan_enabled,
+      vulnerability_types_enabled: data.vulnerability_types_enabled,
+      updated_by: data.updated_by,
+    });
+  }
+
+  // Merge vulnerability config into the returned object
+  const vulnConfig = await getVulnerabilityConfigQuery(organizationId);
+  config.vulnerability_scan_enabled = vulnConfig?.vulnerability_scan_enabled ?? false;
+  config.vulnerability_types_enabled = vulnConfig?.vulnerability_types_enabled ?? defaultVulnerabilityTypesEnabled();
+
+  return config;
+}
+
+/**
+ * Upsert vulnerability scan config in the dedicated table.
+ */
+async function upsertVulnerabilityConfigQuery(
+  organizationId: number,
+  data: {
+    vulnerability_scan_enabled?: boolean;
+    vulnerability_types_enabled?: Record<VulnerabilityTypeKey, boolean>;
+    updated_by: number;
+  }
+): Promise<void> {
+  // Build SET clauses dynamically based on what was provided
+  const setClauses: string[] = ["updated_by = :updated_by", "updated_at = NOW()"];
+  const replacements: Record<string, unknown> = {
+    organizationId,
+    updated_by: data.updated_by,
+  };
+
+  if (data.vulnerability_scan_enabled !== undefined) {
+    setClauses.push("vulnerability_scan_enabled = :vulnerability_scan_enabled");
+    replacements.vulnerability_scan_enabled = data.vulnerability_scan_enabled;
+  }
+  if (data.vulnerability_types_enabled !== undefined) {
+    setClauses.push("vulnerability_types_enabled = :vulnerability_types_enabled");
+    replacements.vulnerability_types_enabled = JSON.stringify(data.vulnerability_types_enabled);
+  }
+
+  // For the INSERT, use defaults for fields not provided
+  const insertVulnEnabled = data.vulnerability_scan_enabled ?? false;
+  const insertTypesEnabled = data.vulnerability_types_enabled
+    ? JSON.stringify(data.vulnerability_types_enabled)
+    : null;
+
+  const query = `
+    INSERT INTO ai_detection_vulnerability_config
+      (organization_id, vulnerability_scan_enabled, vulnerability_types_enabled, updated_by, updated_at)
+    VALUES
+      (:organizationId, :insert_vuln_enabled, :insert_types_enabled, :updated_by, NOW())
+    ON CONFLICT (organization_id) DO UPDATE SET
+      ${setClauses.join(", ")};
+  `;
+
+  await sequelize.query(query, {
+    replacements: {
+      ...replacements,
+      insert_vuln_enabled: insertVulnEnabled,
+      insert_types_enabled: insertTypesEnabled,
+    },
+  });
 }
 
 // ============================================================================

@@ -34,7 +34,7 @@ import {
   getDependencyGraph,
   getComplianceMapping,
 } from "../services/aiDetection.service";
-import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
+import { IServiceContext, ScanStatus, FINDING_TYPES, VULNERABILITY_FINDING_TYPES } from "../domain.layer/interfaces/i.aiDetection";
 import { calculateAndStoreRiskScore } from "../services/aiDetection/riskScoring";
 import { getRiskScoringConfigQuery, upsertRiskScoringConfigQuery } from "../utils/aiDetectionRiskScoring.utils";
 import { DEFAULT_DIMENSION_WEIGHTS } from "../config/riskScoringConfig";
@@ -51,10 +51,10 @@ const FILE_NAME = "aiDetection.ctrl.ts";
  * Services should use organizationId directly for database queries.
  */
 function buildServiceContext(req: Request): IServiceContext {
-  const organizationId = (req as unknown as { organizationId: number }).organizationId;
+  const organizationId = req.organizationId!;
   return {
-    userId: (req as unknown as { userId: number }).userId,
-    role: (req as unknown as { role: string }).role,
+    userId: req.userId!,
+    role: req.role!,
     organizationId,
     // tenantId is kept for interface compatibility, but services should use organizationId
     tenantId: organizationId.toString(),
@@ -78,7 +78,9 @@ function handleException(res: Response, error: unknown): Response {
     return res.status(502).json(STATUS_CODE[502](error.message));
   }
 
-  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  const errorMessage = process.env.NODE_ENV === "production"
+    ? "An internal error occurred"
+    : error instanceof Error ? error.message : "Unknown error";
   return res.status(500).json(STATUS_CODE[500](errorMessage));
 }
 
@@ -244,11 +246,10 @@ export async function getScanFindingsController(
     }
 
     // Validate finding_type if provided
-    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent", "prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk", "training_data_poisoning", "model_dos", "supply_chain", "insecure_plugin", "overreliance", "model_theft"];
-    if (findingType && !validFindingTypes.includes(findingType)) {
+    if (findingType && !(FINDING_TYPES as readonly string[]).includes(findingType)) {
       return res
         .status(400)
-        .json(STATUS_CODE[400](`finding_type must be one of: ${validFindingTypes.join(", ")}`));
+        .json(STATUS_CODE[400](`finding_type must be one of: ${FINDING_TYPES.join(", ")}`));
     }
 
     const ctx = buildServiceContext(req);
@@ -990,9 +991,8 @@ export async function updateRiskScoringConfigController(
 
     // Validate vulnerability_types_enabled if provided
     if (vulnerability_types_enabled !== undefined) {
-      const validKeys = ["prompt_injection", "pii_exposure", "excessive_agency", "jailbreak_risk", "training_data_poisoning", "model_dos", "supply_chain", "insecure_plugin", "overreliance", "model_theft"];
       const providedKeys = Object.keys(vulnerability_types_enabled);
-      const invalidKeys = providedKeys.filter((k) => !validKeys.includes(k));
+      const invalidKeys = providedKeys.filter((k) => !(VULNERABILITY_FINDING_TYPES as readonly string[]).includes(k));
       if (invalidKeys.length > 0) {
         return res.status(400).json(STATUS_CODE[400](`Unknown vulnerability types: ${invalidKeys.join(", ")}`));
       }

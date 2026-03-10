@@ -497,11 +497,11 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
             {getProviderIcon(finding.provider, 32)}
           </Box>
           <Box>
-            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
               {finding.name}
             </Typography>
             {finding.description && (
-              <Typography variant="body2" sx={{ color: palette.text.tertiary, mt: 0.5 }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mt: 0.5 }}>
                 {finding.description}
               </Typography>
             )}
@@ -585,7 +585,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
             <FileCode size={14} color={palette.text.tertiary} />
-            <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
               {finding.file_count} {finding.file_count === 1 ? "file" : "files"}
             </Typography>
           </Box>
@@ -674,7 +674,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
       {/* Expanded Content */}
       <Collapse in={expanded}>
         <Box sx={{ p: "8px", borderTop: `1px solid ${palette.border.light}` }}>
-          <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+          <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 1 }}>
             Found in:
           </Typography>
           <Box
@@ -697,8 +697,7 @@ function FindingRow({ finding, repositoryOwner, repositoryName, scanId, onGovern
             ))}
             {finding.file_paths.length > 20 && (
               <Typography
-                variant="body2"
-                sx={{ color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
+                sx={{ fontSize: "13px", color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
               >
                 And {finding.file_paths.length - 20} more files...
               </Typography>
@@ -801,7 +800,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
         <Box sx={{ p: "8px", borderTop: `1px solid ${palette.border.light}` }}>
           {/* Description */}
           {finding.description && (
-            <Typography variant="body2" sx={{ color: palette.text.secondary, mb: "8px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.secondary, mb: 1 }}>
               {finding.description}
             </Typography>
           )}
@@ -817,8 +816,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
           >
             <Box>
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, color: palette.text.secondary }}
+                sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary }}
               >
                 CWE
               </Typography>
@@ -831,8 +829,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             </Box>
             <Box>
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, color: palette.text.secondary }}
+                sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary }}
               >
                 OWASP ML
               </Typography>
@@ -845,29 +842,27 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             </Box>
             <Box>
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, color: palette.text.secondary }}
+                sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary }}
               >
                 Threat type
               </Typography>
-              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                 {finding.threat_type}
               </Typography>
             </Box>
             <Box>
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 500, color: palette.text.secondary }}
+                sx={{ fontSize: "13px", fontWeight: 500, color: palette.text.secondary }}
               >
                 Operator
               </Typography>
-              <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                 {finding.operator_name}
               </Typography>
             </Box>
           </Box>
 
-          <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+          <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 1 }}>
             Found in:
           </Typography>
           <Box
@@ -890,8 +885,7 @@ function SecurityFindingRow({ finding, repositoryOwner, repositoryName }: Securi
             ))}
             {finding.file_paths.length > 20 && (
               <Typography
-                variant="body2"
-                sx={{ color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
+                sx={{ fontSize: "13px", color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
               >
                 And {finding.file_paths.length - 20} more files...
               </Typography>
@@ -1167,7 +1161,7 @@ function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName, sca
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 85, justifyContent: "flex-end" }}>
             <FileCode size={14} color={palette.text.tertiary} />
-            <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
               {finding.file_count || finding.file_paths?.length || 0} {(finding.file_count || finding.file_paths?.length || 0) === 1 ? "file" : "files"}
             </Typography>
           </Box>
@@ -1259,17 +1253,17 @@ function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName, sca
           {/* Mitigation */}
           {finding.mitigation && (
             <Box sx={{ mb: "8px" }}>
-              <Typography variant="body2" sx={{ fontWeight: 500, mb: "4px" }}>
+              <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: "4px" }}>
                 Recommended mitigation
               </Typography>
-              <Typography variant="body2" sx={{ color: palette.text.secondary }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.secondary }}>
                 {finding.mitigation}
               </Typography>
             </Box>
           )}
 
           {/* File paths */}
-          <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+          <Typography sx={{ fontSize: "13px", fontWeight: 500, mb: 1 }}>
             Found in:
           </Typography>
           <Box
@@ -1292,8 +1286,7 @@ function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName, sca
             ))}
             {(finding.file_paths?.length || 0) > 20 && (
               <Typography
-                variant="body2"
-                sx={{ color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
+                sx={{ fontSize: "13px", color: palette.text.tertiary, fontStyle: "italic", mt: 1, px: 1 }}
               >
                 And {(finding.file_paths?.length || 0) - 20} more files...
               </Typography>
@@ -1306,6 +1299,17 @@ function VulnerabilityFindingRow({ finding, repositoryOwner, repositoryName, sca
 }
 
 // ============================================================================
+// Paginated Findings Hook
+// ============================================================================
+
+function usePaginatedFindings<T = Finding>(initialPage = 1) {
+  const [findings, setFindings] = useState<T[]>([]);
+  const [page, setPage] = useState(initialPage);
+  const [totalPages, setTotalPages] = useState(1);
+  return { findings, setFindings, page, setPage, totalPages, setTotalPages };
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -1315,15 +1319,16 @@ export default function ScanDetailsPage() {
   const scanId = parseInt(scanIdParam || "0", 10);
   const initialTab: TabValue = (tab as TabValue) || "libraries";
   const [scan, setScan] = useState<ScanResponse | null>(null);
-  const [findings, setFindings] = useState<Finding[]>([]);
-  const [apiCallFindings, setApiCallFindings] = useState<Finding[]>([]);
-  const [secretFindings, setSecretFindings] = useState<Finding[]>([]);
-  const [modelFindings, setModelFindings] = useState<Finding[]>([]);
-  const [ragFindings, setRagFindings] = useState<Finding[]>([]);
-  const [agentFindings, setAgentFindings] = useState<Finding[]>([]);
-  const [securityFindings, setSecurityFindings] = useState<SecurityFinding[]>(
-    []
-  );
+
+  // Paginated findings state (grouped by tab)
+  const libraryState = usePaginatedFindings();
+  const apiCallState = usePaginatedFindings();
+  const secretState = usePaginatedFindings();
+  const modelState = usePaginatedFindings();
+  const ragState = usePaginatedFindings();
+  const agentState = usePaginatedFindings();
+  const securityState = usePaginatedFindings<SecurityFinding>();
+
   const [securitySummary, setSecuritySummary] = useState<SecuritySummary | null>(
     null
   );
@@ -1341,21 +1346,6 @@ export default function ScanDetailsPage() {
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
-
-  const [page, setPage] = useState(1);
-  const [apiCallPage, setApiCallPage] = useState(1);
-  const [secretPage, setSecretPage] = useState(1);
-  const [modelPage, setModelPage] = useState(1);
-  const [ragPage, setRagPage] = useState(1);
-  const [agentPage, setAgentPage] = useState(1);
-  const [securityPage, setSecurityPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [apiCallTotalPages, setApiCallTotalPages] = useState(1);
-  const [secretTotalPages, setSecretTotalPages] = useState(1);
-  const [modelTotalPages, setModelTotalPages] = useState(1);
-  const [ragTotalPages, setRagTotalPages] = useState(1);
-  const [agentTotalPages, setAgentTotalPages] = useState(1);
-  const [securityTotalPages, setSecurityTotalPages] = useState(1);
   const [confidenceFilter, setConfidenceFilter] =
     useState<ConfidenceLevel | null>(null);
   const [severityFilter, setSeverityFilter] = useState<SecuritySeverity | null>(
@@ -1480,20 +1470,20 @@ export default function ScanDetailsPage() {
           ]),
         ]);
         setScan(scanResponse);
-        setFindings(findingsResponse.findings);
-        setTotalPages(findingsResponse.pagination.total_pages);
-        setApiCallFindings(apiCallFindingsResponse.findings);
-        setApiCallTotalPages(apiCallFindingsResponse.pagination.total_pages);
-        setSecretFindings(secretFindingsResponse.findings);
-        setSecretTotalPages(secretFindingsResponse.pagination.total_pages);
-        setModelFindings(modelFindingsResponse.findings);
-        setModelTotalPages(modelFindingsResponse.pagination.total_pages);
-        setRagFindings(ragFindingsResponse.findings);
-        setRagTotalPages(ragFindingsResponse.pagination.total_pages);
-        setAgentFindings(agentFindingsResponse.findings);
-        setAgentTotalPages(agentFindingsResponse.pagination.total_pages);
-        setSecurityFindings(securityFindingsResponse.findings);
-        setSecurityTotalPages(securityFindingsResponse.pagination.total_pages);
+        libraryState.setFindings(findingsResponse.findings);
+        libraryState.setTotalPages(findingsResponse.pagination.total_pages);
+        apiCallState.setFindings(apiCallFindingsResponse.findings);
+        apiCallState.setTotalPages(apiCallFindingsResponse.pagination.total_pages);
+        secretState.setFindings(secretFindingsResponse.findings);
+        secretState.setTotalPages(secretFindingsResponse.pagination.total_pages);
+        modelState.setFindings(modelFindingsResponse.findings);
+        modelState.setTotalPages(modelFindingsResponse.pagination.total_pages);
+        ragState.setFindings(ragFindingsResponse.findings);
+        ragState.setTotalPages(ragFindingsResponse.pagination.total_pages);
+        agentState.setFindings(agentFindingsResponse.findings);
+        agentState.setTotalPages(agentFindingsResponse.pagination.total_pages);
+        securityState.setFindings(securityFindingsResponse.findings);
+        securityState.setTotalPages(securityFindingsResponse.pagination.total_pages);
         setSecuritySummary(summaryResponse);
         // Combine all vulnerability findings
         setVulnerabilityFindings(
@@ -1516,20 +1506,20 @@ export default function ScanDetailsPage() {
     const loadLibraryFindings = async () => {
       try {
         const findingsResponse = await getScanFindings(scanId, {
-          page,
+          page: libraryState.page,
           limit: 50,
           confidence: confidenceFilter || undefined,
           finding_type: "library",
         });
-        setFindings(findingsResponse.findings);
-        setTotalPages(findingsResponse.pagination.total_pages);
+        libraryState.setFindings(findingsResponse.findings);
+        libraryState.setTotalPages(findingsResponse.pagination.total_pages);
       } catch {
         // Error loading findings - UI shows empty state
       }
     };
 
     loadLibraryFindings();
-  }, [scanId, page, confidenceFilter, scan]);
+  }, [scanId, libraryState.page, confidenceFilter, scan]);
 
   // Reload API call findings when page changes
   useEffect(() => {
@@ -1538,19 +1528,19 @@ export default function ScanDetailsPage() {
     const loadApiCallFindings = async () => {
       try {
         const findingsResponse = await getScanFindings(scanId, {
-          page: apiCallPage,
+          page: apiCallState.page,
           limit: 50,
           finding_type: "api_call",
         });
-        setApiCallFindings(findingsResponse.findings);
-        setApiCallTotalPages(findingsResponse.pagination.total_pages);
+        apiCallState.setFindings(findingsResponse.findings);
+        apiCallState.setTotalPages(findingsResponse.pagination.total_pages);
       } catch {
         // Error loading findings - UI shows empty state
       }
     };
 
     loadApiCallFindings();
-  }, [scanId, apiCallPage, scan]);
+  }, [scanId, apiCallState.page, scan]);
 
   // Reload secret findings when page changes
   useEffect(() => {
@@ -1559,19 +1549,19 @@ export default function ScanDetailsPage() {
     const loadSecretFindings = async () => {
       try {
         const findingsResponse = await getScanFindings(scanId, {
-          page: secretPage,
+          page: secretState.page,
           limit: 50,
           finding_type: "secret",
         });
-        setSecretFindings(findingsResponse.findings);
-        setSecretTotalPages(findingsResponse.pagination.total_pages);
+        secretState.setFindings(findingsResponse.findings);
+        secretState.setTotalPages(findingsResponse.pagination.total_pages);
       } catch {
         // Error loading findings - UI shows empty state
       }
     };
 
     loadSecretFindings();
-  }, [scanId, secretPage, scan]);
+  }, [scanId, secretState.page, scan]);
 
   // Reload model findings when page changes
   useEffect(() => {
@@ -1580,19 +1570,19 @@ export default function ScanDetailsPage() {
     const loadModelFindings = async () => {
       try {
         const findingsResponse = await getScanFindings(scanId, {
-          page: modelPage,
+          page: modelState.page,
           limit: 50,
           finding_type: "model_ref",
         });
-        setModelFindings(findingsResponse.findings);
-        setModelTotalPages(findingsResponse.pagination.total_pages);
+        modelState.setFindings(findingsResponse.findings);
+        modelState.setTotalPages(findingsResponse.pagination.total_pages);
       } catch {
         // Error loading findings - UI shows empty state
       }
     };
 
     loadModelFindings();
-  }, [scanId, modelPage, scan]);
+  }, [scanId, modelState.page, scan]);
 
   // Reload RAG findings when page changes
   useEffect(() => {
@@ -1601,19 +1591,19 @@ export default function ScanDetailsPage() {
     const loadRagFindings = async () => {
       try {
         const findingsResponse = await getScanFindings(scanId, {
-          page: ragPage,
+          page: ragState.page,
           limit: 50,
           finding_type: "rag_component",
         });
-        setRagFindings(findingsResponse.findings);
-        setRagTotalPages(findingsResponse.pagination.total_pages);
+        ragState.setFindings(findingsResponse.findings);
+        ragState.setTotalPages(findingsResponse.pagination.total_pages);
       } catch {
         // Error loading findings - UI shows empty state
       }
     };
 
     loadRagFindings();
-  }, [scanId, ragPage, scan]);
+  }, [scanId, ragState.page, scan]);
 
   // Reload agent findings when page changes
   useEffect(() => {
@@ -1622,19 +1612,19 @@ export default function ScanDetailsPage() {
     const loadAgentFindings = async () => {
       try {
         const findingsResponse = await getScanFindings(scanId, {
-          page: agentPage,
+          page: agentState.page,
           limit: 50,
           finding_type: "agent",
         });
-        setAgentFindings(findingsResponse.findings);
-        setAgentTotalPages(findingsResponse.pagination.total_pages);
+        agentState.setFindings(findingsResponse.findings);
+        agentState.setTotalPages(findingsResponse.pagination.total_pages);
       } catch {
         // Error loading findings - UI shows empty state
       }
     };
 
     loadAgentFindings();
-  }, [scanId, agentPage, scan]);
+  }, [scanId, agentState.page, scan]);
 
   // Reload security findings when page or filter changes
   useEffect(() => {
@@ -1644,14 +1634,14 @@ export default function ScanDetailsPage() {
       try {
         const [findingsResponse, summaryResponse] = await Promise.all([
           getScanSecurityFindings(scanId, {
-            page: securityPage,
+            page: securityState.page,
             limit: 50,
             severity: severityFilter || undefined,
           }),
           getScanSecuritySummary(scanId),
         ]);
-        setSecurityFindings(findingsResponse.findings);
-        setSecurityTotalPages(findingsResponse.pagination.total_pages);
+        securityState.setFindings(findingsResponse.findings);
+        securityState.setTotalPages(findingsResponse.pagination.total_pages);
         setSecuritySummary(summaryResponse);
       } catch {
         // Error loading findings - UI shows empty state
@@ -1659,7 +1649,7 @@ export default function ScanDetailsPage() {
     };
 
     loadSecurityFindings();
-  }, [scanId, securityPage, severityFilter, scan]);
+  }, [scanId, securityState.page, severityFilter, scan]);
 
   // Load compliance data when tab is selected (lazy loading)
   useEffect(() => {
@@ -1722,7 +1712,7 @@ export default function ScanDetailsPage() {
     return (
       <PageHeaderExtended title="Scan details">
         <Box sx={{ textAlign: "center" }}>
-          <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+          <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
             Loading scan details...
           </Typography>
         </Box>
@@ -1734,7 +1724,7 @@ export default function ScanDetailsPage() {
     return (
       <PageHeaderExtended title="Scan details">
         <Box sx={{ textAlign: "center" }}>
-          <Typography variant="body1" sx={{ color: palette.status.error.text }}>
+          <Typography sx={{ fontSize: "13px", color: palette.status.error.text }}>
             Failed to load scan details
           </Typography>
         </Box>
@@ -1787,18 +1777,18 @@ export default function ScanDetailsPage() {
             )}
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: "28px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.primary, fontWeight: 500 }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.primary, fontWeight: 500 }}>
               {formatDuration(scan.scan.duration_ms)}
             </Typography>
             <Typography sx={{ color: palette.border.dark, fontSize: "12px" }}>•</Typography>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
               {scan.scan.status === "failed" ? "Failed" : "Scanned"}{" "}
               {formatDistanceToNow(new Date(scan.scan.created_at), {
                 addSuffix: true,
               })}
             </Typography>
             <Typography sx={{ color: palette.border.dark, fontSize: "12px" }}>•</Typography>
-            <Typography variant="body2" sx={{ color: palette.text.secondary }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.secondary }}>
               by {scan.scan.triggered_by.name}
             </Typography>
           </Box>
@@ -2175,7 +2165,7 @@ export default function ScanDetailsPage() {
         {/* Libraries Tab */}
         {activeTab === "libraries" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               AI and machine learning libraries detected in the repository. Click on a finding to see file locations.
             </Typography>
             {/* Summary Cards */}
@@ -2226,7 +2216,7 @@ export default function ScanDetailsPage() {
                 Detected libraries
               </Typography>
 
-              {findings.length === 0 ? (
+              {libraryState.findings.length === 0 ? (
                 <Box
                   sx={{
                     backgroundColor: palette.background.main,
@@ -2236,7 +2226,7 @@ export default function ScanDetailsPage() {
                     textAlign: "center",
                   }}
                 >
-                  <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                  <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                     {confidenceFilter
                       ? `No ${confidenceFilter} confidence findings`
                       : "No AI/ML libraries detected"}
@@ -2244,7 +2234,7 @@ export default function ScanDetailsPage() {
                 </Box>
               ) : (
                 <Box>
-                  {findings.map((finding) => (
+                  {libraryState.findings.map((finding) => (
                     <FindingRow
                       key={finding.id}
                       finding={finding}
@@ -2256,7 +2246,7 @@ export default function ScanDetailsPage() {
                   ))}
 
                   {/* Pagination */}
-                  {totalPages > 1 && (
+                  {libraryState.totalPages > 1 && (
                     <Box
                       sx={{
                         display: "flex",
@@ -2267,23 +2257,22 @@ export default function ScanDetailsPage() {
                     >
                       <CustomizableButton
                         text="Previous"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        isDisabled={page === 1}
+                        onClick={() => libraryState.setPage((p) => Math.max(1, p - 1))}
+                        isDisabled={libraryState.page === 1}
                         variant="outlined"
                         sx={{ height: 34 }}
                       />
                       <Typography
-                        variant="body2"
-                        sx={{ lineHeight: "34px", px: 2, color: palette.text.tertiary }}
+                        sx={{ fontSize: "13px", lineHeight: "34px", px: 2, color: palette.text.tertiary }}
                       >
-                        Page {page} of {totalPages}
+                        Page {libraryState.page} of {libraryState.totalPages}
                       </Typography>
                       <CustomizableButton
                         text="Next"
                         onClick={() =>
-                          setPage((p) => Math.min(totalPages, p + 1))
+                          libraryState.setPage((p) => Math.min(libraryState.totalPages, p + 1))
                         }
-                        isDisabled={page === totalPages}
+                        isDisabled={libraryState.page === libraryState.totalPages}
                         variant="outlined"
                         sx={{ height: 34 }}
                       />
@@ -2299,7 +2288,7 @@ export default function ScanDetailsPage() {
         {/* API Calls Tab */}
         {activeTab === "api-calls" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               API calls to AI/ML services detected in the codebase. These represent active usage of AI models and services.
             </Typography>
 
@@ -2315,18 +2304,18 @@ export default function ScanDetailsPage() {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Info size={16} color={palette.text.tertiary} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.api_call || 0} API call{(scan.summary.by_finding_type?.api_call || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: palette.text.tertiary, mt: "8px" }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mt: 1 }}>
                 All API call findings are marked as high confidence. These indicate direct integration with AI services.
               </Typography>
             </Box>
 
             {/* Findings List */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {apiCallFindings.map((finding) => (
+              {apiCallState.findings.map((finding) => (
                 <FindingRow
                   key={finding.id}
                   finding={finding}
@@ -2338,7 +2327,7 @@ export default function ScanDetailsPage() {
             </Box>
 
             {/* Empty State */}
-            {apiCallFindings.length === 0 && (
+            {apiCallState.findings.length === 0 && (
               <Box
                 sx={{
                   p: 4,
@@ -2348,17 +2337,17 @@ export default function ScanDetailsPage() {
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   No API calls detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.accent, mt: 1 }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.accent, mt: 1 }}>
                   API calls to OpenAI, Anthropic, Google AI, and other AI services will appear here
                 </Typography>
               </Box>
             )}
 
             {/* Pagination */}
-            {apiCallTotalPages > 1 && (
+            {apiCallState.totalPages > 1 && (
               <Box
                 sx={{
                   display: "flex",
@@ -2369,18 +2358,18 @@ export default function ScanDetailsPage() {
               >
                 <CustomizableButton
                   text="Previous"
-                  onClick={() => setApiCallPage((p) => Math.max(1, p - 1))}
-                  isDisabled={apiCallPage === 1}
+                  onClick={() => apiCallState.setPage((p) => Math.max(1, p - 1))}
+                  isDisabled={apiCallState.page === 1}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
                 <Typography sx={{ lineHeight: "34px", color: palette.text.tertiary, fontSize: "13px" }}>
-                  Page {apiCallPage} of {apiCallTotalPages}
+                  Page {apiCallState.page} of {apiCallState.totalPages}
                 </Typography>
                 <CustomizableButton
                   text="Next"
-                  onClick={() => setApiCallPage((p) => Math.min(apiCallTotalPages, p + 1))}
-                  isDisabled={apiCallPage === apiCallTotalPages}
+                  onClick={() => apiCallState.setPage((p) => Math.min(apiCallState.totalPages, p + 1))}
+                  isDisabled={apiCallState.page === apiCallState.totalPages}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
@@ -2392,7 +2381,7 @@ export default function ScanDetailsPage() {
         {/* Models Tab */}
         {activeTab === "models" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               Pre-trained AI/ML model references detected in the codebase. These include Hugging Face models, Ollama models, and other model identifiers.
             </Typography>
 
@@ -2408,18 +2397,18 @@ export default function ScanDetailsPage() {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Package size={16} color={palette.text.tertiary} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.model_ref || 0} model reference{(scan.summary.by_finding_type?.model_ref || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: palette.text.tertiary, mt: "8px" }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mt: 1 }}>
                 Model references indicate usage of pre-trained models from Hugging Face Hub, Ollama, and other sources.
               </Typography>
             </Box>
 
             {/* Findings List */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {modelFindings.map((finding) => (
+              {modelState.findings.map((finding) => (
                 <FindingRow
                   key={finding.id}
                   finding={finding}
@@ -2431,7 +2420,7 @@ export default function ScanDetailsPage() {
             </Box>
 
             {/* Empty State */}
-            {modelFindings.length === 0 && (
+            {modelState.findings.length === 0 && (
               <Box
                 sx={{
                   p: 4,
@@ -2441,17 +2430,17 @@ export default function ScanDetailsPage() {
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   No model references detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.accent, mt: 1 }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.accent, mt: 1 }}>
                   References to Hugging Face models, Ollama models, and other pre-trained models will appear here
                 </Typography>
               </Box>
             )}
 
             {/* Pagination */}
-            {modelTotalPages > 1 && (
+            {modelState.totalPages > 1 && (
               <Box
                 sx={{
                   display: "flex",
@@ -2462,18 +2451,18 @@ export default function ScanDetailsPage() {
               >
                 <CustomizableButton
                   text="Previous"
-                  onClick={() => setModelPage((p) => Math.max(1, p - 1))}
-                  isDisabled={modelPage === 1}
+                  onClick={() => modelState.setPage((p) => Math.max(1, p - 1))}
+                  isDisabled={modelState.page === 1}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
                 <Typography sx={{ lineHeight: "34px", color: palette.text.tertiary, fontSize: "13px" }}>
-                  Page {modelPage} of {modelTotalPages}
+                  Page {modelState.page} of {modelState.totalPages}
                 </Typography>
                 <CustomizableButton
                   text="Next"
-                  onClick={() => setModelPage((p) => Math.min(modelTotalPages, p + 1))}
-                  isDisabled={modelPage === modelTotalPages}
+                  onClick={() => modelState.setPage((p) => Math.min(modelState.totalPages, p + 1))}
+                  isDisabled={modelState.page === modelState.totalPages}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
@@ -2485,7 +2474,7 @@ export default function ScanDetailsPage() {
         {/* RAG Tab */}
         {activeTab === "rag" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               RAG (Retrieval-Augmented Generation) pipeline components detected in the codebase. These include vector databases, document loaders, and embedding models.
             </Typography>
 
@@ -2501,18 +2490,18 @@ export default function ScanDetailsPage() {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Info size={16} color={palette.text.tertiary} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.rag_component || 0} RAG component{(scan.summary.by_finding_type?.rag_component || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: palette.text.tertiary, mt: "8px" }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mt: 1 }}>
                 RAG components indicate usage of vector databases, document loaders, and embedding systems for retrieval-augmented generation.
               </Typography>
             </Box>
 
             {/* Findings List */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {ragFindings.map((finding) => (
+              {ragState.findings.map((finding) => (
                 <FindingRow
                   key={finding.id}
                   finding={finding}
@@ -2524,7 +2513,7 @@ export default function ScanDetailsPage() {
             </Box>
 
             {/* Empty State */}
-            {ragFindings.length === 0 && (
+            {ragState.findings.length === 0 && (
               <Box
                 sx={{
                   p: 4,
@@ -2534,17 +2523,17 @@ export default function ScanDetailsPage() {
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   No RAG components detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.accent, mt: 1 }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.accent, mt: 1 }}>
                   Vector databases (Pinecone, Chroma, Qdrant), document loaders, and embedding models will appear here
                 </Typography>
               </Box>
             )}
 
             {/* Pagination */}
-            {ragTotalPages > 1 && (
+            {ragState.totalPages > 1 && (
               <Box
                 sx={{
                   display: "flex",
@@ -2555,18 +2544,18 @@ export default function ScanDetailsPage() {
               >
                 <CustomizableButton
                   text="Previous"
-                  onClick={() => setRagPage((p) => Math.max(1, p - 1))}
-                  isDisabled={ragPage === 1}
+                  onClick={() => ragState.setPage((p) => Math.max(1, p - 1))}
+                  isDisabled={ragState.page === 1}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
                 <Typography sx={{ lineHeight: "34px", color: palette.text.tertiary, fontSize: "13px" }}>
-                  Page {ragPage} of {ragTotalPages}
+                  Page {ragState.page} of {ragState.totalPages}
                 </Typography>
                 <CustomizableButton
                   text="Next"
-                  onClick={() => setRagPage((p) => Math.min(ragTotalPages, p + 1))}
-                  isDisabled={ragPage === ragTotalPages}
+                  onClick={() => ragState.setPage((p) => Math.min(ragState.totalPages, p + 1))}
+                  isDisabled={ragState.page === ragState.totalPages}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
@@ -2578,12 +2567,12 @@ export default function ScanDetailsPage() {
         {/* Agents Tab */}
         {activeTab === "agents" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               AI agent frameworks and autonomous systems detected in the codebase. These include LangChain agents, CrewAI, AutoGen, and MCP servers.
             </Typography>
 
             {/* Warning Box - agents carry high risk */}
-            {agentFindings.length > 0 && (
+            {agentState.findings.length > 0 && (
               <Box
                 sx={{
                   backgroundColor: palette.status.warning.bg,
@@ -2620,18 +2609,18 @@ export default function ScanDetailsPage() {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Info size={16} color={palette.text.tertiary} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
                   {scan.summary.by_finding_type?.agent || 0} agent framework{(scan.summary.by_finding_type?.agent || 0) !== 1 ? "s" : ""} detected
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ color: palette.text.tertiary, mt: "8px" }}>
+              <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mt: 1 }}>
                 Agent findings are marked as high risk due to their autonomous nature and ability to interact with external systems.
               </Typography>
             </Box>
 
             {/* Findings List */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {agentFindings.map((finding) => (
+              {agentState.findings.map((finding) => (
                 <FindingRow
                   key={finding.id}
                   finding={finding}
@@ -2643,7 +2632,7 @@ export default function ScanDetailsPage() {
             </Box>
 
             {/* Empty State */}
-            {agentFindings.length === 0 && (
+            {agentState.findings.length === 0 && (
               <Box
                 sx={{
                   p: 4,
@@ -2653,17 +2642,17 @@ export default function ScanDetailsPage() {
                   mt: "8px",
                 }}
               >
-                <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   No AI agents detected in this repository
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.accent, mt: 1 }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.accent, mt: 1 }}>
                   LangChain agents, CrewAI, AutoGen, MCP servers, and other autonomous AI systems will appear here
                 </Typography>
               </Box>
             )}
 
             {/* Pagination */}
-            {agentTotalPages > 1 && (
+            {agentState.totalPages > 1 && (
               <Box
                 sx={{
                   display: "flex",
@@ -2674,18 +2663,18 @@ export default function ScanDetailsPage() {
               >
                 <CustomizableButton
                   text="Previous"
-                  onClick={() => setAgentPage((p) => Math.max(1, p - 1))}
-                  isDisabled={agentPage === 1}
+                  onClick={() => agentState.setPage((p) => Math.max(1, p - 1))}
+                  isDisabled={agentState.page === 1}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
                 <Typography sx={{ lineHeight: "34px", color: palette.text.tertiary, fontSize: "13px" }}>
-                  Page {agentPage} of {agentTotalPages}
+                  Page {agentState.page} of {agentState.totalPages}
                 </Typography>
                 <CustomizableButton
                   text="Next"
-                  onClick={() => setAgentPage((p) => Math.min(agentTotalPages, p + 1))}
-                  isDisabled={agentPage === agentTotalPages}
+                  onClick={() => agentState.setPage((p) => Math.min(agentState.totalPages, p + 1))}
+                  isDisabled={agentState.page === agentState.totalPages}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
@@ -2697,12 +2686,12 @@ export default function ScanDetailsPage() {
         {/* Secrets Tab */}
         {activeTab === "secrets" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               Hardcoded API keys and secrets detected in the codebase. These should be moved to environment variables or a secrets manager.
             </Typography>
 
             {/* Warning Box - only show when secrets are found */}
-            {secretFindings.length > 0 && (
+            {secretState.findings.length > 0 && (
               <Box
                 sx={{
                   backgroundColor: palette.status.error.bg,
@@ -2730,7 +2719,7 @@ export default function ScanDetailsPage() {
 
             {/* Findings List */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {secretFindings.map((finding) => (
+              {secretState.findings.map((finding) => (
                 <FindingRow
                   key={finding.id}
                   finding={finding}
@@ -2742,7 +2731,7 @@ export default function ScanDetailsPage() {
             </Box>
 
             {/* Empty State - only show when no secrets found */}
-            {secretFindings.length === 0 && (
+            {secretState.findings.length === 0 && (
               <Box
                 sx={{
                   p: "16px",
@@ -2766,7 +2755,7 @@ export default function ScanDetailsPage() {
             )}
 
             {/* Pagination */}
-            {secretTotalPages > 1 && (
+            {secretState.totalPages > 1 && (
               <Box
                 sx={{
                   display: "flex",
@@ -2777,18 +2766,18 @@ export default function ScanDetailsPage() {
               >
                 <CustomizableButton
                   text="Previous"
-                  onClick={() => setSecretPage((p) => Math.max(1, p - 1))}
-                  isDisabled={secretPage === 1}
+                  onClick={() => secretState.setPage((p) => Math.max(1, p - 1))}
+                  isDisabled={secretState.page === 1}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
                 <Typography sx={{ lineHeight: "34px", color: palette.text.tertiary, fontSize: "13px" }}>
-                  Page {secretPage} of {secretTotalPages}
+                  Page {secretState.page} of {secretState.totalPages}
                 </Typography>
                 <CustomizableButton
                   text="Next"
-                  onClick={() => setSecretPage((p) => Math.min(secretTotalPages, p + 1))}
-                  isDisabled={secretPage === secretTotalPages}
+                  onClick={() => secretState.setPage((p) => Math.min(secretState.totalPages, p + 1))}
+                  isDisabled={secretState.page === secretState.totalPages}
                   variant="outlined"
                   sx={{ height: 34 }}
                 />
@@ -2800,7 +2789,7 @@ export default function ScanDetailsPage() {
         {/* Security Tab */}
         {activeTab === "security" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               Security vulnerabilities found in model files. Serialized models can contain malicious code that executes when loaded.
             </Typography>
             {/* Security Summary Cards - only show when there are findings */}
@@ -2822,10 +2811,10 @@ export default function ScanDetailsPage() {
                   textAlign: "center",
                 }}
               >
-                <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                <Typography sx={{ fontSize: "20px", fontWeight: 600 }}>
                   {securitySummary?.total || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   Total findings
                 </Typography>
               </Box>
@@ -2843,8 +2832,8 @@ export default function ScanDetailsPage() {
                 }
               >
                 <Typography
-                  variant="h4"
                   sx={{
+                    fontSize: "20px",
                     fontWeight: 600,
                     color:
                       severityFilter === "critical" ? palette.status.error.text : palette.text.primary,
@@ -2852,7 +2841,7 @@ export default function ScanDetailsPage() {
                 >
                   {securitySummary?.by_severity.critical || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   Critical
                 </Typography>
               </Box>
@@ -2870,8 +2859,8 @@ export default function ScanDetailsPage() {
                 }
               >
                 <Typography
-                  variant="h4"
                   sx={{
+                    fontSize: "20px",
                     fontWeight: 600,
                     color:
                       severityFilter === "high" ? palette.risk.high.text : palette.text.primary,
@@ -2879,7 +2868,7 @@ export default function ScanDetailsPage() {
                 >
                   {securitySummary?.by_severity.high || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   High
                 </Typography>
               </Box>
@@ -2897,8 +2886,8 @@ export default function ScanDetailsPage() {
                 }
               >
                 <Typography
-                  variant="h4"
                   sx={{
+                    fontSize: "20px",
                     fontWeight: 600,
                     color:
                       severityFilter === "medium" ? palette.status.warning.text : palette.text.primary,
@@ -2906,7 +2895,7 @@ export default function ScanDetailsPage() {
                 >
                   {securitySummary?.by_severity.medium || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   Medium
                 </Typography>
               </Box>
@@ -2924,8 +2913,8 @@ export default function ScanDetailsPage() {
                 }
               >
                 <Typography
-                  variant="h4"
                   sx={{
+                    fontSize: "20px",
                     fontWeight: 600,
                     color:
                       severityFilter === "low" ? palette.status.info.text : palette.text.primary,
@@ -2933,7 +2922,7 @@ export default function ScanDetailsPage() {
                 >
                   {securitySummary?.by_severity.low || 0}
                 </Typography>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   Low
                 </Typography>
               </Box>
@@ -2946,7 +2935,7 @@ export default function ScanDetailsPage() {
                 Security findings
               </Typography>
 
-              {securityFindings.length === 0 ? (
+              {securityState.findings.length === 0 ? (
                 <Box
                   sx={{
                     backgroundColor: palette.status.success.bg,
@@ -2966,8 +2955,7 @@ export default function ScanDetailsPage() {
                     <ShieldCheck size={48} color={palette.status.success.text} />
                   </Box>
                   <Typography
-                    variant="body1"
-                    sx={{ fontWeight: 500, color: palette.status.success.text, mb: 1 }}
+                    sx={{ fontSize: "13px", fontWeight: 500, color: palette.status.success.text, mb: 1 }}
                   >
                     {severityFilter
                       ? `No ${severityFilter} severity findings`
@@ -2984,7 +2972,7 @@ export default function ScanDetailsPage() {
                       }}
                     >
                       <Info size={14} color={palette.text.tertiary} />
-                      <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                      <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                         Note: This scan checks for known malicious patterns only.
                         A clean result does not guarantee the model is safe.
                       </Typography>
@@ -2993,7 +2981,7 @@ export default function ScanDetailsPage() {
                 </Box>
               ) : (
                 <Box>
-                  {securityFindings.map((finding) => (
+                  {securityState.findings.map((finding) => (
                     <SecurityFindingRow
                       key={finding.id}
                       finding={finding}
@@ -3003,7 +2991,7 @@ export default function ScanDetailsPage() {
                   ))}
 
                   {/* Pagination */}
-                  {securityTotalPages > 1 && (
+                  {securityState.totalPages > 1 && (
                     <Box
                       sx={{
                         display: "flex",
@@ -3015,26 +3003,25 @@ export default function ScanDetailsPage() {
                       <CustomizableButton
                         text="Previous"
                         onClick={() =>
-                          setSecurityPage((p) => Math.max(1, p - 1))
+                          securityState.setPage((p) => Math.max(1, p - 1))
                         }
-                        isDisabled={securityPage === 1}
+                        isDisabled={securityState.page === 1}
                         variant="outlined"
                         sx={{ height: 34 }}
                       />
                       <Typography
-                        variant="body2"
-                        sx={{ lineHeight: "34px", px: 2, color: palette.text.tertiary }}
+                        sx={{ fontSize: "13px", lineHeight: "34px", px: 2, color: palette.text.tertiary }}
                       >
-                        Page {securityPage} of {securityTotalPages}
+                        Page {securityState.page} of {securityState.totalPages}
                       </Typography>
                       <CustomizableButton
                         text="Next"
                         onClick={() =>
-                          setSecurityPage((p) =>
-                            Math.min(securityTotalPages, p + 1)
+                          securityState.setPage((p) =>
+                            Math.min(securityState.totalPages, p + 1)
                           )
                         }
-                        isDisabled={securityPage === securityTotalPages}
+                        isDisabled={securityState.page === securityState.totalPages}
                         variant="outlined"
                         sx={{ height: 34 }}
                       />
@@ -3047,7 +3034,7 @@ export default function ScanDetailsPage() {
             {/* Model files scanned info */}
             {securitySummary && (
               <Box sx={{ mt: 4 }}>
-                <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   {securitySummary.model_files_scanned} model{" "}
                   {securitySummary.model_files_scanned === 1 ? "file" : "files"}{" "}
                   scanned
@@ -3060,19 +3047,19 @@ export default function ScanDetailsPage() {
         {/* Compliance Tab */}
         {activeTab === "compliance" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               EU AI Act compliance mapping based on detected AI components. Review these requirements to ensure your AI system meets regulatory obligations.
             </Typography>
 
             {complianceLoading ? (
               <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   Loading compliance data...
                 </Typography>
               </Box>
             ) : !complianceData ? (
               <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+                <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                   Unable to load compliance data
                 </Typography>
               </Box>
@@ -3096,10 +3083,10 @@ export default function ScanDetailsPage() {
                       textAlign: "center",
                     }}
                   >
-                    <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: "20px", fontWeight: 600 }}>
                       {complianceData.summary.totalRequirements}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                    <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                       Total requirements
                     </Typography>
                   </Box>
@@ -3112,10 +3099,10 @@ export default function ScanDetailsPage() {
                       textAlign: "center",
                     }}
                   >
-                    <Typography variant="h4" sx={{ fontWeight: 600, color: palette.status.error.text }}>
+                    <Typography sx={{ fontSize: "20px", fontWeight: 600, color: palette.status.error.text }}>
                       {complianceData.summary.byPriority.high}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                    <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                       High priority
                     </Typography>
                   </Box>
@@ -3128,10 +3115,10 @@ export default function ScanDetailsPage() {
                       textAlign: "center",
                     }}
                   >
-                    <Typography variant="h4" sx={{ fontWeight: 600, color: palette.status.warning.text }}>
+                    <Typography sx={{ fontSize: "20px", fontWeight: 600, color: palette.status.warning.text }}>
                       {complianceData.summary.byPriority.medium}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                    <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                       Medium priority
                     </Typography>
                   </Box>
@@ -3149,10 +3136,10 @@ export default function ScanDetailsPage() {
                         cursor: "help",
                       }}
                     >
-                      <Typography variant="h4" sx={{ fontWeight: 600, color: palette.text.secondary }}>
+                      <Typography sx={{ fontSize: "20px", fontWeight: 600, color: palette.text.secondary }}>
                         {Math.round(complianceData.summary.coveragePercentage)}%
                       </Typography>
-                      <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                      <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                         Requirements scope
                       </Typography>
                     </Box>
@@ -3201,10 +3188,10 @@ export default function ScanDetailsPage() {
                       <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
                         <CheckCircle2 size={48} color={palette.status.success.text} />
                       </Box>
-                      <Typography variant="body1" sx={{ fontWeight: 500, color: palette.status.success.text, mb: 1 }}>
+                      <Typography sx={{ fontSize: "13px", fontWeight: 500, color: palette.status.success.text, mb: 1 }}>
                         No specific compliance actions needed
                       </Typography>
-                      <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                      <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                         Based on the scan results, no additional compliance requirements were identified.
                       </Typography>
                     </Box>
@@ -3453,7 +3440,7 @@ export default function ScanDetailsPage() {
                 {/* Generated timestamp */}
                 <Box sx={{ mt: 3, display: "flex", alignItems: "center", gap: 1 }}>
                   <Info size={14} color={palette.text.tertiary} />
-                  <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                  <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                     Compliance mapping generated {formatDistanceToNow(new Date(complianceData.generatedAt), { addSuffix: true })}
                   </Typography>
                 </Box>
@@ -3464,7 +3451,7 @@ export default function ScanDetailsPage() {
         {/* Vulnerabilities Tab */}
         {activeTab === "vulnerabilities" && (
           <Box sx={{ mt: "8px" }}>
-            <Typography variant="body2" sx={{ color: palette.text.tertiary, mb: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, mb: 2 }}>
               LLM-specific vulnerability findings detected through code analysis.
               These identify insecure patterns in how AI/LLM components are used.
             </Typography>
@@ -3525,14 +3512,13 @@ export default function ScanDetailsPage() {
                   <ShieldCheck size={48} color={palette.status.success.text} />
                 </Box>
                 <Typography
-                  variant="body1"
-                  sx={{ fontWeight: 500, color: palette.status.success.text, mb: 1 }}
+                  sx={{ fontSize: "13px", fontWeight: 500, color: palette.status.success.text, mb: 1 }}
                 >
                   No LLM vulnerabilities detected
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mt: 1 }}>
                   <Info size={14} color={palette.text.tertiary} />
-                  <Typography variant="body2" sx={{ color: palette.text.tertiary }}>
+                  <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
                     Enable vulnerability scanning in settings for deep LLM analysis.
                   </Typography>
                 </Box>

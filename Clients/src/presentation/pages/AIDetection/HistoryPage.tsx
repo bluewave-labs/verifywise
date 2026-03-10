@@ -52,7 +52,7 @@ function getGradeColor(grade: string | null | undefined): string {
     case "C":
       return palette.status.warning.text;
     case "D":
-      return "#E65100";
+      return palette.accent.orange.text;
     case "F":
       return palette.status.error.text;
     default:
@@ -527,7 +527,7 @@ export default function HistoryPage() {
       id: "repository",
       label: "REPOSITORY",
       render: (scan: Scan) => (
-        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+        <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
           {scan.repository_owner}/{scan.repository_name}
         </Typography>
       ),
@@ -545,7 +545,7 @@ export default function HistoryPage() {
       render: (scan: Scan) => {
         if (scan.status !== "completed" || scan.risk_score == null) {
           return (
-            <Typography variant="body2" sx={{ color: palette.text.accent }}>
+            <Typography sx={{ fontSize: "13px", color: palette.text.accent }}>
               -
             </Typography>
           );
@@ -567,7 +567,7 @@ export default function HistoryPage() {
                 {grade}
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: "monospace" }}>
+            <Typography sx={{ fontSize: "13px", fontWeight: 500, fontFamily: "monospace" }}>
               {Math.round(scan.risk_score)}
             </Typography>
           </Box>
@@ -578,7 +578,7 @@ export default function HistoryPage() {
       id: "findings",
       label: "FINDINGS",
       render: (scan: Scan) => (
-        <Typography variant="body2">
+        <Typography sx={{ fontSize: "13px" }}>
           {scan.status === "completed" ? scan.findings_count : "-"}
         </Typography>
       ),
@@ -587,7 +587,7 @@ export default function HistoryPage() {
       id: "files",
       label: "FILES SCANNED",
       render: (scan: Scan) => (
-        <Typography variant="body2">
+        <Typography sx={{ fontSize: "13px" }}>
           {scan.status === "completed" ? scan.files_scanned : "-"}
         </Typography>
       ),
@@ -598,7 +598,7 @@ export default function HistoryPage() {
       render: (scan: Scan) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
           <Clock size={14} color={palette.text.tertiary} />
-          <Typography variant="body2" sx={{ color: palette.text.tertiary, fontFamily: "monospace" }}>
+          <Typography sx={{ fontSize: "13px", color: palette.text.tertiary, fontFamily: "monospace" }}>
             {scan.status === "completed" ? formatDuration(scan.duration_ms) : "-"}
           </Typography>
         </Box>
@@ -608,7 +608,7 @@ export default function HistoryPage() {
       id: "triggered_by",
       label: "TRIGGERED BY",
       render: (scan: Scan) => (
-        <Typography variant="body2">
+        <Typography sx={{ fontSize: "13px" }}>
           {scan.triggered_by.name}
           {scan.triggered_by.surname ? ` ${scan.triggered_by.surname}` : ""}
         </Typography>
@@ -670,7 +670,7 @@ export default function HistoryPage() {
         helpArticlePath="ai-detection/history"
       >
         <Box sx={{ textAlign: "center" }}>
-          <Typography variant="body1" sx={{ color: palette.text.tertiary }}>
+          <Typography sx={{ fontSize: "13px", color: palette.text.tertiary }}>
             Loading scan results...
           </Typography>
         </Box>

@@ -109,7 +109,8 @@ export async function getRiskScoringConfigQuery(
 ): Promise<RiskScoringConfig | null> {
   validateOrganizationId(organizationId);
   const query = `
-    SELECT * FROM ai_detection_risk_scoring_config
+    SELECT id, organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at
+    FROM ai_detection_risk_scoring_config
     WHERE organization_id = :organizationId
     ORDER BY id DESC LIMIT 1;
   `;
@@ -138,7 +139,8 @@ export async function getVulnerabilityConfigQuery(
 ): Promise<VulnerabilityConfig | null> {
   validateOrganizationId(organizationId);
   const query = `
-    SELECT * FROM ai_detection_vulnerability_config
+    SELECT id, organization_id, vulnerability_scan_enabled, vulnerability_types_enabled, updated_by, updated_at
+    FROM ai_detection_vulnerability_config
     WHERE organization_id = :organizationId
     LIMIT 1;
   `;
@@ -170,7 +172,8 @@ export async function upsertRiskScoringConfigQuery(
 
   // Fetch existing config from the base risk scoring table (without merged vuln config)
   const baseQuery = `
-    SELECT * FROM ai_detection_risk_scoring_config
+    SELECT id, organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at
+    FROM ai_detection_risk_scoring_config
     WHERE organization_id = :organizationId
     ORDER BY id DESC LIMIT 1;
   `;
@@ -183,36 +186,28 @@ export async function upsertRiskScoringConfigQuery(
   let config: RiskScoringConfig;
 
   if (existing) {
-    const setClauses: string[] = ["updated_at = NOW()"];
-    const replacements: Record<string, unknown> = {
-      id: existing.id,
-      organizationId,
-      updated_by: data.updated_by,
-    };
-    setClauses.push("updated_by = :updated_by");
-
-    if (data.llm_enabled !== undefined) {
-      setClauses.push("llm_enabled = :llm_enabled");
-      replacements.llm_enabled = data.llm_enabled;
-    }
-    if (data.llm_key_id !== undefined) {
-      setClauses.push("llm_key_id = :llm_key_id");
-      replacements.llm_key_id = data.llm_key_id;
-    }
-    if (data.dimension_weights !== undefined) {
-      setClauses.push("dimension_weights = :dimension_weights");
-      replacements.dimension_weights = JSON.stringify(data.dimension_weights);
-    }
-
     const query = `
       UPDATE ai_detection_risk_scoring_config
-      SET ${setClauses.join(", ")}
+      SET
+        llm_enabled = COALESCE(:llm_enabled, llm_enabled),
+        llm_key_id = CASE WHEN :has_llm_key_id THEN :llm_key_id ELSE llm_key_id END,
+        dimension_weights = COALESCE(:dimension_weights, dimension_weights),
+        updated_by = :updated_by,
+        updated_at = NOW()
       WHERE id = :id AND organization_id = :organizationId
-      RETURNING *;
+      RETURNING id, organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at;
     `;
 
     const results = await sequelize.query(query, {
-      replacements,
+      replacements: {
+        id: existing.id,
+        organizationId,
+        llm_enabled: data.llm_enabled ?? null,
+        has_llm_key_id: data.llm_key_id !== undefined,
+        llm_key_id: data.llm_key_id ?? null,
+        dimension_weights: data.dimension_weights ? JSON.stringify(data.dimension_weights) : null,
+        updated_by: data.updated_by,
+      },
       type: QueryTypes.SELECT,
     });
 
@@ -223,7 +218,7 @@ export async function upsertRiskScoringConfigQuery(
         (organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at)
       VALUES
         (:organizationId, :llm_enabled, :llm_key_id, :dimension_weights, :updated_by, NOW())
-      RETURNING *;
+      RETURNING id, organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at;
     `;
 
     const [results] = await sequelize.query(query, {
@@ -269,23 +264,6 @@ async function upsertVulnerabilityConfigQuery(
     updated_by: number;
   }
 ): Promise<void> {
-  // Build SET clauses dynamically based on what was provided
-  const setClauses: string[] = ["updated_by = :updated_by", "updated_at = NOW()"];
-  const replacements: Record<string, unknown> = {
-    organizationId,
-    updated_by: data.updated_by,
-  };
-
-  if (data.vulnerability_scan_enabled !== undefined) {
-    setClauses.push("vulnerability_scan_enabled = :vulnerability_scan_enabled");
-    replacements.vulnerability_scan_enabled = data.vulnerability_scan_enabled;
-  }
-  if (data.vulnerability_types_enabled !== undefined) {
-    setClauses.push("vulnerability_types_enabled = :vulnerability_types_enabled");
-    replacements.vulnerability_types_enabled = JSON.stringify(data.vulnerability_types_enabled);
-  }
-
-  // For the INSERT, use defaults for fields not provided
   const insertVulnEnabled = data.vulnerability_scan_enabled ?? false;
   const insertTypesEnabled = data.vulnerability_types_enabled
     ? JSON.stringify(data.vulnerability_types_enabled)
@@ -297,14 +275,22 @@ async function upsertVulnerabilityConfigQuery(
     VALUES
       (:organizationId, :insert_vuln_enabled, :insert_types_enabled, :updated_by, NOW())
     ON CONFLICT (organization_id) DO UPDATE SET
-      ${setClauses.join(", ")};
+      vulnerability_scan_enabled = COALESCE(:vulnerability_scan_enabled, ai_detection_vulnerability_config.vulnerability_scan_enabled),
+      vulnerability_types_enabled = COALESCE(:vulnerability_types_enabled, ai_detection_vulnerability_config.vulnerability_types_enabled),
+      updated_by = :updated_by,
+      updated_at = NOW();
   `;
 
   await sequelize.query(query, {
     replacements: {
-      ...replacements,
+      organizationId,
       insert_vuln_enabled: insertVulnEnabled,
       insert_types_enabled: insertTypesEnabled,
+      vulnerability_scan_enabled: data.vulnerability_scan_enabled ?? null,
+      vulnerability_types_enabled: data.vulnerability_types_enabled
+        ? JSON.stringify(data.vulnerability_types_enabled)
+        : null,
+      updated_by: data.updated_by,
     },
   });
 }

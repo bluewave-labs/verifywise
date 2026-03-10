@@ -38,6 +38,11 @@ html.dark-mode .react-joyride__tooltip {
   filter: invert(1) hue-rotate(180deg) drop-shadow(0 8px 32px rgba(255,255,255,0.15)) !important;
 }
 
+/* PageTour beacon: counter-invert so green pulsing dot stays visible in dark mode */
+html.dark-mode .react-joyride__beacon {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
 
 /* All modals/dialogs: subtle light glow in dark mode (not drawers) */
 html.dark-mode .MuiModal-root:not(.MuiDrawer-root) > :not(.MuiBackdrop-root),

@@ -2,6 +2,39 @@
   font-family: "Geist", system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 }
 
+/* Thin auto-hiding scrollbar for all scrollable areas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
 /* CSS-filter dark mode (experimental) */
 html.dark-mode {
   filter: invert(0.93) hue-rotate(180deg);

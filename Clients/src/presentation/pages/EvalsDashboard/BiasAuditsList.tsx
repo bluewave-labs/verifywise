@@ -14,7 +14,7 @@ import {
   TableContainer,
   Box,
 } from "@mui/material";
-import { Trash2, Eye, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, Eye, ChevronsUpDown, ChevronUp, ChevronDown, Scale } from "lucide-react";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import SearchBox from "../../components/Search/SearchBox";
 import { EmptyState } from "../../components/EmptyState";
@@ -226,6 +226,7 @@ export default function BiasAuditsList({ orgId, onViewAudit }: BiasAuditsListPro
         </Box>
       ) : sortedAudits.length === 0 ? (
         <EmptyState
+          icon={Scale}
           message="No bias audits yet. Create your first bias audit to get started."
           showBorder
         />

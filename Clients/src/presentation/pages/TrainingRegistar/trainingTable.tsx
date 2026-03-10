@@ -18,7 +18,7 @@ import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, GraduationCap } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import { useAuth } from "../../../application/hooks/useAuth";
 import {
@@ -483,7 +483,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return <EmptyState message="There is currently no data in this table." />;
+    return <EmptyState icon={GraduationCap} message="No training records found." />;
   }
 
   return (

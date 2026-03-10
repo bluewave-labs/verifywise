@@ -28,6 +28,7 @@ import Chip from "../../components/Chip";
 import {
   ArrowLeft,
   Bot,
+  Radar,
 } from "lucide-react";
 import { PROVIDER_ICONS, VENDOR_ICON_MAP } from "../../components/ProviderIcons";
 import {
@@ -452,6 +453,7 @@ export default function AIToolsPage() {
         <Skeleton variant="rectangular" height={300} sx={{ borderRadius: "4px" }} />
       ) : tools.length === 0 ? (
         <EmptyState
+          icon={Radar}
           message="No AI tools detected yet. Connect a data source to start monitoring."
           showBorder
         />

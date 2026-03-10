@@ -17,7 +17,7 @@ import { EmptyState } from "../../components/EmptyState";
 import singleTheme from "../../themes/v1SingleTheme";
 import IconButton from "../../components/IconButton";
 import TablePaginationActions from "../../components/TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert } from "lucide-react";
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => <ChevronsUpDown size={16} {...props} />;
 import Chip from "../../components/Chip";
@@ -442,7 +442,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
     <>
       {/* Empty state outside the table */}
       {!data || data.length === 0 ? (
-        <EmptyState message="There are currently no model risks in this table." />
+        <EmptyState icon={ShieldAlert} message="There are currently no model risks in this table." />
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>

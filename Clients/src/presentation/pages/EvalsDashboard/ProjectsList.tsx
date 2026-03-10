@@ -18,7 +18,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Plus, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, FileSearch, MessageSquare, Bot, ChevronsUpDown, ChevronUp, ChevronDown, MoreVertical, FlaskConical } from "lucide-react";
 import { PageHeader } from "../../components/Layout/PageHeader";
 import SelectableCard from "../../components/SelectableCard";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -499,6 +499,7 @@ export default function ProjectsList() {
       {/* Projects Table */}
       {filteredProjects.length === 0 ? (
         <EmptyState
+          icon={FlaskConical}
           message={
             projects.length === 0
               ? "No projects yet. Create your first project to start evaluating LLMs."

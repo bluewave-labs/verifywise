@@ -35,6 +35,8 @@ import {
   FolderTree,
   ListIcon,
   ChevronsUpDown,
+  ClipboardList,
+  Inbox,
 } from "lucide-react";
 import {
   getAllIntakeForms,
@@ -437,6 +439,7 @@ export function IntakeFormsListPage() {
             </Box>
           ) : filteredForms.length === 0 ? (
             <EmptyState
+              icon={ClipboardList}
               message={
                 searchQuery
                   ? "No forms match your search. Try adjusting your query."
@@ -600,6 +603,7 @@ export function IntakeFormsListPage() {
             </Box>
           ) : filteredSubmissions.length === 0 ? (
             <EmptyState
+              icon={Inbox}
               message="Submissions will appear here when external users fill in your published forms."
               showBorder
             />

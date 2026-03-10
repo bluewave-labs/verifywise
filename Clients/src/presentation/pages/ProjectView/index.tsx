@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
-import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck, FolderOpen } from "lucide-react";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -99,7 +99,7 @@ const ProjectView = () => {
       {noProject ? (
         //no project found template
         <Box sx={noProjectContainerStyle}>
-          <EmptyState message="No projects found. Create a new project to start with." />
+          <EmptyState icon={FolderOpen} message="No projects found. Create a new project to start with." />
           {/* new project button */}
           <Button
             variant="contained"

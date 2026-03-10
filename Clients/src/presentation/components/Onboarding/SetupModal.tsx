@@ -120,6 +120,7 @@ const SetupModal: React.FC<SetupModalProps> = ({ onComplete, onSkip }) => {
 
   return (
     <Box
+      className="confirmation-backdrop"
       sx={{
         position: "fixed",
         top: 0,
@@ -151,6 +152,8 @@ const SetupModal: React.FC<SetupModalProps> = ({ onComplete, onSkip }) => {
       }}
     >
       <Box
+        role="dialog"
+        aria-modal="true"
         sx={{
           backgroundColor: "white",
           borderRadius: "12px",

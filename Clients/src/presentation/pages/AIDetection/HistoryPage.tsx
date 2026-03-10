@@ -27,7 +27,7 @@ import {
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import Alert from "../../components/Alert";
-import { Trash2, ChevronsUpDown, Clock, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, ChevronsUpDown, Clock, ChevronUp, ChevronDown, Scan as ScanIcon } from "lucide-react";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
@@ -686,6 +686,7 @@ export default function HistoryPage() {
         helpArticlePath="ai-detection/history"
       >
         <EmptyState
+          icon={ScanIcon}
           message="No scans yet. Start your first scan to detect AI/ML libraries in a repository."
           showBorder
         />

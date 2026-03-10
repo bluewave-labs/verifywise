@@ -31,7 +31,7 @@ import { EmptyState } from "../../components/EmptyState";
 import TablePaginationActions from "../../components/TablePagination";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
-import { Play, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Play, Pencil, Trash2, Loader2, GitBranch } from "lucide-react";
 import axios from "axios";
 import {
   getRepositories,
@@ -417,6 +417,7 @@ export default function RepositoriesPage() {
                 <TableRow>
                   <TableCell colSpan={TABLE_COLUMNS.length} sx={{ p: 0, border: 0 }}>
                     <EmptyState
+                      icon={GitBranch}
                       message="No repositories added yet. Click 'Add repository' to start monitoring."
                     />
                   </TableCell>

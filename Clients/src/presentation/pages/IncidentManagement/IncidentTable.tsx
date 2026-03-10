@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import Chip from "../../components/Chip";
 import dayjs from "dayjs";
@@ -470,7 +470,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
               align="center"
               sx={{ border: "none", p: 0 }}
             >
-              <EmptyState message="No incidents found." />
+              <EmptyState icon={AlertTriangle} message="No incidents found." />
             </TableCell>
           </TableRow>
         )}
@@ -492,7 +492,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
   }
 
   if (!sortedData || sortedData.length === 0) {
-    return <EmptyState message="There is currently no data in this table." />;
+    return <EmptyState icon={AlertTriangle} message="No incidents reported. Incidents will appear here when logged." />;
   }
 
   return (

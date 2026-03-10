@@ -13,7 +13,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Cpu } from "lucide-react";
 import ModelsTableHead from "./ModelsTableHead";
 import ModelsTableBody from "./ModelsTableBody";
 import { EmptyState } from "../../EmptyState";
@@ -211,7 +211,7 @@ const ModelsTable: React.FC<ModelsTableProps> = ({
                     <TableBody>
                         <TableRow>
                             <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                                <EmptyState message="No models found. Model preferences are automatically saved when you run an experiment." />
+                                <EmptyState icon={Cpu} message="No models found. Model preferences are automatically saved when you run an experiment." />
                             </TableCell>
                         </TableRow>
                     </TableBody>

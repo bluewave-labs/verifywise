@@ -13,7 +13,7 @@ import {
   Box,
   useTheme,
 } from "@mui/material";
-import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle, Bot } from "lucide-react";
 import IconButton from "../../components/IconButton";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import { EmptyState } from "../../components/EmptyState";
@@ -156,11 +156,11 @@ const AgentTable: React.FC<AgentTableProps> = ({
   }, [page, rowsPerPage, sortedData.length]);
 
   if (isLoading) {
-    return <EmptyState message="Loading agents..." />;
+    return <EmptyState icon={Bot} message="Loading agents..." />;
   }
 
   if (!sortedData || sortedData.length === 0) {
-    return <EmptyState message="No agents found. Trigger a sync or add one manually." />;
+    return <EmptyState icon={Bot} message="No agents found. Trigger a sync or add one manually." />;
   }
 
   const tableHeader = (

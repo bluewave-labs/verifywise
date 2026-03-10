@@ -41,7 +41,7 @@ import { useState, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ClipboardCheck } from "lucide-react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import TablePaginationActions from "../../components/TablePagination";
 import { entities } from "./arrays";
@@ -197,7 +197,7 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 
     // Return early with just EmptyState if no data (consistent with other tables)
     if (!sortedData || sortedData.length === 0) {
-        return <EmptyState message="There is currently no data in this table." />;
+        return <EmptyState icon={ClipboardCheck} message="There is currently no data in this table." />;
     }
 
     return (

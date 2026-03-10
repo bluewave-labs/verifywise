@@ -94,6 +94,7 @@ export function VideoPlayerModal({
 
   return (
     <Box
+      className="confirmation-backdrop"
       sx={{
         position: "fixed",
         inset: 0,
@@ -109,6 +110,8 @@ export function VideoPlayerModal({
       }}
     >
       <Box
+        role="dialog"
+        aria-modal="true"
         sx={{
           position: "relative",
           width: "min(960px, 90vw)",

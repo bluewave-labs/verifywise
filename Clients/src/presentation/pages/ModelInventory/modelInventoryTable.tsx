@@ -24,7 +24,7 @@ import PluginSlot from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Cpu } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import { EmptyState } from "../../components/EmptyState";
@@ -644,7 +644,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return <EmptyState message="There is currently no data in this table." />;
+    return <EmptyState icon={Cpu} message="No models found." />;
   }
 
   return (

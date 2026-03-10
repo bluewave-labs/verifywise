@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import CustomIconButton from "../../components/IconButton";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, FileCheck } from "lucide-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { displayFormattedDate } from "../../tools/isoDateToString";
@@ -446,7 +446,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
         ) : (
           <TableRow>
             <TableCell colSpan={TABLE_COLUMNS.length} align="center">
-              <EmptyState message="No evidence found." />
+              <EmptyState message="No evidence found." icon={FileCheck} />
             </TableCell>
           </TableRow>
         )}

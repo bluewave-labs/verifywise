@@ -20,7 +20,7 @@ import IconButton from "../../IconButton";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../types/interfaces/i.table";
@@ -623,7 +623,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       {/* Empty state outside the table */}
       {!vendorRisks || vendorRisks.length === 0 ? (
         <EmptyState
-          message="There is currently no data in this table."
+          icon={ShieldAlert}
+          message="No risks identified. Risks will appear here as they are added."
           showBorder
         />
       ) : (

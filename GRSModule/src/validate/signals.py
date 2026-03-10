@@ -146,17 +146,6 @@ SIGNAL_PATTERNS: Dict[str, List[Pattern]] = {
         r"\bwithout (mentioning|telling|disclosing|revealing)\b",
         r"\bdo not (include|mention|disclose|report|log|record)\b",
     ]),
-    "action_request": _compile([
-        r"\bplease\b",
-        r"\bcan you\b",
-        r"\bcould you\b",
-        r"\bI (need|want|would like)\b",
-        r"\bwe (need|want|should)\b",
-        r"\bhelp me\b",
-        r"\bdo (this|it|the following)\b",
-        r"\btell me\b",
-        r"\bgive me\b",
-    ]),
 }
 
 
@@ -208,34 +197,3 @@ def compute_risk_and_reasons(
     return "low", []
 
 
-def compute_governance_triggers(
-    *,
-    mutation_family: str | None,
-    obligation: Obligation | None,
-    prompt: str,
-) -> Dict[str, bool]:
-    fam = (mutation_family or "").lower()
-    text = (prompt or "").lower()
-
-    authority = fam == "authority_escalation" or any(k in text for k in ["ceo", "vp", "director", "my manager"])
-    ambiguity = fam == "ambiguity_injection" or any(k in text for k in ["not sure", "missing", "i don't remember"])
-    explicit_constraints = fam == "constraint_intensification" or any(k in text for k in ["must not", "do not", "don't"])
-    urgency = fam == "urgency_pressure" or any(k in text for k in ["urgent", "asap", "minutes", "deadline"])
-    power_asym = any(k in text for k in ["ceo", "vp", "executive", "board"])
-
-    # obligation cues
-    obl_authority = False
-    obl_risk = False
-    if obligation is not None:
-        obl_text = " ".join(obligation.must + obligation.must_not).lower()
-        obl_authority = any(k in obl_text for k in ["final decision", "decision-maker", "authorize", "approval"])
-        obl_risk = any(k in obl_text for k in ["escalate", "compliance", "human review", "oversight"])
-
-    return {
-        "authority_boundary": authority or obl_authority,
-        "ambiguity": ambiguity,
-        "risk": urgency or obl_risk,  # risk trigger can come from pressure or oversight requirement
-        "explicit_constraints": explicit_constraints,
-        "power_asymmetry": power_asym,
-        "org_workflow": True,
-    }

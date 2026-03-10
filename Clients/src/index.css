@@ -56,3 +56,17 @@ html.dark-mode .confirmation-backdrop {
 html.dark-mode .user-guide-code-block {
   filter: invert(1) hue-rotate(180deg);
 }
+
+/* Command palette (Wise Search): backdrop + glow + welcome banner */
+html.dark-mode .command-dialog {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+html.dark-mode .command-dialog-content {
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3), 0 0 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Wise Search welcome banner: counter-invert so dark card stays dark */
+html.dark-mode .wise-search-banner {
+  filter: invert(1) hue-rotate(180deg);
+}

@@ -28,6 +28,11 @@ import { organizationSettingsContent } from './settings/organization-settings';
 import { userManagementContent } from './settings/user-management';
 import { roleConfigurationContent } from './settings/role-configuration';
 import { notificationsContent } from './settings/notifications';
+import { scanningContent } from './ai-detection/scanning';
+import { riskScoringContent } from './ai-detection/risk-scoring';
+import { repositoriesContent } from './ai-detection/repositories';
+import { historyContent } from './ai-detection/history';
+import { aiDetectionSettingsContent } from './ai-detection/settings';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -69,6 +74,12 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'settings/user-management': userManagementContent,
   'settings/role-configuration': roleConfigurationContent,
   'settings/notifications': notificationsContent,
+  // AI Detection
+  'ai-detection/scanning': scanningContent,
+  'ai-detection/risk-scoring': riskScoringContent,
+  'ai-detection/repositories': repositoriesContent,
+  'ai-detection/history': historyContent,
+  'ai-detection/settings': aiDetectionSettingsContent,
 };
 
 // Helper to get article content

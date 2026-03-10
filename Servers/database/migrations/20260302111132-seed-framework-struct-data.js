@@ -89,6 +89,7 @@ module.exports = {
       await queryInterface.sequelize.query(`DELETE FROM verifywise.nist_ai_rmf_categories_struct;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcontrols_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcategories_struct_iso27001;`, { transaction });
+      await queryInterface.sequelize.query(`DELETE FROM verifywise.annex_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subclauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.clauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcategories_struct_iso;`, { transaction });
@@ -337,8 +338,22 @@ module.exports = {
           }
         }
 
-        // --- Annex Categories & Controls ---
+        // --- Annex Struct, Categories & Controls ---
         for (const annex of ISO27001Annex) {
+          // Insert parent annex struct entry
+          const annexStructId = await insertReturningId(`
+            INSERT INTO verifywise.annex_struct_iso27001 (framework_id, arrangement, title, order_no, is_demo)
+            VALUES (:frameworkId, :arrangement, :title, :order_no, false)
+            ON CONFLICT DO NOTHING
+            RETURNING id
+          `, {
+            frameworkId: iso27001FrameworkId,
+            arrangement: annex.arrangement,
+            title: annex.category_name,
+            order_no: annex.index,
+          });
+
+          // Insert annex category
           const annexCategoryId = await insertReturningId(`
             INSERT INTO verifywise.annexcategories_struct_iso27001 (framework_id, annex_id, title, order_no, is_demo)
             VALUES (:frameworkId, :annex_id, :title, :order_no, false)
@@ -355,12 +370,13 @@ module.exports = {
 
           for (const ctrl of annex.controls) {
             await queryInterface.sequelize.query(`
-              INSERT INTO verifywise.annexcontrols_struct_iso27001 (category_id, control_id, title, order_no, requirement_summary, key_questions, evidence_examples, is_demo)
-              VALUES (:annexCategoryId, :control_id, :title, :order_no, :requirement_summary, :key_questions, :evidence_examples, false)
+              INSERT INTO verifywise.annexcontrols_struct_iso27001 (category_id, annex_id, control_id, title, order_no, requirement_summary, key_questions, evidence_examples, is_demo)
+              VALUES (:annexCategoryId, :annexStructId, :control_id, :title, :order_no, :requirement_summary, :key_questions, :evidence_examples, false)
               ON CONFLICT DO NOTHING
             `, {
               replacements: {
                 annexCategoryId,
+                annexStructId: annexStructId || null,
                 control_id: `A.${annex.index}.${ctrl.index}`,
                 title: ctrl.title,
                 order_no: ctrl.index,
@@ -448,6 +464,7 @@ module.exports = {
       await queryInterface.sequelize.query(`DELETE FROM verifywise.nist_ai_rmf_categories_struct;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcontrols_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcategories_struct_iso27001;`, { transaction });
+      await queryInterface.sequelize.query(`DELETE FROM verifywise.annex_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.subclauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.clauses_struct_iso27001;`, { transaction });
       await queryInterface.sequelize.query(`DELETE FROM verifywise.annexcategories_struct_iso;`, { transaction });

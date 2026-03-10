@@ -97,6 +97,70 @@ const Alert = React.lazy(() => import("../../components/Alert"));
 // Constants
 const REDIRECT_DELAY_MS = 2000;
 
+// Column visibility management for Models tab
+type ModelInventoryColumn =
+  | "provider"
+  | "model"
+  | "version"
+  | "approver"
+  | "security_assessment"
+  | "risks"
+  | "status"
+  | "status_date"
+  | "actions";
+
+const MODEL_INVENTORY_COLUMNS: ColumnConfig<ModelInventoryColumn>[] = [
+  { key: "provider", label: "Provider", defaultVisible: true, alwaysVisible: true },
+  { key: "model", label: "Model", defaultVisible: true, alwaysVisible: true },
+  { key: "version", label: "Version", defaultVisible: true },
+  { key: "approver", label: "Approver", defaultVisible: true },
+  { key: "security_assessment", label: "Assessment", defaultVisible: true },
+  { key: "risks", label: "Risks", defaultVisible: true },
+  { key: "status", label: "Status", defaultVisible: true },
+  { key: "status_date", label: "Status date", defaultVisible: true },
+  { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
+];
+
+// Column visibility management for Model Risks tab
+type ModelRiskColumn =
+  | "risk_name"
+  | "model_name"
+  | "risk_level"
+  | "status"
+  | "owner"
+  | "target_date"
+  | "actions";
+
+const MODEL_RISK_COLUMNS: ColumnConfig<ModelRiskColumn>[] = [
+  { key: "risk_name", label: "Risk name", defaultVisible: true, alwaysVisible: true },
+  { key: "model_name", label: "Model name", defaultVisible: true },
+  { key: "risk_level", label: "Risk level", defaultVisible: true },
+  { key: "status", label: "Status", defaultVisible: true },
+  { key: "owner", label: "Owner", defaultVisible: true },
+  { key: "target_date", label: "Next review date", defaultVisible: true },
+  { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
+];
+
+// Column visibility management for Evidence Hub tab
+type EvidenceHubColumn =
+  | "evidence_name"
+  | "evidence_type"
+  | "mapped_models"
+  | "uploaded_by"
+  | "uploaded_on"
+  | "expiry_date"
+  | "actions";
+
+const EVIDENCE_HUB_COLUMNS: ColumnConfig<EvidenceHubColumn>[] = [
+  { key: "evidence_name", label: "Evidence name", defaultVisible: true, alwaysVisible: true },
+  { key: "evidence_type", label: "Type", defaultVisible: true },
+  { key: "mapped_models", label: "Mapped models", defaultVisible: true },
+  { key: "uploaded_by", label: "Uploaded by", defaultVisible: true },
+  { key: "uploaded_on", label: "Uploaded on", defaultVisible: true },
+  { key: "expiry_date", label: "Expiry", defaultVisible: true },
+  { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
+];
+
 const ModelInventory: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -164,33 +228,6 @@ const ModelInventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
-  // Column visibility management for Models tab
-  type ModelInventoryColumn =
-    | "provider"
-    | "model"
-    | "version"
-    | "approver"
-    | "security_assessment"
-    | "risks"
-    | "status"
-    | "status_date"
-    | "actions";
-
-  const MODEL_INVENTORY_COLUMNS: ColumnConfig<ModelInventoryColumn>[] = useMemo(
-    () => [
-      { key: "provider", label: "Provider", defaultVisible: true, alwaysVisible: true },
-      { key: "model", label: "Model", defaultVisible: true, alwaysVisible: true },
-      { key: "version", label: "Version", defaultVisible: true },
-      { key: "approver", label: "Approver", defaultVisible: true },
-      { key: "security_assessment", label: "Assessment", defaultVisible: true },
-      { key: "risks", label: "Risks", defaultVisible: true },
-      { key: "status", label: "Status", defaultVisible: true },
-      { key: "status_date", label: "Status date", defaultVisible: true },
-      { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
-    ],
-    []
-  );
-
   const {
     visibleColumns: modelVisibleColumns,
     allColumns: modelAllColumns,
@@ -201,29 +238,6 @@ const ModelInventory: React.FC = () => {
     columns: MODEL_INVENTORY_COLUMNS,
   });
 
-  // Column visibility management for Model Risks tab
-  type ModelRiskColumn =
-    | "risk_name"
-    | "model_name"
-    | "risk_level"
-    | "status"
-    | "owner"
-    | "target_date"
-    | "actions";
-
-  const MODEL_RISK_COLUMNS: ColumnConfig<ModelRiskColumn>[] = useMemo(
-    () => [
-      { key: "risk_name", label: "Risk name", defaultVisible: true, alwaysVisible: true },
-      { key: "model_name", label: "Model name", defaultVisible: true },
-      { key: "risk_level", label: "Risk level", defaultVisible: true },
-      { key: "status", label: "Status", defaultVisible: true },
-      { key: "owner", label: "Owner", defaultVisible: true },
-      { key: "target_date", label: "Next review date", defaultVisible: true },
-      { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
-    ],
-    []
-  );
-
   const {
     visibleColumns: riskVisibleColumns,
     allColumns: riskAllColumns,
@@ -233,29 +247,6 @@ const ModelInventory: React.FC = () => {
     tableId: "model-risks-table",
     columns: MODEL_RISK_COLUMNS,
   });
-
-  // Column visibility management for Evidence Hub tab
-  type EvidenceHubColumn =
-    | "evidence_name"
-    | "evidence_type"
-    | "mapped_models"
-    | "uploaded_by"
-    | "uploaded_on"
-    | "expiry_date"
-    | "actions";
-
-  const EVIDENCE_HUB_COLUMNS: ColumnConfig<EvidenceHubColumn>[] = useMemo(
-    () => [
-      { key: "evidence_name", label: "Evidence name", defaultVisible: true, alwaysVisible: true },
-      { key: "evidence_type", label: "Type", defaultVisible: true },
-      { key: "mapped_models", label: "Mapped models", defaultVisible: true },
-      { key: "uploaded_by", label: "Uploaded by", defaultVisible: true },
-      { key: "uploaded_on", label: "Uploaded on", defaultVisible: true },
-      { key: "expiry_date", label: "Expiry", defaultVisible: true },
-      { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
-    ],
-    []
-  );
 
   const {
     visibleColumns: evidenceVisibleColumns,

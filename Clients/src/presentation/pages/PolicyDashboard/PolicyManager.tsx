@@ -10,6 +10,7 @@ import {
 import {
   CirclePlus as AddCircleOutlineIcon,
   FolderOpen,
+  FileText,
 } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
@@ -596,6 +597,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {filteredPolicies.length === 0 ? (
             <EmptyState
+              icon={FileText}
               message={
                 searchTerm
                   ? "No matching policies found."

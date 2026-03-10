@@ -23,7 +23,7 @@ import {
   useTheme,
 } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
-import { ArrowLeft, Mail, Building2 } from "lucide-react";
+import { ArrowLeft, Mail, Building2, Users } from "lucide-react";
 import TabBar from "../../components/TabBar";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -369,6 +369,7 @@ export default function UserActivityPage() {
         <Skeleton variant="rectangular" height={300} sx={{ borderRadius: "4px" }} />
       ) : !hasData ? (
         <EmptyState
+          icon={Users}
           message="No user activity detected yet."
           showBorder
         />

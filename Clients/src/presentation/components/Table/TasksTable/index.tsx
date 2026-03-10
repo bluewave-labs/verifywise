@@ -17,7 +17,7 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { EmptyState } from "../../EmptyState";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ListTodo } from "lucide-react";
 import { CustomSelect } from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
 import Chip from "../../Chip";
@@ -602,7 +602,8 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     <>
       {!sortedTasks || sortedTasks.length === 0 ? (
         <EmptyState
-          message="There is currently no data in this table."
+          icon={ListTodo}
+          message="No tasks yet. Create a task to start tracking your work."
           showBorder
         />
       ) : (

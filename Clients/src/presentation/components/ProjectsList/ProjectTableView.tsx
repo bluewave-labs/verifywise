@@ -20,7 +20,7 @@ import { EmptyState } from "../EmptyState";
 import Chip from "../Chip";
 import ViewRelationshipsButton from "../ViewRelationshipsButton";
 import IconButton from "../IconButton";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Briefcase } from "lucide-react";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
 import { deleteProject } from "../../../application/repository/project.repository";
@@ -376,7 +376,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({
                 align="center"
                 sx={{ border: "none", p: 0 }}
               >
-                <EmptyState message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace." />
+                <EmptyState icon={Briefcase} message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace." />
               </TableCell>
             </TableRow>
           </TableBody>

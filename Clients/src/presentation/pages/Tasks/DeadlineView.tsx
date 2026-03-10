@@ -7,7 +7,7 @@ import {
   Collapse,
   IconButton,
 } from "@mui/material";
-import { ChevronDown, ChevronRight, Calendar, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronRight, Calendar, AlertTriangle, CalendarCheck } from "lucide-react";
 import { TaskModel } from "../../../domain/models/Common/task/task.model";
 import { TaskStatus } from "../../../domain/enums/task.enum";
 import TasksTable from "../../components/Table/TasksTable";
@@ -213,6 +213,7 @@ const DeadlineView: React.FC<DeadlineViewProps> = ({
   if (hasNoTasks) {
     return (
       <EmptyState
+        icon={CalendarCheck}
         message="No upcoming deadlines. All tasks are completed or have no due dates."
         showBorder
       />

@@ -19,7 +19,7 @@ import { EmptyState } from "../../EmptyState";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Building2 } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -545,6 +545,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     <>
       {!sortedVendors || sortedVendors.length === 0 ? (
         <EmptyState
+          icon={Building2}
           message="There is currently no data in this table."
           showBorder
         />

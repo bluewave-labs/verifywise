@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Box, Stack, TableRow, TableCell } from "@mui/material";
+import { FileText } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import policyTemplates from "../../../application/data/PolicyTemplates.json";
 import { PolicyTemplatesProps } from "../../types/interfaces/i.policy";
@@ -158,7 +159,7 @@ const PolicyTemplates: React.FC<PolicyTemplatesProps> = ({
 
       {/* Table */}
       {filteredPolicyTemplates.length === 0 ? (
-        <EmptyState message="No policy templates found" />
+        <EmptyState icon={FileText} message="No policy templates found" />
       ) : (
         <GroupedTableView
           groupedData={groupedTemplates}

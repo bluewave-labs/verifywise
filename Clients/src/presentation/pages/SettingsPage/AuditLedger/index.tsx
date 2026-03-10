@@ -21,6 +21,7 @@ import {
   ShieldAlert,
   ShieldQuestion,
   ChevronsUpDown,
+  ClipboardList,
 } from "lucide-react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import SearchBox from "../../../components/Search/SearchBox";
@@ -295,6 +296,7 @@ export default function AuditLedger() {
             </Stack>
           ) : entries.length === 0 ? (
             <EmptyState
+              icon={ClipboardList}
               message="No audit ledger entries found."
               showBorder
             />

@@ -21,7 +21,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Database } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
 import {
   DatasetTableProps,
@@ -252,6 +252,7 @@ const DatasetTable: React.FC<DatasetTableProps> = ({
   if (!data || data.length === 0) {
     return (
       <EmptyState
+        icon={Database}
         message="No datasets found. Add a dataset to start tracking your AI training and validation data."
         showBorder={true}
       />

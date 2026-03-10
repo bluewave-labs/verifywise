@@ -57,6 +57,7 @@ class CommandPaletteErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <Box
+          className="confirmation-backdrop"
           sx={{
             position: 'fixed',
             top: 0,
@@ -73,6 +74,8 @@ class CommandPaletteErrorBoundary extends Component<
           }}
         >
           <Box
+            role="dialog"
+            aria-modal="true"
             sx={{
               background: '#ffffff',
               borderRadius: '12px',

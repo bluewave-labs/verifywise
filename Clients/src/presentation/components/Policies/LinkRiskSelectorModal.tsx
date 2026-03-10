@@ -15,7 +15,7 @@ import {
     useTheme,
 } from "@mui/material";
 
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert } from "lucide-react";
 
 import StandardModal from "../Modals/StandardModal";
 
@@ -403,7 +403,7 @@ const LinkRiskSelectorModal: React.FC<LinkRiskSelectorModalProps> = ({
                             colSpan={TABLE_COLUMNS.length}
                             align="center"
                         >
-                            <EmptyState message="No risks found." />
+                            <EmptyState message="No risks found." icon={ShieldAlert} />
                         </TableCell>
                     </TableRow>
                 )}

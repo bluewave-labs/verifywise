@@ -5,6 +5,7 @@ import { getModelInventoryTimeseries } from "../../../application/repository/mod
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 import { ButtonToggle } from "../button-toggle";
 import CustomizableSkeleton from "../Skeletons";
+import { TrendingUp } from "lucide-react";
 import { EmptyState } from "../EmptyState";
 
 interface ModelInventoryHistoryChartProps {
@@ -150,6 +151,7 @@ export function ModelInventoryHistoryChart({
       <EmptyState
         message="There is no historical data here"
         showBorder={true}
+        icon={TrendingUp}
       />
     );
   }

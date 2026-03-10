@@ -13,7 +13,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Database } from "lucide-react";
 import DatasetsTableHead from "./DatasetsTableHead";
 import DatasetsTableBody from "./DatasetsTableBody";
 import { EmptyState } from "../../EmptyState";
@@ -258,7 +258,7 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message={emptyMessage} />
+                <EmptyState icon={Database} message={emptyMessage} />
               </TableCell>
             </TableRow>
           </TableBody>

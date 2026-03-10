@@ -15,7 +15,7 @@ import {
   useTheme,
   TableFooter,
 } from '@mui/material';
-import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight, History } from 'lucide-react';
 import Chip from '../../../../components/Chip';
 import { getAutomationHistory, getAutomationStats, type AutomationExecutionLog } from '../../../../../application/repository/automations.repository';
 import TablePaginationActions from '../../../../components/TablePagination';
@@ -286,7 +286,7 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
 
       {/* Execution History Table */}
       {logs.length === 0 ? (
-        <EmptyState message="No execution history yet" />
+        <EmptyState message="No execution history yet" icon={History} />
       ) : (
         <Stack spacing={0}>
           <TableContainer sx={{ overflowX: 'auto' }}>

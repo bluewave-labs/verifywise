@@ -13,7 +13,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Gauge } from "lucide-react";
 import ScorersTableHead from "./ScorersTableHead";
 import ScorersTableBody from "./ScorersTableBody";
 import { EmptyState } from "../../EmptyState";
@@ -251,7 +251,7 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message="No scorers found. Create a scorer to get started." />
+                <EmptyState icon={Gauge} message="No scorers found. Create a scorer to get started." />
               </TableCell>
             </TableRow>
           </TableBody>

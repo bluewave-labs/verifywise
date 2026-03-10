@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Box, Stack, Typography, Collapse, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Puzzle } from "lucide-react";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
@@ -407,6 +407,7 @@ const Plugins: React.FC = () => {
               </Box>
             ) : installedPlugins.length === 0 ? (
               <EmptyState
+                icon={Puzzle}
                 message="No plugins installed yet. Visit the marketplace to install plugins."
                 showBorder={true}
               />

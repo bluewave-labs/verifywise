@@ -30,7 +30,7 @@ const Alert = React.lazy(() => import("../../components/Alert"));
 import Toggle from "../../components/Inputs/Toggle";
 import Chip from "../../components/Chip";
 import TabContext from "@mui/lab/TabContext";
-import { Trash2, Info } from "lucide-react";
+import { Trash2, Info, ShieldCheck, Bell } from "lucide-react";
 import TabBar from "../../components/TabBar";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -393,6 +393,7 @@ export default function RulesPage() {
       ) : viewMode === "rules" ? (
         rules.length === 0 ? (
           <EmptyState
+            icon={ShieldCheck}
             message="No rules configured yet. Create a rule to get alerted about Shadow AI activity."
             showBorder
           />
@@ -495,6 +496,7 @@ export default function RulesPage() {
         )
       ) : alerts.length === 0 ? (
         <EmptyState
+          icon={Bell}
           message="No alerts have been triggered yet."
           showBorder
         />

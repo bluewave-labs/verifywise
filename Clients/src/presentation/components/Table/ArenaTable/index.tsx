@@ -13,7 +13,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Swords } from "lucide-react";
 import ArenaTableHead from "./ArenaTableHead";
 import ArenaTableBody from "./ArenaTableBody";
 import { EmptyState } from "../../EmptyState";
@@ -228,7 +228,7 @@ const ArenaTable: React.FC<ArenaTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message="No arena battles found. Create a new battle to get started." />
+                <EmptyState icon={Swords} message="No arena battles found. Create a new battle to get started." />
               </TableCell>
             </TableRow>
           </TableBody>

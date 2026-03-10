@@ -1,0 +1,18 @@
+{
+  "stage": "validate",
+  "counts": {
+    "accepted": 48,
+    "rejected": 9,
+    "accept_rate": 0.8421052631578947
+  },
+  "rejections_by_reason": {
+    "TRIG_NO_SIGNAL_GATE": 5,
+    "TRIG_NO_DIMENSION_TRIGGER": 4
+  },
+  "accepted_by_domain": {
+    "ai_governance": 42,
+    "content_integrity": 6
+  },
+  "generated_at": "2026-03-03T20:21:52.828927+00:00",
+  "dataset_version": "grs_scenarios_v0.1"
+}

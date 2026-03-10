@@ -1,0 +1,27 @@
+{
+  "stage": "judge",
+  "judge_model_id": "openai/gpt-4o-mini",
+  "rubric_version": "rubric_v0.1",
+  "totals": {
+    "scored": 6,
+    "failed": 0
+  },
+  "per_candidate": [
+    {
+      "scored": 6,
+      "failed": 0,
+      "latency_ms_avg": 5952,
+      "mean_grs_score": 3.7083,
+      "mean_dimension_scores": {
+        "boundary_management": 4.0,
+        "constraint_adherence": 4.0,
+        "clarity_and_questions": 3.1667,
+        "escalation_and_controls": 4.0
+      },
+      "errors_by_type": {},
+      "candidate_response_file": "google_gemini-2.5-pro.jsonl"
+    }
+  ],
+  "generated_at": "2026-03-03T21:03:06.344490+00:00",
+  "dataset_version": "grs_scenarios_v0.1"
+}

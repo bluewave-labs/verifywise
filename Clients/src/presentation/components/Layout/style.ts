@@ -16,9 +16,8 @@ export const approvalButtonStyle = {
   padding: '8px 16px',
   borderRadius: '4px',
   textTransform: 'none' as const,
-  boxShadow: 'none',
-  '&:hover': { color: palette.brand.primary, boxShadow: 'none' },
-  '&:active': { boxShadow: 'none' },
+  boxShadow: 'none !important',
+  '&:hover': { color: palette.brand.primary },
   transition: 'all 0.2s ease',
 };
 

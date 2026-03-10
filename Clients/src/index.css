@@ -75,3 +75,8 @@ html.dark-mode .command-dialog-content {
 html.dark-mode .wise-search-banner {
   filter: invert(1) hue-rotate(180deg);
 }
+
+/* Start Here: counter-invert Getting Started cards so colorful overlays stay vivid */
+html.dark-mode .gs-card {
+  filter: invert(1) hue-rotate(180deg);
+}

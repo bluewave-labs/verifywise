@@ -362,7 +362,7 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   ...tableRowHoverStyle,
-                  ...(deletingId === evidence.id?.toString() &&
+                  ...(deletingId === evidence.id &&
                     tableRowDeletingStyle),
                 }}
                 onClick={(e) => {

@@ -162,7 +162,7 @@ export class PolicyController {
       return res.status(404).json(STATUS_CODE[404]({}));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error updating policy:", error);
+      logger.error("Error updating policy:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -233,7 +233,7 @@ export class PolicyController {
 
       return res.send(pdfBuffer);
     } catch (error) {
-      console.error("Error exporting policy as PDF:", error);
+      logger.error("Error exporting policy as PDF:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -405,7 +405,7 @@ export class PolicyController {
             baseUrl
           );
         } catch (notifyError) {
-          console.error("Failed to notify reviewer %d:", reviewerId, notifyError);
+          logger.error("Failed to notify reviewer %d:", reviewerId, notifyError);
         }
       }
 
@@ -413,7 +413,7 @@ export class PolicyController {
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error requesting policy review:", error);
+      logger.error("Error requesting policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -475,14 +475,14 @@ export class PolicyController {
           baseUrl
         );
       } catch (notifyError) {
-        console.error("Failed to send review approved notification:", notifyError);
+        logger.error("Failed to send review approved notification:", notifyError);
       }
 
       const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error approving policy review:", error);
+      logger.error("Error approving policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -549,14 +549,14 @@ export class PolicyController {
           baseUrl
         );
       } catch (notifyError) {
-        console.error("Failed to send review rejected notification:", notifyError);
+        logger.error("Failed to send review rejected notification:", notifyError);
       }
 
       const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error rejecting policy review:", error);
+      logger.error("Error rejecting policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

@@ -12,7 +12,8 @@ import { Suspense, lazy, useMemo, useState, useCallback, useEffect } from "react
 import TablePaginationActions from "../../TablePagination";
 import TableHeader, { SortConfig } from "./TableHead";
 import { EmptyState } from "../../EmptyState";
-import { ChevronsUpDown, FlaskConical } from "lucide-react";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
+import { ChevronsUpDown, FlaskConical, Play, Database, BarChart3 } from "lucide-react";
 
 const SelectorVertical = (props: React.SVGProps<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
@@ -254,7 +255,23 @@ const EvaluationTable: React.FC<IEvaluationTableProps> = ({
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                    <EmptyState icon={FlaskConical} message="There is currently no data in this table." />
+                    <EmptyState icon={FlaskConical} message="No experiments run yet. Create an experiment to evaluate model performance.">
+                      <EmptyStateTip
+                        icon={Play}
+                        title="Run your first experiment"
+                        description="Select a dataset, pick one or more models, and choose scorers. The system runs each prompt through the models and grades the outputs."
+                      />
+                      <EmptyStateTip
+                        icon={Database}
+                        title="Prepare a dataset first"
+                        description="Experiments need a dataset with prompts and expected outputs. Upload one in the datasets tab before running an experiment."
+                      />
+                      <EmptyStateTip
+                        icon={BarChart3}
+                        title="Compare results over time"
+                        description="Each experiment run is saved here with scores and metadata. Run the same dataset across different models or configs to track progress."
+                      />
+                    </EmptyState>
                   </TableCell>
                 </TableRow>
               </TableBody>

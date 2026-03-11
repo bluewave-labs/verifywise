@@ -13,10 +13,11 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, Swords } from "lucide-react";
+import { ChevronsUpDown, Swords, GitCompare, ListChecks, Trophy } from "lucide-react";
 import ArenaTableHead from "./ArenaTableHead";
 import ArenaTableBody from "./ArenaTableBody";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
@@ -228,7 +229,23 @@ const ArenaTable: React.FC<ArenaTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState icon={Swords} message="No arena battles found. Create a new battle to get started." />
+                <EmptyState icon={Swords} message="No arena battles found. Create a new battle to get started.">
+                  <EmptyStateTip
+                    icon={GitCompare}
+                    title="What is an arena battle?"
+                    description="An arena battle runs the same prompts through two or more models side by side, so you can compare outputs directly."
+                  />
+                  <EmptyStateTip
+                    icon={ListChecks}
+                    title="Pick models and scorers"
+                    description="Select which models to pit against each other and which scorers to use for grading. Results are shown in a head-to-head view."
+                  />
+                  <EmptyStateTip
+                    icon={Trophy}
+                    title="Review and rank"
+                    description="After a battle completes, review scored outputs to decide which model performs best for your use case."
+                  />
+                </EmptyState>
               </TableCell>
             </TableRow>
           </TableBody>

@@ -20,7 +20,8 @@ import { EmptyState } from "../EmptyState";
 import Chip from "../Chip";
 import ViewRelationshipsButton from "../ViewRelationshipsButton";
 import IconButton from "../IconButton";
-import { ChevronsUpDown, ChevronUp, ChevronDown, Briefcase } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Briefcase, PlusCircle, Target, Link2 } from "lucide-react";
+import EmptyStateTip from "../EmptyState/EmptyStateTip";
 import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 import { Project } from "../../../domain/types/Project";
 import { deleteProject } from "../../../application/repository/project.repository";
@@ -376,7 +377,23 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({
                 align="center"
                 sx={{ border: "none", p: 0 }}
               >
-                <EmptyState icon={Briefcase} message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace." />
+                <EmptyState icon={Briefcase} message="No use cases yet. A use case describes how an AI system is applied within your organization.">
+                  <EmptyStateTip
+                    icon={PlusCircle}
+                    title="Create a use case"
+                    description="Define the AI system, its purpose, the data it processes, and the people it affects. This forms the basis for risk and compliance tracking."
+                  />
+                  <EmptyStateTip
+                    icon={Target}
+                    title="Scope and classify"
+                    description="Each use case can be classified by risk level (high, limited, minimal) to determine which compliance controls apply."
+                  />
+                  <EmptyStateTip
+                    icon={Link2}
+                    title="Link to governance artifacts"
+                    description="Connect use cases to risks, policies, models, and evidence. This creates full traceability from business need to compliance proof."
+                  />
+                </EmptyState>
               </TableCell>
             </TableRow>
           </TableBody>

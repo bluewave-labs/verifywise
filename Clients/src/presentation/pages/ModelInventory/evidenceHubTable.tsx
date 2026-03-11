@@ -17,13 +17,14 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import CustomIconButton from "../../components/IconButton";
-import { ChevronsUpDown, ChevronUp, ChevronDown, FileCheck } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, FileCheck, FolderOpen, Shield, Clock } from "lucide-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { displayFormattedDate } from "../../tools/isoDateToString";
 import { User } from "../../../domain/types/User";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import { FileIcon } from "../../components/FileIcon";
 import {
   loadingContainerStyle,
@@ -461,7 +462,23 @@ const EvidenceHubTable: React.FC<EvidenceHubTableProps> = ({
         ) : (
           <TableRow>
             <TableCell colSpan={visibleTableColumns.length} align="center">
-              <EmptyState message="No evidence found." icon={FileCheck} />
+              <EmptyState message="No evidence yet. Upload documents that prove compliance with each requirement." icon={FileCheck}>
+                <EmptyStateTip
+                  icon={FolderOpen}
+                  title="Organize by control category"
+                  description="Group evidence by the controls they support. This makes audit preparation faster and keeps your evidence library structured."
+                />
+                <EmptyStateTip
+                  icon={Shield}
+                  title="What counts as evidence?"
+                  description="Policies, meeting minutes, configuration screenshots, training records, risk assessments, vendor agreements, and change logs."
+                />
+                <EmptyStateTip
+                  icon={Clock}
+                  title="Track expiry dates"
+                  description="Set expiry dates on evidence so you're reminded to update or re-certify documents before they become stale."
+                />
+              </EmptyState>
             </TableCell>
           </TableRow>
         )}

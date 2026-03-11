@@ -2,7 +2,8 @@ import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Box, Stack, Typography, Collapse, useTheme } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
-import { ChevronDown, Puzzle } from "lucide-react";
+import { ChevronDown, Puzzle, Download, Settings2, Shield } from "lucide-react";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
 import TabBar from "../../components/TabBar";
 import PluginCard from "../../components/PluginCard";
@@ -410,7 +411,23 @@ const Plugins: React.FC = () => {
                 icon={Puzzle}
                 message="No plugins installed yet. Visit the marketplace to install plugins."
                 showBorder={true}
-              />
+              >
+                <EmptyStateTip
+                  icon={Download}
+                  title="Browse the marketplace"
+                  description="The marketplace tab above lists available plugins for frameworks (SOC 2, GDPR, HIPAA), integrations (Slack, Jira), and more."
+                />
+                <EmptyStateTip
+                  icon={Settings2}
+                  title="Configure after install"
+                  description="Once installed, each plugin appears here with a manage button. Configure API keys, mappings, and preferences from there."
+                />
+                <EmptyStateTip
+                  icon={Shield}
+                  title="Framework plugins"
+                  description="Framework plugins add new compliance trackers and assessment templates. Install one to extend your governance coverage."
+                />
+              </EmptyState>
             ) : (
               <Box sx={pluginCardsGridThreeColumn}>
                 {installedPlugins.map((plugin) => (

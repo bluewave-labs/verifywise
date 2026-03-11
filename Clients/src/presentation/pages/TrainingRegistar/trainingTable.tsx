@@ -18,8 +18,9 @@ import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
-import { ChevronsUpDown, ChevronUp, ChevronDown, GraduationCap } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, GraduationCap, Users, Calendar, Award } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import { useAuth } from "../../../application/hooks/useAuth";
 import {
   getPaginationRowCount,
@@ -483,7 +484,25 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return <EmptyState icon={GraduationCap} message="No training records found." />;
+    return (
+      <EmptyState icon={GraduationCap} message="No training records yet. Track AI governance training for your team.">
+        <EmptyStateTip
+          icon={Users}
+          title="Assign training to team members"
+          description="Each record tracks who completed what training, when, and their score. This creates an audit trail for competency requirements."
+        />
+        <EmptyStateTip
+          icon={Calendar}
+          title="Set renewal dates"
+          description="Some certifications and training expire. Record renewal dates so you can keep track of upcoming expirations."
+        />
+        <EmptyStateTip
+          icon={Award}
+          title="Common training topics"
+          description="AI ethics, data privacy, responsible AI use, bias awareness, incident reporting procedures, and framework-specific requirements."
+        />
+      </EmptyState>
+    );
   }
 
   return (

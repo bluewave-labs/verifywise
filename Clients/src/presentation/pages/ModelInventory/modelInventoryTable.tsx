@@ -24,10 +24,11 @@ import PluginSlot from "../../components/PluginSlot";
 import { PLUGIN_SLOTS } from "../../../domain/constants/pluginSlots";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ChevronsUpDown, ChevronUp, ChevronDown, Cpu } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Cpu, Layers, BarChart3, Link2 } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import { ModelInventoryTableProps } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
@@ -675,7 +676,25 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   }
 
   if (!data || data.length === 0) {
-    return <EmptyState icon={Cpu} message="No models found." />;
+    return (
+      <EmptyState icon={Cpu} message="No models registered yet. Maintain a complete inventory of all AI models your organization uses.">
+        <EmptyStateTip
+          icon={Layers}
+          title="What counts as a model?"
+          description="Any machine learning model, large language model, computer vision system, or automated decision-making tool. Include both internal and third-party models."
+        />
+        <EmptyStateTip
+          icon={BarChart3}
+          title="Track model status"
+          description="Record each model's status: approved, restricted, pending, blocked, or rejected. This gives auditors visibility into your governance coverage."
+        />
+        <EmptyStateTip
+          icon={Link2}
+          title="Link to vendors and risks"
+          description="Connect each model to its provider and associated risks. This creates a full traceability map for your audit."
+        />
+      </EmptyState>
+    );
   }
 
   return (

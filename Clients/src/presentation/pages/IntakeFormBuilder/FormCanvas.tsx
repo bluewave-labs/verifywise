@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Box, Typography, IconButton, Tooltip, useTheme } from "@mui/material";
-import { Plus, Check, X, User, Mail, LayoutTemplate } from "lucide-react";
+import { Check, X, User, Mail, LayoutTemplate } from "lucide-react";
 import { FormField } from "./types";
 import { FieldCard } from "./FieldCard";
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
+from rich.progress import track
+
 from render.dedup import prompt_hash
 from validate import reason_codes as R
 from validate.semantic import SemanticValidator, SemanticParseError
@@ -32,7 +34,7 @@ def validate_candidates(
     accepted: List[Dict[str, Any]] = []
     seen_hashes: set[str] = set()
 
-    for c in candidates:
+    for c in track(candidates, description="Validating candidates…"):
         prompt = c.get("prompt", "")
         cid = c.get("candidate_id", "unknown")
 

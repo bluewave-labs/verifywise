@@ -25,7 +25,6 @@ import {
   CheckSquare,
   Square,
   AlertTriangle,
-
 } from "lucide-react";
 import Checkbox from "../../Inputs/Checkbox";
 import Field from "../../Inputs/Field";
@@ -55,6 +54,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import { getEntityById } from "../../../../application/repository/entity.repository";
+import { useAutoSave } from "../../../../application/hooks/useAutoSave";
 import { FilePickerModal } from "../../FilePickerModal";
 import { RiskFormValues } from "../../../../domain/types/riskForm.types";
 
@@ -467,68 +467,51 @@ const VWISO42001AnnexDrawerDialog = ({
     }));
   };
 
-  // Auto-save infrastructure
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const formDataRef = useRef(formData);
+  // Auto-save infrastructure (shared hook)
   const dateRef = useRef(date);
-  formDataRef.current = formData;
   dateRef.current = date;
 
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, []);
-
-  const triggerAutoSave = useCallback(
-    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
-      if (!fetchedAnnex?.id) return;
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-
-      autoSaveTimerRef.current = setTimeout(async () => {
-        try {
-          const currentFormData = formDataRef.current;
-          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
-          const fd = new FormData();
-          fd.append("is_applicable", overrides?.is_applicable ?? currentFormData.is_applicable.toString());
-          fd.append("justification_for_exclusion", overrides?.justification_for_exclusion ?? currentFormData.justification_for_exclusion);
-          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
-          fd.append("status", overrides?.status ?? currentFormData.status);
-          fd.append("owner", overrides?.owner ?? currentFormData.owner);
-          fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
-          fd.append("approver", overrides?.approver ?? currentFormData.approver);
-          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
-          if (effectiveDate) fd.append("due_date", effectiveDate.toString());
-          fd.append("user_id", userId?.toString() || "1");
-          fd.append("project_id", project_id.toString());
-          fd.append("delete", JSON.stringify([]));
-          fd.append("risksMitigated", JSON.stringify([]));
-          fd.append("risksDelete", JSON.stringify([]));
-
-          await UpdateAnnexCategoryById({
-            routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex.id}`,
-            body: fd,
-          });
-        } catch {
-          // Silent fail for auto-save — user can still use the Save button
-        }
-      }, 300);
+  const buildPayload = useCallback(
+    (currentData: typeof formData, overrides?: Record<string, string>) => {
+      const fd = new FormData();
+      fd.append("is_applicable", overrides?.is_applicable ?? currentData.is_applicable.toString());
+      fd.append("justification_for_exclusion", overrides?.justification_for_exclusion ?? currentData.justification_for_exclusion);
+      fd.append("implementation_description", overrides?.implementation_description ?? currentData.implementation_description);
+      fd.append("status", overrides?.status ?? currentData.status);
+      fd.append("owner", overrides?.owner ?? currentData.owner);
+      fd.append("reviewer", overrides?.reviewer ?? currentData.reviewer);
+      fd.append("approver", overrides?.approver ?? currentData.approver);
+      fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentData.auditor_feedback);
+      if (dateRef.current) fd.append("due_date", dateRef.current.toString());
+      fd.append("user_id", userId?.toString() || "1");
+      fd.append("project_id", project_id.toString());
+      fd.append("delete", JSON.stringify([]));
+      fd.append("risksMitigated", JSON.stringify([]));
+      fd.append("risksDelete", JSON.stringify([]));
+      return fd;
     },
-    [fetchedAnnex?.id, userId, project_id]
+    [userId, project_id]
   );
 
-  const autoSaveField = useCallback(
-    (field: string, value: string | boolean) => {
-      triggerAutoSave({ [field]: String(value) });
-    },
-    [triggerAutoSave]
+  const saveFn = useCallback(
+    (payload: FormData) =>
+      UpdateAnnexCategoryById({
+        routeUrl: `/iso-42001/saveAnnexes/${fetchedAnnex?.id}`,
+        body: payload,
+      }),
+    [fetchedAnnex?.id]
   );
+
+  const { triggerAutoSave, autoSaveField } = useAutoSave(formData, {
+    entityId: fetchedAnnex?.id,
+    buildPayload,
+    saveFn,
+  });
 
   const handleDateAutoSave = useCallback(
     (newDate: Dayjs | null) => {
       setDate(newDate);
-      triggerAutoSave({}, newDate);
+      triggerAutoSave();
     },
     [triggerAutoSave]
   );
@@ -1500,8 +1483,8 @@ const VWISO42001AnnexDrawerDialog = ({
             {guidanceData ? (
               <Stack spacing={3}>
                 {/* Purpose */}
-                <Box sx={{ backgroundColor: "#f0faf7", borderRadius: "4px", padding: "12px 16px" }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1, color: "#13715B" }}>
+                <Box sx={{ backgroundColor: "action.hover", borderRadius: "4px", padding: "12px 16px" }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 1, color: "primary.main" }}>
                     Purpose
                   </Typography>
                   <Typography sx={{ fontSize: 13, lineHeight: 1.6 }}>
@@ -1517,7 +1500,7 @@ const VWISO42001AnnexDrawerDialog = ({
                     </Typography>
                     <ol style={{ margin: 0, paddingLeft: 20 }}>
                       {guidanceData.steps.map((step: string, idx: number) => (
-                        <li key={idx} style={{ fontSize: 13, lineHeight: 1.8, color: "#344054" }}>
+                        <li key={idx} style={{ fontSize: 13, lineHeight: 1.8 }}>
                           {step}
                         </li>
                       ))}
@@ -1527,16 +1510,16 @@ const VWISO42001AnnexDrawerDialog = ({
 
                 {/* Pitfalls */}
                 {guidanceData.pitfalls && guidanceData.pitfalls.length > 0 && (
-                  <Box sx={{ backgroundColor: "#FFF8E1", borderRadius: "4px", padding: "12px 16px" }}>
+                  <Box sx={{ backgroundColor: "warning.background", borderRadius: "4px", padding: "12px 16px" }}>
                     <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                      <AlertTriangle size={14} color="#795548" />
-                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#795548" }}>
+                      <AlertTriangle size={14} color={theme.palette.warning.main} />
+                      <Typography sx={{ fontSize: 13, fontWeight: 600, color: "warning.main" }}>
                         Common pitfalls
                       </Typography>
                     </Stack>
                     <ul style={{ margin: 0, paddingLeft: 20 }}>
                       {guidanceData.pitfalls.map((pitfall: string, idx: number) => (
-                        <li key={idx} style={{ fontSize: 13, lineHeight: 1.8, color: "#795548" }}>
+                        <li key={idx} style={{ fontSize: 13, lineHeight: 1.8 }}>
                           {pitfall}
                         </li>
                       ))}
@@ -1565,7 +1548,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 )}
               </Stack>
             ) : (
-              <Typography sx={{ fontSize: 13, color: "#667085" }}>
+              <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
                 {formData.guidance || "No guidance available for this control."}
               </Typography>
             )}

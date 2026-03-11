@@ -32,6 +32,7 @@ import TabBar from "../../TabBar";
 const NotesTab = lazy(() => import("../../Notes/NotesTab"));
 const AddNewRiskForm = lazy(() => import("../../AddNewRiskForm"));
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { useAutoSave } from "../../../../application/hooks/useAutoSave";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import Alert from "../../Alert";
@@ -407,66 +408,50 @@ const VWISO27001ClauseDrawerDialog = ({
     }));
   };
 
-  // Auto-save infrastructure
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const formDataRef = useRef(formData);
+  // Auto-save infrastructure (shared hook)
   const dateRef = useRef(date);
-  formDataRef.current = formData;
   dateRef.current = date;
 
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, []);
-
-  const triggerAutoSave = useCallback(
-    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
-      if (!fetchedSubClause?.id) return;
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-
-      autoSaveTimerRef.current = setTimeout(async () => {
-        try {
-          const currentFormData = formDataRef.current;
-          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
-          const fd = new FormData();
-          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
-          fd.append("status", overrides?.status ?? (idStatusMap.get(currentFormData.status) || "Not started"));
-          fd.append("owner", overrides?.owner ?? currentFormData.owner);
-          fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
-          fd.append("approver", overrides?.approver ?? currentFormData.approver);
-          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
-          if (effectiveDate) fd.append("due_date", effectiveDate.toString());
-          fd.append("user_id", userId?.toString() || "1");
-          fd.append("delete", JSON.stringify([]));
-          fd.append("risksMitigated", JSON.stringify([]));
-          fd.append("risksDelete", JSON.stringify([]));
-          fd.append("project_id", project_id.toString());
-
-          await updateEntityById({
-            routeUrl: `/iso-27001/saveClauses/${fetchedSubClause.id}`,
-            body: fd,
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        } catch {
-          // Silent fail for auto-save — user can still use the Save button
-        }
-      }, 300);
+  const buildPayload = useCallback(
+    (currentData: typeof formData, overrides?: Record<string, string>) => {
+      const fd = new FormData();
+      fd.append("implementation_description", overrides?.implementation_description ?? currentData.implementation_description);
+      fd.append("status", overrides?.status ?? (idStatusMap.get(currentData.status) || "Not started"));
+      fd.append("owner", overrides?.owner ?? currentData.owner);
+      fd.append("reviewer", overrides?.reviewer ?? currentData.reviewer);
+      fd.append("approver", overrides?.approver ?? currentData.approver);
+      fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentData.auditor_feedback);
+      if (dateRef.current) fd.append("due_date", dateRef.current.toString());
+      fd.append("user_id", userId?.toString() || "1");
+      fd.append("delete", JSON.stringify([]));
+      fd.append("risksMitigated", JSON.stringify([]));
+      fd.append("risksDelete", JSON.stringify([]));
+      fd.append("project_id", project_id.toString());
+      return fd;
     },
-    [fetchedSubClause?.id, userId, project_id]
+    [userId, project_id, idStatusMap]
   );
 
-  const autoSaveField = useCallback(
-    (field: string, value: string) => {
-      triggerAutoSave({ [field]: value });
-    },
-    [triggerAutoSave]
+  const saveFn = useCallback(
+    (payload: FormData) =>
+      updateEntityById({
+        routeUrl: `/iso-27001/saveClauses/${fetchedSubClause?.id}`,
+        body: payload,
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
+    [fetchedSubClause?.id]
   );
+
+  const { triggerAutoSave, autoSaveField } = useAutoSave(formData, {
+    entityId: fetchedSubClause?.id,
+    buildPayload,
+    saveFn,
+  });
 
   const handleDateAutoSave = useCallback(
     (newDate: Dayjs | null) => {
       setDate(newDate);
-      triggerAutoSave({}, newDate);
+      triggerAutoSave();
     },
     [triggerAutoSave]
   );

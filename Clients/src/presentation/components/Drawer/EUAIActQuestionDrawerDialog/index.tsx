@@ -66,6 +66,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { updateEUAIActAnswerById } from "../../../../application/repository/question.repository";
 import { getEntityById } from "../../../../application/repository/entity.repository";
+import { useAutoSave } from "../../../../application/hooks/useAutoSave";
 import { getFileById, attachFilesToEntity, getEntityFiles } from "../../../../application/repository/file.repository";
 import { getAssessmentTopicById } from "../../../../application/repository/assesment.repository";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -507,52 +508,36 @@ const EUAIActQuestionDrawerDialog: React.FC<EUAIActQuestionDrawerProps> = ({
     }));
   };
 
-  // Auto-save infrastructure
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const formDataRef = useRef(formData);
-  formDataRef.current = formData;
-
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, []);
-
-  const triggerAutoSave = useCallback(
-    (overrides?: Record<string, string>) => {
-      if (!questionProp?.answer_id) return;
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-
-      autoSaveTimerRef.current = setTimeout(async () => {
-        try {
-          const currentFormData = formDataRef.current;
-          const fd = new FormData();
-          fd.append("answer", overrides?.answer ?? currentFormData.answer);
-          fd.append("status", overrides?.status ?? (idStatusMap.get(currentFormData.status) || "Not started"));
-          fd.append("user_id", userId?.toString() || "1");
-          fd.append("project_id", currentProjectId.toString());
-          fd.append("delete", JSON.stringify([]));
-          fd.append("risksDelete", JSON.stringify([]));
-          fd.append("risksMitigated", JSON.stringify([]));
-
-          await updateEUAIActAnswerById({
-            answerId: questionProp.answer_id,
-            body: fd,
-          });
-        } catch {
-          // Silent fail for auto-save — user can still use the Save button
-        }
-      }, 300);
+  // Auto-save infrastructure (shared hook)
+  const buildPayload = useCallback(
+    (currentData: EUAIActFormData, overrides?: Record<string, string>) => {
+      const fd = new FormData();
+      fd.append("answer", overrides?.answer ?? currentData.answer);
+      fd.append("status", overrides?.status ?? (idStatusMap.get(currentData.status) || "Not started"));
+      fd.append("user_id", userId?.toString() || "1");
+      fd.append("project_id", currentProjectId.toString());
+      fd.append("delete", JSON.stringify([]));
+      fd.append("risksDelete", JSON.stringify([]));
+      fd.append("risksMitigated", JSON.stringify([]));
+      return fd;
     },
-    [questionProp?.answer_id, userId, currentProjectId]
+    [userId, currentProjectId, idStatusMap]
   );
 
-  const autoSaveField = useCallback(
-    (field: string, value: string) => {
-      triggerAutoSave({ [field]: value });
-    },
-    [triggerAutoSave]
+  const saveFn = useCallback(
+    (payload: FormData) =>
+      updateEUAIActAnswerById({
+        answerId: questionProp?.answer_id ?? 0,
+        body: payload,
+      }),
+    [questionProp?.answer_id]
   );
+
+  const { triggerAutoSave, autoSaveField } = useAutoSave(formData, {
+    entityId: questionProp?.answer_id,
+    buildPayload,
+    saveFn,
+  });
 
   const handleAnswerChange = (answer: string) => {
     const cleanedAnswer = answer?.replace(/^<p>|<\/p>$/g, "") || "";

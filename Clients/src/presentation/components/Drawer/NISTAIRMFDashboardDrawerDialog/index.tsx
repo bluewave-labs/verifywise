@@ -26,6 +26,7 @@ import {
 } from "../../../pages/Framework/NIST-AI-RMF/types";
 import { AlertProps } from "../../../types/alert.types";
 import { updateEntityById, getEntityById } from "../../../../application/repository/entity.repository";
+import { useAutoSave } from "../../../../application/hooks/useAutoSave";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -241,66 +242,50 @@ const NISTAIRMFDrawerDialog: React.FC<NISTAIRMFDrawerProps> = ({
     }));
   };
 
-  // Auto-save infrastructure
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const formDataRef = useRef(formData);
+  // Auto-save infrastructure (shared hook)
   const dateRef = useRef(date);
-  formDataRef.current = formData;
   dateRef.current = date;
 
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, []);
-
-  const triggerAutoSave = useCallback(
-    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
-      if (!subcategory?.id) return;
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-
-      autoSaveTimerRef.current = setTimeout(async () => {
-        try {
-          const currentFormData = formDataRef.current;
-          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
-          const fd = new FormData();
-          fd.append("status", overrides?.status ?? currentFormData.status);
-          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
-          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
-          fd.append("tags", JSON.stringify(currentFormData.tags));
-          if (overrides?.owner ?? currentFormData.owner) fd.append("owner", overrides?.owner ?? currentFormData.owner);
-          if (overrides?.reviewer ?? currentFormData.reviewer) fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
-          if (overrides?.approver ?? currentFormData.approver) fd.append("approver", overrides?.approver ?? currentFormData.approver);
-          if (effectiveDate) fd.append("due_date", effectiveDate.toISOString());
-          fd.append("user_id", userId?.toString() || "1");
-          fd.append("delete", JSON.stringify([]));
-          fd.append("risksMitigated", JSON.stringify([]));
-          fd.append("risksDelete", JSON.stringify([]));
-
-          await updateEntityById({
-            routeUrl: `/nist-ai-rmf/subcategories/${subcategory.id}`,
-            body: fd,
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        } catch {
-          // Silent fail for auto-save — user can still use the Save button
-        }
-      }, 300);
+  const buildPayload = useCallback(
+    (currentData: typeof formData, overrides?: Record<string, string>) => {
+      const fd = new FormData();
+      fd.append("status", overrides?.status ?? currentData.status);
+      fd.append("implementation_description", overrides?.implementation_description ?? currentData.implementation_description);
+      fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentData.auditor_feedback);
+      fd.append("tags", JSON.stringify(currentData.tags));
+      if (overrides?.owner ?? currentData.owner) fd.append("owner", overrides?.owner ?? currentData.owner);
+      if (overrides?.reviewer ?? currentData.reviewer) fd.append("reviewer", overrides?.reviewer ?? currentData.reviewer);
+      if (overrides?.approver ?? currentData.approver) fd.append("approver", overrides?.approver ?? currentData.approver);
+      if (dateRef.current) fd.append("due_date", dateRef.current.toISOString());
+      fd.append("user_id", userId?.toString() || "1");
+      fd.append("delete", JSON.stringify([]));
+      fd.append("risksMitigated", JSON.stringify([]));
+      fd.append("risksDelete", JSON.stringify([]));
+      return fd;
     },
-    [subcategory?.id, userId]
+    [userId]
   );
 
-  const autoSaveField = useCallback(
-    (field: string, value: string) => {
-      triggerAutoSave({ [field]: value });
-    },
-    [triggerAutoSave]
+  const saveFn = useCallback(
+    (payload: FormData) =>
+      updateEntityById({
+        routeUrl: `/nist-ai-rmf/subcategories/${subcategory?.id}`,
+        body: payload,
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
+    [subcategory?.id]
   );
+
+  const { triggerAutoSave, autoSaveField } = useAutoSave(formData, {
+    entityId: subcategory?.id,
+    buildPayload,
+    saveFn,
+  });
 
   const handleDateAutoSave = useCallback(
     (newDate: Dayjs | null) => {
       setDate(newDate);
-      triggerAutoSave({}, newDate);
+      triggerAutoSave();
     },
     [triggerAutoSave]
   );

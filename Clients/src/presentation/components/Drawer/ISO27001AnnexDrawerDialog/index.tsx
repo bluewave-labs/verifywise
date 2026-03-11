@@ -39,6 +39,7 @@ import { AlertProps } from "../../../types/alert.types";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { useAutoSave } from "../../../../application/hooks/useAutoSave";
 import {
   updateEntityById,
   getEntityById,
@@ -359,66 +360,50 @@ const VWISO27001AnnexDrawerDialog = ({
     }));
   };
 
-  // Auto-save infrastructure
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const formDataRef = useRef(formData);
+  // Auto-save infrastructure (shared hook)
   const dateRef = useRef(date);
-  formDataRef.current = formData;
   dateRef.current = date;
 
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, []);
-
-  const triggerAutoSave = useCallback(
-    (overrides?: Record<string, string>, dateOverride?: Dayjs | null) => {
-      if (!fetchedAnnex?.id) return;
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-
-      autoSaveTimerRef.current = setTimeout(async () => {
-        try {
-          const currentFormData = formDataRef.current;
-          const effectiveDate = dateOverride !== undefined ? dateOverride : dateRef.current;
-          const fd = new FormData();
-          fd.append("implementation_description", overrides?.implementation_description ?? currentFormData.implementation_description);
-          fd.append("status", overrides?.status ?? currentFormData.status);
-          if (overrides?.owner ?? currentFormData.owner?.trim()) fd.append("owner", overrides?.owner ?? currentFormData.owner);
-          if (overrides?.reviewer ?? currentFormData.reviewer?.trim()) fd.append("reviewer", overrides?.reviewer ?? currentFormData.reviewer);
-          if (overrides?.approver ?? currentFormData.approver?.trim()) fd.append("approver", overrides?.approver ?? currentFormData.approver);
-          fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentFormData.auditor_feedback);
-          if (effectiveDate) fd.append("due_date", effectiveDate.toString());
-          fd.append("user_id", userId?.toString() || "1");
-          fd.append("project_id", project_id.toString());
-          fd.append("delete", JSON.stringify([]));
-          fd.append("risksMitigated", JSON.stringify([]));
-          fd.append("risksDelete", JSON.stringify([]));
-
-          await updateEntityById({
-            routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnex.id}`,
-            body: fd,
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        } catch {
-          // Silent fail for auto-save — user can still use the Save button
-        }
-      }, 300);
+  const buildPayload = useCallback(
+    (currentData: typeof formData, overrides?: Record<string, string>) => {
+      const fd = new FormData();
+      fd.append("implementation_description", overrides?.implementation_description ?? currentData.implementation_description);
+      fd.append("status", overrides?.status ?? currentData.status);
+      if (overrides?.owner ?? currentData.owner?.trim()) fd.append("owner", overrides?.owner ?? currentData.owner);
+      if (overrides?.reviewer ?? currentData.reviewer?.trim()) fd.append("reviewer", overrides?.reviewer ?? currentData.reviewer);
+      if (overrides?.approver ?? currentData.approver?.trim()) fd.append("approver", overrides?.approver ?? currentData.approver);
+      fd.append("auditor_feedback", overrides?.auditor_feedback ?? currentData.auditor_feedback);
+      if (dateRef.current) fd.append("due_date", dateRef.current.toString());
+      fd.append("user_id", userId?.toString() || "1");
+      fd.append("project_id", project_id.toString());
+      fd.append("delete", JSON.stringify([]));
+      fd.append("risksMitigated", JSON.stringify([]));
+      fd.append("risksDelete", JSON.stringify([]));
+      return fd;
     },
-    [fetchedAnnex?.id, userId, project_id]
+    [userId, project_id]
   );
 
-  const autoSaveField = useCallback(
-    (field: string, value: string) => {
-      triggerAutoSave({ [field]: value });
-    },
-    [triggerAutoSave]
+  const saveFn = useCallback(
+    (payload: FormData) =>
+      updateEntityById({
+        routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnex?.id}`,
+        body: payload,
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
+    [fetchedAnnex?.id]
   );
+
+  const { triggerAutoSave, autoSaveField } = useAutoSave(formData, {
+    entityId: fetchedAnnex?.id,
+    buildPayload,
+    saveFn,
+  });
 
   const handleDateAutoSave = useCallback(
     (newDate: Dayjs | null) => {
       setDate(newDate);
-      triggerAutoSave({}, newDate);
+      triggerAutoSave();
     },
     [triggerAutoSave]
   );

@@ -3,26 +3,45 @@ import { Box, Typography, useTheme } from "@mui/material";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 
+/** Three accent palettes that rotate per-tip */
+const ACCENT_PALETTES = [
+  { bg: "#ECFDF3", bgHover: "#D1FADF", icon: "#039855", border: "#A6F4C5", expandBg: "#F6FEF9" },
+  { bg: "#EFF8FF", bgHover: "#D1E9FF", icon: "#1570EF", border: "#84CAFF", expandBg: "#F5FAFF" },
+  { bg: "#FFFAEB", bgHover: "#FEF0C7", icon: "#DC6803", border: "#FEDF89", expandBg: "#FFFCF5" },
+] as const;
+
 interface EmptyStateTipProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  /** Accent index (0=green, 1=blue, 2=amber). Auto-assigned when omitted. */
+  accentIndex?: number;
 }
+
+/** Global counter so sibling tips cycle through accents automatically */
+let tipMountCounter = 0;
 
 /**
  * Collapsible tip block for empty states.
- * Uses native <details> with animated height transition.
+ * Uses native <details> with animated height transition and colored accents.
  */
 const EmptyStateTip: FC<EmptyStateTipProps> = ({
   icon: Icon,
   title,
   description,
+  accentIndex,
 }) => {
   const theme = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
+  const [myAccent] = useState(() => {
+    if (accentIndex !== undefined) return accentIndex % ACCENT_PALETTES.length;
+    return tipMountCounter++ % ACCENT_PALETTES.length;
+  });
+
+  const accent = ACCENT_PALETTES[myAccent];
 
   useEffect(() => {
     if (contentRef.current) {
@@ -50,8 +69,9 @@ const EmptyStateTip: FC<EmptyStateTipProps> = ({
       ref={detailsRef}
       sx={{
         border: `1px solid ${theme.palette.border.light}`,
-        borderRadius: "4px",
+        borderRadius: "6px",
         overflow: "hidden",
+        transition: "border-color 200ms ease",
       }}
     >
       <Box
@@ -82,14 +102,16 @@ const EmptyStateTip: FC<EmptyStateTipProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 28,
-            height: 28,
-            borderRadius: "4px",
-            backgroundColor: theme.palette.background.fill,
+            width: 30,
+            height: 30,
+            borderRadius: "6px",
+            backgroundColor: accent.bg,
+            border: `1px solid ${accent.border}40`,
             flexShrink: 0,
+            transition: "background-color 200ms ease, border-color 200ms ease",
           }}
         >
-          <Icon size={14} color={theme.palette.text.secondary} />
+          <Icon size={14} color={accent.icon} />
         </Box>
         <Typography
           sx={{
@@ -122,7 +144,7 @@ const EmptyStateTip: FC<EmptyStateTipProps> = ({
         <Box
           ref={contentRef}
           sx={{
-            padding: "12px 14px 12px 52px",
+            padding: "12px 14px 12px 54px",
             backgroundColor: theme.palette.background.main,
           }}
         >

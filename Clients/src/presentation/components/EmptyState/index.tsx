@@ -58,7 +58,7 @@ export const EmptyState: FC<EmptyStateProps> = ({
           backgroundColor: theme.palette.background.main,
         }),
         pt: "48px",
-        pb: children ? 6 : 12,
+        pb: children ? 0 : 12,
       }}
       role="status"
       aria-label={imageAlt}
@@ -88,7 +88,7 @@ export const EmptyState: FC<EmptyStateProps> = ({
             width: "100%",
             maxWidth: 440,
             px: 2,
-            pb: 2,
+            pb: "48px",
           }}
         >
           {children}

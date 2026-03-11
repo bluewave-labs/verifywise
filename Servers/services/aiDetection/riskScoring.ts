@@ -385,8 +385,9 @@ function buildLLMPrompt(
 
 /**
  * Resolve the LLM key and create the appropriate SDK model instance. (Fix 7)
+ * Exported so vulnerabilityAnalyzer can reuse the same provider resolution logic.
  */
-async function resolveLLMModel(
+export async function resolveLLMModel(
   llmKeyId: number,
   organizationId: number
 ): Promise<{ model: Parameters<typeof import("ai")["generateText"]>[0]["model"]; } | null> {

@@ -36,19 +36,6 @@ export type VulnerabilityTypeKey =
   | "overreliance"
   | "model_theft";
 
-export const ALL_VULNERABILITY_TYPES: VulnerabilityTypeKey[] = [
-  "prompt_injection",
-  "pii_exposure",
-  "excessive_agency",
-  "jailbreak_risk",
-  "training_data_poisoning",
-  "model_dos",
-  "supply_chain",
-  "insecure_plugin",
-  "overreliance",
-  "model_theft",
-];
-
 export interface RiskScoringConfig {
   id: number;
   llm_enabled: boolean;

@@ -84,7 +84,7 @@ export const EmptyState: FC<EmptyStateProps> = ({
             display: "flex",
             flexDirection: "column",
             gap: "8px",
-            mt: 4,
+            mt: "40px",
             width: "100%",
             maxWidth: 440,
             px: 2,

@@ -25,6 +25,7 @@ WHAT THIS SCRIPT DOES:
 
 import os
 import sys
+import json
 import hashlib
 import argparse
 import asyncio
@@ -411,6 +412,12 @@ async def migrate_table(
 
         # Filter to only columns that exist in values_dict
         target_columns = [c for c in target_columns if c in values_dict or c == "organization_id"]
+
+        # Serialize dict/list values to JSON strings (asyncpg can't encode raw dicts for JSONB)
+        for col in target_columns:
+            val = values_dict.get(col)
+            if isinstance(val, (dict, list)):
+                values_dict[col] = json.dumps(val)
 
         column_list = ", ".join(f'"{c}"' for c in target_columns)
         placeholder_list = ", ".join(f":{c}" for c in target_columns)

@@ -9,6 +9,7 @@ import { IUser } from "../../../domain/interfaces/i.user";
 import { EventModel } from "../../../domain/models/Common/evenTracker/eventTracker.model";
 import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
 import { FileColumn } from "../../../application/hooks/useFileColumnVisibility";
+import { AIIncidentManagementModel } from "src/domain/models/Common/incidentManagement/incidentManagement.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -256,5 +257,17 @@ export interface ITableWithPlaceholderProps {
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
   vendorRisks?: VendorRisk[];
+  visibleColumns?: Set<string>;
+}
+
+export interface IncidentTableProps {
+  data: AIIncidentManagementModel[];
+  isLoading?: boolean;
+  onEdit?: (id: string, mode: string) => void;
+  onView?: (id: string, mode: string) => void;
+  onArchive?: (id: string, mode: string) => void;
+  paginated?: boolean;
+  archivedId?: string | null;
+  hidePagination?: boolean;
   visibleColumns?: Set<string>;
 }

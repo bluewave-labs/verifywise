@@ -21,8 +21,10 @@ import {
   generatePolicyDOCX,
   generateFilename,
 } from "../services/policies/policyExporter";
-import mammoth from "mammoth";
-import sanitizeHtml from "sanitize-html";
+import {
+  convertDocxToHtml,
+  DOCX_ALLOWED_MIMES,
+} from "../services/policies/policyImporter";
 import {
   notifyReviewRequested,
   notifyReviewApproved,
@@ -30,6 +32,11 @@ import {
 } from "../services/inAppNotification.service";
 import { NotificationEntityType } from "../domain.layer/interfaces/i.notification";
 import logger from "../utils/logger/fileLogger";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 export class PolicyController {
   // Get all policies
@@ -276,59 +283,59 @@ export class PolicyController {
 
   // Import DOCX and convert to HTML
   static async importDocx(req: Request, res: Response) {
+    const userId = req.userId!;
+    const organizationId = req.organizationId!;
+
+    logProcessing({
+      description: "Starting DOCX import",
+      functionName: "importDocx",
+      fileName: "policy.ctrl.ts",
+      userId,
+      organizationId,
+    });
+
     try {
       if (!req.file) {
         return res.status(400).json(STATUS_CODE[400]("No file uploaded"));
       }
 
-      const allowedMimes = [
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/octet-stream",
-      ];
-      const hasDocxExtension = req.file.originalname?.toLowerCase().endsWith(".docx");
-      if (!allowedMimes.includes(req.file.mimetype) || !hasDocxExtension) {
-        return res.status(400).json(STATUS_CODE[400]("Only .docx files are supported"));
+      // Validate MIME type and file extension
+      const hasDocxExtension = req.file.originalname
+        ?.toLowerCase()
+        .endsWith(".docx");
+      if (
+        !DOCX_ALLOWED_MIMES.includes(
+          req.file.mimetype as (typeof DOCX_ALLOWED_MIMES)[number]
+        ) ||
+        !hasDocxExtension
+      ) {
+        return res
+          .status(400)
+          .json(STATUS_CODE[400]("Only .docx files are supported"));
       }
 
-      const result = await mammoth.convertToHtml(
-        { buffer: req.file.buffer },
-        {
-          styleMap: [
-            "p[style-name='Heading 1'] => h1:fresh",
-            "p[style-name='Heading 2'] => h2:fresh",
-            "p[style-name='Heading 3'] => h3:fresh",
-            "p[style-name='Heading 4'] => h3:fresh",
-            "p[style-name='Heading 5'] => h3:fresh",
-            "p[style-name='Heading 6'] => h3:fresh",
-          ],
-        }
-      );
+      const { html, warnings } = await convertDocxToHtml(req.file.buffer);
 
-      // Post-process: downgrade h4-h6 to h3, strip class attributes
-      let html = result.value;
-      html = html.replace(/<(\/?)h[456](\s|>)/gi, "<$1h3$2");
-      html = html.replace(/\s+class="[^"]*"/g, "");
-
-      // Server-side sanitization (defense-in-depth)
-      html = sanitizeHtml(html, {
-        allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-          "h1", "h2", "h3", "img", "sup", "sub", "u", "s",
-        ]),
-        allowedAttributes: {
-          ...sanitizeHtml.defaults.allowedAttributes,
-          img: ["src", "alt", "width", "height"],
-          a: ["href", "target", "rel"],
-        },
-        allowedSchemes: ["http", "https", "data"],
+      await logSuccess({
+        eventType: "Read",
+        description: `DOCX import completed (${warnings.length} warning(s))`,
+        functionName: "importDocx",
+        fileName: "policy.ctrl.ts",
+        userId,
+        organizationId,
       });
-
-      const warnings = result.messages
-        .filter((m) => m.type === "warning")
-        .map((m) => m.message);
 
       return res.status(200).json(STATUS_CODE[200]({ html, warnings }));
     } catch (error) {
-      logger.error("Error importing DOCX:", error as Error);
+      await logFailure({
+        eventType: "Read",
+        description: "Failed to import DOCX file",
+        functionName: "importDocx",
+        fileName: "policy.ctrl.ts",
+        error: error as Error,
+        userId,
+        organizationId,
+      });
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

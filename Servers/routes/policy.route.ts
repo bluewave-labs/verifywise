@@ -3,10 +3,11 @@ import { Router } from 'express';
 import { PolicyController } from '../controllers/policy.ctrl';
 import authenticateJWT from '../middleware/auth.middleware';
 import multer from 'multer';
+import { DOCX_MAX_FILE_SIZE_BYTES } from '../services/policies/policyImporter';
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  limits: { fileSize: DOCX_MAX_FILE_SIZE_BYTES },
 });
 
 const router = Router();

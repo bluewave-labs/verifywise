@@ -1458,6 +1458,159 @@ async function updateMigrationStatus(params: {
 }
 
 // ============================================================
+// COPY SHARED TABLES (public → verifywise)
+// ============================================================
+
+/**
+ * Copy non-tenant-scoped tables from public → verifywise.
+ * Must run BEFORE any query that reads from verifywise.organizations,
+ * since search_path resolves to verifywise first.
+ * Idempotent — uses ON CONFLICT DO NOTHING.
+ */
+async function copySharedTables(): Promise<{ tablesProcessed: number; rowsCopied: number }> {
+  const sharedTables = ['roles', 'organizations', 'users', 'tiers', 'subscriptions', 'subscription_history', 'frameworks'];
+  let tablesProcessed = 0;
+  let rowsCopied = 0;
+
+  // Default values by PostgreSQL type family (used when source has NULL but target is NOT NULL)
+  const NOT_NULL_DEFAULTS: Record<string, string> = {
+    'integer': '0', 'bigint': '0', 'smallint': '0', 'numeric': '0', 'real': '0', 'double precision': '0',
+    'character varying': "''", 'text': "''", 'character': "''",
+    'boolean': 'false',
+    'timestamp without time zone': 'NOW()', 'timestamp with time zone': 'NOW()',
+    'date': 'CURRENT_DATE',
+    'jsonb': "'{}'::jsonb", 'json': "'{}'::json",
+  };
+
+  console.log("  Copying shared tables from public → verifywise...");
+  const transaction = await sequelize.transaction();
+  try {
+    // Disable FK checks (users references organizations, etc.)
+    await sequelize.query(`SET session_replication_role = replica;`, { transaction });
+
+    for (const table of sharedTables) {
+      // Check source exists
+      const [srcCheck] = await sequelize.query(
+        `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = :table) as exists`,
+        { replacements: { table }, type: QueryTypes.SELECT, transaction }
+      ) as any[];
+      if (!srcCheck.exists) continue;
+
+      // Check target exists
+      const [tgtCheck] = await sequelize.query(
+        `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'verifywise' AND table_name = :table) as exists`,
+        { replacements: { table }, type: QueryTypes.SELECT, transaction }
+      ) as any[];
+      if (!tgtCheck.exists) continue;
+
+      // Get column metadata from both schemas
+      const srcColMeta = (await sequelize.query(
+        `SELECT column_name, data_type FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = :table ORDER BY ordinal_position`,
+        { replacements: { table }, type: QueryTypes.SELECT, transaction }
+      ) as any[]);
+      const srcColMap = new Map(srcColMeta.map(r => [r.column_name, r.data_type]));
+
+      const tgtColMeta = (await sequelize.query(
+        `SELECT column_name, data_type, is_nullable FROM information_schema.columns
+         WHERE table_schema = 'verifywise' AND table_name = :table ORDER BY ordinal_position`,
+        { replacements: { table }, type: QueryTypes.SELECT, transaction }
+      ) as any[]);
+      const tgtColMap = new Map(tgtColMeta.map(r => [r.column_name, { data_type: r.data_type, is_nullable: r.is_nullable }]));
+
+      // Only copy columns that exist in BOTH schemas
+      const commonCols = srcColMeta.filter(r => tgtColMap.has(r.column_name)).map(r => r.column_name);
+      if (commonCols.length === 0) continue;
+
+      // Build SELECT expressions with type casts and COALESCE for NOT NULL mismatches
+      const insertCols: string[] = [];
+      const selectExprs: string[] = [];
+      for (const col of commonCols) {
+        const srcType = srcColMap.get(col)!;
+        const tgt = tgtColMap.get(col)!;
+        const tgtType = tgt.data_type;
+        const tgtNullable = tgt.is_nullable === 'YES';
+
+        let expr = `"${col}"`;
+
+        // Cast if types differ
+        if (srcType !== tgtType) {
+          expr = `"${col}"::${tgtType}`;
+        }
+
+        // COALESCE if target is NOT NULL (source may have NULLs)
+        if (!tgtNullable) {
+          const defaultVal = NOT_NULL_DEFAULTS[tgtType] || "''";
+          expr = `COALESCE(${expr}, ${defaultVal})`;
+        }
+
+        insertCols.push(`"${col}"`);
+        selectExprs.push(expr);
+      }
+
+      const [countResult] = await sequelize.query(
+        `SELECT COUNT(*) as count FROM public."${table}"`,
+        { type: QueryTypes.SELECT, transaction }
+      ) as any[];
+      const count = parseInt(countResult.count, 10);
+      if (count === 0) continue;
+
+      // Get CHECK constraints to filter violating rows
+      const checkConstraints = (await sequelize.query(
+        `SELECT conname, pg_get_constraintdef(oid) as def
+         FROM pg_constraint
+         WHERE conrelid = 'verifywise."${table}"'::regclass AND contype = 'c'`,
+        { type: QueryTypes.SELECT, transaction }
+      ) as any[]);
+
+      // Build WHERE clause from CHECK constraints (rewrite column refs for source table)
+      let whereClause = '';
+      if (checkConstraints.length > 0) {
+        const checks = checkConstraints.map(c => `(${c.def.replace(/^CHECK\s*\(\(/, '(').replace(/\)\)$/, ')')})`);
+        whereClause = ` WHERE ${checks.join(' AND ')}`;
+      }
+
+      await sequelize.query(
+        `INSERT INTO verifywise."${table}" (${insertCols.join(', ')})
+         SELECT ${selectExprs.join(', ')} FROM public."${table}"${whereClause}
+         ON CONFLICT DO NOTHING`,
+        { transaction }
+      );
+
+      // Reset sequence so new inserts get correct IDs
+      if (commonCols.includes('id')) {
+        await sequelize.query(
+          `SELECT setval(pg_get_serial_sequence('verifywise."${table}"', 'id'), COALESCE((SELECT MAX(id) FROM verifywise."${table}"), 0))`,
+          { transaction }
+        );
+      }
+
+      const [insertedCount] = await sequelize.query(
+        `SELECT COUNT(*) as count FROM verifywise."${table}"`,
+        { type: QueryTypes.SELECT, transaction }
+      ) as any[];
+      const inserted = parseInt(insertedCount.count, 10);
+      if (inserted < count) {
+        console.log(`    ✓ ${table}: ${inserted}/${count} rows (${count - inserted} skipped — constraint violations)`);
+      } else {
+        console.log(`    ✓ ${table}: ${count} rows`);
+      }
+      tablesProcessed++;
+      rowsCopied += inserted;
+    }
+
+    await sequelize.query(`SET session_replication_role = DEFAULT;`, { transaction });
+    await transaction.commit();
+    console.log("  Shared tables copied successfully.\n");
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
+  }
+
+  return { tablesProcessed, rowsCopied };
+}
+
+// ============================================================
 // MAIN MIGRATION FUNCTION
 // ============================================================
 
@@ -1485,7 +1638,13 @@ export async function migrateToSharedSchema(options: {
   let rowsMigrated = 0;
 
   try {
-    // Get all organizations
+    // ── Step 1: Copy shared tables (public → verifywise) ──
+    // Must run first so verifywise.organizations has data for the org query below.
+    const { tablesProcessed: sharedTablesCount, rowsCopied: sharedRowsCount } = await copySharedTables();
+    tablesProcessed += sharedTablesCount;
+    rowsMigrated += sharedRowsCount;
+
+    // ── Step 2: Discover organizations (now from verifywise via search_path) ──
     const organizations = (await sequelize.query(
       `SELECT id, name FROM organizations ORDER BY id`,
       { type: QueryTypes.SELECT }
@@ -1497,8 +1656,8 @@ export async function migrateToSharedSchema(options: {
         success: true,
         status: "no_tenants",
         organizationsMigrated: 0,
-        tablesProcessed: 0,
-        rowsMigrated: 0,
+        tablesProcessed,
+        rowsMigrated,
         errors: [],
       };
     }
@@ -1521,65 +1680,6 @@ export async function migrateToSharedSchema(options: {
       // since seed data is a summary. Meta_id references are preserved as-is and will
       // be valid once the full struct data is loaded.
       await sequelize.query(`SET session_replication_role = replica;`, { transaction });
-
-      // ── Copy shared (non-tenant) tables from public → verifywise ──
-      // These tables are not tenant-scoped. They live in public and need to exist in verifywise.
-      const sharedTables = ['roles', 'organizations', 'users', 'tiers', 'subscriptions', 'subscription_history', 'frameworks'];
-      console.log("  Copying shared tables from public → verifywise...");
-      for (const table of sharedTables) {
-        // Check source exists
-        const [srcCheck] = await sequelize.query(
-          `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = :table) as exists`,
-          { replacements: { table }, type: QueryTypes.SELECT, transaction }
-        ) as any[];
-        if (!srcCheck.exists) continue;
-
-        // Check target exists
-        const [tgtCheck] = await sequelize.query(
-          `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'verifywise' AND table_name = :table) as exists`,
-          { replacements: { table }, type: QueryTypes.SELECT, transaction }
-        ) as any[];
-        if (!tgtCheck.exists) continue;
-
-        // Get common columns between source and target
-        const srcCols = (await sequelize.query(
-          `SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = :table ORDER BY ordinal_position`,
-          { replacements: { table }, type: QueryTypes.SELECT, transaction }
-        ) as any[]).map(r => r.column_name);
-        const tgtCols = new Set((await sequelize.query(
-          `SELECT column_name FROM information_schema.columns WHERE table_schema = 'verifywise' AND table_name = :table ORDER BY ordinal_position`,
-          { replacements: { table }, type: QueryTypes.SELECT, transaction }
-        ) as any[]).map(r => r.column_name));
-        const commonCols = srcCols.filter(c => tgtCols.has(c));
-        if (commonCols.length === 0) continue;
-
-        const colList = commonCols.map(c => `"${c}"`).join(', ');
-        const [countResult] = await sequelize.query(
-          `SELECT COUNT(*) as count FROM public."${table}"`,
-          { type: QueryTypes.SELECT, transaction }
-        ) as any[];
-        const count = parseInt(countResult.count, 10);
-        if (count === 0) continue;
-
-        await sequelize.query(
-          `INSERT INTO verifywise."${table}" (${colList})
-           SELECT ${colList} FROM public."${table}"
-           ON CONFLICT DO NOTHING`,
-          { transaction }
-        );
-
-        // Reset sequence so new inserts get correct IDs
-        if (commonCols.includes('id')) {
-          await sequelize.query(
-            `SELECT setval(pg_get_serial_sequence('verifywise."${table}"', 'id'), COALESCE((SELECT MAX(id) FROM verifywise."${table}"), 0))`,
-            { transaction }
-          );
-        }
-        console.log(`    ✓ ${table}: ${count} rows`);
-        tablesProcessed++;
-        rowsMigrated += count;
-      }
-      console.log("");
 
       // Global struct map for custom framework deduplication across orgs
       const globalStructMap: GlobalStructMap = {
@@ -1743,14 +1843,17 @@ export async function checkAndRunMigration(): Promise<MigrationResult> {
     };
   }
 
-  // Get all organizations from public schema (source of old data)
+  // Copy shared tables first so verifywise.organizations has data
+  await copySharedTables();
+
+  // Now query organizations from verifywise (via search_path)
   const organizations = (await sequelize.query(
     `SELECT id FROM organizations ORDER BY id`,
     { type: QueryTypes.SELECT }
   )) as { id: number }[];
 
   if (organizations.length === 0) {
-    console.log("ℹ️  No organizations found in public schema, skipping migration");
+    console.log("ℹ️  No organizations found, skipping migration");
     return {
       success: true,
       status: "no_tenants",

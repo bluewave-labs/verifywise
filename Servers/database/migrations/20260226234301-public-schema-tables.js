@@ -95,7 +95,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         CREATE TABLE verifywise.tiers (
           id SERIAL PRIMARY KEY,
-          name VARCHAR(10) NOT NULL CHECK (name IN ('Free', 'Team', 'Growth', 'Enterprise')),
+          name VARCHAR(50) NOT NULL,
           price INTEGER NOT NULL DEFAULT 0,
           features JSONB NOT NULL DEFAULT '{}',
           created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

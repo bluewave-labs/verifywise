@@ -888,7 +888,7 @@ module.exports = {
         request_id INTEGER NOT NULL REFERENCES verifywise.approval_requests(id) ON DELETE CASCADE,
         step_number INTEGER NOT NULL,
         step_name VARCHAR(255) NOT NULL,
-        status VARCHAR(50) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'In Progress', 'Approved', 'Rejected')),
+        status VARCHAR(50) NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed', 'Rejected')),
         date_assigned TIMESTAMP,
         date_completed TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW(),

@@ -1570,24 +1570,9 @@ async function copySharedTables(): Promise<{ tablesProcessed: number; rowsCopied
       const count = parseInt(countResult.count, 10);
       if (count === 0) continue;
 
-      // Get CHECK constraints to filter violating rows
-      const checkConstraints = (await sequelize.query(
-        `SELECT conname, pg_get_constraintdef(oid) as def
-         FROM pg_constraint
-         WHERE conrelid = 'verifywise."${table}"'::regclass AND contype = 'c'`,
-        { type: QueryTypes.SELECT, transaction }
-      ) as any[]);
-
-      // Build WHERE clause from CHECK constraints (rewrite column refs for source table)
-      let whereClause = '';
-      if (checkConstraints.length > 0) {
-        const checks = checkConstraints.map(c => `(${c.def.replace(/^CHECK\s*\(\(/, '(').replace(/\)\)$/, ')')})`);
-        whereClause = ` WHERE ${checks.join(' AND ')}`;
-      }
-
       await sequelize.query(
         `INSERT INTO verifywise."${table}" (${insertCols.join(', ')})
-         SELECT ${selectExprs.join(', ')} FROM public."${table}"${whereClause}
+         SELECT ${selectExprs.join(', ')} FROM public."${table}"
          ON CONFLICT DO NOTHING`,
         { transaction }
       );
@@ -1691,9 +1676,6 @@ export async function migrateToSharedSchema(options: {
 
     try {
       // Disable FK constraint checks during migration.
-      // Struct tables (controls_struct_eu, etc.) may have fewer rows than the old schema
-      // since seed data is a summary. Meta_id references are preserved as-is and will
-      // be valid once the full struct data is loaded.
       await sequelize.query(`SET session_replication_role = replica;`, { transaction });
 
       // Global struct map for custom framework deduplication across orgs

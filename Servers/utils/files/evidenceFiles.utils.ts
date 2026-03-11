@@ -13,6 +13,7 @@ import { QueryTypes } from "sequelize";
  * for backward compatibility with frontend
  */
 export interface EvidenceFile {
+  link_id?: number;
   id: string;
   fileName: string;
   project_id?: number;
@@ -33,6 +34,7 @@ export async function getEvidenceFilesForEntity(
 ): Promise<EvidenceFile[]> {
   const result = await sequelize.query(
     `SELECT
+      fel.id AS link_id,
       f.id::text AS id,
       f.filename AS "fileName",
       f.project_id,
@@ -210,6 +212,7 @@ export async function getEvidenceFilesForEntityTypes(
       map[entityType] = [];
     }
     map[entityType].push({
+      link_id: row.link_id,
       id: row.id,
       fileName: row.fileName,
       project_id: row.project_id,
@@ -237,7 +240,7 @@ export async function deleteFileEntityLinkById(
      RETURNING id`,
     {
       replacements: { linkId, organizationId },
-      type: QueryTypes.SELECT,
+      type: QueryTypes.DELETE,
       ...(transaction && { transaction }),
     }
   );

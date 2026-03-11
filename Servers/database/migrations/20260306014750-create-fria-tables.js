@@ -16,16 +16,14 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      console.log('Creating FRIA tables...');
-
       // ========================================
       // FRIA ASSESSMENTS
       // ========================================
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.fria_assessments (
+        CREATE TABLE fria_assessments (
           id SERIAL PRIMARY KEY,
-          organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
-          project_id INTEGER NOT NULL REFERENCES verifywise.projects(id) ON DELETE CASCADE,
+          organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+          project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
           version INTEGER NOT NULL DEFAULT 1,
           status VARCHAR(30) DEFAULT 'draft',
 
@@ -77,8 +75,8 @@ module.exports = {
           rights_flagged INTEGER DEFAULT 0,
 
           -- Metadata
-          created_by INTEGER NOT NULL REFERENCES verifywise.users(id),
-          updated_by INTEGER REFERENCES verifywise.users(id),
+          created_by INTEGER NOT NULL REFERENCES users(id),
+          updated_by INTEGER REFERENCES users(id),
           created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
           updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
 
@@ -87,20 +85,20 @@ module.exports = {
       `, { transaction });
 
       await queryInterface.sequelize.query(`
-        CREATE INDEX idx_fria_assessments_org ON verifywise.fria_assessments(organization_id);
+        CREATE INDEX idx_fria_assessments_org ON fria_assessments(organization_id);
       `, { transaction });
       await queryInterface.sequelize.query(`
-        CREATE INDEX idx_fria_assessments_project ON verifywise.fria_assessments(project_id);
+        CREATE INDEX idx_fria_assessments_project ON fria_assessments(project_id);
       `, { transaction });
 
       // ========================================
       // FRIA RIGHTS (Section 4: Fundamental rights matrix)
       // ========================================
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.fria_rights (
+        CREATE TABLE fria_rights (
           id SERIAL PRIMARY KEY,
-          organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
-          fria_id INTEGER NOT NULL REFERENCES verifywise.fria_assessments(id) ON DELETE CASCADE,
+          organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+          fria_id INTEGER NOT NULL REFERENCES fria_assessments(id) ON DELETE CASCADE,
           right_key VARCHAR(50) NOT NULL,
           right_title VARCHAR(255),
           charter_ref VARCHAR(100),
@@ -115,17 +113,17 @@ module.exports = {
       `, { transaction });
 
       await queryInterface.sequelize.query(`
-        CREATE INDEX idx_fria_rights_fria ON verifywise.fria_rights(fria_id);
+        CREATE INDEX idx_fria_rights_fria ON fria_rights(fria_id);
       `, { transaction });
 
       // ========================================
       // FRIA RISK ITEMS (Section 5: Risk register)
       // ========================================
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.fria_risk_items (
+        CREATE TABLE fria_risk_items (
           id SERIAL PRIMARY KEY,
-          organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
-          fria_id INTEGER NOT NULL REFERENCES verifywise.fria_assessments(id) ON DELETE CASCADE,
+          organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+          fria_id INTEGER NOT NULL REFERENCES fria_assessments(id) ON DELETE CASCADE,
           risk_description TEXT NOT NULL,
           likelihood VARCHAR(10),
           severity VARCHAR(10),
@@ -139,17 +137,17 @@ module.exports = {
       `, { transaction });
 
       await queryInterface.sequelize.query(`
-        CREATE INDEX idx_fria_risk_items_fria ON verifywise.fria_risk_items(fria_id);
+        CREATE INDEX idx_fria_risk_items_fria ON fria_risk_items(fria_id);
       `, { transaction });
 
       // ========================================
       // FRIA MODEL LINKS
       // ========================================
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.fria_model_links (
+        CREATE TABLE fria_model_links (
           id SERIAL PRIMARY KEY,
-          organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
-          fria_id INTEGER NOT NULL REFERENCES verifywise.fria_assessments(id) ON DELETE CASCADE,
+          organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+          fria_id INTEGER NOT NULL REFERENCES fria_assessments(id) ON DELETE CASCADE,
           model_id INTEGER NOT NULL,
 
           UNIQUE(fria_id, model_id)
@@ -160,29 +158,29 @@ module.exports = {
       // FRIA SNAPSHOTS (Versioning)
       // ========================================
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.fria_snapshots (
+        CREATE TABLE fria_snapshots (
           id SERIAL PRIMARY KEY,
-          organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
-          fria_id INTEGER NOT NULL REFERENCES verifywise.fria_assessments(id) ON DELETE CASCADE,
+          organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+          fria_id INTEGER NOT NULL REFERENCES fria_assessments(id) ON DELETE CASCADE,
           version INTEGER NOT NULL,
           snapshot_data JSONB NOT NULL,
           snapshot_reason VARCHAR(255),
-          created_by INTEGER NOT NULL REFERENCES verifywise.users(id),
+          created_by INTEGER NOT NULL REFERENCES users(id),
           created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
         );
       `, { transaction });
 
       await queryInterface.sequelize.query(`
-        CREATE INDEX idx_fria_snapshots_fria ON verifywise.fria_snapshots(fria_id);
+        CREATE INDEX idx_fria_snapshots_fria ON fria_snapshots(fria_id);
       `, { transaction });
 
       // ========================================
       // FRIA CHANGE HISTORY
       // ========================================
       await queryInterface.sequelize.query(`
-        CREATE TABLE verifywise.fria_change_history (
+        CREATE TABLE fria_change_history (
           id SERIAL PRIMARY KEY,
-          organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+          organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
           fria_id INTEGER NOT NULL,
           action VARCHAR(20),
           field_name VARCHAR(255),
@@ -194,11 +192,10 @@ module.exports = {
       `, { transaction });
 
       await queryInterface.sequelize.query(`
-        CREATE INDEX idx_fria_change_history_fria ON verifywise.fria_change_history(fria_id);
+        CREATE INDEX idx_fria_change_history_fria ON fria_change_history(fria_id);
       `, { transaction });
 
       await transaction.commit();
-      console.log('FRIA tables created successfully.');
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -208,12 +205,12 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.fria_change_history;`, { transaction });
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.fria_snapshots;`, { transaction });
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.fria_model_links;`, { transaction });
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.fria_risk_items;`, { transaction });
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.fria_rights;`, { transaction });
-      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS verifywise.fria_assessments;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS fria_change_history;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS fria_snapshots;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS fria_model_links;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS fria_risk_items;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS fria_rights;`, { transaction });
+      await queryInterface.sequelize.query(`DROP TABLE IF EXISTS fria_assessments;`, { transaction });
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();

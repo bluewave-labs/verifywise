@@ -24,7 +24,7 @@ interface FriaVersionSnapshot {
   snapshot_reason: string | null;
   created_by_name: string | null;
   created_at: string;
-  snapshot_data: Record<string, any> | null;
+  snapshot_data: Record<string, unknown> | null;
 }
 
 interface FriaVersionHistoryProps {
@@ -61,8 +61,8 @@ const FriaVersionHistory = ({ friaId, currentVersion }: FriaVersionHistoryProps)
       try {
         const data = await friaRepository.getVersions(friaId);
         setVersions(Array.isArray(data) ? data : []);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load version history");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load version history");
       } finally {
         setIsLoading(false);
       }

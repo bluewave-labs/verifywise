@@ -8,7 +8,6 @@ import Chip from "../../../../components/Chip";
 import {
   FriaAssessment,
   FriaRight,
-  FriaRiskItem,
 } from "../../../../../application/hooks/useFria";
 import FriaEvidenceButton from "../FriaEvidenceButton";
 import FriaSectionCard from "../FriaSectionCard";
@@ -17,7 +16,6 @@ import { EU_ACT_LINK } from "../friaConstants";
 interface SummarySectionProps {
   assessment: FriaAssessment;
   rights: FriaRight[];
-  riskItems: FriaRiskItem[];
   onUpdate: (data: Partial<FriaAssessment>) => void;
   isSaving: boolean;
 }

@@ -319,7 +319,6 @@ const FriaAssessment = ({ projectId }: FriaProps) => {
               <SummarySection
                 assessment={assessment}
                 rights={rights}
-                riskItems={riskItems}
                 onUpdate={updateAssessment}
                 isSaving={isSaving}
               />

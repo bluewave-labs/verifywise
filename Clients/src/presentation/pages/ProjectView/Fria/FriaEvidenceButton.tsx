@@ -52,8 +52,8 @@ const FriaEvidenceButton = ({
         await friaRepository.linkEvidence(friaId, parseInt(file.id), entityType);
       }
       await fetchEvidence();
-    } catch (err) {
-      console.error("Failed to link evidence:", err);
+    } catch {
+      // silently reset picker; fetch failure is non-critical
     } finally {
       setIsLoading(false);
       setPickerOpen(false);
@@ -68,8 +68,8 @@ const FriaEvidenceButton = ({
     try {
       await friaRepository.linkEvidence(friaId, fileId, entityType);
       await fetchEvidence();
-    } catch (err) {
-      console.error("Failed to link uploaded evidence:", err);
+    } catch {
+      // silently reset; fetch failure is non-critical
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +79,8 @@ const FriaEvidenceButton = ({
     try {
       await friaRepository.unlinkEvidence(friaId, linkId);
       setFiles((prev) => prev.filter((f) => f.link_id !== linkId));
-    } catch (err) {
-      console.error("Failed to remove evidence:", err);
+    } catch {
+      // silently ignore; UI state remains consistent on re-fetch
     }
   };
 

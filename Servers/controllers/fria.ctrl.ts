@@ -330,8 +330,18 @@ export async function updateFriaRights(req: Request, res: Response): Promise<Res
  * Get risk items for a FRIA.
  */
 export async function getRiskItems(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting getRiskItems",
+    functionName: "getRiskItems",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
 
     if (!friaId || isNaN(friaId)) {
@@ -341,6 +351,15 @@ export async function getRiskItems(req: Request, res: Response): Promise<Respons
     const items = await getFriaRiskItemsQuery(friaId, organizationId);
     return res.status(200).json(STATUS_CODE[200](items));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve FRIA risk items",
+      functionName: "getRiskItems",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -419,9 +438,18 @@ export async function addRiskItem(req: Request, res: Response): Promise<Response
  * Update a risk item.
  */
 export async function updateRiskItem(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting updateRiskItem",
+    functionName: "updateRiskItem",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const userId = req.userId!;
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const itemId = parseInt(req.params.itemId as string);
 
@@ -443,8 +471,26 @@ export async function updateRiskItem(req: Request, res: Response): Promise<Respo
       await updateFriaQuery(friaId, scores, organizationId, userId);
     }
 
+    await logSuccess({
+      eventType: "Update",
+      description: `Updated risk item ${itemId} in FRIA ${friaId}`,
+      functionName: "updateRiskItem",
+      fileName: FILE_NAME,
+      userId,
+      organizationId,
+    });
+
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
+    await logFailure({
+      eventType: "Update",
+      description: "Failed to update FRIA risk item",
+      functionName: "updateRiskItem",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -453,9 +499,18 @@ export async function updateRiskItem(req: Request, res: Response): Promise<Respo
  * Delete a risk item.
  */
 export async function deleteRiskItem(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting deleteRiskItem",
+    functionName: "deleteRiskItem",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const userId = req.userId!;
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const itemId = parseInt(req.params.itemId as string);
 
@@ -486,8 +541,26 @@ export async function deleteRiskItem(req: Request, res: Response): Promise<Respo
       });
     } catch {}
 
+    await logSuccess({
+      eventType: "Delete",
+      description: `Deleted risk item ${itemId} from FRIA ${friaId}`,
+      functionName: "deleteRiskItem",
+      fileName: FILE_NAME,
+      userId,
+      organizationId,
+    });
+
     return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
   } catch (error) {
+    await logFailure({
+      eventType: "Delete",
+      description: "Failed to delete FRIA risk item",
+      functionName: "deleteRiskItem",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -496,8 +569,18 @@ export async function deleteRiskItem(req: Request, res: Response): Promise<Respo
  * Get linked models for a FRIA.
  */
 export async function getModelLinks(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting getModelLinks",
+    functionName: "getModelLinks",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
 
     if (!friaId || isNaN(friaId)) {
@@ -507,6 +590,15 @@ export async function getModelLinks(req: Request, res: Response): Promise<Respon
     const links = await getFriaModelLinksQuery(friaId, organizationId);
     return res.status(200).json(STATUS_CODE[200](links));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve FRIA model links",
+      functionName: "getModelLinks",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -515,8 +607,18 @@ export async function getModelLinks(req: Request, res: Response): Promise<Respon
  * Link a model to a FRIA.
  */
 export async function linkModel(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting linkModel",
+    functionName: "linkModel",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const modelId = parseInt(req.params.modelId as string);
 
@@ -525,8 +627,27 @@ export async function linkModel(req: Request, res: Response): Promise<Response> 
     }
 
     const link = await linkModelToFriaQuery(friaId, modelId, organizationId);
+
+    await logSuccess({
+      eventType: "Create",
+      description: `Linked model ${modelId} to FRIA ${friaId}`,
+      functionName: "linkModel",
+      fileName: FILE_NAME,
+      userId,
+      organizationId,
+    });
+
     return res.status(201).json(STATUS_CODE[201](link));
   } catch (error) {
+    await logFailure({
+      eventType: "Create",
+      description: "Failed to link model to FRIA",
+      functionName: "linkModel",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -535,8 +656,18 @@ export async function linkModel(req: Request, res: Response): Promise<Response> 
  * Unlink a model from a FRIA.
  */
 export async function unlinkModel(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting unlinkModel",
+    functionName: "unlinkModel",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const modelId = parseInt(req.params.modelId as string);
 
@@ -545,8 +676,27 @@ export async function unlinkModel(req: Request, res: Response): Promise<Response
     }
 
     await unlinkModelFromFriaQuery(friaId, modelId, organizationId);
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `Unlinked model ${modelId} from FRIA ${friaId}`,
+      functionName: "unlinkModel",
+      fileName: FILE_NAME,
+      userId,
+      organizationId,
+    });
+
     return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
   } catch (error) {
+    await logFailure({
+      eventType: "Delete",
+      description: "Failed to unlink model from FRIA",
+      functionName: "unlinkModel",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -656,8 +806,18 @@ export async function submitFria(req: Request, res: Response): Promise<Response>
  * Get all version snapshots for a FRIA.
  */
 export async function getVersions(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting getVersions",
+    functionName: "getVersions",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
 
     if (!friaId || isNaN(friaId)) {
@@ -667,6 +827,15 @@ export async function getVersions(req: Request, res: Response): Promise<Response
     const versions = await getFriaSnapshotsQuery(friaId, organizationId);
     return res.status(200).json(STATUS_CODE[200](versions));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve FRIA version snapshots",
+      functionName: "getVersions",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -675,8 +844,18 @@ export async function getVersions(req: Request, res: Response): Promise<Response
  * Get a specific version snapshot.
  */
 export async function getVersion(req: Request, res: Response): Promise<Response> {
+  const userId = req.userId!;
+  const organizationId = req.organizationId!;
+
+  logProcessing({
+    description: "starting getVersion",
+    functionName: "getVersion",
+    fileName: FILE_NAME,
+    userId,
+    organizationId,
+  });
+
   try {
-    const organizationId = req.organizationId!;
     const friaId = parseInt(req.params.friaId as string);
     const version = parseInt(req.params.version as string);
 
@@ -691,6 +870,15 @@ export async function getVersion(req: Request, res: Response): Promise<Response>
 
     return res.status(200).json(STATUS_CODE[200](snapshot));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve FRIA version snapshot",
+      functionName: "getVersion",
+      fileName: FILE_NAME,
+      error: error as Error,
+      userId,
+      organizationId,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

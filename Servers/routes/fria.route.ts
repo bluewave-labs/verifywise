@@ -24,10 +24,7 @@ const router = express.Router();
 
 router.use(authenticateJWT);
 
-// Assessment CRUD
-router.get("/:projectId", getFria);
-router.put("/:projectId", authorize(["Admin", "Editor"]), updateFria);
-
+// Sub-resource routes (2+ segments) registered BEFORE bare /:projectId to avoid shadowing
 // Rights matrix
 router.put("/:friaId/rights", authorize(["Admin", "Editor"]), updateFriaRights);
 
@@ -51,5 +48,9 @@ router.delete("/:friaId/evidence/:linkId", authorize(["Admin", "Editor"]), unlin
 router.post("/:friaId/submit", authorize(["Admin", "Editor"]), submitFria);
 router.get("/:friaId/versions", getVersions);
 router.get("/:friaId/versions/:version", getVersion);
+
+// Assessment CRUD — bare /:projectId registered LAST so it cannot shadow sub-resource routes
+router.get("/:projectId", getFria);
+router.put("/:projectId", authorize(["Admin", "Editor"]), updateFria);
 
 export default router;

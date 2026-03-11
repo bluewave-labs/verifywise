@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import { type FC, useRef, useState, useEffect, useCallback } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
@@ -11,7 +11,7 @@ interface EmptyStateTipProps {
 
 /**
  * Collapsible tip block for empty states.
- * Uses native <details> for accessible expand/collapse.
+ * Uses native <details> with animated height transition.
  */
 const EmptyStateTip: FC<EmptyStateTipProps> = ({
   icon: Icon,
@@ -19,25 +19,44 @@ const EmptyStateTip: FC<EmptyStateTipProps> = ({
   description,
 }) => {
   const theme = useTheme();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [description]);
+
+  const handleToggle = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const details = detailsRef.current;
+    if (!details) return;
+
+    if (isOpen) {
+      setIsOpen(false);
+      setTimeout(() => { details.open = false; }, 200);
+    } else {
+      details.open = true;
+      requestAnimationFrame(() => setIsOpen(true));
+    }
+  }, [isOpen]);
 
   return (
     <Box
       component="details"
+      ref={detailsRef}
       sx={{
         border: `1px solid ${theme.palette.border.light}`,
         borderRadius: "4px",
         overflow: "hidden",
-        "&[open] .tip-chevron": {
-          transform: "rotate(90deg)",
-        },
-        "&[open] .tip-summary": {
-          borderBottom: `1px solid ${theme.palette.border.light}`,
-        },
       }}
     >
       <Box
         component="summary"
-        className="tip-summary"
+        onClick={handleToggle}
         sx={{
           display: "flex",
           alignItems: "center",
@@ -47,7 +66,10 @@ const EmptyStateTip: FC<EmptyStateTipProps> = ({
           listStyle: "none",
           userSelect: "none",
           backgroundColor: theme.palette.background.main,
-          transition: "background-color 150ms ease",
+          borderBottom: isOpen
+            ? `1px solid ${theme.palette.border.light}`
+            : "1px solid transparent",
+          transition: "background-color 150ms ease, border-color 200ms ease",
           "&:hover": {
             backgroundColor: theme.palette.background.fill,
           },
@@ -80,27 +102,40 @@ const EmptyStateTip: FC<EmptyStateTipProps> = ({
           {title}
         </Typography>
         <ChevronRight
-          className="tip-chevron"
           size={14}
           color={theme.palette.text.tertiary}
-          style={{ transition: "transform 150ms ease", flexShrink: 0 }}
+          style={{
+            transition: "transform 200ms ease",
+            flexShrink: 0,
+            transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
+          }}
         />
       </Box>
       <Box
         sx={{
-          padding: "12px 14px 12px 52px",
-          backgroundColor: theme.palette.background.main,
+          height: isOpen ? contentHeight : 0,
+          opacity: isOpen ? 1 : 0,
+          overflow: "hidden",
+          transition: "height 200ms ease, opacity 200ms ease",
         }}
       >
-        <Typography
+        <Box
+          ref={contentRef}
           sx={{
-            fontSize: 12,
-            color: theme.palette.text.secondary,
-            lineHeight: 1.6,
+            padding: "12px 14px 12px 52px",
+            backgroundColor: theme.palette.background.main,
           }}
         >
-          {description}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: 13,
+              color: theme.palette.text.secondary,
+              lineHeight: 1.6,
+            }}
+          >
+            {description}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

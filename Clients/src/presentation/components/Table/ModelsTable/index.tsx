@@ -13,10 +13,11 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, Cpu } from "lucide-react";
+import { ChevronsUpDown, Cpu, Zap, RefreshCw, Key } from "lucide-react";
 import ModelsTableHead from "./ModelsTableHead";
 import ModelsTableBody from "./ModelsTableBody";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import {
     getPaginationRowCount,
     setPaginationRowCount,
@@ -211,7 +212,23 @@ const ModelsTable: React.FC<ModelsTableProps> = ({
                     <TableBody>
                         <TableRow>
                             <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                                <EmptyState icon={Cpu} message="No models found. Model preferences are automatically saved when you run an experiment." />
+                                <EmptyState icon={Cpu} message="No models found. Model preferences are automatically saved when you run an experiment.">
+                                    <EmptyStateTip
+                                        icon={Zap}
+                                        title="How models get added"
+                                        description="Models appear here automatically after you run an experiment. Each model's provider, name, and parameters are saved for reuse."
+                                    />
+                                    <EmptyStateTip
+                                        icon={Key}
+                                        title="Configure API keys first"
+                                        description="Make sure your API keys are set up in settings before running experiments. Models need valid credentials to generate responses."
+                                    />
+                                    <EmptyStateTip
+                                        icon={RefreshCw}
+                                        title="Reuse model configurations"
+                                        description="Once a model appears here, you can select it again in future experiments without re-entering the configuration."
+                                    />
+                                </EmptyState>
                             </TableCell>
                         </TableRow>
                     </TableBody>

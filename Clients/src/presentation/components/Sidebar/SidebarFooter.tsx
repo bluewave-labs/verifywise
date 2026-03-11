@@ -1017,7 +1017,7 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                 </Typography>
 
                 <ListItemButton
-                  onClick={() => setDarkMode((prev) => !prev)}
+                  onClick={() => { setDarkMode((prev) => !prev); closePopup(); }}
                   sx={{
                     height: "32px",
                     gap: theme.spacing(4),

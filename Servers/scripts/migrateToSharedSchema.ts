@@ -261,6 +261,21 @@ async function migrateTable(
     return { sourceCount: 0, migratedCount: 0 };
   }
 
+  // Check for NOT NULL target columns that are missing from source (would cause insert failure)
+  const sourceColumnSet = new Set(sourceColumns);
+  const notNullMissing = (await sequelize.query(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_schema = 'verifywise' AND table_name = :tableName
+       AND is_nullable = 'NO' AND column_default IS NULL
+       AND column_name != 'id' AND column_name != 'organization_id'`,
+    { replacements: { tableName: targetTableName }, type: QueryTypes.SELECT, transaction }
+  ) as any[]).filter(r => !sourceColumnSet.has(r.column_name)).map(r => r.column_name);
+
+  if (notNullMissing.length > 0) {
+    console.log(`    ⊘ ${tableName}: skipping — target has NOT NULL columns missing from source: ${notNullMissing.join(', ')}`);
+    return { sourceCount, migratedCount: 0 };
+  }
+
   // Check if target has organization_id
   const hasOrgId = await hasOrganizationIdColumn(targetTableName, transaction);
 

@@ -333,6 +333,20 @@ async def migrate_table(
         print(f"    ⊘ {table_name}: no common columns between tenant and verifywise schema")
         return result
 
+    # Check for NOT NULL target columns missing from source (would cause insert failure)
+    source_column_set = set(source_columns)
+    not_null_check = await session.execute(
+        text("""SELECT column_name FROM information_schema.columns
+                WHERE table_schema = 'verifywise' AND table_name = :table_name
+                  AND is_nullable = 'NO' AND column_default IS NULL
+                  AND column_name NOT IN ('id', 'organization_id')"""),
+        {"table_name": table_name}
+    )
+    not_null_missing = [r[0] for r in not_null_check.fetchall() if r[0] not in source_column_set]
+    if not_null_missing:
+        print(f"    ⊘ {table_name}: skipping — target has NOT NULL columns missing from source: {', '.join(not_null_missing)}")
+        return result
+
     # Check if target has organization_id
     has_org_id = await has_organization_id_column(session, table_name)
 

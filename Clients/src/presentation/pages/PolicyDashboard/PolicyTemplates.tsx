@@ -28,8 +28,9 @@ const tableHeaders = [
 type PolicyTemplateColumnKey = "title" | "id" | "tags" | "description" | "actions";
 
 const POLICY_TEMPLATE_TABLE_COLUMNS: ColumnConfig<PolicyTemplateColumnKey>[] = [
-  { key: "title", label: "Title", defaultVisible: true, alwaysVisible: true },
+  
   { key: "id", label: "ID", defaultVisible: true },
+  { key: "title", label: "Title", defaultVisible: true, alwaysVisible: true },
   { key: "tags", label: "Tags", defaultVisible: true },
   { key: "description", label: "Description", defaultVisible: true },
   { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true } as ColumnConfig<"actions">, // Add actions column config

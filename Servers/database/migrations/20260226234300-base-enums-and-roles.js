@@ -329,7 +329,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         DO $$ BEGIN
           CREATE TYPE verifywise.enum_model_inventories_status AS ENUM (
-            'Approved', 'Restricted', 'Pending', 'Blocked'
+            'Approved', 'Restricted', 'Pending', 'Blocked', 'Rejected'
           );
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;

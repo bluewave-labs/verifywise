@@ -36,6 +36,7 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ src, alt, caption, onClos
 
   return (
     <div
+      className="confirmation-backdrop"
       onClick={handleBackdropClick}
       style={{
         position: 'fixed',
@@ -83,6 +84,8 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ src, alt, caption, onClos
 
       {/* Image container */}
       <div
+        role="dialog"
+        aria-modal="true"
         style={{
           maxWidth: '90vw',
           maxHeight: '90vh',

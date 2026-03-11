@@ -16,10 +16,11 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Building2, ShieldCheck, FileSearch, AlertCircle } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -545,9 +546,26 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     <>
       {!sortedVendors || sortedVendors.length === 0 ? (
         <EmptyState
-          message="There is currently no data in this table."
+          icon={Building2}
+          message="No vendors registered yet. Track third-party AI providers and assess their risk."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={ShieldCheck}
+            title="Assess vendor risk tiers"
+            description="Classify each vendor as low, medium, or high risk based on data access, system criticality, and contractual protections."
+          />
+          <EmptyStateTip
+            icon={FileSearch}
+            title="Track contracts and assessments"
+            description="Record contract dates and last assessment dates. Keep track of when renewals and reassessments are due."
+          />
+          <EmptyStateTip
+            icon={AlertCircle}
+            title="Common AI vendors to register"
+            description="OpenAI, Anthropic, Google Cloud AI, AWS Bedrock, Microsoft Azure AI, Hugging Face, and any custom ML service providers you use."
+          />
+        </EmptyState>
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>

@@ -13,10 +13,11 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Database, Upload, FileText, ClipboardCheck } from "lucide-react";
 import DatasetsTableHead from "./DatasetsTableHead";
 import DatasetsTableBody from "./DatasetsTableBody";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
@@ -258,7 +259,23 @@ const DatasetsTable: React.FC<DatasetsTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message={emptyMessage} />
+                <EmptyState icon={Database} message={emptyMessage}>
+                  <EmptyStateTip
+                    icon={Upload}
+                    title="Upload evaluation data"
+                    description="Upload CSV or JSONL files containing prompts and expected responses. These are used to evaluate model performance across experiments."
+                  />
+                  <EmptyStateTip
+                    icon={FileText}
+                    title="Structure your datasets"
+                    description="Each dataset should have a clear prompt column and an expected output column. Add metadata columns for filtering results later."
+                  />
+                  <EmptyStateTip
+                    icon={ClipboardCheck}
+                    title="Reuse across experiments"
+                    description="Once uploaded, datasets can be used across multiple evaluation runs to compare different models or prompt strategies."
+                  />
+                </EmptyState>
               </TableCell>
             </TableRow>
           </TableBody>

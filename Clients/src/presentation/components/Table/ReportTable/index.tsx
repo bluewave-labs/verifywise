@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { EmptyState } from "../../EmptyState";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, FileBarChart } from "lucide-react";
 import TablePaginationActions from "../../TablePagination";
 const ReportTableBody = lazy(() => import("./TableBody"));
 import {
@@ -365,7 +365,7 @@ const ReportTable: React.FC<IReportTablePropsExtended> = ({
                       colSpan={visibleColumnList.length}
                       sx={{ border: "none", p: 0 }}
                     >
-                      <EmptyState message="There is currently no data in this table." />
+                      <EmptyState icon={FileBarChart} message="There is currently no data in this table." />
                     </TableCell>
                   </TableRow>
                 </TableBody>

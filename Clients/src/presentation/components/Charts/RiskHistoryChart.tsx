@@ -4,6 +4,7 @@ import { LineChart } from "@mui/x-charts/LineChart";
 import { getRiskTimeseries } from "../../../application/repository/riskHistory.repository";
 import { ButtonToggle } from "../button-toggle";
 import CustomizableSkeleton from "../Skeletons";
+import { TrendingUp } from "lucide-react";
 import { EmptyState } from "../EmptyState";
 
 interface RiskHistoryChartProps {
@@ -200,6 +201,7 @@ export function RiskHistoryChart({
       <EmptyState
         message="There is no historical data here"
         showBorder={true}
+        icon={TrendingUp}
       />
     );
   }

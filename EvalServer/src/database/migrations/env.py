@@ -61,6 +61,15 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 def do_run_migrations(connection):
+    from sqlalchemy import text
+    # Ensure verifywise schema exists (EvalServer may start before main server)
+    connection.execute(text("CREATE SCHEMA IF NOT EXISTS verifywise"))
+    # Previous EvalServer versions tracked migrations in public.alembic_version.
+    # Now we use verifywise.alembic_version (version_table_schema="verifywise").
+    # Drop the old one — its composite type conflicts with creating the new one.
+    connection.execute(text("DROP TABLE IF EXISTS public.alembic_version CASCADE"))
+    connection.commit()
+
     context.configure(
         connection=connection,
         target_metadata=target_metadata,

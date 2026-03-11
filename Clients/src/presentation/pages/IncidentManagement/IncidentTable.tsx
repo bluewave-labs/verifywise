@@ -16,8 +16,9 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle, FileWarning, ClipboardList, Bell } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -470,7 +471,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
               align="center"
               sx={{ border: "none", p: 0 }}
             >
-              <EmptyState message="No incidents found." />
+              <EmptyState icon={AlertTriangle} message="No incidents found." />
             </TableCell>
           </TableRow>
         )}
@@ -492,7 +493,25 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
   }
 
   if (!sortedData || sortedData.length === 0) {
-    return <EmptyState message="There is currently no data in this table." />;
+    return (
+      <EmptyState icon={AlertTriangle} message="No incidents reported yet. Track and manage AI-related incidents to maintain compliance.">
+        <EmptyStateTip
+          icon={FileWarning}
+          title="What counts as an incident?"
+          description="Any unintended AI behavior, data breach, biased output, system outage, or safety concern. Log them early, even if minor."
+        />
+        <EmptyStateTip
+          icon={ClipboardList}
+          title="Document root cause and response"
+          description="Record what happened, why it happened, the impact, and what corrective actions were taken. This builds your incident response history."
+        />
+        <EmptyStateTip
+          icon={Bell}
+          title="Assign owners and track resolution"
+          description="Assign each incident to a responsible person and track it through to resolution. A clear ownership chain speeds up response times."
+        />
+      </EmptyState>
+    );
   }
 
   return (

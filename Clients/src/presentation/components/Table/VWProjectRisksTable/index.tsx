@@ -14,7 +14,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert } from "lucide-react";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
 import { EmptyState } from "../../EmptyState";
 import { IVWProjectRisksTable } from "../../../types/interfaces/i.risk";
@@ -352,7 +352,7 @@ const VWProjectRisksTable = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={filteredColumns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message="There is currently no data in this table." />
+                <EmptyState icon={ShieldAlert} message="There is currently no data in this table." />
               </TableCell>
             </TableRow>
           </TableBody>

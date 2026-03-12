@@ -16,10 +16,11 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import IconButton from "../../IconButton";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, Building2, ShieldCheck, FileSearch, AlertCircle } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -138,6 +139,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   onEdit,
   hidePagination = false,
   vendorRisks = [],
+  visibleColumns,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
@@ -194,6 +196,22 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
+
+  const isVisible = useCallback(
+    (key: string) => {
+      if (!visibleColumns) return true;
+      return visibleColumns.has(key);
+    },
+    [visibleColumns]
+  );
+
+  const visibleTableColumns = useMemo(
+    () =>
+      titleOfTableColumns.filter(
+        (col) => col.id === "vendor_name" || col.id === "actions" || isVisible(col.id)
+      ),
+    [isVisible]
+  );
 
   // Sorting handlers
   const handleSort = useCallback((columnId: string) => {
@@ -368,7 +386,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                     showName={true}
                   />
                 </TableCell>
-                <TableCell
+                {isVisible("assignee") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -381,8 +399,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                           user._id === row.assignee
                       )?.name || "Unassigned"
                     : "Unassigned"}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("review_status") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -392,8 +410,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   }}
                 >
                   {row.review_status}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("risk") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -418,8 +436,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       </Typography>
                     );
                   })()}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("scorecard") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -467,8 +485,8 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                       );
                     })()}
                   </Box>
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("review_date") && <TableCell
                   sx={{
                     ...cellStyle,
                     backgroundColor:
@@ -478,7 +496,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
                   {row.review_date
                     ? displayFormattedDate(row.review_date.toString())
                     : "No review date"}
-                </TableCell>
+                </TableCell>}
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
@@ -520,6 +538,7 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
       sortConfig.key,
       getVendorRiskCount,
       hidePagination,
+      isVisible,
     ]
   );
 
@@ -527,14 +546,31 @@ const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
     <>
       {!sortedVendors || sortedVendors.length === 0 ? (
         <EmptyState
-          message="There is currently no data in this table."
+          icon={Building2}
+          message="No vendors registered yet. Track third-party AI providers and assess their risk."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={ShieldCheck}
+            title="Assess vendor risk tiers"
+            description="Classify each vendor as low, medium, or high risk based on data access, system criticality, and contractual protections."
+          />
+          <EmptyStateTip
+            icon={FileSearch}
+            title="Track contracts and assessments"
+            description="Record contract dates and last assessment dates. Keep track of when renewals and reassessments are due."
+          />
+          <EmptyStateTip
+            icon={AlertCircle}
+            title="Common AI vendors to register"
+            description="OpenAI, Anthropic, Google Cloud AI, AWS Bedrock, Microsoft Azure AI, Hugging Face, and any custom ML service providers you use."
+          />
+        </EmptyState>
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>
             <SortableTableHead
-              columns={titleOfTableColumns}
+              columns={visibleTableColumns}
               sortConfig={sortConfig}
               onSort={handleSort}
             />

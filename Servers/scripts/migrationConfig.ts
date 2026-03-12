@@ -524,8 +524,20 @@ export const STRUCT_REFERENCES = [
  * that handle special ID mapping (e.g., struct ID remapping).
  */
 export const SKIP_TABLES = [
-  // NOTE: nist_ai_rmf_subcategories is handled by general migration
-  // (STRUCT_REFERENCES preserves meta_id, FK_MAPPINGS remaps projects_frameworks_id)
+  // LLM Evals tables — owned by EvalServer (Alembic), schema mismatch with old tenant tables
+  'llm_evals_organizations',
+  'llm_evals_api_keys',
+  'llm_evals_org_members',
+  'llm_evals_projects',
+  'llm_evals_datasets',
+  'llm_evals_models',
+  'llm_evals_scorers',
+  'llm_evals_experiments',
+  'llm_evals_bias_audits',
+  'llm_evals_arena_comparisons',
+  'llm_evals_logs',
+  'llm_evals_metrics',
+  'llm_evals_bias_audit_results',
   // NIST AI RMF tables — old schema has different structure (inline data vs struct/impl split)
   // Handled by migrateNistAiRmfData() which matches old rows to struct entries
   'nist_ai_rmf_subcategories',

@@ -19,6 +19,7 @@ import {
     ChevronUp,
     ChevronDown,
     ChevronsUpDown,
+    Link2,
 } from "lucide-react";
 import CustomIconButton from "../../components/IconButton";
 import { FileIcon } from "../../components/FileIcon";
@@ -411,7 +412,7 @@ const LinkedObjectsTable: React.FC<LinkedObjectsTableProps> = ({
                             colSpan={TABLE_COLUMNS.filter(c => !(c.id === "due_date" && type !== "risk")).length}
                             align="center"
                             >
-                            <EmptyState message="No linked items found." />
+                            <EmptyState message="No linked items found." icon={Link2} />
                         </TableCell>
                     </TableRow>
                 )}

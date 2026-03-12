@@ -25,6 +25,7 @@ WHAT THIS SCRIPT DOES:
 
 import os
 import sys
+import json
 import hashlib
 import argparse
 import asyncio
@@ -333,6 +334,20 @@ async def migrate_table(
         print(f"    ⊘ {table_name}: no common columns between tenant and verifywise schema")
         return result
 
+    # Check for NOT NULL target columns missing from source (would cause insert failure)
+    source_column_set = set(source_columns)
+    not_null_check = await session.execute(
+        text("""SELECT column_name FROM information_schema.columns
+                WHERE table_schema = 'verifywise' AND table_name = :table_name
+                  AND is_nullable = 'NO' AND column_default IS NULL
+                  AND column_name NOT IN ('id', 'organization_id')"""),
+        {"table_name": table_name}
+    )
+    not_null_missing = [r[0] for r in not_null_check.fetchall() if r[0] not in source_column_set]
+    if not_null_missing:
+        print(f"    ⊘ {table_name}: skipping — target has NOT NULL columns missing from source: {', '.join(not_null_missing)}")
+        return result
+
     # Check if target has organization_id
     has_org_id = await has_organization_id_column(session, table_name)
 
@@ -397,6 +412,12 @@ async def migrate_table(
 
         # Filter to only columns that exist in values_dict
         target_columns = [c for c in target_columns if c in values_dict or c == "organization_id"]
+
+        # Serialize dict/list values to JSON strings (asyncpg can't encode raw dicts for JSONB)
+        for col in target_columns:
+            val = values_dict.get(col)
+            if isinstance(val, (dict, list)):
+                values_dict[col] = json.dumps(val)
 
         column_list = ", ".join(f'"{c}"' for c in target_columns)
         placeholder_list = ", ".join(f":{c}" for c in target_columns)
@@ -676,64 +697,78 @@ async def migrate_to_shared_schema(
 async def check_and_run_migration(database_url: str) -> MigrationResult:
     """
     Check and run migration on server startup.
-    This is the main entry point for automatic migration.
+    Uses a PostgreSQL advisory lock so only one worker runs the migration
+    while others wait and then see "already_completed".
     """
+    # Advisory lock ID — unique constant for EvalServer data migration
+    MIGRATION_LOCK_ID = 8675309
+
     engine = create_async_engine(database_url)
     Session = async_sessionmaker(engine, expire_on_commit=False)
 
     try:
-        async with Session() as session:
-            # Ensure migration status table exists
-            await ensure_migration_status_table(session)
+        # Use a dedicated connection for the advisory lock so it spans the entire migration
+        async with engine.connect() as lock_conn:
+            # Acquire advisory lock — blocks until available (one worker at a time)
+            await lock_conn.execute(text(f"SELECT pg_advisory_lock({MIGRATION_LOCK_ID})"))
 
-            # Check current migration status
-            status = await get_migration_status(session)
+            try:
+                async with Session() as session:
+                    # Ensure migration status table exists
+                    await ensure_migration_status_table(session)
 
-            # If migration already completed, skip
-            if status and status.get("status") == "completed":
-                return MigrationResult(
-                    success=True,
-                    status="already_completed",
-                    organizations_migrated=status.get("organizations_migrated", 0)
+                    # Check current migration status
+                    status = await get_migration_status(session)
+
+                    # If migration already completed, skip
+                    if status and status.get("status") == "completed":
+                        return MigrationResult(
+                            success=True,
+                            status="already_completed",
+                            organizations_migrated=status.get("organizations_migrated", 0)
+                        )
+
+                    # Check if any tenant schemas exist
+                    org_result = await session.execute(
+                        text("SELECT id FROM public.organizations ORDER BY id")
+                    )
+                    organizations = [row[0] for row in org_result.fetchall()]
+
+                    if not organizations:
+                        return MigrationResult(success=True, status="no_tenants")
+
+                    tenants_exist = False
+                    for org_id in organizations:
+                        tenant_hash = get_tenant_hash(org_id)
+                        if await schema_exists(session, tenant_hash):
+                            tenants_exist = True
+                            break
+
+                    if not tenants_exist:
+                        # Mark as completed since there's nothing to migrate
+                        await update_migration_status(
+                            session,
+                            status="completed",
+                            organizations_migrated=0,
+                            organizations_total=len(organizations)
+                        )
+                        print("No tenant schemas found, marking migration as complete")
+                        return MigrationResult(success=True, status="no_tenants")
+
+                # Run the migration while still holding the lock
+                print("\nStarting EvalServer tenant-to-shared-schema migration...")
+                return await migrate_to_shared_schema(
+                    database_url,
+                    drop_schemas_after=False,
+                    dry_run=False
                 )
 
-            # Check if any tenant schemas exist
-            org_result = await session.execute(
-                text("SELECT id FROM public.organizations ORDER BY id")
-            )
-            organizations = [row[0] for row in org_result.fetchall()]
-
-            if not organizations:
-                return MigrationResult(success=True, status="no_tenants")
-
-            tenants_exist = False
-            for org_id in organizations:
-                tenant_hash = get_tenant_hash(org_id)
-                if await schema_exists(session, tenant_hash):
-                    tenants_exist = True
-                    break
-
-            if not tenants_exist:
-                # Mark as completed since there's nothing to migrate
-                await update_migration_status(
-                    session,
-                    status="completed",
-                    organizations_migrated=0,
-                    organizations_total=len(organizations)
-                )
-                print("ℹ️  No tenant schemas found, marking migration as complete")
-                return MigrationResult(success=True, status="no_tenants")
+            finally:
+                # Release advisory lock so other workers can proceed
+                await lock_conn.execute(text(f"SELECT pg_advisory_unlock({MIGRATION_LOCK_ID})"))
 
     finally:
         await engine.dispose()
-
-    # Run the migration
-    print("\n🚀 Starting EvalServer tenant-to-shared-schema migration...")
-    return await migrate_to_shared_schema(
-        database_url,
-        drop_schemas_after=False,
-        dry_run=False
-    )
 
 
 # ============================================================

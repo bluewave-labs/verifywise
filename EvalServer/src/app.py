@@ -17,24 +17,6 @@ from database.config import settings
 import logging
 logger = logging.getLogger('uvicorn')
 
-def run_migrations():
-    logger.info("Running Alembic migrations...")
-    try:
-        import subprocess
-        result = subprocess.run(
-            ["alembic", "upgrade", "head"],
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
-        if result.returncode == 0:
-            logger.info("Alembic migrations completed successfully")
-        else:
-            logger.warning(f"Alembic migrations failed: {result.stderr}")
-    except subprocess.TimeoutExpired:
-        logger.warning("Alembic migrations timed out, continuing anyway")
-    except Exception as e:
-        logger.warning(f"Alembic migrations skipped or failed: {e}")
 
 
 async def run_data_migration():
@@ -121,7 +103,7 @@ async def cleanup_orphaned_experiments():
 
 @app.on_event("startup")
 async def startup_event():
-    run_migrations()
+    # Alembic migrations run once in Dockerfile/CLI before uvicorn starts workers.
     await run_data_migration()
     await cleanup_orphaned_experiments()
 

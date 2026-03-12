@@ -32,6 +32,8 @@ import {
   Sparkles,
   Telescope,
   X,
+  Moon,
+  Sun,
 } from "lucide-react";
 import Avatar from "../Avatar/VWAvatar";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -114,6 +116,16 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
   const [slideoverOpen, setSlideoverOpen] = useState(false);
   const [demoButtonHovered, setDemoButtonHovered] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
+
+  // Dark mode (CSS filter experiment)
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("vw_dark_mode") === "true";
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark-mode", darkMode);
+    localStorage.setItem("vw_dark_mode", String(darkMode));
+  }, [darkMode]);
 
   const user: User = users
     ? users.find((u: User) => u.id === userId) || DEFAULT_USER
@@ -986,6 +998,56 @@ const SidebarFooter: FC<SidebarFooterProps> = ({
                     <Typography sx={{ fontSize: "13px" }}>Give feedback</Typography>
                   </ListItemButton>
                 </Stack>
+              </Box>
+
+              {/* Appearance Section */}
+              <Box>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: theme.palette.text.disabled,
+                    letterSpacing: "0.5px",
+                    px: theme.spacing(4),
+                    pb: 1,
+                  }}
+                >
+                  APPEARANCE
+                </Typography>
+
+                <ListItemButton
+                  onClick={() => { setDarkMode((prev) => !prev); closePopup(); }}
+                  sx={{
+                    height: "32px",
+                    gap: theme.spacing(4),
+                    borderRadius: theme.shape.borderRadius,
+                    px: theme.spacing(4),
+                    "& svg": {
+                      color: theme.palette.text.tertiary,
+                      stroke: theme.palette.text.tertiary,
+                    },
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                    },
+                    "&:hover svg": {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                    "&:hover svg path": {
+                      stroke: "#13715B !important",
+                    },
+                  }}
+                >
+                  {darkMode ? (
+                    <Sun size={16} strokeWidth={1.5} />
+                  ) : (
+                    <Moon size={16} strokeWidth={1.5} />
+                  )}
+                  <Typography sx={{ fontSize: "13px" }}>
+                    {darkMode ? "Light mode" : "Dark mode"}
+                  </Typography>
+                </ListItemButton>
               </Box>
 
               <Divider sx={{ my: 1 }} />

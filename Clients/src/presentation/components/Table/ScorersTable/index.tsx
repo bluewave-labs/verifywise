@@ -13,10 +13,11 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Gauge, Ruler, Settings2, BarChart3 } from "lucide-react";
 import ScorersTableHead from "./ScorersTableHead";
 import ScorersTableBody from "./ScorersTableBody";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import {
   getPaginationRowCount,
   setPaginationRowCount,
@@ -251,7 +252,23 @@ const ScorersTable: React.FC<ScorersTableProps> = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message="No scorers found. Create a scorer to get started." />
+                <EmptyState icon={Gauge} message="No scorers found. Create a scorer to get started.">
+                  <EmptyStateTip
+                    icon={Ruler}
+                    title="What is a scorer?"
+                    description="A scorer defines how model outputs are graded. It can check for accuracy, relevance, tone, safety, or any custom criteria you set."
+                  />
+                  <EmptyStateTip
+                    icon={Settings2}
+                    title="Built-in and custom scorers"
+                    description="Use pre-built scorers for common checks like exact match or similarity, or write your own scoring logic for domain-specific needs."
+                  />
+                  <EmptyStateTip
+                    icon={BarChart3}
+                    title="Compare across runs"
+                    description="Apply the same scorers across different experiments to track how model quality changes over time or between configurations."
+                  />
+                </EmptyState>
               </TableCell>
             </TableRow>
           </TableBody>

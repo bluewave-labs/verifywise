@@ -10,11 +10,16 @@ import {
 import {
   CirclePlus as AddCircleOutlineIcon,
   FolderOpen,
+  FileText,
+  Sparkles,
+  Shield,
+  Link2,
 } from "lucide-react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import { CustomizableButton } from "../../components/button/customizable-button";
 import { deletePolicy } from "../../../application/repository/policy.repository";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import { SearchBox } from "../../components/Search";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import Alert from "../../components/Alert";
@@ -596,13 +601,34 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {filteredPolicies.length === 0 ? (
             <EmptyState
+              icon={FileText}
               message={
                 searchTerm
                   ? "No matching policies found."
-                  : "There is currently no data in this table."
+                  : "No policies yet. Policies define the rules your organization follows for AI governance."
               }
               imageAlt="No policies available"
-            />
+            >
+              {!searchTerm && (
+                <>
+                  <EmptyStateTip
+                    icon={Sparkles}
+                    title="Create from templates"
+                    description="Start with a blank policy or use one of the built-in templates. Fill in the details for your organization and publish when ready."
+                  />
+                  <EmptyStateTip
+                    icon={Shield}
+                    title="Link policies to controls"
+                    description="Each policy can be mapped to specific compliance controls, creating an audit trail showing which policies address which requirements."
+                  />
+                  <EmptyStateTip
+                    icon={Link2}
+                    title="Common policies to start with"
+                    description="AI Ethics Policy, Data Governance Policy, AI Risk Management Policy, Incident Response Policy, and Third-Party AI Vendor Policy."
+                  />
+                </>
+              )}
+            </EmptyState>
           ) : (
             <GroupedTableView
               groupedData={groupedPolicies}

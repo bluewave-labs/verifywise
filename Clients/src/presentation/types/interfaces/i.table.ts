@@ -9,6 +9,7 @@ import { IUser } from "../../../domain/interfaces/i.user";
 import { EventModel } from "../../../domain/models/Common/evenTracker/eventTracker.model";
 import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
 import { FileColumn } from "../../../application/hooks/useFileColumnVisibility";
+import { ApprovalWorkflowModel } from "src/domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -63,12 +64,12 @@ export interface IEvaluationRow {
   prompts?: number;
   date?: string;
   status:
-    | "In Progress"
-    | "Completed"
-    | "Failed"
-    | "Pending"
-    | "Running"
-    | "Available";
+  | "In Progress"
+  | "Completed"
+  | "Failed"
+  | "Pending"
+  | "Running"
+  | "Available";
 }
 
 export interface IEvaluationTableBodyProps {
@@ -256,5 +257,14 @@ export interface ITableWithPlaceholderProps {
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
   vendorRisks?: VendorRisk[];
+  visibleColumns?: Set<string>;
+}
+
+export interface ApprovalWorkflowTableProps {
+  data: ApprovalWorkflowModel[];
+  isLoading?: boolean;
+  onEdit?: (id: string) => void;
+  onArchive?: (id: string) => void;
+  archivedId?: string | null;
   visibleColumns?: Set<string>;
 }

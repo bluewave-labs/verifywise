@@ -84,6 +84,7 @@ import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import invitationRoutes from "./routes/invitation.route";
 import intakeFormRoutes from "./routes/intakeForm.route";
+import versionRoutes from "./routes/version.route";
 import auditLedgerRoutes from "./routes/auditLedger.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
@@ -244,6 +245,7 @@ try {
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
   app.use("/api/agent-primitives", agentDiscoveryRoutes);
   app.use("/api/intake", intakeFormRoutes);
+  app.use("/api/version", versionRoutes);
   app.use("/api/audit-ledger", auditLedgerRoutes);
   app.use("/api/feature-settings", featureSettingsRoutes);
 

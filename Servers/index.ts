@@ -87,6 +87,8 @@ import intakeFormRoutes from "./routes/intakeForm.route";
 import versionRoutes from "./routes/version.route";
 import auditLedgerRoutes from "./routes/auditLedger.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
+import riskBenchmarkRoutes from "./routes/riskBenchmark.route";
+import quantitativeRiskRoutes from "./routes/quantitativeRisk.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -248,6 +250,8 @@ try {
   app.use("/api/version", versionRoutes);
   app.use("/api/audit-ledger", auditLedgerRoutes);
   app.use("/api/feature-settings", featureSettingsRoutes);
+  app.use("/api/risk-benchmarks", riskBenchmarkRoutes);
+  app.use("/api/quantitative-risks", quantitativeRiskRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

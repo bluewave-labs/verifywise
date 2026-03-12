@@ -206,6 +206,22 @@ const VWProjectRisksTableBody = ({
                     )}
                   </TableCell>
                 )}
+                {isColVisible("ale_estimate") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "ale_estimate"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    {row.ale_estimate != null
+                      ? `$${Number(row.ale_estimate).toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+                      : "-"}
+                  </TableCell>
+                )}
                 {isColVisible("mitigation_status") && (
                   <TableCell
                     sx={{

@@ -16,7 +16,7 @@ import {
     Chip,
 } from "@mui/material";
 
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Link2 } from "lucide-react";
 import { singleTheme } from "../../../../../src/presentation/themes";
 import {
     paginationMenuProps,
@@ -417,7 +417,7 @@ const LinkedPolicyObjectsTable: React.FC<LinkedPolicyObjectsTableProps> = ({
                   colSpan={TABLE_COLUMNS.length}
                   align="center"
                 >
-                  <EmptyState message="No linked items found." />
+                  <EmptyState icon={Link2} message="No linked items found." />
                 </TableCell>
               </TableRow>
             )}

@@ -11,12 +11,12 @@ import { QueryTypes } from "sequelize";
 import { DimensionKey, DEFAULT_DIMENSION_WEIGHTS } from "../config/riskScoringConfig";
 
 // ============================================================================
-// Tenant ID Validation
+// Organization ID Validation
 // ============================================================================
 
-function validateTenantId(tenantId: string): void {
-  if (!tenantId || !/^[a-zA-Z0-9]{10}$/.test(tenantId)) {
-    throw new Error(`Invalid tenant identifier format: ${tenantId}`);
+function validateOrganizationId(organizationId: number): void {
+  if (!organizationId || !Number.isInteger(organizationId) || organizationId <= 0) {
+    throw new Error(`Invalid organization identifier: ${organizationId}`);
   }
 }
 
@@ -51,18 +51,20 @@ export interface FindingForScoring {
 // ============================================================================
 
 /**
- * Get risk scoring config for a tenant. Returns null if no config exists.
+ * Get risk scoring config for an organization. Returns null if no config exists.
  */
 export async function getRiskScoringConfigQuery(
-  tenantId: string
+  organizationId: number
 ): Promise<RiskScoringConfig | null> {
-  validateTenantId(tenantId);
+  validateOrganizationId(organizationId);
   const query = `
-    SELECT * FROM "${tenantId}".ai_detection_risk_scoring_config
+    SELECT * FROM ai_detection_risk_scoring_config
+    WHERE organization_id = :organizationId
     ORDER BY id DESC LIMIT 1;
   `;
 
   const results = await sequelize.query(query, {
+    replacements: { organizationId },
     type: QueryTypes.SELECT,
   });
 
@@ -70,11 +72,11 @@ export async function getRiskScoringConfigQuery(
 }
 
 /**
- * Upsert risk scoring config for a tenant.
+ * Upsert risk scoring config for an organization.
  * If config exists, update it. Otherwise create it.
  */
 export async function upsertRiskScoringConfigQuery(
-  tenantId: string,
+  organizationId: number,
   data: {
     llm_enabled?: boolean;
     llm_key_id?: number | null;
@@ -82,14 +84,15 @@ export async function upsertRiskScoringConfigQuery(
     updated_by: number;
   }
 ): Promise<RiskScoringConfig> {
-  validateTenantId(tenantId);
+  validateOrganizationId(organizationId);
 
-  const existing = await getRiskScoringConfigQuery(tenantId);
+  const existing = await getRiskScoringConfigQuery(organizationId);
 
   if (existing) {
     const setClauses: string[] = ["updated_at = NOW()"];
     const replacements: Record<string, unknown> = {
       id: existing.id,
+      organizationId,
       updated_by: data.updated_by,
     };
     setClauses.push("updated_by = :updated_by");
@@ -108,9 +111,9 @@ export async function upsertRiskScoringConfigQuery(
     }
 
     const query = `
-      UPDATE "${tenantId}".ai_detection_risk_scoring_config
+      UPDATE ai_detection_risk_scoring_config
       SET ${setClauses.join(", ")}
-      WHERE id = :id
+      WHERE id = :id AND organization_id = :organizationId
       RETURNING *;
     `;
 
@@ -122,15 +125,16 @@ export async function upsertRiskScoringConfigQuery(
     return (results as RiskScoringConfig[])[0];
   } else {
     const query = `
-      INSERT INTO "${tenantId}".ai_detection_risk_scoring_config
-        (llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at)
+      INSERT INTO ai_detection_risk_scoring_config
+        (organization_id, llm_enabled, llm_key_id, dimension_weights, updated_by, updated_at)
       VALUES
-        (:llm_enabled, :llm_key_id, :dimension_weights, :updated_by, NOW())
+        (:organizationId, :llm_enabled, :llm_key_id, :dimension_weights, :updated_by, NOW())
       RETURNING *;
     `;
 
     const [results] = await sequelize.query(query, {
       replacements: {
+        organizationId,
         llm_enabled: data.llm_enabled ?? false,
         llm_key_id: data.llm_key_id ?? null,
         dimension_weights: JSON.stringify(
@@ -156,18 +160,18 @@ export async function updateScanRiskScoreQuery(
   score: number,
   grade: string,
   details: Record<string, unknown>,
-  tenantId: string
+  organizationId: number
 ): Promise<void> {
-  validateTenantId(tenantId);
+  validateOrganizationId(organizationId);
   const query = `
-    UPDATE "${tenantId}".ai_detection_scans
+    UPDATE ai_detection_scans
     SET
       risk_score = :score,
       risk_score_grade = :grade,
       risk_score_details = :details,
       risk_score_calculated_at = NOW(),
       updated_at = NOW()
-    WHERE id = :scanId;
+    WHERE id = :scanId AND organization_id = :organizationId;
   `;
 
   await sequelize.query(query, {
@@ -176,6 +180,7 @@ export async function updateScanRiskScoreQuery(
       score,
       grade,
       details: JSON.stringify(details),
+      organizationId,
     },
     type: QueryTypes.UPDATE,
   });
@@ -190,9 +195,9 @@ export async function updateScanRiskScoreQuery(
  */
 export async function getAllFindingsForScoringQuery(
   scanId: number,
-  tenantId: string
+  organizationId: number
 ): Promise<FindingForScoring[]> {
-  validateTenantId(tenantId);
+  validateOrganizationId(organizationId);
   const query = `
     SELECT
       id,
@@ -205,8 +210,8 @@ export async function getAllFindingsForScoringQuery(
       name,
       category,
       file_count
-    FROM "${tenantId}".ai_detection_findings
-    WHERE scan_id = :scanId
+    FROM ai_detection_findings
+    WHERE scan_id = :scanId AND organization_id = :organizationId
     ORDER BY
       CASE confidence
         WHEN 'high' THEN 1
@@ -217,7 +222,7 @@ export async function getAllFindingsForScoringQuery(
   `;
 
   const results = await sequelize.query(query, {
-    replacements: { scanId },
+    replacements: { scanId, organizationId },
     type: QueryTypes.SELECT,
   });
 

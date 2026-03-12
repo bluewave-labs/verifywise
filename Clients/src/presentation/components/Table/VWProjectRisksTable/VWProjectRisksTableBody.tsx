@@ -56,7 +56,10 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk,
   flashRow,
   sortConfig,
+  visibleColumns,
 }: IVWProjectRisksTableRow) => {
+  const isColVisible = (colId: string) =>
+    !visibleColumns || visibleColumns.has(colId);
   const theme = useTheme();
   const { setInputValues } = useContext(VerifyWiseContext);
   const { userRoleName } = useAuth();
@@ -169,98 +172,126 @@ const VWProjectRisksTableBody = ({
                       : row.risk_name
                     : "-"}
                 </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "risk_owner"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.risk_owner
-                    ? displayUserFullName(Number(row.risk_owner))
-                    : "-"}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "severity"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.severity ? (
-                    <Chip label={row.severity} />
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "mitigation_status"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.mitigation_status ? (
-                    <Chip label={row.mitigation_status} />
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "risk_level_autocalculated"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.risk_level_autocalculated ? (
-                    <Chip label={row.risk_level_autocalculated} />
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "deadline"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  {row.deadline ? displayFormattedDate(row.deadline.toString()) : "NA"}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...getCellStyle(row),
-                    backgroundColor: flashRow === row.id
-                      ? singleTheme.flashColors.background
-                      : sortConfig.key === "controls_mapping"
-                      ? "#f5f5f5"
-                      : "",
-                  }}
-                >
-                  <VWLink
-                    onClick={(e: React.MouseEvent<HTMLElement>) =>
-                      toggleMitigations(row, e)
-                    }
+                {isColVisible("risk_owner") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "risk_owner"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
                   >
-                    View controls
-                  </VWLink>
-                </TableCell>
+                    {row.risk_owner
+                      ? displayUserFullName(Number(row.risk_owner))
+                      : "-"}
+                  </TableCell>
+                )}
+                {isColVisible("severity") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "severity"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    {row.severity ? (
+                      <Chip label={row.severity} />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                )}
+                {isColVisible("ale_estimate") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "ale_estimate"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    {row.ale_estimate != null
+                      ? `$${Number(row.ale_estimate).toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+                      : "-"}
+                  </TableCell>
+                )}
+                {isColVisible("mitigation_status") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "mitigation_status"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    {row.mitigation_status ? (
+                      <Chip label={row.mitigation_status} />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                )}
+                {isColVisible("risk_level_autocalculated") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "risk_level_autocalculated"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    {row.risk_level_autocalculated ? (
+                      <Chip label={row.risk_level_autocalculated} />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                )}
+                {isColVisible("deadline") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "deadline"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    {row.deadline ? displayFormattedDate(row.deadline.toString()) : "NA"}
+                  </TableCell>
+                )}
+                {isColVisible("controls_mapping") && (
+                  <TableCell
+                    sx={{
+                      ...getCellStyle(row),
+                      backgroundColor: flashRow === row.id
+                        ? singleTheme.flashColors.background
+                        : sortConfig.key === "controls_mapping"
+                        ? "#f5f5f5"
+                        : "",
+                    }}
+                  >
+                    <VWLink
+                      onClick={(e: React.MouseEvent<HTMLElement>) =>
+                        toggleMitigations(row, e)
+                      }
+                    >
+                      View controls
+                    </VWLink>
+                  </TableCell>
+                )}
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,

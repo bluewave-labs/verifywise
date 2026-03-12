@@ -617,6 +617,7 @@ const SidebarShell: FC<SidebarShellProps> = ({
                   src={VerifyWiseLogo}
                   alt="VerifyWise"
                   height={20}
+                  className="dark-mode-keep-inverted"
                   style={{ position: "relative", zIndex: 1, display: "block" }}
                 />
               </RouterLink>

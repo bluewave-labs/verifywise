@@ -287,7 +287,7 @@ async function enhanceWithLLM(
   findings: FindingForScoring[],
   dimensionScores: Record<DimensionKey, DimensionScore>,
   llmKeyId: number,
-  tenantId: string
+  organizationId: number
 ): Promise<{
   adjustments: Record<DimensionKey, number>;
   narrative: string;
@@ -297,10 +297,10 @@ async function enhanceWithLLM(
 } | null> {
   try {
     // Get the LLM key
-    const keys = await getLLMKeysWithKeyQuery(tenantId);
+    const keys = await getLLMKeysWithKeyQuery(organizationId);
     const llmKey = keys.find((k: { id: number }) => k.id === llmKeyId);
     if (!llmKey || !llmKey.key) {
-      logger.warn(`LLM key ${llmKeyId} not found for tenant ${tenantId}, skipping enhancement`);
+      logger.warn(`LLM key ${llmKeyId} not found for tenant ${organizationId}, skipping enhancement`);
       return null;
     }
 
@@ -438,10 +438,10 @@ export async function calculateAndStoreRiskScore(
   ctx: IServiceContext
 ): Promise<RiskScoreResult | null> {
   try {
-    logger.info(`Calculating risk score for scan ${scanId}, tenant ${ctx.tenantId}`);
+    logger.info(`Calculating risk score for scan ${scanId}, tenant ${ctx.organizationId}`);
 
     // 1. Get all findings
-    const findings = await getAllFindingsForScoringQuery(scanId, ctx.tenantId);
+    const findings = await getAllFindingsForScoringQuery(scanId, ctx.organizationId);
     if (findings.length === 0) {
       // No findings = perfect score
       const details: RiskScoreDetails = {
@@ -456,12 +456,12 @@ export async function calculateAndStoreRiskScore(
         details.dimensions[dim.key] = { score: 100, penalty_count: 0, top_contributors: [] };
       }
       const { grade, label } = getGradeForScore(100);
-      await updateScanRiskScoreQuery(scanId, 100, grade, details as unknown as Record<string, unknown>, ctx.tenantId);
+      await updateScanRiskScoreQuery(scanId, 100, grade, details as unknown as Record<string, unknown>, ctx.organizationId);
       return { score: 100, grade, label, details };
     }
 
     // 2. Get scoring config
-    const config = await getRiskScoringConfigQuery(ctx.tenantId);
+    const config = await getRiskScoringConfigQuery(ctx.organizationId);
     const weights = config?.dimension_weights ?? DEFAULT_DIMENSION_WEIGHTS;
 
     // 3. Calculate dimension scores
@@ -482,7 +482,7 @@ export async function calculateAndStoreRiskScore(
         findings,
         dimensionScores,
         config.llm_key_id,
-        ctx.tenantId
+        ctx.organizationId
       );
 
       // Apply LLM adjustments (subtract adjustments from scores - positive adjustment = more risk = lower score)
@@ -512,7 +512,7 @@ export async function calculateAndStoreRiskScore(
     };
 
     // 7. Store in database
-    await updateScanRiskScoreQuery(scanId, overallScore, grade, details as unknown as Record<string, unknown>, ctx.tenantId);
+    await updateScanRiskScoreQuery(scanId, overallScore, grade, details as unknown as Record<string, unknown>, ctx.organizationId);
 
     logger.info(`Risk score calculated for scan ${scanId}: ${overallScore} (${grade})`);
 

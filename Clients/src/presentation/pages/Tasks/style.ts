@@ -28,5 +28,5 @@ export const toggleLabelStyle: SxProps<Theme> = {
 export const toggleContainerStyle: SxProps<Theme> = {
   flexDirection: "row",
   alignItems: "center",
-  gap: 1,
+  gap: "8px",
 };

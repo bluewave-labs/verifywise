@@ -88,6 +88,7 @@ import {
   ChevronDown as ChevronDownIcon,
   ChevronUp as ChevronUpIcon,
   Search,
+  Upload,
 } from "lucide-react";
 
 import Select from "../../components/Inputs/Select";
@@ -97,12 +98,14 @@ import { HistorySidebar } from "../../components/Common/HistorySidebar";
 import { usePolicyChangeHistory } from "../../../application/hooks/usePolicyChangeHistory";
 import PolicyForm from "../../components/Policies/PolicyForm";
 import InsertLinkModal from "../../components/Modals/InsertLinkModal/InsertLinkModal";
+import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { uploadFileToManager } from "../../../application/repository/file.repository";
 import {
   getPolicyById,
   getAllTags,
   createPolicy,
   updatePolicy,
+  importDocxToHtml,
 } from "../../../application/repository/policy.repository";
 import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
@@ -341,7 +344,7 @@ function normalizeSlateHtml(html: string): string {
   return n;
 }
 
-const sanitizeOptions: DOMPurify.Config = {
+const sanitizeOptions: Parameters<typeof DOMPurify.sanitize>[1] = {
   ALLOWED_TAGS: [
     "p", "br", "strong", "b", "em", "i", "u",
     "h1", "h2", "h3", "h4", "h5", "h6",
@@ -442,6 +445,11 @@ export default function PolicyEditorPage() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingDOCX, setIsExportingDOCX] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(null);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const docxInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errors, setErrors] = useState<PolicyFormErrors>({});
@@ -1312,6 +1320,54 @@ export default function PolicyEditorPage() {
     }
   };
 
+  // ── DOCX import ──────────────────────────────────────────────────
+  const MAX_DOCX_SIZE = 10 * 1024 * 1024; // 10 MB (matches backend multer limit)
+
+  const handleDocxFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ""; // reset so same file can be re-selected
+
+    if (file.size > MAX_DOCX_SIZE) {
+      setImportError("File is too large. Maximum size is 10 MB.");
+      return;
+    }
+
+    // If editor has content, show confirmation dialog
+    if (editor && !editor.isEmpty) {
+      setPendingImportFile(file);
+    } else {
+      processDocxImport(file);
+    }
+  };
+
+  const processDocxImport = async (file: File) => {
+    setIsImporting(true);
+    setImportError(null);
+    try {
+      const { html } = await importDocxToHtml(file);
+      const sanitized = DOMPurify.sanitize(html, sanitizeOptions);
+      if (editor) {
+        editor.commands.setContent(sanitized);
+      }
+    } catch {
+      setImportError("Failed to import DOCX file. Please try again.");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const confirmImport = async () => {
+    if (pendingImportFile) {
+      await processDocxImport(pendingImportFile);
+    }
+    setPendingImportFile(null);
+  };
+
+  const cancelImport = () => {
+    setPendingImportFile(null);
+  };
+
   // ── Loading / error states ────────────────────────────────────────
   if (isLoading) {
     return (
@@ -1481,83 +1537,146 @@ export default function PolicyEditorPage() {
               </Tooltip>
             )}
 
-            {/* Export buttons */}
+            {/* Export dropdown + Import button */}
             {!isNew && policy?.id && (
               <>
-                <Tooltip title="Download as PDF" arrow>
-                  <span>
-                    <CustomizableButton
-                      variant="outlined"
-                      text={isExportingPDF ? "Exporting..." : "PDF"}
-                      isDisabled={isExportingPDF || isExportingDOCX}
-                      sx={{
-                        backgroundColor: "#fff",
-                        border: "1px solid #D0D5DD",
-                        color: "#344054",
-                        gap: 1,
-                        minWidth: "80px",
-                        "&:hover": {
-                          backgroundColor: "#F9FAFB",
-                          borderColor: "#98A2B3",
-                        },
-                        "&:disabled": {
-                          backgroundColor: "#F9FAFB",
-                          borderColor: "#E4E7EC",
-                          color: "#98A2B3",
-                        },
+                <CustomizableButton
+                  variant="outlined"
+                  text={
+                    isExportingPDF
+                      ? "Exporting PDF..."
+                      : isExportingDOCX
+                        ? "Exporting Word..."
+                        : "Export"
+                  }
+                  isDisabled={isExportingPDF || isExportingDOCX}
+                  sx={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #D0D5DD",
+                    color: "#344054",
+                    gap: 1,
+                    minWidth: "90px",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                      borderColor: "#98A2B3",
+                    },
+                    "&:disabled": {
+                      backgroundColor: "#F9FAFB",
+                      borderColor: "#E4E7EC",
+                      color: "#98A2B3",
+                    },
+                  }}
+                  onClick={(e: React.MouseEvent<HTMLElement>) =>
+                    setExportAnchorEl(e.currentTarget)
+                  }
+                  icon={
+                    isExportingPDF || isExportingDOCX ? (
+                      <Loader2
+                        size={16}
+                        style={{ animation: "spin 1s linear infinite" }}
+                      />
+                    ) : (
+                      <FileDown size={16} />
+                    )
+                  }
+                />
+                <Popover
+                  open={Boolean(exportAnchorEl)}
+                  anchorEl={exportAnchorEl}
+                  onClose={() => setExportAnchorEl(null)}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                  transformOrigin={{ vertical: "top", horizontal: "left" }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        mt: 0.5,
+                        borderRadius: "4px",
+                        border: "1px solid #E4E7EC",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                        minWidth: 140,
+                        p: 0.5,
+                        display: "flex",
+                        flexDirection: "column",
+                      },
+                    },
+                  }}
+                >
+                  {[
+                    { icon: <FileText size={14} />, label: "Download as PDF", format: "pdf" as const },
+                    { icon: <FileDown size={14} />, label: "Download as Word", format: "docx" as const },
+                  ].map(({ icon, label, format }) => (
+                    <Box
+                      key={format}
+                      component="button"
+                      onClick={() => {
+                        setExportAnchorEl(null);
+                        downloadExport(format);
                       }}
-                      onClick={() => downloadExport("pdf")}
-                      icon={
-                        isExportingPDF ? (
-                          <Loader2
-                            size={16}
-                            style={{ animation: "spin 1s linear infinite" }}
-                          />
-                        ) : (
-                          <FileText size={16} />
-                        )
-                      }
-                    />
-                  </span>
-                </Tooltip>
-                <Tooltip title="Download as Word" arrow>
-                  <span>
-                    <CustomizableButton
-                      variant="outlined"
-                      text={isExportingDOCX ? "Exporting..." : "Word"}
-                      isDisabled={isExportingPDF || isExportingDOCX}
                       sx={{
-                        backgroundColor: "#fff",
-                        border: "1px solid #D0D5DD",
-                        color: "#344054",
+                        display: "flex",
+                        alignItems: "center",
                         gap: 1,
-                        minWidth: "80px",
-                        "&:hover": {
-                          backgroundColor: "#F9FAFB",
-                          borderColor: "#98A2B3",
-                        },
-                        "&:disabled": {
-                          backgroundColor: "#F9FAFB",
-                          borderColor: "#E4E7EC",
-                          color: "#98A2B3",
-                        },
+                        px: 1.5,
+                        py: 1,
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer",
+                        borderRadius: "4px",
+                        fontSize: 13,
+                        color: "#344054",
+                        width: "100%",
+                        textAlign: "left",
+                        "&:hover": { backgroundColor: "#F2F4F7" },
                       }}
-                      onClick={() => downloadExport("docx")}
-                      icon={
-                        isExportingDOCX ? (
-                          <Loader2
-                            size={16}
-                            style={{ animation: "spin 1s linear infinite" }}
-                          />
-                        ) : (
-                          <FileDown size={16} />
-                        )
-                      }
-                    />
-                  </span>
-                </Tooltip>
+                    >
+                      {icon}
+                      {label}
+                    </Box>
+                  ))}
+                </Popover>
               </>
             )}
+
+            {/* Import DOCX */}
+            <CustomizableButton
+              variant="outlined"
+              text={isImporting ? "Importing..." : "Import"}
+              isDisabled={isImporting}
+              sx={{
+                backgroundColor: "#fff",
+                border: "1px solid #D0D5DD",
+                color: "#344054",
+                gap: 1,
+                minWidth: "90px",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  borderColor: "#98A2B3",
+                },
+                "&:disabled": {
+                  backgroundColor: "#F9FAFB",
+                  borderColor: "#E4E7EC",
+                  color: "#98A2B3",
+                },
+              }}
+              onClick={() => docxInputRef.current?.click()}
+              icon={
+                isImporting ? (
+                  <Loader2
+                    size={16}
+                    style={{ animation: "spin 1s linear infinite" }}
+                  />
+                ) : (
+                  <Upload size={16} />
+                )
+              }
+            />
+            <input
+              ref={docxInputRef}
+              type="file"
+              accept=".docx"
+              style={{ display: "none" }}
+              onChange={handleDocxFileSelect}
+            />
 
             {/* Save */}
             <CustomizableButton
@@ -2182,6 +2301,44 @@ export default function PolicyEditorPage() {
           Please fill in all required fields before saving.
         </Alert>
       </Snackbar>
+
+      {/* Import error snackbar */}
+      <Snackbar
+        open={Boolean(importError)}
+        autoHideDuration={4000}
+        onClose={() => setImportError(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setImportError(null)}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {importError}
+        </Alert>
+      </Snackbar>
+
+      {/* Import confirmation dialog */}
+      <ConfirmationModal
+        isOpen={pendingImportFile !== null}
+        isLoading={isImporting}
+        title="Replace existing content?"
+        body={
+          <Typography sx={{ fontSize: 13, color: "#475467" }}>
+            Importing this file will replace all current content in the editor.
+            This action cannot be undone.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Replace content"
+        proceedButtonVariant="contained"
+        onCancel={cancelImport}
+        onProceed={confirmImport}
+        confirmBtnSx={{
+          backgroundColor: "#13715B",
+          "&:hover": { backgroundColor: "#0F5A47" },
+        }}
+      />
     </>
   );
 }

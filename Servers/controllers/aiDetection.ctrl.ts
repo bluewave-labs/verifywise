@@ -10,7 +10,6 @@
 import { Request, Response } from "express";
 import { logProcessing, logSuccess, logFailure as logError } from "../utils/logger/logHelper";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { getTenantHash } from "../tools/getTenantHash";
 import {
   ValidationException,
   NotFoundException,
@@ -48,14 +47,17 @@ const FILE_NAME = "aiDetection.ctrl.ts";
 
 /**
  * Build service context from request
+ * Note: tenantId is set to organizationId.toString() for interface compatibility.
+ * Services should use organizationId directly for database queries.
  */
 function buildServiceContext(req: Request): IServiceContext {
+  const organizationId = (req as unknown as { organizationId: number }).organizationId;
   return {
     userId: (req as unknown as { userId: number }).userId,
     role: (req as unknown as { role: string }).role,
-    tenantId: getTenantHash(
-      (req as unknown as { organizationId: number }).organizationId
-    ),
+    organizationId,
+    // tenantId is kept for interface compatibility, but services should use organizationId
+    tenantId: organizationId.toString(),
   };
 }
 
@@ -99,7 +101,7 @@ export async function startScanController(
     functionName: "startScanController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -120,7 +122,7 @@ export async function startScanController(
       functionName: "startScanController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(201).json(STATUS_CODE[201](scan));
@@ -132,7 +134,7 @@ export async function startScanController(
       functionName: "startScanController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
     return handleException(res, error);
   }
@@ -152,7 +154,7 @@ export async function getScanStatusController(
     functionName: "getScanStatusController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -185,7 +187,7 @@ export async function getScanController(
     functionName: "getScanController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -219,7 +221,7 @@ export async function getScanFindingsController(
     functionName: "getScanFindingsController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -273,7 +275,7 @@ export async function getScansController(
     functionName: "getScansController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -338,7 +340,7 @@ export async function cancelScanController(
     functionName: "cancelScanController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -357,7 +359,7 @@ export async function cancelScanController(
       functionName: "cancelScanController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -369,7 +371,7 @@ export async function cancelScanController(
       functionName: "cancelScanController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
     return handleException(res, error);
   }
@@ -389,7 +391,7 @@ export async function deleteScanController(
     functionName: "deleteScanController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -408,7 +410,7 @@ export async function deleteScanController(
       functionName: "deleteScanController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -420,7 +422,7 @@ export async function deleteScanController(
       functionName: "deleteScanController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
     return handleException(res, error);
   }
@@ -441,7 +443,7 @@ export async function getSecurityFindingsController(
     functionName: "getSecurityFindingsController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -485,7 +487,7 @@ export async function getSecuritySummaryController(
     functionName: "getSecuritySummaryController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -519,7 +521,7 @@ export async function updateGovernanceStatusController(
     functionName: "updateGovernanceStatusController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -558,7 +560,7 @@ export async function updateGovernanceStatusController(
       functionName: "updateGovernanceStatusController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -570,7 +572,7 @@ export async function updateGovernanceStatusController(
       functionName: "updateGovernanceStatusController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
     return handleException(res, error);
   }
@@ -590,7 +592,7 @@ export async function getGovernanceSummaryController(
     functionName: "getGovernanceSummaryController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -623,7 +625,7 @@ export async function getAIDetectionStatsController(
     functionName: "getAIDetectionStatsController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -653,7 +655,7 @@ export async function exportAIBOMController(
     functionName: "exportAIBOMController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -676,7 +678,7 @@ export async function exportAIBOMController(
       functionName: "exportAIBOMController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](aibom));
@@ -688,7 +690,7 @@ export async function exportAIBOMController(
       functionName: "exportAIBOMController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
     return handleException(res, error);
   }
@@ -710,7 +712,7 @@ export async function getDependencyGraphController(
     functionName: "getDependencyGraphController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -745,7 +747,7 @@ export async function getComplianceMappingController(
     functionName: "getComplianceMappingController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -763,7 +765,7 @@ export async function getComplianceMappingController(
       functionName: "getComplianceMappingController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](compliance));
@@ -789,7 +791,7 @@ export async function getRiskScoreController(
     functionName: "getRiskScoreController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -814,7 +816,7 @@ export async function getRiskScoreController(
       functionName: "getRiskScoreController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](riskScore));
@@ -836,7 +838,7 @@ export async function recalculateRiskScoreController(
     functionName: "recalculateRiskScoreController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -866,7 +868,7 @@ export async function recalculateRiskScoreController(
       functionName: "recalculateRiskScoreController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](result));
@@ -888,12 +890,11 @@ export async function getRiskScoringConfigController(
     functionName: "getRiskScoringConfigController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
-    const ctx = buildServiceContext(req);
-    const config = await getRiskScoringConfigQuery(ctx.tenantId);
+    const config = await getRiskScoringConfigQuery(req.organizationId!);
 
     // Return config or defaults
     const response = config || {
@@ -911,7 +912,7 @@ export async function getRiskScoringConfigController(
       functionName: "getRiskScoringConfigController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](response));
@@ -933,7 +934,7 @@ export async function updateRiskScoringConfigController(
     functionName: "updateRiskScoringConfigController",
     fileName: FILE_NAME,
     userId: req.userId!,
-    tenantId: req.tenantId!,
+    tenantId: req.organizationId!,
   });
 
   try {
@@ -962,7 +963,7 @@ export async function updateRiskScoringConfigController(
       }
     }
 
-    const updated = await upsertRiskScoringConfigQuery(ctx.tenantId, {
+    const updated = await upsertRiskScoringConfigQuery(req.organizationId!, {
       llm_enabled,
       llm_key_id,
       dimension_weights,
@@ -975,7 +976,7 @@ export async function updateRiskScoringConfigController(
       functionName: "updateRiskScoringConfigController",
       fileName: FILE_NAME,
       userId: req.userId!,
-      tenantId: req.tenantId!,
+      tenantId: req.organizationId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](updated));

@@ -16,11 +16,12 @@ import {
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import IconButton from "../../IconButton";
 import ViewRelationshipsButton from "../../ViewRelationshipsButton";
 import TablePaginationActions from "../../TablePagination";
 import Chip from "../../Chip";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert, TrendingDown, Grid3X3, ListChecks } from "lucide-react";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import { User } from "../../../../domain/types/User";
 import { IRiskTableProps } from "../../../types/interfaces/i.table";
@@ -135,6 +136,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
   onEdit,
   isDeletingAllowed = true,
   hidePagination = false,
+  visibleColumns,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -175,6 +177,22 @@ const RiskTable: React.FC<IRiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
+  const isVisible = useCallback(
+    (key: string) => {
+      if (!visibleColumns) return true;
+      return visibleColumns.has(key);
+    },
+    [visibleColumns]
+  );
+
+  const visibleTableColumns = useMemo(
+    () =>
+      titleOfTableColumns.filter(
+        (col) => col.id === "risk_description" || col.id === "actions" || isVisible(col.id)
+      ),
+    [isVisible]
+  );
 
   const getCellStyle = (row: VendorRisk) => ({
     ...cellStyle,
@@ -414,7 +432,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     </Box>
                   </Tooltip>
                 </TableCell>
-                <TableCell
+                {isVisible("vendor_name") && <TableCell
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
@@ -427,8 +445,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                         vendor._id === row.vendor_id
                     )?.name
                   }
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("project_titles") && <TableCell
                   sx={{
                     ...getCellStyle(row),
                     maxWidth: 200,
@@ -525,8 +543,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                       </Tooltip>
                     );
                   })()}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("action_owner") && <TableCell
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
@@ -539,8 +557,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                         user._id === row.action_owner
                     )?.name
                   }
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("risk_severity") && <TableCell
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
@@ -550,8 +568,8 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   }}
                 >
                   {row.risk_severity ? <Chip label={row.risk_severity} /> : "-"}
-                </TableCell>
-                <TableCell
+                </TableCell>}
+                {isVisible("risk_level") && <TableCell
                   sx={{
                     ...getCellStyle(row),
                     backgroundColor:
@@ -568,7 +586,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                   >
                     {row.risk_level}
                   </VWLink>
-                </TableCell>
+                </TableCell>}
                 <TableCell
                   sx={{
                     ...singleTheme.tableStyles.primary.body.cell,
@@ -615,6 +633,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       theme.palette.action?.hover,
       hidePagination,
       sortConfig.key,
+      isVisible,
     ]
   );
 
@@ -623,14 +642,31 @@ const RiskTable: React.FC<IRiskTableProps> = ({
       {/* Empty state outside the table */}
       {!vendorRisks || vendorRisks.length === 0 ? (
         <EmptyState
-          message="There is currently no data in this table."
+          icon={ShieldAlert}
+          message="No risks identified yet. Document and track risks related to your AI systems."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={TrendingDown}
+            title="Identify AI-specific risks"
+            description="Document risks related to bias, data quality, security, transparency, and model drift. Cover both technical and organizational risks."
+          />
+          <EmptyStateTip
+            icon={Grid3X3}
+            title="Assess likelihood and impact"
+            description="Rate each risk by likelihood and impact. The risk score and level help you prioritize what needs attention first."
+          />
+          <EmptyStateTip
+            icon={ListChecks}
+            title="Create treatment plans"
+            description="Define mitigation strategies for each risk and track their progress. Link treatments to specific controls for full traceability."
+          />
+        </EmptyState>
       ) : (
         <TableContainer>
           <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
             <SortableTableHead
-              columns={titleOfTableColumns}
+              columns={visibleTableColumns}
               sortConfig={sortConfig}
               onSort={handleSort}
             />

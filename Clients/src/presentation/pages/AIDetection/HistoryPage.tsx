@@ -27,9 +27,10 @@ import {
 } from "@mui/material";
 import Chip from "../../components/Chip";
 import Alert from "../../components/Alert";
-import { Trash2, ChevronsUpDown, Clock, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, ChevronsUpDown, Clock, ChevronUp, ChevronDown, Scan as ScanIcon, GitBranch, Search, BarChart3 } from "lucide-react";
 import ConfirmationModal from "../../components/Dialogs/ConfirmationModal";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import TablePaginationActions from "../../components/TablePagination";
 import singleTheme from "../../themes/v1SingleTheme";
 import { PageHeaderExtended } from "../../components/Layout/PageHeaderExtended";
@@ -686,9 +687,26 @@ export default function HistoryPage() {
         helpArticlePath="ai-detection/history"
       >
         <EmptyState
-          message="No scans yet. Start your first scan to detect AI/ML libraries in a repository."
+          icon={ScanIcon}
+          message="No scans yet. Scan your repositories to detect AI and ML libraries."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={GitBranch}
+            title="Add a repository first"
+            description="Go to the Repositories tab and add a GitHub repository URL. Once added, you can run scans to detect AI/ML usage."
+          />
+          <EmptyStateTip
+            icon={Search}
+            title="What gets detected?"
+            description="AI/ML libraries (TensorFlow, PyTorch, scikit-learn), LLM SDKs (OpenAI, Anthropic), model files, ML pipelines, and containerized AI workloads."
+          />
+          <EmptyStateTip
+            icon={BarChart3}
+            title="Track changes over time"
+            description="Each scan creates a snapshot. Compare scans to see what AI components were added, removed, or changed across your codebase."
+          />
+        </EmptyState>
       </PageHeaderExtended>
     );
   }

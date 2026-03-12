@@ -84,10 +84,12 @@ import shadowAiIngestionRoutes from "./routes/shadowAiIngestion.route";
 import agentDiscoveryRoutes from "./routes/agentDiscovery.route";
 import invitationRoutes from "./routes/invitation.route";
 import intakeFormRoutes from "./routes/intakeForm.route";
+import versionRoutes from "./routes/version.route";
 import auditLedgerRoutes from "./routes/auditLedger.route";
 import featureSettingsRoutes from "./routes/featureSettings.route";
+import riskBenchmarkRoutes from "./routes/riskBenchmark.route";
+import quantitativeRiskRoutes from "./routes/quantitativeRisk.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
-import { addAgentDiscoveryTables } from "./scripts/addAgentDiscoveryTables";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -245,8 +247,11 @@ try {
   app.use("/api/v1/shadow-ai", shadowAiIngestionRoutes);
   app.use("/api/agent-primitives", agentDiscoveryRoutes);
   app.use("/api/intake", intakeFormRoutes);
+  app.use("/api/version", versionRoutes);
   app.use("/api/audit-ledger", auditLedgerRoutes);
   app.use("/api/feature-settings", featureSettingsRoutes);
+  app.use("/api/risk-benchmarks", riskBenchmarkRoutes);
+  app.use("/api/quantitative-risks", quantitativeRiskRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {
@@ -257,12 +262,31 @@ try {
     }
   })();
 
-  // Run agent discovery tenant migrations (idempotent, safe on every boot)
+  // Check and run tenant-to-shared-schema data migration
   (async () => {
     try {
-      await addAgentDiscoveryTables();
+      const { checkAndRunMigration, printValidationReport } = require("./scripts/migrateToSharedSchema");
+      console.log("🔄 Checking for pending data migrations...");
+      const result = await checkAndRunMigration();
+
+      if (result.status === "completed" || result.status === "already_completed") {
+        console.log("✅ Data migration already completed");
+      } else if (result.status === "just_completed") {
+        console.log("✅ Data migration completed successfully!");
+        console.log(`   Organizations migrated: ${result.organizationsMigrated}`);
+        console.log(`   Total rows migrated: ${result.rowsMigrated}`);
+        if (result.validationReport) {
+          printValidationReport(result.validationReport);
+        }
+      } else if (result.status === "failed") {
+        console.error("❌ Data migration failed:", result.error);
+        console.log("⚠️  Server will start but old tenant data may not be accessible");
+      } else if (result.status === "no_tenants") {
+        console.log("ℹ️  No tenant schemas found, skipping migration");
+      }
     } catch (error) {
-      console.error("Agent discovery table migration failed:", error);
+      console.error("Data migration check failed:", error);
+      // Server continues to start even if migration check fails
     }
   })();
 

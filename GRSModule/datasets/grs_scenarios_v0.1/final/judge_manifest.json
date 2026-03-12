@@ -1,0 +1,27 @@
+{
+  "stage": "judge",
+  "dataset_version": "grs_scenarios_v0.1",
+  "generated_at": "2026-03-03T21:03:06.344764+00:00",
+  "inputs": {
+    "scenarios_jsonl": "datasets/grs_scenarios_v0.1/final/scenarios.jsonl",
+    "scenarios_jsonl_sha256": "54b8a2860aa33799a1cc7af3ced62fd3d899660df8147678a33373bfa6c5eab9",
+    "responses_dir": "datasets/grs_scenarios_v0.1/final/responses",
+    "judge_out_dir": "datasets/grs_scenarios_v0.1/final/judge_scores",
+    "judge_rubric": "configs/judge_rubric.yaml",
+    "judge_rubric_sha256": "0aa213f2b2da4bac382446fde4eb7f2834803ba1abdaa688ef524d37b724e8f2",
+    "judge_model_id": "openai/gpt-4o-mini",
+    "judge_temperature": 0.0,
+    "judge_max_tokens": 800,
+    "judge_retry_max_attempts": 5,
+    "judge_resume": false
+  },
+  "outputs": [
+    {
+      "candidate_response_file": "google_gemini-2.5-pro.jsonl",
+      "judge_scores_path": "datasets/grs_scenarios_v0.1/final/judge_scores/google_gemini-2.5-pro.jsonl",
+      "judge_scores_sha256": "93ec92c958c01f89ba5e20a45ec44cba359f256a297ba9c30c05837899b975d8",
+      "judge_failures_path": "datasets/grs_scenarios_v0.1/final/judge_scores/google_gemini-2.5-pro.jsonl.failures.jsonl",
+      "judge_failures_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

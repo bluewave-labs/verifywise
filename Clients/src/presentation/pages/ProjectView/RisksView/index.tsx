@@ -60,6 +60,10 @@ const projectRisksColNames = [
     id: "final_risk_level",
     name: "FINAL RISK LEVEL",
   },
+  {
+    id: "ale_estimate",
+    name: "ALE ($)",
+  },
 ];
 interface RisksViewProps {
   risksSummary: RiskData;
@@ -113,6 +117,13 @@ const RisksView: FC<RisksViewProps> = memo(
           // Special formatting for dates
           if (col.id === "review_date" && value) {
             value = new Date(value).toLocaleDateString();
+          }
+
+          // Special formatting for ALE currency
+          if (col.id === "ale_estimate" && value != null) {
+            value = `$${Number(value).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+          } else if (col.id === "ale_estimate") {
+            value = "-";
           }
 
           // Set the value on the row object

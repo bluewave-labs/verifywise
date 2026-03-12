@@ -65,6 +65,7 @@ const ENTITY_ICONS: Record<string, LucideIcon> = {
 function WiseSearchWelcomeBanner({ onDismiss }: { onDismiss: () => void }) {
   return (
   <Box
+    className="wise-search-banner"
     sx={{
       background: 'linear-gradient(135deg, #1a1a1f 0%, #252530 100%)',
       borderRadius: '8px',

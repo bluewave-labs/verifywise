@@ -1,0 +1,28 @@
+{
+  "stage": "infer",
+  "total_scenarios": 6,
+  "models": [
+    {
+      "model_id": "google/gemini-2.5-pro",
+      "provider": "openrouter"
+    }
+  ],
+  "per_model": [
+    {
+      "successes": 6,
+      "failures": 0,
+      "latency_ms_avg": 27526,
+      "tokens_prompt_avg": 97,
+      "tokens_completion_avg": 2206,
+      "errors": [],
+      "http_status": [],
+      "model_id": "google/gemini-2.5-pro"
+    }
+  ],
+  "failure_summary": {
+    "by_error_type": {},
+    "by_http_status": {}
+  },
+  "generated_at": "2026-03-03T20:59:12.237060+00:00",
+  "dataset_version": "grs_scenarios_v0.1"
+}

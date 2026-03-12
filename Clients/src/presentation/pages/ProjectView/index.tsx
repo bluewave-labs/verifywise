@@ -1,5 +1,6 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
-import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Settings, History, ClipboardCheck, FolderOpen, PlusCircle, Shield, FileText } from "lucide-react";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import { PageBreadcrumbs } from "../../components/breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -99,7 +100,23 @@ const ProjectView = () => {
       {noProject ? (
         //no project found template
         <Box sx={noProjectContainerStyle}>
-          <EmptyState message="No projects found. Create a new project to start with." />
+          <EmptyState icon={FolderOpen} message="No projects found. Create a new project to start with.">
+            <EmptyStateTip
+              icon={PlusCircle}
+              title="Create your first project"
+              description="A project represents an AI system or use case you're governing. Click 'New project' to set one up with a name, description, and framework."
+            />
+            <EmptyStateTip
+              icon={Shield}
+              title="Assign a framework"
+              description="Each project can be linked to one or more compliance frameworks (EU AI Act, ISO 42001, etc.) to track controls and assessments."
+            />
+            <EmptyStateTip
+              icon={FileText}
+              title="What goes in a project?"
+              description="Risks, policies, evidence, model inventory, vendors, and training records. Everything needed for a complete governance audit trail."
+            />
+          </EmptyState>
           {/* new project button */}
           <Button
             variant="contained"

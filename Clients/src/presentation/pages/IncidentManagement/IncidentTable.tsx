@@ -16,14 +16,16 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, AlertTriangle, FileWarning, ClipboardList, Bell } from "lucide-react";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 import Chip from "../../components/Chip";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { displayFormattedDate } from "../../tools/isoDateToString";
 import { singleTheme } from "../../themes";
 import { AIIncidentManagementModel } from "../../../domain/models/Common/incidentManagement/incidentManagement.model";
+import { IncidentTableProps } from "../../types/interfaces/i.table";
 import {
   incidentRowHover,
   incidentLoadingContainer,
@@ -50,17 +52,6 @@ const TABLE_COLUMNS = [
   { id: "approved_by", label: "APPROVED BY" },
   { id: "actions", label: "" },
 ];
-
-interface IncidentTableProps {
-  data: AIIncidentManagementModel[];
-  isLoading?: boolean;
-  onEdit?: (id: string, mode: string) => void;
-  onView?: (id: string, mode: string) => void;
-  onArchive?: (id: string, mode: string) => void;
-  paginated?: boolean;
-  archivedId?: string | null;
-  hidePagination?: boolean;
-}
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 const STORAGE_KEY = "incident-table-rows-per-page";
@@ -97,8 +88,16 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
   paginated = true,
   archivedId,
   hidePagination = false,
+  visibleColumns,
 }) => {
   const theme = useTheme();
+  const isVisible = useCallback(
+    (key: string) => {
+      if (!visibleColumns) return true;
+      return visibleColumns.has(key);
+    },
+    [visibleColumns]
+  );
   const [page, setPage] = useState(0);
 
   // Initialize rowsPerPage from localStorage or default
@@ -241,7 +240,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
         }}
       >
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {TABLE_COLUMNS.map((column) => {
+          {TABLE_COLUMNS.filter((column) => isVisible(column.id)).map((column) => {
             const isLastColumn = column.id === "actions";
             const sortable = !["actions"].includes(column.id);
 
@@ -318,7 +317,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
         </TableRow>
       </TableHead>
     ),
-    [sortConfig, handleSort, theme]
+    [sortConfig, handleSort, theme, isVisible]
   );
 
   const tableBody = useMemo(
@@ -343,140 +342,155 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 }}
                 onClick={() => onEdit?.(incident.id?.toString(), "edit")}
               >
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    width: "110px",
-                    maxWidth: "110px",
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("incident") &&
-                      sortConfig.key.toLowerCase().includes("id")
-                        ? "#e8e8e8"
-                        : "#fafafa",
-                  }}
-                >
-                  {incident.incident_id}{" "}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("ai") &&
-                      sortConfig.key.toLowerCase().includes("project")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <TooltipCell value={incident.ai_project} />
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("type")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <TooltipCell value={incident.type} />
-                </TableCell>
-
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("severity")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <Chip label={incident.severity} />
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("status")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <Chip label={incident.status} />
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      (sortConfig.key.toLowerCase().includes("occurred") ||
-                        sortConfig.key.toLowerCase().includes("date"))
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  {incident.occurred_date
-                    ? displayFormattedDate(incident.occurred_date)
-                    : "-"}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("approved") &&
-                      sortConfig.key.toLowerCase().includes("by")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <TooltipCell value={incident.approved_by} />
-                </TableCell>
-                <TableCell
-                  sx={{
-                    ...cellStyle,
-                    backgroundColor:
-                      sortConfig.key &&
-                      sortConfig.key.toLowerCase().includes("actions")
-                        ? "#f5f5f5"
-                        : "inherit",
-                  }}
-                >
-                  <Stack direction="row" spacing={1}>
-                    <CustomIconButton
-                      id={incident.id}
-                      type="Incident"
-                      onEdit={() => onEdit?.(incident.id?.toString(), "edit")}
-                      onDelete={() =>
-                        onArchive?.(incident.id?.toString(), "archive")
-                      }
-                      onView={() => onView?.(incident.id?.toString(), "view")}
-                      onMouseEvent={() => {}}
-                      warningTitle="Are you sure?"
-                      warningMessage="You are about to archive this incident. This action cannot be undone. You can also choose to edit or view the incident instead."
-                    />
-                  </Stack>
-                </TableCell>
+                {isVisible("incident_id") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      width: "110px",
+                      maxWidth: "110px",
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("incident") &&
+                        sortConfig.key.toLowerCase().includes("id")
+                          ? "#e8e8e8"
+                          : "#fafafa",
+                    }}
+                  >
+                    {incident.incident_id}{" "}
+                  </TableCell>
+                )}
+                {isVisible("ai_project") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("ai") &&
+                        sortConfig.key.toLowerCase().includes("project")
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    <TooltipCell value={incident.ai_project} />
+                  </TableCell>
+                )}
+                {isVisible("type") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("type")
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    <TooltipCell value={incident.type} />
+                  </TableCell>
+                )}
+                {isVisible("severity") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("severity")
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    <Chip label={incident.severity} />
+                  </TableCell>
+                )}
+                {isVisible("status") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("status")
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    <Chip label={incident.status} />
+                  </TableCell>
+                )}
+                {isVisible("occurred_date") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        (sortConfig.key.toLowerCase().includes("occurred") ||
+                          sortConfig.key.toLowerCase().includes("date"))
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    {incident.occurred_date
+                      ? displayFormattedDate(incident.occurred_date)
+                      : "-"}
+                  </TableCell>
+                )}
+                {isVisible("approved_by") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("approved") &&
+                        sortConfig.key.toLowerCase().includes("by")
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    <TooltipCell value={incident.approved_by} />
+                  </TableCell>
+                )}
+                {isVisible("actions") && (
+                  <TableCell
+                    sx={{
+                      ...cellStyle,
+                      backgroundColor:
+                        sortConfig.key &&
+                        sortConfig.key.toLowerCase().includes("actions")
+                          ? "#f5f5f5"
+                          : "inherit",
+                    }}
+                  >
+                    <Stack direction="row" spacing={1}>
+                      <CustomIconButton
+                        id={incident.id}
+                        type="Incident"
+                        onEdit={() => onEdit?.(incident.id?.toString(), "edit")}
+                        onDelete={() =>
+                          onArchive?.(incident.id?.toString(), "archive")
+                        }
+                        onView={() => onView?.(incident.id?.toString(), "view")}
+                        onMouseEvent={() => {}}
+                        warningTitle="Are you sure?"
+                        warningMessage="You are about to archive this incident. This action cannot be undone. You can also choose to edit or view the incident instead."
+                      />
+                    </Stack>
+                  </TableCell>
+                )}
               </TableRow>
             ))
         ) : (
           <TableRow>
             <TableCell
-              colSpan={TABLE_COLUMNS.length}
+              colSpan={TABLE_COLUMNS.filter(col => isVisible(col.id)).length}
               align="center"
               sx={{ border: "none", p: 0 }}
             >
-              <EmptyState message="No incidents found." />
+              <EmptyState icon={AlertTriangle} message="No incidents found." />
             </TableCell>
           </TableRow>
         )}
       </TableBody>
     ),
-    [sortedData, page, rowsPerPage, archivedId, onEdit, onArchive, onView]
+    [sortedData, page, rowsPerPage, archivedId, onEdit, onArchive, onView, isVisible]
   );
 
   if (isLoading) {
@@ -492,7 +506,25 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
   }
 
   if (!sortedData || sortedData.length === 0) {
-    return <EmptyState message="There is currently no data in this table." />;
+    return (
+      <EmptyState icon={AlertTriangle} message="No incidents reported yet. Track and manage AI-related incidents to maintain compliance.">
+        <EmptyStateTip
+          icon={FileWarning}
+          title="What counts as an incident?"
+          description="Any unintended AI behavior, data breach, biased output, system outage, or safety concern. Log them early, even if minor."
+        />
+        <EmptyStateTip
+          icon={ClipboardList}
+          title="Document root cause and response"
+          description="Record what happened, why it happened, the impact, and what corrective actions were taken. This builds your incident response history."
+        />
+        <EmptyStateTip
+          icon={Bell}
+          title="Assign owners and track resolution"
+          description="Assign each incident to a responsible person and track it through to resolution. A clear ownership chain speeds up response times."
+        />
+      </EmptyState>
+    );
   }
 
   return (

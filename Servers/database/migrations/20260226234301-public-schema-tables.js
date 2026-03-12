@@ -315,6 +315,17 @@ module.exports = {
       console.log('Creating ISO 27001 structure tables...');
 
       await queryInterface.sequelize.query(`
+        CREATE TABLE verifywise.annex_struct_iso27001 (
+          id SERIAL PRIMARY KEY,
+          framework_id INTEGER NOT NULL REFERENCES verifywise.frameworks(id) ON DELETE CASCADE,
+          arrangement VARCHAR(50) NOT NULL,
+          title TEXT NOT NULL,
+          order_no INTEGER NOT NULL,
+          is_demo BOOLEAN DEFAULT false
+        );
+      `, { transaction });
+
+      await queryInterface.sequelize.query(`
         CREATE TABLE verifywise.clauses_struct_iso27001 (
           id SERIAL PRIMARY KEY,
           framework_id INTEGER NOT NULL REFERENCES verifywise.frameworks(id) ON DELETE CASCADE,

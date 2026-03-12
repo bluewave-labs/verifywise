@@ -9,6 +9,7 @@ import { IUser } from "../../../domain/interfaces/i.user";
 import { EventModel } from "../../../domain/models/Common/evenTracker/eventTracker.model";
 import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
 import { FileColumn } from "../../../application/hooks/useFileColumnVisibility";
+import { TrainingRegistarModel } from "src/domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { AIIncidentManagementModel } from "src/domain/models/Common/incidentManagement/incidentManagement.model";
 
 export interface IAITrustCenterTableColumn {
@@ -257,6 +258,26 @@ export interface ITableWithPlaceholderProps {
   onEdit: (vendorId?: number) => void;
   hidePagination?: boolean;
   vendorRisks?: VendorRisk[];
+  visibleColumns?: Set<string>;
+}
+
+export interface TrainingTableProps {
+  data: TrainingRegistarModel[];
+  isLoading?: boolean;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  paginated?: boolean;
+  hidePagination?: boolean;
+  visibleColumns?: Set<string>;
+}
+
+export interface TrainingTableProps {
+  data: TrainingRegistarModel[];
+  isLoading?: boolean;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  paginated?: boolean;
+  hidePagination?: boolean;
   visibleColumns?: Set<string>;
 }
 

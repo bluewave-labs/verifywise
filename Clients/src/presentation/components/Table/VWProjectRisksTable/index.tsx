@@ -37,6 +37,7 @@ const columns = [
   { id: "risk_name", label: "RISK NAME", sortable: true }, // value from risk tab
   { id: "risk_owner", label: "OWNER", sortable: true }, // value from risk tab
   { id: "severity", label: "SEVERITY", sortable: true }, // value from risk tab
+  { id: "ale_estimate", label: "ALE ($)", sortable: true }, // quantitative: annualized loss expectation
   { id: "mitigation_status", label: "MITIGATION STATUS", sortable: true }, // mitigation status
   { id: "risk_level_autocalculated", label: "RISK LEVEL", sortable: true }, // risk auto calculated value from risk tab
   { id: "deadline", label: "TARGET DATE", sortable: true }, // start date (deadline) value from mitigation tab
@@ -269,6 +270,11 @@ const VWProjectRisksTable = ({
         case "deadline":
           aValue = new Date(a.deadline).getTime();
           bValue = new Date(b.deadline).getTime();
+          break;
+
+        case "ale_estimate":
+          aValue = a.ale_estimate ?? 0;
+          bValue = b.ale_estimate ?? 0;
           break;
 
         case "controls_mapping":

@@ -26,6 +26,11 @@ import {
 } from "../utils/projectRiskChangeHistory.utils";
 import { notifyUserAssigned } from "../services/inAppNotification.service";
 import { QueryTypes } from "sequelize";
+import {
+  computeDerivedFields,
+  recordPortfolioSnapshot,
+} from "../utils/quantitativeRisk.utils";
+import { validateQuantitativeRiskFields } from "../utils/validations/quantitativeRiskValidation.utils";
 
 // Helper function to get user name
 async function getUserNameById(userId: number): Promise<string> {
@@ -284,7 +289,20 @@ export async function createRisk(
           ? Number(riskData.risk_owner)
           : null,
     } as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
-    
+
+    // Validate and auto-compute FAIR quantitative fields if present
+    if (projectRiskData.event_frequency_min != null || projectRiskData.ale_estimate != null) {
+      const fairErrors = validateQuantitativeRiskFields(projectRiskData as Record<string, unknown>);
+      if (fairErrors.length > 0) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]({
+          message: "Quantitative risk validation failed",
+          errors: fairErrors,
+        }));
+      }
+      const derived = computeDerivedFields(projectRiskData);
+      Object.assign(projectRiskData, derived);
+    }
 
     const newProjectRisk = await createRiskQuery(
       { ...projectRiskData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
@@ -317,6 +335,13 @@ export async function createRisk(
         req.userId!,
         req.organizationId!
       );
+
+      // Record portfolio snapshot if quantitative fields were provided (fire-and-forget)
+      if (newProjectRisk.ale_estimate != null) {
+        recordPortfolioSnapshot(req.organizationId!).catch((err) =>
+          console.error("Failed to record portfolio snapshot:", err)
+        );
+      }
 
       // Send risk owner assignment notification (fire-and-forget)
       if (newProjectRisk.risk_owner) {
@@ -468,6 +493,41 @@ export async function updateRiskById(
       return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
     }
 
+    // Validate and auto-compute FAIR quantitative fields if present
+    if (updateDataTyped.event_frequency_min !== undefined || updateDataTyped.control_effectiveness !== undefined || updateDataTyped.mitigation_cost_annual !== undefined) {
+      // Merge existing FAIR fields with incoming updates for full recomputation
+      const mergedFairFields = {
+        event_frequency_min: updateDataTyped.event_frequency_min ?? existingProjectRisk.event_frequency_min,
+        event_frequency_likely: updateDataTyped.event_frequency_likely ?? existingProjectRisk.event_frequency_likely,
+        event_frequency_max: updateDataTyped.event_frequency_max ?? existingProjectRisk.event_frequency_max,
+        loss_regulatory_min: updateDataTyped.loss_regulatory_min ?? existingProjectRisk.loss_regulatory_min,
+        loss_regulatory_likely: updateDataTyped.loss_regulatory_likely ?? existingProjectRisk.loss_regulatory_likely,
+        loss_regulatory_max: updateDataTyped.loss_regulatory_max ?? existingProjectRisk.loss_regulatory_max,
+        loss_operational_min: updateDataTyped.loss_operational_min ?? existingProjectRisk.loss_operational_min,
+        loss_operational_likely: updateDataTyped.loss_operational_likely ?? existingProjectRisk.loss_operational_likely,
+        loss_operational_max: updateDataTyped.loss_operational_max ?? existingProjectRisk.loss_operational_max,
+        loss_litigation_min: updateDataTyped.loss_litigation_min ?? existingProjectRisk.loss_litigation_min,
+        loss_litigation_likely: updateDataTyped.loss_litigation_likely ?? existingProjectRisk.loss_litigation_likely,
+        loss_litigation_max: updateDataTyped.loss_litigation_max ?? existingProjectRisk.loss_litigation_max,
+        loss_reputational_min: updateDataTyped.loss_reputational_min ?? existingProjectRisk.loss_reputational_min,
+        loss_reputational_likely: updateDataTyped.loss_reputational_likely ?? existingProjectRisk.loss_reputational_likely,
+        loss_reputational_max: updateDataTyped.loss_reputational_max ?? existingProjectRisk.loss_reputational_max,
+        control_effectiveness: updateDataTyped.control_effectiveness ?? existingProjectRisk.control_effectiveness,
+        mitigation_cost_annual: updateDataTyped.mitigation_cost_annual ?? existingProjectRisk.mitigation_cost_annual,
+      };
+
+      const fairErrors = validateQuantitativeRiskFields(mergedFairFields as Record<string, unknown>);
+      if (fairErrors.length > 0) {
+        await transaction.rollback();
+        return res.status(400).json(STATUS_CODE[400]({
+          message: "Quantitative risk validation failed",
+          errors: fairErrors,
+        }));
+      }
+      const derived = computeDerivedFields(mergedFairFields);
+      Object.assign(updateDataTyped, derived);
+    }
+
     // Track changes before updating
     const changes = await trackProjectRiskChanges(existingProjectRisk as RiskModel, updateDataTyped);
 
@@ -498,6 +558,13 @@ export async function updateRiskById(
         "projectRisks.ctrl.ts"
       );
       await logEvent("Update", `Project risk updated: ID ${projectRiskId}`, req.userId!, req.organizationId!);
+
+      // Record portfolio snapshot if quantitative fields were updated (fire-and-forget)
+      if (updatedProjectRisk.ale_estimate != null) {
+        recordPortfolioSnapshot(req.organizationId!).catch((err) =>
+          console.error("Failed to record portfolio snapshot:", err)
+        );
+      }
 
       // Send risk owner assignment notification if owner changed (fire-and-forget)
       const oldRiskOwner = existingProjectRisk.risk_owner;

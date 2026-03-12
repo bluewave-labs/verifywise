@@ -33,6 +33,8 @@ import { GroupBy } from "../../components/Table/GroupBy";
 import { useTableGrouping, useGroupByState } from "../../../application/hooks/useTableGrouping";
 import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
+import { ColumnSelector } from "../../components/Table/ColumnSelector";
+import { useColumnVisibility, ColumnConfig } from "../../../application/hooks/useColumnVisibility";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
 import LinkedPolicyModal from "../../components/Policies/LinkedPolicyModal";
 import { displayFormattedDate } from "../../tools/isoDateToString";
@@ -50,6 +52,18 @@ import type {
   IVirtualFolder,
   IVirtualFolderInput,
 } from "../../../domain/interfaces/i.virtualFolder";
+
+type PolicyColumnKey = "title" | "status" | "next_review" | "author" | "last_updated" | "updated_by" | "actions";
+
+const POLICY_TABLE_COLUMNS: ColumnConfig<PolicyColumnKey>[] = [
+  { key: "title", label: "Title", defaultVisible: true, alwaysVisible: true },
+  { key: "status", label: "Status", defaultVisible: true },
+  { key: "next_review", label: "Next review", defaultVisible: true },
+  { key: "author", label: "Author", defaultVisible: true },
+  { key: "last_updated", label: "Last updated", defaultVisible: true },
+  { key: "updated_by", label: "Updated by", defaultVisible: true },
+  { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true }
+];
 
 const PolicyManager: React.FC<PolicyManagerProps> = ({
   policies: policyList,
@@ -297,6 +311,9 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
 
   const { users } = useUsers();
 
+  const { visibleColumns, allColumns, toggleColumn, resetToDefaults } =
+    useColumnVisibility({ tableId: "policy-manager-table", columns: POLICY_TABLE_COLUMNS });
+
   // FilterBy - Dynamic options generators
   const getUniqueAuthors = useCallback(() => {
     const authorIds = new Set<string>();
@@ -500,6 +517,14 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
             onGroupChange={handleGroupChange}
           />
 
+          {/* Column Selector */}
+          <ColumnSelector
+            columns={allColumns}
+            visibleColumns={visibleColumns}
+            onToggleColumn={toggleColumn}
+            onResetToDefaults={resetToDefaults}
+          />
+
           {/* Search */}
           <Box data-joyride-id="policy-search">
             <SearchBox
@@ -642,6 +667,7 @@ const PolicyManager: React.FC<PolicyManagerProps> = ({
                   onAssignToFolder={handleAssignToFolder}
                   hidePagination={options?.hidePagination}
                   flashRowId={flashRowId}
+                  visibleColumns={visibleColumns}
                 />
               )}
             />

@@ -29,6 +29,7 @@ import {
 import { TrainingRegistarModel } from "../../../domain/models/Common/trainingRegistar/trainingRegistar.model";
 import { TrainingStatus } from "../../../domain/enums/status.enum";
 import Chip from "../../components/Chip";
+import { TrainingTableProps } from "../../types/interfaces/i.table";
 
 //const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -51,15 +52,6 @@ const TABLE_COLUMNS = [
   { id: "numberOfPeople", label: "PEOPLE", sortable: true },
   { id: "actions", label: "", sortable: false },
 ];
-
-interface TrainingTableProps {
-  data: TrainingRegistarModel[];
-  isLoading?: boolean;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
-  paginated?: boolean;
-  hidePagination?: boolean;
-}
 
 const SelectorVertical = (props: React.SVGAttributes<SVGSVGElement>) => (
   <ChevronsUpDown size={16} {...props} />
@@ -155,10 +147,22 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   onDelete,
   paginated = true,
   hidePagination = false,
+  visibleColumns,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
+
+  // Filter columns based on visibleColumns set
+  const isVisible = useCallback(
+    (id: string) => !visibleColumns || visibleColumns.size === 0 || visibleColumns.has(id),
+    [visibleColumns]
+  );
+
+  const visibleTableColumns = useMemo(
+    () => TABLE_COLUMNS.filter((col) => isVisible(col.id)),
+    [isVisible]
+  );
 
   // Initialize rowsPerPage from localStorage utility
   const [rowsPerPage, setRowsPerPage] = useState(() =>
@@ -349,111 +353,125 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                     onEdit?.(trainingIdStr);
                   }}
                 >
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      cursor: "pointer",
-                      textTransform: "none !important",
-                      backgroundColor:
-                        sortConfig.key === "training_name"
-                          ? "#e8e8e8"
-                          : "#fafafa",
-                    }}
-                  >
-                    {training.training_name}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      cursor: "pointer",
-                      textTransform: "none !important",
-                      backgroundColor:
-                        sortConfig.key === "duration" ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    {training.duration}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      cursor: "pointer",
-                      textTransform: "none !important",
-                      backgroundColor:
-                        sortConfig.key === "provider" ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    {training.provider}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      cursor: "pointer",
-                      textTransform: "none !important",
-                      backgroundColor:
-                        sortConfig.key === "department" ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    {training.department}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      cursor: "pointer",
-                      textTransform: "none !important",
-                      backgroundColor:
-                        sortConfig.key === "status" ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    <StatusBadge status={training.status} />
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      cursor: "pointer",
-                      textTransform: "none !important",
-                      backgroundColor:
-                        sortConfig.key === "numberOfPeople"
-                          ? "#f5f5f5"
-                          : "inherit",
-                    }}
-                  >
-                    {training.numberOfPeople}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...singleTheme.tableStyles.primary.body.cell,
-                      minWidth: "50px",
-                      backgroundColor:
-                        sortConfig.key === "actions" ? "#f5f5f5" : "inherit",
-                    }}
-                  >
-                    {isDeletingAllowed && (
-                      <CustomIconButton
-                        id={trainingId}
-                        onDelete={(e?: React.MouseEvent) => {
-                          e?.stopPropagation();
-                          onDelete?.(trainingIdStr);
-                        }}
-                        onEdit={(e?: React.MouseEvent) => {
-                          e?.stopPropagation();
-                          onEdit?.(trainingIdStr);
-                        }}
-                        onMouseEvent={(e: React.SyntheticEvent) =>
-                          e.stopPropagation()
-                        }
-                        warningTitle="Delete this training?"
-                        warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
-                        type="Training"
-                      />
-                    )}
-                  </TableCell>
+                  {isVisible("training_name") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        cursor: "pointer",
+                        textTransform: "none !important",
+                        backgroundColor:
+                          sortConfig.key === "training_name"
+                            ? "#e8e8e8"
+                            : "#fafafa",
+                      }}
+                    >
+                      {training.training_name}
+                    </TableCell>
+                  )}
+                  {isVisible("duration") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        cursor: "pointer",
+                        textTransform: "none !important",
+                        backgroundColor:
+                          sortConfig.key === "duration" ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      {training.duration}
+                    </TableCell>
+                  )}
+                  {isVisible("provider") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        cursor: "pointer",
+                        textTransform: "none !important",
+                        backgroundColor:
+                          sortConfig.key === "provider" ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      {training.provider}
+                    </TableCell>
+                  )}
+                  {isVisible("department") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        cursor: "pointer",
+                        textTransform: "none !important",
+                        backgroundColor:
+                          sortConfig.key === "department" ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      {training.department}
+                    </TableCell>
+                  )}
+                  {isVisible("status") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        cursor: "pointer",
+                        textTransform: "none !important",
+                        backgroundColor:
+                          sortConfig.key === "status" ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      <StatusBadge status={training.status} />
+                    </TableCell>
+                  )}
+                  {isVisible("numberOfPeople") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        cursor: "pointer",
+                        textTransform: "none !important",
+                        backgroundColor:
+                          sortConfig.key === "numberOfPeople"
+                            ? "#f5f5f5"
+                            : "inherit",
+                      }}
+                    >
+                      {training.numberOfPeople}
+                    </TableCell>
+                  )}
+                  {isVisible("actions") && (
+                    <TableCell
+                      sx={{
+                        ...singleTheme.tableStyles.primary.body.cell,
+                        minWidth: "50px",
+                        backgroundColor:
+                          sortConfig.key === "actions" ? "#f5f5f5" : "inherit",
+                      }}
+                    >
+                      {isDeletingAllowed && (
+                        <CustomIconButton
+                          id={trainingId}
+                          onDelete={(e?: React.MouseEvent) => {
+                            e?.stopPropagation();
+                            onDelete?.(trainingIdStr);
+                          }}
+                          onEdit={(e?: React.MouseEvent) => {
+                            e?.stopPropagation();
+                            onEdit?.(trainingIdStr);
+                          }}
+                          onMouseEvent={(e: React.SyntheticEvent) =>
+                            e.stopPropagation()
+                          }
+                          warningTitle="Delete this training?"
+                          warningMessage="When you delete this training, all data related to this training will be removed. This action is non-recoverable."
+                          type="Training"
+                        />
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })
         ) : (
           <TableRow>
             <TableCell
-              colSpan={TABLE_COLUMNS.length}
+              colSpan={visibleTableColumns.length}
               align="center"
               sx={{ py: 4 }}
             >
@@ -463,7 +481,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
         )}
       </TableBody>
     ),
-    [sortedData, page, rowsPerPage, isDeletingAllowed, onEdit, onDelete]
+    [sortedData, page, rowsPerPage, isDeletingAllowed, onEdit, onDelete, isVisible, visibleTableColumns]
   );
 
   if (isLoading) {
@@ -509,7 +527,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
     <TableContainer sx={{ overflowX: "auto" }}>
       <Table sx={singleTheme.tableStyles.primary.frame}>
         <SortableTableHead
-          columns={TABLE_COLUMNS}
+          columns={visibleTableColumns}
           sortConfig={sortConfig}
           onSort={handleSort}
         />

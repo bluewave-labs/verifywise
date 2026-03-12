@@ -39,12 +39,17 @@ import {
   ModelLifecycleCard,
 } from "../../components/Charts/NewMetricsCards";
 import { GovernanceScoreCard } from "../../components/Charts/GovernanceScoreCard";
+import { PortfolioExposureCard } from "../../components/Charts/PortfolioExposureCard";
+import { PortfolioTrendChart } from "../../components/Charts/PortfolioTrendChart";
+import { LossCategoryBreakdown } from "../../components/Charts/LossCategoryBreakdown";
 import UseCasesTable from "../../components/Table/UseCasesTable";
 import { EmptyStateMessage } from "../../components/EmptyStateMessage";
 import ActivityItem from "../../components/ActivityItem";
 import { ButtonToggle } from "../../components/button-toggle";
 import { StepProgressDialog } from "../../components/StepProgressDialog";
 import { OrganizationalFrameworkData } from "../../../application/hooks/useDashboardMetrics";
+import { useRiskAssessmentMode } from "../../../application/hooks/useRiskAssessmentMode";
+import { useOrgPortfolio, usePortfolioTrend } from "../../../application/hooks/useQuantitativeRisk";
 import {
   navIconButtonSx,
   getRiskLevelData,
@@ -98,6 +103,10 @@ const IntegratedDashboard: React.FC = () => {
     progressStep,
     progressSteps,
   } = useDashboardMetrics();
+
+  const { isQuantitative } = useRiskAssessmentMode();
+  const { portfolio } = useOrgPortfolio();
+  const { snapshots: trendSnapshots } = usePortfolioTrend(90);
 
   const loading = dashboardLoading || metricsLoading;
 
@@ -492,7 +501,29 @@ const IntegratedDashboard: React.FC = () => {
             </DashboardCard>
           </Box>
 
-          {/* Executive Row 4: Recent activity + Recent use cases */}
+          {/* Executive Row 4b: Quantitative risk portfolio (conditional) */}
+          {isQuantitative && portfolio && portfolio.risk_count > 0 && (
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", mb: "16px" }}
+            >
+              <DashboardCard title="AI portfolio exposure" navigateTo="/risk-management">
+                <PortfolioExposureCard portfolio={portfolio} />
+              </DashboardCard>
+              <DashboardCard title="Exposure trend (90 days)">
+                <PortfolioTrendChart snapshots={trendSnapshots} height={200} />
+              </DashboardCard>
+              <DashboardCard title="Loss category breakdown">
+                <LossCategoryBreakdown
+                  regulatory={portfolio.loss_regulatory}
+                  operational={portfolio.loss_operational}
+                  litigation={portfolio.loss_litigation}
+                  reputational={portfolio.loss_reputational}
+                />
+              </DashboardCard>
+            </Box>
+          )}
+
+          {/* Executive Row 5: Recent activity + Recent use cases */}
           <Box
             sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", mb: "16px" }}
           >

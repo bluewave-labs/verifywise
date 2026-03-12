@@ -10,6 +10,7 @@ import { EventModel } from "../../../domain/models/Common/evenTracker/eventTrack
 import { CustomSelectOptionWithIcon } from "../../../domain/types/widget.types";
 import { FileColumn } from "../../../application/hooks/useFileColumnVisibility";
 import { TrainingRegistarModel } from "src/domain/models/Common/trainingRegistar/trainingRegistar.model";
+import { AIIncidentManagementModel } from "src/domain/models/Common/incidentManagement/incidentManagement.model";
 
 export interface IAITrustCenterTableColumn {
   id: string;
@@ -266,6 +267,28 @@ export interface TrainingTableProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   paginated?: boolean;
+  hidePagination?: boolean;
+  visibleColumns?: Set<string>;
+}
+
+export interface TrainingTableProps {
+  data: TrainingRegistarModel[];
+  isLoading?: boolean;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  paginated?: boolean;
+  hidePagination?: boolean;
+  visibleColumns?: Set<string>;
+}
+
+export interface IncidentTableProps {
+  data: AIIncidentManagementModel[];
+  isLoading?: boolean;
+  onEdit?: (id: string, mode: string) => void;
+  onView?: (id: string, mode: string) => void;
+  onArchive?: (id: string, mode: string) => void;
+  paginated?: boolean;
+  archivedId?: string | null;
   hidePagination?: boolean;
   visibleColumns?: Set<string>;
 }

@@ -56,6 +56,10 @@ import UserActivityPage from "../../presentation/pages/ShadowAI/UserActivityPage
 import AIToolsPage from "../../presentation/pages/ShadowAI/AIToolsPage";
 import RulesPage from "../../presentation/pages/ShadowAI/RulesPage";
 import ShadowAISettingsPage from "../../presentation/pages/ShadowAI/SettingsPage";
+import AIGatewayEndpointsPage from "../../presentation/pages/AIGateway/Endpoints";
+import AIGatewaySpendPage from "../../presentation/pages/AIGateway/SpendDashboard";
+import AIGatewayPlaygroundPage from "../../presentation/pages/AIGateway/Playground";
+import AIGatewaySettingsPage from "../../presentation/pages/AIGateway/Settings";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 import IntakeFormsListPage from "../../presentation/pages/IntakeFormBuilder/IntakeFormsListPage";
@@ -148,6 +152,11 @@ export const createRoutes = (
     <Route path="/shadow-ai/rules" element={<RulesPage />} />
     <Route path="/shadow-ai/rules/alerts" element={<RulesPage />} />
     <Route path="/shadow-ai/settings" element={<ShadowAISettingsPage />} />
+    <Route path="/ai-gateway" element={<Navigate to="/ai-gateway/endpoints" replace />} />
+    <Route path="/ai-gateway/endpoints" element={<AIGatewayEndpointsPage />} />
+    <Route path="/ai-gateway/spend" element={<AIGatewaySpendPage />} />
+    <Route path="/ai-gateway/playground" element={<AIGatewayPlaygroundPage />} />
+    <Route path="/ai-gateway/settings" element={<AIGatewaySettingsPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />
     <Route path="/intake-forms" element={<IntakeFormsListPage />}>

@@ -3,10 +3,12 @@ import { AppModule } from "../../../application/redux/ui/uiSlice";
 import { useEvalsSidebarContextSafe } from "../../../application/contexts/EvalsSidebar.context";
 import { useAIDetectionSidebarContextSafe } from "../../../application/contexts/AIDetectionSidebar.context";
 import { useShadowAISidebarContextSafe } from "../../../application/contexts/ShadowAISidebar.context";
+import { useAIGatewaySidebarContextSafe } from "../../../application/contexts/AIGatewaySidebar.context";
 import Sidebar from "../Sidebar";
 import EvalsSidebar from "../../pages/EvalsDashboard/EvalsSidebar";
 import AIDetectionSidebar from "../../pages/AIDetection/AIDetectionSidebar";
 import ShadowAISidebar from "../../pages/ShadowAI/ShadowAISidebar";
+import AIGatewaySidebar from "../../pages/AIGateway/AIGatewaySidebar";
 
 interface ContextSidebarProps {
   activeModule: AppModule;
@@ -38,6 +40,7 @@ export function ContextSidebar({
   const evalsSidebarContext = useEvalsSidebarContextSafe();
   const aiDetectionSidebarContext = useAIDetectionSidebarContextSafe();
   const shadowAiSidebarContext = useShadowAISidebarContextSafe();
+  const aiGatewaySidebarContext = useAIGatewaySidebarContextSafe();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -155,6 +158,27 @@ export function ContextSidebar({
           alertsCount={shadowAiSidebarContext?.alertsCount ?? 0}
           recentTools={shadowAiSidebarContext?.recentTools ?? []}
           onToolClick={(toolId) => navigate(`/shadow-ai/tools/${toolId}`)}
+        />
+      );
+    }
+    case "ai-gateway": {
+      const gatewayTab = location.pathname.includes("/ai-gateway/spend")
+        ? "spend"
+        : location.pathname.includes("/ai-gateway/playground")
+          ? "playground"
+          : location.pathname.includes("/ai-gateway/settings")
+            ? "settings"
+            : "endpoints";
+
+      const handleGatewayTabChange = (newTab: string) => {
+        navigate(`/ai-gateway/${newTab}`);
+      };
+
+      return (
+        <AIGatewaySidebar
+          activeTab={gatewayTab}
+          onTabChange={handleGatewayTabChange}
+          endpointsCount={aiGatewaySidebarContext?.endpointsCount ?? 0}
         />
       );
     }

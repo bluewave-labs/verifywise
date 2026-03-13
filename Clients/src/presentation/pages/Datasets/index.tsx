@@ -30,6 +30,70 @@ import NewDataset from "../../components/Modals/NewDataset";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
+const DATASET_GROUP_BY_OPTIONS = [
+  { id: "status", label: "Status" },
+  { id: "type", label: "Type" },
+  { id: "classification", label: "Classification" },
+  { id: "owner", label: "Owner" },
+];
+
+const DATASET_FILTER_COLUMNS: FilterColumn[] = [
+  {
+    id: "name",
+    label: "Name",
+    type: "text" as const,
+  },
+  {
+    id: "description",
+    label: "Description",
+    type: "text" as const,
+  },
+  {
+    id: "status",
+    label: "Status",
+    type: "select" as const,
+    options: [
+      { value: DatasetStatus.DRAFT, label: "Draft" },
+      { value: DatasetStatus.ACTIVE, label: "Active" },
+      { value: DatasetStatus.DEPRECATED, label: "Deprecated" },
+      { value: DatasetStatus.ARCHIVED, label: "Archived" },
+    ],
+  },
+  {
+    id: "type",
+    label: "Type",
+    type: "select" as const,
+    options: [
+      { value: DatasetType.TRAINING, label: "Training" },
+      { value: DatasetType.VALIDATION, label: "Validation" },
+      { value: DatasetType.TESTING, label: "Testing" },
+      { value: DatasetType.PRODUCTION, label: "Production" },
+      { value: DatasetType.REFERENCE, label: "Reference" },
+    ],
+  },
+  {
+    id: "classification",
+    label: "Classification",
+    type: "select" as const,
+    options: [
+      { value: DataClassification.PUBLIC, label: "Public" },
+      { value: DataClassification.INTERNAL, label: "Internal" },
+      { value: DataClassification.CONFIDENTIAL, label: "Confidential" },
+      { value: DataClassification.RESTRICTED, label: "Restricted" },
+    ],
+  },
+  {
+    id: "owner",
+    label: "Owner",
+    type: "text" as const,
+  },
+  {
+    id: "source",
+    label: "Source",
+    type: "text" as const,
+  },
+];
+
 const Datasets: React.FC = () => {
   const [datasetData, setDatasetData] = useState<IDataset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,65 +111,7 @@ const Datasets: React.FC = () => {
   const { userRoleName } = useAuth();
 
   // GroupBy state
-  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
-
-  // FilterBy - Filter columns configuration
-  const datasetFilterColumns: FilterColumn[] = useMemo(() => [
-    {
-      id: "name",
-      label: "Name",
-      type: "text" as const,
-    },
-    {
-      id: "description",
-      label: "Description",
-      type: "text" as const,
-    },
-    {
-      id: "status",
-      label: "Status",
-      type: "select" as const,
-      options: [
-        { value: DatasetStatus.DRAFT, label: "Draft" },
-        { value: DatasetStatus.ACTIVE, label: "Active" },
-        { value: DatasetStatus.DEPRECATED, label: "Deprecated" },
-        { value: DatasetStatus.ARCHIVED, label: "Archived" },
-      ],
-    },
-    {
-      id: "type",
-      label: "Type",
-      type: "select" as const,
-      options: [
-        { value: DatasetType.TRAINING, label: "Training" },
-        { value: DatasetType.VALIDATION, label: "Validation" },
-        { value: DatasetType.TESTING, label: "Testing" },
-        { value: DatasetType.PRODUCTION, label: "Production" },
-        { value: DatasetType.REFERENCE, label: "Reference" },
-      ],
-    },
-    {
-      id: "classification",
-      label: "Classification",
-      type: "select" as const,
-      options: [
-        { value: DataClassification.PUBLIC, label: "Public" },
-        { value: DataClassification.INTERNAL, label: "Internal" },
-        { value: DataClassification.CONFIDENTIAL, label: "Confidential" },
-        { value: DataClassification.RESTRICTED, label: "Restricted" },
-      ],
-    },
-    {
-      id: "owner",
-      label: "Owner",
-      type: "text" as const,
-    },
-    {
-      id: "source",
-      label: "Source",
-      type: "text" as const,
-    },
-  ], []);
+  const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();;
 
   // FilterBy - Field value getter
   const getDatasetFieldValue = useCallback(
@@ -415,16 +421,11 @@ const Datasets: React.FC = () => {
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <FilterBy
-              columns={datasetFilterColumns}
+              columns={DATASET_FILTER_COLUMNS}
               onFilterChange={handleDatasetFilterChange}
             />
             <GroupBy
-              options={[
-                { id: "status", label: "Status" },
-                { id: "type", label: "Type" },
-                { id: "classification", label: "Classification" },
-                { id: "owner", label: "Owner" },
-              ]}
+              options={DATASET_GROUP_BY_OPTIONS}
               onGroupChange={handleGroupChange}
             />
             <SearchBox

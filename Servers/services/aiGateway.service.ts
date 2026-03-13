@@ -1,0 +1,510 @@
+/**
+ * AI Gateway Service
+ *
+ * Orchestrates the proxy flow for AI Gateway requests:
+ * 1. Look up endpoint by slug
+ * 2. Decrypt the API key
+ * 3. Reserve budget (if budget exists and is a hard limit)
+ * 4. Forward request to FastAPI gateway service
+ * 5. Log spend to ai_gateway_spend_logs
+ * 6. Adjust budget with actual cost
+ */
+
+import { Readable } from "stream";
+import { getEndpointBySlugQuery } from "../utils/aiGatewayEndpoint.utils";
+import { getApiKeyByIdQuery } from "../utils/aiGatewayApiKey.utils";
+import { insertSpendLogQuery } from "../utils/aiGatewaySpendLog.utils";
+import {
+  getBudgetQuery,
+  reserveBudgetQuery,
+  adjustBudgetSpendQuery,
+} from "../utils/aiGatewayBudget.utils";
+import { decrypt } from "../utils/encryption.utils";
+import {
+  NotFoundException,
+  BusinessLogicException,
+  ExternalServiceException,
+} from "../domain.layer/exceptions/custom.exception";
+
+const AI_GATEWAY_URL =
+  process.env.AI_GATEWAY_URL || "http://localhost:8100";
+const INTERNAL_KEY =
+  process.env.AI_GATEWAY_INTERNAL_KEY || "internal-gateway-key";
+
+/** Estimated cost per token (rough default, overridden by FastAPI response) */
+const DEFAULT_ESTIMATED_COST = 0.005;
+
+interface CompletionOptions {
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  stream?: boolean;
+}
+
+interface GatewayResponse {
+  choices?: Array<{
+    message?: { role: string; content: string };
+    delta?: { content?: string };
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  cost_usd?: number;
+  model?: string;
+}
+
+interface EmbeddingResponse {
+  data?: Array<{ embedding: number[]; index: number }>;
+  usage?: {
+    prompt_tokens: number;
+    total_tokens: number;
+  };
+  cost_usd?: number;
+  model?: string;
+}
+
+/**
+ * Resolve endpoint and decrypt API key
+ */
+async function resolveEndpoint(organizationId: number, endpointSlug: string) {
+  const endpoint = await getEndpointBySlugQuery(organizationId, endpointSlug);
+  if (!endpoint) {
+    throw new NotFoundException(
+      `Endpoint not found: ${endpointSlug}`,
+      "ai_gateway_endpoints",
+      endpointSlug
+    );
+  }
+
+  if (!endpoint.is_active) {
+    throw new BusinessLogicException(
+      `Endpoint is inactive: ${endpointSlug}`,
+      "endpoint_inactive",
+      { slug: endpointSlug }
+    );
+  }
+
+  const apiKeyRecord = await getApiKeyByIdQuery(
+    organizationId,
+    endpoint.api_key_id
+  );
+  if (!apiKeyRecord) {
+    throw new NotFoundException(
+      `API key not found for endpoint: ${endpointSlug}`,
+      "ai_gateway_api_keys",
+      endpoint.api_key_id
+    );
+  }
+
+  if (!apiKeyRecord.is_active) {
+    throw new BusinessLogicException(
+      `API key is inactive for endpoint: ${endpointSlug}`,
+      "api_key_inactive",
+      { key_name: apiKeyRecord.key_name }
+    );
+  }
+
+  let decryptedKey: string;
+  try {
+    decryptedKey = decrypt(apiKeyRecord.encrypted_key);
+  } catch (err) {
+    throw new BusinessLogicException(
+      "Failed to decrypt API key",
+      "decryption_failed"
+    );
+  }
+
+  return { endpoint, decryptedKey };
+}
+
+/**
+ * Try to reserve budget. Returns true if budget reservation succeeded or no budget exists.
+ */
+async function tryReserveBudget(
+  organizationId: number,
+  estimatedCost: number
+): Promise<boolean> {
+  const budget = await getBudgetQuery(organizationId);
+  if (!budget) {
+    return true; // No budget configured, allow all requests
+  }
+
+  const reserved = await reserveBudgetQuery(organizationId, estimatedCost);
+  if (!reserved) {
+    throw new BusinessLogicException(
+      "Monthly budget limit exceeded",
+      "budget_exceeded",
+      {
+        monthly_limit_usd: budget.monthly_limit_usd,
+        current_spend_usd: budget.current_spend_usd,
+      }
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Log spend and adjust budget after request completes
+ */
+async function finalizeSpend(
+  organizationId: number,
+  endpointId: number,
+  userId: number,
+  provider: string,
+  model: string,
+  usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number },
+  costUsd: number,
+  latencyMs: number,
+  statusCode: number,
+  estimatedCost: number
+): Promise<void> {
+  try {
+    await insertSpendLogQuery(organizationId, {
+      endpoint_id: endpointId,
+      user_id: userId,
+      provider,
+      model,
+      prompt_tokens: usage.prompt_tokens,
+      completion_tokens: usage.completion_tokens,
+      total_tokens: usage.total_tokens,
+      cost_usd: costUsd,
+      latency_ms: latencyMs,
+      status_code: statusCode,
+    });
+  } catch (err) {
+    console.error("Failed to insert spend log:", err);
+  }
+
+  try {
+    await adjustBudgetSpendQuery(organizationId, estimatedCost, costUsd);
+  } catch (err) {
+    console.error("Failed to adjust budget spend:", err);
+  }
+}
+
+/**
+ * Proxy a chat completion request through the FastAPI gateway
+ */
+export async function proxyCompletion(
+  organizationId: number,
+  endpointSlug: string,
+  messages: Array<{ role: string; content: string }>,
+  options: CompletionOptions,
+  userId: number
+): Promise<GatewayResponse> {
+  const { endpoint, decryptedKey } = await resolveEndpoint(
+    organizationId,
+    endpointSlug
+  );
+
+  const estimatedCost = DEFAULT_ESTIMATED_COST;
+  await tryReserveBudget(organizationId, estimatedCost);
+
+  const startTime = Date.now();
+  let statusCode = 200;
+
+  // Prepend system prompt if configured on the endpoint
+  const finalMessages =
+    endpoint.system_prompt
+      ? [{ role: "system", content: endpoint.system_prompt }, ...messages]
+      : messages;
+
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-key": INTERNAL_KEY,
+        "x-provider-key": decryptedKey,
+      },
+      body: JSON.stringify({
+        provider: endpoint.provider,
+        model: endpoint.model,
+        messages: finalMessages,
+        max_tokens: options.max_tokens ?? endpoint.max_tokens ?? undefined,
+        temperature: options.temperature ?? endpoint.temperature ?? undefined,
+        top_p: options.top_p,
+        stream: false,
+      }),
+    });
+
+    statusCode = response.status;
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new ExternalServiceException(
+        `AI Gateway returned ${response.status}: ${errorBody}`,
+        "ai-gateway-fastapi",
+        "/v1/chat/completions"
+      );
+    }
+
+    const data = (await response.json()) as GatewayResponse;
+    const latencyMs = Date.now() - startTime;
+
+    const usage = data.usage || {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+    };
+    const costUsd = data.cost_usd || 0;
+
+    await finalizeSpend(
+      organizationId,
+      endpoint.id,
+      userId,
+      endpoint.provider,
+      data.model || endpoint.model,
+      usage,
+      costUsd,
+      latencyMs,
+      statusCode,
+      estimatedCost
+    );
+
+    return data;
+  } catch (err) {
+    const latencyMs = Date.now() - startTime;
+
+    // Log the failed request spend (cost = 0) and adjust budget back
+    await finalizeSpend(
+      organizationId,
+      endpoint.id,
+      userId,
+      endpoint.provider,
+      endpoint.model,
+      { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      0,
+      latencyMs,
+      statusCode >= 400 ? statusCode : 500,
+      estimatedCost
+    );
+
+    throw err;
+  }
+}
+
+/**
+ * Proxy a streaming chat completion request through the FastAPI gateway.
+ * Returns a ReadableStream that the controller can pipe to the response.
+ */
+export async function proxyStream(
+  organizationId: number,
+  endpointSlug: string,
+  messages: Array<{ role: string; content: string }>,
+  options: CompletionOptions,
+  userId: number
+): Promise<{ stream: Readable; cleanup: () => Promise<void> }> {
+  const { endpoint, decryptedKey } = await resolveEndpoint(
+    organizationId,
+    endpointSlug
+  );
+
+  const estimatedCost = DEFAULT_ESTIMATED_COST;
+  await tryReserveBudget(organizationId, estimatedCost);
+
+  const startTime = Date.now();
+
+  const finalMessages =
+    endpoint.system_prompt
+      ? [{ role: "system", content: endpoint.system_prompt }, ...messages]
+      : messages;
+
+  const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-internal-key": INTERNAL_KEY,
+      "x-provider-key": decryptedKey,
+    },
+    body: JSON.stringify({
+      provider: endpoint.provider,
+      model: endpoint.model,
+      messages: finalMessages,
+      max_tokens: options.max_tokens ?? endpoint.max_tokens ?? undefined,
+      temperature: options.temperature ?? endpoint.temperature ?? undefined,
+      top_p: options.top_p,
+      stream: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    // Adjust budget back since we reserved
+    await adjustBudgetSpendQuery(organizationId, estimatedCost, 0);
+    throw new ExternalServiceException(
+      `AI Gateway returned ${response.status}: ${errorBody}`,
+      "ai-gateway-fastapi",
+      "/v1/chat/completions"
+    );
+  }
+
+  if (!response.body) {
+    await adjustBudgetSpendQuery(organizationId, estimatedCost, 0);
+    throw new ExternalServiceException(
+      "No response body from AI Gateway stream",
+      "ai-gateway-fastapi",
+      "/v1/chat/completions"
+    );
+  }
+
+  // Convert web ReadableStream to Node.js Readable
+  const reader = response.body.getReader();
+  let totalPromptTokens = 0;
+  let totalCompletionTokens = 0;
+  let totalCostUsd = 0;
+  let finalModel = endpoint.model;
+
+  const nodeStream = new Readable({
+    async read() {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          this.push(null);
+          return;
+        }
+        this.push(Buffer.from(value));
+
+        // Try to parse SSE chunks for usage data
+        const text = new TextDecoder().decode(value);
+        const lines = text.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const chunk = JSON.parse(line.slice(6));
+              if (chunk.usage) {
+                totalPromptTokens = chunk.usage.prompt_tokens || totalPromptTokens;
+                totalCompletionTokens = chunk.usage.completion_tokens || totalCompletionTokens;
+              }
+              if (chunk.cost_usd) {
+                totalCostUsd = chunk.cost_usd;
+              }
+              if (chunk.model) {
+                finalModel = chunk.model;
+              }
+            } catch {
+              // Ignore JSON parse errors on SSE chunks
+            }
+          }
+        }
+      } catch (err) {
+        this.destroy(err as Error);
+      }
+    },
+  });
+
+  const cleanup = async () => {
+    const latencyMs = Date.now() - startTime;
+    await finalizeSpend(
+      organizationId,
+      endpoint.id,
+      userId,
+      endpoint.provider,
+      finalModel,
+      {
+        prompt_tokens: totalPromptTokens,
+        completion_tokens: totalCompletionTokens,
+        total_tokens: totalPromptTokens + totalCompletionTokens,
+      },
+      totalCostUsd,
+      latencyMs,
+      200,
+      estimatedCost
+    );
+  };
+
+  return { stream: nodeStream, cleanup };
+}
+
+/**
+ * Proxy an embedding request through the FastAPI gateway
+ */
+export async function proxyEmbedding(
+  organizationId: number,
+  endpointSlug: string,
+  input: string | string[],
+  userId: number
+): Promise<EmbeddingResponse> {
+  const { endpoint, decryptedKey } = await resolveEndpoint(
+    organizationId,
+    endpointSlug
+  );
+
+  const estimatedCost = DEFAULT_ESTIMATED_COST;
+  await tryReserveBudget(organizationId, estimatedCost);
+
+  const startTime = Date.now();
+  let statusCode = 200;
+
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL}/v1/embeddings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-key": INTERNAL_KEY,
+        "x-provider-key": decryptedKey,
+      },
+      body: JSON.stringify({
+        provider: endpoint.provider,
+        model: endpoint.model,
+        input,
+      }),
+    });
+
+    statusCode = response.status;
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new ExternalServiceException(
+        `AI Gateway returned ${response.status}: ${errorBody}`,
+        "ai-gateway-fastapi",
+        "/v1/embeddings"
+      );
+    }
+
+    const data = (await response.json()) as EmbeddingResponse;
+    const latencyMs = Date.now() - startTime;
+
+    const usage = data.usage || { prompt_tokens: 0, total_tokens: 0 };
+    const costUsd = data.cost_usd || 0;
+
+    await finalizeSpend(
+      organizationId,
+      endpoint.id,
+      userId,
+      endpoint.provider,
+      data.model || endpoint.model,
+      {
+        prompt_tokens: usage.prompt_tokens,
+        completion_tokens: 0,
+        total_tokens: usage.total_tokens,
+      },
+      costUsd,
+      latencyMs,
+      statusCode,
+      estimatedCost
+    );
+
+    return data;
+  } catch (err) {
+    const latencyMs = Date.now() - startTime;
+
+    await finalizeSpend(
+      organizationId,
+      endpoint.id,
+      userId,
+      endpoint.provider,
+      endpoint.model,
+      { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      0,
+      latencyMs,
+      statusCode >= 400 ? statusCode : 500,
+      estimatedCost
+    );
+
+    throw err;
+  }
+}

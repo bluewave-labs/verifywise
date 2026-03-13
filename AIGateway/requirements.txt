@@ -1,0 +1,11 @@
+# Core
+fastapi>=0.120.0
+uvicorn>=0.32.0
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+pydantic-settings>=2.0.0
+redis>=5.0.0
+
+# LiteLLM SDK (MIT licensed)
+# Pinned to a specific version — updated per VerifyWise release
+litellm==1.82.2

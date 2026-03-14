@@ -10,7 +10,7 @@ export const aiGatewaySettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The Settings page manages three areas: API keys for LLM providers, monthly budget limits, and guardrail configuration. Changes take effect immediately — no restart required.',
+      text: 'The Settings page covers 3 areas: API keys for LLM providers, monthly budget limits, and guardrail configuration. Changes take effect immediately.',
     },
     {
       type: 'heading',
@@ -95,8 +95,8 @@ export const aiGatewaySettingsContent: ArticleContent = {
     {
       type: 'bullet-list',
       items: [
-        { bold: 'PII scan on error: Block (default)', text: 'If PII scanning fails, all requests are blocked for safety. This is the fail-closed approach — recommended for regulated environments.' },
-        { bold: 'Content filter on error: Allow (default)', text: 'If content filtering fails, requests proceed normally. This is the fail-open approach — prevents a scanner outage from blocking all AI traffic.' },
+        { bold: 'PII scan on error: Block (default)', text: 'If PII scanning fails, all requests are blocked. Fail-closed. Recommended for regulated environments.' },
+        { bold: 'Content filter on error: Allow (default)', text: 'If content filtering fails, requests go through. Fail-open. Prevents a scanner outage from blocking all AI traffic.' },
       ],
     },
     {

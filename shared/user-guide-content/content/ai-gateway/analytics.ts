@@ -10,7 +10,7 @@ export const analyticsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The Analytics page provides a unified view of all LLM usage, costs, and guardrail activity across your organization. Every request routed through the AI Gateway is automatically tracked with cost, token count, latency, and model information.',
+      text: 'The Analytics page shows LLM usage, costs, and guardrail activity across your organization. Every request through the AI Gateway is tracked with cost, token count, latency, and model.',
     },
     {
       type: 'heading',
@@ -20,7 +20,7 @@ export const analyticsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Four stat cards at the top of the page show key metrics for the selected time period:',
+      text: '4 stat cards at the top show metrics for the selected time period:',
     },
     {
       type: 'bullet-list',
@@ -59,7 +59,7 @@ export const analyticsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'A horizontal bar chart showing spend per LLM model. Use this to identify which models consume the most budget. If your organization uses multiple models for different tasks, this chart helps you evaluate whether switching to a lighter model for simpler tasks could reduce costs.',
+      text: 'A horizontal bar chart showing spend per LLM model. If you run multiple models for different tasks, check whether a lighter model for simpler tasks could cut costs.',
     },
     {
       type: 'heading',
@@ -69,7 +69,7 @@ export const analyticsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'A ranked list showing spend and request volume per configured endpoint. Each entry shows the endpoint name, request count, and total cost. This helps you understand which endpoints handle the most traffic.',
+      text: 'A ranked list showing spend and request volume per endpoint. Each entry shows the endpoint name, request count, and total cost.',
     },
     {
       type: 'heading',
@@ -79,7 +79,7 @@ export const analyticsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Shows the top 10 users ranked by total spend, with request count, token usage, and cost per user. Use this to identify power users, allocate budgets, or spot unexpected usage patterns.',
+      text: 'The top 10 users ranked by spend, with request count, token usage, and cost per user.',
     },
     {
       type: 'heading',
@@ -103,7 +103,7 @@ export const analyticsContent: ArticleContent = {
       type: 'callout',
       variant: 'tip',
       title: 'Compliance evidence',
-      text: 'The analytics data serves as compliance evidence for EU AI Act Article 12 (record-keeping) and ISO 42001 Clause 9 (performance evaluation). Every request is logged with timestamps, model, cost, and guardrail results.',
+      text: 'Analytics data can be used as compliance evidence for EU AI Act Article 12 (record-keeping) and ISO 42001 Clause 9 (performance evaluation). Every request is logged with timestamps, model, cost, and guardrail results.',
     },
   ],
 };

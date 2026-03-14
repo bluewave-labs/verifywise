@@ -10,7 +10,7 @@ export const playgroundContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The Playground provides an interactive chat interface for testing your configured endpoints before routing production traffic. Send messages, observe streaming responses, and verify that guardrails work as expected.',
+      text: 'The Playground is a chat interface for testing your endpoints before sending production traffic through them. Send messages, watch responses stream in, and check that guardrails catch what they should.',
     },
     {
       type: 'heading',
@@ -24,7 +24,7 @@ export const playgroundContent: ArticleContent = {
         { text: 'Select an endpoint from the dropdown. Only active endpoints with valid API keys appear.' },
         { text: 'Type a message and press Enter (or click the send button).' },
         { text: 'The response streams in real-time with markdown rendering.' },
-        { text: 'Continue the conversation — full message history is sent with each request.' },
+        { text: 'Continue the conversation. Full message history is sent with each request.' },
       ],
     },
     {
@@ -62,7 +62,7 @@ export const playgroundContent: ArticleContent = {
       type: 'callout',
       variant: 'info',
       title: 'Guardrail errors',
-      text: 'When a guardrail blocks a request, the Playground displays the reason (e.g., "Blocked by guardrail: content_filter: confidential detected"). This helps you verify that your guardrail rules work correctly before deploying to production.',
+      text: 'When a guardrail blocks a request, the Playground shows the reason (e.g., "Blocked by guardrail: content_filter: confidential detected"). Good way to verify rules work before going to production.',
     },
     {
       type: 'heading',
@@ -72,7 +72,7 @@ export const playgroundContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Every message sent through the Playground is logged in the Analytics dashboard with full cost and token tracking. Use the Playground to estimate production costs — if a conversation costs $0.02 per exchange, multiply by your expected daily volume to forecast monthly spend.',
+      text: 'Every Playground message is logged in Analytics with cost and token tracking. If a conversation costs $0.02 per exchange, multiply by your expected daily volume to estimate monthly spend.',
     },
   ],
 };

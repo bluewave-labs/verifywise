@@ -10,7 +10,7 @@ export const endpointsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Endpoints are the core routing configuration for the AI Gateway. Each endpoint maps a URL-safe slug to a specific LLM provider, model, and API key. Your applications reference endpoints by slug, so you can change the underlying model without modifying application code.',
+      text: 'Each endpoint maps a URL-safe slug to a provider, model, and API key. Applications call the slug, not the model directly, so you can swap models without changing any application code.',
     },
     {
       type: 'heading',
@@ -33,7 +33,7 @@ export const endpointsContent: ArticleContent = {
       type: 'callout',
       variant: 'info',
       title: 'System prompts',
-      text: 'If you set a system prompt on an endpoint, it is automatically prepended to every request. This is useful for enforcing consistent behavior, safety guardrails, or response formatting across all requests to that endpoint.',
+      text: 'If you set a system prompt on an endpoint, it gets prepended to every request. Good for enforcing consistent behavior or response formatting without changing your application.',
     },
     {
       type: 'heading',

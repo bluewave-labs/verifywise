@@ -10,7 +10,7 @@ export const guardrailsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Guardrails are automated rules that scan every AI request before it reaches the LLM provider. They detect and act on personal data (PII detection) or prohibited content (content filter). Rules apply globally to all endpoints and run in-process within your gateway infrastructure — no data is sent to external services for scanning.',
+      text: 'Guardrails scan every AI request before it reaches the LLM provider. They catch personal data (PII detection) and prohibited content (content filter). Rules apply globally to all endpoints. Scanning runs in-process within your gateway; no data is sent to external services.',
     },
     {
       type: 'heading',
@@ -129,7 +129,7 @@ export const guardrailsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Click "Test guardrails" at the top of the page to open the test modal. Paste sample text and click "Run test" to see what your active rules would detect — without sending any request to an LLM. The test shows:',
+      text: 'Click "Test guardrails" at the top of the page to open the test modal. Paste sample text and click "Run test" to see what your active rules would catch, without sending anything to an LLM. The test shows:',
     },
     {
       type: 'bullet-list',
@@ -148,7 +148,7 @@ export const guardrailsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Each rule has a toggle switch. Disabled rules are not evaluated during request processing. This lets you temporarily disable a rule without deleting it — useful when investigating false positives.',
+      text: 'Each rule has a toggle switch. Disabled rules aren\'t evaluated during request processing. You can temporarily disable a rule without deleting it, which is handy when investigating false positives.',
     },
     {
       type: 'heading',
@@ -158,15 +158,15 @@ export const guardrailsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Guardrails directly support compliance requirements:',
+      text: 'Guardrails map to these compliance requirements:',
     },
     {
       type: 'bullet-list',
       items: [
-        { bold: 'EU AI Act Art. 9', text: 'Guardrails are risk mitigation measures — they identify and control risks in real-time.' },
-        { bold: 'EU AI Act Art. 10', text: 'PII scanning enforces data minimization — personal data is blocked before reaching the model.' },
-        { bold: 'EU AI Act Art. 12', text: 'Every guardrail detection is logged with timestamp, entity type, action taken, and matched text.' },
-        { bold: 'ISO 42001 A.2', text: 'Guardrail rules are executable AI policies — not just documented, but enforced.' },
+        { bold: 'EU AI Act Art. 9', text: 'Guardrails are risk mitigation measures that identify and control risks per request.' },
+        { bold: 'EU AI Act Art. 10', text: 'PII scanning blocks personal data before it reaches the model (data minimization).' },
+        { bold: 'EU AI Act Art. 12', text: 'Every detection is logged with timestamp, entity type, action, and matched text.' },
+        { bold: 'ISO 42001 A.2', text: 'Guardrail rules are AI policies that are enforced, not just documented.' },
       ],
     },
     {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users } from "lucide-react";
+import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users, ShieldCheck, ShieldOff } from "lucide-react";
 import Select from "../../../components/Inputs/Select";
 import { StatCard } from "../../../components/Cards/StatCard";
 import {
@@ -35,20 +35,23 @@ export default function SpendDashboardPage() {
   const [data, setData] = useState<any>(null);
   const [byEndpoint, setByEndpoint] = useState<any[]>([]);
   const [byUser, setByUser] = useState<any[]>([]);
+  const [guardrailStats, setGuardrailStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const [spendRes, endpointRes, userRes] = await Promise.all([
+        const [spendRes, endpointRes, userRes, gsRes] = await Promise.all([
           apiServices.get(`/ai-gateway/spend?period=${period}`),
           apiServices.get(`/ai-gateway/spend/by-endpoint?period=${period}`).catch(() => null),
           apiServices.get(`/ai-gateway/spend/by-user?period=${period}`).catch(() => null),
+          apiServices.get(`/ai-gateway/guardrails/stats?period=${period}`).catch(() => null),
         ]);
         setData(spendRes?.data?.data || null);
         setByEndpoint(endpointRes?.data?.data || []);
         setByUser(userRes?.data?.data || []);
+        setGuardrailStats(gsRes?.data?.data || null);
       } catch {
         setData(null);
       } finally {
@@ -283,6 +286,53 @@ export default function SpendDashboardPage() {
                 </Stack>
               ))}
             </Stack>
+          </Stack>
+        </Box>
+      )}
+      {/* Guardrails activity */}
+      {guardrailStats && (Number(guardrailStats.summary?.total_checks) > 0 || guardrailStats.byDay?.length > 0) && (
+        <Box sx={cardSx}>
+          <Stack gap="12px">
+            <Typography sx={sectionTitleSx}>Guardrails activity</Typography>
+            <Stack direction="row" gap="16px">
+              <StatCard
+                title="Blocked"
+                value={String(guardrailStats.summary?.blocked_count ?? 0)}
+                Icon={ShieldOff}
+                highlight={Number(guardrailStats.summary?.blocked_count) > 0}
+                tooltip="Requests blocked by guardrail rules in this period"
+              />
+              <StatCard
+                title="Masked"
+                value={String(guardrailStats.summary?.masked_count ?? 0)}
+                Icon={ShieldCheck}
+                tooltip="Requests with content masked before reaching the LLM"
+              />
+            </Stack>
+            {guardrailStats.byType?.length > 0 && (
+              <Stack gap="8px">
+                {guardrailStats.byType.map((t: any, i: number) => (
+                  <Stack
+                    key={`${t.guardrail_type}-${t.action_taken}`}
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{
+                      p: "8px 12px",
+                      borderRadius: "4px",
+                      border: `1px solid ${palette.border.light}`,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13 }}>
+                      {t.guardrail_type === "pii" ? "PII detection" : "Content filter"} — {t.action_taken}
+                    </Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                      {Number(t.count).toLocaleString()}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            )}
           </Stack>
         </Box>
       )}

@@ -25,7 +25,13 @@ import {
   NotFoundException,
   BusinessLogicException,
   ExternalServiceException,
+  ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
+import {
+  getActiveGuardrailsQuery,
+  getGuardrailSettingsQuery,
+  insertGuardrailLogQuery,
+} from "../utils/aiGatewayGuardrail.utils";
 
 const AI_GATEWAY_URL =
   process.env.AI_GATEWAY_URL || "http://localhost:8100";
@@ -64,6 +70,110 @@ interface EmbeddingResponse {
   };
   cost_usd?: number;
   model?: string;
+}
+
+/**
+ * Run guardrail scanning on the last user message.
+ * Returns the (possibly masked) messages array, or throws if blocked.
+ * Logs each detection to ai_gateway_guardrail_logs.
+ */
+async function runGuardrails(
+  organizationId: number,
+  messages: Array<{ role: string; content: string }>,
+  endpointId: number | null,
+  userId: number
+): Promise<Array<{ role: string; content: string }>> {
+  // Get active rules and settings
+  const [rules, settings] = await Promise.all([
+    getActiveGuardrailsQuery(organizationId),
+    getGuardrailSettingsQuery(organizationId),
+  ]);
+
+  // No active guardrails — pass through
+  if (!rules || (rules as any[]).length === 0) {
+    return messages;
+  }
+
+  // Extract last user message for scanning
+  const lastUserIdx = [...messages].reverse().findIndex((m) => m.role === "user");
+  if (lastUserIdx === -1) return messages;
+  const actualIdx = messages.length - 1 - lastUserIdx;
+  const lastUserMessage = messages[actualIdx];
+
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL}/v1/guardrails/scan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-key": INTERNAL_KEY,
+      },
+      body: JSON.stringify({
+        text: lastUserMessage.content,
+        guardrail_rules: rules,
+        settings: settings || {},
+      }),
+    });
+
+    if (!response.ok) {
+      // Guardrail service error — check on_error settings
+      const settingsObj = (settings as any) || {};
+      if (settingsObj.pii_on_error === "block" || settingsObj.content_filter_on_error === "block") {
+        throw new ValidationException("Guardrail scan failed and on_error is set to block");
+      }
+      logger.error(`Guardrail scan returned ${response.status}`);
+      return messages; // fail-open
+    }
+
+    const result = await response.json();
+
+    // Log each detection
+    for (const detection of result.detections || []) {
+      try {
+        await insertGuardrailLogQuery(organizationId, {
+          guardrail_id: detection.guardrail_id || null,
+          endpoint_id: endpointId || undefined,
+          user_id: userId,
+          guardrail_type: detection.guardrail_type,
+          action_taken: result.blocked ? "blocked" : detection.action === "mask" ? "masked" : "allowed",
+          matched_text: detection.matched_text,
+          entity_type: detection.entity_type,
+          execution_time_ms: result.execution_time_ms,
+        });
+      } catch (logErr) {
+        logger.error("Failed to write guardrail log:", logErr);
+      }
+    }
+
+    // If blocked, throw with reason
+    if (result.blocked) {
+      throw new ValidationException(
+        `Request blocked by guardrail: ${result.block_reason}`
+      );
+    }
+
+    // If masked, replace the last user message content
+    if (result.masked_text) {
+      const updatedMessages = [...messages];
+      updatedMessages[actualIdx] = {
+        ...updatedMessages[actualIdx],
+        content: result.masked_text,
+      };
+      return updatedMessages;
+    }
+
+    return messages;
+  } catch (err: any) {
+    // Re-throw our own ValidationException (blocked)
+    if (err instanceof ValidationException) throw err;
+
+    // External service error — check on_error
+    const settingsObj = (settings as any) || {};
+    if (settingsObj.pii_on_error === "block") {
+      throw new ValidationException("Guardrail scan unavailable and PII on_error is set to block");
+    }
+    logger.error("Guardrail scan error:", err.message);
+    return messages; // fail-open
+  }
 }
 
 /**
@@ -201,6 +311,14 @@ export async function proxyCompletion(
     endpointSlug
   );
 
+  // Run guardrails on input (scan last user message)
+  const scannedMessages = await runGuardrails(
+    organizationId,
+    messages,
+    endpoint.id,
+    userId
+  );
+
   const estimatedCost = DEFAULT_ESTIMATED_COST;
   await tryReserveBudget(organizationId, estimatedCost);
 
@@ -210,8 +328,8 @@ export async function proxyCompletion(
   // Prepend system prompt if configured on the endpoint
   const finalMessages =
     endpoint.system_prompt
-      ? [{ role: "system", content: endpoint.system_prompt }, ...messages]
-      : messages;
+      ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
+      : scannedMessages;
 
   try {
     const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
@@ -304,6 +422,14 @@ export async function proxyStream(
     endpointSlug
   );
 
+  // Run guardrails on input (scan last user message)
+  const scannedMessages = await runGuardrails(
+    organizationId,
+    messages,
+    endpoint.id,
+    userId
+  );
+
   const estimatedCost = DEFAULT_ESTIMATED_COST;
   await tryReserveBudget(organizationId, estimatedCost);
 
@@ -311,8 +437,8 @@ export async function proxyStream(
 
   const finalMessages =
     endpoint.system_prompt
-      ? [{ role: "system", content: endpoint.system_prompt }, ...messages]
-      : messages;
+      ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
+      : scannedMessages;
 
   const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
     method: "POST",

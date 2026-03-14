@@ -72,6 +72,7 @@ export default function EndpointsPage() {
   const cardSx = useCardSx();
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [activeGuardrailCount, setActiveGuardrailCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -91,12 +92,15 @@ export default function EndpointsPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [endpointsRes, keysRes] = await Promise.all([
+      const [endpointsRes, keysRes, grRes] = await Promise.all([
         apiServices.get("/ai-gateway/endpoints"),
         apiServices.get("/ai-gateway/keys"),
+        apiServices.get("/ai-gateway/guardrails").catch(() => null),
       ]);
       setEndpoints(endpointsRes?.data?.data || []);
       setApiKeys(keysRes?.data?.data || []);
+      const allRules = grRes?.data?.data || [];
+      setActiveGuardrailCount(allRules.filter((r: any) => r.is_active).length);
     } catch {
       // Silently handle
     } finally {
@@ -232,6 +236,9 @@ export default function EndpointsPage() {
                     </Typography>
                     <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
                       {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
+                      {activeGuardrailCount > 0 && (
+                        <span> &middot; {activeGuardrailCount} guardrail{activeGuardrailCount !== 1 ? "s" : ""} active</span>
+                      )}
                     </Typography>
                   </Box>
                   <Stack direction="row" alignItems="center" gap="8px">

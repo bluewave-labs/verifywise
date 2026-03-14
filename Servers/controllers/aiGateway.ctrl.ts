@@ -400,7 +400,9 @@ export async function chatCompletion(req: Request, res: Response) {
     return res.status(200).json(STATUS_CODE[200](result));
   } catch (error: any) {
     if (error instanceof ValidationException) {
-      return res.status(400).json(STATUS_CODE[400](error.message));
+      const isGuardrailBlock = error.message.includes("blocked by guardrail");
+      const status = isGuardrailBlock ? 422 : 400;
+      return res.status(status).json({ message: error.message, guardrail_blocked: isGuardrailBlock });
     }
     if (error.code === "budget_exceeded") {
       return res.status(429).json(STATUS_CODE[429]?.(error.message) || { message: error.message });
@@ -461,7 +463,9 @@ export async function chatCompletionStream(req: Request, res: Response) {
     return;
   } catch (error: any) {
     if (error instanceof ValidationException) {
-      return res.status(400).json(STATUS_CODE[400](error.message));
+      const isGuardrailBlock = error.message.includes("blocked by guardrail");
+      const status = isGuardrailBlock ? 422 : 400;
+      return res.status(status).json({ message: error.message, guardrail_blocked: isGuardrailBlock });
     }
     if (error.code === "budget_exceeded") {
       return res.status(429).json({ message: error.message });

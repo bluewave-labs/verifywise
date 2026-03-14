@@ -4,9 +4,6 @@ import {
   Typography,
   Stack,
   IconButton,
-  Autocomplete,
-  TextField,
-  ListSubheader,
   useTheme,
 } from "@mui/material";
 import { CirclePlus, Router, Trash2, Zap, Settings, Shield } from "lucide-react";
@@ -19,7 +16,6 @@ import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-import { getInputStyles } from "../../../utils/inputStyles";
 
 interface ModelOption {
   id: string;
@@ -56,6 +52,21 @@ const MODEL_OPTIONS: ModelOption[] = [
   { id: "openrouter/openai/gpt-4o", provider: "openrouter", mode: "chat" },
   { id: "openrouter/anthropic/claude-sonnet-4", provider: "openrouter", mode: "chat" },
 ].sort((a, b) => a.provider.localeCompare(b.provider));
+
+/** Build Select-compatible items with divider indices between provider groups */
+const MODEL_SELECT_ITEMS = MODEL_OPTIONS.map((m) => ({
+  _id: m.id,
+  name: m.id,
+}));
+
+const MODEL_DIVIDERS: { index: number; label: string }[] = [];
+let prevProvider = "";
+MODEL_OPTIONS.forEach((m, i) => {
+  if (m.provider !== prevProvider && i > 0) {
+    MODEL_DIVIDERS.push({ index: i, label: m.provider.toUpperCase() });
+  }
+  prevProvider = m.provider;
+});
 
 const sectionTitleSx = {
   fontWeight: 600,
@@ -179,8 +190,6 @@ export default function EndpointsPage() {
     .filter((k) => k.is_active)
     .map((k) => ({ _id: String(k.id), name: `${k.key_name} (${k.provider})` }));
 
-  const inputStyles = getInputStyles(theme);
-
   return (
     <PageHeaderExtended
       title="Endpoints"
@@ -283,58 +292,17 @@ export default function EndpointsPage() {
             isRequired
           />
 
-          <Box>
-            <Typography sx={{ fontSize: 11, fontWeight: 500, mb: 0.5 }}>
-              Model <span style={{ color: palette.status.error.text }}>*</span>
-            </Typography>
-            <Autocomplete
-              freeSolo
-              options={MODEL_OPTIONS}
-              groupBy={(option) =>
-                typeof option === "string" ? "" : option.provider.toUpperCase()
-              }
-              getOptionLabel={(option) =>
-                typeof option === "string" ? option : option.id
-              }
-              inputValue={form.model}
-              onInputChange={(_, value) => handleModelSelect(value)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Search models (e.g., openai/gpt-4o)"
-                  size="small"
-                  sx={inputStyles}
-                />
-              )}
-              renderGroup={(params) => (
-                <li key={params.key}>
-                  <ListSubheader
-                    sx={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: palette.text.tertiary,
-                      backgroundColor: palette.background.alt,
-                      lineHeight: "28px",
-                    }}
-                  >
-                    {params.group}
-                  </ListSubheader>
-                  <ul style={{ padding: 0 }}>{params.children}</ul>
-                </li>
-              )}
-              slotProps={{
-                paper: {
-                  sx: {
-                    fontSize: 13,
-                    border: `1px solid ${palette.border.dark}`,
-                    borderRadius: "4px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                  },
-                },
-                listbox: { sx: { maxHeight: 300 } },
-              }}
-            />
-          </Box>
+          <Select
+            id="model"
+            label="Model"
+            placeholder="Select a model"
+            value={form.model}
+            items={MODEL_SELECT_ITEMS}
+            onChange={(e) => handleModelSelect(e.target.value as string)}
+            getOptionValue={(item) => item._id}
+            dividers={MODEL_DIVIDERS}
+            isRequired
+          />
 
           {apiKeyItems.length > 0 ? (
             <Select

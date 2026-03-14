@@ -79,6 +79,8 @@ export interface SelectCorProps {
   dividerAfterIndex?: number;
   /** Label for the section below the divider */
   dividerLabel?: string;
+  /** Multiple dividers at specific indices with labels */
+  dividers?: { index: number; label?: string }[];
 }
 
 export interface IBannerProps {

@@ -7,10 +7,11 @@ import {
   CircularProgress,
   Slider,
 } from "@mui/material";
-import { Send, Trash2, Router, Bot, User, Settings } from "lucide-react";
+import { Send, Router, Bot, User, Settings } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Select from "../../../components/Inputs/Select";
 import Field from "../../../components/Inputs/Field";
+import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { useSelector } from "react-redux";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { RootState } from "../../../../application/redux/store";
@@ -189,15 +190,6 @@ export default function PlaygroundPage() {
     }
   };
 
-  const handleClear = () => {
-    setMessages([]);
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
-    setIsStreaming(false);
-  };
-
   const endpointItems = endpoints.map((ep) => ({
     _id: ep.slug,
     name: `${ep.display_name} (${ep.provider}/${ep.model})`,
@@ -208,92 +200,80 @@ export default function PlaygroundPage() {
     .reduce((sum, m) => sum + (m.costUsd || 0), 0);
 
   return (
-    <Box sx={{ p: 3, height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Box>
-          <Typography sx={{ fontSize: 18, fontWeight: 600, color: palette.text.primary }}>
-            Playground
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
-            Test your configured endpoints with an interactive chat interface
-          </Typography>
-        </Box>
-        {totalCost > 0 && (
-          <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
-            Session cost: <strong>${totalCost.toFixed(6)}</strong>
-          </Typography>
-        )}
-      </Stack>
-
-      {/* Controls */}
-      <Stack direction="row" gap="8px" mb={2} alignItems="flex-end">
-        <Box sx={{ maxWidth: 280 }}>
-          <Select
-            id="endpoint"
-            label="Endpoint"
-            placeholder="Select endpoint"
-            value={selectedEndpoint}
-            items={endpointItems}
-            onChange={(e) => setSelectedEndpoint(e.target.value as string)}
-            getOptionValue={(item) => item._id}
-          />
-        </Box>
-        <IconButton
-          onClick={() => setShowSettings((v) => !v)}
-          sx={{
-            p: 1,
-            mb: 0.5,
-            backgroundColor: showSettings ? palette.background.fill : "transparent",
-            borderRadius: "4px",
-            "&:hover": { backgroundColor: palette.background.fill },
-          }}
-        >
-          <Settings size={16} strokeWidth={1.5} color={showSettings ? palette.brand.primary : palette.text.tertiary} />
-        </IconButton>
-        <Box sx={{ flex: 1 }} />
-        <IconButton onClick={handleClear} sx={{ p: 1, mb: 0.5 }}>
-          <Trash2 size={16} strokeWidth={1.5} color={palette.text.tertiary} />
-        </IconButton>
-      </Stack>
-
-      {/* Collapsible settings panel */}
-      {showSettings && (
-        <Stack
-          direction="row"
-          gap="16px"
-          alignItems="flex-end"
-          sx={{
-            mb: 2,
-            p: "12px 16px",
-            border: `1px solid ${palette.border.light}`,
-            borderRadius: "4px",
-            backgroundColor: palette.background.alt,
-          }}
-        >
-          <Box sx={{ width: 160 }}>
-            <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 0.5 }}>
-              Temperature: {temperature}
+    <PageHeaderExtended
+      title="Playground"
+      description="Test your configured endpoints with an interactive chat interface."
+      tipBoxEntity="ai-gateway-playground"
+    >
+      <Box sx={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 280px)" }}>
+        {/* Controls */}
+        <Stack direction="row" gap="8px" mb={2} alignItems="center">
+          <Box sx={{ maxWidth: 280 }}>
+            <Select
+              id="endpoint"
+              placeholder="Select endpoint"
+              value={selectedEndpoint}
+              items={endpointItems}
+              onChange={(e) => setSelectedEndpoint(e.target.value as string)}
+              getOptionValue={(item) => item._id}
+            />
+          </Box>
+          {totalCost > 0 && (
+            <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+              Session: <strong>${totalCost.toFixed(6)}</strong>
             </Typography>
-            <Slider
-              value={temperature}
-              onChange={(_, v) => setTemperature(v as number)}
-              min={0}
-              max={2}
-              step={0.1}
-              size="small"
-              sx={{ color: palette.brand.primary }}
-            />
-          </Box>
-          <Box sx={{ width: 120 }}>
-            <Field
-              label="Max tokens"
-              value={String(maxTokens)}
-              onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
-            />
-          </Box>
+          )}
+          <Box sx={{ flex: 1 }} />
+          <IconButton
+            onClick={() => setShowSettings((v) => !v)}
+            sx={{
+              p: 1,
+              backgroundColor: showSettings ? palette.background.fill : "transparent",
+              borderRadius: "4px",
+              "&:hover": { backgroundColor: palette.background.fill },
+            }}
+          >
+            <Settings size={16} strokeWidth={1.5} color={showSettings ? palette.brand.primary : palette.text.tertiary} />
+          </IconButton>
         </Stack>
-      )}
+
+        {/* Collapsible settings panel */}
+        {showSettings && (
+          <Stack
+            direction="row"
+            gap="16px"
+            alignItems="flex-end"
+            sx={{
+              mb: 2,
+              p: "12px 16px",
+              border: `1px solid ${palette.border.light}`,
+              borderRadius: "4px",
+              backgroundColor: palette.background.alt,
+            }}
+          >
+            <Box sx={{ width: 160 }}>
+              <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 0.5 }}>
+                Temperature: {temperature}
+              </Typography>
+              <Slider
+                value={temperature}
+                onChange={(_, v) => setTemperature(v as number)}
+                min={0}
+                max={2}
+                step={0.1}
+                size="small"
+                sx={{ color: palette.brand.primary }}
+              />
+            </Box>
+            <Box sx={{ width: 120 }}>
+              <Field
+                label="Max tokens"
+                value={String(maxTokens)}
+                onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
+              />
+            </Box>
+          </Stack>
+        )}
 
       {/* Messages Area */}
       <Box
@@ -442,6 +422,7 @@ export default function PlaygroundPage() {
           <Send size={16} strokeWidth={1.5} />
         </IconButton>
       </Stack>
-    </Box>
+      </Box>
+    </PageHeaderExtended>
   );
 }

@@ -53,6 +53,7 @@ function Select({
   isFilterApplied = false,
   dividerAfterIndex,
   dividerLabel,
+  dividers,
 }: SelectProps) {
   const theme = useTheme();
   const itemStyles = {
@@ -238,6 +239,7 @@ function Select({
               </MenuItem>
             );
 
+            // Check single divider prop
             if (dividerAfterIndex !== undefined && index === dividerAfterIndex) {
               return (
                 <React.Fragment key={`${id}-divider-${index}`}>
@@ -253,6 +255,30 @@ function Select({
                       }}
                     >
                       {dividerLabel}
+                    </ListSubheader>
+                  )}
+                  {menuItem}
+                </React.Fragment>
+              );
+            }
+
+            // Check multi-divider prop
+            const dividerEntry = dividers?.find((d) => d.index === index);
+            if (dividerEntry) {
+              return (
+                <React.Fragment key={`${id}-divider-${index}`}>
+                  <Divider sx={{ my: 0.5 }} />
+                  {dividerEntry.label && (
+                    <ListSubheader
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: theme.palette.text.tertiary,
+                        lineHeight: "28px",
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      {dividerEntry.label}
                     </ListSubheader>
                   )}
                   {menuItem}

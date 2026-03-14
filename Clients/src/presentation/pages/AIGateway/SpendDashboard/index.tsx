@@ -179,8 +179,8 @@ export default function SpendDashboardPage() {
                     <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
                   </MuiTooltip>
                 </Stack>
-                <ResponsiveContainer width="100%" height={Math.max(160, byModel.length * 36)}>
-                  <BarChart data={byModel} layout="vertical" margin={{ left: 80, right: 16 }}>
+                <ResponsiveContainer width="100%" height={Math.max(200, byModel.length * 44)} style={{ outline: "none" }}>
+                  <BarChart data={byModel} layout="vertical" margin={{ left: 160, right: 16 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} horizontal={false} />
                     <XAxis
                       type="number"
@@ -192,10 +192,10 @@ export default function SpendDashboardPage() {
                     <YAxis
                       type="category"
                       dataKey="group_key"
-                      tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                      tick={{ fontSize: 10, fill: palette.text.tertiary }}
                       tickLine={false}
                       axisLine={false}
-                      width={80}
+                      width={160}
                     />
                     <Tooltip
                       contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}

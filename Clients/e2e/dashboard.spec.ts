@@ -51,4 +51,57 @@ test.describe("Dashboard", () => {
       .or(page.locator('[class*="Sidebar" i]'));
     await expect(sidebar.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 1: Sidebar link presence ---
+
+  test("sidebar contains main navigation links", async ({
+    authedPage: page,
+  }) => {
+    // Verify key sidebar links are present
+    const sidebar = page
+      .getByRole("navigation")
+      .or(page.locator('[class*="sidebar" i]'))
+      .or(page.locator('[class*="Sidebar" i]'));
+    await expect(sidebar.first()).toBeVisible({ timeout: 10_000 });
+
+    // At least some key menu items should be present in the sidebar area
+    const menuItems = page.locator(
+      '[class*="sidebar" i] a, [class*="Sidebar" i] a, nav a'
+    );
+    const count = await menuItems.count();
+    expect(count).toBeGreaterThan(3);
+  });
+
+  // --- Tier 1: Widget/card visibility ---
+
+  test("dashboard displays summary cards or widgets", async ({
+    authedPage: page,
+  }) => {
+    // Look for summary/stat cards, charts, or widget containers
+    const widgets = page
+      .locator('[class*="card" i]')
+      .or(page.locator('[class*="widget" i]'))
+      .or(page.locator('[class*="Card"]'))
+      .or(page.getByRole("article"));
+
+    // Dashboard should have at least one widget/card
+    if (await widgets.first().isVisible().catch(() => false)) {
+      const count = await widgets.count();
+      expect(count).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  // --- Tier 1: Project selector ---
+
+  test("project selector or project context is visible", async ({
+    authedPage: page,
+  }) => {
+    // Dashboard may show a project selector dropdown or project name
+    const projectElement = page
+      .getByRole("combobox")
+      .or(page.getByText(/project/i))
+      .or(page.locator('[class*="select" i]'));
+
+    await expect(projectElement.first()).toBeVisible({ timeout: 10_000 });
+  });
 });

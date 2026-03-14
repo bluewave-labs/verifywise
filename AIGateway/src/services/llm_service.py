@@ -41,7 +41,11 @@ async def chat_completion(
 
     response = await litellm.acompletion(**call_kwargs)
 
-    cost = litellm.completion_cost(completion_response=response)
+    try:
+        cost = litellm.completion_cost(completion_response=response)
+    except Exception:
+        # Model not in LiteLLM cost DB (e.g., OpenRouter models) — use upstream cost if available
+        cost = getattr(response, "_hidden_params", {}).get("response_cost") or 0.0
 
     result = response.model_dump()
     result["cost_usd"] = cost
@@ -63,7 +67,10 @@ async def embedding(
         input=input_text,
         api_key=api_key,
     )
-    cost = litellm.completion_cost(completion_response=response)
+    try:
+        cost = litellm.completion_cost(completion_response=response)
+    except Exception:
+        cost = 0.0
     return {
         "response": response.model_dump(),
         "cost_usd": cost,

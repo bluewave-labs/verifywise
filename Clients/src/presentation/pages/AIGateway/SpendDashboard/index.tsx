@@ -80,6 +80,7 @@ export default function SpendDashboardPage() {
       title="Analytics"
       description="Monitor LLM usage and costs across your organization."
       tipBoxEntity="ai-gateway-analytics"
+      helpArticlePath="ai-gateway/analytics"
       actionButton={
         <Select
           id="analytics-period"

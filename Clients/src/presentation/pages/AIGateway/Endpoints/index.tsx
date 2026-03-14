@@ -182,6 +182,7 @@ export default function EndpointsPage() {
       title="Endpoints"
       description="Configure LLM provider endpoints for your organization."
       tipBoxEntity="ai-gateway-endpoints"
+      helpArticlePath="ai-gateway/endpoints"
       actionButton={
         <CustomizableButton
           text="Add endpoint"

@@ -51,6 +51,11 @@ import { userActivityContent } from './shadow-ai/user-activity';
 import { rulesContent } from './shadow-ai/rules';
 import { settingsContent as shadowAiSettingsContent } from './shadow-ai/settings';
 import { integrationGuideContent } from './shadow-ai/integration-guide';
+import { analyticsContent as aiGatewayAnalyticsContent } from './ai-gateway/analytics';
+import { endpointsContent as aiGatewayEndpointsContent } from './ai-gateway/endpoints';
+import { playgroundContent as aiGatewayPlaygroundContent } from './ai-gateway/playground';
+import { guardrailsContent as aiGatewayGuardrailsContent } from './ai-gateway/guardrails';
+import { aiGatewaySettingsContent } from './ai-gateway/settings';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -119,6 +124,12 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'shadow-ai/rules': rulesContent,
   'shadow-ai/settings': shadowAiSettingsContent,
   'shadow-ai/integration-guide': integrationGuideContent,
+  // AI Gateway
+  'ai-gateway/analytics': aiGatewayAnalyticsContent,
+  'ai-gateway/endpoints': aiGatewayEndpointsContent,
+  'ai-gateway/playground': aiGatewayPlaygroundContent,
+  'ai-gateway/guardrails': aiGatewayGuardrailsContent,
+  'ai-gateway/settings': aiGatewaySettingsContent,
 };
 
 // Helper to get article content

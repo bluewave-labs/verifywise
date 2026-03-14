@@ -59,6 +59,7 @@ export default function PlaygroundPage() {
       title="Playground"
       description="Test your configured endpoints with an interactive chat interface."
       tipBoxEntity="ai-gateway-playground"
+      helpArticlePath="ai-gateway/playground"
     >
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 280px)" }}>
         {/* Controls */}

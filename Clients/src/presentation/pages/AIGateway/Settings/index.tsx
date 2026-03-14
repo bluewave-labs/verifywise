@@ -172,6 +172,7 @@ export default function AIGatewaySettingsPage() {
       title="Settings"
       description="Manage API keys and budget for the AI Gateway."
       tipBoxEntity="ai-gateway-settings"
+      helpArticlePath="ai-gateway/settings"
     >
       {/* API Keys Section */}
       <Box sx={cardSx}>

@@ -11,7 +11,8 @@ export type IconName =
   | 'BarChart3'
   | 'FlaskConical'
   | 'ScanSearch'
-  | 'EyeOff';
+  | 'EyeOff'
+  | 'Router';
 
 export interface Article {
   id: string;
@@ -428,6 +429,45 @@ export const collections: Collection[] = [
         title: 'Integration guide',
         description: 'Step-by-step instructions for connecting your network proxy, SIEM, or custom integration to Shadow AI.',
         keywords: ['shadow', 'integration', 'setup', 'syslog', 'zscaler', 'netskope', 'squid', 'api', 'proxy', 'troubleshooting'],
+      },
+    ],
+  },
+  {
+    id: 'ai-gateway',
+    title: 'AI Gateway',
+    description: 'Route, monitor, and protect LLM requests through a unified gateway with cost tracking and guardrails.',
+    icon: 'Router',
+    articleCount: 5,
+    articles: [
+      {
+        id: 'analytics',
+        title: 'Analytics',
+        description: 'Monitor LLM usage, costs, and guardrail activity across all providers.',
+        keywords: ['analytics', 'cost', 'spend', 'tokens', 'latency', 'usage', 'dashboard', 'chart'],
+      },
+      {
+        id: 'endpoints',
+        title: 'Endpoints',
+        description: 'Configure LLM provider endpoints with model selection, API keys, and system prompts.',
+        keywords: ['endpoint', 'model', 'provider', 'slug', 'openai', 'anthropic', 'api key', 'routing'],
+      },
+      {
+        id: 'playground',
+        title: 'Playground',
+        description: 'Test endpoints with an interactive chat interface before routing production traffic.',
+        keywords: ['playground', 'chat', 'test', 'streaming', 'temperature', 'tokens'],
+      },
+      {
+        id: 'guardrails',
+        title: 'Guardrails',
+        description: 'Configure PII detection and content filtering rules to protect AI requests.',
+        keywords: ['guardrails', 'pii', 'content filter', 'block', 'mask', 'email', 'credit card', 'regex', 'keyword'],
+      },
+      {
+        id: 'settings',
+        title: 'Gateway settings',
+        description: 'Manage API keys, budget limits, and guardrail configuration.',
+        keywords: ['settings', 'api key', 'budget', 'limit', 'encryption', 'retention', 'guardrail config'],
       },
     ],
   },

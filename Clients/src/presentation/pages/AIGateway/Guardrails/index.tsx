@@ -237,6 +237,7 @@ export default function GuardrailsPage() {
       title="Guardrails"
       description="Configure PII detection and content filtering rules for your AI Gateway."
       tipBoxEntity="ai-gateway-guardrails"
+      helpArticlePath="ai-gateway/guardrails"
       actionButton={
         <CustomizableButton
           text="Test guardrails"

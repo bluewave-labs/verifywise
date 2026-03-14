@@ -410,8 +410,8 @@ export async function chatCompletion(req: Request, res: Response) {
       const status = isGuardrailBlock ? 422 : 400;
       return res.status(status).json({ message: error.message, guardrail_blocked: isGuardrailBlock });
     }
-    if (error.code === "budget_exceeded") {
-      return res.status(429).json(STATUS_CODE[429]?.(error.message) || { message: error.message });
+    if (error.code === "budget_exceeded" || error.code === "rate_limited") {
+      return res.status(429).json({ message: error.message, code: error.code });
     }
     logStructured("error", "failed to proxy chat completion", fn, fileName);
     logger.error("Error proxying chat completion:", error);

@@ -132,3 +132,18 @@ export const resetBudgetSpendQuery = async (
     { replacements: { organizationId } }
   );
 };
+
+/**
+ * Reset all budgets where period_start is before the current month.
+ * Called by the monthly BullMQ cron job.
+ */
+export const resetAllBudgets = async (): Promise<number> => {
+  const [, meta] = await sequelize.query(
+    `UPDATE ai_gateway_budgets
+     SET current_spend_usd = 0,
+         period_start = DATE_TRUNC('month', NOW()),
+         updated_at = NOW()
+     WHERE period_start < DATE_TRUNC('month', NOW())`
+  );
+  return (meta as any)?.rowCount || 0;
+};

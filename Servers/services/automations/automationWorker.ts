@@ -22,6 +22,7 @@ import {
 } from "../shadowAiAggregation.service";
 import { runAgentDiscoverySync } from "../agentDiscovery/agentDiscoverySync.service";
 import { processScheduledAiDetectionScans } from "../aiDetection/scheduledScanProcessor";
+import { resetAllBudgets } from "../../utils/aiGatewayBudget.utils";
 import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -462,6 +463,8 @@ export const createAutomationWorker = () => {
           await runAgentDiscoverySync();
         } else if (name === "ai_detection_scheduled_scan_check") {
           await processScheduledAiDetectionScans();
+        } else if (name === "ai_gateway_budget_reset") {
+          await resetAllBudgets();
         } else if (name === "send_pmm_notification") {
           // PMM notification handling - send email using MJML templates
           const { type, data } = job.data;

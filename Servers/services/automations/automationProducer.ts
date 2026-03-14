@@ -124,6 +124,17 @@ export async function scheduleShadowAiJobs() {
       removeOnFail: false,
     },
   );
+
+  // AI Gateway: monthly budget reset (runs at 00:05 on the 1st of each month)
+  await automationQueue.add(
+    "ai_gateway_budget_reset",
+    { type: "ai_gateway" },
+    {
+      repeat: { pattern: "5 0 1 * *" },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  );
 }
 
 export async function scheduleAgentDiscoverySync() {

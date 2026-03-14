@@ -62,15 +62,21 @@ export const insertSpendLogQuery = async (
     cost_usd: number;
     latency_ms: number;
     status_code: number;
+    metadata?: object;
+    request_messages?: object;
+    response_text?: string;
+    error_message?: string;
   }
 ): Promise<IAiGatewaySpendLog> => {
   const result = (await sequelize.query(
     `INSERT INTO ai_gateway_spend_logs
        (organization_id, endpoint_id, user_id, provider, model,
-        prompt_tokens, completion_tokens, total_tokens, cost_usd, latency_ms, status_code, created_at)
+        prompt_tokens, completion_tokens, total_tokens, cost_usd, latency_ms, status_code,
+        metadata, request_messages, response_text, error_message, created_at)
      VALUES
        (:organizationId, :endpoint_id, :user_id, :provider, :model,
-        :prompt_tokens, :completion_tokens, :total_tokens, :cost_usd, :latency_ms, :status_code, NOW())
+        :prompt_tokens, :completion_tokens, :total_tokens, :cost_usd, :latency_ms, :status_code,
+        :metadata, :request_messages, :response_text, :error_message, NOW())
      RETURNING *`,
     {
       replacements: {
@@ -85,6 +91,10 @@ export const insertSpendLogQuery = async (
         cost_usd: data.cost_usd,
         latency_ms: data.latency_ms,
         status_code: data.status_code,
+        metadata: JSON.stringify(data.metadata || {}),
+        request_messages: data.request_messages ? JSON.stringify(data.request_messages) : null,
+        response_text: data.response_text || null,
+        error_message: data.error_message || null,
       },
     }
   )) as [IAiGatewaySpendLog[], number];
@@ -248,6 +258,33 @@ export const getSpendByDayQuery = async (
      ORDER BY day ASC`,
     { replacements: { organizationId, startDate, endDate } }
   )) as [ISpendByDay[], number];
+
+  return result[0];
+};
+
+/**
+ * Get spend grouped by a metadata tag key
+ */
+export const getSpendByTagQuery = async (
+  organizationId: number,
+  tagKey: string,
+  startDate: string,
+  endDate: string
+): Promise<ISpendByGroup[]> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COALESCE(metadata->>:tagKey, 'untagged') AS group_key,
+       COALESCE(SUM(cost_usd), 0)::float AS total_cost,
+       COUNT(*)::int AS total_requests,
+       COALESCE(SUM(total_tokens), 0)::int AS total_tokens
+     FROM ai_gateway_spend_logs
+     WHERE organization_id = :organizationId
+       AND created_at >= :startDate
+       AND created_at <= :endDate
+     GROUP BY metadata->>:tagKey
+     ORDER BY total_cost DESC`,
+    { replacements: { organizationId, tagKey, startDate, endDate } }
+  )) as [ISpendByGroup[], number];
 
   return result[0];
 };

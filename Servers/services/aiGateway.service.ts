@@ -27,6 +27,7 @@ import {
   ExternalServiceException,
   ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
+import { checkRateLimit } from "../utils/aiGatewayRateLimit.utils";
 import {
   getActiveGuardrailsQuery,
   getGuardrailSettingsQuery,
@@ -311,6 +312,18 @@ export async function proxyCompletion(
     endpointSlug
   );
 
+  // Rate limit check
+  if (endpoint.rate_limit_rpm && endpoint.rate_limit_rpm > 0) {
+    const rl = await checkRateLimit(endpoint.id, endpoint.rate_limit_rpm);
+    if (!rl.allowed) {
+      const err = new BusinessLogicException(
+        `Rate limit exceeded for endpoint ${endpointSlug} (${endpoint.rate_limit_rpm} RPM)`
+      );
+      (err as any).code = "rate_limited";
+      throw err;
+    }
+  }
+
   // Run guardrails on input (scan last user message)
   const scannedMessages = await runGuardrails(
     organizationId,
@@ -421,6 +434,18 @@ export async function proxyStream(
     organizationId,
     endpointSlug
   );
+
+  // Rate limit check
+  if (endpoint.rate_limit_rpm && endpoint.rate_limit_rpm > 0) {
+    const rl = await checkRateLimit(endpoint.id, endpoint.rate_limit_rpm);
+    if (!rl.allowed) {
+      const err = new BusinessLogicException(
+        `Rate limit exceeded for endpoint ${endpointSlug} (${endpoint.rate_limit_rpm} RPM)`
+      );
+      (err as any).code = "rate_limited";
+      throw err;
+    }
+  }
 
   // Run guardrails on input (scan last user message)
   const scannedMessages = await runGuardrails(

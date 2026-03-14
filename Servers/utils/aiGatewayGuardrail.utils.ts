@@ -10,13 +10,13 @@ import { QueryTypes } from "sequelize";
 // ─── Guardrail Rules ─────────────────────────────────────────────────────────
 
 export async function getAllGuardrailsQuery(organizationId: number) {
-  const [rows] = await sequelize.query(
+  const rows = await sequelize.query(
     `SELECT id, organization_id, guardrail_type, name, config, scope, action,
             is_active, created_by, created_at, updated_at
      FROM ai_gateway_guardrails
      WHERE organization_id = :organizationId
      ORDER BY guardrail_type, created_at`,
-    { replacements: { organizationId }, type: QueryTypes.SELECT as any }
+    { replacements: { organizationId }, type: QueryTypes.SELECT }
   );
   return rows;
 }

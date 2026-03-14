@@ -177,7 +177,12 @@ export default function AIGatewaySettingsPage() {
       <Box sx={cardSx}>
         <Stack gap="12px">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography sx={sectionTitleSx}>API keys</Typography>
+            <Box>
+              <Typography sx={sectionTitleSx}>API keys</Typography>
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
+                Provider API keys are encrypted at rest (AES-256-CBC) and only decrypted when proxying a request. Each key is scoped to your organization and can be referenced by multiple endpoints.
+              </Typography>
+            </Box>
             <CustomizableButton
               text="Add key"
               icon={<CirclePlus size={14} strokeWidth={1.5} />}
@@ -253,7 +258,12 @@ export default function AIGatewaySettingsPage() {
       <Box sx={cardSx}>
         <Stack gap="12px">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography sx={sectionTitleSx}>Budget</Typography>
+            <Box>
+              <Typography sx={sectionTitleSx}>Budget</Typography>
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
+                Set a monthly spending limit across all endpoints. When the hard limit is enabled, requests are rejected once the budget is exceeded. Use the alert threshold for early warnings.
+              </Typography>
+            </Box>
             <CustomizableButton
               text={budget ? "Edit budget" : "Set budget"}
               icon={<Pencil size={14} strokeWidth={1.5} />}
@@ -325,7 +335,12 @@ export default function AIGatewaySettingsPage() {
       <Box sx={cardSx}>
         <Stack gap="12px">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography sx={sectionTitleSx}>Guardrail settings</Typography>
+            <Box>
+              <Typography sx={sectionTitleSx}>Guardrail settings</Typography>
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
+                Configure how guardrails behave when scanning fails, what replacement text to use for masked content, and how long to retain guardrail audit logs.
+              </Typography>
+            </Box>
             <CustomizableButton
               text={gsSaving ? "Saving..." : "Save"}
               onClick={async () => {

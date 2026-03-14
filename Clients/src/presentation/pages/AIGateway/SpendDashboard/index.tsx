@@ -84,9 +84,9 @@ export default function SpendDashboardPage() {
 
   return (
     <PageHeaderExtended
-      title="Spend"
+      title="Analytics"
       description="Monitor LLM usage and costs across your organization."
-      tipBoxEntity="ai-gateway-spend"
+      tipBoxEntity="ai-gateway-analytics"
       actionButton={
         <Stack direction="row" gap="4px">
           {PERIODS.map((p) => (

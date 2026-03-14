@@ -23,17 +23,17 @@ export default function AIGatewaySidebar({
 }: AIGatewaySidebarProps) {
   const flatItems: SidebarMenuItem[] = [
     {
+      id: "analytics",
+      label: "Analytics",
+      value: "analytics",
+      icon: <BarChart3 size={16} strokeWidth={1.5} />,
+    },
+    {
       id: "endpoints",
       label: "Endpoints",
       value: "endpoints",
       icon: <Router size={16} strokeWidth={1.5} />,
       count: endpointsCount,
-    },
-    {
-      id: "spend",
-      label: "Spend",
-      value: "spend",
-      icon: <BarChart3 size={16} strokeWidth={1.5} />,
     },
     {
       id: "playground",

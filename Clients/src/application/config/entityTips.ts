@@ -338,7 +338,7 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Add a system prompt to an endpoint to enforce consistent behavior across all requests. This is useful for adding safety guardrails, response formatting instructions, or context that should apply to every interaction.",
     },
   ],
-  "ai-gateway-spend": [
+  "ai-gateway-analytics": [
     {
       header: "Track spending across all LLM providers in one dashboard.",
       content: "The spend dashboard aggregates costs from every provider and model into a single view. Use the period selector to compare daily, weekly, or monthly spending trends. This helps you optimize costs and identify unexpected usage spikes.",

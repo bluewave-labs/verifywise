@@ -18,7 +18,7 @@ interface AIGatewaySidebarContextType {
 const AIGatewaySidebarContext = createContext<AIGatewaySidebarContextType | null>(null);
 
 export const AIGatewaySidebarProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState("endpoints");
+  const [activeTab, setActiveTab] = useState("analytics");
   const [endpointsCount, setEndpointsCount] = useState(0);
 
   useEffect(() => {

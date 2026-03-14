@@ -162,13 +162,15 @@ export function ContextSidebar({
       );
     }
     case "ai-gateway": {
-      const gatewayTab = location.pathname.includes("/ai-gateway/spend")
-        ? "spend"
-        : location.pathname.includes("/ai-gateway/playground")
-          ? "playground"
-          : location.pathname.includes("/ai-gateway/settings")
-            ? "settings"
-            : "endpoints";
+      const gatewayTab = location.pathname.includes("/ai-gateway/analytics")
+        ? "analytics"
+        : location.pathname.includes("/ai-gateway/endpoints")
+          ? "endpoints"
+          : location.pathname.includes("/ai-gateway/playground")
+            ? "playground"
+            : location.pathname.includes("/ai-gateway/settings")
+              ? "settings"
+              : "analytics";
 
       const handleGatewayTabChange = (newTab: string) => {
         navigate(`/ai-gateway/${newTab}`);

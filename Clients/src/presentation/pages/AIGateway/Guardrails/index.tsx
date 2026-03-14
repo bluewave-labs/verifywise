@@ -266,7 +266,7 @@ export default function GuardrailsPage() {
             />
           </Stack>
 
-          {piiRules.length === 0 ? (
+          {loading ? null : piiRules.length === 0 ? (
             <EmptyState
               icon={Fingerprint}
               message="No PII detection rules configured. Add rules to automatically detect and protect personal data in AI requests."
@@ -307,7 +307,7 @@ export default function GuardrailsPage() {
             />
           </Stack>
 
-          {cfRules.length === 0 ? (
+          {loading ? null : cfRules.length === 0 ? (
             <EmptyState
               icon={Filter}
               message="No content filter rules configured. Add keyword or regex rules to block or mask prohibited content."

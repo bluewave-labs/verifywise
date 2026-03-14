@@ -194,7 +194,7 @@ export default function AIGatewaySettingsPage() {
             </Stack>
           </Stack>
 
-          {apiKeys.length === 0 ? (
+          {loading ? null : apiKeys.length === 0 ? (
             <EmptyState
               icon={Key}
               message="No API keys configured. Add a provider API key to start creating endpoints."
@@ -271,7 +271,7 @@ export default function AIGatewaySettingsPage() {
             </Stack>
           </Stack>
 
-          {budget ? (
+          {loading ? null : budget ? (
             <Stack gap="12px">
               <Stack direction="row" justifyContent="space-between">
                 <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Monthly limit</Typography>

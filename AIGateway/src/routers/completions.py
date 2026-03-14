@@ -21,6 +21,7 @@ class CompletionRequest(BaseModel):
     max_tokens: int | None = None
     tools: list | None = None
     tool_choice: str | dict | None = None
+    top_p: float | None = None
     num_retries: int = 0
     fallback_models: list[str] | None = None
     extra_params: dict | None = None
@@ -66,6 +67,8 @@ async def chat_completions(request: Request, body: CompletionRequest):
         kwargs["tools"] = body.tools
     if body.tool_choice is not None:
         kwargs["tool_choice"] = body.tool_choice
+    if body.top_p is not None:
+        kwargs["top_p"] = body.top_p
     if body.extra_params:
         kwargs.update(body.extra_params)
 

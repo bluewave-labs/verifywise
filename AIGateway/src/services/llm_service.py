@@ -43,17 +43,14 @@ async def chat_completion(
 
     cost = litellm.completion_cost(completion_response=response)
 
-    return {
-        "response": response.model_dump(),
-        "cost_usd": cost,
-        "provider": model.split("/")[0] if "/" in model else "openai",
-        "model": model,
-        "usage": {
-            "prompt_tokens": response.usage.prompt_tokens,
-            "completion_tokens": response.usage.completion_tokens,
-            "total_tokens": response.usage.total_tokens,
-        },
+    result = response.model_dump()
+    result["cost_usd"] = cost
+    result["usage"] = {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens,
     }
+    return result
 
 
 async def embedding(

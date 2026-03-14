@@ -45,6 +45,15 @@ import {
 } from "../services/aiGateway.service";
 
 const fileName = "aiGateway.ctrl.ts";
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+
+function parseId(raw: string | string[]): number {
+  const id = Number(raw);
+  if (isNaN(id) || id <= 0) {
+    throw new ValidationException("Invalid ID parameter");
+  }
+  return id;
+}
 
 // ─── API Keys ────────────────────────────────────────────────────────────────
 
@@ -88,7 +97,7 @@ export async function updateApiKey(req: Request, res: Response) {
   const fn = "updateApiKey";
   logStructured("processing", "updating gateway API key", fn, fileName);
   try {
-    const id = Number(req.params.id);
+    const id = parseId(req.params.id);
     const updated = await updateApiKeyQuery(req.organizationId!, id, req.body);
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("API key not found"));
@@ -106,7 +115,7 @@ export async function deleteApiKey(req: Request, res: Response) {
   const fn = "deleteApiKey";
   logStructured("processing", "deleting gateway API key", fn, fileName);
   try {
-    const id = Number(req.params.id);
+    const id = parseId(req.params.id);
     const deleted = await deleteApiKeyQuery(req.organizationId!, id);
     if (!deleted) {
       return res.status(404).json(STATUS_CODE[404]("API key not found"));
@@ -140,7 +149,7 @@ export async function getEndpoint(req: Request, res: Response) {
   const fn = "getEndpoint";
   logStructured("processing", "fetching gateway endpoint", fn, fileName);
   try {
-    const id = Number(req.params.id);
+    const id = parseId(req.params.id);
     const endpoint = await getEndpointByIdQuery(req.organizationId!, id);
     if (!endpoint) {
       return res.status(404).json(STATUS_CODE[404]("Endpoint not found"));
@@ -161,6 +170,9 @@ export async function createEndpoint(req: Request, res: Response) {
     const { slug, display_name, provider, model, api_key_id } = req.body;
     if (!slug || !display_name || !provider || !model || !api_key_id) {
       throw new ValidationException("slug, display_name, provider, model, and api_key_id are required");
+    }
+    if (!SLUG_PATTERN.test(slug)) {
+      throw new ValidationException("slug must be lowercase alphanumeric with hyphens (e.g., prod-gpt4o)");
     }
 
     const endpoint = await createEndpointQuery(req.organizationId!, {
@@ -190,7 +202,7 @@ export async function updateEndpoint(req: Request, res: Response) {
   const fn = "updateEndpoint";
   logStructured("processing", "updating gateway endpoint", fn, fileName);
   try {
-    const id = Number(req.params.id);
+    const id = parseId(req.params.id);
     const updated = await updateEndpointQuery(req.organizationId!, id, req.body);
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Endpoint not found"));
@@ -208,7 +220,7 @@ export async function deleteEndpoint(req: Request, res: Response) {
   const fn = "deleteEndpoint";
   logStructured("processing", "deleting gateway endpoint", fn, fileName);
   try {
-    const id = Number(req.params.id);
+    const id = parseId(req.params.id);
     const deleted = await deleteEndpointQuery(req.organizationId!, id);
     if (!deleted) {
       return res.status(404).json(STATUS_CODE[404]("Endpoint not found"));
@@ -322,14 +334,19 @@ export async function upsertBudget(req: Request, res: Response) {
   const fn = "upsertBudget";
   logStructured("processing", "upserting gateway budget", fn, fileName);
   try {
-    const { monthly_limit_usd } = req.body;
-    if (monthly_limit_usd === undefined || monthly_limit_usd === null) {
-      throw new ValidationException("monthly_limit_usd is required");
+    const monthly_limit_usd = Number(req.body.monthly_limit_usd);
+    if (isNaN(monthly_limit_usd) || monthly_limit_usd <= 0) {
+      throw new ValidationException("monthly_limit_usd must be a positive number");
+    }
+
+    const alert_threshold_pct = Number(req.body.alert_threshold_pct ?? 80);
+    if (isNaN(alert_threshold_pct) || alert_threshold_pct < 0 || alert_threshold_pct > 100) {
+      throw new ValidationException("alert_threshold_pct must be between 0 and 100");
     }
 
     const budget = await upsertBudgetQuery(req.organizationId!, {
       monthly_limit_usd,
-      alert_threshold_pct: req.body.alert_threshold_pct,
+      alert_threshold_pct,
       is_hard_limit: req.body.is_hard_limit,
     });
     logStructured("successful", "gateway budget upserted", fn, fileName);
@@ -401,15 +418,27 @@ export async function chatCompletionStream(req: Request, res: Response) {
 
     stream.pipe(res);
 
-    stream.on("end", async () => {
+    let cleanedUp = false;
+    const doCleanup = async () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
       await cleanup();
-    });
+    };
 
+    stream.on("end", doCleanup);
     stream.on("error", async (err) => {
       logger.error("Stream error:", err);
-      await cleanup();
+      await doCleanup();
       if (!res.headersSent) {
         res.status(500).end();
+      }
+    });
+
+    // Handle client disconnect mid-stream
+    req.on("close", async () => {
+      if (!res.writableEnded) {
+        stream.destroy();
+        await doCleanup();
       }
     });
 

@@ -359,6 +359,8 @@ export async function proxyStream(
   let totalCostUsd = 0;
   let finalModel = endpoint.model;
 
+  const decoder = new TextDecoder();
+
   const nodeStream = new Readable({
     async read() {
       try {
@@ -370,7 +372,7 @@ export async function proxyStream(
         this.push(Buffer.from(value));
 
         // Try to parse SSE chunks for usage data
-        const text = new TextDecoder().decode(value);
+        const text = decoder.decode(value, { stream: true });
         const lines = text.split("\n");
         for (const line of lines) {
           if (line.startsWith("data: ") && line !== "data: [DONE]") {

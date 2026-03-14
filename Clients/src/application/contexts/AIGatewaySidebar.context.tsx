@@ -5,7 +5,7 @@
  * Follows the ShadowAISidebar pattern.
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode, FC } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, FC } from "react";
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 interface AIGatewaySidebarContextType {
@@ -21,21 +21,23 @@ export const AIGatewaySidebarProvider: FC<{ children: ReactNode }> = ({ children
   const [activeTab, setActiveTab] = useState("endpoints");
   const [endpointsCount, setEndpointsCount] = useState(0);
 
-  const loadCounts = useCallback(async () => {
-    try {
-      const response = await apiServices.get("/ai-gateway/endpoints");
-      const endpoints = response?.data?.data;
-      if (Array.isArray(endpoints)) {
-        setEndpointsCount(endpoints.filter((e: { is_active: boolean }) => e.is_active).length);
-      }
-    } catch {
-      // Silently fail — user may not have access or module not configured
-    }
-  }, []);
-
   useEffect(() => {
-    loadCounts();
-  }, [loadCounts]);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const response = await apiServices.get("/ai-gateway/endpoints");
+        if (cancelled) return;
+        const endpoints = response?.data?.data;
+        if (Array.isArray(endpoints)) {
+          setEndpointsCount(endpoints.filter((e: { is_active: boolean }) => e.is_active).length);
+        }
+      } catch {
+        // Silently fail — user may not have access or module not configured
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <AIGatewaySidebarContext.Provider

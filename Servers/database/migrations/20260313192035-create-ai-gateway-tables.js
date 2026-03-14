@@ -27,7 +27,7 @@ module.exports = {
         slug VARCHAR(255) NOT NULL,
         provider VARCHAR(100) NOT NULL,
         model VARCHAR(255) NOT NULL,
-        api_key_id INTEGER REFERENCES ai_gateway_api_keys(id),
+        api_key_id INTEGER REFERENCES ai_gateway_api_keys(id) ON DELETE SET NULL,
         max_tokens INTEGER,
         temperature DECIMAL(3, 2),
         system_prompt TEXT,

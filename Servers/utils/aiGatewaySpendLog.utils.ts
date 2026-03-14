@@ -163,7 +163,7 @@ export const getSpendByEndpointQuery = async (
      WHERE s.organization_id = :organizationId
        AND s.created_at >= :startDate
        AND s.created_at <= :endDate
-     GROUP BY e.display_name
+     GROUP BY e.id, e.display_name
      ORDER BY total_cost DESC`,
     { replacements: { organizationId, startDate, endDate } }
   )) as [ISpendByGroup[], number];
@@ -181,7 +181,7 @@ export const getSpendByUserQuery = async (
 ): Promise<ISpendByGroup[]> => {
   const result = (await sequelize.query(
     `SELECT
-       COALESCE(u.name || ' ' || u.surname, 'unknown') AS group_key,
+       COALESCE(NULLIF(TRIM(COALESCE(u.name, '') || ' ' || COALESCE(u.surname, '')), ''), 'unknown') AS group_key,
        COALESCE(SUM(s.cost_usd), 0)::float AS total_cost,
        COUNT(*)::int AS total_requests,
        COALESCE(SUM(s.total_tokens), 0)::int AS total_tokens

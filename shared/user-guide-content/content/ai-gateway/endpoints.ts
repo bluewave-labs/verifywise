@@ -70,7 +70,7 @@ export const endpointsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'The AI Gateway supports 100+ LLM providers through LiteLLM, including:',
+      text: 'The model dropdown includes popular models from these providers. You can also type a custom model string in LiteLLM format:',
     },
     {
       type: 'bullet-list',

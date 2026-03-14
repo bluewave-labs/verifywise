@@ -39,6 +39,10 @@ export const guardrailsContent: ArticleContent = {
         { entity: 'EU phone', example: '+33 1 42 68 53 00', coverage: 'FR, DE, UK, TR, and more' },
         { entity: 'US SSN', example: '123-45-6789', coverage: 'Standard format' },
         { entity: 'IP address', example: '192.168.1.1', coverage: 'IPv4' },
+        { entity: 'Location', example: 'Berlin, Germany', coverage: 'Cities, countries (NLP-based)' },
+        { entity: 'Date/time', example: 'March 14, 2026', coverage: 'Common date formats' },
+        { entity: 'NRP', example: 'Catholic, Republican', coverage: 'Nationality, religion, politics' },
+        { entity: 'Medical license', example: 'DEA# AB1234567', coverage: 'US medical license numbers' },
       ],
     },
     {

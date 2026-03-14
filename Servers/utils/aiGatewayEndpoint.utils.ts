@@ -149,6 +149,7 @@ export const updateEndpointQuery = async (
     temperature?: number | null;
     system_prompt?: string | null;
     rate_limit_rpm?: number | null;
+    is_active?: boolean;
   }
 ): Promise<IAiGatewayEndpoint | null> => {
   const setClauses: string[] = [];
@@ -189,6 +190,10 @@ export const updateEndpointQuery = async (
   if (data.rate_limit_rpm !== undefined) {
     setClauses.push("rate_limit_rpm = :rate_limit_rpm");
     replacements.rate_limit_rpm = data.rate_limit_rpm;
+  }
+  if (data.is_active !== undefined) {
+    setClauses.push("is_active = :is_active");
+    replacements.is_active = data.is_active;
   }
 
   if (setClauses.length === 0) {

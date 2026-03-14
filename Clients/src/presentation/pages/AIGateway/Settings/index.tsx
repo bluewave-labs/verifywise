@@ -12,10 +12,11 @@ import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtende
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
 
-const PROVIDERS = [
+/** Top providers shown above the divider */
+const TOP_PROVIDERS = [
   { _id: "openai", name: "OpenAI" },
   { _id: "anthropic", name: "Anthropic" },
-  { _id: "google", name: "Google" },
+  { _id: "gemini", name: "Google Gemini" },
   { _id: "mistral", name: "Mistral" },
   { _id: "xai", name: "xAI" },
   { _id: "openrouter", name: "OpenRouter" },
@@ -24,6 +25,8 @@ const PROVIDERS = [
   { _id: "together_ai", name: "Together AI" },
   { _id: "cohere", name: "Cohere" },
 ];
+
+const TOP_IDS = new Set(TOP_PROVIDERS.map((p) => p._id));
 
 const sectionTitleSx = {
   fontWeight: 600,
@@ -46,6 +49,8 @@ export default function AIGatewaySettingsPage() {
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [budget, setBudget] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [providerItems, setProviderItems] = useState(TOP_PROVIDERS);
+  const [topProviderCount, setTopProviderCount] = useState(TOP_PROVIDERS.length);
 
   // API Key modal state
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
@@ -64,12 +69,25 @@ export default function AIGatewaySettingsPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [keysRes, budgetRes] = await Promise.all([
+      const [keysRes, budgetRes, providersRes] = await Promise.all([
         apiServices.get("/ai-gateway/keys"),
         apiServices.get("/ai-gateway/budget"),
+        apiServices.get("/ai-gateway/providers").catch(() => null),
       ]);
       setApiKeys(keysRes?.data?.data || []);
       setBudget(budgetRes?.data?.data || null);
+
+      // Build provider list: top providers first, then rest from LiteLLM SDK
+      const dynamicProviders: string[] = providersRes?.data?.data?.providers || [];
+      const otherProviders = dynamicProviders
+        .filter((p) => !TOP_IDS.has(p))
+        .sort()
+        .map((p) => ({ _id: p, name: p }));
+
+      if (otherProviders.length > 0) {
+        setProviderItems([...TOP_PROVIDERS, ...otherProviders]);
+        setTopProviderCount(TOP_PROVIDERS.length);
+      }
     } catch {
       // Silently handle
     } finally {
@@ -317,9 +335,12 @@ export default function AIGatewaySettingsPage() {
             label="Provider"
             placeholder="Select provider"
             value={keyForm.provider}
-            items={PROVIDERS}
+            items={providerItems}
             onChange={(e) => setKeyForm((p) => ({ ...p, provider: e.target.value as string }))}
             getOptionValue={(item) => item._id}
+            dividerAfterIndex={topProviderCount}
+            dividerLabel="Other providers"
+            isRequired
           />
           <Field
             label="API key"

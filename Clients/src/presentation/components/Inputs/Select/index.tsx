@@ -18,6 +18,8 @@
 
 import React from "react";
 import {
+  Divider,
+  ListSubheader,
   MenuItem,
   Select as MuiSelect,
   Stack,
@@ -49,6 +51,8 @@ function Select({
   disabled,
   customRenderValue,
   isFilterApplied = false,
+  dividerAfterIndex,
+  dividerLabel,
 }: SelectProps) {
   const theme = useTheme();
   const itemStyles = {
@@ -210,28 +214,54 @@ function Select({
             surname?: string;
             icon?: React.ComponentType<{ color?: string; size?: number }>;
             color?: string;
-          }) => (
-            <MenuItem
-              value={getOptionValue ? getOptionValue(item) : item._id}
-              key={`${id}-${item._id}`}
-              sx={{
-                display: "flex",
-                ...itemStyles,
-                justifyContent: "space-between",
-                flexDirection: "row",
-              }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {item.icon && <item.icon color={item.color} size={16} />}
-                <span>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
-              </Stack>
-              {item.email && (
-                <span style={{ fontSize: 11, color: theme.palette.text.disabled }}>
-                  {item.email}
-                </span>
-              )}
-            </MenuItem>
-          )
+          }, index: number) => {
+            const menuItem = (
+              <MenuItem
+                value={getOptionValue ? getOptionValue(item) : item._id}
+                key={`${id}-${item._id}`}
+                sx={{
+                  display: "flex",
+                  ...itemStyles,
+                  justifyContent: "space-between",
+                  flexDirection: "row",
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  {item.icon && <item.icon color={item.color} size={16} />}
+                  <span>{`${item.name} ${item.surname ? item.surname : ""}`}</span>
+                </Stack>
+                {item.email && (
+                  <span style={{ fontSize: 11, color: theme.palette.text.disabled }}>
+                    {item.email}
+                  </span>
+                )}
+              </MenuItem>
+            );
+
+            if (dividerAfterIndex !== undefined && index === dividerAfterIndex) {
+              return (
+                <React.Fragment key={`${id}-divider-${index}`}>
+                  <Divider sx={{ my: 0.5 }} />
+                  {dividerLabel && (
+                    <ListSubheader
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: theme.palette.text.tertiary,
+                        lineHeight: "28px",
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      {dividerLabel}
+                    </ListSubheader>
+                  )}
+                  {menuItem}
+                </React.Fragment>
+              );
+            }
+
+            return menuItem;
+          }
         )}
       </MuiSelect>
       {error && (

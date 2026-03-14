@@ -75,6 +75,10 @@ export interface SelectCorProps {
   disabled?: boolean;
   customRenderValue?: (value: any, selectedItem: any) => React.ReactNode;
   isFilterApplied?: boolean;
+  /** Insert a visual divider after this many items (e.g., 10 = divider after first 10 items) */
+  dividerAfterIndex?: number;
+  /** Label for the section below the divider */
+  dividerLabel?: string;
 }
 
 export interface IBannerProps {

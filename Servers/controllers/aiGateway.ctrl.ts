@@ -483,3 +483,29 @@ export async function embeddingProxy(req: Request, res: Response) {
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 }
+
+// ─── Providers ───────────────────────────────────────────────────────────────
+
+const AI_GATEWAY_URL = process.env.AI_GATEWAY_URL || "http://localhost:8100";
+const AI_GATEWAY_KEY = process.env.AI_GATEWAY_INTERNAL_KEY || "";
+
+export async function getProviders(_req: Request, res: Response) {
+  const fn = "getProviders";
+  logStructured("processing", "fetching providers from AI Gateway", fn, fileName);
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL}/v1/models`, {
+      headers: { "x-internal-key": AI_GATEWAY_KEY },
+    });
+
+    if (!response.ok) {
+      return res.status(200).json(STATUS_CODE[200]({ providers: [] }));
+    }
+
+    const data = await response.json();
+    logStructured("successful", "providers fetched", fn, fileName);
+    return res.status(200).json(STATUS_CODE[200]({ providers: data.providers || [] }));
+  } catch {
+    // If AIGateway is not running, return empty list
+    return res.status(200).json(STATUS_CODE[200]({ providers: [] }));
+  }
+}

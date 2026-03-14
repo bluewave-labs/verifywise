@@ -25,6 +25,8 @@ import {
   chatCompletion,
   chatCompletionStream,
   embeddingProxy,
+  // Providers
+  getProviders,
 } from "../controllers/aiGateway.ctrl";
 
 // All routes require authentication
@@ -51,6 +53,9 @@ router.get("/spend/by-user", getSpendByUser);
 // Budget management
 router.get("/budget", getBudget);
 router.put("/budget", upsertBudget);
+
+// Utility
+router.get("/providers", getProviders);
 
 // Proxy endpoints
 router.post("/chat", chatCompletion);

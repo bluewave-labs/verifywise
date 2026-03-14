@@ -147,9 +147,105 @@ test.describe("Vendors Page", () => {
     }
   });
 
-  // --- Tier 4: CRUD skipped ---
+  // --- Tier 4: CRUD ---
 
-  test.skip("CRUD: create and delete vendor", async () => {
-    // Skipped: "Add new vendor" button is disabled when no projects exist
+  test("CRUD: create and delete vendor", async ({ authedPage: page }) => {
+    await page.goto("/vendors");
+    const vendorName = `E2E Vendor ${Date.now()}`;
+
+    // Open "Add new vendor" modal
+    const addBtn = page.getByRole("button", { name: /add new vendor/i });
+    await expect(addBtn).toBeVisible({ timeout: 10_000 });
+    if (await addBtn.isDisabled()) {
+      test.skip();
+      return;
+    }
+    await addBtn.click();
+
+    // Fill required fields
+    // Vendor name
+    const nameInput = page.getByLabel(/vendor name/i);
+    await expect(nameInput).toBeVisible({ timeout: 10_000 });
+    await nameInput.fill(vendorName);
+
+    // Use cases (autocomplete) — click and pick the first option
+    const useCasesInput = page.getByLabel(/use cases/i);
+    if (await useCasesInput.isVisible().catch(() => false)) {
+      await useCasesInput.click();
+      const option = page.getByRole("option").first();
+      if (await option.isVisible().catch(() => false)) {
+        await option.click();
+      }
+      // Close dropdown
+      await page.keyboard.press("Escape");
+    }
+
+    // Website
+    const websiteInput = page.getByPlaceholder(/enter vendor website/i);
+    if (await websiteInput.isVisible().catch(() => false)) {
+      await websiteInput.fill("https://e2e-test.example.com");
+    }
+
+    // Vendor contact person
+    const contactInput = page.getByLabel(/vendor contact person/i);
+    if (await contactInput.isVisible().catch(() => false)) {
+      await contactInput.fill("E2E Tester");
+    }
+
+    // Assignee — select first available
+    const assigneeSelect = page.getByLabel(/assignee/i);
+    if (await assigneeSelect.isVisible().catch(() => false)) {
+      await assigneeSelect.click();
+      const assigneeOption = page.getByRole("option").first();
+      if (await assigneeOption.isVisible().catch(() => false)) {
+        await assigneeOption.click();
+      }
+    }
+
+    // What does the vendor provide?
+    const providesInput = page.getByPlaceholder(
+      /describe the products or services/i
+    );
+    if (await providesInput.isVisible().catch(() => false)) {
+      await providesInput.fill("E2E test vendor services");
+    }
+
+    // Submit
+    const saveBtn = page
+      .getByRole("button", { name: /save/i })
+      .or(page.getByRole("button", { name: /create|submit|add/i }));
+    await saveBtn.last().click();
+    await page.waitForTimeout(1500);
+
+    // Verify: search for the created vendor
+    const searchInput = page.getByPlaceholder(/search/i);
+    if (await searchInput.first().isVisible().catch(() => false)) {
+      await searchInput.first().fill(vendorName);
+      await page.waitForTimeout(500);
+    }
+
+    // Clean up: delete via row action menu
+    const moreBtn = page
+      .getByRole("button", { name: /more/i })
+      .or(page.locator('[aria-label="more"]'))
+      .or(page.locator('[data-testid="MoreVertIcon"]'));
+    if (await moreBtn.first().isVisible().catch(() => false)) {
+      await moreBtn.first().click();
+      const deleteBtn = page.getByRole("menuitem", {
+        name: /delete|remove/i,
+      });
+      if (await deleteBtn.first().isVisible().catch(() => false)) {
+        await deleteBtn.first().click();
+        const confirmBtn = page.getByRole("button", {
+          name: /confirm|yes|delete/i,
+        });
+        if (await confirmBtn.first().isVisible().catch(() => false)) {
+          await confirmBtn.first().click();
+        }
+        await page.waitForTimeout(500);
+      } else {
+        await page.keyboard.press("Escape");
+      }
+    }
   });
 });

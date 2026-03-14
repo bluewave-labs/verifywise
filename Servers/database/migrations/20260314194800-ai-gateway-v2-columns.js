@@ -39,6 +39,35 @@ module.exports = {
       ALTER TABLE ai_gateway_guardrail_settings ADD COLUMN IF NOT EXISTS log_request_body BOOLEAN DEFAULT false;
       ALTER TABLE ai_gateway_guardrail_settings ADD COLUMN IF NOT EXISTS log_response_body BOOLEAN DEFAULT false;
     `);
+
+    // Feature 5: Audit trail (change history tables)
+    await queryInterface.sequelize.query(`
+      CREATE TABLE IF NOT EXISTS ai_gateway_endpoint_change_history (
+        id SERIAL PRIMARY KEY,
+        organization_id INTEGER NOT NULL REFERENCES organizations(id),
+        endpoint_id INTEGER REFERENCES ai_gateway_endpoints(id) ON DELETE SET NULL,
+        action VARCHAR(20) NOT NULL,
+        field_name VARCHAR(100),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES users(id),
+        changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_gw_ep_history_org ON ai_gateway_endpoint_change_history(organization_id, endpoint_id);
+
+      CREATE TABLE IF NOT EXISTS ai_gateway_guardrail_change_history (
+        id SERIAL PRIMARY KEY,
+        organization_id INTEGER NOT NULL REFERENCES organizations(id),
+        guardrail_id INTEGER REFERENCES ai_gateway_guardrails(id) ON DELETE SET NULL,
+        action VARCHAR(20) NOT NULL,
+        field_name VARCHAR(100),
+        old_value TEXT,
+        new_value TEXT,
+        changed_by_user_id INTEGER REFERENCES users(id),
+        changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_gw_gr_history_org ON ai_gateway_guardrail_change_history(organization_id, guardrail_id);
+    `);
   },
 
   async down(queryInterface, Sequelize) {

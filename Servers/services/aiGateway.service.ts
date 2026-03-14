@@ -28,6 +28,7 @@ import {
   ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
 import { checkRateLimit } from "../utils/aiGatewayRateLimit.utils";
+import redisClient from "../database/redis";
 import {
   getActiveGuardrailsQuery,
   getGuardrailSettingsQuery,
@@ -295,6 +296,41 @@ async function finalizeSpend(
   } catch (err) {
     logger.error("Failed to adjust budget spend:", err);
   }
+
+  // Check budget alert threshold (non-blocking)
+  try {
+    await checkBudgetAlert(organizationId);
+  } catch (err) {
+    logger.error("Failed to check budget alert:", err);
+  }
+}
+
+/**
+ * Check if budget alert threshold is crossed and send notification.
+ * Uses Redis to prevent duplicate alerts within the same month.
+ */
+async function checkBudgetAlert(organizationId: number): Promise<void> {
+  const budget = await getBudgetQuery(organizationId);
+  if (!budget || !budget.monthly_limit_usd || Number(budget.monthly_limit_usd) <= 0) return;
+
+  const spendPct = (Number(budget.current_spend_usd) / Number(budget.monthly_limit_usd)) * 100;
+  const threshold = budget.alert_threshold_pct || 80;
+
+  if (spendPct < threshold) return;
+
+  // Check if we already sent an alert this month
+  const alertKey = `gw:alert:${organizationId}:${new Date().toISOString().slice(0, 7)}`;
+  const alreadySent = await redisClient.get(alertKey);
+  if (alreadySent) return;
+
+  // Mark as sent (expire at end of month)
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const daysRemaining = daysInMonth - new Date().getDate() + 1;
+  await redisClient.set(alertKey, "1", "EX", daysRemaining * 86400);
+
+  logger.info(`Budget alert: org ${organizationId} at ${spendPct.toFixed(1)}% (threshold: ${threshold}%)`);
+
+  // TODO: Send email/Slack notification via NotificationService when alert_email_enabled or alert_slack_enabled
 }
 
 /**

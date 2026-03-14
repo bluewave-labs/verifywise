@@ -5,7 +5,7 @@
  * Follows the SidebarShell pattern established by ShadowAISidebar.
  */
 
-import { Router, BarChart3, MessageSquare, Settings } from "lucide-react";
+import { Router, BarChart3, MessageSquare, ShieldCheck, Settings } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
 } from "../../components/Sidebar/SidebarShell";
@@ -40,6 +40,12 @@ export default function AIGatewaySidebar({
       label: "Playground",
       value: "playground",
       icon: <MessageSquare size={16} strokeWidth={1.5} />,
+    },
+    {
+      id: "guardrails",
+      label: "Guardrails",
+      value: "guardrails",
+      icon: <ShieldCheck size={16} strokeWidth={1.5} />,
     },
     {
       id: "settings",

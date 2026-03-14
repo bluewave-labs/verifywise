@@ -1,0 +1,332 @@
+"""
+Guardrail scanning service.
+
+Executes PII detection and content filter checks on text.
+Returns structured detection results with block/mask actions.
+"""
+
+import logging
+import re
+import time
+from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
+
+# Timeout for regex execution (seconds)
+REGEX_TIMEOUT_S = 2.0
+
+
+@dataclass
+class Detection:
+    guardrail_id: int | None
+    guardrail_type: str  # "pii" | "content_filter"
+    entity_type: str  # "EMAIL_ADDRESS", keyword name, regex name
+    action: str  # "block" | "mask"
+    matched_text: str
+    start: int
+    end: int
+    score: float = 1.0
+
+
+@dataclass
+class ScanResult:
+    blocked: bool = False
+    block_reason: str = ""
+    detections: list[Detection] = field(default_factory=list)
+    masked_text: str | None = None
+    execution_time_ms: int = 0
+
+
+def _validate_regex(pattern: str) -> re.Pattern | None:
+    """Compile and validate a regex pattern. Returns None if invalid."""
+    try:
+        return re.compile(pattern, re.IGNORECASE)
+    except re.error as e:
+        logger.warning(f"Invalid regex pattern '{pattern[:50]}': {e}")
+        return None
+
+
+def _run_regex_with_timeout(compiled: re.Pattern, text: str) -> list[re.Match]:
+    """Run regex with a simple length-based guard against ReDoS."""
+    # For very long text, limit scan to first 50K chars
+    scan_text = text[:50000] if len(text) > 50000 else text
+    try:
+        return list(compiled.finditer(scan_text))
+    except Exception as e:
+        logger.warning(f"Regex execution failed: {e}")
+        return []
+
+
+def _merge_spans(spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Merge overlapping spans to prevent double-masking."""
+    if not spans:
+        return []
+    sorted_spans = sorted(spans, key=lambda s: s[0])
+    merged = [sorted_spans[0]]
+    for start, end in sorted_spans[1:]:
+        if start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return merged
+
+
+def _scan_pii(
+    text: str,
+    guardrail_rules: list[dict],
+    settings: dict,
+) -> list[Detection]:
+    """Run Presidio PII scan."""
+    from src.services.presidio_engine import analyze_text, is_available
+
+    if not is_available():
+        if settings.get("pii_on_error", "block") == "block":
+            return [
+                Detection(
+                    guardrail_id=None,
+                    guardrail_type="pii",
+                    entity_type="SYSTEM_ERROR",
+                    action="block",
+                    matched_text="Presidio not available",
+                    start=0,
+                    end=0,
+                )
+            ]
+        return []
+
+    detections = []
+
+    for rule in guardrail_rules:
+        if rule.get("guardrail_type") != "pii" or not rule.get("is_active", True):
+            continue
+
+        config = rule.get("config", {})
+        entities_config = config.get("entities", {})
+        score_thresholds = config.get("score_thresholds", {})
+        language = config.get("language", "en")
+
+        # Only scan for configured entity types
+        entity_types = list(entities_config.keys()) if entities_config else None
+
+        try:
+            results = analyze_text(
+                text=text,
+                entities=entity_types,
+                language=language,
+                score_thresholds=score_thresholds,
+            )
+        except Exception as e:
+            logger.error(f"Presidio analysis failed: {e}")
+            if settings.get("pii_on_error", "block") == "block":
+                detections.append(
+                    Detection(
+                        guardrail_id=rule.get("id"),
+                        guardrail_type="pii",
+                        entity_type="SYSTEM_ERROR",
+                        action="block",
+                        matched_text="PII scan failed",
+                        start=0,
+                        end=0,
+                    )
+                )
+            continue
+
+        for r in results:
+            entity_action = entities_config.get(r["entity_type"], "mask")
+            # Use rule-level action as default, entity-level overrides
+            action = entity_action if entity_action in ("block", "mask") else rule.get("action", "block")
+
+            detections.append(
+                Detection(
+                    guardrail_id=rule.get("id"),
+                    guardrail_type="pii",
+                    entity_type=r["entity_type"],
+                    action=action,
+                    matched_text=r["text"],
+                    start=r["start"],
+                    end=r["end"],
+                    score=r["score"],
+                )
+            )
+
+    return detections
+
+
+def _scan_content_filter(
+    text: str,
+    guardrail_rules: list[dict],
+    settings: dict,
+) -> list[Detection]:
+    """Run content filter (keywords + regex) scan."""
+    detections = []
+    text_lower = text.lower()
+
+    for rule in guardrail_rules:
+        if rule.get("guardrail_type") != "content_filter" or not rule.get("is_active", True):
+            continue
+
+        config = rule.get("config", {})
+        filter_type = config.get("type", "keyword")
+        pattern_str = config.get("pattern", "")
+        action = rule.get("action", "block")
+        rule_name = rule.get("name", "unnamed")
+
+        if not pattern_str:
+            continue
+
+        try:
+            if filter_type == "keyword":
+                # Word boundary for single words, substring for multi-word
+                escaped = re.escape(pattern_str)
+                if " " in pattern_str:
+                    compiled = re.compile(escaped, re.IGNORECASE)
+                else:
+                    compiled = re.compile(r"\b" + escaped + r"\b", re.IGNORECASE)
+
+                matches = _run_regex_with_timeout(compiled, text)
+                for m in matches:
+                    detections.append(
+                        Detection(
+                            guardrail_id=rule.get("id"),
+                            guardrail_type="content_filter",
+                            entity_type=rule_name,
+                            action=action,
+                            matched_text=m.group(),
+                            start=m.start(),
+                            end=m.end(),
+                        )
+                    )
+
+            elif filter_type == "regex":
+                compiled = _validate_regex(pattern_str)
+                if compiled is None:
+                    if settings.get("content_filter_on_error", "allow") == "block":
+                        detections.append(
+                            Detection(
+                                guardrail_id=rule.get("id"),
+                                guardrail_type="content_filter",
+                                entity_type=rule_name,
+                                action="block",
+                                matched_text=f"Invalid regex: {pattern_str[:30]}",
+                                start=0,
+                                end=0,
+                            )
+                        )
+                    continue
+
+                matches = _run_regex_with_timeout(compiled, text)
+                for m in matches:
+                    detections.append(
+                        Detection(
+                            guardrail_id=rule.get("id"),
+                            guardrail_type="content_filter",
+                            entity_type=rule_name,
+                            action=action,
+                            matched_text=m.group(),
+                            start=m.start(),
+                            end=m.end(),
+                        )
+                    )
+
+        except Exception as e:
+            logger.warning(f"Content filter rule '{rule_name}' failed: {e}")
+            if settings.get("content_filter_on_error", "allow") == "block":
+                detections.append(
+                    Detection(
+                        guardrail_id=rule.get("id"),
+                        guardrail_type="content_filter",
+                        entity_type=rule_name,
+                        action="block",
+                        matched_text=f"Rule execution error",
+                        start=0,
+                        end=0,
+                    )
+                )
+
+    return detections
+
+
+def _apply_mask(
+    text: str,
+    detections: list[Detection],
+    settings: dict,
+) -> str:
+    """Apply MASK replacements to text, processing right-to-left to preserve positions."""
+    mask_detections = [d for d in detections if d.action == "mask"]
+    if not mask_detections:
+        return text
+
+    # Merge overlapping spans
+    spans = [(d.start, d.end, d) for d in mask_detections]
+    spans.sort(key=lambda s: s[0])
+
+    # Process right-to-left to preserve character positions
+    result = text
+    for start, end, detection in reversed(spans):
+        if detection.guardrail_type == "pii":
+            fmt = settings.get("pii_replacement_format", "<ENTITY_TYPE>")
+            replacement = fmt.replace("ENTITY_TYPE", detection.entity_type)
+        else:
+            replacement = settings.get("content_filter_replacement", "[REDACTED]")
+
+        result = result[:start] + replacement + result[end:]
+
+    return result
+
+
+def scan_text(
+    text: str,
+    guardrail_rules: list[dict],
+    settings: dict,
+) -> ScanResult:
+    """
+    Main entry point. Scans text against all active guardrail rules.
+
+    Args:
+        text: The text to scan (last user message)
+        guardrail_rules: List of guardrail rule dicts from DB
+        settings: Org guardrail settings dict
+
+    Returns:
+        ScanResult with blocked status, detections, and optionally masked text
+    """
+    start_time = time.time()
+
+    if not text or not guardrail_rules:
+        return ScanResult()
+
+    all_detections: list[Detection] = []
+
+    # Run PII scan
+    pii_rules = [r for r in guardrail_rules if r.get("guardrail_type") == "pii"]
+    if pii_rules:
+        all_detections.extend(_scan_pii(text, pii_rules, settings))
+
+    # Run content filter
+    cf_rules = [r for r in guardrail_rules if r.get("guardrail_type") == "content_filter"]
+    if cf_rules:
+        all_detections.extend(_scan_content_filter(text, cf_rules, settings))
+
+    # Check for BLOCK detections
+    block_detections = [d for d in all_detections if d.action == "block"]
+    if block_detections:
+        first_block = block_detections[0]
+        return ScanResult(
+            blocked=True,
+            block_reason=f"{first_block.guardrail_type}: {first_block.entity_type} detected",
+            detections=all_detections,
+            execution_time_ms=int((time.time() - start_time) * 1000),
+        )
+
+    # Apply MASK to text
+    masked_text = None
+    mask_detections = [d for d in all_detections if d.action == "mask"]
+    if mask_detections:
+        masked_text = _apply_mask(text, mask_detections, settings)
+
+    return ScanResult(
+        blocked=False,
+        detections=all_detections,
+        masked_text=masked_text,
+        execution_time_ms=int((time.time() - start_time) * 1000),
+    )

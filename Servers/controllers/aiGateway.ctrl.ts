@@ -5,6 +5,22 @@ import {
   ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
 
+// Guardrail utils
+import {
+  getAllGuardrailsQuery,
+  createGuardrailQuery,
+  updateGuardrailQuery,
+  deleteGuardrailQuery,
+  getGuardrailSettingsQuery,
+  upsertGuardrailSettingsQuery,
+  getGuardrailLogsQuery,
+  getGuardrailStatsQuery,
+  getGuardrailStatsByTypeQuery,
+  getGuardrailStatsByDayQuery,
+  purgeGuardrailLogsQuery,
+  getActiveGuardrailsQuery,
+} from "../utils/aiGatewayGuardrail.utils";
+
 // API Key utils
 import {
   getAllApiKeysQuery,
@@ -507,5 +523,238 @@ export async function getProviders(_req: Request, res: Response) {
   } catch {
     // If AIGateway is not running, return empty list
     return res.status(200).json(STATUS_CODE[200]({ providers: [] }));
+  }
+}
+
+// ─── Guardrail Rules ─────────────────────────────────────────────────────────
+
+export async function getGuardrails(req: Request, res: Response) {
+  const fn = "getGuardrails";
+  logStructured("processing", "fetching guardrail rules", fn, fileName);
+  try {
+    const rules = await getAllGuardrailsQuery(req.organizationId!);
+    logStructured("successful", "guardrail rules fetched", fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](rules));
+  } catch (error) {
+    logStructured("error", "failed to fetch guardrail rules", fn, fileName);
+    logger.error("Error fetching guardrail rules:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function createGuardrail(req: Request, res: Response) {
+  const fn = "createGuardrail";
+  logStructured("processing", "creating guardrail rule", fn, fileName);
+  try {
+    const { guardrail_type, name, config, scope, action } = req.body;
+    if (!guardrail_type || !name) {
+      throw new ValidationException("guardrail_type and name are required");
+    }
+    if (!["pii", "content_filter"].includes(guardrail_type)) {
+      throw new ValidationException("guardrail_type must be 'pii' or 'content_filter'");
+    }
+    if (action && !["block", "mask"].includes(action)) {
+      throw new ValidationException("action must be 'block' or 'mask'");
+    }
+
+    // Validate regex patterns for content filter
+    if (guardrail_type === "content_filter" && config?.type === "regex" && config?.pattern) {
+      try {
+        new RegExp(config.pattern);
+      } catch {
+        throw new ValidationException("Invalid regex pattern");
+      }
+    }
+
+    const rule = await createGuardrailQuery(req.organizationId!, {
+      guardrail_type,
+      name,
+      config: config || {},
+      scope,
+      action,
+      created_by: Number(req.userId),
+    });
+    logStructured("successful", `guardrail rule created: ${rule.id}`, fn, fileName);
+    return res.status(201).json(STATUS_CODE[201](rule));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to create guardrail rule", fn, fileName);
+    logger.error("Error creating guardrail rule:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function updateGuardrail(req: Request, res: Response) {
+  const fn = "updateGuardrail";
+  logStructured("processing", "updating guardrail rule", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+
+    // Validate regex if updating content filter pattern
+    if (req.body.config?.type === "regex" && req.body.config?.pattern) {
+      try {
+        new RegExp(req.body.config.pattern);
+      } catch {
+        throw new ValidationException("Invalid regex pattern");
+      }
+    }
+
+    const updated = await updateGuardrailQuery(req.organizationId!, id, req.body);
+    if (!updated) {
+      return res.status(404).json(STATUS_CODE[404]("Guardrail rule not found"));
+    }
+    logStructured("successful", `guardrail rule updated: ${id}`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](updated));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to update guardrail rule", fn, fileName);
+    logger.error("Error updating guardrail rule:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function deleteGuardrail(req: Request, res: Response) {
+  const fn = "deleteGuardrail";
+  logStructured("processing", "deleting guardrail rule", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const deleted = await deleteGuardrailQuery(req.organizationId!, id);
+    if (!deleted) {
+      return res.status(404).json(STATUS_CODE[404]("Guardrail rule not found"));
+    }
+    logStructured("successful", `guardrail rule deleted: ${id}`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to delete guardrail rule", fn, fileName);
+    logger.error("Error deleting guardrail rule:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+// ─── Guardrail Settings ──────────────────────────────────────────────────────
+
+export async function getGuardrailSettings(req: Request, res: Response) {
+  const fn = "getGuardrailSettings";
+  try {
+    const settings = await getGuardrailSettingsQuery(req.organizationId!);
+    return res.status(200).json(STATUS_CODE[200](settings));
+  } catch (error) {
+    logStructured("error", "failed to fetch guardrail settings", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function updateGuardrailSettings(req: Request, res: Response) {
+  const fn = "updateGuardrailSettings";
+  try {
+    const settings = await upsertGuardrailSettingsQuery(req.organizationId!, req.body);
+    logStructured("successful", "guardrail settings updated", fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](settings));
+  } catch (error) {
+    logStructured("error", "failed to update guardrail settings", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+// ─── Guardrail Test (proxy to FastAPI) ───────────────────────────────────────
+
+export async function testGuardrails(req: Request, res: Response) {
+  const fn = "testGuardrails";
+  logStructured("processing", "testing guardrail rules", fn, fileName);
+  try {
+    const { text } = req.body;
+    if (!text) {
+      throw new ValidationException("text is required");
+    }
+
+    // Get active rules and settings
+    const [rules, settings] = await Promise.all([
+      getActiveGuardrailsQuery(req.organizationId!),
+      getGuardrailSettingsQuery(req.organizationId!),
+    ]);
+
+    const response = await fetch(`${AI_GATEWAY_URL}/v1/guardrails/test`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-key": AI_GATEWAY_KEY,
+      },
+      body: JSON.stringify({
+        text,
+        guardrail_rules: rules,
+        settings: settings || {},
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json(STATUS_CODE[500](errorText));
+    }
+
+    const data = await response.json();
+    logStructured("successful", "guardrail test completed", fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](data));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to test guardrails", fn, fileName);
+    logger.error("Error testing guardrails:", error);
+    return res.status(500).json(STATUS_CODE[500]("Guardrail test failed — is the AI Gateway service running?"));
+  }
+}
+
+// ─── Guardrail Logs & Stats ──────────────────────────────────────────────────
+
+export async function getGuardrailLogs(req: Request, res: Response) {
+  const fn = "getGuardrailLogs";
+  try {
+    const limit = Math.min(Number(req.query.limit) || 50, 200);
+    const offset = Number(req.query.offset) || 0;
+    const logs = await getGuardrailLogsQuery(req.organizationId!, limit, offset);
+    return res.status(200).json(STATUS_CODE[200](logs));
+  } catch (error) {
+    logStructured("error", "failed to fetch guardrail logs", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function getGuardrailStats(req: Request, res: Response) {
+  const fn = "getGuardrailStats";
+  try {
+    const period = (req.query.period as string) || "7d";
+    const { startDate, endDate } = getDateRange(period);
+
+    const [summary, byType, byDay] = await Promise.all([
+      getGuardrailStatsQuery(req.organizationId!, startDate, endDate),
+      getGuardrailStatsByTypeQuery(req.organizationId!, startDate, endDate),
+      getGuardrailStatsByDayQuery(req.organizationId!, startDate, endDate),
+    ]);
+
+    return res.status(200).json(STATUS_CODE[200]({ summary, byType, byDay }));
+  } catch (error) {
+    logStructured("error", "failed to fetch guardrail stats", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function purgeGuardrailLogs(req: Request, res: Response) {
+  const fn = "purgeGuardrailLogs";
+  try {
+    const settings = await getGuardrailSettingsQuery(req.organizationId!);
+    const retentionDays = settings?.log_retention_days || 90;
+    const deleted = await purgeGuardrailLogsQuery(req.organizationId!, retentionDays);
+    logStructured("successful", `purged ${deleted} guardrail logs`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200]({ deleted_count: deleted }));
+  } catch (error) {
+    logStructured("error", "failed to purge guardrail logs", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 }

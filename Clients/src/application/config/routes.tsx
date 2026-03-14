@@ -59,6 +59,7 @@ import ShadowAISettingsPage from "../../presentation/pages/ShadowAI/SettingsPage
 import AIGatewayEndpointsPage from "../../presentation/pages/AIGateway/Endpoints";
 import AIGatewayAnalyticsPage from "../../presentation/pages/AIGateway/SpendDashboard";
 import AIGatewayPlaygroundPage from "../../presentation/pages/AIGateway/Playground";
+import AIGatewayGuardrailsPage from "../../presentation/pages/AIGateway/Guardrails";
 import AIGatewaySettingsPage from "../../presentation/pages/AIGateway/Settings";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
@@ -156,6 +157,7 @@ export const createRoutes = (
     <Route path="/ai-gateway/endpoints" element={<AIGatewayEndpointsPage />} />
     <Route path="/ai-gateway/analytics" element={<AIGatewayAnalyticsPage />} />
     <Route path="/ai-gateway/playground" element={<AIGatewayPlaygroundPage />} />
+    <Route path="/ai-gateway/guardrails" element={<AIGatewayGuardrailsPage />} />
     <Route path="/ai-gateway/settings" element={<AIGatewaySettingsPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />

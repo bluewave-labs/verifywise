@@ -27,6 +27,17 @@ import {
   embeddingProxy,
   // Providers
   getProviders,
+  // Guardrails
+  getGuardrails,
+  createGuardrail,
+  updateGuardrail,
+  deleteGuardrail,
+  getGuardrailSettings,
+  updateGuardrailSettings,
+  testGuardrails,
+  getGuardrailLogs,
+  getGuardrailStats,
+  purgeGuardrailLogs,
 } from "../controllers/aiGateway.ctrl";
 
 // All routes require authentication
@@ -56,6 +67,20 @@ router.put("/budget", upsertBudget);
 
 // Utility
 router.get("/providers", getProviders);
+
+// Guardrail settings (specific routes BEFORE parameterized :id)
+router.get("/guardrails/settings", getGuardrailSettings);
+router.put("/guardrails/settings", updateGuardrailSettings);
+router.post("/guardrails/test", testGuardrails);
+router.get("/guardrails/logs", getGuardrailLogs);
+router.get("/guardrails/stats", getGuardrailStats);
+router.post("/guardrails/logs/purge", purgeGuardrailLogs);
+
+// Guardrail rule CRUD
+router.get("/guardrails", getGuardrails);
+router.post("/guardrails", createGuardrail);
+router.patch("/guardrails/:id", updateGuardrail);
+router.delete("/guardrails/:id", deleteGuardrail);
 
 // Proxy endpoints
 router.post("/chat", chatCompletion);

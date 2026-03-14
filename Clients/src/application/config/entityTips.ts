@@ -372,4 +372,18 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Set a monthly spending limit to control costs. When the hard limit is enabled, requests are rejected once the budget is exceeded. Use the alert threshold to get early warnings before hitting the limit.",
     },
   ],
+  "ai-gateway-guardrails": [
+    {
+      header: "Guardrails protect every AI request automatically.",
+      content: "PII detection and content filters run on every request before it reaches the LLM provider. Rules are evaluated in-process with zero external API calls. Use the Test button to preview what your rules catch before enabling them.",
+    },
+    {
+      header: "PII detection uses Presidio — runs locally, never sends data externally.",
+      content: "Microsoft Presidio analyzes text for personal data patterns (email, phone, credit card, names, IBAN, Turkish TCKN). Everything runs in-process on your infrastructure. No data leaves your network for scanning.",
+    },
+    {
+      header: "Content filters support exact keywords and regex patterns.",
+      content: "Block specific words with word-boundary matching (prevents false positives like 'kill' matching 'skilled'). Or define regex patterns to catch formats like internal project codes, employee IDs, or API keys.",
+    },
+  ],
 };

@@ -67,12 +67,24 @@ export default function AIGatewaySettingsPage() {
   });
   const [budgetSubmitting, setBudgetSubmitting] = useState(false);
 
+  // Guardrail settings state
+  const [guardrailSettings, setGuardrailSettings] = useState<any>(null);
+  const [gsForm, setGsForm] = useState({
+    pii_on_error: "block",
+    content_filter_on_error: "allow",
+    pii_replacement_format: "<ENTITY_TYPE>",
+    content_filter_replacement: "[REDACTED]",
+    log_retention_days: "90",
+  });
+  const [gsSaving, setGsSaving] = useState(false);
+
   const loadData = useCallback(async () => {
     try {
-      const [keysRes, budgetRes, providersRes] = await Promise.all([
+      const [keysRes, budgetRes, providersRes, gsRes] = await Promise.all([
         apiServices.get("/ai-gateway/keys"),
         apiServices.get("/ai-gateway/budget"),
         apiServices.get("/ai-gateway/providers").catch(() => null),
+        apiServices.get("/ai-gateway/guardrails/settings").catch(() => null),
       ]);
       setApiKeys(keysRes?.data?.data || []);
       setBudget(budgetRes?.data?.data || null);
@@ -87,6 +99,19 @@ export default function AIGatewaySettingsPage() {
       if (otherProviders.length > 0) {
         setProviderItems([...TOP_PROVIDERS, ...otherProviders]);
         setTopProviderCount(TOP_PROVIDERS.length);
+      }
+
+      // Guardrail settings
+      const gs = gsRes?.data?.data;
+      if (gs) {
+        setGuardrailSettings(gs);
+        setGsForm({
+          pii_on_error: gs.pii_on_error || "block",
+          content_filter_on_error: gs.content_filter_on_error || "allow",
+          pii_replacement_format: gs.pii_replacement_format || "<ENTITY_TYPE>",
+          content_filter_replacement: gs.content_filter_replacement || "[REDACTED]",
+          log_retention_days: String(gs.log_retention_days ?? 90),
+        });
       }
     } catch {
       // Silently handle
@@ -308,6 +333,103 @@ export default function AIGatewaySettingsPage() {
               showBorder
             />
           )}
+        </Stack>
+      </Box>
+
+      {/* Guardrail Settings Section */}
+      <Box sx={cardSx}>
+        <Stack gap="12px">
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography sx={sectionTitleSx}>Guardrail settings</Typography>
+            <CustomizableButton
+              text={gsSaving ? "Saving..." : "Save"}
+              onClick={async () => {
+                setGsSaving(true);
+                try {
+                  await apiServices.put("/ai-gateway/guardrails/settings", {
+                    ...gsForm,
+                    log_retention_days: Number(gsForm.log_retention_days) || 90,
+                  });
+                  await loadData();
+                } catch {
+                  // Silently handle
+                } finally {
+                  setGsSaving(false);
+                }
+              }}
+            />
+          </Stack>
+
+          <Stack gap="16px">
+            <Stack direction="row" gap="16px">
+              <Box flex={1}>
+                <Select
+                  id="pii-on-error"
+                  label="PII scan on error"
+                  value={gsForm.pii_on_error}
+                  items={[
+                    { _id: "block", name: "Block request (fail-closed)" },
+                    { _id: "allow", name: "Allow request (fail-open)" },
+                  ]}
+                  onChange={(e) => setGsForm((p) => ({ ...p, pii_on_error: e.target.value as string }))}
+                  getOptionValue={(item) => item._id}
+                />
+              </Box>
+              <Box flex={1}>
+                <Select
+                  id="cf-on-error"
+                  label="Content filter on error"
+                  value={gsForm.content_filter_on_error}
+                  items={[
+                    { _id: "allow", name: "Allow request (fail-open)" },
+                    { _id: "block", name: "Block request (fail-closed)" },
+                  ]}
+                  onChange={(e) => setGsForm((p) => ({ ...p, content_filter_on_error: e.target.value as string }))}
+                  getOptionValue={(item) => item._id}
+                />
+              </Box>
+            </Stack>
+
+            <Stack direction="row" gap="16px">
+              <Box flex={1}>
+                <Field
+                  label="PII replacement format"
+                  placeholder="<ENTITY_TYPE>"
+                  value={gsForm.pii_replacement_format}
+                  onChange={(e) => setGsForm((p) => ({ ...p, pii_replacement_format: e.target.value }))}
+                />
+              </Box>
+              <Box flex={1}>
+                <Field
+                  label="Content filter replacement"
+                  placeholder="[REDACTED]"
+                  value={gsForm.content_filter_replacement}
+                  onChange={(e) => setGsForm((p) => ({ ...p, content_filter_replacement: e.target.value }))}
+                />
+              </Box>
+            </Stack>
+
+            <Stack direction="row" gap="16px" alignItems="flex-end">
+              <Box sx={{ maxWidth: 200 }}>
+                <Field
+                  label="Log retention (days)"
+                  placeholder="90"
+                  value={gsForm.log_retention_days}
+                  onChange={(e) => setGsForm((p) => ({ ...p, log_retention_days: e.target.value }))}
+                />
+              </Box>
+              <CustomizableButton
+                text="Purge old logs"
+                onClick={async () => {
+                  try {
+                    await apiServices.post("/ai-gateway/guardrails/logs/purge");
+                  } catch {
+                    // Silently handle
+                  }
+                }}
+              />
+            </Stack>
+          </Stack>
         </Stack>
       </Box>
 

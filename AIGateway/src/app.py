@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.routers.completions import router as completions_router
 from src.routers.models import router as models_router
+from src.routers.guardrails import router as guardrails_router
 
 # Disable LiteLLM verbose logging to prevent key leakage
 litellm.suppress_debug_info = True
@@ -24,6 +25,7 @@ app.add_middleware(
 
 app.include_router(completions_router)
 app.include_router(models_router)
+app.include_router(guardrails_router)
 
 
 @app.get("/health")

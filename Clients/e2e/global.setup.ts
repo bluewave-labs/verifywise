@@ -28,4 +28,24 @@ setup("authenticate", async ({ page }) => {
 
   // 3. Save storage state (localStorage + cookies) for reuse by other tests
   await page.context().storageState({ path: AUTH_STATE_PATH });
+
+  // 4. Ensure a test project exists (needed by vendor CRUD and others)
+  const baseURL = page.url().replace(/\/+$/, "").replace(/\/[^/]*$/, "");
+  const res = await page.request.post(`${baseURL}/api/projects`, {
+    data: {
+      project_title: "E2E Test Project",
+      members: [],
+      owner: 1,
+      start_date: new Date().toISOString().split("T")[0],
+      ai_risk_classification: "high risk",
+      type_of_high_risk_role: "deployer",
+      goal: "Automated E2E testing",
+    },
+  });
+  // Ignore 400/409 if project already exists
+  if (res.ok()) {
+    console.log("Created E2E test project");
+  } else {
+    console.log(`Test project creation returned ${res.status()} (may already exist)`);
+  }
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, Stack, useTheme } from "@mui/material";
-import { DollarSign, Hash, Layers, Clock } from "lucide-react";
+import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users } from "lucide-react";
 import { StatCard } from "../../../components/Cards/StatCard";
 import {
   ResponsiveContainer,
@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { EmptyState } from "../../../components/EmptyState";
+import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette, { chart as chartPalette } from "../../../themes/palette";
 
@@ -123,10 +124,26 @@ export default function SpendDashboardPage() {
     >
       {!loading && !hasData && (
         <EmptyState
-          icon={DollarSign}
-          message="No spend data for this period. Send requests through the gateway to see cost analytics here."
+          icon={BarChart3}
+          message="No analytics data for this period. Send requests through the gateway to see usage and cost breakdowns here."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={Router}
+            title="Configure endpoints to start tracking"
+            description="Create an endpoint in the Endpoints tab and send your first request. Every request is automatically logged with cost, tokens, and latency."
+          />
+          <EmptyStateTip
+            icon={DollarSign}
+            title="Cost breakdowns by model and endpoint"
+            description="Once requests flow through, you'll see cost-over-time charts, per-model spend comparisons, and endpoint-level breakdowns to help optimize your provider strategy."
+          />
+          <EmptyStateTip
+            icon={Users}
+            title="Track usage by team members"
+            description="See which users are sending the most requests and consuming the most tokens. Use this to identify training opportunities and allocate budgets effectively."
+          />
+        </EmptyState>
       )}
 
       {/* Cost over time chart */}

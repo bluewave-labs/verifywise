@@ -340,12 +340,16 @@ export const ENTITY_TIPS: EntityTips = {
   ],
   "ai-gateway-analytics": [
     {
-      header: "Track spending across all LLM providers in one dashboard.",
-      content: "The spend dashboard aggregates costs from every provider and model into a single view. Use the period selector to compare daily, weekly, or monthly spending trends. This helps you optimize costs and identify unexpected usage spikes.",
+      header: "Analytics gives you a unified view of all LLM usage and costs.",
+      content: "The analytics dashboard aggregates costs, request volume, token usage, and latency from every provider and model into a single view. Use the period selector to compare daily, weekly, or monthly trends and identify unexpected usage spikes.",
     },
     {
       header: "Cost breakdowns by model help optimize your provider strategy.",
       content: "See which models consume the most budget. Often, switching to a lighter model for simple tasks can dramatically reduce costs without affecting quality. Use the per-model breakdown to identify optimization opportunities.",
+    },
+    {
+      header: "Top users and endpoint breakdowns reveal usage patterns.",
+      content: "Understand who is consuming the most tokens and which endpoints handle the most traffic. These insights help you allocate budgets, identify power users, and plan capacity for high-traffic endpoints.",
     },
   ],
   "ai-gateway-playground": [

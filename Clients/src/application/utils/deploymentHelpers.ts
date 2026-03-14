@@ -1,3 +1,4 @@
+import React from "react";
 import { ENV_VARs } from "../../../env.vars";
 
 const POLL_INTERVAL = 60 * 1000; // 60 seconds
@@ -71,6 +72,50 @@ export class DeploymentManager {
       visibilityHandler = null;
     }
   }
+}
+
+/**
+ * Wraps a dynamic import so that a ChunkLoadError (stale deployment) triggers
+ * a single page reload instead of crashing the app.
+ *
+ * After a new deployment the old hashed JS chunks are removed from the server.
+ * If a user still has the old app loaded and navigates to a lazy-loaded route,
+ * the import fails. This wrapper catches that failure, marks sessionStorage so
+ * we don't reload in a loop, and reloads the page to fetch the new entry point.
+ */
+const CHUNK_RELOAD_KEY = "chunk_reload_attempted";
+
+export function lazyWithRetry<T extends React.ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> {
+  return React.lazy(() =>
+    importFn().catch((error: Error) => {
+      const isChunkError =
+        error.name === "ChunkLoadError" ||
+        error.message?.includes("Failed to fetch dynamically imported module") ||
+        error.message?.includes("Loading chunk") ||
+        error.message?.includes("Importing a module script failed");
+
+      if (isChunkError && !sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+        sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+        window.location.reload();
+        // Return a never-resolving promise so React doesn't try to render
+        // the failed import while the page is reloading
+        return new Promise<never>(() => {});
+      }
+
+      // Either not a chunk error or we already tried reloading — re-throw
+      throw error;
+    })
+  );
+}
+
+/**
+ * Clear the chunk reload flag on successful app startup.
+ * Call this once in App.tsx so a future chunk error can trigger a reload again.
+ */
+export function clearChunkReloadFlag(): void {
+  sessionStorage.removeItem(CHUNK_RELOAD_KEY);
 }
 
 /**

@@ -20,7 +20,7 @@ import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation, useNavigate } from "react-router-dom";
-import { DeploymentManager } from "./application/utils/deploymentHelpers";
+import { DeploymentManager, clearChunkReloadFlag } from "./application/utils/deploymentHelpers";
 import UpdateBanner from "./presentation/components/UpdateBanner";
 import { CommandPalette } from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
@@ -142,6 +142,10 @@ function App() {
       setAlert(alertProps);
       setTimeout(() => setAlert(null), 5000);
     });
+
+    // App loaded successfully — clear the chunk reload guard so future
+    // chunk errors can trigger a reload again
+    clearChunkReloadFlag();
 
     // Poll backend for version updates
     DeploymentManager.startPolling();

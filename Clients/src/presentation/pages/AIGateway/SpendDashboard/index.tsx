@@ -179,8 +179,12 @@ export default function SpendDashboardPage() {
                     <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
                   </MuiTooltip>
                 </Stack>
+                {(() => {
+                  const maxLen = Math.max(...byModel.map((m: any) => (m.group_key || "").length));
+                  const labelWidth = Math.min(260, Math.max(80, maxLen * 6.5));
+                  return (
                 <ResponsiveContainer width="100%" height={Math.max(200, byModel.length * 44)} style={{ outline: "none" }}>
-                  <BarChart data={byModel} layout="vertical" margin={{ left: 160, right: 16 }}>
+                  <BarChart data={byModel} layout="vertical" margin={{ left: labelWidth, right: 16 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} horizontal={false} />
                     <XAxis
                       type="number"
@@ -195,7 +199,7 @@ export default function SpendDashboardPage() {
                       tick={{ fontSize: 10, fill: palette.text.tertiary }}
                       tickLine={false}
                       axisLine={false}
-                      width={160}
+                      width={labelWidth}
                     />
                     <Tooltip
                       contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
@@ -208,6 +212,8 @@ export default function SpendDashboardPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                  );
+                })()}
               </Stack>
             </Box>
           )}

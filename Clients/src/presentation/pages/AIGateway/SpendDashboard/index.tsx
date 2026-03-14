@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users } from "lucide-react";
+import Select from "../../../components/Inputs/Select";
 import { StatCard } from "../../../components/Cards/StatCard";
 import {
   ResponsiveContainer,
@@ -21,11 +22,11 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette, { chart as chartPalette } from "../../../themes/palette";
 import { sectionTitleSx, useCardSx } from "../shared";
 
-const PERIODS = [
-  { label: "Today", value: "1d" },
-  { label: "7 days", value: "7d" },
-  { label: "30 days", value: "30d" },
-  { label: "90 days", value: "90d" },
+const PERIOD_OPTIONS = [
+  { _id: "1d", name: "Today" },
+  { _id: "7d", name: "7 days" },
+  { _id: "30d", name: "30 days" },
+  { _id: "90d", name: "90 days" },
 ];
 
 export default function SpendDashboardPage() {
@@ -74,29 +75,13 @@ export default function SpendDashboardPage() {
       description="Monitor LLM usage and costs across your organization."
       tipBoxEntity="ai-gateway-analytics"
       actionButton={
-        <Stack direction="row" gap="4px">
-          {PERIODS.map((p) => (
-            <Box
-              key={p.value}
-              onClick={() => setPeriod(p.value)}
-              sx={{
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "4px",
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: "pointer",
-                backgroundColor: period === p.value ? palette.brand.primary : "transparent",
-                color: period === p.value ? palette.background.main : palette.text.tertiary,
-                "&:hover": {
-                  backgroundColor: period === p.value ? palette.brand.primary : palette.background.hover,
-                },
-              }}
-            >
-              {p.label}
-            </Box>
-          ))}
-        </Stack>
+        <Select
+          id="analytics-period"
+          value={period}
+          items={PERIOD_OPTIONS}
+          onChange={(e) => setPeriod(e.target.value as string)}
+          sx={{ width: 140 }}
+        />
       }
       summaryCards={
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>

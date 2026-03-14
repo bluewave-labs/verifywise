@@ -326,7 +326,7 @@ export default function AIGatewaySettingsPage() {
             placeholder="sk-..."
             value={keyForm.api_key}
             onChange={(e) => setKeyForm((p) => ({ ...p, api_key: e.target.value }))}
-            type="password"
+            autoComplete="off"
             isRequired
           />
           {keyError && (

@@ -3,6 +3,9 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Ensure tables are created in verifywise schema
+    await queryInterface.sequelize.query(`SET search_path TO verifywise, public;`);
+
     // AI Gateway API Keys (separate from evaluation_llm_api_keys)
     await queryInterface.sequelize.query(`
       CREATE TABLE ai_gateway_api_keys (
@@ -81,6 +84,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
+    await queryInterface.sequelize.query(`SET search_path TO verifywise, public;`);
     await queryInterface.sequelize.query(`
       DROP TABLE IF EXISTS ai_gateway_budgets CASCADE;
       DROP TABLE IF EXISTS ai_gateway_spend_logs CASCADE;

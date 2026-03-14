@@ -16,8 +16,9 @@ import {
 import { useCallback, useMemo, useState, useEffect } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { EmptyState } from "../../EmptyState";
+import EmptyStateTip from "../../EmptyState/EmptyStateTip";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ListTodo, UserPlus, Tag, Link2 } from "lucide-react";
 import { CustomSelect } from "../../CustomSelect";
 import IconButtonComponent from "../../IconButton";
 import Chip from "../../Chip";
@@ -602,9 +603,26 @@ const TasksTable: React.FC<ITasksTableProps> = ({
     <>
       {!sortedTasks || sortedTasks.length === 0 ? (
         <EmptyState
-          message="There is currently no data in this table."
+          icon={ListTodo}
+          message="No tasks yet. Tasks help you track action items across your governance program."
           showBorder
-        />
+        >
+          <EmptyStateTip
+            icon={UserPlus}
+            title="Assign tasks to team members"
+            description="Each task can be assigned to a workspace member with a priority and due date. They'll be notified when assigned."
+          />
+          <EmptyStateTip
+            icon={Tag}
+            title="Use priorities to stay organized"
+            description="Set priorities (low, medium, high, urgent) and group tasks by status, assignee, or due date to track progress."
+          />
+          <EmptyStateTip
+            icon={Link2}
+            title="Link tasks to controls or risks"
+            description="Associate tasks with specific controls, risks, or other resources to maintain traceability for auditors."
+          />
+        </EmptyState>
       ) : (
         <TableContainer>
           <Table sx={singleTheme.tableStyles.primary.frame}>

@@ -37,7 +37,7 @@ def upgrade() -> None:
             id VARCHAR(255) PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             description TEXT,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             UNIQUE (organization_id, name)
@@ -54,9 +54,9 @@ def upgrade() -> None:
     op.execute(sa.text('''
         CREATE TABLE verifywise.llm_evals_org_members (
             org_id VARCHAR(255) NOT NULL REFERENCES verifywise.llm_evals_organizations(id) ON DELETE CASCADE,
-            user_id INTEGER NOT NULL REFERENCES verifywise.users(id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
             role VARCHAR(50) DEFAULT 'member',
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (org_id, user_id)
         );
@@ -79,7 +79,7 @@ def upgrade() -> None:
             provider VARCHAR(50) NOT NULL,
             api_key_encrypted TEXT NOT NULL,
             is_default BOOLEAN DEFAULT false,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
@@ -99,7 +99,7 @@ def upgrade() -> None:
             name VARCHAR(255) NOT NULL,
             description TEXT,
             use_case VARCHAR(50) DEFAULT 'chatbot',
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
@@ -126,7 +126,7 @@ def upgrade() -> None:
             prompt_count INTEGER DEFAULT 0,
             dataset_type VARCHAR(50) DEFAULT 'chatbot',
             turn_type VARCHAR(50) DEFAULT 'single-turn',
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
@@ -151,7 +151,7 @@ def upgrade() -> None:
             enabled BOOLEAN DEFAULT true,
             default_threshold DOUBLE PRECISION,
             weight DOUBLE PRECISION,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
@@ -172,7 +172,7 @@ def upgrade() -> None:
             provider VARCHAR(100),
             model_id VARCHAR(255),
             config JSONB DEFAULT '{}',
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
@@ -199,7 +199,7 @@ def upgrade() -> None:
             error_message TEXT,
             started_at TIMESTAMP WITH TIME ZONE,
             completed_at TIMESTAMP WITH TIME ZONE,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
@@ -236,7 +236,7 @@ def upgrade() -> None:
             win_counts JSONB DEFAULT '{}',
             detailed_results JSONB DEFAULT '[]',
             error_message TEXT,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             completed_at TIMESTAMP WITH TIME ZONE,
@@ -266,7 +266,7 @@ def upgrade() -> None:
             config JSONB NOT NULL,
             results JSONB,
             error TEXT,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             completed_at TIMESTAMP WITH TIME ZONE,
@@ -302,7 +302,7 @@ def upgrade() -> None:
             cost NUMERIC(10, 6),
             status VARCHAR(50),
             error_message TEXT,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             created_by VARCHAR(255)
         );
@@ -336,7 +336,7 @@ def upgrade() -> None:
             metric_type VARCHAR(255) NOT NULL,
             value DOUBLE PRECISION NOT NULL,
             dimensions JSONB,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
     '''))
@@ -368,7 +368,7 @@ def upgrade() -> None:
             impact_ratio DOUBLE PRECISION,
             excluded BOOLEAN DEFAULT FALSE,
             flagged BOOLEAN DEFAULT FALSE,
-            organization_id INTEGER NOT NULL REFERENCES verifywise.organizations(id) ON DELETE CASCADE,
+            organization_id INTEGER NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
     '''))

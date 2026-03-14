@@ -334,6 +334,7 @@ const StartHere = () => {
             {GS_CARDS.map((card, i) => (
               <Box
                 key={card.title}
+                className="gs-card"
                 onClick={() => {
                   if (card.action === "welcome-video") {
                     setWelcomeVideoOpen(true);

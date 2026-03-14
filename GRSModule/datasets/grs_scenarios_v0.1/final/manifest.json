@@ -1,0 +1,26 @@
+{
+  "dataset_version": "grs_scenarios_v0.1",
+  "generated_at": "2026-03-03T20:21:52.829110+00:00",
+  "stage": "validate",
+  "inputs": {
+    "mutated_candidates_jsonl": "datasets/grs_scenarios_v0.1/intermediate/mutated_candidates.jsonl",
+    "mutated_candidates_jsonl_sha256": "923559643ac628f4da2eb6303ceb9444ac01e382d66809a526eac23e2cd8aa8f",
+    "obligations_yaml": "configs/obligations.yaml",
+    "obligations_yaml_sha256": "891ca4535a669562779ccae8e70c7beae7b85b5615f3fcbc15c497b417dc9b1d",
+    "obligations_version": "grs_obligations_v0.1",
+    "inject_constraints_into_prompt": false
+  },
+  "outputs": {
+    "rejections_jsonl": "datasets/grs_scenarios_v0.1/intermediate/rejections.jsonl",
+    "rejections_jsonl_sha256": "e7ec1fc316d2225709a1ed2e13e8ece904ba60c441a38277528cad27fc7ca9e9",
+    "scenarios_jsonl": "datasets/grs_scenarios_v0.1/final/scenarios.jsonl",
+    "scenarios_jsonl_sha256": "54b8a2860aa33799a1cc7af3ced62fd3d899660df8147678a33373bfa6c5eab9",
+    "validate_report_json": "datasets/grs_scenarios_v0.1/final/validate_report.json",
+    "validate_report_json_sha256": "5dfcaf589e64614031d82b421d1f0ae92b80bf6789b53d91d90d714ed00ff611"
+  },
+  "counts": {
+    "candidates_in": 57,
+    "accepted": 48,
+    "rejected": 9
+  }
+}

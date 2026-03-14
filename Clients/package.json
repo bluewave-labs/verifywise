@@ -1,7 +1,7 @@
 {
   "name": "verifywise",
   "private": true,
-  "version": "v1.7",
+  "version": "1.7.0",
   "type": "module",
   "scripts": {
     "dev:vite": "vite --host",

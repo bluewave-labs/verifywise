@@ -22,11 +22,21 @@ import {
   generateFilename,
 } from "../services/policies/policyExporter";
 import {
+  convertDocxToHtml,
+  DOCX_ALLOWED_MIMES,
+} from "../services/policies/policyImporter";
+import {
   notifyReviewRequested,
   notifyReviewApproved,
   notifyReviewRejected,
 } from "../services/inAppNotification.service";
 import { NotificationEntityType } from "../domain.layer/interfaces/i.notification";
+import logger from "../utils/logger/fileLogger";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 
 export class PolicyController {
   // Get all policies
@@ -152,7 +162,7 @@ export class PolicyController {
       return res.status(404).json(STATUS_CODE[404]({}));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error updating policy:", error);
+      logger.error("Error updating policy:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -223,7 +233,7 @@ export class PolicyController {
 
       return res.send(pdfBuffer);
     } catch (error) {
-      console.error("Error exporting policy as PDF:", error);
+      logger.error("Error exporting policy as PDF:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -243,15 +253,14 @@ export class PolicyController {
       }
 
       const policy = policyResult[0] as IPolicy;
-      console.log("Exporting DOCX for policy:", policy.title);
-      console.log("Content HTML:", policy.content_html?.substring(0, 1000));
+      logger.debug(`Exporting DOCX for policy ${policyId}: ${policy.title}`);
 
       const docxBuffer = await generatePolicyDOCX(
         policy.title,
         policy.content_html || "",
         req.organizationId!
       );
-      console.log("Generated DOCX buffer size:", docxBuffer.length);
+      logger.debug(`Generated DOCX buffer for policy ${policyId}: ${docxBuffer.length} bytes`);
 
       const filename = generateFilename(policy.title, "docx");
 
@@ -267,7 +276,66 @@ export class PolicyController {
 
       return res.send(docxBuffer);
     } catch (error) {
-      console.error("Error exporting policy as DOCX:", error);
+      logger.error("Error exporting policy as DOCX:", error as Error);
+      return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    }
+  }
+
+  // Import DOCX and convert to HTML
+  static async importDocx(req: Request, res: Response) {
+    const userId = req.userId!;
+    const organizationId = req.organizationId!;
+
+    logProcessing({
+      description: "Starting DOCX import",
+      functionName: "importDocx",
+      fileName: "policy.ctrl.ts",
+      userId,
+      organizationId,
+    });
+
+    try {
+      if (!req.file) {
+        return res.status(400).json(STATUS_CODE[400]("No file uploaded"));
+      }
+
+      // Validate MIME type and file extension
+      const hasDocxExtension = req.file.originalname
+        ?.toLowerCase()
+        .endsWith(".docx");
+      if (
+        !DOCX_ALLOWED_MIMES.includes(
+          req.file.mimetype as (typeof DOCX_ALLOWED_MIMES)[number]
+        ) ||
+        !hasDocxExtension
+      ) {
+        return res
+          .status(400)
+          .json(STATUS_CODE[400]("Only .docx files are supported"));
+      }
+
+      const { html, warnings } = await convertDocxToHtml(req.file.buffer);
+
+      await logSuccess({
+        eventType: "Read",
+        description: `DOCX import completed (${warnings.length} warning(s))`,
+        functionName: "importDocx",
+        fileName: "policy.ctrl.ts",
+        userId,
+        organizationId,
+      });
+
+      return res.status(200).json(STATUS_CODE[200]({ html, warnings }));
+    } catch (error) {
+      await logFailure({
+        eventType: "Read",
+        description: "Failed to import DOCX file",
+        functionName: "importDocx",
+        fileName: "policy.ctrl.ts",
+        error: error as Error,
+        userId,
+        organizationId,
+      });
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -337,7 +405,7 @@ export class PolicyController {
             baseUrl
           );
         } catch (notifyError) {
-          console.error("Failed to notify reviewer %d:", reviewerId, notifyError);
+          logger.error("Failed to notify reviewer %d:", reviewerId, notifyError);
         }
       }
 
@@ -345,7 +413,7 @@ export class PolicyController {
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error requesting policy review:", error);
+      logger.error("Error requesting policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -407,14 +475,14 @@ export class PolicyController {
           baseUrl
         );
       } catch (notifyError) {
-        console.error("Failed to send review approved notification:", notifyError);
+        logger.error("Failed to send review approved notification:", notifyError);
       }
 
       const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error approving policy review:", error);
+      logger.error("Error approving policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }
@@ -481,14 +549,14 @@ export class PolicyController {
           baseUrl
         );
       } catch (notifyError) {
-        console.error("Failed to send review rejected notification:", notifyError);
+        logger.error("Failed to send review rejected notification:", notifyError);
       }
 
       const updatedPolicy = await getPolicyByIdQuery(req.organizationId!, policyId);
       return res.status(200).json(STATUS_CODE[200](updatedPolicy?.[0] || null));
     } catch (error) {
       await transaction.rollback();
-      console.error("Error rejecting policy review:", error);
+      logger.error("Error rejecting policy review:", error);
       return res.status(500).json(STATUS_CODE[500]((error as Error).message));
     }
   }

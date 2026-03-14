@@ -85,6 +85,13 @@ export class OrganizationModel
   })
   tenant_id?: string;
 
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+    defaultValue: 'qualitative',
+  })
+  risk_assessment_mode?: "qualitative" | "quantitative";
+
   /**
    * Creates a new organization with validation
    *
@@ -372,6 +379,7 @@ export class OrganizationModel
       logo: this.logo,
       created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       onboarding_status: this.onboarding_status,
+      risk_assessment_mode: this.risk_assessment_mode,
     };
   }
 
@@ -385,6 +393,7 @@ export class OrganizationModel
       logo: this.logo,
       created_at: (this.createdAt ?? this.created_at)?.toISOString(),
       onboarding_status: this.onboarding_status,
+      risk_assessment_mode: this.risk_assessment_mode,
       ageInDays: this.getAgeInDays(),
     };
   }

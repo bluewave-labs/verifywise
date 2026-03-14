@@ -95,7 +95,7 @@ module.exports = {
       await queryInterface.sequelize.query(`
         CREATE TABLE verifywise.tiers (
           id SERIAL PRIMARY KEY,
-          name VARCHAR(10) NOT NULL CHECK (name IN ('Free', 'Team', 'Growth', 'Enterprise')),
+          name VARCHAR(50) NOT NULL,
           price INTEGER NOT NULL DEFAULT 0,
           features JSONB NOT NULL DEFAULT '{}',
           created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -313,6 +313,17 @@ module.exports = {
       // ISO 27001 STRUCTURE TABLES
       // ========================================
       console.log('Creating ISO 27001 structure tables...');
+
+      await queryInterface.sequelize.query(`
+        CREATE TABLE verifywise.annex_struct_iso27001 (
+          id SERIAL PRIMARY KEY,
+          framework_id INTEGER NOT NULL REFERENCES verifywise.frameworks(id) ON DELETE CASCADE,
+          arrangement VARCHAR(50) NOT NULL,
+          title TEXT NOT NULL,
+          order_no INTEGER NOT NULL,
+          is_demo BOOLEAN DEFAULT false
+        );
+      `, { transaction });
 
       await queryInterface.sequelize.query(`
         CREATE TABLE verifywise.clauses_struct_iso27001 (

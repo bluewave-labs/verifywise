@@ -92,7 +92,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         alignItems: 'flex-start',
         gap: 1.5,
         pl: '24px',
-        pr: 2,
+        pr: '24px',
         py: '8px',
         cursor: notification.action_url ? 'pointer' : 'default',
         backgroundColor: isRead ? 'transparent' : 'rgba(19, 113, 91, 0.04)',

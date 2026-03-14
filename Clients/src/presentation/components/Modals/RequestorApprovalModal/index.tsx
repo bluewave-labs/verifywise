@@ -3,6 +3,7 @@ import {
     ChevronRight,
     User,
     Calendar,
+    ClipboardCheck,
 } from "lucide-react";
 
 import { Box, Divider, List, ListItemButton, ListItemText, Stack, Tooltip, Typography, Chip, Link, AccordionSummary, Accordion, AccordionDetails, Button } from "@mui/material";
@@ -503,7 +504,7 @@ const RequestorApprovalModal: FC<IRequestorApprovalProps> = ({
                 }}>
                     {hasNoData ? (
                         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-                            <EmptyState message="No approval requests found." />
+                            <EmptyState message="No approval requests found." icon={ClipboardCheck} />
                         </Box>
                     ) : (
                     <Stack direction="row" spacing={12} sx={{ height: "100%", flex: 1 }}>

@@ -47,8 +47,31 @@ import { GroupedTableView } from "../../components/Table/GroupedTableView";
 import { ExportMenu } from "../../components/Table/ExportMenu";
 import { FilterBy, FilterColumn } from "../../components/Table/FilterBy";
 import { useFilterBy } from "../../../application/hooks/useFilterBy";
+import { ColumnSelector } from "../../components/Table/ColumnSelector";
+import { useColumnVisibility, ColumnConfig } from "../../../application/hooks/useColumnVisibility";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
+
+type IncidentColumnKey =
+  | "incident_id"
+  | "ai_project"
+  | "type"
+  | "severity"
+  | "status"
+  | "occurred_date"
+  | "approved_by"
+  | "actions";
+
+const INCIDENT_TABLE_COLUMNS: ColumnConfig<IncidentColumnKey>[] = [
+  { key: "incident_id", label: "Incident ID", defaultVisible: true, alwaysVisible: true },
+  { key: "ai_project", label: "AI project", defaultVisible: true },
+  { key: "type", label: "Type", defaultVisible: true },
+  { key: "severity", label: "Severity", defaultVisible: true },
+  { key: "status", label: "Status", defaultVisible: true },
+  { key: "occurred_date", label: "Occurred date", defaultVisible: true },
+  { key: "approved_by", label: "Approved by", defaultVisible: true },
+  { key: "actions", label: "Actions", defaultVisible: true, alwaysVisible: true },
+];
 
 const IncidentManagement: React.FC = () => {
   const location = useLocation();
@@ -85,6 +108,17 @@ const IncidentManagement: React.FC = () => {
 
   // GroupBy state
   const { groupBy, groupSortOrder, handleGroupChange } = useGroupByState();
+
+  // Column visibility
+  const {
+    visibleColumns: incidentVisibleColumns,
+    allColumns: allIncidentColumns,
+    toggleColumn: toggleIncidentColumn,
+    resetToDefaults: resetIncidentColumns,
+  } = useColumnVisibility({
+    tableId: "incidents-table",
+    columns: INCIDENT_TABLE_COLUMNS,
+  });
 
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
@@ -555,6 +589,13 @@ const IncidentManagement: React.FC = () => {
               onGroupChange={handleGroupChange}
             />
 
+            <ColumnSelector
+              columns={allIncidentColumns}
+              visibleColumns={incidentVisibleColumns}
+              onToggleColumn={toggleIncidentColumn}
+              onResetToDefaults={resetIncidentColumns}
+            />
+
             <Box data-joyride-id="incident-search">
               <SearchBox
                 placeholder="Search incidents..."
@@ -599,6 +640,7 @@ const IncidentManagement: React.FC = () => {
               onView={handleViewIncident}
               archivedId={archiveId}
               hidePagination={options?.hidePagination}
+              visibleColumns={incidentVisibleColumns}
             />
           )}
         />

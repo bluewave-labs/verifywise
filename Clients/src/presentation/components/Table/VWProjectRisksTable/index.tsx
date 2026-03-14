@@ -14,7 +14,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ShieldAlert } from "lucide-react";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
 import { EmptyState } from "../../EmptyState";
 import { IVWProjectRisksTable } from "../../../types/interfaces/i.risk";
@@ -37,6 +37,7 @@ const columns = [
   { id: "risk_name", label: "RISK NAME", sortable: true }, // value from risk tab
   { id: "risk_owner", label: "OWNER", sortable: true }, // value from risk tab
   { id: "severity", label: "SEVERITY", sortable: true }, // value from risk tab
+  { id: "ale_estimate", label: "ALE ($)", sortable: true }, // quantitative: annualized loss expectation
   { id: "mitigation_status", label: "MITIGATION STATUS", sortable: true }, // mitigation status
   { id: "risk_level_autocalculated", label: "RISK LEVEL", sortable: true }, // risk auto calculated value from risk tab
   { id: "deadline", label: "TARGET DATE", sortable: true }, // start date (deadline) value from mitigation tab
@@ -271,6 +272,11 @@ const VWProjectRisksTable = ({
           bValue = new Date(b.deadline).getTime();
           break;
 
+        case "ale_estimate":
+          aValue = a.ale_estimate ?? 0;
+          bValue = b.ale_estimate ?? 0;
+          break;
+
         case "controls_mapping":
           aValue = a.controls_mapping.toLowerCase();
           bValue = b.controls_mapping.toLowerCase();
@@ -352,7 +358,7 @@ const VWProjectRisksTable = ({
           <TableBody>
             <TableRow>
               <TableCell colSpan={filteredColumns.length} sx={{ border: "none", p: 0 }}>
-                <EmptyState message="There is currently no data in this table." />
+                <EmptyState icon={ShieldAlert} message="There is currently no data in this table." />
               </TableCell>
             </TableRow>
           </TableBody>

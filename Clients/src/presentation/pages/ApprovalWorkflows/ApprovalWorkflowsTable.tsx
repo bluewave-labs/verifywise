@@ -41,12 +41,13 @@ import { useState, useCallback, useEffect } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronsUpDown, ChevronUp, ChevronDown, ClipboardCheck, Send, UserCheck, MessageSquare } from "lucide-react";
 import { ApprovalWorkflowModel } from "../../../domain/models/Common/approvalWorkflow/approvalWorkflow.model";
 import TablePaginationActions from "../../components/TablePagination";
 import { entities } from "./arrays";
 import { TABLE_COLUMNS } from "./arrays";
 import { EmptyState } from "../../components/EmptyState";
+import EmptyStateTip from "../../components/EmptyState/EmptyStateTip";
 
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
@@ -197,7 +198,25 @@ const ApprovalWorkflowsTable: React.FC<ApprovalWorkflowTableProps> = ({
 
     // Return early with just EmptyState if no data (consistent with other tables)
     if (!sortedData || sortedData.length === 0) {
-        return <EmptyState message="There is currently no data in this table." />;
+        return (
+            <EmptyState icon={ClipboardCheck} message="No approval workflows yet. Define review and sign-off chains for your governance process.">
+                <EmptyStateTip
+                    icon={Send}
+                    title="Create approval workflows"
+                    description="Define multi-step review chains that run automatically when controls, evidence, or policies need sign-off."
+                />
+                <EmptyStateTip
+                    icon={UserCheck}
+                    title="Assign reviewers"
+                    description="Add team members as reviewers at each step. They'll be notified when items reach their review stage."
+                />
+                <EmptyStateTip
+                    icon={MessageSquare}
+                    title="Track feedback and comments"
+                    description="Reviewers can approve, reject, or request changes with detailed comments. The full audit trail is preserved."
+                />
+            </EmptyState>
+        );
     }
 
     return (

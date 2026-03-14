@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import EmptyStateTip from "../../../../components/EmptyState/EmptyStateTip";
 import {
   Box,
   Typography,
@@ -15,7 +16,7 @@ import {
   useTheme,
   TableFooter,
 } from '@mui/material';
-import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, CheckCircle, XCircle, AlertCircle, Timer, ArrowRight, History, Play, AlertTriangle, RotateCcw } from 'lucide-react';
 import Chip from '../../../../components/Chip';
 import { getAutomationHistory, getAutomationStats, type AutomationExecutionLog } from '../../../../../application/repository/automations.repository';
 import TablePaginationActions from '../../../../components/TablePagination';
@@ -286,7 +287,23 @@ const AutomationHistory: React.FC<AutomationHistoryProps> = ({ automationId }) =
 
       {/* Execution History Table */}
       {logs.length === 0 ? (
-        <EmptyState message="No execution history yet" />
+        <EmptyState message="No execution history yet." icon={History}>
+          <EmptyStateTip
+            icon={Play}
+            title="How automations run"
+            description="When an automation triggers (on schedule, via webhook, or manually), its execution is recorded here with status and duration."
+          />
+          <EmptyStateTip
+            icon={AlertTriangle}
+            title="Track failures"
+            description="Failed executions show error details. Use this to diagnose issues with automation steps, API connections, or data formatting."
+          />
+          <EmptyStateTip
+            icon={RotateCcw}
+            title="Re-run past executions"
+            description="Click on any past execution to view its details. You can re-trigger automations manually from the automation settings."
+          />
+        </EmptyState>
       ) : (
         <Stack spacing={0}>
           <TableContainer sx={{ overflowX: 'auto' }}>

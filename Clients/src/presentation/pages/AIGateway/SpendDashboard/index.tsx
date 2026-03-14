@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users, ShieldCheck, ShieldOff } from "lucide-react";
+import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users, ShieldCheck, ShieldOff, Info } from "lucide-react";
+import { Tooltip as MuiTooltip } from "@mui/material";
 import Select from "../../../components/Inputs/Select";
 import { StatCard } from "../../../components/Cards/StatCard";
 import {
@@ -123,7 +124,12 @@ export default function SpendDashboardPage() {
       {!loading && byDay.length > 0 && (
         <Box sx={cardSx}>
           <Stack gap="12px">
-            <Typography sx={sectionTitleSx}>Cost over time</Typography>
+            <Stack direction="row" alignItems="center" gap="6px">
+              <Typography sx={sectionTitleSx}>Cost over time</Typography>
+              <MuiTooltip title="Daily spend trend across all endpoints for the selected period" arrow placement="top">
+                <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
+              </MuiTooltip>
+            </Stack>
             <ResponsiveContainer width="100%" height={260} style={{ outline: "none" }}>
               <LineChart data={byDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
@@ -167,7 +173,12 @@ export default function SpendDashboardPage() {
           {byModel.length > 0 && (
             <Box sx={{ ...cardSx, flex: 1 }}>
               <Stack gap="12px">
-                <Typography sx={sectionTitleSx}>Cost by model</Typography>
+                <Stack direction="row" alignItems="center" gap="6px">
+                  <Typography sx={sectionTitleSx}>Cost by model</Typography>
+                  <MuiTooltip title="Spend breakdown by LLM model — helps identify which models consume the most budget" arrow placement="top">
+                    <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
+                  </MuiTooltip>
+                </Stack>
                 <ResponsiveContainer width="100%" height={Math.max(160, byModel.length * 36)}>
                   <BarChart data={byModel} layout="vertical" margin={{ left: 80, right: 16 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} horizontal={false} />
@@ -205,7 +216,12 @@ export default function SpendDashboardPage() {
           {byEndpoint.length > 0 && (
             <Box sx={{ ...cardSx, flex: 1 }}>
               <Stack gap="12px">
-                <Typography sx={sectionTitleSx}>Cost by endpoint</Typography>
+                <Stack direction="row" alignItems="center" gap="6px">
+                  <Typography sx={sectionTitleSx}>Cost by endpoint</Typography>
+                  <MuiTooltip title="Spend and request volume per configured endpoint" arrow placement="top">
+                    <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
+                  </MuiTooltip>
+                </Stack>
                 <Stack gap="8px">
                   {byEndpoint.map((ep: any, i: number) => (
                     <Stack
@@ -252,7 +268,12 @@ export default function SpendDashboardPage() {
       {!loading && byUser.length > 0 && (
         <Box sx={cardSx}>
           <Stack gap="12px">
-            <Typography sx={sectionTitleSx}>Top users</Typography>
+            <Stack direction="row" alignItems="center" gap="6px">
+              <Typography sx={sectionTitleSx}>Top users</Typography>
+              <MuiTooltip title="Users ranked by total spend — shows request count, token usage, and cost" arrow placement="top">
+                <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
+              </MuiTooltip>
+            </Stack>
             <Stack gap="8px">
               {byUser.slice(0, 10).map((user: any, i: number) => (
                 <Stack
@@ -293,7 +314,12 @@ export default function SpendDashboardPage() {
       {guardrailStats && (Number(guardrailStats.summary?.total_checks) > 0 || guardrailStats.byDay?.length > 0) && (
         <Box sx={cardSx}>
           <Stack gap="12px">
-            <Typography sx={sectionTitleSx}>Guardrails activity</Typography>
+            <Stack direction="row" alignItems="center" gap="6px">
+              <Typography sx={sectionTitleSx}>Guardrails activity</Typography>
+              <MuiTooltip title="Guardrail detections for this period — blocked requests were rejected, masked requests had content redacted" arrow placement="top">
+                <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
+              </MuiTooltip>
+            </Stack>
             <Stack direction="row" gap="16px">
               <StatCard
                 title="Blocked"

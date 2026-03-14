@@ -195,7 +195,7 @@ export default function PlaygroundPage() {
 
   const endpointItems = endpoints.map((ep) => ({
     _id: ep.slug,
-    name: `${ep.display_name} (${ep.provider}/${ep.model})`,
+    name: ep.display_name,
   }));
 
   const totalCost = messages

@@ -54,4 +54,59 @@ test.describe("Shadow AI", () => {
       .or(page.getByText(/get started/i));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 1: Sub-route navigation ---
+
+  test("can navigate to user activity page", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/shadow-ai/user-activity");
+    await expect(page).toHaveURL(/\/shadow-ai\/user-activity/);
+
+    await expect(
+      page
+        .getByText(/user/i)
+        .or(page.getByText(/activity/i))
+        .or(page.getByRole("heading"))
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("can navigate to tools page", async ({ authedPage: page }) => {
+    await page.goto("/shadow-ai/tools");
+    await expect(page).toHaveURL(/\/shadow-ai\/tools/);
+
+    await expect(
+      page
+        .getByText(/tool/i)
+        .or(page.getByRole("heading"))
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("can navigate to rules page", async ({ authedPage: page }) => {
+    await page.goto("/shadow-ai/rules");
+    await expect(page).toHaveURL(/\/shadow-ai\/rules/);
+
+    await expect(
+      page
+        .getByText(/rule/i)
+        .or(page.getByRole("heading"))
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("can navigate to shadow AI settings", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/shadow-ai/settings");
+    await expect(page).toHaveURL(/\/shadow-ai\/settings/);
+
+    await expect(
+      page
+        .getByText(/setting/i)
+        .or(page.getByRole("heading"))
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
 });

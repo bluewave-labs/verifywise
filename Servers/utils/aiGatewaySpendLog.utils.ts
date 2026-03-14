@@ -208,14 +208,35 @@ export const getSpendByDayQuery = async (
   endDate: string,
   period: string = "7d"
 ): Promise<ISpendByDay[]> => {
-  const isHourly = period === "1d";
-  const groupExpr = isHourly
-    ? "TO_CHAR(created_at, 'HH24:00')"
-    : "DATE(created_at)::text";
+  if (period === "1d") {
+    // Generate all 24 hours and LEFT JOIN with actual data
+    const result = (await sequelize.query(
+      `SELECT
+         h.hour AS day,
+         COALESCE(SUM(s.cost_usd), 0)::float AS total_cost,
+         COUNT(s.id)::int AS total_requests,
+         COALESCE(SUM(s.total_tokens), 0)::int AS total_tokens
+       FROM generate_series(0, 23) AS h(hour)
+       LEFT JOIN ai_gateway_spend_logs s
+         ON s.organization_id = :organizationId
+         AND s.created_at >= :startDate
+         AND s.created_at <= :endDate
+         AND EXTRACT(HOUR FROM s.created_at) = h.hour
+       GROUP BY h.hour
+       ORDER BY h.hour`,
+      { replacements: { organizationId, startDate, endDate } }
+    )) as [ISpendByDay[], number];
+
+    // Format hour numbers to "HH:00"
+    return result[0].map((r: any) => ({
+      ...r,
+      day: String(r.day).padStart(2, "0") + ":00",
+    }));
+  }
 
   const result = (await sequelize.query(
     `SELECT
-       ${groupExpr} AS day,
+       DATE(created_at)::text AS day,
        COALESCE(SUM(cost_usd), 0)::float AS total_cost,
        COUNT(*)::int AS total_requests,
        COALESCE(SUM(total_tokens), 0)::int AS total_tokens
@@ -223,7 +244,7 @@ export const getSpendByDayQuery = async (
      WHERE organization_id = :organizationId
        AND created_at >= :startDate
        AND created_at <= :endDate
-     GROUP BY ${groupExpr}
+     GROUP BY DATE(created_at)
      ORDER BY day ASC`,
     { replacements: { organizationId, startDate, endDate } }
   )) as [ISpendByDay[], number];

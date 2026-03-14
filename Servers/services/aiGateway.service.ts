@@ -11,6 +11,7 @@
  */
 
 import { Readable } from "stream";
+import logger from "../utils/logger/fileLogger";
 import { getEndpointBySlugQuery } from "../utils/aiGatewayEndpoint.utils";
 import { getApiKeyByIdQuery } from "../utils/aiGatewayApiKey.utils";
 import { insertSpendLogQuery } from "../utils/aiGatewaySpendLog.utils";
@@ -175,13 +176,13 @@ async function finalizeSpend(
       status_code: statusCode,
     });
   } catch (err) {
-    console.error("Failed to insert spend log:", err);
+    logger.error("Failed to insert spend log:", err);
   }
 
   try {
     await adjustBudgetSpendQuery(organizationId, estimatedCost, costUsd);
   } catch (err) {
-    console.error("Failed to adjust budget spend:", err);
+    logger.error("Failed to adjust budget spend:", err);
   }
 }
 

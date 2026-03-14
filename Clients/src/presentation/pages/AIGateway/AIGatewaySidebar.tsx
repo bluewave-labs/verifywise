@@ -50,7 +50,7 @@ export default function AIGatewaySidebar({
   ];
 
   const isItemActive = (item: SidebarMenuItem): boolean => {
-    return item.value === activeTab || item.id === activeTab;
+    return item.value === activeTab;
   };
 
   const handleItemClick = (item: SidebarMenuItem) => {

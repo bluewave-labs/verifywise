@@ -255,9 +255,11 @@ export async function getSpendSummary(req: Request, res: Response) {
   try {
     const period = (req.query.period as string) || "7d";
     const { startDate, endDate } = getDateRange(period);
-    const summary = await getSpendSummaryQuery(req.organizationId!, startDate, endDate);
-    const byDay = await getSpendByDayQuery(req.organizationId!, startDate, endDate);
-    const byModel = await getSpendByModelQuery(req.organizationId!, startDate, endDate);
+    const [summary, byDay, byModel] = await Promise.all([
+      getSpendSummaryQuery(req.organizationId!, startDate, endDate),
+      getSpendByDayQuery(req.organizationId!, startDate, endDate),
+      getSpendByModelQuery(req.organizationId!, startDate, endDate),
+    ]);
 
     logStructured("successful", "spend summary fetched", fn, fileName);
     return res.status(200).json(STATUS_CODE[200]({ summary, byDay, byModel }));

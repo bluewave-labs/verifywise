@@ -11,8 +11,9 @@ import { Send, Trash2, Router, Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Select from "../../../components/Inputs/Select";
 import Field from "../../../components/Inputs/Field";
+import { useSelector } from "react-redux";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import { store } from "../../../../application/redux/store";
+import { RootState } from "../../../../application/redux/store";
 import { ENV_VARs } from "../../../../../env.vars";
 import palette from "../../../themes/palette";
 
@@ -24,6 +25,7 @@ interface Message {
 }
 
 export default function PlaygroundPage() {
+  const authToken = useSelector((state: RootState) => state.auth.authToken);
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [selectedEndpoint, setSelectedEndpoint] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -71,7 +73,7 @@ export default function PlaygroundPage() {
     abortRef.current = controller;
 
     try {
-      const token = store.getState().auth.authToken;
+      const token = authToken;
       const response = await fetch(`${ENV_VARs.URL}/api/ai-gateway/chat/stream`, {
         method: "POST",
         headers: {
@@ -306,7 +308,7 @@ export default function PlaygroundPage() {
                   }}
                 >
                   {msg.role === "user" ? (
-                    <User size={14} color="#fff" strokeWidth={1.5} />
+                    <User size={14} color={palette.background.main} strokeWidth={1.5} />
                   ) : (
                     <Bot size={14} color={palette.text.tertiary} strokeWidth={1.5} />
                   )}
@@ -398,7 +400,7 @@ export default function PlaygroundPage() {
           disabled={!input.trim() || !selectedEndpoint || isStreaming}
           sx={{
             backgroundColor: palette.brand.primary,
-            color: "#fff",
+            color: palette.background.main,
             width: 36,
             height: 36,
             borderRadius: "4px",

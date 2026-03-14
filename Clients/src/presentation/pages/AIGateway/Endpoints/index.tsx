@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -8,7 +8,7 @@ import {
   TextField,
   ListSubheader,
 } from "@mui/material";
-import { CirclePlus, Router, Trash2, Pencil, Check, X } from "lucide-react";
+import { CirclePlus, Router, Trash2 } from "lucide-react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
@@ -24,6 +24,36 @@ interface ModelOption {
   mode: string;
 }
 
+const MODEL_OPTIONS: ModelOption[] = [
+  { id: "openai/gpt-4o", provider: "openai", mode: "chat" },
+  { id: "openai/gpt-4o-mini", provider: "openai", mode: "chat" },
+  { id: "openai/gpt-4.1", provider: "openai", mode: "chat" },
+  { id: "openai/gpt-4.1-mini", provider: "openai", mode: "chat" },
+  { id: "openai/gpt-4.1-nano", provider: "openai", mode: "chat" },
+  { id: "openai/o3", provider: "openai", mode: "chat" },
+  { id: "openai/o3-mini", provider: "openai", mode: "chat" },
+  { id: "openai/o4-mini", provider: "openai", mode: "chat" },
+  { id: "anthropic/claude-opus-4-20250514", provider: "anthropic", mode: "chat" },
+  { id: "anthropic/claude-sonnet-4-20250514", provider: "anthropic", mode: "chat" },
+  { id: "anthropic/claude-haiku-4-20250414", provider: "anthropic", mode: "chat" },
+  { id: "anthropic/claude-3.5-sonnet-20240620", provider: "anthropic", mode: "chat" },
+  { id: "gemini/gemini-2.5-pro-preview-06-05", provider: "gemini", mode: "chat" },
+  { id: "gemini/gemini-2.5-flash-preview-05-20", provider: "gemini", mode: "chat" },
+  { id: "gemini/gemini-2.0-flash", provider: "gemini", mode: "chat" },
+  { id: "mistral/mistral-large-latest", provider: "mistral", mode: "chat" },
+  { id: "mistral/mistral-medium-latest", provider: "mistral", mode: "chat" },
+  { id: "mistral/mistral-small-latest", provider: "mistral", mode: "chat" },
+  { id: "xai/grok-3", provider: "xai", mode: "chat" },
+  { id: "xai/grok-3-mini", provider: "xai", mode: "chat" },
+  { id: "bedrock/anthropic.claude-sonnet-4-20250514-v1:0", provider: "bedrock", mode: "chat" },
+  { id: "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0", provider: "bedrock", mode: "chat" },
+  { id: "bedrock/amazon.nova-pro-v1:0", provider: "bedrock", mode: "chat" },
+  { id: "together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
+  { id: "together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
+  { id: "openrouter/openai/gpt-4o", provider: "openrouter", mode: "chat" },
+  { id: "openrouter/anthropic/claude-sonnet-4", provider: "openrouter", mode: "chat" },
+].sort((a, b) => a.provider.localeCompare(b.provider));
+
 export default function EndpointsPage() {
   const theme = useTheme();
   const [endpoints, setEndpoints] = useState<any[]>([]);
@@ -35,9 +65,7 @@ export default function EndpointsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
-  // Model autocomplete
-  const [modelOptions, setModelOptions] = useState<ModelOption[]>([]);
-  const [modelValidation, setModelValidation] = useState<{ valid: boolean; info?: any } | null>(null);
+  // Model autocomplete uses MODULE_OPTIONS constant at module scope
 
   // Form state
   const [form, setForm] = useState({
@@ -70,57 +98,6 @@ export default function EndpointsPage() {
     loadData();
   }, [loadData]);
 
-  // Load model options from AIGateway FastAPI
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        // Call our Express backend which will proxy to FastAPI
-        // For now, use a static list of popular models grouped by provider
-        const popularModels: ModelOption[] = [
-          // OpenAI
-          { id: "openai/gpt-4o", provider: "openai", mode: "chat" },
-          { id: "openai/gpt-4o-mini", provider: "openai", mode: "chat" },
-          { id: "openai/gpt-4.1", provider: "openai", mode: "chat" },
-          { id: "openai/gpt-4.1-mini", provider: "openai", mode: "chat" },
-          { id: "openai/gpt-4.1-nano", provider: "openai", mode: "chat" },
-          { id: "openai/o3", provider: "openai", mode: "chat" },
-          { id: "openai/o3-mini", provider: "openai", mode: "chat" },
-          { id: "openai/o4-mini", provider: "openai", mode: "chat" },
-          // Anthropic
-          { id: "anthropic/claude-opus-4-20250514", provider: "anthropic", mode: "chat" },
-          { id: "anthropic/claude-sonnet-4-20250514", provider: "anthropic", mode: "chat" },
-          { id: "anthropic/claude-haiku-4-20250414", provider: "anthropic", mode: "chat" },
-          { id: "anthropic/claude-3.5-sonnet-20240620", provider: "anthropic", mode: "chat" },
-          // Google
-          { id: "gemini/gemini-2.5-pro-preview-06-05", provider: "gemini", mode: "chat" },
-          { id: "gemini/gemini-2.5-flash-preview-05-20", provider: "gemini", mode: "chat" },
-          { id: "gemini/gemini-2.0-flash", provider: "gemini", mode: "chat" },
-          // Mistral
-          { id: "mistral/mistral-large-latest", provider: "mistral", mode: "chat" },
-          { id: "mistral/mistral-medium-latest", provider: "mistral", mode: "chat" },
-          { id: "mistral/mistral-small-latest", provider: "mistral", mode: "chat" },
-          // xAI
-          { id: "xai/grok-3", provider: "xai", mode: "chat" },
-          { id: "xai/grok-3-mini", provider: "xai", mode: "chat" },
-          // AWS Bedrock
-          { id: "bedrock/anthropic.claude-sonnet-4-20250514-v1:0", provider: "bedrock", mode: "chat" },
-          { id: "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0", provider: "bedrock", mode: "chat" },
-          { id: "bedrock/amazon.nova-pro-v1:0", provider: "bedrock", mode: "chat" },
-          // Together AI
-          { id: "together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
-          { id: "together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
-          // OpenRouter
-          { id: "openrouter/openai/gpt-4o", provider: "openrouter", mode: "chat" },
-          { id: "openrouter/anthropic/claude-sonnet-4", provider: "openrouter", mode: "chat" },
-        ];
-        setModelOptions(popularModels);
-      } catch {
-        // Fall through — user can still type manually
-      }
-    };
-    loadModels();
-  }, []);
-
   // Auto-generate slug from display name
   const handleNameChange = (value: string) => {
     setForm((p) => ({
@@ -137,8 +114,7 @@ export default function EndpointsPage() {
   const handleModelSelect = (model: string) => {
     const provider = model.includes("/") ? model.split("/")[0] : "";
     setForm((p) => ({ ...p, model, provider }));
-    setModelValidation(null);
-  };
+      };
 
   const handleCreate = async () => {
     if (!form.display_name || !form.slug || !form.model || !form.api_key_id) {
@@ -189,11 +165,9 @@ export default function EndpointsPage() {
       system_prompt: "",
     });
     setFormError("");
-    setModelValidation(null);
-  };
+      };
 
-  // Group models by provider for autocomplete
-  const groupedOptions = modelOptions.sort((a, b) => a.provider.localeCompare(b.provider));
+  // MODEL_OPTIONS is already sorted at module scope
 
   const apiKeyItems = apiKeys
     .filter((k) => k.is_active)
@@ -312,7 +286,7 @@ export default function EndpointsPage() {
             </Typography>
             <Autocomplete
               freeSolo
-              options={groupedOptions}
+              options={MODEL_OPTIONS}
               groupBy={(option) =>
                 typeof option === "string" ? "" : option.provider.toUpperCase()
               }

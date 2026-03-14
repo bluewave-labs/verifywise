@@ -51,7 +51,7 @@ export const getAllApiKeysQuery = async (
         maskedKey = maskApiKey(plainKey);
       }
     } catch (err) {
-      console.warn(`Failed to decrypt AI Gateway key ${key.key_name}:`, err);
+      // Key may be corrupted or encryption key changed
     }
 
     return {

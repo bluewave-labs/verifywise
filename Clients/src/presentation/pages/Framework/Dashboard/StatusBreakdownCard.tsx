@@ -1,5 +1,5 @@
 import { Box, Typography, Stack, IconButton } from "@mui/material";
-import { PieChart } from "@mui/x-charts/PieChart";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { frameworkDashboardCardStyles } from "./styles";
@@ -292,53 +292,26 @@ const StatusBreakdownCard = ({ frameworksData }: StatusBreakdownCardProps) => {
                   {/* Donut Chart Column */}
                   <Box sx={{ display: "flex", justifyContent: "center" }}>
                     <Box sx={{ position: "relative", width: "120px", height: "120px" }}>
-                      <PieChart
-                        series={[
-                          {
-                            data: pieData,
-                            innerRadius: 30,
-                            outerRadius: 48,
-                            paddingAngle: 2,
-                            cornerRadius: 3,
-                            cx: 60,
-                            cy: 60,
-                          },
-                        ]}
-                        width={120}
-                        height={120}
-                        slotProps={{
-                          legend: { hidden: true } as any,
-                        }}
-                        sx={{
-                          "& .MuiChartsLegend-root": {
-                            display: "none !important",
-                          },
-                          "& .MuiChartsTooltip-root": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-root *": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-mark": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-labelCell": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-valueCell": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-table": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-table td": {
-                            fontSize: "13px !important",
-                          },
-                          "& .MuiChartsTooltip-table th": {
-                            fontSize: "13px !important",
-                          },
-                        }}
-                      />
+                      <PieChart width={120} height={120}>
+                        <Pie
+                          data={pieData}
+                          dataKey="value"
+                          nameKey="label"
+                          cx={60}
+                          cy={60}
+                          innerRadius={30}
+                          outerRadius={48}
+                          paddingAngle={2}
+                          strokeWidth={0}
+                        >
+                          {pieData.map((item) => (
+                            <Cell key={item.id} fill={item.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ fontSize: 12, borderRadius: 4 }}
+                        />
+                      </PieChart>
                     </Box>
                   </Box>
 

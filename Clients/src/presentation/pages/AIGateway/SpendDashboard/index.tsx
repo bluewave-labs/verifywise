@@ -73,7 +73,7 @@ export default function SpendDashboardPage() {
                 fontWeight: 500,
                 cursor: "pointer",
                 backgroundColor: period === p.value ? palette.brand.primary : "transparent",
-                color: period === p.value ? "#fff" : palette.text.tertiary,
+                color: period === p.value ? palette.background.main : palette.text.tertiary,
                 "&:hover": {
                   backgroundColor: period === p.value ? palette.brand.primary : palette.background.hover,
                 },

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Box, Typography, Stack, IconButton } from "@mui/material";
+import { Box, Typography, Stack, IconButton, Chip as MuiChip } from "@mui/material";
 import {
   CirclePlus,
   ShieldCheck,
@@ -215,11 +215,20 @@ export default function GuardrailsPage() {
           {rule.guardrail_type === "pii"
             ? `${Object.keys(rule.config?.entities || {}).join(", ")}`
             : `${rule.config?.type}: ${rule.config?.pattern}`}
-          {" · "}
-          <span style={{ fontWeight: 500, color: rule.action === "block" ? palette.status.error.text : palette.brand.primary }}>
-            {rule.action}
-          </span>
         </Typography>
+        <MuiChip
+          label={rule.action === "block" ? "Block" : "Mask"}
+          size="small"
+          sx={{
+            height: 20,
+            fontSize: 11,
+            fontWeight: 600,
+            backgroundColor: rule.action === "block" ? `${palette.status.error.text}14` : `${palette.brand.primary}14`,
+            color: rule.action === "block" ? palette.status.error.text : palette.brand.primary,
+            border: `1px solid ${rule.action === "block" ? `${palette.status.error.text}30` : `${palette.brand.primary}30`}`,
+            "& .MuiChip-label": { px: 1 },
+          }}
+        />
       </Box>
       <Stack direction="row" alignItems="center" gap="8px">
         <Toggle

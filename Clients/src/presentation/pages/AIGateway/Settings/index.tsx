@@ -11,7 +11,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-import { sectionTitleSx, useCardSx } from "../shared";
+import { sectionTitleSx, useCardSx, ProviderIcon } from "../shared";
 
 /** Top providers shown above the divider */
 const TOP_PROVIDERS = [
@@ -225,14 +225,17 @@ export default function AIGatewaySettingsPage() {
                     borderRadius: "4px",
                   }}
                 >
-                  <Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                      {key.key_name}
+                  <Stack direction="row" alignItems="center" gap="10px">
+                    <ProviderIcon provider={key.provider} size={20} />
+                    <Box>
+                      <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                        {key.key_name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+                        {key.provider} &middot; {key.masked_key}
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
-                      {key.provider} &middot; {key.masked_key}
-                    </Typography>
-                  </Box>
+                    </Box>
+                  </Stack>
                   <Stack direction="row" alignItems="center" gap="8px">
                     <Typography
                       sx={{

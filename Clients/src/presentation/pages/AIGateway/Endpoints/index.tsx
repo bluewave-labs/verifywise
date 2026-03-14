@@ -15,7 +15,7 @@ import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-import { sectionTitleSx, useCardSx } from "../shared";
+import { sectionTitleSx, useCardSx, ProviderIcon } from "../shared";
 
 interface ModelOption {
   id: string;
@@ -230,17 +230,20 @@ export default function EndpointsPage() {
                     borderRadius: "4px",
                   }}
                 >
-                  <Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                      {ep.display_name}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
-                      {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
+                  <Stack direction="row" alignItems="center" gap="10px">
+                    <ProviderIcon provider={ep.provider} size={20} />
+                    <Box>
+                      <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                        {ep.display_name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+                        {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
                       {activeGuardrailCount > 0 && (
                         <span> &middot; {activeGuardrailCount} guardrail{activeGuardrailCount !== 1 ? "s" : ""} active</span>
                       )}
                     </Typography>
-                  </Box>
+                    </Box>
+                  </Stack>
                   <Stack direction="row" alignItems="center" gap="8px">
                     <Typography
                       sx={{

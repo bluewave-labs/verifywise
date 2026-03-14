@@ -22,6 +22,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation, useNavigate } from "react-router-dom";
 import { DeploymentManager, clearChunkReloadFlag } from "./application/utils/deploymentHelpers";
 import UpdateBanner from "./presentation/components/UpdateBanner";
+import ChunkErrorBoundary from "./presentation/components/ChunkErrorBoundary";
 import { CommandPalette } from "./presentation/components/CommandPalette";
 import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
@@ -284,9 +285,11 @@ function App() {
                     onSkip={handleOnboardingDone}
                   />
                 )}
-                <Routes>
-                  {createRoutes(triggerSidebar, triggerSidebarReload)}
-                </Routes>
+                <ChunkErrorBoundary>
+                  <Routes>
+                    {createRoutes(triggerSidebar, triggerSidebarReload)}
+                  </Routes>
+                </ChunkErrorBoundary>
 
                 {/* User Guide Sidebar with Advisor Conversation persistence */}
                 <AdvisorConversationProvider>

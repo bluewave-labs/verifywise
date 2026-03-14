@@ -446,6 +446,7 @@ export default function AIGatewaySettingsPage() {
                 }}
               />
             </Stack>
+            </Box>
           </Stack>
         </Stack>
       </Box>

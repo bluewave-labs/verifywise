@@ -5,6 +5,7 @@ const POLL_INTERVAL = 60 * 1000; // 60 seconds
 let updateAvailable = false;
 let onUpdateCallbacks: Array<() => void> = [];
 let intervalId: ReturnType<typeof setInterval> | null = null;
+let visibilityHandler: (() => void) | null = null;
 
 async function checkVersion(): Promise<void> {
   if (updateAvailable) return; // already detected, stop checking
@@ -41,10 +42,9 @@ export class DeploymentManager {
 
   /** Reset module state — only for use in tests */
   static _resetForTesting(): void {
+    DeploymentManager.stopPolling();
     updateAvailable = false;
     onUpdateCallbacks = [];
-    if (intervalId) clearInterval(intervalId);
-    intervalId = null;
   }
 
   static startPolling(): void {
@@ -52,9 +52,24 @@ export class DeploymentManager {
     checkVersion();
     intervalId = setInterval(checkVersion, POLL_INTERVAL);
 
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) checkVersion();
-    });
+    // Only add one listener; track it so stopPolling can remove it
+    if (!visibilityHandler) {
+      visibilityHandler = () => {
+        if (!document.hidden) checkVersion();
+      };
+      document.addEventListener("visibilitychange", visibilityHandler);
+    }
+  }
+
+  static stopPolling(): void {
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+    if (visibilityHandler) {
+      document.removeEventListener("visibilitychange", visibilityHandler);
+      visibilityHandler = null;
+    }
   }
 }
 

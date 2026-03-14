@@ -150,6 +150,7 @@ function App() {
     return () => {
       setShowAlertCallback(() => {});
       unsubscribe();
+      DeploymentManager.stopPolling();
     };
   }, []);
 

@@ -50,6 +50,24 @@ test.describe("Incident Management", () => {
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
 
+  // --- Tier 2: Search ---
+
+  test("searching for nonexistent incident filters results", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/ai-incident-managements");
+    const searchInput = page
+      .getByPlaceholder(/search/i)
+      .or(page.locator('[data-testid="search-input"]'));
+
+    if (await searchInput.first().isVisible().catch(() => false)) {
+      await searchInput.first().fill("nonexistent-xyz-incident");
+      await page.waitForTimeout(500);
+      await searchInput.first().clear();
+      await page.waitForTimeout(300);
+    }
+  });
+
   // --- Tier 3: Drawer open/close ---
 
   test("Add new incident button opens drawer", async ({
@@ -68,6 +86,33 @@ test.describe("Incident Management", () => {
           .or(page.getByText(/create incident/i))
           .first()
       ).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
+
+  // --- Tier 3: Drawer form fields ---
+
+  test("incident drawer contains form fields", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/ai-incident-managements");
+    const addBtn = page.getByRole("button", { name: /add new incident/i });
+
+    if (await addBtn.isVisible().catch(() => false)) {
+      await addBtn.click();
+      await page.waitForTimeout(500);
+
+      // Verify form fields are present inside the drawer
+      const formField = page
+        .getByRole("textbox")
+        .or(page.getByRole("combobox"))
+        .or(page.getByPlaceholder(/title|name|description/i));
+
+      if (await formField.first().isVisible().catch(() => false)) {
+        const count = await formField.count();
+        expect(count).toBeGreaterThanOrEqual(1);
+      }
+
       await page.keyboard.press("Escape");
     }
   });

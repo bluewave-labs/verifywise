@@ -34,7 +34,7 @@ import {
   getDependencyGraph,
   getComplianceMapping,
 } from "../services/aiDetection.service";
-import { IServiceContext, ScanStatus } from "../domain.layer/interfaces/i.aiDetection";
+import { IServiceContext, ScanStatus, FINDING_TYPES, VULNERABILITY_FINDING_TYPES } from "../domain.layer/interfaces/i.aiDetection";
 import { calculateAndStoreRiskScore } from "../services/aiDetection/riskScoring";
 import { getRiskScoringConfigQuery, upsertRiskScoringConfigQuery } from "../utils/aiDetectionRiskScoring.utils";
 import { DEFAULT_DIMENSION_WEIGHTS } from "../config/riskScoringConfig";
@@ -51,10 +51,10 @@ const FILE_NAME = "aiDetection.ctrl.ts";
  * Services should use organizationId directly for database queries.
  */
 function buildServiceContext(req: Request): IServiceContext {
-  const organizationId = (req as unknown as { organizationId: number }).organizationId;
+  const organizationId = req.organizationId!;
   return {
-    userId: (req as unknown as { userId: number }).userId,
-    role: (req as unknown as { role: string }).role,
+    userId: req.userId!,
+    role: req.role!,
     organizationId,
     // tenantId is kept for interface compatibility, but services should use organizationId
     tenantId: organizationId.toString(),
@@ -78,7 +78,9 @@ function handleException(res: Response, error: unknown): Response {
     return res.status(502).json(STATUS_CODE[502](error.message));
   }
 
-  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  const errorMessage = process.env.NODE_ENV === "production"
+    ? "An internal error occurred"
+    : error instanceof Error ? error.message : "Unknown error";
   return res.status(500).json(STATUS_CODE[500](errorMessage));
 }
 
@@ -244,11 +246,10 @@ export async function getScanFindingsController(
     }
 
     // Validate finding_type if provided
-    const validFindingTypes = ["library", "dependency", "api_call", "secret", "model_ref", "rag_component", "agent"];
-    if (findingType && !validFindingTypes.includes(findingType)) {
+    if (findingType && !(FINDING_TYPES as readonly string[]).includes(findingType)) {
       return res
         .status(400)
-        .json(STATUS_CODE[400](`finding_type must be one of: ${validFindingTypes.join(", ")}`));
+        .json(STATUS_CODE[400](`finding_type must be one of: ${FINDING_TYPES.join(", ")}`));
     }
 
     const ctx = buildServiceContext(req);
@@ -902,6 +903,19 @@ export async function getRiskScoringConfigController(
       llm_enabled: false,
       llm_key_id: null,
       dimension_weights: DEFAULT_DIMENSION_WEIGHTS,
+      vulnerability_scan_enabled: false,
+      vulnerability_types_enabled: {
+        prompt_injection: true,
+        pii_exposure: true,
+        excessive_agency: true,
+        jailbreak_risk: true,
+        training_data_poisoning: true,
+        model_dos: true,
+        supply_chain: true,
+        insecure_plugin: true,
+        overreliance: true,
+        model_theft: true,
+      },
       updated_by: null,
       updated_at: null,
     };
@@ -939,7 +953,7 @@ export async function updateRiskScoringConfigController(
 
   try {
     const ctx = buildServiceContext(req);
-    const { llm_enabled, llm_key_id, dimension_weights } = req.body;
+    const { llm_enabled, llm_key_id, dimension_weights, vulnerability_scan_enabled, vulnerability_types_enabled } = req.body;
 
     // Validate dimension weights if provided
     if (dimension_weights) {
@@ -963,10 +977,38 @@ export async function updateRiskScoringConfigController(
       }
     }
 
+    // Validate vulnerability_scan_enabled requires llm_enabled
+    // Check persisted config when llm_enabled is not in the request body
+    let effectiveVulnScan: boolean | undefined = undefined;
+    if (vulnerability_scan_enabled !== undefined) {
+      let effectiveLlmEnabled = llm_enabled;
+      if (effectiveLlmEnabled === undefined) {
+        const existingConfig = await getRiskScoringConfigQuery(req.organizationId!);
+        effectiveLlmEnabled = existingConfig?.llm_enabled ?? false;
+      }
+      effectiveVulnScan = vulnerability_scan_enabled && effectiveLlmEnabled;
+    }
+
+    // Validate vulnerability_types_enabled if provided
+    if (vulnerability_types_enabled !== undefined) {
+      const providedKeys = Object.keys(vulnerability_types_enabled);
+      const invalidKeys = providedKeys.filter((k) => !(VULNERABILITY_FINDING_TYPES as readonly string[]).includes(k));
+      if (invalidKeys.length > 0) {
+        return res.status(400).json(STATUS_CODE[400](`Unknown vulnerability types: ${invalidKeys.join(", ")}`));
+      }
+      for (const key of providedKeys) {
+        if (typeof vulnerability_types_enabled[key] !== "boolean") {
+          return res.status(400).json(STATUS_CODE[400](`vulnerability_types_enabled.${key} must be a boolean`));
+        }
+      }
+    }
+
     const updated = await upsertRiskScoringConfigQuery(req.organizationId!, {
       llm_enabled,
       llm_key_id,
       dimension_weights,
+      vulnerability_scan_enabled: effectiveVulnScan,
+      vulnerability_types_enabled,
       updated_by: ctx.userId,
     });
 

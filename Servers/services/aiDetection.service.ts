@@ -93,6 +93,9 @@ import {
   CACHE_KEYS,
 } from "../utils/cache.utils";
 import { calculateAndStoreRiskScore } from "./aiDetection/riskScoring";
+import { scanFileForVulnerabilityIndicators, buildAnalysisContext, VulnerabilityCandidate } from "./aiDetection/vulnerabilityPreFilter";
+import { analyzeVulnerabilities } from "./aiDetection/vulnerabilityAnalyzer";
+import { getRiskScoringConfigQuery } from "../utils/aiDetectionRiskScoring.utils";
 
 // ============================================================================
 // Types
@@ -1099,6 +1102,80 @@ export async function startScan(
 }
 
 /**
+ * Cross-reference vulnerability findings with non-vulnerability findings
+ * that share the same file paths. Updates vulnerability_details JSONB
+ * with related_finding_ids and related_finding_types so the UI can
+ * show connections between vulnerability and library/agent/security tabs.
+ */
+async function crossReferenceFindings(scanId: number, organizationId: number): Promise<void> {
+  // 1. Get all findings for this scan
+  const [allFindings] = await sequelize.query(
+    `SELECT id, finding_type, file_paths, vulnerability_details
+     FROM ai_detection_findings
+     WHERE scan_id = :scanId AND organization_id = :organizationId`,
+    { replacements: { scanId, organizationId } }
+  ) as [Array<{
+    id: number;
+    finding_type: string;
+    file_paths: Array<{ path: string; line_number: number | null; matched_text: string }> | null;
+    vulnerability_details: Record<string, unknown> | null;
+  }>, unknown];
+
+  // 2. Separate vulnerability vs non-vulnerability findings
+  const vulnTypes = new Set([
+    "prompt_injection", "jailbreak_risk", "training_data_poisoning", "model_dos",
+    "supply_chain", "pii_exposure", "insecure_plugin", "excessive_agency",
+    "overreliance", "model_theft",
+  ]);
+
+  const vulnFindings = allFindings.filter((f) => vulnTypes.has(f.finding_type));
+  const otherFindings = allFindings.filter((f) => !vulnTypes.has(f.finding_type));
+
+  if (vulnFindings.length === 0 || otherFindings.length === 0) return;
+
+  // 3. Build a map of file paths to non-vuln finding IDs
+  const fileToFindings = new Map<string, { id: number; finding_type: string }[]>();
+  for (const f of otherFindings) {
+    const paths = f.file_paths || [];
+    for (const fp of paths) {
+      const key = fp.path;
+      if (!fileToFindings.has(key)) fileToFindings.set(key, []);
+      fileToFindings.get(key)!.push({ id: f.id, finding_type: f.finding_type });
+    }
+  }
+
+  // 4. For each vuln finding, find related non-vuln findings by shared file paths
+  for (const vf of vulnFindings) {
+    const vfPaths = vf.file_paths || [];
+    const relatedSet = new Map<number, string>(); // id -> finding_type
+
+    for (const fp of vfPaths) {
+      const matches = fileToFindings.get(fp.path) || [];
+      for (const m of matches) {
+        relatedSet.set(m.id, m.finding_type);
+      }
+    }
+
+    if (relatedSet.size === 0) continue;
+
+    // 5. Merge into existing vulnerability_details
+    const existingDetails = vf.vulnerability_details || {};
+    const updatedDetails = {
+      ...existingDetails,
+      related_finding_ids: Array.from(relatedSet.keys()),
+      related_finding_types: [...new Set(relatedSet.values())],
+    };
+
+    await sequelize.query(
+      `UPDATE ai_detection_findings
+       SET vulnerability_details = :details
+       WHERE id = :id AND organization_id = :organizationId`,
+      { replacements: { details: JSON.stringify(updatedDetails), id: vf.id, organizationId } }
+    );
+  }
+}
+
+/**
  * Execute the actual scan process asynchronously using git clone
  */
 async function executeScan(
@@ -1241,7 +1318,68 @@ async function executeScan(
     }
 
     // ========================================================================
-    // Model Security Scanning (Phase 2)
+    // LLM Vulnerability Pre-Filter (Phase 2)
+    // ========================================================================
+    let vulnerabilityCandidates: VulnerabilityCandidate[] = [];
+    const vulnerabilityFileContents = new Map<string, string>();
+    let vulnerabilityFindings: ICreateFindingInput[] = [];
+
+    try {
+      // Check if vulnerability scanning is enabled for this org
+      const riskConfig = await getRiskScoringConfigQuery(ctx.organizationId);
+      const vulnScanEnabled = riskConfig?.vulnerability_scan_enabled &&
+        riskConfig?.llm_enabled && riskConfig?.llm_key_id;
+
+      // Determine which vulnerability types are enabled
+      const enabledTypes = riskConfig?.vulnerability_types_enabled ?? {
+        prompt_injection: true,
+        pii_exposure: true,
+        excessive_agency: true,
+        jailbreak_risk: true,
+        training_data_poisoning: true,
+        model_dos: true,
+        supply_chain: true,
+        insecure_plugin: true,
+        overreliance: true,
+        model_theft: true,
+      };
+
+      if (vulnScanEnabled && !signal?.aborted) {
+        // Re-scan code files for vulnerability indicators
+        for (const file of filesToScan) {
+          if (signal?.aborted) break;
+          try {
+            const content = await readFileContent(file.fullPath);
+            const candidates = scanFileForVulnerabilityIndicators(content, file.path)
+              .filter((c) => enabledTypes[c.vulnerabilityType as keyof typeof enabledTypes] !== false);
+            if (candidates.length > 0) {
+              vulnerabilityCandidates.push(...candidates);
+              vulnerabilityFileContents.set(file.path, content);
+            }
+          } catch {
+            // Skip unreadable files
+          }
+        }
+
+        // Run LLM analysis on candidates
+        if (vulnerabilityCandidates.length > 0 && riskConfig!.llm_key_id) {
+          const context = buildAnalysisContext(vulnerabilityCandidates, vulnerabilityFileContents);
+          vulnerabilityFindings = await analyzeVulnerabilities(
+            context,
+            riskConfig!.llm_key_id,
+            ctx.organizationId,
+            scanId
+          );
+        }
+      }
+    } catch (err) {
+      // Graceful degradation: vulnerability scan failure does not fail the overall scan
+      logger.warn(`Vulnerability scan failed for scan ${scanId}, continuing without vulnerability findings:`, err);
+      vulnerabilityFindings = [];
+    }
+
+    // ========================================================================
+    // Model Security Scanning (Phase 3)
     // ========================================================================
     const modelSecurityFindings: ICreateModelSecurityFindingInput[] = [];
     const MAX_MODEL_FILE_SIZE = 500 * 1024 * 1024; // 500MB local limit (more generous than API)
@@ -1434,6 +1572,11 @@ async function executeScan(
         await createFindingsBatchQuery(findingInputs, ctx.organizationId, transaction);
       }
 
+      // Store vulnerability findings
+      if (vulnerabilityFindings.length > 0) {
+        await createFindingsBatchQuery(vulnerabilityFindings, ctx.organizationId, transaction);
+      }
+
       // Store model security findings (deduplicate by name+provider to avoid ON CONFLICT errors)
       if (modelSecurityFindings.length > 0) {
         // Deduplicate security findings by aggregating file paths
@@ -1460,7 +1603,7 @@ async function executeScan(
       const deduplicatedSecurityCount = modelSecurityFindings.length > 0
         ? new Set(modelSecurityFindings.map(f => `${f.name}::${f.provider}`)).size
         : 0;
-      const totalFindings = findingsMap.size + deduplicatedSecurityCount;
+      const totalFindings = findingsMap.size + deduplicatedSecurityCount + vulnerabilityFindings.length;
       const completedAt = new Date();
       const durationMs = progressState.startedAt
         ? completedAt.getTime() - progressState.startedAt.getTime()
@@ -1482,6 +1625,12 @@ async function executeScan(
 
       progressState.status = "completed";
       progressState.progress = 100;
+
+      // Cross-reference vulnerability findings with library/agent/security findings
+      // that share file paths (fire-and-forget, non-blocking)
+      crossReferenceFindings(scanId, ctx.organizationId).catch((err) => {
+        logger.warn(`Cross-reference pass failed for scan ${scanId}, skipping:`, err);
+      });
 
       // Update linked repository's last_scan fields
       updateLinkedRepositoryLastScan(scanId, "completed", ctx.organizationId).catch((err) => {

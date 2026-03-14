@@ -188,7 +188,7 @@ export const collections: Collection[] = [
   {
     id: 'ai-detection',
     title: 'AI Detection',
-    description: 'Scan repositories to discover AI/ML libraries, CI/CD pipelines, container images, and detect shadow AI in your codebase.',
+    description: 'Scan repositories to discover AI/ML libraries, detect OWASP LLM Top 10 vulnerabilities, and assess AI governance risk across your codebase.',
     icon: 'ScanSearch',
     articleCount: 5,
     articles: [
@@ -196,7 +196,7 @@ export const collections: Collection[] = [
         id: 'scanning',
         title: 'Scanning repositories',
         description: 'Learn how to scan GitHub repositories to detect AI/ML usage across code, workflows, and infrastructure.',
-        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai', 'docker', 'github actions', 'mcp', 'cicd', 'container'],
+        keywords: ['scan', 'repository', 'github', 'detect', 'ai', 'ml', 'library', 'framework', 'shadow ai', 'docker', 'github actions', 'mcp', 'cicd', 'container', 'vulnerability', 'owasp', 'llm', 'prompt injection', 'cross-reference'],
       },
       {
         id: 'risk-scoring',
@@ -220,7 +220,7 @@ export const collections: Collection[] = [
         id: 'settings',
         title: 'AI Detection settings',
         description: 'Configure GitHub tokens, LLM analysis, and dimension weights.',
-        keywords: ['settings', 'github', 'token', 'integration', 'private', 'repository', 'access', 'llm', 'weights'],
+        keywords: ['settings', 'github', 'token', 'integration', 'private', 'repository', 'access', 'llm', 'weights', 'vulnerability', 'types', 'owasp', 'toggle'],
       },
     ],
   },

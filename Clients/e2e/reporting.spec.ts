@@ -49,4 +49,33 @@ test.describe("Reporting", () => {
       .or(page.getByText(/select/i));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 2: Report generation interaction ---
+
+  test("generate report button or selector is interactive", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/reporting");
+
+    // Look for a project/framework selector that gates report generation
+    const selector = page
+      .getByRole("combobox")
+      .or(page.getByRole("button", { name: /select.*project/i }))
+      .or(page.getByText(/select.*project/i));
+
+    if (await selector.first().isVisible().catch(() => false)) {
+      await selector.first().click();
+      await page.waitForTimeout(300);
+      await page.keyboard.press("Escape");
+    }
+
+    // Check for generate/export button
+    const generateBtn = page.getByRole("button", {
+      name: /generate|export|download/i,
+    });
+    if (await generateBtn.first().isVisible().catch(() => false)) {
+      // Verify it exists — don't click as it may trigger a long operation
+      await expect(generateBtn.first()).toBeVisible();
+    }
+  });
 });

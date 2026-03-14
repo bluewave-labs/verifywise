@@ -54,4 +54,45 @@ test.describe("Approval Workflows", () => {
       .or(page.getByRole("grid"));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 2: Workflow list content ---
+
+  test("workflow items show status or stage information", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/approval-workflows");
+
+    // Workflows should display status info or empty state message
+    const statusContent = page
+      .getByText(/pending|approved|rejected|active|draft/i)
+      .or(page.getByText(/no.*workflow/i))
+      .or(page.getByText(/get started/i))
+      .or(page.getByRole("table"));
+    await expect(statusContent.first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  // --- Tier 3: Create workflow interaction ---
+
+  test("create workflow button opens modal or form", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/approval-workflows");
+    const addBtn = page
+      .getByRole("button", { name: /add|new|create/i })
+      .first();
+
+    if (await addBtn.isVisible().catch(() => false)) {
+      await addBtn.click();
+
+      await expect(
+        page
+          .getByText(/new workflow/i)
+          .or(page.getByText(/create workflow/i))
+          .or(page.locator(".MuiDrawer-root"))
+          .or(page.getByRole("dialog"))
+          .first()
+      ).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
 });

@@ -114,10 +114,10 @@ export default function SpendDashboardPage() {
       }
       summaryCards={
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
-          <StatCard title="Total cost" value={totalCost} Icon={DollarSign} />
-          <StatCard title="Total requests" value={totalRequests} Icon={Hash} />
-          <StatCard title="Total tokens" value={totalTokens} Icon={Layers} />
-          <StatCard title="Avg latency" value={avgLatency} Icon={Clock} />
+          <StatCard title="Total cost" value={totalCost} Icon={DollarSign} tooltip="Total spend across all endpoints for this period" />
+          <StatCard title="Total requests" value={totalRequests} Icon={Hash} tooltip="Number of completion and embedding requests processed" />
+          <StatCard title="Total tokens" value={totalTokens} Icon={Layers} tooltip="Combined prompt and completion tokens across all requests" />
+          <StatCard title="Avg latency" value={avgLatency} Icon={Clock} tooltip="Average round-trip time from request to complete response" />
         </Box>
       }
     >

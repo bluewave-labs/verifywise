@@ -11,6 +11,7 @@ import { Send, Router, Bot, User, Settings } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Select from "../../../components/Inputs/Select";
 import Field from "../../../components/Inputs/Field";
+import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { useSelector } from "react-redux";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
@@ -237,22 +238,19 @@ export default function PlaygroundPage() {
           </IconButton>
         </Stack>
 
-        {/* Collapsible settings panel */}
-        {showSettings && (
-          <Stack
-            direction="row"
-            gap="16px"
-            alignItems="flex-end"
-            sx={{
-              mb: 2,
-              p: "12px 16px",
-              border: `1px solid ${palette.border.light}`,
-              borderRadius: "4px",
-              backgroundColor: palette.background.alt,
-            }}
-          >
-            <Box sx={{ width: 160 }}>
-              <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 0.5 }}>
+        {/* Settings Modal */}
+        <StandardModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          title="Playground settings"
+          description="Configure parameters for your requests"
+          hideFooter
+          fitContent
+          maxWidth="400px"
+        >
+          <Stack gap="16px">
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 0.5 }}>
                 Temperature: {temperature}
               </Typography>
               <Slider
@@ -264,16 +262,18 @@ export default function PlaygroundPage() {
                 size="small"
                 sx={{ color: palette.brand.primary }}
               />
+              <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
+                Lower values are more focused, higher values are more creative
+              </Typography>
             </Box>
-            <Box sx={{ width: 120 }}>
-              <Field
-                label="Max tokens"
-                value={String(maxTokens)}
-                onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
-              />
-            </Box>
+            <Field
+              label="Max tokens"
+              placeholder="4096"
+              value={String(maxTokens)}
+              onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
+            />
           </Stack>
-        )}
+        </StandardModal>
 
       {/* Messages Area */}
       <Box

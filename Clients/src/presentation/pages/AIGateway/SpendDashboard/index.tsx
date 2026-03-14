@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Typography, Stack, useTheme } from "@mui/material";
 import {
   ResponsiveContainer,
   LineChart,
@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette, { chart as chartPalette } from "../../../themes/palette";
 
@@ -19,7 +20,24 @@ const PERIODS = [
   { label: "90 days", value: "90d" },
 ];
 
+const sectionTitleSx = {
+  fontWeight: 600,
+  fontSize: 16,
+};
+
+function useCardSx() {
+  const theme = useTheme();
+  return {
+    background: theme.palette.background.paper,
+    border: `1.5px solid ${theme.palette.border.light}`,
+    borderRadius: theme.shape.borderRadius,
+    p: theme.spacing(5, 6),
+    boxShadow: "none",
+  };
+}
+
 export default function SpendDashboardPage() {
+  const cardSx = useCardSx();
   const [period, setPeriod] = useState("7d");
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -50,17 +68,11 @@ export default function SpendDashboardPage() {
   ], [summary]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography sx={{ fontSize: 18, fontWeight: 600, color: palette.text.primary }}>
-            Spend
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
-            Monitor LLM usage and costs across your organization
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={0.5}>
+    <PageHeaderExtended
+      title="Spend"
+      description="Monitor LLM usage and costs across your organization."
+      actionButton={
+        <Stack direction="row" gap="4px">
           {PERIODS.map((p) => (
             <Box
               key={p.value}
@@ -83,76 +95,70 @@ export default function SpendDashboardPage() {
             </Box>
           ))}
         </Stack>
-      </Stack>
-
-      {/* Summary cards */}
-      <Stack direction="row" spacing={2} mb={3}>
-        {cards.map((card) => (
-          <Box
-            key={card.label}
-            sx={{
-              flex: 1,
-              p: 2,
-              border: `1px solid ${palette.border.dark}`,
-              borderRadius: "4px",
-            }}
-          >
-            <Typography sx={{ fontSize: 11, color: palette.text.tertiary, textTransform: "uppercase", fontWeight: 500 }}>
-              {card.label}
-            </Typography>
-            <Typography sx={{ fontSize: 20, fontWeight: 600, color: palette.text.primary, mt: 0.5 }}>
-              {card.value}
-            </Typography>
-          </Box>
-        ))}
-      </Stack>
-
+      }
+      summaryCards={
+        <Stack direction="row" gap="16px">
+          {cards.map((card) => (
+            <Box
+              key={card.label}
+              sx={{
+                flex: 1,
+                p: "12px 16px",
+                border: `1px solid ${palette.border.dark}`,
+                borderRadius: "4px",
+              }}
+            >
+              <Typography sx={{ fontSize: 11, color: palette.text.tertiary, textTransform: "uppercase", fontWeight: 500 }}>
+                {card.label}
+              </Typography>
+              <Typography sx={{ fontSize: 20, fontWeight: 600, mt: 0.5 }}>
+                {card.value}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      }
+    >
       {/* Cost over time chart */}
       {!loading && byDay.length > 0 && (
-        <Box
-          sx={{
-            p: 2,
-            border: `1px solid ${palette.border.dark}`,
-            borderRadius: "4px",
-          }}
-        >
-          <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary, mb: 2 }}>
-            Cost over time
-          </Typography>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={byDay}>
-              <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                tickLine={false}
-                axisLine={{ stroke: palette.border.light }}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                tickLine={false}
-                axisLine={{ stroke: palette.border.light }}
-                tickFormatter={(v) => `$${v}`}
-              />
-              <Tooltip
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: 4,
-                  border: `1px solid ${palette.border.light}`,
-                }}
-                formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="total_cost"
-                stroke={chartPalette[0]}
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <Box sx={cardSx}>
+          <Stack gap="12px">
+            <Typography sx={sectionTitleSx}>Cost over time</Typography>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={byDay}>
+                <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                  tickLine={false}
+                  axisLine={{ stroke: palette.border.light }}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                  tickLine={false}
+                  axisLine={{ stroke: palette.border.light }}
+                  tickFormatter={(v) => `$${v}`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    fontSize: 12,
+                    borderRadius: 4,
+                    border: `1px solid ${palette.border.light}`,
+                  }}
+                  formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="total_cost"
+                  stroke={chartPalette[0]}
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Stack>
         </Box>
       )}
-    </Box>
+    </PageHeaderExtended>
   );
 }

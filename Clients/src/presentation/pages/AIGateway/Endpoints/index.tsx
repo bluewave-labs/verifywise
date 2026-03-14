@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -7,16 +7,17 @@ import {
   Autocomplete,
   TextField,
   ListSubheader,
+  useTheme,
 } from "@mui/material";
 import { CirclePlus, Router, Trash2 } from "lucide-react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
 import StandardModal from "../../../components/Modals/StandardModal";
+import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
 import { getInputStyles } from "../../../utils/inputStyles";
-import { useTheme } from "@mui/material/styles";
 
 interface ModelOption {
   id: string;
@@ -54,20 +55,33 @@ const MODEL_OPTIONS: ModelOption[] = [
   { id: "openrouter/anthropic/claude-sonnet-4", provider: "openrouter", mode: "chat" },
 ].sort((a, b) => a.provider.localeCompare(b.provider));
 
+const sectionTitleSx = {
+  fontWeight: 600,
+  fontSize: 16,
+};
+
+function useCardSx() {
+  const theme = useTheme();
+  return {
+    background: theme.palette.background.paper,
+    border: `1.5px solid ${theme.palette.border.light}`,
+    borderRadius: theme.shape.borderRadius,
+    p: theme.spacing(5, 6),
+    boxShadow: "none",
+  };
+}
+
 export default function EndpointsPage() {
   const theme = useTheme();
+  const cardSx = useCardSx();
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
-  // Model autocomplete uses MODULE_OPTIONS constant at module scope
-
-  // Form state
   const [form, setForm] = useState({
     display_name: "",
     slug: "",
@@ -98,7 +112,6 @@ export default function EndpointsPage() {
     loadData();
   }, [loadData]);
 
-  // Auto-generate slug from display name
   const handleNameChange = (value: string) => {
     setForm((p) => ({
       ...p,
@@ -110,11 +123,10 @@ export default function EndpointsPage() {
     }));
   };
 
-  // Auto-detect provider from model string
   const handleModelSelect = (model: string) => {
     const provider = model.includes("/") ? model.split("/")[0] : "";
     setForm((p) => ({ ...p, model, provider }));
-      };
+  };
 
   const handleCreate = async () => {
     if (!form.display_name || !form.slug || !form.model || !form.api_key_id) {
@@ -155,19 +167,11 @@ export default function EndpointsPage() {
 
   const resetForm = () => {
     setForm({
-      display_name: "",
-      slug: "",
-      provider: "",
-      model: "",
-      api_key_id: "",
-      max_tokens: "",
-      temperature: "",
-      system_prompt: "",
+      display_name: "", slug: "", provider: "", model: "",
+      api_key_id: "", max_tokens: "", temperature: "", system_prompt: "",
     });
     setFormError("");
-      };
-
-  // MODEL_OPTIONS is already sorted at module scope
+  };
 
   const apiKeyItems = apiKeys
     .filter((k) => k.is_active)
@@ -176,89 +180,84 @@ export default function EndpointsPage() {
   const inputStyles = getInputStyles(theme);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography sx={{ fontSize: 18, fontWeight: 600, color: palette.text.primary }}>
-            Endpoints
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
-            Configure LLM provider endpoints for your organization
-          </Typography>
-        </Box>
+    <PageHeaderExtended
+      title="Endpoints"
+      description="Configure LLM provider endpoints for your organization."
+      actionButton={
         <CustomizableButton
           text="Add endpoint"
           icon={<CirclePlus size={14} strokeWidth={1.5} />}
-          onClick={() => {
-            resetForm();
-            setIsCreateOpen(true);
-          }}
+          onClick={() => { resetForm(); setIsCreateOpen(true); }}
         />
-      </Stack>
-
-      {loading ? (
-        <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Loading endpoints...</Typography>
-      ) : endpoints.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            py: 8,
-            border: `1px solid ${palette.border.dark}`,
-            borderRadius: "4px",
-            backgroundColor: palette.background.alt,
-          }}
-        >
-          <Router size={32} color={palette.text.disabled} strokeWidth={1.5} />
-          <Typography sx={{ fontSize: 14, fontWeight: 500, color: palette.text.primary, mt: 2 }}>
-            No endpoints configured
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
-            Add your first LLM endpoint to get started
-          </Typography>
-        </Stack>
-      ) : (
-        <Stack spacing={1}>
-          {endpoints.map((ep) => (
-            <Box
-              key={ep.id}
+      }
+    >
+      <Box sx={cardSx}>
+        <Stack gap="12px">
+          {loading ? (
+            <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Loading endpoints...</Typography>
+          ) : endpoints.length === 0 ? (
+            <Stack
+              alignItems="center"
+              justifyContent="center"
               sx={{
-                p: 2,
-                border: `1px solid ${palette.border.dark}`,
+                py: 4,
+                textAlign: "center",
+                border: `1px dashed ${palette.border.dark}`,
                 borderRadius: "4px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
               }}
             >
-              <Box>
-                <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
-                  {ep.display_name}
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
-                  {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
-                </Typography>
-              </Box>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography
+              <Router size={32} color={palette.text.disabled} strokeWidth={1.5} />
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mt: 2 }}>
+                No endpoints configured
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mt: 0.5 }}>
+                Add your first LLM endpoint to get started
+              </Typography>
+            </Stack>
+          ) : (
+            <Stack gap="8px">
+              {endpoints.map((ep) => (
+                <Stack
+                  key={ep.id}
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
                   sx={{
-                    fontSize: 11,
-                    color: ep.is_active ? palette.status.success.text : palette.text.disabled,
-                    fontWeight: 500,
+                    p: "12px 16px",
+                    border: `1px solid ${palette.border.dark}`,
+                    borderRadius: "4px",
                   }}
                 >
-                  {ep.is_active ? "Active" : "Inactive"}
-                </Typography>
-                <IconButton size="small" onClick={() => handleDelete(ep.id)} sx={{ p: 0.5 }}>
-                  <Trash2 size={14} strokeWidth={1.5} color={palette.text.tertiary} />
-                </IconButton>
-              </Stack>
-            </Box>
-          ))}
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      {ep.display_name}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+                      {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" alignItems="center" gap="8px">
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        color: ep.is_active ? palette.status.success.text : palette.text.disabled,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {ep.is_active ? "Active" : "Inactive"}
+                    </Typography>
+                    <IconButton size="small" onClick={() => handleDelete(ep.id)} sx={{ p: 0.5 }}>
+                      <Trash2 size={14} strokeWidth={1.5} color={palette.text.tertiary} />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+              ))}
+            </Stack>
+          )}
         </Stack>
-      )}
+      </Box>
 
-      {/* ─── Create Endpoint Modal ────────────────────────────────────────── */}
+      {/* Create Endpoint Modal */}
       <StandardModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
@@ -267,9 +266,9 @@ export default function EndpointsPage() {
         onSubmit={handleCreate}
         submitButtonText="Create endpoint"
         isSubmitting={isSubmitting}
-        maxWidth="600px"
+        maxWidth="480px"
       >
-        <Stack spacing={6}>
+        <Stack gap="16px">
           <Field
             label="Endpoint name"
             placeholder="e.g., Production GPT-4o"
@@ -279,9 +278,7 @@ export default function EndpointsPage() {
           />
 
           <Box>
-            <Typography
-              sx={{ fontSize: 11, fontWeight: 500, color: palette.text.primary, mb: 0.5 }}
-            >
+            <Typography sx={{ fontSize: 11, fontWeight: 500, mb: 0.5 }}>
               Model <span style={{ color: palette.status.error.text }}>*</span>
             </Typography>
             <Autocomplete
@@ -328,9 +325,7 @@ export default function EndpointsPage() {
                     boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                   },
                 },
-                listbox: {
-                  sx: { maxHeight: 300 },
-                },
+                listbox: { sx: { maxHeight: 300 } },
               }}
             />
           </Box>
@@ -346,22 +341,25 @@ export default function EndpointsPage() {
               getOptionValue={(item) => item._id}
             />
           ) : (
-            <Box
+            <Stack
+              direction="row"
+              alignItems="flex-start"
+              gap="6px"
               sx={{
-                p: 1.5,
-                border: `1px solid ${palette.border.dark}`,
+                p: "8px 12px",
+                bgcolor: palette.background.accent,
                 borderRadius: "4px",
-                backgroundColor: palette.background.alt,
+                border: `1px solid ${palette.border.light}`,
               }}
             >
-              <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+              <Typography sx={{ fontSize: 12, lineHeight: 1.5, color: palette.text.tertiary }}>
                 No API keys available. Go to Settings to add one first.
               </Typography>
-            </Box>
+            </Stack>
           )}
 
-          <Stack direction="row" spacing={3}>
-            <Box flex={1}>
+          <Stack direction="row" gap="12px">
+            <Box sx={{ flex: 1 }}>
               <Field
                 label="Max tokens"
                 placeholder="4096"
@@ -370,7 +368,7 @@ export default function EndpointsPage() {
                 isOptional
               />
             </Box>
-            <Box flex={1}>
+            <Box sx={{ flex: 1 }}>
               <Field
                 label="Temperature"
                 placeholder="0.7"
@@ -402,6 +400,6 @@ export default function EndpointsPage() {
           )}
         </Stack>
       </StandardModal>
-    </Box>
+    </PageHeaderExtended>
   );
 }

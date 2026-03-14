@@ -179,7 +179,7 @@ export default function PlaygroundPage() {
       setIsStreaming(false);
       abortRef.current = null;
     }
-  }, [input, selectedEndpoint, messages, isStreaming, temperature, maxTokens]);
+  }, [input, selectedEndpoint, messages, isStreaming, temperature, maxTokens, authToken]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -226,7 +226,7 @@ export default function PlaygroundPage() {
       </Stack>
 
       {/* Controls */}
-      <Stack direction="row" spacing={2} mb={2} alignItems="flex-end">
+      <Stack direction="row" gap="12px" mb={2} alignItems="flex-end">
         <Box flex={1}>
           <Select
             id="endpoint"
@@ -268,7 +268,7 @@ export default function PlaygroundPage() {
       <Box
         sx={{
           flex: 1,
-          border: `1px solid ${palette.border.dark}`,
+          border: `1.5px solid ${palette.border.light}`,
           borderRadius: "4px",
           overflow: "auto",
           mb: 2,
@@ -365,13 +365,13 @@ export default function PlaygroundPage() {
       </Box>
 
       {/* Input Area */}
-      <Stack direction="row" spacing={1} alignItems="flex-end">
+      <Stack direction="row" gap="8px" alignItems="flex-end">
         <Box
           sx={{
             flex: 1,
-            border: `1px solid ${palette.border.dark}`,
+            border: `1.5px solid ${palette.border.light}`,
             borderRadius: "4px",
-            p: 1,
+            p: "12px 16px",
             backgroundColor: palette.background.main,
           }}
         >

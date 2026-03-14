@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Box, Typography, Stack, IconButton } from "@mui/material";
+import { useState, useEffect, useCallback } from "react";
+import { Box, Typography, Stack, IconButton, useTheme } from "@mui/material";
 import { CirclePlus, Key, Wallet, Trash2, Pencil } from "lucide-react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
 import StandardModal from "../../../components/Modals/StandardModal";
 import Toggle from "../../../components/Inputs/Toggle";
+import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
 
@@ -22,7 +23,24 @@ const PROVIDERS = [
   { _id: "cohere", name: "Cohere" },
 ];
 
+const sectionTitleSx = {
+  fontWeight: 600,
+  fontSize: 16,
+};
+
+function useCardSx() {
+  const theme = useTheme();
+  return {
+    background: theme.palette.background.paper,
+    border: `1.5px solid ${theme.palette.border.light}`,
+    borderRadius: theme.shape.borderRadius,
+    p: theme.spacing(5, 6),
+    boxShadow: "none",
+  };
+}
+
 export default function AIGatewaySettingsPage() {
+  const cardSx = useCardSx();
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [budget, setBudget] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -61,8 +79,6 @@ export default function AIGatewaySettingsPage() {
     loadData();
   }, [loadData]);
 
-  // ─── API Key Handlers ──────────────────────────────────────────────────────
-
   const handleCreateKey = async () => {
     if (!keyForm.key_name || !keyForm.provider || !keyForm.api_key) {
       setKeyError("All fields are required");
@@ -90,8 +106,6 @@ export default function AIGatewaySettingsPage() {
       // Silently handle
     }
   };
-
-  // ─── Budget Handlers ───────────────────────────────────────────────────────
 
   const handleSaveBudget = async () => {
     setBudgetSubmitting(true);
@@ -124,179 +138,167 @@ export default function AIGatewaySettingsPage() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box mb={3}>
-        <Typography sx={{ fontSize: 18, fontWeight: 600, color: palette.text.primary }}>
-          Settings
-        </Typography>
-        <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
-          Manage API keys and budget for the AI Gateway
-        </Typography>
-      </Box>
-
+    <PageHeaderExtended
+      title="Settings"
+      description="Manage API keys and budget for the AI Gateway."
+    >
       {/* API Keys Section */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography sx={{ fontSize: 15, fontWeight: 600, color: palette.text.primary }}>
-            API keys
-          </Typography>
-          <CustomizableButton
-            text="Add key"
-            icon={<CirclePlus size={14} strokeWidth={1.5} />}
-            onClick={() => {
-              setKeyForm({ key_name: "", provider: "", api_key: "" });
-              setKeyError("");
-              setIsKeyModalOpen(true);
-            }}
-          />
-        </Stack>
+      <Box sx={cardSx}>
+        <Stack gap="12px">
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography sx={sectionTitleSx}>API keys</Typography>
+            <CustomizableButton
+              text="Add key"
+              icon={<CirclePlus size={14} strokeWidth={1.5} />}
+              onClick={() => {
+                setKeyForm({ key_name: "", provider: "", api_key: "" });
+                setKeyError("");
+                setIsKeyModalOpen(true);
+              }}
+            />
+          </Stack>
 
-        {apiKeys.length === 0 ? (
-          <Stack
-            alignItems="center"
-            justifyContent="center"
-            sx={{
-              py: 4,
-              border: `1px solid ${palette.border.dark}`,
-              borderRadius: "4px",
-              backgroundColor: palette.background.alt,
-            }}
-          >
-            <Key size={24} color={palette.text.disabled} strokeWidth={1.5} />
-            <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 1 }}>
-              No API keys configured. Add a provider API key to create endpoints.
-            </Typography>
-          </Stack>
-        ) : (
-          <Stack spacing={1}>
-            {apiKeys.map((key) => (
-              <Box
-                key={key.id}
-                sx={{
-                  p: 2,
-                  border: `1px solid ${palette.border.dark}`,
-                  borderRadius: "4px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Box>
-                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
-                    {key.key_name}
-                  </Typography>
-                  <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
-                    {key.provider} &middot; {key.masked_key}
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      color: key.is_active ? palette.status.success.text : palette.text.disabled,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {key.is_active ? "Active" : "Inactive"}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteKey(key.id)}
-                    sx={{ p: 0.5 }}
-                  >
-                    <Trash2 size={14} strokeWidth={1.5} color={palette.text.tertiary} />
-                  </IconButton>
+          {apiKeys.length === 0 ? (
+            <Stack
+              alignItems="center"
+              justifyContent="center"
+              sx={{
+                py: 4,
+                textAlign: "center",
+                border: `1px dashed ${palette.border.dark}`,
+                borderRadius: "4px",
+              }}
+            >
+              <Key size={24} color={palette.text.disabled} strokeWidth={1.5} />
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 1 }}>
+                No API keys configured. Add a provider API key to create endpoints.
+              </Typography>
+            </Stack>
+          ) : (
+            <Stack gap="8px">
+              {apiKeys.map((key) => (
+                <Stack
+                  key={key.id}
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{
+                    p: "12px 16px",
+                    border: `1px solid ${palette.border.dark}`,
+                    borderRadius: "4px",
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
+                      {key.key_name}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+                      {key.provider} &middot; {key.masked_key}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" alignItems="center" gap="8px">
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        color: key.is_active ? palette.status.success.text : palette.text.disabled,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {key.is_active ? "Active" : "Inactive"}
+                    </Typography>
+                    <IconButton size="small" onClick={() => handleDeleteKey(key.id)} sx={{ p: 0.5 }}>
+                      <Trash2 size={14} strokeWidth={1.5} color={palette.text.tertiary} />
+                    </IconButton>
+                  </Stack>
                 </Stack>
-              </Box>
-            ))}
-          </Stack>
-        )}
+              ))}
+            </Stack>
+          )}
+        </Stack>
       </Box>
 
       {/* Budget Section */}
-      <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography sx={{ fontSize: 15, fontWeight: 600, color: palette.text.primary }}>
-            Budget
-          </Typography>
-          <CustomizableButton
-            text={budget ? "Edit budget" : "Set budget"}
-            icon={<Pencil size={14} strokeWidth={1.5} />}
-            onClick={openBudgetModal}
-          />
-        </Stack>
+      <Box sx={cardSx}>
+        <Stack gap="12px">
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography sx={sectionTitleSx}>Budget</Typography>
+            <CustomizableButton
+              text={budget ? "Edit budget" : "Set budget"}
+              icon={<Pencil size={14} strokeWidth={1.5} />}
+              onClick={openBudgetModal}
+            />
+          </Stack>
 
-        <Box
-          sx={{
-            p: 2,
-            border: `1px solid ${palette.border.dark}`,
-            borderRadius: "4px",
-          }}
-        >
           {budget ? (
-            <Stack spacing={1}>
+            <Stack gap="12px">
               <Stack direction="row" justifyContent="space-between">
                 <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Monthly limit</Typography>
-                <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                   ${Number(budget.monthly_limit_usd).toFixed(2)}
                 </Typography>
               </Stack>
               <Stack direction="row" justifyContent="space-between">
                 <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Current spend</Typography>
-                <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                   ${Number(budget.current_spend_usd).toFixed(4)}
                 </Typography>
               </Stack>
               {Number(budget.monthly_limit_usd) > 0 && (
-                <Box sx={{ mt: 1 }}>
+                <Box
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: palette.border.light,
+                    overflow: "hidden",
+                  }}
+                >
                   <Box
                     sx={{
-                      height: 6,
+                      height: "100%",
+                      width: `${Math.min(100, (Number(budget.current_spend_usd) / Number(budget.monthly_limit_usd)) * 100)}%`,
+                      backgroundColor:
+                        (Number(budget.current_spend_usd) / Number(budget.monthly_limit_usd)) * 100 >= budget.alert_threshold_pct
+                          ? palette.status.error.text
+                          : palette.brand.primary,
                       borderRadius: 3,
-                      backgroundColor: palette.border.light,
-                      overflow: "hidden",
+                      transition: "width 0.3s",
                     }}
-                  >
-                    <Box
-                      sx={{
-                        height: "100%",
-                        width: `${Math.min(100, (Number(budget.current_spend_usd) / Number(budget.monthly_limit_usd)) * 100)}%`,
-                        backgroundColor:
-                          (Number(budget.current_spend_usd) / Number(budget.monthly_limit_usd)) * 100 >= budget.alert_threshold_pct
-                            ? palette.status.error.text
-                            : palette.brand.primary,
-                        borderRadius: 3,
-                        transition: "width 0.3s",
-                      }}
-                    />
-                  </Box>
+                  />
                 </Box>
               )}
               <Stack direction="row" justifyContent="space-between">
                 <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Alert threshold</Typography>
-                <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                   {budget.alert_threshold_pct}%
                 </Typography>
               </Stack>
               <Stack direction="row" justifyContent="space-between">
                 <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Hard limit</Typography>
-                <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                   {budget.is_hard_limit ? "Yes (requests rejected)" : "No (alert only)"}
                 </Typography>
               </Stack>
             </Stack>
           ) : (
-            <Stack alignItems="center" py={2}>
+            <Stack
+              alignItems="center"
+              sx={{
+                py: 4,
+                textAlign: "center",
+                border: `1px dashed ${palette.border.dark}`,
+                borderRadius: "4px",
+              }}
+            >
               <Wallet size={24} color={palette.text.disabled} strokeWidth={1.5} />
               <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 1 }}>
                 No budget configured. All requests are allowed without cost limits.
               </Typography>
             </Stack>
           )}
-        </Box>
+        </Stack>
       </Box>
 
-      {/* ─── Add API Key Modal ──────────────────────────────────────────────── */}
+      {/* Add API Key Modal */}
       <StandardModal
         isOpen={isKeyModalOpen}
         onClose={() => setIsKeyModalOpen(false)}
@@ -305,8 +307,9 @@ export default function AIGatewaySettingsPage() {
         onSubmit={handleCreateKey}
         submitButtonText="Add key"
         isSubmitting={keySubmitting}
+        maxWidth="480px"
       >
-        <Stack spacing={6}>
+        <Stack gap="16px">
           <Field
             label="Key name"
             placeholder="e.g., Production OpenAI key"
@@ -339,7 +342,7 @@ export default function AIGatewaySettingsPage() {
         </Stack>
       </StandardModal>
 
-      {/* ─── Budget Modal ───────────────────────────────────────────────────── */}
+      {/* Budget Modal */}
       <StandardModal
         isOpen={isBudgetModalOpen}
         onClose={() => setIsBudgetModalOpen(false)}
@@ -348,8 +351,9 @@ export default function AIGatewaySettingsPage() {
         onSubmit={handleSaveBudget}
         submitButtonText={budget ? "Update budget" : "Set budget"}
         isSubmitting={budgetSubmitting}
+        maxWidth="480px"
       >
-        <Stack spacing={6}>
+        <Stack gap="16px">
           <Field
             label="Monthly limit (USD)"
             placeholder="e.g., 100.00"
@@ -365,7 +369,7 @@ export default function AIGatewaySettingsPage() {
           />
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Box>
-              <Typography sx={{ fontSize: 13, fontWeight: 500, color: palette.text.primary }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                 Hard limit
               </Typography>
               <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
@@ -379,6 +383,6 @@ export default function AIGatewaySettingsPage() {
           </Stack>
         </Stack>
       </StandardModal>
-    </Box>
+    </PageHeaderExtended>
   );
 }

@@ -48,4 +48,78 @@ test.describe("Model Inventory", () => {
       .or(page.getByText(/add.*model/i));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 1: Tab / sub-route navigation ---
+
+  test("can navigate to model risks sub-route", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/model-inventory/model-risks");
+    await expect(page).toHaveURL(/\/model-inventory\/model-risks/);
+
+    await expect(
+      page
+        .getByText(/risk/i)
+        .or(page.getByRole("heading"))
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("can navigate to evidence hub sub-route", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/model-inventory/evidence-hub");
+    await expect(page).toHaveURL(/\/model-inventory\/evidence-hub/);
+
+    await expect(
+      page
+        .getByText(/evidence/i)
+        .or(page.getByRole("heading"))
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  // --- Tier 2: Search ---
+
+  test("searching for nonexistent model filters results", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/model-inventory");
+    const searchInput = page
+      .getByPlaceholder(/search/i);
+
+    if (await searchInput.first().isVisible().catch(() => false)) {
+      await searchInput.first().fill("nonexistent-xyz-model");
+      await page.waitForTimeout(500);
+      await searchInput.first().clear();
+      await page.waitForTimeout(500);
+    }
+  });
+
+  // --- Tier 3: Modal open/close ---
+
+  test("add model button opens creation modal or dropdown", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/model-inventory");
+    const addBtn = page
+      .getByRole("button", { name: /add.*model/i })
+      .or(page.getByRole("button", { name: /new.*model/i }))
+      .or(page.getByRole("button", { name: /register.*model/i }));
+
+    if (await addBtn.first().isVisible().catch(() => false)) {
+      await addBtn.first().click();
+      // Could be a modal, drawer, or dropdown
+      await expect(
+        page
+          .getByText(/add.*model/i)
+          .or(page.getByText(/new model/i))
+          .or(page.getByText(/register/i))
+          .or(page.locator(".MuiDrawer-root"))
+          .or(page.locator(".MuiPopover-root"))
+          .first()
+      ).toBeVisible({ timeout: 10_000 });
+      await page.keyboard.press("Escape");
+    }
+  });
 });

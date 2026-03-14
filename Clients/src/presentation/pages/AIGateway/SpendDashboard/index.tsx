@@ -125,42 +125,59 @@ export default function SpendDashboardPage() {
         <Box sx={cardSx}>
           <Stack gap="12px">
             <Stack direction="row" alignItems="center" gap="6px">
-              <Typography sx={sectionTitleSx}>Cost over time</Typography>
-              <MuiTooltip title="Daily spend trend across all endpoints for the selected period" arrow placement="top">
+              <Typography sx={sectionTitleSx}>{period === "1d" ? "Cost by hour" : "Cost over time"}</Typography>
+              <MuiTooltip title={period === "1d" ? "Hourly spend breakdown for today" : "Daily spend trend across all endpoints for the selected period"} arrow placement="top">
                 <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
               </MuiTooltip>
             </Stack>
             <ResponsiveContainer width="100%" height={260} style={{ outline: "none" }}>
-              <LineChart data={byDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                  tickLine={false}
-                  axisLine={{ stroke: palette.border.light }}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                  tickLine={false}
-                  axisLine={{ stroke: palette.border.light }}
-                  tickFormatter={(v) => `$${v}`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    fontSize: 12,
-                    borderRadius: 4,
-                    border: `1px solid ${palette.border.light}`,
-                  }}
-                  formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total_cost"
-                  stroke={chartPalette[0]}
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
+              {period === "1d" ? (
+                <BarChart data={byDay}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                    tickLine={false}
+                    axisLine={{ stroke: palette.border.light }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                    tickLine={false}
+                    axisLine={{ stroke: palette.border.light }}
+                    tickFormatter={(v) => `$${v}`}
+                  />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
+                    formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
+                  />
+                  <Bar dataKey="total_cost" fill={chartPalette[0]} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              ) : (
+                <LineChart data={byDay}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                    tickLine={false}
+                    axisLine={{ stroke: palette.border.light }}
+                    tickFormatter={(v) => {
+                      const d = new Date(v + "T00:00:00");
+                      return isNaN(d.getTime()) ? v : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                    }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                    tickLine={false}
+                    axisLine={{ stroke: palette.border.light }}
+                    tickFormatter={(v) => `$${v}`}
+                  />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
+                    formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
+                  />
+                  <Line type="monotone" dataKey="total_cost" stroke={chartPalette[0]} strokeWidth={2} dot={false} />
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </Stack>
         </Box>
@@ -179,12 +196,8 @@ export default function SpendDashboardPage() {
                     <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
                   </MuiTooltip>
                 </Stack>
-                {(() => {
-                  const maxLen = Math.max(...byModel.map((m: any) => (m.group_key || "").length));
-                  const labelWidth = Math.min(260, Math.max(80, maxLen * 6.5));
-                  return (
-                <ResponsiveContainer width="100%" height={Math.max(200, byModel.length * 44)} style={{ outline: "none" }}>
-                  <BarChart data={byModel} layout="vertical" margin={{ left: labelWidth, right: 16 }}>
+                <ResponsiveContainer width="100%" height={Math.max(200, byModel.length * 38)} style={{ outline: "none" }}>
+                  <BarChart data={byModel} layout="vertical" margin={{ left: 10, right: 16, top: 5, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} horizontal={false} />
                     <XAxis
                       type="number"
@@ -199,7 +212,8 @@ export default function SpendDashboardPage() {
                       tick={{ fontSize: 10, fill: palette.text.tertiary }}
                       tickLine={false}
                       axisLine={false}
-                      width={labelWidth}
+                      width={140}
+                      tickFormatter={(v) => v.length > 25 ? v.slice(0, 22) + "..." : v}
                     />
                     <Tooltip
                       contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
@@ -212,8 +226,6 @@ export default function SpendDashboardPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-                  );
-                })()}
               </Stack>
             </Box>
           )}

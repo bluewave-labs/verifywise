@@ -199,16 +199,23 @@ export const getSpendByUserQuery = async (
 };
 
 /**
- * Get daily spend breakdown within a date range
+ * Get spend breakdown by time bucket within a date range.
+ * For "1d" period, groups by hour. Otherwise groups by day.
  */
 export const getSpendByDayQuery = async (
   organizationId: number,
   startDate: string,
-  endDate: string
+  endDate: string,
+  period: string = "7d"
 ): Promise<ISpendByDay[]> => {
+  const isHourly = period === "1d";
+  const groupExpr = isHourly
+    ? "TO_CHAR(created_at, 'HH24:00')"
+    : "DATE(created_at)::text";
+
   const result = (await sequelize.query(
     `SELECT
-       DATE(created_at)::text AS day,
+       ${groupExpr} AS day,
        COALESCE(SUM(cost_usd), 0)::float AS total_cost,
        COUNT(*)::int AS total_requests,
        COALESCE(SUM(total_tokens), 0)::int AS total_tokens
@@ -216,7 +223,7 @@ export const getSpendByDayQuery = async (
      WHERE organization_id = :organizationId
        AND created_at >= :startDate
        AND created_at <= :endDate
-     GROUP BY DATE(created_at)
+     GROUP BY ${groupExpr}
      ORDER BY day ASC`,
     { replacements: { organizationId, startDate, endDate } }
   )) as [ISpendByDay[], number];

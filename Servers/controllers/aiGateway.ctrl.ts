@@ -285,7 +285,7 @@ export async function getSpendSummary(req: Request, res: Response) {
     const { startDate, endDate } = getDateRange(period);
     const [summary, byDay, byModel] = await Promise.all([
       getSpendSummaryQuery(req.organizationId!, startDate, endDate),
-      getSpendByDayQuery(req.organizationId!, startDate, endDate),
+      getSpendByDayQuery(req.organizationId!, startDate, endDate, period),
       getSpendByModelQuery(req.organizationId!, startDate, endDate),
     ]);
 

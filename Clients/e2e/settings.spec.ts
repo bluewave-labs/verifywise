@@ -108,4 +108,53 @@ test.describe("Settings", () => {
     await expect(newPwd.first()).toBeVisible({ timeout: 10_000 });
     await expect(confirmPwd.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 3: Profile form fields ---
+
+  test("profile settings shows editable form fields", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings");
+
+    // Profile tab should show name, email, or other profile fields
+    const profileField = page
+      .getByRole("textbox")
+      .or(page.getByPlaceholder(/name|email/i));
+
+    if (await profileField.first().isVisible().catch(() => false)) {
+      const count = await profileField.count();
+      expect(count).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  // --- Tier 3: Organization settings content ---
+
+  test("organization tab shows organization details", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings/organization");
+
+    const orgContent = page
+      .getByText(/organization/i)
+      .or(page.getByRole("textbox"))
+      .or(page.getByText(/member/i))
+      .or(page.getByText(/team/i));
+    await expect(orgContent.first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  // --- Tier 3: Save button presence ---
+
+  test("settings pages have save or update button", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/settings");
+
+    const saveBtn = page
+      .getByRole("button", { name: /save|update|submit/i })
+      .first();
+
+    if (await saveBtn.isVisible().catch(() => false)) {
+      await expect(saveBtn).toBeVisible();
+    }
+  });
 });

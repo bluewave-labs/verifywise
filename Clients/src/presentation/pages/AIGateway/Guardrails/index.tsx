@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Box, Typography, Stack, IconButton, Chip as MuiChip } from "@mui/material";
+import { Box, Typography, Stack, IconButton } from "@mui/material";
+import Chip from "../../../components/Chip";
 import {
   CirclePlus,
   ShieldCheck,
@@ -216,19 +217,7 @@ export default function GuardrailsPage() {
             ? `${Object.keys(rule.config?.entities || {}).join(", ")}`
             : `${rule.config?.type}: ${rule.config?.pattern}`}
         </Typography>
-        <MuiChip
-          label={rule.action === "block" ? "Block" : "Mask"}
-          size="small"
-          sx={{
-            height: 20,
-            fontSize: 11,
-            fontWeight: 600,
-            backgroundColor: rule.action === "block" ? `${palette.status.error.text}14` : `${palette.brand.primary}14`,
-            color: rule.action === "block" ? palette.status.error.text : palette.brand.primary,
-            border: `1px solid ${rule.action === "block" ? `${palette.status.error.text}30` : `${palette.brand.primary}30`}`,
-            "& .MuiChip-label": { px: 1 },
-          }}
-        />
+        <Chip label={rule.action === "block" ? "Blocked" : "Masked"} size="small" />
       </Box>
       <Stack direction="row" alignItems="center" gap="8px">
         <Toggle
@@ -263,16 +252,21 @@ export default function GuardrailsPage() {
       {/* PII Detection Section */}
       <Box sx={cardSx}>
         <Stack gap="12px">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack gap="8px">
             <Typography sx={sectionTitleSx}>PII detection</Typography>
-            <CustomizableButton
-              text="Add PII rule"
-              icon={<CirclePlus size={14} strokeWidth={1.5} />}
-              onClick={() => {
-                setPiiForm({ name: "", entity: "EMAIL_ADDRESS", action: "block" });
-                setIsPiiModalOpen(true);
-              }}
-            />
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, maxWidth: "75%" }}>
+                Detect and protect personal data (emails, phone numbers, credit cards, names) using Microsoft Presidio running locally. No data leaves your infrastructure.
+              </Typography>
+              <CustomizableButton
+                text="Add PII rule"
+                icon={<CirclePlus size={14} strokeWidth={1.5} />}
+                onClick={() => {
+                  setPiiForm({ name: "", entity: "EMAIL_ADDRESS", action: "block" });
+                  setIsPiiModalOpen(true);
+                }}
+              />
+            </Stack>
           </Stack>
 
           {loading ? null : piiRules.length === 0 ? (
@@ -303,17 +297,22 @@ export default function GuardrailsPage() {
       {/* Content Filter Section */}
       <Box sx={cardSx}>
         <Stack gap="12px">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack gap="8px">
             <Typography sx={sectionTitleSx}>Content filter</Typography>
-            <CustomizableButton
-              text="Add filter rule"
-              icon={<CirclePlus size={14} strokeWidth={1.5} />}
-              onClick={() => {
-                setCfForm({ name: "", type: "keyword", pattern: "", action: "block" });
-                setCfError("");
-                setIsCfModalOpen(true);
-              }}
-            />
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, maxWidth: "75%" }}>
+                Block or mask content matching specific keywords or regex patterns. Use keywords for exact terms and regex for format detection (e.g., project codes, internal URLs).
+              </Typography>
+              <CustomizableButton
+                text="Add filter rule"
+                icon={<CirclePlus size={14} strokeWidth={1.5} />}
+                onClick={() => {
+                  setCfForm({ name: "", type: "keyword", pattern: "", action: "block" });
+                  setCfError("");
+                  setIsCfModalOpen(true);
+                }}
+              />
+            </Stack>
           </Stack>
 
           {loading ? null : cfRules.length === 0 ? (

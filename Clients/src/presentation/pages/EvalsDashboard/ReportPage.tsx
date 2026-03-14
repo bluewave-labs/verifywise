@@ -33,17 +33,17 @@ interface ReportPageProps {
   orgName?: string;
 }
 
-interface ReportHistoryEntry {
+interface StoredReport {
   id: string;
   title: string;
   format: string;
+  fileSize: number;
   experiments: number;
   experimentIds: string[];
-  sections: any[];
-  generatedAt: string;
+  projectId?: string;
+  createdBy?: string;
+  createdAt: string;
 }
-
-const REPORT_HISTORY_KEY = "evals_report_history";
 
 export default function ReportPage({
   projectId,
@@ -54,30 +54,16 @@ export default function ReportPage({
   const theme = useTheme();
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
   const [experiments, setExperiments] = useState<
-    Array<{ id: string; name: string; model: string; status: string }>
+    Array<{ id: string; name: string; model: string; status: string; config?: any }>
   >([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState<{
     variant: "success" | "error" | "warning";
     body: string;
   } | null>(null);
-  const [reportHistory, setReportHistory] = useState<ReportHistoryEntry[]>(() => {
-    try {
-      const stored = localStorage.getItem(REPORT_HISTORY_KEY);
-      if (!stored) return [];
-      const parsed = JSON.parse(stored);
-      return parsed.map((e: any) => ({
-        ...e,
-        experimentIds: e.experimentIds || [],
-        sections: e.sections || [],
-        experiments: e.experiments || 0,
-      }));
-    } catch {
-      return [];
-    }
-  });
+  const [reports, setReports] = useState<StoredReport[]>([]);
 
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfTitle, setPdfTitle] = useState("");
@@ -98,6 +84,7 @@ export default function ReportPage({
         name: exp.name || exp.config?.name || exp.id,
         model: exp.config?.model?.model_name || exp.config?.model?.name || "Unknown",
         status: exp.status || "unknown",
+        config: exp.config || {},
       }));
       setExperiments(expList);
     } catch (err) {
@@ -107,38 +94,26 @@ export default function ReportPage({
     }
   }, [projectId]);
 
+  const loadReports = useCallback(async () => {
+    try {
+      const res = await CustomAxios.get(`/deepeval/reports?project_id=${projectId}`);
+      setReports(res.data || []);
+    } catch (err) {
+      console.error("Failed to load reports:", err);
+    }
+  }, [projectId]);
+
   useEffect(() => {
     loadExperiments();
-  }, [loadExperiments]);
+    loadReports();
+  }, [loadExperiments, loadReports]);
 
-  const generateReport = async (
-    title: string,
-    format: string,
-    experimentIds: string[],
-    sections: any[],
-    includeDetailedSamples: boolean,
-    includeArena: boolean,
-  ): Promise<Blob> => {
-    const response = await CustomAxios.post(
-      "/deepeval/reports/generate",
-      {
-        title,
-        format,
-        experimentIds,
-        sections,
-        includeDetailedSamples,
-        includeArena,
-        projectId,
-        orgName: orgName || orgId,
-      },
-      {
-        responseType: "blob",
-        timeout: 120000,
-      },
+  const fetchReportFile = async (reportId: string): Promise<Blob> => {
+    const response = await CustomAxios.get(
+      `/deepeval/reports/${reportId}/file`,
+      { responseType: "blob", timeout: 30000 },
     );
-    return new Blob([response.data], {
-      type: format === "pdf" ? "application/pdf" : "text/csv",
-    });
+    return response.data;
   };
 
   const showPdf = (blob: Blob, title: string) => {
@@ -161,18 +136,29 @@ export default function ReportPage({
   };
 
   const handleGenerate = async (config: ReportConfig) => {
+    setConfigModalOpen(false);
     setIsGenerating(true);
     try {
-      const blob = await generateReport(
-        config.title,
-        config.format,
-        config.experimentIds,
-        config.sections,
-        config.includeDetailedSamples,
-        config.includeArena,
+      const response = await CustomAxios.post(
+        "/deepeval/reports/generate",
+        {
+          title: config.title,
+          format: config.format,
+          experimentIds: config.experimentIds,
+          sections: config.sections,
+          includeDetailedSamples: config.includeDetailedSamples,
+          includeArena: config.includeArena,
+          projectId,
+          orgName: orgName || orgId,
+        },
+        { timeout: 180000 },
       );
 
-      const reportTitle = config.title || `${projectName} - Evaluation Report`;
+      const saved = response.data;
+      await loadReports();
+
+      const blob = await fetchReportFile(saved.id);
+      const reportTitle = saved.title || config.title || `${projectName} - Evaluation Report`;
 
       if (config.format === "pdf") {
         showPdf(blob, reportTitle);
@@ -180,22 +166,8 @@ export default function ReportPage({
         downloadBlob(blob, `${reportTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.csv`);
       }
 
-      const entry: ReportHistoryEntry = {
-        id: crypto.randomUUID(),
-        title: reportTitle,
-        format: config.format.toUpperCase(),
-        experiments: config.experimentIds.length,
-        experimentIds: config.experimentIds,
-        sections: config.sections,
-        generatedAt: new Date().toISOString(),
-      };
-      const updatedHistory = [entry, ...reportHistory].slice(0, 20);
-      setReportHistory(updatedHistory);
-      localStorage.setItem(REPORT_HISTORY_KEY, JSON.stringify(updatedHistory));
-
       setAlert({ variant: "success", body: `Report generated successfully (${config.format.toUpperCase()})` });
       setTimeout(() => setAlert(null), 4000);
-      setConfigModalOpen(false);
     } catch (err) {
       console.error("Report generation failed:", err);
       setAlert({
@@ -208,46 +180,29 @@ export default function ReportPage({
     }
   };
 
-  const handleViewReport = async (entry: ReportHistoryEntry) => {
-    if (!entry.experimentIds || entry.experimentIds.length === 0) return;
-    setRegeneratingId(entry.id);
+  const handleViewReport = async (report: StoredReport) => {
+    setLoadingReportId(report.id);
     try {
-      const blob = await generateReport(
-        entry.title,
-        "pdf",
-        entry.experimentIds,
-        entry.sections || [],
-        false,
-        false,
-      );
-      showPdf(blob, entry.title);
+      const blob = await fetchReportFile(report.id);
+      showPdf(blob, report.title);
     } catch (err) {
-      console.error("Failed to regenerate report:", err);
+      console.error("Failed to load report:", err);
       setAlert({
         variant: "error",
         body: `Failed to load report: ${err instanceof Error ? err.message : "Unknown error"}`,
       });
       setTimeout(() => setAlert(null), 6000);
     } finally {
-      setRegeneratingId(null);
+      setLoadingReportId(null);
     }
   };
 
-  const handleDownloadReport = async (entry: ReportHistoryEntry) => {
-    if (!entry.experimentIds || entry.experimentIds.length === 0) return;
-    setRegeneratingId(entry.id);
+  const handleDownloadReport = async (report: StoredReport) => {
+    setLoadingReportId(report.id);
     try {
-      const format = entry.format.toLowerCase();
-      const blob = await generateReport(
-        entry.title,
-        format,
-        entry.experimentIds,
-        entry.sections || [],
-        false,
-        false,
-      );
-      const ext = format === "csv" ? "csv" : "pdf";
-      downloadBlob(blob, `${entry.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.${ext}`);
+      const blob = await fetchReportFile(report.id);
+      const ext = report.format.toLowerCase() === "csv" ? "csv" : "pdf";
+      downloadBlob(blob, `${report.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_eval_report.${ext}`);
     } catch (err) {
       console.error("Failed to download report:", err);
       setAlert({
@@ -256,14 +211,25 @@ export default function ReportPage({
       });
       setTimeout(() => setAlert(null), 6000);
     } finally {
-      setRegeneratingId(null);
+      setLoadingReportId(null);
     }
   };
 
-  const handleRemoveReport = (entryId: string) => {
-    const updated = reportHistory.filter(e => e.id !== entryId);
-    setReportHistory(updated);
-    localStorage.setItem(REPORT_HISTORY_KEY, JSON.stringify(updated));
+  const handleDeleteReport = async (reportId: string) => {
+    try {
+      await CustomAxios.delete(`/deepeval/reports/${reportId}`);
+      setReports(prev => prev.filter(r => r.id !== reportId));
+      if (pdfBlobUrl) {
+        closePdfViewer();
+      }
+    } catch (err) {
+      console.error("Failed to delete report:", err);
+      setAlert({
+        variant: "error",
+        body: "Failed to delete report",
+      });
+      setTimeout(() => setAlert(null), 6000);
+    }
   };
 
   const handleDownloadCurrent = () => {
@@ -296,6 +262,12 @@ export default function ReportPage({
     } catch {
       return iso;
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const completedCount = experiments.filter(e => e.status === "completed").length;
@@ -340,7 +312,7 @@ export default function ReportPage({
         </Typography>
       </Stack>
 
-      {/* Action Card */}
+      {/* Action Card / Progress */}
       <Box
         sx={{
           background: "#fff",
@@ -349,67 +321,81 @@ export default function ReportPage({
           p: "24px",
         }}
       >
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" gap={2}>
-            <Box
-              sx={{
-                width: 42,
-                height: 42,
-                borderRadius: "8px",
-                background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <FileText size={20} strokeWidth={1.5} color="#13715B" />
-            </Box>
-            <Box>
-              <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>
-                Generate new report
-              </Typography>
-              <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
-                {completedCount} completed experiment{completedCount !== 1 ? "s" : ""} available
-              </Typography>
-            </Box>
-          </Stack>
-          <CustomizableButton
-            variant="contained"
-            onClick={() => setConfigModalOpen(true)}
-            disabled={completedCount === 0}
-            icon={<Download size={14} />}
-            text="Generate Report"
-            sx={{
-              backgroundColor: "#13715B",
-              "&:hover": { backgroundColor: "#0f604d" },
-              textTransform: "none",
-              fontSize: 13,
-              fontWeight: 500,
-              borderRadius: "6px",
-              px: 3.5,
-              py: 1.2,
-            }}
-          />
-        </Stack>
-
-        {completedCount === 0 && (
-          <Box
-            sx={{
-              mt: 2,
-              p: 2,
-              borderRadius: "6px",
-              backgroundColor: "#FFFBEB",
-              border: "1px solid #FDE68A",
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
-            <AlertTriangle size={16} color="#D97706" />
-            <Typography sx={{ fontSize: 12, color: "#92400E" }}>
-              No completed experiments yet. Run at least one experiment to generate a report.
+        {isGenerating ? (
+          <Stack spacing={2} alignItems="center" sx={{ py: 3 }}>
+            <CircularProgress size={32} sx={{ color: "#13715B" }} />
+            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>
+              Generating report...
             </Typography>
-          </Box>
+            <Typography sx={{ fontSize: 12, color: "#6B7280", textAlign: "center", maxWidth: 400 }}>
+              Analyzing evaluation results and generating AI-powered summaries. This may take up to a minute.
+            </Typography>
+          </Stack>
+        ) : (
+          <>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Stack direction="row" alignItems="center" gap={2}>
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: "8px",
+                    background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <FileText size={20} strokeWidth={1.5} color="#13715B" />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>
+                    Generate new report
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+                    {completedCount} completed experiment{completedCount !== 1 ? "s" : ""} available
+                  </Typography>
+                </Box>
+              </Stack>
+              <CustomizableButton
+                variant="contained"
+                onClick={() => setConfigModalOpen(true)}
+                disabled={completedCount === 0}
+                icon={<Download size={14} />}
+                text="Generate Report"
+                sx={{
+                  backgroundColor: "#13715B",
+                  "&:hover": { backgroundColor: "#0f604d" },
+                  textTransform: "none",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  borderRadius: "6px",
+                  px: 3.5,
+                  py: 1.2,
+                }}
+              />
+            </Stack>
+
+            {completedCount === 0 && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  borderRadius: "6px",
+                  backgroundColor: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
+                <AlertTriangle size={16} color="#D97706" />
+                <Typography sx={{ fontSize: 12, color: "#92400E" }}>
+                  No completed experiments yet. Run at least one experiment to generate a report.
+                </Typography>
+              </Box>
+            )}
+          </>
         )}
       </Box>
 
@@ -464,7 +450,7 @@ export default function ReportPage({
       )}
 
       {/* Report History Table */}
-      {reportHistory.length > 0 && (
+      {reports.length > 0 && (
         <Box
           sx={{
             background: "#fff",
@@ -474,21 +460,24 @@ export default function ReportPage({
         >
           <Box sx={{ px: "24px", pt: "20px", pb: "12px" }}>
             <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>
-              Recent reports
+              Saved reports
             </Typography>
           </Box>
           <TableContainer sx={{ overflowX: "auto" }}>
             <Table sx={singleTheme.tableStyles.primary.frame}>
               <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
                 <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "35%" }}>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "30%" }}>
                     <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Report</Typography>
                   </TableCell>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "12%" }}>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "10%" }}>
                     <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Format</Typography>
                   </TableCell>
-                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "15%" }}>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "12%" }}>
                     <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Experiments</Typography>
+                  </TableCell>
+                  <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "10%" }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Size</Typography>
                   </TableCell>
                   <TableCell sx={{ ...singleTheme.tableStyles.primary.header.cell, width: "23%" }}>
                     <Typography sx={{ fontWeight: 500, fontSize: 13 }}>Generated</Typography>
@@ -499,89 +488,89 @@ export default function ReportPage({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {reportHistory.slice(0, 15).map(entry => (
+                {reports.map(report => (
                   <TableRow
-                    key={entry.id}
+                    key={report.id}
                     sx={singleTheme.tableStyles.primary.body.row}
                   >
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Stack direction="row" alignItems="center" gap={1}>
                         <FileText size={14} strokeWidth={1.5} color="#13715B" />
                         <Typography sx={{ fontSize: 13, color: theme.palette.text.primary, fontWeight: 500 }}>
-                          {entry.title}
+                          {report.title}
                         </Typography>
                       </Stack>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Chip
-                        label={entry.format}
+                        label={report.format.toUpperCase()}
                         size="small"
                         sx={{
                           fontSize: 11,
                           height: 22,
                           fontWeight: 500,
-                          backgroundColor: entry.format === "PDF" ? "#ECFDF5" : "#F0FDF4",
+                          backgroundColor: report.format.toLowerCase() === "pdf" ? "#ECFDF5" : "#F0FDF4",
                           color: "#13715B",
                         }}
                       />
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
-                        {entry.experiments} exp{entry.experiments !== 1 ? "s" : ""}
+                        {report.experiments} exp{report.experiments !== 1 ? "s" : ""}
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                       <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
-                        {formatDate(entry.generatedAt)}
+                        {formatFileSize(report.fileSize)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                      <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                        {formatDate(report.createdAt)}
                       </Typography>
                     </TableCell>
                     <TableCell sx={singleTheme.tableStyles.primary.body.cell} onClick={(e) => e.stopPropagation()}>
-                      {(() => {
-                        const canRegenerate = entry.experimentIds && entry.experimentIds.length > 0;
-                        return (
-                          <Stack direction="row" spacing={0.5}>
-                            {entry.format === "PDF" && (
-                              <Tooltip title={canRegenerate ? "View report" : "Legacy entry — generate a new report to view"}>
-                                <span>
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleViewReport(entry)}
-                                    disabled={!canRegenerate || regeneratingId === entry.id}
-                                    sx={{ padding: 0.5 }}
-                                  >
-                                    {regeneratingId === entry.id ? (
-                                      <CircularProgress size={14} />
-                                    ) : (
-                                      <Eye size={16} strokeWidth={1.5} color={canRegenerate ? theme.palette.text.secondary : theme.palette.action.disabled} />
-                                    )}
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            )}
-                            <Tooltip title={canRegenerate ? "Download report" : "Legacy entry — generate a new report to download"}>
-                              <span>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDownloadReport(entry)}
-                                  disabled={!canRegenerate || regeneratingId === entry.id}
-                                  sx={{ padding: 0.5 }}
-                                >
-                                  <Download size={16} strokeWidth={1.5} color={canRegenerate ? theme.palette.text.secondary : theme.palette.action.disabled} />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                            <Tooltip title="Remove from history">
+                      <Stack direction="row" spacing={0.5}>
+                        {report.format.toLowerCase() === "pdf" && (
+                          <Tooltip title="View report">
+                            <span>
                               <IconButton
                                 size="small"
-                                onClick={() => handleRemoveReport(entry.id)}
+                                onClick={() => handleViewReport(report)}
+                                disabled={loadingReportId === report.id}
                                 sx={{ padding: 0.5 }}
                               >
-                                <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                                {loadingReportId === report.id ? (
+                                  <CircularProgress size={14} />
+                                ) : (
+                                  <Eye size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                                )}
                               </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        );
-                      })()}
+                            </span>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Download report">
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDownloadReport(report)}
+                              disabled={loadingReportId === report.id}
+                              sx={{ padding: 0.5 }}
+                            >
+                              <Download size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Delete report">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteReport(report.id)}
+                            sx={{ padding: 0.5 }}
+                          >
+                            <Trash2 size={16} strokeWidth={1.5} color={theme.palette.text.secondary} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}

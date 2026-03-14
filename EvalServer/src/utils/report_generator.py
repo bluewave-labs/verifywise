@@ -172,14 +172,35 @@ def _get_styles() -> Dict[str, ParagraphStyle]:
             textColor=COLORS["secondary"],
             spaceAfter=4 * mm,
         ),
+        "ai_summary": ParagraphStyle(
+            "AISummary",
+            parent=base["Normal"],
+            fontSize=10,
+            leading=15,
+            textColor=colors.HexColor("#374151"),
+            leftIndent=6,
+            rightIndent=6,
+            spaceBefore=1 * mm,
+            spaceAfter=1 * mm,
+        ),
+        "ai_label": ParagraphStyle(
+            "AILabel",
+            parent=base["Normal"],
+            fontSize=8,
+            leading=11,
+            textColor=colors.HexColor("#6B7280"),
+            fontName="Helvetica-BoldOblique",
+            spaceBefore=2 * mm,
+            spaceAfter=1 * mm,
+        ),
     }
 
 
 def _section_header(styles: dict, title: str) -> List:
     return [
-        Spacer(1, 2 * mm),
+        Spacer(1, 3 * mm),
         Paragraph(title, styles["section_header"]),
-        HRFlowable(width="100%", thickness=0.8, color=ACCENT, spaceAfter=5 * mm),
+        HRFlowable(width="100%", thickness=0.5, color=COLORS["border"], spaceAfter=4 * mm),
     ]
 
 
@@ -200,6 +221,28 @@ def _kv_table(pairs: List[Tuple[str, str]]) -> Table:
         ("LEFTPADDING", (1, 0), (1, -1), 4),
     ]))
     return t
+
+
+def _ai_summary_block(styles: dict, text: str, label: str = "AI-Generated Analysis") -> List:
+    """Render AI-generated summary text with a left accent border on neutral background."""
+    if not text:
+        return []
+    elements = [
+        Paragraph(f"<i>{label}</i>", styles["ai_label"]),
+    ]
+    inner = [[Paragraph(text, styles["ai_summary"])]]
+    t = Table(inner, colWidths=[CONTENT_W - 14])
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F9FAFB")),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("LINEBEFORE", (0, 0), (0, -1), 2.5, colors.HexColor("#9CA3AF")),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 2 * mm))
+    return elements
 
 
 def _build_metric_table(
@@ -315,12 +358,13 @@ def generate_pdf_report(
         story.append(Spacer(1, 5 * mm))
 
     story.append(Paragraph("VerifyWise", ParagraphStyle(
-        "_brand", fontSize=16, leading=20, textColor=ACCENT,
-        alignment=TA_CENTER, fontName="Helvetica-Bold", spaceAfter=12 * mm,
+        "_brand", fontSize=14, leading=18, textColor=ACCENT,
+        alignment=TA_CENTER, fontName="Helvetica-Bold", spaceAfter=14 * mm,
     )))
 
     story.append(Paragraph("LLM Evaluation Report", styles["cover_title"]))
-    story.append(Paragraph(title, styles["cover_subtitle"]))
+    if title and title != "LLM Evaluation Report":
+        story.append(Paragraph(title, styles["cover_subtitle"]))
 
     story.append(HRFlowable(width="40%", thickness=0.6, color=ACCENT, spaceAfter=8 * mm, hAlign="CENTER"))
 
@@ -372,8 +416,15 @@ def generate_pdf_report(
     story.append(PageBreak())
 
     # ── Executive Summary ──
+    ai_executive = config.get("ai_executive_summary", "")
+    ai_metric_summaries = config.get("ai_metric_summaries", {})
+
     if "executive-summary" in enabled_sections and experiments:
         story.extend(_section_header(styles, "1. Executive Summary"))
+
+        if ai_executive:
+            story.extend(_ai_summary_block(styles, ai_executive, "AI-Generated Executive Summary"))
+            story.append(Spacer(1, 2 * mm))
 
         for exp in experiments:
             metrics = exp.get("metricSummaries", {})
@@ -486,13 +537,25 @@ def generate_pdf_report(
             quality = [(n, m) for n, m in summaries.items() if not _is_safety_metric(n)]
             safety = [(n, m) for n, m in summaries.items() if _is_safety_metric(n)]
 
+            exp_name = exp.get("name", exp.get("id", "Unknown"))
+            exp_ai = ai_metric_summaries.get(exp_name, {})
+
             if quality:
                 story.append(Paragraph("Quality Metrics", styles["body_bold"]))
                 story.append(Spacer(1, 2 * mm))
                 table = _build_metric_table(quality, thresholds)
                 if table:
                     story.append(table)
-                story.append(Spacer(1, 5 * mm))
+                    story.append(Spacer(1, 3 * mm))
+                for metric_name, _ in quality:
+                    summary_text = exp_ai.get(metric_name, "")
+                    if summary_text:
+                        block = _ai_summary_block(
+                            styles, summary_text,
+                            f"{_format_metric_name(metric_name)}",
+                        )
+                        story.append(KeepTogether(block))
+                story.append(Spacer(1, 4 * mm))
 
             if safety:
                 story.append(Paragraph("Safety Metrics", styles["body_bold"]))
@@ -504,7 +567,16 @@ def generate_pdf_report(
                 )
                 if table:
                     story.append(table)
-                story.append(Spacer(1, 5 * mm))
+                    story.append(Spacer(1, 3 * mm))
+                for metric_name, _ in safety:
+                    summary_text = exp_ai.get(metric_name, "")
+                    if summary_text:
+                        block = _ai_summary_block(
+                            styles, summary_text,
+                            f"{_format_metric_name(metric_name)}",
+                        )
+                        story.append(KeepTogether(block))
+                story.append(Spacer(1, 4 * mm))
 
     # ── Safety & Compliance ──
     if "safety-compliance" in enabled_sections:
@@ -614,10 +686,17 @@ def generate_pdf_report(
                 story.append(Spacer(1, 5 * mm))
 
     # ── Recommendations ──
+    ai_recommendations = config.get("ai_recommendations", "")
+
     if "recommendations" in enabled_sections:
         story.extend(_section_header(styles, "8. Limitations & Recommendations"))
 
-        recommendations: List[str] = []
+        if ai_recommendations:
+            story.extend(_ai_summary_block(styles, ai_recommendations, "AI-Generated Limitations & Recommendations"))
+            story.append(Spacer(1, 3 * mm))
+
+        # Static fallback bullet points for failed metrics
+        failed_metrics: List[str] = []
         for exp in experiments:
             summaries = exp.get("metricSummaries", {})
             thresholds = exp.get("metricThresholds", {})
@@ -629,32 +708,31 @@ def generate_pdf_report(
                     display = _format_metric_name(name)
                     exp_name = _safe_str(exp.get("name", exp.get("id")))
                     if inverted:
-                        recommendations.append(
-                            f"{display} score ({avg * 100:.1f}%) exceeds threshold in \"{exp_name}\". "
-                            f"Consider adding guardrails or content filters."
+                        failed_metrics.append(
+                            f"{display} score ({avg * 100:.1f}%) exceeds threshold in \"{exp_name}\"."
                         )
                     else:
-                        recommendations.append(
-                            f"{display} score ({avg * 100:.1f}%) is below threshold in \"{exp_name}\". "
-                            f"Consider fine-tuning, prompt engineering, or switching models."
+                        failed_metrics.append(
+                            f"{display} score ({avg * 100:.1f}%) is below threshold in \"{exp_name}\"."
                         )
 
-        if not recommendations:
+        if failed_metrics:
+            story.append(Paragraph("Failed Metrics Summary", styles["body_bold"]))
+            story.append(Spacer(1, 2 * mm))
+            for fm in failed_metrics:
+                story.append(Paragraph(f"&bull;&nbsp;&nbsp;{fm}", styles["small"]))
+                story.append(Spacer(1, 1.5 * mm))
+        elif not ai_recommendations:
             story.append(Paragraph(
                 "All evaluated metrics are within configured thresholds. Continue monitoring.",
                 ParagraphStyle("_ok", parent=styles["body"], textColor=COLORS["success"]),
             ))
-        else:
-            for rec in recommendations:
-                story.append(Paragraph(f"&bull;&nbsp;&nbsp;{rec}", styles["small"]))
-                story.append(Spacer(1, 1.5 * mm))
 
-        story.append(Spacer(1, 5 * mm))
+        story.append(Spacer(1, 4 * mm))
         story.append(Paragraph(
-            "<i>Limitations: Evaluation results depend on the dataset, judge model, and "
-            "configured thresholds. Scores should be interpreted in context and validated "
-            "against domain-specific requirements. This report follows the EvalCards "
-            "framework for standardized documentation.</i>",
+            "<i>Note: This report follows the EvalCards framework for standardized "
+            "AI evaluation documentation. Scores should be interpreted in the context "
+            "of the specific dataset, judge model, and configured thresholds.</i>",
             styles["small"],
         ))
 

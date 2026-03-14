@@ -190,7 +190,7 @@ export const getSpendByUserQuery = async (
      WHERE s.organization_id = :organizationId
        AND s.created_at >= :startDate
        AND s.created_at <= :endDate
-     GROUP BY u.name, u.surname
+     GROUP BY s.user_id, u.name, u.surname
      ORDER BY total_cost DESC`,
     { replacements: { organizationId, startDate, endDate } }
   )) as [ISpendByGroup[], number];
@@ -221,7 +221,7 @@ export const getSpendByDayQuery = async (
          ON s.organization_id = :organizationId
          AND s.created_at >= :startDate
          AND s.created_at <= :endDate
-         AND EXTRACT(HOUR FROM s.created_at) = h.hour
+         AND EXTRACT(HOUR FROM s.created_at AT TIME ZONE 'UTC') = h.hour
        GROUP BY h.hour
        ORDER BY h.hour`,
       { replacements: { organizationId, startDate, endDate } }

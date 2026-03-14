@@ -166,8 +166,6 @@ def _scan_content_filter(
 ) -> list[Detection]:
     """Run content filter (keywords + regex) scan."""
     detections = []
-    text_lower = text.lower()
-
     for rule in guardrail_rules:
         if rule.get("guardrail_type") != "content_filter" or not rule.get("is_active", True):
             continue
@@ -240,13 +238,22 @@ def _apply_mask(
     if not mask_detections:
         return text
 
-    # Merge overlapping spans
-    spans = [(d.start, d.end, d) for d in mask_detections]
-    spans.sort(key=lambda s: s[0])
+    # Build span-to-detection map, then merge overlapping spans
+    spans_with_det = [(d.start, d.end, d) for d in mask_detections]
+    spans_with_det.sort(key=lambda s: s[0])
+
+    # Merge overlapping spans, keeping the first detection for replacement type
+    merged: list[tuple[int, int, Detection]] = []
+    for start, end, det in spans_with_det:
+        if merged and start <= merged[-1][1]:
+            # Overlapping — extend the span, keep the first detection
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end), merged[-1][2])
+        else:
+            merged.append((start, end, det))
 
     # Process right-to-left to preserve character positions
     result = text
-    for start, end, detection in reversed(spans):
+    for start, end, detection in reversed(merged):
         if detection.guardrail_type == "pii":
             fmt = settings.get("pii_replacement_format", "<ENTITY_TYPE>")
             replacement = fmt.replace("ENTITY_TYPE", detection.entity_type)

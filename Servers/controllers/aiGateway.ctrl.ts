@@ -219,6 +219,9 @@ export async function updateEndpoint(req: Request, res: Response) {
   logStructured("processing", "updating gateway endpoint", fn, fileName);
   try {
     const id = parseId(req.params.id);
+    if (req.body.slug && !SLUG_PATTERN.test(req.body.slug)) {
+      throw new ValidationException("slug must be lowercase alphanumeric with hyphens (e.g., prod-gpt4o)");
+    }
     const updated = await updateEndpointQuery(req.organizationId!, id, req.body);
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Endpoint not found"));
@@ -226,6 +229,9 @@ export async function updateEndpoint(req: Request, res: Response) {
     logStructured("successful", `gateway endpoint updated: ${id}`, fn, fileName);
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
     logStructured("error", "failed to update gateway endpoint", fn, fileName);
     logger.error("Error updating gateway endpoint:", error);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));

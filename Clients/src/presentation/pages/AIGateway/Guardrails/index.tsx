@@ -210,15 +210,15 @@ export default function GuardrailsPage() {
         opacity: rule.is_active ? 1 : 0.6,
       }}
     >
-      <Box>
+      <Stack gap="4px">
         <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{rule.name}</Typography>
         <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
           {rule.guardrail_type === "pii"
             ? `${Object.keys(rule.config?.entities || {}).join(", ")}`
             : `${rule.config?.type}: ${rule.config?.pattern}`}
         </Typography>
-        <Chip label={rule.action === "block" ? "Blocked" : "Masked"} size="small" />
-      </Box>
+        <Box><Chip label={rule.action === "block" ? "Blocked" : "Masked"} size="small" /></Box>
+      </Stack>
       <Stack direction="row" alignItems="center" gap="8px">
         <Toggle
           checked={rule.is_active}
@@ -256,7 +256,7 @@ export default function GuardrailsPage() {
             <Typography sx={sectionTitleSx}>PII detection</Typography>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Typography sx={{ fontSize: 13, color: palette.text.tertiary, maxWidth: "75%" }}>
-                Detect and protect personal data (emails, phone numbers, credit cards, names) using Microsoft Presidio running locally. No data leaves your infrastructure.
+                Detect and protect personal data such as emails, phone numbers, credit cards, and names. PII scanning runs in-process within your gateway — no data is sent to external services.
               </Typography>
               <CustomizableButton
                 text="Add PII rule"
@@ -277,8 +277,8 @@ export default function GuardrailsPage() {
             >
               <EmptyStateTip
                 icon={Lock}
-                title="Presidio-powered, runs locally"
-                description="PII detection uses Microsoft Presidio running in-process. No data leaves your infrastructure for scanning. Supports email, phone, credit card, names, IBAN, Turkish TCKN, and more."
+                title="In-process PII scanning"
+                description="PII detection runs within your gateway infrastructure. No data is sent to external services for scanning. Supports email, phone, credit card, names, IBAN, Turkish TCKN, and more."
               />
               <EmptyStateTip
                 icon={ShieldCheck}

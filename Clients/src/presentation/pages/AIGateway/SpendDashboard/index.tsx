@@ -124,7 +124,7 @@ export default function SpendDashboardPage() {
         <Box sx={cardSx}>
           <Stack gap="12px">
             <Typography sx={sectionTitleSx}>Cost over time</Typography>
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={260} style={{ outline: "none" }}>
               <LineChart data={byDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
                 <XAxis

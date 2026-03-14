@@ -304,7 +304,7 @@ export default function PerformanceChart({ projectId, timeRange }: PerformanceCh
       "& *": { outline: "none !important" },
       "& *:focus": { outline: "none !important" },
     }}>
-        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height={Math.max(dynamicHeight, 220)} debounce={1}>
+        <ResponsiveContainer key={`rc-${projectId}-${data.length}-${activeMetrics.join(",")}-${timeRange}`} width="100%" height={Math.max(dynamicHeight, 220)} debounce={1} style={{ outline: "none" }}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
           <XAxis 

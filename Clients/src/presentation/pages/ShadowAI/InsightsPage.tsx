@@ -206,7 +206,7 @@ export default function InsightsPage() {
             ) : departments.length > 0 ? (
               <Stack direction="row" alignItems="center" justifyContent="center" gap="24px">
                 <Box sx={{ width: 200, height: 200 }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" style={{ outline: "none" }}>
                     <PieChart>
                       <Pie
                         data={departments}
@@ -264,7 +264,7 @@ export default function InsightsPage() {
               <Skeleton variant="rectangular" height={260} sx={{ borderRadius: "4px" }} />
             ) : toolsByEvents.length > 0 ? (
               <>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height={260} style={{ outline: "none" }}>
                   <BarChart
                     data={toolsByEvents}
                     layout="vertical"
@@ -322,7 +322,7 @@ export default function InsightsPage() {
             {loading ? (
               <Skeleton variant="rectangular" height={260} sx={{ borderRadius: "4px" }} />
             ) : toolsByUsers.length > 0 ? (
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={260} style={{ outline: "none" }}>
                 <BarChart
                   data={toolsByUsers}
                   layout="vertical"

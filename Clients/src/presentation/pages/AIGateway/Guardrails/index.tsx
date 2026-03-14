@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Box, Typography, Stack, IconButton, useTheme } from "@mui/material";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Box, Typography, Stack, IconButton } from "@mui/material";
 import {
   CirclePlus,
   ShieldCheck,
   Fingerprint,
   Filter,
   Trash2,
-  Pencil,
   FlaskConical,
   Lock,
   ScanLine,
@@ -22,19 +21,7 @@ import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-
-const sectionTitleSx = { fontWeight: 600, fontSize: 16 };
-
-function useCardSx() {
-  const theme = useTheme();
-  return {
-    background: theme.palette.background.paper,
-    border: `1.5px solid ${theme.palette.border.light}`,
-    borderRadius: theme.shape.borderRadius,
-    p: theme.spacing(5, 6),
-    boxShadow: "none",
-  };
-}
+import { sectionTitleSx, useCardSx } from "../shared";
 
 const PII_ENTITY_OPTIONS = [
   { _id: "EMAIL_ADDRESS", name: "Email address" },
@@ -108,8 +95,8 @@ export default function GuardrailsPage() {
     loadRules();
   }, [loadRules]);
 
-  const piiRules = rules.filter((r) => r.guardrail_type === "pii");
-  const cfRules = rules.filter((r) => r.guardrail_type === "content_filter");
+  const piiRules = useMemo(() => rules.filter((r) => r.guardrail_type === "pii"), [rules]);
+  const cfRules = useMemo(() => rules.filter((r) => r.guardrail_type === "content_filter"), [rules]);
 
   // ─── PII Handlers ──────────────────────────────────────────────────────────
 

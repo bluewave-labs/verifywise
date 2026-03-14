@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-# Timeout for regex execution (seconds)
-REGEX_TIMEOUT_S = 2.0
+# Regex pattern cache to avoid recompilation on every request
+_compiled_cache: dict[tuple[str, str], "re.Pattern | None"] = {}
 
 
 @dataclass
@@ -37,18 +37,25 @@ class ScanResult:
     execution_time_ms: int = 0
 
 
-def _validate_regex(pattern: str) -> re.Pattern | None:
-    """Compile and validate a regex pattern. Returns None if invalid."""
-    try:
-        return re.compile(pattern, re.IGNORECASE)
-    except re.error as e:
-        logger.warning(f"Invalid regex pattern '{pattern[:50]}': {e}")
-        return None
+def _get_compiled_pattern(pattern_str: str, filter_type: str) -> re.Pattern | None:
+    """Get or compile a regex pattern (cached)."""
+    key = (pattern_str, filter_type)
+    if key not in _compiled_cache:
+        try:
+            escaped = re.escape(pattern_str)
+            if filter_type == "keyword":
+                raw = r"\b" + escaped + r"\b" if " " not in pattern_str else escaped
+            else:
+                raw = pattern_str  # raw regex, don't escape
+            _compiled_cache[key] = re.compile(raw, re.IGNORECASE)
+        except re.error as e:
+            logger.warning(f"Invalid regex pattern '{pattern_str[:50]}': {e}")
+            _compiled_cache[key] = None
+    return _compiled_cache[key]
 
 
-def _run_regex_with_timeout(compiled: re.Pattern, text: str) -> list[re.Match]:
-    """Run regex with a simple length-based guard against ReDoS."""
-    # For very long text, limit scan to first 50K chars
+def _run_regex_safe(compiled: re.Pattern, text: str) -> list[re.Match]:
+    """Run regex with length guard against ReDoS."""
     scan_text = text[:50000] if len(text) > 50000 else text
     try:
         return list(compiled.finditer(scan_text))
@@ -175,58 +182,35 @@ def _scan_content_filter(
             continue
 
         try:
-            if filter_type == "keyword":
-                # Word boundary for single words, substring for multi-word
-                escaped = re.escape(pattern_str)
-                if " " in pattern_str:
-                    compiled = re.compile(escaped, re.IGNORECASE)
-                else:
-                    compiled = re.compile(r"\b" + escaped + r"\b", re.IGNORECASE)
-
-                matches = _run_regex_with_timeout(compiled, text)
-                for m in matches:
+            compiled = _get_compiled_pattern(pattern_str, filter_type)
+            if compiled is None:
+                if settings.get("content_filter_on_error", "allow") == "block":
                     detections.append(
                         Detection(
                             guardrail_id=rule.get("id"),
                             guardrail_type="content_filter",
                             entity_type=rule_name,
-                            action=action,
-                            matched_text=m.group(),
-                            start=m.start(),
-                            end=m.end(),
+                            action="block",
+                            matched_text=f"Invalid pattern: {pattern_str[:30]}",
+                            start=0,
+                            end=0,
                         )
                     )
+                continue
 
-            elif filter_type == "regex":
-                compiled = _validate_regex(pattern_str)
-                if compiled is None:
-                    if settings.get("content_filter_on_error", "allow") == "block":
-                        detections.append(
-                            Detection(
-                                guardrail_id=rule.get("id"),
-                                guardrail_type="content_filter",
-                                entity_type=rule_name,
-                                action="block",
-                                matched_text=f"Invalid regex: {pattern_str[:30]}",
-                                start=0,
-                                end=0,
-                            )
-                        )
-                    continue
-
-                matches = _run_regex_with_timeout(compiled, text)
-                for m in matches:
-                    detections.append(
-                        Detection(
-                            guardrail_id=rule.get("id"),
-                            guardrail_type="content_filter",
-                            entity_type=rule_name,
-                            action=action,
-                            matched_text=m.group(),
-                            start=m.start(),
-                            end=m.end(),
-                        )
+            matches = _run_regex_safe(compiled, text)
+            for m in matches:
+                detections.append(
+                    Detection(
+                        guardrail_id=rule.get("id"),
+                        guardrail_type="content_filter",
+                        entity_type=rule_name,
+                        action=action,
+                        matched_text=m.group(),
+                        start=m.start(),
+                        end=m.end(),
                     )
+                )
 
         except Exception as e:
             logger.warning(f"Content filter rule '{rule_name}' failed: {e}")

@@ -30,7 +30,7 @@ import {
 const AI_GATEWAY_URL =
   process.env.AI_GATEWAY_URL || "http://localhost:8100";
 const INTERNAL_KEY =
-  process.env.AI_GATEWAY_INTERNAL_KEY || "internal-gateway-key";
+  process.env.AI_GATEWAY_INTERNAL_KEY || "";
 
 /** Estimated cost per token (rough default, overridden by FastAPI response) */
 const DEFAULT_ESTIMATED_COST = 0.005;

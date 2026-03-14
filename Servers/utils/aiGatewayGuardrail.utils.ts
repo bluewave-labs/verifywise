@@ -298,7 +298,7 @@ export async function purgeGuardrailLogsQuery(
   const [, meta] = await sequelize.query(
     `DELETE FROM ai_gateway_guardrail_logs
      WHERE organization_id = :organizationId
-       AND created_at < NOW() - INTERVAL ':days days'`,
+       AND created_at < NOW() - (:days || ' days')::interval`,
     { replacements: { organizationId, days: retentionDays } }
   );
   return (meta as any)?.rowCount || 0;

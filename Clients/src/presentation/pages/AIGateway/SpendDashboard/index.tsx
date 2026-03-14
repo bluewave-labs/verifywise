@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Stack, useTheme } from "@mui/material";
+import { Box, Typography, Stack } from "@mui/material";
 import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users } from "lucide-react";
 import { StatCard } from "../../../components/Cards/StatCard";
 import {
@@ -19,6 +19,7 @@ import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette, { chart as chartPalette } from "../../../themes/palette";
+import { sectionTitleSx, useCardSx } from "../shared";
 
 const PERIODS = [
   { label: "Today", value: "1d" },
@@ -26,22 +27,6 @@ const PERIODS = [
   { label: "30 days", value: "30d" },
   { label: "90 days", value: "90d" },
 ];
-
-const sectionTitleSx = {
-  fontWeight: 600,
-  fontSize: 16,
-};
-
-function useCardSx() {
-  const theme = useTheme();
-  return {
-    background: theme.palette.background.paper,
-    border: `1.5px solid ${theme.palette.border.light}`,
-    borderRadius: theme.shape.borderRadius,
-    p: theme.spacing(5, 6),
-    boxShadow: "none",
-  };
-}
 
 export default function SpendDashboardPage() {
   const cardSx = useCardSx();

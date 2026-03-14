@@ -4,7 +4,6 @@ import {
   Typography,
   Stack,
   IconButton,
-  useTheme,
 } from "@mui/material";
 import { CirclePlus, Router, Trash2, Zap, Settings, Shield } from "lucide-react";
 import { EmptyState } from "../../../components/EmptyState";
@@ -16,6 +15,7 @@ import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
+import { sectionTitleSx, useCardSx } from "../shared";
 
 interface ModelOption {
   id: string;
@@ -51,7 +51,7 @@ const MODEL_OPTIONS: ModelOption[] = [
   { id: "together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
   { id: "openrouter/openai/gpt-4o", provider: "openrouter", mode: "chat" },
   { id: "openrouter/anthropic/claude-sonnet-4", provider: "openrouter", mode: "chat" },
-].sort((a, b) => a.provider.localeCompare(b.provider));
+].sort((a, b) => a.provider.localeCompare(b.provider));  // toSorted not available pre-ES2023
 
 /** Build Select-compatible items with divider indices between provider groups */
 const MODEL_SELECT_ITEMS = MODEL_OPTIONS.map((m) => ({
@@ -68,24 +68,7 @@ MODEL_OPTIONS.forEach((m, i) => {
   prevProvider = m.provider;
 });
 
-const sectionTitleSx = {
-  fontWeight: 600,
-  fontSize: 16,
-};
-
-function useCardSx() {
-  const theme = useTheme();
-  return {
-    background: theme.palette.background.paper,
-    border: `1.5px solid ${theme.palette.border.light}`,
-    borderRadius: theme.shape.borderRadius,
-    p: theme.spacing(5, 6),
-    boxShadow: "none",
-  };
-}
-
 export default function EndpointsPage() {
-  const theme = useTheme();
   const cardSx = useCardSx();
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [apiKeys, setApiKeys] = useState<any[]>([]);

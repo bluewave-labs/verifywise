@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Box, Typography, Stack, IconButton, useTheme } from "@mui/material";
+import { Box, Typography, Stack, IconButton } from "@mui/material";
 import { CirclePlus, Key, Wallet, Trash2, Pencil, Lock, Router } from "lucide-react";
 import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
@@ -11,6 +11,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
+import { sectionTitleSx, useCardSx } from "../shared";
 
 /** Top providers shown above the divider */
 const TOP_PROVIDERS = [
@@ -27,22 +28,6 @@ const TOP_PROVIDERS = [
 ];
 
 const TOP_IDS = new Set(TOP_PROVIDERS.map((p) => p._id));
-
-const sectionTitleSx = {
-  fontWeight: 600,
-  fontSize: 16,
-};
-
-function useCardSx() {
-  const theme = useTheme();
-  return {
-    background: theme.palette.background.paper,
-    border: `1.5px solid ${theme.palette.border.light}`,
-    borderRadius: theme.shape.borderRadius,
-    p: theme.spacing(5, 6),
-    boxShadow: "none",
-  };
-}
 
 export default function AIGatewaySettingsPage() {
   const cardSx = useCardSx();

@@ -1,20 +1,13 @@
 import litellm
 from fastapi import APIRouter, Request, HTTPException
 
-from src.config import settings
+from src.middlewares.auth import verify_internal_key
 from src.services.cost_service import validate_model
 
 router = APIRouter()
 
 # Cache the model list at module scope — computed once on first import
 _cached_models: dict | None = None
-
-
-def _verify_internal_key(request: Request):
-    """Verify the request comes from Express backend."""
-    auth = request.headers.get("x-internal-key", "")
-    if settings.internal_api_key and auth != settings.internal_api_key:
-        raise HTTPException(status_code=401, detail="Invalid internal key")
 
 
 def _get_models_grouped() -> dict:
@@ -49,14 +42,14 @@ def _get_models_grouped() -> dict:
 @router.get("/v1/models")
 async def list_models(request: Request):
     """Return list of supported models grouped by provider."""
-    _verify_internal_key(request)
+    verify_internal_key(request)
     return _get_models_grouped()
 
 
 @router.get("/v1/models/{model:path}/validate")
 async def validate_model_endpoint(request: Request, model: str):
     """Validate a model string and return its info."""
-    _verify_internal_key(request)
+    verify_internal_key(request)
 
     info = validate_model(model)
     if info is None:

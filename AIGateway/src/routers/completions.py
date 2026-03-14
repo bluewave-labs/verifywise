@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from src.config import settings
+from src.middlewares.auth import verify_internal_key
 from src.services.cost_service import estimate_prompt_cost
 from src.services.llm_service import (
     chat_completion,
@@ -38,13 +38,6 @@ class CostEstimateRequest(BaseModel):
     max_tokens: int = 4096
 
 
-def _verify_internal_key(request: Request):
-    """Verify the request comes from Express backend."""
-    auth = request.headers.get("x-internal-key", "")
-    if settings.internal_api_key and auth != settings.internal_api_key:
-        raise HTTPException(status_code=401, detail="Invalid internal key")
-
-
 def _get_provider_key(request: Request) -> str:
     """Extract provider API key from header (not body)."""
     key = request.headers.get("x-provider-key", "")
@@ -55,7 +48,7 @@ def _get_provider_key(request: Request) -> str:
 
 @router.post("/v1/chat/completions")
 async def chat_completions(request: Request, body: CompletionRequest):
-    _verify_internal_key(request)
+    verify_internal_key(request)
     api_key = _get_provider_key(request)
 
     kwargs = {}
@@ -96,7 +89,7 @@ async def chat_completions(request: Request, body: CompletionRequest):
 
 @router.post("/v1/embeddings")
 async def embeddings(request: Request, body: EmbeddingRequest):
-    _verify_internal_key(request)
+    verify_internal_key(request)
     api_key = _get_provider_key(request)
 
     result = await embedding(
@@ -110,7 +103,7 @@ async def embeddings(request: Request, body: EmbeddingRequest):
 @router.post("/v1/cost-estimate")
 async def cost_estimate(request: Request, body: CostEstimateRequest):
     """Pre-request cost estimation for budget enforcement."""
-    _verify_internal_key(request)
+    verify_internal_key(request)
 
     estimated_cost = estimate_prompt_cost(
         model=body.model,

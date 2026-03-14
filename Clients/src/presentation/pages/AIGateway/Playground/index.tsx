@@ -208,7 +208,7 @@ export default function PlaygroundPage() {
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 280px)" }}>
         {/* Controls */}
         <Stack direction="row" gap="8px" mb={2} alignItems="center">
-          <Box sx={{ maxWidth: 280 }}>
+          <Box sx={{ minWidth: 320, maxWidth: 420 }}>
             <Select
               id="endpoint"
               placeholder="Select endpoint"
@@ -279,6 +279,7 @@ export default function PlaygroundPage() {
       <Box
         sx={{
           flex: 1,
+          minHeight: 300,
           border: `1.5px solid ${palette.border.light}`,
           borderRadius: "4px",
           overflow: "auto",

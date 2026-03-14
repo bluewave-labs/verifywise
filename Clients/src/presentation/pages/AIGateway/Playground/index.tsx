@@ -7,7 +7,7 @@ import {
   CircularProgress,
   Slider,
 } from "@mui/material";
-import { Send, Trash2, Router, Bot, User } from "lucide-react";
+import { Send, Trash2, Router, Bot, User, Settings } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Select from "../../../components/Inputs/Select";
 import Field from "../../../components/Inputs/Field";
@@ -33,6 +33,7 @@ export default function PlaygroundPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(4096);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -226,8 +227,8 @@ export default function PlaygroundPage() {
       </Stack>
 
       {/* Controls */}
-      <Stack direction="row" gap="12px" mb={2} alignItems="flex-end">
-        <Box flex={1}>
+      <Stack direction="row" gap="8px" mb={2} alignItems="flex-end">
+        <Box sx={{ maxWidth: 280 }}>
           <Select
             id="endpoint"
             label="Endpoint"
@@ -238,31 +239,61 @@ export default function PlaygroundPage() {
             getOptionValue={(item) => item._id}
           />
         </Box>
-        <Box sx={{ width: 140 }}>
-          <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 0.5 }}>
-            Temperature: {temperature}
-          </Typography>
-          <Slider
-            value={temperature}
-            onChange={(_, v) => setTemperature(v as number)}
-            min={0}
-            max={2}
-            step={0.1}
-            size="small"
-            sx={{ color: palette.brand.primary }}
-          />
-        </Box>
-        <Box sx={{ width: 100 }}>
-          <Field
-            label="Max tokens"
-            value={String(maxTokens)}
-            onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
-          />
-        </Box>
+        <IconButton
+          onClick={() => setShowSettings((v) => !v)}
+          sx={{
+            p: 1,
+            mb: 0.5,
+            backgroundColor: showSettings ? palette.background.fill : "transparent",
+            borderRadius: "4px",
+            "&:hover": { backgroundColor: palette.background.fill },
+          }}
+        >
+          <Settings size={16} strokeWidth={1.5} color={showSettings ? palette.brand.primary : palette.text.tertiary} />
+        </IconButton>
+        <Box sx={{ flex: 1 }} />
         <IconButton onClick={handleClear} sx={{ p: 1, mb: 0.5 }}>
           <Trash2 size={16} strokeWidth={1.5} color={palette.text.tertiary} />
         </IconButton>
       </Stack>
+
+      {/* Collapsible settings panel */}
+      {showSettings && (
+        <Stack
+          direction="row"
+          gap="16px"
+          alignItems="flex-end"
+          sx={{
+            mb: 2,
+            p: "12px 16px",
+            border: `1px solid ${palette.border.light}`,
+            borderRadius: "4px",
+            backgroundColor: palette.background.alt,
+          }}
+        >
+          <Box sx={{ width: 160 }}>
+            <Typography sx={{ fontSize: 11, color: palette.text.tertiary, mb: 0.5 }}>
+              Temperature: {temperature}
+            </Typography>
+            <Slider
+              value={temperature}
+              onChange={(_, v) => setTemperature(v as number)}
+              min={0}
+              max={2}
+              step={0.1}
+              size="small"
+              sx={{ color: palette.brand.primary }}
+            />
+          </Box>
+          <Box sx={{ width: 120 }}>
+            <Field
+              label="Max tokens"
+              value={String(maxTokens)}
+              onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
+            />
+          </Box>
+        </Stack>
+      )}
 
       {/* Messages Area */}
       <Box

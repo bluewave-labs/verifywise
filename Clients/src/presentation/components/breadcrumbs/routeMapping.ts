@@ -42,6 +42,9 @@ import {
   ShieldAlert,
   ClipboardList,
   Inbox,
+  Router,
+  MessageSquare,
+  ShieldCheck,
 } from "lucide-react";
 
 /**
@@ -120,6 +123,14 @@ export const routeMapping: Record<string, string> = {
   "/ai-detection/history": "Scan history",
   "/ai-detection/scans": "Scan history",
   "/ai-detection/settings": "Settings",
+
+  // AI Gateway
+  "/ai-gateway": "AI gateway",
+  "/ai-gateway/analytics": "Analytics",
+  "/ai-gateway/endpoints": "Endpoints",
+  "/ai-gateway/playground": "Playground",
+  "/ai-gateway/guardrails": "Guardrails",
+  "/ai-gateway/settings": "Settings",
 
   // Shadow AI
   "/shadow-ai": "Shadow AI",
@@ -244,6 +255,14 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   // Intake forms
   "/intake-forms": () => React.createElement(ClipboardList, { size: 14, strokeWidth: 1.5 }),
   "/intake-forms/submissions": () => React.createElement(Inbox, { size: 14, strokeWidth: 1.5 }),
+
+  // AI Gateway
+  "/ai-gateway": () => React.createElement(Router, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/analytics": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/endpoints": () => React.createElement(Router, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/playground": () => React.createElement(MessageSquare, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/guardrails": () => React.createElement(ShieldCheck, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // Shadow AI
   "/shadow-ai": () => React.createElement(Eye, { size: 14, strokeWidth: 1.5 }),

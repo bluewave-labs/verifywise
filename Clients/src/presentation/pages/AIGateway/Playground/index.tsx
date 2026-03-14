@@ -36,6 +36,8 @@ export default function PlaygroundPage() {
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(4096);
   const [showSettings, setShowSettings] = useState(false);
+  const [tempTemperature, setTempTemperature] = useState(0.7);
+  const [tempMaxTokens, setTempMaxTokens] = useState(4096);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -226,7 +228,11 @@ export default function PlaygroundPage() {
           )}
           <Box sx={{ flex: 1 }} />
           <IconButton
-            onClick={() => setShowSettings((v) => !v)}
+            onClick={() => {
+              setTempTemperature(temperature);
+              setTempMaxTokens(maxTokens);
+              setShowSettings(true);
+            }}
             sx={{
               p: 1,
               backgroundColor: showSettings ? palette.background.fill : "transparent",
@@ -244,18 +250,23 @@ export default function PlaygroundPage() {
           onClose={() => setShowSettings(false)}
           title="Playground settings"
           description="Configure parameters for your requests"
-          hideFooter
+          onSubmit={() => {
+            setTemperature(tempTemperature);
+            setMaxTokens(tempMaxTokens);
+            setShowSettings(false);
+          }}
+          submitButtonText="Save"
           fitContent
           maxWidth="400px"
         >
           <Stack gap="16px">
             <Box>
               <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 0.5 }}>
-                Temperature: {temperature}
+                Temperature: {tempTemperature}
               </Typography>
               <Slider
-                value={temperature}
-                onChange={(_, v) => setTemperature(v as number)}
+                value={tempTemperature}
+                onChange={(_, v) => setTempTemperature(v as number)}
                 min={0}
                 max={2}
                 step={0.1}
@@ -269,8 +280,8 @@ export default function PlaygroundPage() {
             <Field
               label="Max tokens"
               placeholder="4096"
-              value={String(maxTokens)}
-              onChange={(e) => setMaxTokens(Number(e.target.value) || 4096)}
+              value={String(tempMaxTokens)}
+              onChange={(e) => setTempMaxTokens(Number(e.target.value) || 4096)}
             />
           </Stack>
         </StandardModal>
@@ -288,7 +299,11 @@ export default function PlaygroundPage() {
         }}
       >
         {messages.length === 0 ? (
-          <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }}>
+          <Stack
+            alignItems="center"
+            justifyContent="center"
+            sx={{ height: "100%", minHeight: 280 }}
+          >
             <Router size={32} color={palette.text.disabled} strokeWidth={1.5} />
             <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 1 }}>
               Send a message to start testing your endpoint

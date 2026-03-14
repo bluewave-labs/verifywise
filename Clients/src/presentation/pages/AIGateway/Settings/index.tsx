@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Stack, IconButton, useTheme } from "@mui/material";
-import { CirclePlus, Key, Wallet, Trash2, Pencil } from "lucide-react";
+import { CirclePlus, Key, Wallet, Trash2, Pencil, Lock, Router } from "lucide-react";
+import { EmptyState } from "../../../components/EmptyState";
+import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
@@ -141,6 +143,7 @@ export default function AIGatewaySettingsPage() {
     <PageHeaderExtended
       title="Settings"
       description="Manage API keys and budget for the AI Gateway."
+      tipBoxEntity="ai-gateway-settings"
     >
       {/* API Keys Section */}
       <Box sx={cardSx}>
@@ -159,21 +162,22 @@ export default function AIGatewaySettingsPage() {
           </Stack>
 
           {apiKeys.length === 0 ? (
-            <Stack
-              alignItems="center"
-              justifyContent="center"
-              sx={{
-                py: 4,
-                textAlign: "center",
-                border: `1px dashed ${palette.border.dark}`,
-                borderRadius: "4px",
-              }}
+            <EmptyState
+              icon={Key}
+              message="No API keys configured. Add a provider API key to start creating endpoints."
+              showBorder
             >
-              <Key size={24} color={palette.text.disabled} strokeWidth={1.5} />
-              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 1 }}>
-                No API keys configured. Add a provider API key to create endpoints.
-              </Typography>
-            </Stack>
+              <EmptyStateTip
+                icon={Lock}
+                title="Keys are encrypted at rest"
+                description="Your provider API keys are encrypted using AES-256-CBC before being stored. They are only decrypted when proxying a request and are never exposed in logs."
+              />
+              <EmptyStateTip
+                icon={Router}
+                title="Each endpoint references an API key"
+                description="After adding a key, create endpoints in the Endpoints tab. Each endpoint uses one API key to authenticate with the LLM provider."
+              />
+            </EmptyState>
           ) : (
             <Stack gap="8px">
               {apiKeys.map((key) => (
@@ -280,20 +284,11 @@ export default function AIGatewaySettingsPage() {
               </Stack>
             </Stack>
           ) : (
-            <Stack
-              alignItems="center"
-              sx={{
-                py: 4,
-                textAlign: "center",
-                border: `1px dashed ${palette.border.dark}`,
-                borderRadius: "4px",
-              }}
-            >
-              <Wallet size={24} color={palette.text.disabled} strokeWidth={1.5} />
-              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 1 }}>
-                No budget configured. All requests are allowed without cost limits.
-              </Typography>
-            </Stack>
+            <EmptyState
+              icon={Wallet}
+              message="No budget configured. All requests are allowed without cost limits."
+              showBorder
+            />
           )}
         </Stack>
       </Box>

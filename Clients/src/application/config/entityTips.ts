@@ -324,4 +324,48 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Periodically compare scorer results to human evaluations. If scorers and humans disagree consistently, adjust thresholds or scorer configurations. Well-calibrated scorers save time while maintaining quality standards.",
     },
   ],
+  "ai-gateway-endpoints": [
+    {
+      header: "Endpoints route LLM requests through a unified gateway.",
+      content: "Each endpoint maps to a specific provider and model combination. Configure endpoints for different use cases — a production endpoint for GPT-4o, a testing endpoint for a lighter model. All requests are logged with cost and token usage.",
+    },
+    {
+      header: "Use slugs to reference endpoints in your applications.",
+      content: "When you create an endpoint, it gets a URL-safe slug (e.g., prod-gpt4o). Your applications use this slug to route requests through the gateway. Changing the underlying model only requires updating the endpoint configuration, not your application code.",
+    },
+    {
+      header: "System prompts are prepended to every request automatically.",
+      content: "Add a system prompt to an endpoint to enforce consistent behavior across all requests. This is useful for adding safety guardrails, response formatting instructions, or context that should apply to every interaction.",
+    },
+  ],
+  "ai-gateway-spend": [
+    {
+      header: "Track spending across all LLM providers in one dashboard.",
+      content: "The spend dashboard aggregates costs from every provider and model into a single view. Use the period selector to compare daily, weekly, or monthly spending trends. This helps you optimize costs and identify unexpected usage spikes.",
+    },
+    {
+      header: "Cost breakdowns by model help optimize your provider strategy.",
+      content: "See which models consume the most budget. Often, switching to a lighter model for simple tasks can dramatically reduce costs without affecting quality. Use the per-model breakdown to identify optimization opportunities.",
+    },
+  ],
+  "ai-gateway-playground": [
+    {
+      header: "Test endpoints before deploying them in production.",
+      content: "The playground lets you send test messages to any configured endpoint and see the response in real-time. Use it to verify model behavior, test system prompts, and compare responses across different endpoints before routing production traffic.",
+    },
+    {
+      header: "Cost per message helps you estimate production expenses.",
+      content: "Every playground message shows its cost and token usage. Use this to estimate what production traffic will cost at scale. If a conversation costs $0.02 per exchange, multiply by your expected daily volume to forecast monthly spend.",
+    },
+  ],
+  "ai-gateway-settings": [
+    {
+      header: "API keys connect the gateway to LLM providers.",
+      content: "Add your provider API keys here — OpenAI, Anthropic, Google, and more. Keys are encrypted at rest and never exposed in logs. Each key is labeled so you can track which key is used by which endpoints.",
+    },
+    {
+      header: "Budgets prevent unexpected cost overruns.",
+      content: "Set a monthly spending limit to control costs. When the hard limit is enabled, requests are rejected once the budget is exceeded. Use the alert threshold to get early warnings before hitting the limit.",
+    },
+  ],
 };

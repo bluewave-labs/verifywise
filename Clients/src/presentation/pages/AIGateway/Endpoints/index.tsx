@@ -9,7 +9,9 @@ import {
   ListSubheader,
   useTheme,
 } from "@mui/material";
-import { CirclePlus, Router, Trash2 } from "lucide-react";
+import { CirclePlus, Router, Trash2, Zap, Settings, Shield } from "lucide-react";
+import { EmptyState } from "../../../components/EmptyState";
+import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
@@ -183,6 +185,7 @@ export default function EndpointsPage() {
     <PageHeaderExtended
       title="Endpoints"
       description="Configure LLM provider endpoints for your organization."
+      tipBoxEntity="ai-gateway-endpoints"
       actionButton={
         <CustomizableButton
           text="Add endpoint"
@@ -196,24 +199,27 @@ export default function EndpointsPage() {
           {loading ? (
             <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>Loading endpoints...</Typography>
           ) : endpoints.length === 0 ? (
-            <Stack
-              alignItems="center"
-              justifyContent="center"
-              sx={{
-                py: 4,
-                textAlign: "center",
-                border: `1px dashed ${palette.border.dark}`,
-                borderRadius: "4px",
-              }}
+            <EmptyState
+              icon={Router}
+              message="No endpoints configured yet. Add your first LLM endpoint to start routing requests through the gateway."
+              showBorder
             >
-              <Router size={32} color={palette.text.disabled} strokeWidth={1.5} />
-              <Typography sx={{ fontSize: 13, fontWeight: 500, mt: 2 }}>
-                No endpoints configured
-              </Typography>
-              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mt: 0.5 }}>
-                Add your first LLM endpoint to get started
-              </Typography>
-            </Stack>
+              <EmptyStateTip
+                icon={Zap}
+                title="Route requests through a unified gateway"
+                description="Each endpoint maps to a specific provider and model. Your applications reference endpoints by slug, so you can swap models without changing application code."
+              />
+              <EmptyStateTip
+                icon={Settings}
+                title="Configure API keys first"
+                description="Go to Settings to add your provider API keys (OpenAI, Anthropic, etc.). Then create endpoints that reference those keys."
+              />
+              <EmptyStateTip
+                icon={Shield}
+                title="Monitor costs and enforce budgets"
+                description="Every request through the gateway is logged with cost, tokens, and latency. Set a monthly budget to prevent unexpected cost overruns."
+              />
+            </EmptyState>
           ) : (
             <Stack gap="8px">
               {endpoints.map((ep) => (

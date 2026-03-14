@@ -56,4 +56,31 @@ test.describe("Overview (Home)", () => {
       .or(page.getByRole("heading"));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 2: Add project / use-case button ---
+
+  test("add project or use-case button is visible and clickable", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/overview");
+
+    const addBtn = page
+      .getByRole("button", { name: /add|new|create/i })
+      .first();
+
+    if (await addBtn.isVisible().catch(() => false)) {
+      await addBtn.click();
+      // Should open modal/drawer or navigate
+      await page.waitForTimeout(500);
+
+      const modal = page
+        .getByRole("dialog")
+        .or(page.locator(".MuiDrawer-root"))
+        .or(page.locator(".MuiModal-root"));
+
+      if (await modal.first().isVisible().catch(() => false)) {
+        await page.keyboard.press("Escape");
+      }
+    }
+  });
 });

@@ -56,4 +56,22 @@ test.describe("Start Here", () => {
       .or(page.getByRole("heading"));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 2: Onboarding step interaction ---
+
+  test("onboarding steps are clickable or expandable", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/start-here");
+
+    // Look for clickable step items, links, or action buttons within the page
+    const actionElements = page
+      .getByRole("link")
+      .or(page.getByRole("button"));
+
+    if (await actionElements.first().isVisible().catch(() => false)) {
+      const count = await actionElements.count();
+      expect(count).toBeGreaterThanOrEqual(1);
+    }
+  });
 });

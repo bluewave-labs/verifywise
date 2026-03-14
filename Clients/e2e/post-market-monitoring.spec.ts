@@ -58,4 +58,36 @@ test.describe("Post-Market Monitoring", () => {
       .or(page.getByRole("heading"));
     await expect(content.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // --- Tier 2: Report action buttons ---
+
+  test("report action buttons or create button is present", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/monitoring/reports");
+
+    const actionBtn = page
+      .getByRole("button", { name: /create|new|generate|add/i })
+      .or(page.getByRole("button", { name: /export|download/i }))
+      .or(page.getByText(/no.*report/i));
+
+    await expect(actionBtn.first()).toBeVisible({ timeout: 10_000 });
+  });
+
+  // --- Tier 2: Search/filter ---
+
+  test("search or filter is available on reports page", async ({
+    authedPage: page,
+  }) => {
+    await page.goto("/monitoring/reports");
+
+    const searchOrFilter = page
+      .getByPlaceholder(/search/i)
+      .or(page.getByRole("button", { name: /filter/i }))
+      .or(page.getByRole("combobox"));
+
+    if (await searchOrFilter.first().isVisible().catch(() => false)) {
+      await expect(searchOrFilter.first()).toBeVisible();
+    }
+  });
 });

@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Box, Typography, Stack, useTheme } from "@mui/material";
+import { DollarSign, Hash, Layers, Clock } from "lucide-react";
+import { StatCard } from "../../../components/Cards/StatCard";
 import {
   ResponsiveContainer,
   LineChart,
@@ -60,12 +62,10 @@ export default function SpendDashboardPage() {
   const summary = data?.summary;
   const byDay = data?.byDay || [];
 
-  const cards = useMemo(() => [
-    { label: "Total cost", value: summary ? `$${Number(summary.total_cost).toFixed(4)}` : "$0.00" },
-    { label: "Total requests", value: summary?.total_requests ?? 0 },
-    { label: "Total tokens", value: summary ? Number(summary.total_tokens).toLocaleString() : "0" },
-    { label: "Avg latency", value: summary ? `${Math.round(summary.avg_latency_ms)}ms` : "0ms" },
-  ], [summary]);
+  const totalCost = summary ? `$${Number(summary.total_cost).toFixed(4)}` : "$0.00";
+  const totalRequests = String(summary?.total_requests ?? 0);
+  const totalTokens = summary ? Number(summary.total_tokens).toLocaleString() : "0";
+  const avgLatency = summary ? `${Math.round(summary.avg_latency_ms)}ms` : "0ms";
 
   return (
     <PageHeaderExtended
@@ -98,26 +98,12 @@ export default function SpendDashboardPage() {
         </Stack>
       }
       summaryCards={
-        <Stack direction="row" gap="16px">
-          {cards.map((card) => (
-            <Box
-              key={card.label}
-              sx={{
-                flex: 1,
-                p: "12px 16px",
-                border: `1px solid ${palette.border.dark}`,
-                borderRadius: "4px",
-              }}
-            >
-              <Typography sx={{ fontSize: 11, color: palette.text.tertiary, textTransform: "uppercase", fontWeight: 500 }}>
-                {card.label}
-              </Typography>
-              <Typography sx={{ fontSize: 20, fontWeight: 600, mt: 0.5 }}>
-                {card.value}
-              </Typography>
-            </Box>
-          ))}
-        </Stack>
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+          <StatCard title="Total cost" value={totalCost} Icon={DollarSign} />
+          <StatCard title="Total requests" value={totalRequests} Icon={Hash} />
+          <StatCard title="Total tokens" value={totalTokens} Icon={Layers} />
+          <StatCard title="Avg latency" value={avgLatency} Icon={Clock} />
+        </Box>
       }
     >
       {/* Cost over time chart */}

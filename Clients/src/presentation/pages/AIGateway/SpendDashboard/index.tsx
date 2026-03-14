@@ -32,7 +32,9 @@ const PERIOD_OPTIONS = [
 
 export default function SpendDashboardPage() {
   const cardSx = useCardSx();
-  const [period, setPeriod] = useState("7d");
+  const [period, setPeriod] = useState(() => {
+    return localStorage.getItem("vw_ai_gateway_analytics_period") || "1d";
+  });
   const [data, setData] = useState<any>(null);
   const [byEndpoint, setByEndpoint] = useState<any[]>([]);
   const [byUser, setByUser] = useState<any[]>([]);
@@ -83,7 +85,11 @@ export default function SpendDashboardPage() {
           id="analytics-period"
           value={period}
           items={PERIOD_OPTIONS}
-          onChange={(e) => setPeriod(e.target.value as string)}
+          onChange={(e) => {
+            const val = e.target.value as string;
+            setPeriod(val);
+            localStorage.setItem("vw_ai_gateway_analytics_period", val);
+          }}
           sx={{ width: 140 }}
         />
       }

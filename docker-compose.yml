@@ -48,6 +48,8 @@ services:
       - LLM_EVALS_URL=http://eval_server:8000
       - REDIS_URL=redis://redis:6379/0
       - ENCRYPTION_KEY=$ENCRYPTION_KEY
+      - AI_GATEWAY_URL=http://ai_gateway:8100
+      - AI_GATEWAY_INTERNAL_KEY=$AI_GATEWAY_INTERNAL_KEY
   frontend:
     depends_on:
       - backend
@@ -89,6 +91,18 @@ services:
       - DB_NAME=$DB_NAME
       - BACKEND_URL=http://backend:$BACKEND_PORT
       - REDIS_URL=redis://redis:6379/0
+  ai_gateway:
+    depends_on:
+      - backend
+      - redis
+    image: ghcr.io/verifywise-ai/verifywise-ai-gateway:latest
+    expose:
+      - "8100"
+    environment:
+      - AI_GATEWAY_PORT=8100
+      - INTERNAL_API_KEY=$AI_GATEWAY_INTERNAL_KEY
+      - REDIS_URL=redis://redis:6379/0
+    restart: unless-stopped
 
 volumes:
   db:

@@ -176,22 +176,22 @@ export default function AIGatewaySettingsPage() {
       {/* API Keys Section */}
       <Box sx={cardSx}>
         <Stack gap="12px">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography sx={sectionTitleSx}>API keys</Typography>
-              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
+          <Stack gap="8px">
+            <Typography sx={sectionTitleSx}>API keys</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, maxWidth: "75%" }}>
                 Provider API keys are encrypted at rest (AES-256-CBC) and only decrypted when proxying a request. Each key is scoped to your organization and can be referenced by multiple endpoints.
               </Typography>
-            </Box>
-            <CustomizableButton
-              text="Add key"
-              icon={<CirclePlus size={14} strokeWidth={1.5} />}
-              onClick={() => {
-                setKeyForm({ key_name: "", provider: "", api_key: "" });
-                setKeyError("");
-                setIsKeyModalOpen(true);
-              }}
-            />
+              <CustomizableButton
+                text="Add key"
+                icon={<CirclePlus size={14} strokeWidth={1.5} />}
+                onClick={() => {
+                  setKeyForm({ key_name: "", provider: "", api_key: "" });
+                  setKeyError("");
+                  setIsKeyModalOpen(true);
+                }}
+              />
+            </Stack>
           </Stack>
 
           {apiKeys.length === 0 ? (
@@ -257,18 +257,18 @@ export default function AIGatewaySettingsPage() {
       {/* Budget Section */}
       <Box sx={cardSx}>
         <Stack gap="12px">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography sx={sectionTitleSx}>Budget</Typography>
-              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
+          <Stack gap="8px">
+            <Typography sx={sectionTitleSx}>Budget</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, maxWidth: "75%" }}>
                 Set a monthly spending limit across all endpoints. When the hard limit is enabled, requests are rejected once the budget is exceeded. Use the alert threshold for early warnings.
               </Typography>
-            </Box>
-            <CustomizableButton
-              text={budget ? "Edit budget" : "Set budget"}
-              icon={<Pencil size={14} strokeWidth={1.5} />}
-              onClick={openBudgetModal}
-            />
+              <CustomizableButton
+                text={budget ? "Edit budget" : "Set budget"}
+                icon={<Pencil size={14} strokeWidth={1.5} />}
+                onClick={openBudgetModal}
+              />
+            </Stack>
           </Stack>
 
           {budget ? (
@@ -334,14 +334,13 @@ export default function AIGatewaySettingsPage() {
       {/* Guardrail Settings Section */}
       <Box sx={cardSx}>
         <Stack gap="12px">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography sx={sectionTitleSx}>Guardrail settings</Typography>
-              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, mt: 0.5 }}>
+          <Stack gap="8px">
+            <Typography sx={sectionTitleSx}>Guardrail settings</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Typography sx={{ fontSize: 13, color: palette.text.tertiary, maxWidth: "75%" }}>
                 Configure how guardrails behave when scanning fails, what replacement text to use for masked content, and how long to retain guardrail audit logs.
               </Typography>
-            </Box>
-            <CustomizableButton
+              <CustomizableButton
               text={gsSaving ? "Saving..." : "Save"}
               onClick={async () => {
                 setGsSaving(true);
@@ -358,66 +357,84 @@ export default function AIGatewaySettingsPage() {
                 }
               }}
             />
+            </Stack>
           </Stack>
 
-          <Stack gap="16px">
-            <Stack direction="row" gap="16px">
-              <Box flex={1}>
-                <Select
-                  id="pii-on-error"
-                  label="PII scan on error"
-                  value={gsForm.pii_on_error}
-                  items={[
-                    { _id: "block", name: "Block request (fail-closed)" },
-                    { _id: "allow", name: "Allow request (fail-open)" },
-                  ]}
-                  onChange={(e) => setGsForm((p) => ({ ...p, pii_on_error: e.target.value as string }))}
-                  getOptionValue={(item) => item._id}
-                />
-              </Box>
-              <Box flex={1}>
-                <Select
-                  id="cf-on-error"
-                  label="Content filter on error"
-                  value={gsForm.content_filter_on_error}
-                  items={[
-                    { _id: "allow", name: "Allow request (fail-open)" },
-                    { _id: "block", name: "Block request (fail-closed)" },
-                  ]}
-                  onChange={(e) => setGsForm((p) => ({ ...p, content_filter_on_error: e.target.value as string }))}
-                  getOptionValue={(item) => item._id}
-                />
-              </Box>
-            </Stack>
+          <Stack gap="20px">
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1 }}>Error behavior</Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 1.5 }}>
+                What happens when the guardrail scanner itself fails (e.g., Presidio unavailable). "Fail-closed" blocks all requests for safety. "Fail-open" allows requests through and logs the error.
+              </Typography>
+              <Stack direction="row" gap="16px">
+                <Box flex={1}>
+                  <Select
+                    id="pii-on-error"
+                    label="PII scan on error"
+                    value={gsForm.pii_on_error}
+                    items={[
+                      { _id: "block", name: "Block request (fail-closed)" },
+                      { _id: "allow", name: "Allow request (fail-open)" },
+                    ]}
+                    onChange={(e) => setGsForm((p) => ({ ...p, pii_on_error: e.target.value as string }))}
+                    getOptionValue={(item) => item._id}
+                  />
+                </Box>
+                <Box flex={1}>
+                  <Select
+                    id="cf-on-error"
+                    label="Content filter on error"
+                    value={gsForm.content_filter_on_error}
+                    items={[
+                      { _id: "allow", name: "Allow request (fail-open)" },
+                      { _id: "block", name: "Block request (fail-closed)" },
+                    ]}
+                    onChange={(e) => setGsForm((p) => ({ ...p, content_filter_on_error: e.target.value as string }))}
+                    getOptionValue={(item) => item._id}
+                  />
+                </Box>
+              </Stack>
+            </Box>
 
-            <Stack direction="row" gap="16px">
-              <Box flex={1}>
-                <Field
-                  label="PII replacement format"
-                  placeholder="<ENTITY_TYPE>"
-                  value={gsForm.pii_replacement_format}
-                  onChange={(e) => setGsForm((p) => ({ ...p, pii_replacement_format: e.target.value }))}
-                />
-              </Box>
-              <Box flex={1}>
-                <Field
-                  label="Content filter replacement"
-                  placeholder="[REDACTED]"
-                  value={gsForm.content_filter_replacement}
-                  onChange={(e) => setGsForm((p) => ({ ...p, content_filter_replacement: e.target.value }))}
-                />
-              </Box>
-            </Stack>
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1 }}>Replacement text</Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 1.5 }}>
+                When a guardrail masks content, this text replaces the detected value. Use ENTITY_TYPE in the PII format to include the detected type (e.g., &lt;EMAIL_ADDRESS&gt;).
+              </Typography>
+              <Stack direction="row" gap="16px">
+                <Box flex={1}>
+                  <Field
+                    label="PII replacement format"
+                    placeholder="<ENTITY_TYPE>"
+                    value={gsForm.pii_replacement_format}
+                    onChange={(e) => setGsForm((p) => ({ ...p, pii_replacement_format: e.target.value }))}
+                  />
+                </Box>
+                <Box flex={1}>
+                  <Field
+                    label="Content filter replacement"
+                    placeholder="[REDACTED]"
+                    value={gsForm.content_filter_replacement}
+                    onChange={(e) => setGsForm((p) => ({ ...p, content_filter_replacement: e.target.value }))}
+                  />
+                </Box>
+              </Stack>
+            </Box>
 
-            <Stack direction="row" gap="16px" alignItems="flex-end">
-              <Box sx={{ maxWidth: 200 }}>
-                <Field
-                  label="Log retention (days)"
-                  placeholder="90"
-                  value={gsForm.log_retention_days}
-                  onChange={(e) => setGsForm((p) => ({ ...p, log_retention_days: e.target.value }))}
-                />
-              </Box>
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1 }}>Audit log retention</Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 1.5 }}>
+                How long to keep guardrail detection logs. These logs record every blocked or masked request for compliance auditing (EU AI Act Art. 12).
+              </Typography>
+              <Stack direction="row" gap="16px" alignItems="flex-end">
+                <Box sx={{ maxWidth: 200 }}>
+                  <Field
+                    label="Retention period (days)"
+                    placeholder="90"
+                    value={gsForm.log_retention_days}
+                    onChange={(e) => setGsForm((p) => ({ ...p, log_retention_days: e.target.value }))}
+                  />
+                </Box>
               <CustomizableButton
                 text="Purge old logs"
                 onClick={async () => {

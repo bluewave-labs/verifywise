@@ -13,6 +13,9 @@ import {
   Lock,
   History,
   Copy,
+  Play,
+  CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
@@ -33,6 +36,15 @@ import {
   WARNING_TEXT,
   KEY_DISPLAY_BG,
 } from "../shared";
+
+// Spinner keyframes for loading state
+const spinKeyframes = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+if (typeof document !== "undefined" && !document.getElementById("vw-spin-keyframes")) {
+  const style = document.createElement("style");
+  style.id = "vw-spin-keyframes";
+  style.textContent = spinKeyframes;
+  document.head.appendChild(style);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,7 +215,7 @@ function ChecklistItem({ label, done, onClick }: ChecklistItemProps) {
 // ─── Main overlay ─────────────────────────────────────────────────────────────
 
 export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCompleted }: OnboardingOverlayProps) {
-  const [activeModal, setActiveModal] = useState<"api-key" | "endpoint" | "virtual-key" | null>(null);
+  const [activeModal, setActiveModal] = useState<"api-key" | "endpoint" | "virtual-key" | "first-request" | null>(null);
 
   // ── API key modal state ──
   const [keyForm, setKeyForm] = useState({ key_name: "", provider: "", api_key: "" });
@@ -227,6 +239,13 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
   const [createdKey, setCreatedKey] = useState("");
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── First request modal state ──
+  const [firstReqSlug, setFirstReqSlug] = useState("");
+  const [firstReqVirtualKey, setFirstReqVirtualKey] = useState("");
+  const [firstReqRunning, setFirstReqRunning] = useState(false);
+  const [firstReqResponse, setFirstReqResponse] = useState("");
+  const [firstReqError, setFirstReqError] = useState("");
 
   // Fetch dynamic providers when API key modal opens
   useEffect(() => {
@@ -261,11 +280,30 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
     return () => { cancelled = true; };
   }, [activeModal]);
 
+  // Fetch endpoint slug and virtual key prefix when first-request modal opens
+  useEffect(() => {
+    if (activeModal !== "first-request") return;
+    let cancelled = false;
+    Promise.all([
+      apiServices.get("/ai-gateway/endpoints").catch(() => null),
+      apiServices.get("/ai-gateway/virtual-keys").catch(() => null),
+    ]).then(([epRes, vkRes]) => {
+      if (cancelled) return;
+      const endpoints = epRes?.data?.data || [];
+      const activeEp = endpoints.find((e: { is_active: boolean }) => e.is_active);
+      if (activeEp) setFirstReqSlug(activeEp.slug);
+      const vkeys = vkRes?.data?.data || [];
+      const activeVk = vkeys.find((k: { is_active: boolean }) => k.is_active);
+      if (activeVk) setFirstReqVirtualKey(activeVk.key_prefix);
+    });
+    return () => { cancelled = true; };
+  }, [activeModal]);
+
   useEffect(() => {
     return () => { if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current); };
   }, []);
 
-  const openModal = useCallback((modal: "api-key" | "endpoint" | "virtual-key") => {
+  const openModal = useCallback((modal: "api-key" | "endpoint" | "virtual-key" | "first-request") => {
     // Clear any prior errors before opening
     setKeyError("");
     setEndpointError("");
@@ -283,6 +321,11 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
     setVkeyError("");
     setCreatedKey("");
     setCopied(false);
+    setFirstReqSlug("");
+    setFirstReqVirtualKey("");
+    setFirstReqRunning(false);
+    setFirstReqResponse("");
+    setFirstReqError("");
   }, []);
 
   // Guard against modal close triggered by MUI Select popover interactions
@@ -378,11 +421,36 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
     }
   };
 
+  const handleRunFirstRequest = async () => {
+    if (!firstReqSlug) {
+      setFirstReqError("No endpoint found. Create an endpoint first.");
+      return;
+    }
+    setFirstReqRunning(true);
+    setFirstReqError("");
+    setFirstReqResponse("");
+    try {
+      const res = await apiServices.post("/ai-gateway/chat", {
+        endpoint_slug: firstReqSlug,
+        messages: [{ role: "user", content: "Say hello and introduce yourself in one sentence." }],
+      });
+      const data = res?.data?.data;
+      const text = data?.choices?.[0]?.message?.content || JSON.stringify(data, null, 2);
+      setFirstReqResponse(text);
+      onStepCompleted();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setFirstReqError(msg || "Request failed. Check that your endpoint and API key are configured correctly.");
+    } finally {
+      setFirstReqRunning(false);
+    }
+  };
+
   const CHECKLIST_ITEMS: ChecklistItemProps[] = [
     { label: "Add a provider API key", done: setupStatus.hasApiKey, onClick: () => openModal("api-key") },
     { label: "Create an endpoint", done: setupStatus.hasEndpoint, onClick: () => openModal("endpoint") },
     { label: "Create a virtual key", done: setupStatus.hasVirtualKey, onClick: () => openModal("virtual-key") },
-    { label: "Make your first request", done: setupStatus.hasRequests },
+    { label: "Make your first request", done: setupStatus.hasRequests, onClick: () => openModal("first-request") },
   ];
 
   const isKeyDisplayPhase = createdKey !== "";
@@ -542,6 +610,56 @@ response = client.chat.completions.create(
 )`}
             </Box>
           </Box>
+        </Stack>
+      </StandardModal>
+
+      {/* ── Modal 4: Make your first request ── */}
+      <StandardModal
+        isOpen={activeModal === "first-request"}
+        onClose={closeModal}
+        title="Make your first request"
+        description="Run a test request through the gateway to complete setup"
+        maxWidth="560px"
+        hideSubmitButton
+      >
+        <Stack gap="16px">
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 500, mb: 1 }}>Code</Typography>
+            <Box sx={{ p: "12px 16px", backgroundColor: CODE_BLOCK_BG, borderRadius: "4px", fontFamily: "monospace", fontSize: 12, color: CODE_BLOCK_TEXT, lineHeight: 1.6, whiteSpace: "pre-wrap", overflow: "auto" }}>
+{`from openai import OpenAI
+
+client = OpenAI(
+    base_url="${GATEWAY_URL}/v1",
+    api_key="${firstReqVirtualKey || "sk-vw-your-key"}"
+)
+
+response = client.chat.completions.create(
+    model="${firstReqSlug || "your-endpoint-slug"}",
+    messages=[{"role": "user", "content": "Say hello and introduce yourself in one sentence."}]
+)
+print(response.choices[0].message.content)`}
+            </Box>
+          </Box>
+
+          <CustomizableButton
+            text={firstReqRunning ? "Running..." : firstReqResponse ? "Done" : "Run"}
+            icon={firstReqRunning ? <Loader2 size={14} strokeWidth={1.8} style={{ animation: "spin 1s linear infinite" }} /> : firstReqResponse ? <CheckCircle size={14} strokeWidth={1.8} /> : <Play size={14} strokeWidth={1.8} />}
+            onClick={handleRunFirstRequest}
+            sx={{ alignSelf: "flex-start" }}
+          />
+
+          {firstReqResponse && (
+            <Box>
+              <Typography sx={{ fontSize: 12, fontWeight: 500, mb: 1, color: palette.status.success.text }}>Response</Typography>
+              <Box sx={{ p: "12px 16px", backgroundColor: palette.background.accent, border: `1px solid ${palette.border.light}`, borderRadius: "4px", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                {firstReqResponse}
+              </Box>
+            </Box>
+          )}
+
+          {firstReqError && (
+            <Typography sx={{ fontSize: 12, color: palette.status.error.text }}>{firstReqError}</Typography>
+          )}
         </Stack>
       </StandardModal>
     </>

@@ -393,7 +393,7 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
         sx={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(240,242,245,0.92)",
+          backgroundColor: "rgba(245,247,249,0.90)",
           backdropFilter: "blur(1px)",
           display: "flex",
           justifyContent: "center",

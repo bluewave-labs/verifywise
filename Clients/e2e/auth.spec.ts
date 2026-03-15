@@ -1,8 +1,17 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { config } from "dotenv";
+config();
 
-const TEST_EMAIL = process.env.E2E_EMAIL || "verifywise@email.com";
-const TEST_PASSWORD = process.env.E2E_PASSWORD || "Verifywise#1";
+const TEST_EMAIL = process.env.E2E_EMAIL;
+const TEST_PASSWORD = process.env.E2E_PASSWORD;
+
+if (!TEST_EMAIL || !TEST_PASSWORD) {
+  throw new Error(
+    "E2E_EMAIL and E2E_PASSWORD environment variables must be set. " +
+    "Add them to Clients/.env or export them before running tests."
+  );
+}
 
 test.describe("Authentication", () => {
   test("login page renders correctly", async ({ page }) => {

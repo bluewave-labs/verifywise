@@ -1,4 +1,6 @@
 import { test as setup, expect } from "@playwright/test";
+import { config } from "dotenv";
+config();
 
 /**
  * Global setup: logs in once via the real UI and saves browser storage state.
@@ -10,8 +12,15 @@ import { test as setup, expect } from "@playwright/test";
  * manually-set persist:* keys on page load if the version doesn't match.
  */
 
-const TEST_EMAIL = process.env.E2E_EMAIL || "verifywise@email.com";
-const TEST_PASSWORD = process.env.E2E_PASSWORD || "Verifywise#1";
+const TEST_EMAIL = process.env.E2E_EMAIL;
+const TEST_PASSWORD = process.env.E2E_PASSWORD;
+
+if (!TEST_EMAIL || !TEST_PASSWORD) {
+  throw new Error(
+    "E2E_EMAIL and E2E_PASSWORD environment variables must be set. " +
+    "Add them to Clients/.env or export them before running tests."
+  );
+}
 const AUTH_STATE_PATH = "e2e/.auth/user.json";
 
 setup("authenticate", async ({ page }) => {
@@ -20,7 +29,9 @@ setup("authenticate", async ({ page }) => {
   await page
     .getByPlaceholder("name.surname@companyname.com")
     .fill(TEST_EMAIL);
-  await page.getByPlaceholder("Enter your password").fill(TEST_PASSWORD);
+  const passwordField = page.getByPlaceholder("Enter your password");
+  await passwordField.click();
+  await passwordField.fill(TEST_PASSWORD);
   await page.getByRole("button", { name: /sign in/i }).click();
 
   // 2. Wait for redirect to dashboard (confirms login succeeded)
@@ -30,8 +41,8 @@ setup("authenticate", async ({ page }) => {
   await page.context().storageState({ path: AUTH_STATE_PATH });
 
   // 4. Ensure a test project exists (needed by vendor CRUD and others)
-  const baseURL = page.url().replace(/\/+$/, "").replace(/\/[^/]*$/, "");
-  const res = await page.request.post(`${baseURL}/api/projects`, {
+  const API_BASE = process.env.E2E_API_URL || "http://localhost:3000";
+  const res = await page.request.post(`${API_BASE}/api/projects`, {
     data: {
       project_title: "E2E Test Project",
       members: [],

@@ -119,7 +119,11 @@ export default function SpendDashboardPage() {
           </Box>
           <OnboardingOverlay
             setupStatus={setupStatus}
-            onGetStarted={() => userGuideSidebar.open("ai-gateway/getting-started")}
+            onGetStarted={() => {
+              // Clear path first to ensure the effect re-fires even if same path
+              userGuideSidebar.close();
+              setTimeout(() => userGuideSidebar.open("ai-gateway/getting-started"), 50);
+            }}
           />
         </Box>
       </PageHeaderExtended>

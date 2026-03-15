@@ -100,6 +100,42 @@ export const analyticsContent: ArticleContent = {
       ],
     },
     {
+      type: 'heading',
+      id: 'request-logs',
+      level: 2,
+      text: 'Request logs',
+    },
+    {
+      type: 'paragraph',
+      text: 'Click "Load logs" at the bottom of the page to view recent requests with full details. Each row shows the endpoint, model, user, tokens, cost, and status code. Click a row to expand it and see:',
+    },
+    {
+      type: 'bullet-list',
+      items: [
+        { bold: 'Request', text: 'The full message array sent to the LLM (JSON)' },
+        { bold: 'Response', text: 'The model\'s response text' },
+        { bold: 'Error', text: 'Error message if the request failed' },
+        { bold: 'Metadata', text: 'Custom tags attached to the request (e.g., department, project)' },
+        { text: 'Latency, prompt tokens, and completion tokens' },
+      ],
+    },
+    {
+      type: 'callout',
+      variant: 'warning',
+      title: 'Privacy note',
+      text: 'Request logs include the full prompt text. If prompts contain sensitive information, consider your organization\'s data handling policies before sharing analytics access broadly.',
+    },
+    {
+      type: 'heading',
+      id: 'metadata-tags',
+      level: 2,
+      text: 'Metadata tags',
+    },
+    {
+      type: 'paragraph',
+      text: 'API callers can attach metadata to requests (e.g., {"department": "engineering", "project": "chatbot"}). This metadata is stored in the spend log and visible in expanded request details. A "Cost by tag" API endpoint is available for programmatic tag-based analytics.',
+    },
+    {
       type: 'callout',
       variant: 'tip',
       title: 'Compliance evidence',

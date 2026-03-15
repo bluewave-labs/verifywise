@@ -25,7 +25,8 @@ export const endpointsContent: ArticleContent = {
         { text: 'Enter a display name (e.g., "Production GPT-4o"). A URL-safe slug is generated automatically.' },
         { text: 'Select a model from the dropdown. Models are grouped by provider.' },
         { text: 'Select an API key to authenticate with the provider. If no keys are available, add one in Settings first.' },
-        { text: 'Optionally set max tokens, temperature, and a system prompt.' },
+        { text: 'Optionally set max tokens, temperature, system prompt, and rate limit (RPM).' },
+        { text: 'Optionally select a fallback endpoint (used if the primary provider is down).' },
         { text: 'Click "Create endpoint"' },
       ],
     },
@@ -60,7 +61,45 @@ export const endpointsContent: ArticleContent = {
       items: [
         { bold: 'Delete', text: 'Removes the endpoint. Requests using this slug will fail.' },
         { bold: 'View guardrail status', text: 'Shows how many guardrail rules are currently active across all endpoints.' },
+        { bold: 'RPM badge', text: 'Shows the rate limit in requests per minute, if configured.' },
+        { bold: 'Fallback badge', text: 'Shows "has fallback" when a fallback endpoint is configured.' },
       ],
+    },
+    {
+      type: 'heading',
+      id: 'rate-limiting',
+      level: 2,
+      text: 'Rate limiting',
+    },
+    {
+      type: 'paragraph',
+      text: 'Set "Rate limit (RPM)" on an endpoint to cap requests per minute. When the limit is hit, additional requests return HTTP 429. The limit uses a Redis sliding window, so it resets continuously (not on a fixed clock boundary). Leave the field empty for no limit.',
+    },
+    {
+      type: 'heading',
+      id: 'fallback-endpoints',
+      level: 2,
+      text: 'Fallback endpoints',
+    },
+    {
+      type: 'paragraph',
+      text: 'Select a fallback endpoint when creating or editing an endpoint. If the primary provider returns an error (timeout, 500, rate limit from the provider side), the gateway automatically retries the request using the fallback endpoint. This works for both non-streaming and streaming requests.',
+    },
+    {
+      type: 'callout',
+      variant: 'info',
+      title: 'Fallback chain',
+      text: 'The fallback endpoint can itself have a fallback, forming a chain. The gateway tries up to 3 endpoints before giving up. Guardrails only run once (on the original request), not on each retry.',
+    },
+    {
+      type: 'heading',
+      id: 'access-controls',
+      level: 2,
+      text: 'Role-based access',
+    },
+    {
+      type: 'paragraph',
+      text: 'Each endpoint has an allowed roles list (defaults to all 4 roles: Admin, Reviewer, Editor, Auditor). When listing endpoints, users only see endpoints their role has access to. This applies to the Endpoints page, the Playground dropdown, and any API call that lists endpoints.',
     },
     {
       type: 'heading',

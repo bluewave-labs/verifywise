@@ -156,6 +156,16 @@ export const guardrailsContent: ArticleContent = {
     },
     {
       type: 'heading',
+      id: 'audit-trail',
+      level: 2,
+      text: 'Change history',
+    },
+    {
+      type: 'paragraph',
+      text: 'Every change to a guardrail rule (name, action, config, toggle) is recorded in the change history. The same applies to endpoint changes. This audit trail tracks who changed what and when, supporting ISO 42001 Clause 10 (improvement) requirements.',
+    },
+    {
+      type: 'heading',
       id: 'compliance',
       level: 2,
       text: 'Compliance mapping',

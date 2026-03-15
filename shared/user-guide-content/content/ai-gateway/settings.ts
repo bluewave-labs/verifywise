@@ -52,7 +52,7 @@ export const aiGatewaySettingsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Budgets set a monthly spending limit across all endpoints. The budget section shows current spend with a progress bar, alert threshold, and hard limit status.',
+      text: 'Budgets set a monthly spending limit across all endpoints. The budget section shows current spend with a progress bar, alert threshold, and hard limit status. Spend resets automatically on the 1st of each month.',
     },
     {
       type: 'heading',
@@ -71,6 +71,16 @@ export const aiGatewaySettingsContent: ArticleContent = {
         { setting: 'Alert threshold', description: 'Percentage (0-100) at which the progress bar turns red as a visual warning.' },
         { setting: 'Hard limit', description: 'When enabled, requests are rejected with HTTP 429 once the budget is exceeded. When disabled, requests continue but the progress bar shows the overage.' },
       ],
+    },
+    {
+      type: 'heading',
+      id: 'budget-alerts',
+      level: 3,
+      text: 'Budget alerts',
+    },
+    {
+      type: 'paragraph',
+      text: 'When spend crosses the alert threshold percentage, the system logs an alert. Alerts are deduplicated per month (only 1 alert per threshold crossing per month). The budget spend resets automatically on the 1st of each month via a background job.',
     },
     {
       type: 'heading',

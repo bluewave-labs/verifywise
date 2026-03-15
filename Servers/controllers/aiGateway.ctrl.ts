@@ -47,6 +47,7 @@ import {
   getSpendByUserQuery,
   getSpendByDayQuery,
   getSpendByTagQuery,
+  getSpendLogsDetailQuery,
 } from "../utils/aiGatewaySpendLog.utils";
 
 // Budget utils
@@ -356,6 +357,19 @@ export async function getSpendByUser(req: Request, res: Response) {
   }
 }
 
+export async function getSpendLogs(req: Request, res: Response) {
+  const fn = "getSpendLogs";
+  try {
+    const limit = Math.min(Number(req.query.limit) || 50, 200);
+    const offset = Number(req.query.offset) || 0;
+    const logs = await getSpendLogsDetailQuery(req.organizationId!, limit, offset);
+    return res.status(200).json(STATUS_CODE[200](logs));
+  } catch (error) {
+    logStructured("error", "failed to fetch spend logs", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
 export async function getSpendByTag(req: Request, res: Response) {
   const fn = "getSpendByTag";
   logStructured("processing", "fetching spend by tag", fn, fileName);
@@ -428,7 +442,7 @@ export async function chatCompletion(req: Request, res: Response) {
   const fn = "chatCompletion";
   logStructured("processing", "proxying chat completion", fn, fileName);
   try {
-    const { endpoint_slug, messages, max_tokens, temperature, top_p } = req.body;
+    const { endpoint_slug, messages, max_tokens, temperature, top_p, metadata } = req.body;
     if (!endpoint_slug || !messages) {
       throw new ValidationException("endpoint_slug and messages are required");
     }
@@ -437,7 +451,7 @@ export async function chatCompletion(req: Request, res: Response) {
       req.organizationId!,
       endpoint_slug,
       messages,
-      { max_tokens, temperature, top_p },
+      { max_tokens, temperature, top_p, metadata },
       Number(req.userId)
     );
 
@@ -462,7 +476,7 @@ export async function chatCompletionStream(req: Request, res: Response) {
   const fn = "chatCompletionStream";
   logStructured("processing", "proxying streaming chat completion", fn, fileName);
   try {
-    const { endpoint_slug, messages, max_tokens, temperature, top_p } = req.body;
+    const { endpoint_slug, messages, max_tokens, temperature, top_p, metadata } = req.body;
     if (!endpoint_slug || !messages) {
       throw new ValidationException("endpoint_slug and messages are required");
     }
@@ -471,7 +485,7 @@ export async function chatCompletionStream(req: Request, res: Response) {
       req.organizationId!,
       endpoint_slug,
       messages,
-      { max_tokens, temperature, top_p },
+      { max_tokens, temperature, top_p, metadata },
       Number(req.userId)
     );
 

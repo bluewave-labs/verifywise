@@ -28,6 +28,7 @@ import {
   // Providers
   getProviders,
   getSpendByTag,
+  getSpendLogs,
   // Guardrails
   getGuardrails,
   createGuardrail,
@@ -62,6 +63,7 @@ router.get("/spend", getSpendSummary);
 router.get("/spend/by-endpoint", getSpendByEndpoint);
 router.get("/spend/by-user", getSpendByUser);
 router.get("/spend/by-tag", getSpendByTag);
+router.get("/spend/logs", getSpendLogs);
 
 // Budget management
 router.get("/budget", getBudget);

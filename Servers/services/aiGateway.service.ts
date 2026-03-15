@@ -51,6 +51,7 @@ interface CompletionOptions {
   temperature?: number;
   top_p?: number;
   stream?: boolean;
+  metadata?: Record<string, string>;
 }
 
 interface GatewayResponse {
@@ -445,6 +446,7 @@ export async function proxyCompletion(
       statusCode,
       estimatedCost,
       {
+        metadata: options.metadata,
         request_messages: finalMessages,
         response_text: data.choices?.[0]?.message?.content,
       }
@@ -653,7 +655,7 @@ export async function proxyStream(
       latencyMs,
       200,
       estimatedCost,
-      { request_messages: finalMessages }
+      { metadata: options.metadata, request_messages: finalMessages }
     );
   };
 

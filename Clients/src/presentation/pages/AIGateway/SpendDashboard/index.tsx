@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users, ShieldCheck, ShieldOff, Info } from "lucide-react";
+import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users, ShieldCheck, ShieldOff, Info, ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { CustomizableButton } from "../../../components/button/customizable-button";
 import { Tooltip as MuiTooltip } from "@mui/material";
 import Select from "../../../components/Inputs/Select";
 import { StatCard } from "../../../components/Cards/StatCard";
@@ -39,6 +40,9 @@ export default function SpendDashboardPage() {
   const [byEndpoint, setByEndpoint] = useState<any[]>([]);
   const [byUser, setByUser] = useState<any[]>([]);
   const [guardrailStats, setGuardrailStats] = useState<any>(null);
+  const [spendLogs, setSpendLogs] = useState<any[]>([]);
+  const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -389,6 +393,168 @@ export default function SpendDashboardPage() {
           </Stack>
         </Box>
       )}
+      {/* Request logs */}
+      <Box sx={cardSx}>
+        <Stack gap="12px">
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" alignItems="center" gap="6px">
+              <Typography sx={sectionTitleSx}>Request logs</Typography>
+              <MuiTooltip title="Recent requests with full prompt, response, and cost data" arrow placement="top">
+                <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
+              </MuiTooltip>
+            </Stack>
+            <CustomizableButton
+              text={logsLoading ? "Loading..." : spendLogs.length > 0 ? "Refresh" : "Load logs"}
+              icon={<FileText size={14} strokeWidth={1.5} />}
+              onClick={async () => {
+                setLogsLoading(true);
+                try {
+                  const res = await apiServices.get("/ai-gateway/spend/logs?limit=20");
+                  setSpendLogs(res?.data?.data || []);
+                } catch {
+                  // Silently handle
+                } finally {
+                  setLogsLoading(false);
+                }
+              }}
+            />
+          </Stack>
+
+          {spendLogs.length > 0 && (
+            <Stack gap="4px">
+              {spendLogs.map((log: any) => (
+                <Box key={log.id}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
+                    sx={{
+                      p: "8px 12px",
+                      borderRadius: "4px",
+                      border: `1px solid ${palette.border.light}`,
+                      cursor: "pointer",
+                      "&:hover": { backgroundColor: palette.background.fill },
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" gap="8px">
+                      {expandedLogId === log.id ? (
+                        <ChevronUp size={14} color={palette.text.tertiary} />
+                      ) : (
+                        <ChevronDown size={14} color={palette.text.tertiary} />
+                      )}
+                      <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
+                        {log.endpoint_name || log.endpoint_slug || "unknown"}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
+                        {log.model}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" gap="12px" alignItems="center">
+                      <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
+                        {log.user_name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
+                        {Number(log.total_tokens).toLocaleString()} tokens
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, fontWeight: 600 }}>
+                        ${Number(log.cost_usd).toFixed(6)}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: log.status_code === 200 ? palette.status.success.text : palette.status.error.text }}>
+                        {log.status_code}
+                      </Typography>
+                      <Typography sx={{ fontSize: 10, color: palette.text.disabled }}>
+                        {new Date(log.created_at).toLocaleTimeString()}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+
+                  {expandedLogId === log.id && (
+                    <Box
+                      sx={{
+                        p: "12px 16px",
+                        ml: 3,
+                        mt: 0.5,
+                        border: `1px solid ${palette.border.light}`,
+                        borderRadius: "4px",
+                        backgroundColor: palette.background.alt,
+                      }}
+                    >
+                      {log.request_messages && (
+                        <Box sx={{ mb: 1.5 }}>
+                          <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.tertiary, mb: 0.5 }}>
+                            Request
+                          </Typography>
+                          <Box
+                            sx={{
+                              fontFamily: "monospace",
+                              fontSize: 11,
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-all",
+                              maxHeight: 200,
+                              overflow: "auto",
+                              p: 1,
+                              borderRadius: "4px",
+                              backgroundColor: palette.background.main,
+                              border: `1px solid ${palette.border.light}`,
+                            }}
+                          >
+                            {JSON.stringify(log.request_messages, null, 2)}
+                          </Box>
+                        </Box>
+                      )}
+                      {log.response_text && (
+                        <Box sx={{ mb: 1.5 }}>
+                          <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.tertiary, mb: 0.5 }}>
+                            Response
+                          </Typography>
+                          <Box
+                            sx={{
+                              fontSize: 12,
+                              whiteSpace: "pre-wrap",
+                              maxHeight: 200,
+                              overflow: "auto",
+                              p: 1,
+                              borderRadius: "4px",
+                              backgroundColor: palette.background.main,
+                              border: `1px solid ${palette.border.light}`,
+                            }}
+                          >
+                            {log.response_text}
+                          </Box>
+                        </Box>
+                      )}
+                      {log.error_message && (
+                        <Box>
+                          <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.status.error.text, mb: 0.5 }}>
+                            Error
+                          </Typography>
+                          <Typography sx={{ fontSize: 12, color: palette.status.error.text }}>
+                            {log.error_message}
+                          </Typography>
+                        </Box>
+                      )}
+                      {log.metadata && Object.keys(log.metadata).length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography sx={{ fontSize: 11, fontWeight: 600, color: palette.text.tertiary, mb: 0.5 }}>
+                            Metadata
+                          </Typography>
+                          <Typography sx={{ fontSize: 11, fontFamily: "monospace" }}>
+                            {JSON.stringify(log.metadata)}
+                          </Typography>
+                        </Box>
+                      )}
+                      <Typography sx={{ fontSize: 10, color: palette.text.disabled, mt: 1 }}>
+                        Latency: {log.latency_ms}ms &middot; Prompt: {log.prompt_tokens} tokens &middot; Completion: {log.completion_tokens} tokens
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </Box>
     </PageHeaderExtended>
   );
 }

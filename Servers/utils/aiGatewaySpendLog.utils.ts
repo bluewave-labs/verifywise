@@ -6,6 +6,7 @@
  */
 
 import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 
 export interface IAiGatewaySpendLog {
   id: number;
@@ -100,6 +101,32 @@ export const insertSpendLogQuery = async (
   )) as [IAiGatewaySpendLog[], number];
 
   return result[0][0];
+};
+
+/**
+ * Get paginated spend logs with full request/response data (for log viewer)
+ */
+export const getSpendLogsDetailQuery = async (
+  organizationId: number,
+  limit: number = 50,
+  offset: number = 0
+): Promise<any[]> => {
+  const rows = await sequelize.query(
+    `SELECT s.id, s.endpoint_id, e.display_name AS endpoint_name, e.slug AS endpoint_slug,
+            s.model, s.provider, s.prompt_tokens, s.completion_tokens, s.total_tokens,
+            s.cost_usd, s.latency_ms, s.status_code, s.metadata,
+            s.request_messages, s.response_text, s.error_message,
+            s.created_at,
+            COALESCE(NULLIF(TRIM(COALESCE(u.name, '') || ' ' || COALESCE(u.surname, '')), ''), 'unknown') AS user_name
+     FROM ai_gateway_spend_logs s
+     LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
+     LEFT JOIN users u ON u.id = s.user_id
+     WHERE s.organization_id = :organizationId
+     ORDER BY s.created_at DESC
+     LIMIT :limit OFFSET :offset`,
+    { replacements: { organizationId, limit, offset }, type: QueryTypes.SELECT }
+  );
+  return rows as any[];
 };
 
 /**

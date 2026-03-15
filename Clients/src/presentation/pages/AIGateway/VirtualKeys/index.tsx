@@ -160,18 +160,18 @@ export default function AIGatewayVirtualKeysPage() {
           {loading ? null : keys.length === 0 ? (
             <EmptyState
               icon={KeyRound}
-              message="No virtual keys created. Generate a key to let developers use the gateway with the OpenAI SDK."
+              message="Give your developers a single API key to access any LLM through the gateway — no VerifyWise account needed."
               showBorder
             >
               <EmptyStateTip
                 icon={Server}
-                title="Server-to-server only"
-                description="Virtual keys are designed for backend services. CORS is disabled on /v1/* routes, so browser-based requests will fail."
+                title="Drop-in replacement for any OpenAI SDK"
+                description="Developers point their existing OpenAI SDK at the gateway URL and swap in the virtual key. No code changes beyond the base URL and key — all guardrails, logging, and budget controls apply automatically."
               />
               <EmptyStateTip
                 icon={KeyRound}
-                title="Keys are shown once"
-                description="When you create a key, the full key is displayed once. Copy it immediately — only the hash is stored, so the plaintext cannot be recovered."
+                title="Per-key budgets and rate limits"
+                description="Each virtual key can have its own monthly spending cap and request-per-minute limit. When a key hits its budget, only that key is blocked — other keys and the rest of the gateway keep running."
               />
             </EmptyState>
           ) : (

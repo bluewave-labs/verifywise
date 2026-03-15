@@ -374,16 +374,16 @@ export const ENTITY_TIPS: EntityTips = {
   ],
   "ai-gateway-virtual-keys": [
     {
-      header: "Virtual keys let developers use the gateway with a simple API key.",
-      content: "Generate a key, give it to a developer, and they point their OpenAI SDK at the gateway URL. No VerifyWise account needed. The model field in the API request maps to your endpoint slugs.",
+      header: "Give every developer a governed AI endpoint in minutes.",
+      content: "Create a virtual key, share it with a developer, and they swap their OpenAI base URL to the gateway. Every request flows through your guardrails, budget controls, and audit logs — without anyone needing a VerifyWise account.",
     },
     {
-      header: "CORS is disabled on gateway routes. Use virtual keys from backend services only.",
-      content: "The /v1/* proxy routes do not send CORS headers, so browser-based requests will fail. This is intentional — virtual keys are designed for server-to-server communication from your applications' backend code.",
+      header: "Control costs per team, project, or environment.",
+      content: "Each virtual key can carry its own monthly budget cap and rate limit. When a key exhausts its budget only that key is blocked — other keys and the Playground keep working. Budgets reset automatically on the 1st of each month.",
     },
     {
-      header: "Keys are shown once on creation and cannot be retrieved again.",
-      content: "When you create a virtual key, the full key is displayed once. Copy it immediately. Only the SHA-256 hash is stored in the database, so VerifyWise cannot recover the plaintext key after creation.",
+      header: "Works with any OpenAI-compatible SDK or HTTP client.",
+      content: "Virtual keys follow the OpenAI API format. Set the base URL to the gateway, pass the virtual key as the API key, and use your endpoint slug as the model name. Python, Node, Go, curl — anything that speaks the OpenAI protocol works out of the box.",
     },
   ],
   "ai-gateway-guardrails": [

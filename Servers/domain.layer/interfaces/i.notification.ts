@@ -44,6 +44,7 @@ export enum NotificationType {
   AI_GATEWAY_BUDGET_WARNING = "ai_gateway_budget_warning",
   AI_GATEWAY_BUDGET_EXHAUSTED = "ai_gateway_budget_exhausted",
   AI_GATEWAY_GUARDRAIL_SPIKE = "ai_gateway_guardrail_spike",
+  AI_GATEWAY_CONFIG_CHANGE = "ai_gateway_config_change",
 
   // System notifications
   SYSTEM = "system",

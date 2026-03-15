@@ -59,6 +59,7 @@ export const EMAIL_TEMPLATES = {
   AI_GATEWAY_BUDGET_WARNING: "ai-gateway-budget-warning.mjml",
   AI_GATEWAY_BUDGET_EXHAUSTED: "ai-gateway-budget-exhausted.mjml",
   AI_GATEWAY_GUARDRAIL_SPIKE: "ai-gateway-guardrail-spike.mjml",
+  AI_GATEWAY_CONFIG_CHANGE: "ai-gateway-config-change.mjml",
 
   // Intake form templates
   INTAKE_SUBMISSION_RECEIVED: "intake-submission-received.mjml",

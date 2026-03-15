@@ -5,6 +5,9 @@ import {
   ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
 import { recordEntityChange } from "../utils/changeHistory.base.utils";
+import { notifyConfigChange } from "../services/aiGateway/aiGatewayNotifications";
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Guardrail utils
 import {
@@ -105,6 +108,13 @@ export async function createApiKey(req: Request, res: Response) {
 
     const key = await createApiKeyQuery(req.organizationId!, { provider, key_name, api_key });
     logStructured("successful", `gateway API key created: ${key_name}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "API key", entityName: key_name, action: "created",
+      detail: `Provider: ${provider}`,
+      actionUrl: `${FRONTEND_URL}/ai-gateway/settings`, actionLabel: "View settings",
+    }).catch(() => {});
+
     return res.status(201).json(STATUS_CODE[201](key));
   } catch (error) {
     if (error instanceof ValidationException) {
@@ -144,6 +154,12 @@ export async function deleteApiKey(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("API key not found"));
     }
     logStructured("successful", `gateway API key deleted: ${id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "API key", entityName: `Key #${id}`, action: "deleted",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/settings`, actionLabel: "View settings",
+    }).catch(() => {});
+
     return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
   } catch (error) {
     logStructured("error", "failed to delete gateway API key", fn, fileName);
@@ -211,6 +227,13 @@ export async function createEndpoint(req: Request, res: Response) {
       rate_limit_rpm: req.body.rate_limit_rpm,
     });
     logStructured("successful", `gateway endpoint created: ${slug}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Endpoint", entityName: display_name, action: "created",
+      detail: `Provider: ${provider}, Model: ${model}, Slug: ${slug}`,
+      actionUrl: `${FRONTEND_URL}/ai-gateway/endpoints`, actionLabel: "View endpoints",
+    }).catch(() => {});
+
     return res.status(201).json(STATUS_CODE[201](endpoint));
   } catch (error) {
     if (error instanceof ValidationException) {
@@ -249,6 +272,16 @@ export async function updateEndpoint(req: Request, res: Response) {
     }
 
     logStructured("successful", `gateway endpoint updated: ${id}`, fn, fileName);
+
+    // Notify on toggle or significant changes
+    if (req.body.is_active !== undefined) {
+      notifyConfigChange(req.organizationId!, Number(req.userId), {
+        entityType: "Endpoint", entityName: updated.display_name || `Endpoint #${id}`,
+        action: req.body.is_active ? "enabled" : "disabled",
+        actionUrl: `${FRONTEND_URL}/ai-gateway/endpoints`, actionLabel: "View endpoints",
+      }).catch(() => {});
+    }
+
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
     if (error instanceof ValidationException) {
@@ -270,6 +303,12 @@ export async function deleteEndpoint(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Endpoint not found"));
     }
     logStructured("successful", `gateway endpoint deleted: ${id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Endpoint", entityName: `Endpoint #${id}`, action: "deleted",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/endpoints`, actionLabel: "View endpoints",
+    }).catch(() => {});
+
     return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
   } catch (error) {
     logStructured("error", "failed to delete gateway endpoint", fn, fileName);
@@ -654,6 +693,13 @@ export async function createGuardrail(req: Request, res: Response) {
       created_by: Number(req.userId),
     });
     logStructured("successful", `guardrail rule created: ${rule.id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Guardrail rule", entityName: name, action: "created",
+      detail: `Type: ${guardrail_type}, Action: ${action || "block"}`,
+      actionUrl: `${FRONTEND_URL}/ai-gateway/guardrails`, actionLabel: "View guardrails",
+    }).catch(() => {});
+
     return res.status(201).json(STATUS_CODE[201](rule));
   } catch (error) {
     if (error instanceof ValidationException) {
@@ -691,6 +737,15 @@ export async function updateGuardrail(req: Request, res: Response) {
     }
 
     logStructured("successful", `guardrail rule updated: ${id}`, fn, fileName);
+
+    if (req.body.is_active !== undefined) {
+      notifyConfigChange(req.organizationId!, Number(req.userId), {
+        entityType: "Guardrail rule", entityName: updated.name || `Rule #${id}`,
+        action: req.body.is_active ? "enabled" : "disabled",
+        actionUrl: `${FRONTEND_URL}/ai-gateway/guardrails`, actionLabel: "View guardrails",
+      }).catch(() => {});
+    }
+
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
     if (error instanceof ValidationException) {
@@ -712,6 +767,11 @@ export async function deleteGuardrail(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Guardrail rule not found"));
     }
     logStructured("successful", `guardrail rule deleted: ${id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Guardrail rule", entityName: `Rule #${id}`, action: "deleted",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/guardrails`, actionLabel: "View guardrails",
+    }).catch(() => {});
     return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
   } catch (error) {
     if (error instanceof ValidationException) {

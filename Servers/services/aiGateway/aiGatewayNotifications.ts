@@ -170,3 +170,81 @@ export async function notifyGuardrailSpike(
     }
   }
 }
+
+/**
+ * Notify: Configuration change (endpoint, API key, guardrail rule)
+ *
+ * Generic notification for any config change event.
+ * Uses a single shared template with variable content.
+ */
+export async function notifyConfigChange(
+  organizationId: number,
+  changedByUserId: number,
+  event: {
+    entityType: string;    // "Endpoint" | "API key" | "Guardrail rule"
+    entityName: string;    // e.g., "prod-gpt4o" or "Block credit cards"
+    action: string;        // "created" | "deleted" | "disabled" | "enabled" | "modified"
+    detail?: string;       // e.g., "Provider: openai, Model: gpt-4o"
+    actionUrl: string;     // link to the relevant page
+    actionLabel: string;   // button text e.g., "View endpoints"
+  }
+): Promise<void> {
+  const adminIds = await getOrgAdminIds(organizationId);
+
+  // Look up who made the change
+  let changedByName = "A user";
+  try {
+    const users = await sequelize.query(
+      `SELECT name, surname FROM users WHERE id = :userId`,
+      { replacements: { userId: changedByUserId }, type: QueryTypes.SELECT }
+    );
+    const u = (users as any[])[0];
+    if (u) changedByName = [u.name, u.surname].filter(Boolean).join(" ") || "A user";
+  } catch { /* fallback to "A user" */ }
+
+  const descriptions: Record<string, string> = {
+    created: `${changedByName} created a new ${event.entityType.toLowerCase()}: "${event.entityName}".`,
+    deleted: `${changedByName} deleted the ${event.entityType.toLowerCase()} "${event.entityName}".`,
+    disabled: `${changedByName} disabled the ${event.entityType.toLowerCase()} "${event.entityName}".`,
+    enabled: `${changedByName} enabled the ${event.entityType.toLowerCase()} "${event.entityName}".`,
+    modified: `${changedByName} modified the ${event.entityType.toLowerCase()} "${event.entityName}".`,
+  };
+
+  const changeDescription = descriptions[event.action] || `${changedByName} changed ${event.entityType.toLowerCase()} "${event.entityName}".`;
+
+  for (const adminId of adminIds) {
+    if (adminId === changedByUserId) continue; // don't notify the person who made the change
+
+    try {
+      await sendInAppNotification(
+        organizationId,
+        {
+          user_id: adminId,
+          type: NotificationType.AI_GATEWAY_CONFIG_CHANGE,
+          title: `${event.entityType} ${event.action}`,
+          message: changeDescription,
+          entity_type: NotificationEntityType.AI_GATEWAY,
+          action_url: event.actionUrl,
+        },
+        true,
+        {
+          template: EMAIL_TEMPLATES.AI_GATEWAY_CONFIG_CHANGE,
+          subject: `AI Gateway: ${event.entityType.toLowerCase()} ${event.action}`,
+          variables: {
+            recipient_name: "Admin",
+            change_description: changeDescription,
+            entity_type: event.entityType,
+            entity_name: event.entityName,
+            change_detail: event.detail || "",
+            changed_by: changedByName,
+            changed_at: new Date().toLocaleString(),
+            action_url: event.actionUrl,
+            action_label: event.actionLabel,
+          },
+        }
+      );
+    } catch (err) {
+      logger.error(`Failed to send config change notification to admin ${adminId}:`, err);
+    }
+  }
+}

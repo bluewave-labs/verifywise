@@ -437,8 +437,14 @@ export const collections: Collection[] = [
     title: 'AI Gateway',
     description: 'Route, monitor, and protect LLM requests through a unified gateway with cost tracking and guardrails.',
     icon: 'Router',
-    articleCount: 7,
+    articleCount: 8,
     articles: [
+      {
+        id: 'getting-started',
+        title: 'Getting started',
+        description: 'Set up the AI Gateway from scratch: add a provider key, create an endpoint, test it, and start routing requests.',
+        keywords: ['getting started', 'quickstart', 'setup', 'first', 'begin', 'tutorial', 'how to', 'api key', 'endpoint', 'virtual key'],
+      },
       {
         id: 'analytics',
         title: 'Analytics',

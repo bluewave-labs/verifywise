@@ -51,6 +51,7 @@ import { userActivityContent } from './shadow-ai/user-activity';
 import { rulesContent } from './shadow-ai/rules';
 import { settingsContent as shadowAiSettingsContent } from './shadow-ai/settings';
 import { integrationGuideContent } from './shadow-ai/integration-guide';
+import { gettingStartedContent as aiGatewayGettingStartedContent } from './ai-gateway/getting-started';
 import { analyticsContent as aiGatewayAnalyticsContent } from './ai-gateway/analytics';
 import { endpointsContent as aiGatewayEndpointsContent } from './ai-gateway/endpoints';
 import { playgroundContent as aiGatewayPlaygroundContent } from './ai-gateway/playground';
@@ -127,6 +128,7 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'shadow-ai/settings': shadowAiSettingsContent,
   'shadow-ai/integration-guide': integrationGuideContent,
   // AI Gateway
+  'ai-gateway/getting-started': aiGatewayGettingStartedContent,
   'ai-gateway/analytics': aiGatewayAnalyticsContent,
   'ai-gateway/endpoints': aiGatewayEndpointsContent,
   'ai-gateway/playground': aiGatewayPlaygroundContent,

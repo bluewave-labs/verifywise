@@ -10,7 +10,7 @@ export const guardrailsContent: ArticleContent = {
     },
     {
       type: 'paragraph',
-      text: 'Guardrails scan every AI request before it reaches the LLM provider. They catch personal data (PII detection) and prohibited content (content filter). Rules apply globally to all endpoints. Scanning runs in-process within your gateway; no data is sent to external services.',
+      text: 'Guardrails scan every AI request before it reaches the LLM provider. They catch personal data (PII detection) and prohibited content (content filter). Rules apply globally to all endpoints. Scanning runs within your gateway infrastructure (the AI Gateway FastAPI service); no data leaves your network for scanning.',
     },
     {
       type: 'heading',

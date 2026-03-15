@@ -125,7 +125,7 @@ print(response.choices[0].message.content)`,
       type: 'bullet-list',
       items: [
         { text: 'Key-level and endpoint-level RPM limits are independent; both get enforced' },
-        { text: 'Over-limit requests get a 429 response' },
+        { text: 'Over-limit requests get a 429 response with a clear error message' },
         { text: 'If you don\'t set a key RPM, only the endpoint limit applies' },
       ],
     },

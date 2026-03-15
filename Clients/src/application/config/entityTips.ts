@@ -389,10 +389,10 @@ export const ENTITY_TIPS: EntityTips = {
   "ai-gateway-guardrails": [
     {
       header: "Guardrails protect every AI request automatically.",
-      content: "PII detection and content filters run on every request before it reaches the LLM provider. Rules are evaluated in-process with zero external API calls. Use the Test button to preview what your rules catch before enabling them.",
+      content: "PII detection and content filters run on every request before it reaches the LLM provider. Scanning happens within your gateway infrastructure, so no data leaves your network. Use the Test button to preview what your rules catch before enabling them.",
     },
     {
-      header: "PII detection runs in-process — no data sent to external services.",
+      header: "PII detection stays within your infrastructure.",
       content: "Text is analyzed for personal data patterns (email, phone, credit card, names, IBAN, Turkish TCKN) within your gateway infrastructure. No data leaves your network for scanning.",
     },
     {

@@ -90,6 +90,7 @@ import featureSettingsRoutes from "./routes/featureSettings.route";
 import riskBenchmarkRoutes from "./routes/riskBenchmark.route";
 import quantitativeRiskRoutes from "./routes/quantitativeRisk.route";
 import aiGatewayRoutes from "./routes/aiGateway.route";
+import virtualKeyProxyRoutes from "./routes/virtualKeyProxy.route";
 import { setupNotificationSubscriber } from "./services/notificationSubscriber.service";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
@@ -254,6 +255,9 @@ try {
   app.use("/api/risk-benchmarks", riskBenchmarkRoutes);
   app.use("/api/quantitative-risks", quantitativeRiskRoutes);
   app.use("/api/ai-gateway", aiGatewayRoutes);
+
+  // Virtual key proxy — OpenAI-compatible /v1/* routes (no JWT, no CORS)
+  app.use("/v1", virtualKeyProxyRoutes);
 
   // Setup notification subscriber for real-time notifications
   (async () => {

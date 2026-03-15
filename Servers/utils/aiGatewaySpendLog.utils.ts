@@ -67,17 +67,18 @@ export const insertSpendLogQuery = async (
     request_messages?: object;
     response_text?: string;
     error_message?: string;
+    virtual_key_id?: number;
   }
 ): Promise<IAiGatewaySpendLog> => {
   const result = (await sequelize.query(
     `INSERT INTO ai_gateway_spend_logs
        (organization_id, endpoint_id, user_id, provider, model,
         prompt_tokens, completion_tokens, total_tokens, cost_usd, latency_ms, status_code,
-        metadata, request_messages, response_text, error_message, created_at)
+        metadata, request_messages, response_text, error_message, virtual_key_id, created_at)
      VALUES
        (:organizationId, :endpoint_id, :user_id, :provider, :model,
         :prompt_tokens, :completion_tokens, :total_tokens, :cost_usd, :latency_ms, :status_code,
-        :metadata, :request_messages, :response_text, :error_message, NOW())
+        :metadata, :request_messages, :response_text, :error_message, :virtual_key_id, NOW())
      RETURNING *`,
     {
       replacements: {
@@ -96,6 +97,7 @@ export const insertSpendLogQuery = async (
         request_messages: data.request_messages ? JSON.stringify(data.request_messages) : null,
         response_text: data.response_text || null,
         error_message: data.error_message || null,
+        virtual_key_id: data.virtual_key_id || null,
       },
     }
   )) as [IAiGatewaySpendLog[], number];
@@ -110,23 +112,31 @@ export const getSpendLogsDetailQuery = async (
   organizationId: number,
   limit: number = 50,
   offset: number = 0
-): Promise<any[]> => {
-  const rows = await sequelize.query(
-    `SELECT s.id, s.endpoint_id, e.display_name AS endpoint_name, e.slug AS endpoint_slug,
-            s.model, s.provider, s.prompt_tokens, s.completion_tokens, s.total_tokens,
-            s.cost_usd, s.latency_ms, s.status_code, s.metadata,
-            s.request_messages, s.response_text, s.error_message,
-            s.created_at,
-            COALESCE(NULLIF(TRIM(COALESCE(u.name, '') || ' ' || COALESCE(u.surname, '')), ''), 'unknown') AS user_name
-     FROM ai_gateway_spend_logs s
-     LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
-     LEFT JOIN users u ON u.id = s.user_id
-     WHERE s.organization_id = :organizationId
-     ORDER BY s.created_at DESC
-     LIMIT :limit OFFSET :offset`,
-    { replacements: { organizationId, limit, offset }, type: QueryTypes.SELECT }
-  );
-  return rows as any[];
+): Promise<{ rows: any[]; total: number }> => {
+  const [rows, countResult] = await Promise.all([
+    sequelize.query(
+      `SELECT s.id, s.endpoint_id, e.display_name AS endpoint_name, e.slug AS endpoint_slug,
+              s.model, s.provider, s.prompt_tokens, s.completion_tokens, s.total_tokens,
+              s.cost_usd, s.latency_ms, s.status_code, s.metadata,
+              s.request_messages, s.response_text, s.error_message,
+              s.created_at, s.virtual_key_id,
+              COALESCE(NULLIF(TRIM(COALESCE(u.name, '') || ' ' || COALESCE(u.surname, '')), ''), 'unknown') AS user_name,
+              vk.name AS virtual_key_name, vk.key_prefix AS virtual_key_prefix
+       FROM ai_gateway_spend_logs s
+       LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
+       LEFT JOIN users u ON u.id = s.user_id
+       LEFT JOIN ai_gateway_virtual_keys vk ON vk.id = s.virtual_key_id
+       WHERE s.organization_id = :organizationId
+       ORDER BY s.created_at DESC
+       LIMIT :limit OFFSET :offset`,
+      { replacements: { organizationId, limit, offset }, type: QueryTypes.SELECT }
+    ),
+    sequelize.query(
+      `SELECT COUNT(*)::int AS total FROM ai_gateway_spend_logs WHERE organization_id = :organizationId`,
+      { replacements: { organizationId }, type: QueryTypes.SELECT }
+    ),
+  ]);
+  return { rows: rows as any[], total: (countResult as any[])[0]?.total || 0 };
 };
 
 /**

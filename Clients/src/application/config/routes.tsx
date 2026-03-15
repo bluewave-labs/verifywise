@@ -62,6 +62,7 @@ import AIGatewayPlaygroundPage from "../../presentation/pages/AIGateway/Playgrou
 import AIGatewayGuardrailsPage from "../../presentation/pages/AIGateway/Guardrails";
 import AIGatewayLogsPage from "../../presentation/pages/AIGateway/Logs";
 import AIGatewaySettingsPage from "../../presentation/pages/AIGateway/Settings";
+import AIGatewayVirtualKeysPage from "../../presentation/pages/AIGateway/VirtualKeys";
 import MonitoringForm from "../../presentation/pages/PostMarketMonitoring/MonitoringForm";
 import ReportsArchive from "../../presentation/pages/PostMarketMonitoring/ReportsArchive";
 import IntakeFormsListPage from "../../presentation/pages/IntakeFormBuilder/IntakeFormsListPage";
@@ -160,6 +161,7 @@ export const createRoutes = (
     <Route path="/ai-gateway/playground" element={<AIGatewayPlaygroundPage />} />
     <Route path="/ai-gateway/guardrails" element={<AIGatewayGuardrailsPage />} />
     <Route path="/ai-gateway/logs" element={<AIGatewayLogsPage />} />
+    <Route path="/ai-gateway/virtual-keys" element={<AIGatewayVirtualKeysPage />} />
     <Route path="/ai-gateway/settings" element={<AIGatewaySettingsPage />} />
     <Route path="/monitoring/cycle/:cycleId" element={<MonitoringForm />} />
     <Route path="/monitoring/reports" element={<ReportsArchive />} />

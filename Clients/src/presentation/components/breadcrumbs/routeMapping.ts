@@ -45,6 +45,7 @@ import {
   Router,
   MessageSquare,
   ShieldCheck,
+  KeyRound,
 } from "lucide-react";
 
 /**
@@ -131,6 +132,7 @@ export const routeMapping: Record<string, string> = {
   "/ai-gateway/playground": "Playground",
   "/ai-gateway/guardrails": "Guardrails",
   "/ai-gateway/logs": "Logs",
+  "/ai-gateway/virtual-keys": "Virtual keys",
   "/ai-gateway/settings": "Settings",
 
   // Shadow AI
@@ -264,6 +266,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/ai-gateway/playground": () => React.createElement(MessageSquare, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/guardrails": () => React.createElement(ShieldCheck, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/logs": () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/virtual-keys": () => React.createElement(KeyRound, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // Shadow AI

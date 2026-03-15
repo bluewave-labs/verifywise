@@ -190,7 +190,7 @@ export default function SpendDashboardPage() {
                       justifyContent="space-between"
                       alignItems="center"
                       sx={{
-                        p: "10px 14px",
+                        p: "22px 14px",
                         borderRadius: "4px",
                         border: `1px solid ${palette.border.light}`,
                         position: "relative",
@@ -259,7 +259,7 @@ export default function SpendDashboardPage() {
                       justifyContent="space-between"
                       alignItems="center"
                       sx={{
-                        p: "10px 14px",
+                        p: "22px 14px",
                         borderRadius: "4px",
                         border: `1px solid ${palette.border.light}`,
                         position: "relative",

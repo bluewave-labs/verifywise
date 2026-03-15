@@ -13,6 +13,8 @@ interface AIGatewaySidebarContextType {
   setActiveTab: (tab: string) => void;
   endpointsCount: number;
   setEndpointsCount: (count: number) => void;
+  virtualKeysCount: number;
+  setVirtualKeysCount: (count: number) => void;
 }
 
 const AIGatewaySidebarContext = createContext<AIGatewaySidebarContextType | null>(null);
@@ -20,16 +22,24 @@ const AIGatewaySidebarContext = createContext<AIGatewaySidebarContextType | null
 export const AIGatewaySidebarProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState("analytics");
   const [endpointsCount, setEndpointsCount] = useState(0);
+  const [virtualKeysCount, setVirtualKeysCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const response = await apiServices.get("/ai-gateway/endpoints");
+        const [endpointsRes, vkeysRes] = await Promise.all([
+          apiServices.get("/ai-gateway/endpoints"),
+          apiServices.get("/ai-gateway/virtual-keys").catch(() => null),
+        ]);
         if (cancelled) return;
-        const endpoints = response?.data?.data;
+        const endpoints = endpointsRes?.data?.data;
         if (Array.isArray(endpoints)) {
           setEndpointsCount(endpoints.filter((e: { is_active: boolean }) => e.is_active).length);
+        }
+        const vkeys = vkeysRes?.data?.data;
+        if (Array.isArray(vkeys)) {
+          setVirtualKeysCount(vkeys.filter((k: { is_active: boolean }) => k.is_active).length);
         }
       } catch {
         // Silently fail — user may not have access or module not configured
@@ -46,6 +56,8 @@ export const AIGatewaySidebarProvider: FC<{ children: ReactNode }> = ({ children
         setActiveTab,
         endpointsCount,
         setEndpointsCount,
+        virtualKeysCount,
+        setVirtualKeysCount,
       }}
     >
       {children}

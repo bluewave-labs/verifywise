@@ -159,6 +159,44 @@ export async function notifyGuardrailSpike(
 }
 
 /**
+ * Notify: Virtual key budget exhausted
+ */
+export async function notifyVirtualKeyBudgetExhausted(
+  organizationId: number,
+  keyName: string,
+  spend: number,
+  limit: number
+): Promise<void> {
+  const admins = await getOrgAdmins(organizationId);
+
+  await Promise.allSettled(admins.map((admin) =>
+    sendInAppNotification(
+      organizationId,
+      {
+        user_id: admin.id,
+        type: NotificationType.AI_GATEWAY_VIRTUAL_KEY_BUDGET_EXHAUSTED,
+        title: "Virtual key budget exhausted",
+        message: `Virtual key "${keyName}" has exhausted its $${limit.toFixed(2)} budget. Requests using this key are now rejected.`,
+        entity_type: NotificationEntityType.AI_GATEWAY,
+        action_url: `${FRONTEND_URL}/ai-gateway/virtual-keys`,
+      },
+      true,
+      {
+        template: EMAIL_TEMPLATES.AI_GATEWAY_VIRTUAL_KEY_BUDGET_EXHAUSTED,
+        subject: `AI Gateway: virtual key "${keyName}" budget exhausted`,
+        variables: {
+          recipient_name: admin.name,
+          key_name: keyName,
+          current_spend: spend.toFixed(4),
+          monthly_limit: limit.toFixed(2),
+          settings_url: `${FRONTEND_URL}/ai-gateway/virtual-keys`,
+        },
+      }
+    ).catch((err) => logger.error(`Failed to send vkey budget exhausted to admin ${admin.id}:`, err))
+  ));
+}
+
+/**
  * Notify: Configuration change (endpoint, API key, guardrail rule)
  *
  * Generic notification for any config change event.

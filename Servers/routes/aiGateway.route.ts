@@ -2,6 +2,8 @@ import express from "express";
 const router = express.Router();
 
 import authenticateJWT from "../middleware/auth.middleware";
+import authorize from "../middleware/accessControl.middleware";
+import { generalApiLimiter } from "../middleware/rateLimit.middleware";
 import {
   // API Keys
   getApiKeys,
@@ -41,23 +43,29 @@ import {
   getGuardrailLogs,
   getGuardrailStats,
   purgeGuardrailLogs,
+  // Virtual Keys
+  getVirtualKeys,
+  createVirtualKey,
+  updateVirtualKey,
+  revokeVirtualKey,
+  deleteVirtualKey,
 } from "../controllers/aiGateway.ctrl";
 
 // All routes require authentication
 router.use(authenticateJWT);
 
-// API Key management
+// API Key management — Admin only for create/update/delete
 router.get("/keys", getApiKeys);
-router.post("/keys", createApiKey);
-router.patch("/keys/:id", updateApiKey);
-router.delete("/keys/:id", deleteApiKey);
+router.post("/keys", authorize(["Admin"]), createApiKey);
+router.patch("/keys/:id", authorize(["Admin"]), updateApiKey);
+router.delete("/keys/:id", authorize(["Admin"]), deleteApiKey);
 
-// Endpoint management
+// Endpoint management — Admin only for create/update/delete
 router.get("/endpoints", getEndpoints);
 router.get("/endpoints/:id", getEndpoint);
-router.post("/endpoints", createEndpoint);
-router.patch("/endpoints/:id", updateEndpoint);
-router.delete("/endpoints/:id", deleteEndpoint);
+router.post("/endpoints", authorize(["Admin"]), createEndpoint);
+router.patch("/endpoints/:id", authorize(["Admin"]), updateEndpoint);
+router.delete("/endpoints/:id", authorize(["Admin"]), deleteEndpoint);
 
 // Spend analytics
 router.get("/spend", getSpendSummary);
@@ -65,32 +73,39 @@ router.get("/spend/by-endpoint", getSpendByEndpoint);
 router.get("/spend/by-user", getSpendByUser);
 router.get("/spend/by-tag", getSpendByTag);
 router.get("/spend/logs", getSpendLogs);
-router.post("/spend/logs/purge", purgeSpendLogs);
+router.post("/spend/logs/purge", authorize(["Admin"]), purgeSpendLogs);
 
-// Budget management
+// Budget management — Admin only for write
 router.get("/budget", getBudget);
-router.put("/budget", upsertBudget);
+router.put("/budget", authorize(["Admin"]), upsertBudget);
 
 // Utility
 router.get("/providers", getProviders);
 
-// Guardrail settings (specific routes BEFORE parameterized :id)
+// Guardrail settings (specific routes BEFORE parameterized :id) — Admin only for write
 router.get("/guardrails/settings", getGuardrailSettings);
-router.put("/guardrails/settings", updateGuardrailSettings);
+router.put("/guardrails/settings", authorize(["Admin"]), updateGuardrailSettings);
 router.post("/guardrails/test", testGuardrails);
 router.get("/guardrails/logs", getGuardrailLogs);
 router.get("/guardrails/stats", getGuardrailStats);
-router.post("/guardrails/logs/purge", purgeGuardrailLogs);
+router.post("/guardrails/logs/purge", authorize(["Admin"]), purgeGuardrailLogs);
 
-// Guardrail rule CRUD
+// Guardrail rule CRUD — Admin only for create/update/delete
 router.get("/guardrails", getGuardrails);
-router.post("/guardrails", createGuardrail);
-router.patch("/guardrails/:id", updateGuardrail);
-router.delete("/guardrails/:id", deleteGuardrail);
+router.post("/guardrails", authorize(["Admin"]), createGuardrail);
+router.patch("/guardrails/:id", authorize(["Admin"]), updateGuardrail);
+router.delete("/guardrails/:id", authorize(["Admin"]), deleteGuardrail);
 
-// Proxy endpoints
-router.post("/chat", chatCompletion);
-router.post("/chat/stream", chatCompletionStream);
-router.post("/embeddings", embeddingProxy);
+// Virtual key management — Admin only for write
+router.get("/virtual-keys", getVirtualKeys);
+router.post("/virtual-keys", authorize(["Admin"]), createVirtualKey);
+router.patch("/virtual-keys/:id", authorize(["Admin"]), updateVirtualKey);
+router.post("/virtual-keys/:id/revoke", authorize(["Admin"]), revokeVirtualKey);
+router.delete("/virtual-keys/:id", authorize(["Admin"]), deleteVirtualKey);
+
+// Proxy endpoints — rate limited
+router.post("/chat", generalApiLimiter, chatCompletion);
+router.post("/chat/stream", generalApiLimiter, chatCompletionStream);
+router.post("/embeddings", generalApiLimiter, embeddingProxy);
 
 export default router;

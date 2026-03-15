@@ -33,6 +33,16 @@ import {
   deleteApiKeyQuery,
 } from "../utils/aiGatewayApiKey.utils";
 
+// Virtual Key utils
+import {
+  generateVirtualKey,
+  getAllVirtualKeysQuery,
+  createVirtualKeyQuery,
+  updateVirtualKeyQuery,
+  revokeVirtualKeyQuery,
+  deleteVirtualKeyQuery,
+} from "../utils/aiGatewayVirtualKey.utils";
+
 // Endpoint utils
 import {
   getAllEndpointsQuery,
@@ -402,8 +412,8 @@ export async function getSpendLogs(req: Request, res: Response) {
   try {
     const limit = Math.min(Number(req.query.limit) || 50, 200);
     const offset = Number(req.query.offset) || 0;
-    const logs = await getSpendLogsDetailQuery(req.organizationId!, limit, offset);
-    return res.status(200).json(STATUS_CODE[200](logs));
+    const { rows, total } = await getSpendLogsDetailQuery(req.organizationId!, limit, offset);
+    return res.status(200).json(STATUS_CODE[200]({ rows, total }));
   } catch (error) {
     logStructured("error", "failed to fetch spend logs", fn, fileName);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
@@ -581,8 +591,8 @@ export async function chatCompletionStream(req: Request, res: Response) {
       const status = isGuardrailBlock ? 422 : 400;
       return res.status(status).json({ message: error.message, guardrail_blocked: isGuardrailBlock });
     }
-    if (error.code === "budget_exceeded") {
-      return res.status(429).json({ message: error.message });
+    if (error.code === "budget_exceeded" || error.code === "rate_limited") {
+      return res.status(429).json({ message: error.message, code: error.code });
     }
     logStructured("error", "failed to proxy streaming chat", fn, fileName);
     logger.error("Error proxying streaming chat:", error);
@@ -632,14 +642,16 @@ export async function getProviders(_req: Request, res: Response) {
     });
 
     if (!response.ok) {
+      logger.warn(`AI Gateway /v1/models returned ${response.status}`);
       return res.status(200).json(STATUS_CODE[200]({ providers: [] }));
     }
 
     const data = await response.json();
     logStructured("successful", "providers fetched", fn, fileName);
     return res.status(200).json(STATUS_CODE[200]({ providers: data.providers || [] }));
-  } catch {
-    // If AIGateway is not running, return empty list
+  } catch (err) {
+    // AI Gateway not running — return empty list (not an error for the client)
+    logger.warn("AI Gateway service unavailable:", (err as Error).message);
     return res.status(200).json(STATUS_CODE[200]({ providers: [] }));
   }
 }
@@ -840,7 +852,8 @@ export async function testGuardrails(req: Request, res: Response) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return res.status(response.status).json(STATUS_CODE[500](errorText));
+      logger.error(`Guardrail test returned ${response.status}: ${errorText}`);
+      return res.status(502).json({ message: "Guardrail service returned an error", statusCode: 502 });
     }
 
     const data = await response.json();
@@ -900,6 +913,135 @@ export async function purgeGuardrailLogs(req: Request, res: Response) {
     return res.status(200).json(STATUS_CODE[200]({ deleted_count: deleted }));
   } catch (error) {
     logStructured("error", "failed to purge guardrail logs", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+// ─── Virtual Keys ─────────────────────────────────────────────────────────────
+
+export async function getVirtualKeys(req: Request, res: Response) {
+  const fn = "getVirtualKeys";
+  logStructured("processing", "fetching virtual keys", fn, fileName);
+  try {
+    const keys = await getAllVirtualKeysQuery(req.organizationId!);
+    logStructured("successful", "virtual keys fetched", fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](keys));
+  } catch (error) {
+    logStructured("error", "failed to fetch virtual keys", fn, fileName);
+    logger.error("Error fetching virtual keys:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function createVirtualKey(req: Request, res: Response) {
+  const fn = "createVirtualKey";
+  logStructured("processing", "creating virtual key", fn, fileName);
+  try {
+    const { name, allowed_endpoint_ids, max_budget_usd, rate_limit_rpm, metadata, expires_at } = req.body;
+    if (!name) {
+      throw new ValidationException("name is required");
+    }
+
+    const { plainKey, hash, prefix } = generateVirtualKey();
+
+    const virtualKey = await createVirtualKeyQuery(req.organizationId!, {
+      key_hash: hash,
+      key_prefix: prefix,
+      name,
+      allowed_endpoint_ids,
+      max_budget_usd: max_budget_usd ? Number(max_budget_usd) : undefined,
+      rate_limit_rpm: rate_limit_rpm ? Number(rate_limit_rpm) : undefined,
+      metadata,
+      expires_at,
+      created_by: Number(req.userId),
+    });
+
+    logStructured("successful", `virtual key created: ${name}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Virtual key", entityName: name, action: "created",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/virtual-keys`, actionLabel: "View virtual keys",
+    }).catch(() => {});
+
+    // Return the plaintext key (shown once) along with the created record
+    const { key_hash, ...safeKey } = virtualKey;
+    return res.status(201).json(STATUS_CODE[201]({
+      ...safeKey,
+      key: plainKey,
+    }));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to create virtual key", fn, fileName);
+    logger.error("Error creating virtual key:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function updateVirtualKey(req: Request, res: Response) {
+  const fn = "updateVirtualKey";
+  logStructured("processing", "updating virtual key", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const updated = await updateVirtualKeyQuery(req.organizationId!, id, req.body);
+    if (!updated) {
+      return res.status(404).json(STATUS_CODE[404]("Virtual key not found"));
+    }
+    logStructured("successful", `virtual key updated: ${id}`, fn, fileName);
+    const { key_hash, ...safeKey } = updated;
+    return res.status(200).json(STATUS_CODE[200](safeKey));
+  } catch (error) {
+    logStructured("error", "failed to update virtual key", fn, fileName);
+    logger.error("Error updating virtual key:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function revokeVirtualKey(req: Request, res: Response) {
+  const fn = "revokeVirtualKey";
+  logStructured("processing", "revoking virtual key", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const revoked = await revokeVirtualKeyQuery(req.organizationId!, id);
+    if (!revoked) {
+      return res.status(404).json(STATUS_CODE[404]("Virtual key not found or already revoked"));
+    }
+    logStructured("successful", `virtual key revoked: ${id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Virtual key", entityName: `Key #${id}`, action: "disabled",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/virtual-keys`, actionLabel: "View virtual keys",
+    }).catch(() => {});
+
+    return res.status(200).json(STATUS_CODE[200]({ revoked: true }));
+  } catch (error) {
+    logStructured("error", "failed to revoke virtual key", fn, fileName);
+    logger.error("Error revoking virtual key:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function deleteVirtualKey(req: Request, res: Response) {
+  const fn = "deleteVirtualKey";
+  logStructured("processing", "deleting virtual key", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const deleted = await deleteVirtualKeyQuery(req.organizationId!, id);
+    if (!deleted) {
+      return res.status(404).json(STATUS_CODE[404]("Virtual key not found or still active (revoke first)"));
+    }
+    logStructured("successful", `virtual key deleted: ${id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Virtual key", entityName: `Key #${id}`, action: "deleted",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/virtual-keys`, actionLabel: "View virtual keys",
+    }).catch(() => {});
+
+    return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
+  } catch (error) {
+    logStructured("error", "failed to delete virtual key", fn, fileName);
+    logger.error("Error deleting virtual key:", error);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 }

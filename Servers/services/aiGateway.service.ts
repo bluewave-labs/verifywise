@@ -23,6 +23,8 @@ import {
   reserveBudgetQuery,
   adjustBudgetSpendQuery,
 } from "../utils/aiGatewayBudget.utils";
+import { incrementVirtualKeySpend } from "../utils/aiGatewayVirtualKey.utils";
+import { notifyVirtualKeyBudgetExhausted } from "./aiGateway/aiGatewayNotifications";
 import { decrypt } from "../utils/encryption.utils";
 import {
   NotFoundException,
@@ -46,6 +48,9 @@ const INTERNAL_KEY =
 
 /** Estimated cost per token (rough default, overridden by FastAPI response) */
 const DEFAULT_ESTIMATED_COST = 0.005;
+
+/** Maximum fallback chain depth to prevent infinite recursion */
+const MAX_FALLBACK_DEPTH = 3;
 
 interface CompletionOptions {
   max_tokens?: number;
@@ -326,6 +331,10 @@ async function finalizeSpend(
     error_message?: string;
   }
 ): Promise<void> {
+  // Extract virtual key ID from metadata if present
+  const virtualKeyId = (extra?.metadata as any)?.virtual_key_id
+    ? Number((extra!.metadata as any).virtual_key_id)
+    : undefined;
   try {
     // Use cached settings (populated by runGuardrails or fetched here with 60s TTL)
     let settings = getCachedSettings(organizationId);
@@ -333,7 +342,9 @@ async function finalizeSpend(
       try {
         settings = await getGuardrailSettingsQuery(organizationId);
         if (settings) setCachedSettings(organizationId, settings);
-      } catch { /* default to not logging */ }
+      } catch (err) {
+        logger.warn("Failed to fetch guardrail settings for log config:", err);
+      }
     }
     const logBodies = {
       request: settings?.log_request_body === true,
@@ -355,6 +366,7 @@ async function finalizeSpend(
       request_messages: logBodies.request ? truncateMessages(extra?.request_messages) : undefined,
       response_text: logBodies.response && extra?.response_text ? truncateLogText(extra.response_text) : undefined,
       error_message: extra?.error_message ? truncateLogText(extra.error_message, 500) : undefined,
+      virtual_key_id: virtualKeyId,
     });
   } catch (err) {
     logger.error("Failed to insert spend log:", err);
@@ -364,6 +376,19 @@ async function finalizeSpend(
     await adjustBudgetSpendQuery(organizationId, estimatedCost, costUsd);
   } catch (err) {
     logger.error("Failed to adjust budget spend:", err);
+  }
+
+  // Increment virtual key spend if applicable
+  if (virtualKeyId && costUsd > 0) {
+    try {
+      await incrementVirtualKeySpend(virtualKeyId, costUsd);
+      // Check virtual key budget alert (non-blocking)
+      checkVirtualKeyBudgetAlert(virtualKeyId, organizationId).catch((err) =>
+        logger.error("Failed to check virtual key budget alert:", err)
+      );
+    } catch (err) {
+      logger.error("Failed to increment virtual key spend:", err);
+    }
   }
 
   // Check budget alert threshold (non-blocking)
@@ -413,6 +438,38 @@ async function checkBudgetAlert(organizationId: number): Promise<void> {
 }
 
 /**
+ * Check if virtual key budget is exhausted and send notification.
+ */
+async function checkVirtualKeyBudgetAlert(virtualKeyId: number, organizationId: number): Promise<void> {
+  // Look up key by ID directly
+  const { sequelize } = require("../database/db");
+  const result = (await sequelize.query(
+    `SELECT id, name, key_prefix, max_budget_usd, current_spend_usd
+     FROM ai_gateway_virtual_keys WHERE id = :id`,
+    { replacements: { id: virtualKeyId } }
+  )) as [any[], number];
+
+  const key = result[0]?.[0];
+  if (!key || !key.max_budget_usd) return;
+
+  const spend = Number(key.current_spend_usd);
+  const limit = Number(key.max_budget_usd);
+  if (spend < limit) return;
+
+  const month = new Date().toISOString().slice(0, 7);
+  const alertKey = `gw:alert:vk:exhausted:${virtualKeyId}:${month}`;
+  if (await redisClient.get(alertKey)) return;
+
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const daysRemaining = daysInMonth - new Date().getDate() + 1;
+  await redisClient.set(alertKey, "1", "EX", daysRemaining * 86400);
+
+  notifyVirtualKeyBudgetExhausted(organizationId, key.name, spend, limit).catch((err) =>
+    logger.error("Failed to send virtual key budget exhausted notification:", err)
+  );
+}
+
+/**
  * Proxy a chat completion request through the FastAPI gateway
  */
 export async function proxyCompletion(
@@ -420,7 +477,8 @@ export async function proxyCompletion(
   endpointSlug: string,
   messages: Array<{ role: string; content: string }>,
   options: CompletionOptions,
-  userId: number
+  userId: number,
+  _fallbackDepth: number = 0
 ): Promise<GatewayResponse> {
   const { endpoint, decryptedKey } = await resolveEndpoint(
     organizationId,
@@ -542,13 +600,14 @@ export async function proxyCompletion(
     // Fallback: if the endpoint has a fallback and the error is from the LLM provider, retry
     if (
       err instanceof ExternalServiceException &&
-      endpoint.fallback_endpoint_id
+      endpoint.fallback_endpoint_id &&
+      _fallbackDepth < MAX_FALLBACK_DEPTH
     ) {
       try {
         const fallbackEp = await getEndpointByIdQuery(organizationId, endpoint.fallback_endpoint_id);
         if (fallbackEp && fallbackEp.is_active) {
-          logger.info(`Falling back from ${endpointSlug} to ${fallbackEp.slug}`);
-          return proxyCompletion(organizationId, fallbackEp.slug, messages, options, userId);
+          logger.info(`Falling back from ${endpointSlug} to ${fallbackEp.slug} (depth ${_fallbackDepth + 1}/${MAX_FALLBACK_DEPTH})`);
+          return proxyCompletion(organizationId, fallbackEp.slug, messages, options, userId, _fallbackDepth + 1);
         }
       } catch (fallbackErr) {
         logger.error("Fallback resolution failed:", fallbackErr);
@@ -568,7 +627,8 @@ export async function proxyStream(
   endpointSlug: string,
   messages: Array<{ role: string; content: string }>,
   options: CompletionOptions,
-  userId: number
+  userId: number,
+  _fallbackDepth: number = 0
 ): Promise<{ stream: Readable; cleanup: () => Promise<void> }> {
   const { endpoint, decryptedKey } = await resolveEndpoint(
     organizationId,
@@ -628,12 +688,12 @@ export async function proxyStream(
     await adjustBudgetSpendQuery(organizationId, estimatedCost, 0);
 
     // Fallback: if endpoint has a fallback and the error is from the provider, retry
-    if (endpoint.fallback_endpoint_id) {
+    if (endpoint.fallback_endpoint_id && _fallbackDepth < MAX_FALLBACK_DEPTH) {
       try {
         const fallbackEp = await getEndpointByIdQuery(organizationId, endpoint.fallback_endpoint_id);
         if (fallbackEp && fallbackEp.is_active) {
-          logger.info(`Stream falling back from ${endpointSlug} to ${fallbackEp.slug}`);
-          return proxyStream(organizationId, fallbackEp.slug, messages, options, userId);
+          logger.info(`Stream falling back from ${endpointSlug} to ${fallbackEp.slug} (depth ${_fallbackDepth + 1}/${MAX_FALLBACK_DEPTH})`);
+          return proxyStream(organizationId, fallbackEp.slug, messages, options, userId, _fallbackDepth + 1);
         }
       } catch (fallbackErr) {
         logger.error("Stream fallback resolution failed:", fallbackErr);

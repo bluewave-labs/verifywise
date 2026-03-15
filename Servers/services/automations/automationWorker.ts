@@ -465,6 +465,9 @@ export const createAutomationWorker = () => {
           await processScheduledAiDetectionScans();
         } else if (name === "ai_gateway_budget_reset") {
           await resetAllBudgets();
+          // Also reset virtual key budgets
+          const { resetVirtualKeyBudgets } = require("../../utils/aiGatewayVirtualKey.utils");
+          await resetVirtualKeyBudgets();
         } else if (name === "send_pmm_notification") {
           // PMM notification handling - send email using MJML templates
           const { type, data } = job.data;

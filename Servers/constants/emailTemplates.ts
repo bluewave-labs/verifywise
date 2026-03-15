@@ -55,6 +55,11 @@ export const EMAIL_TEMPLATES = {
   // Shadow AI templates
   SHADOW_AI_ALERT: "shadow-ai-alert.mjml",
 
+  // AI Gateway templates
+  AI_GATEWAY_BUDGET_WARNING: "ai-gateway-budget-warning.mjml",
+  AI_GATEWAY_BUDGET_EXHAUSTED: "ai-gateway-budget-exhausted.mjml",
+  AI_GATEWAY_GUARDRAIL_SPIKE: "ai-gateway-guardrail-spike.mjml",
+
   // Intake form templates
   INTAKE_SUBMISSION_RECEIVED: "intake-submission-received.mjml",
   INTAKE_SUBMISSION_APPROVED: "intake-submission-approved.mjml",

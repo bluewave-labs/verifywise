@@ -40,6 +40,11 @@ export enum NotificationType {
   // Shadow AI notifications
   SHADOW_AI_ALERT = "shadow_ai_alert",
 
+  // AI Gateway notifications
+  AI_GATEWAY_BUDGET_WARNING = "ai_gateway_budget_warning",
+  AI_GATEWAY_BUDGET_EXHAUSTED = "ai_gateway_budget_exhausted",
+  AI_GATEWAY_GUARDRAIL_SPIKE = "ai_gateway_guardrail_spike",
+
   // System notifications
   SYSTEM = "system",
 
@@ -70,6 +75,7 @@ export enum NotificationEntityType {
   COMMENT = "comment",
   USER = "user",
   SHADOW_AI_TOOL = "shadow_ai_tool",
+  AI_GATEWAY = "ai_gateway",
 }
 
 /**

@@ -31,6 +31,7 @@ import {
   ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
 import { checkRateLimit } from "../utils/aiGatewayRateLimit.utils";
+import { notifyBudgetWarning, notifyBudgetExhausted } from "./aiGateway/aiGatewayNotifications";
 import redisClient from "../database/redis";
 import {
   getActiveGuardrailsQuery,
@@ -398,7 +399,16 @@ async function checkBudgetAlert(organizationId: number): Promise<void> {
 
   logger.info(`Budget alert: org ${organizationId} at ${spendPct.toFixed(1)}% (threshold: ${threshold}%)`);
 
-  // TODO: Send email/Slack notification via NotificationService when alert_email_enabled or alert_slack_enabled
+  // Send email + in-app notification to org admins
+  if (spendPct >= 100 && budget.is_hard_limit) {
+    notifyBudgetExhausted(organizationId, budget).catch((err) =>
+      logger.error("Failed to send budget exhausted notification:", err)
+    );
+  } else {
+    notifyBudgetWarning(organizationId, budget).catch((err) =>
+      logger.error("Failed to send budget warning notification:", err)
+    );
+  }
 }
 
 /**

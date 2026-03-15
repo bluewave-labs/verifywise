@@ -132,8 +132,8 @@ export default function SpendDashboardPage() {
         tipBoxEntity="ai-gateway-analytics"
         helpArticlePath="ai-gateway/analytics"
       >
-        <Box sx={{ position: "relative" }}>
-          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", border: `1px solid ${palette.border.dark}`, borderRadius: "4px", overflow: "hidden" }}>
+        <Box sx={{ position: "relative", border: `1.5px solid #98a2b3`, borderRadius: "4px", overflow: "hidden" }}>
+          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none" }}>
             <MockDashboard />
           </Box>
           <OnboardingOverlay

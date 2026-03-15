@@ -89,6 +89,7 @@ export default function EndpointsPage() {
     temperature: "",
     system_prompt: "",
     rate_limit_rpm: "",
+    fallback_endpoint_id: "",
   });
 
   const loadData = useCallback(async () => {
@@ -147,6 +148,7 @@ export default function EndpointsPage() {
         temperature: form.temperature ? Number(form.temperature) : null,
         system_prompt: form.system_prompt || null,
         rate_limit_rpm: form.rate_limit_rpm ? Number(form.rate_limit_rpm) : null,
+        fallback_endpoint_id: form.fallback_endpoint_id ? Number(form.fallback_endpoint_id) : null,
       });
       setIsCreateOpen(false);
       resetForm();
@@ -170,7 +172,7 @@ export default function EndpointsPage() {
   const resetForm = () => {
     setForm({
       display_name: "", slug: "", provider: "", model: "",
-      api_key_id: "", max_tokens: "", temperature: "", system_prompt: "", rate_limit_rpm: "",
+      api_key_id: "", max_tokens: "", temperature: "", system_prompt: "", rate_limit_rpm: "", fallback_endpoint_id: "",
     });
     setFormError("");
   };
@@ -243,6 +245,9 @@ export default function EndpointsPage() {
                         {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
                       {ep.rate_limit_rpm > 0 && (
                         <span> &middot; {ep.rate_limit_rpm} RPM</span>
+                      )}
+                      {ep.fallback_endpoint_id && (
+                        <span> &middot; has fallback</span>
                       )}
                       {activeGuardrailCount > 0 && (
                         <span> &middot; {activeGuardrailCount} guardrail{activeGuardrailCount !== 1 ? "s" : ""}</span>
@@ -372,6 +377,24 @@ export default function EndpointsPage() {
               />
             </Box>
           </Stack>
+
+          {endpoints.length > 0 && (
+            <Select
+              id="fallback"
+              label="Fallback endpoint"
+              placeholder="None (no fallback)"
+              value={form.fallback_endpoint_id}
+              items={[
+                { _id: "", name: "None" },
+                ...endpoints
+                  .filter((ep) => ep.slug !== form.slug && ep.is_active)
+                  .map((ep) => ({ _id: String(ep.id), name: ep.display_name })),
+              ]}
+              onChange={(e) => setForm((p) => ({ ...p, fallback_endpoint_id: e.target.value as string }))}
+              getOptionValue={(item) => item._id}
+              isOptional
+            />
+          )}
 
           {form.slug && (
             <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>

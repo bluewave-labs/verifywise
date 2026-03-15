@@ -62,6 +62,9 @@ import {
 } from "../services/aiGateway.service";
 
 const fileName = "aiGateway.ctrl.ts";
+const ROLE_NAME_TO_ID: Record<string, number> = {
+  Admin: 1, Reviewer: 2, Editor: 3, Auditor: 4,
+};
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
 function parseId(raw: string | string[]): number {
@@ -152,7 +155,8 @@ export async function getEndpoints(req: Request, res: Response) {
   const fn = "getEndpoints";
   logStructured("processing", "fetching all gateway endpoints", fn, fileName);
   try {
-    const endpoints = await getAllEndpointsQuery(req.organizationId!);
+    const roleId = ROLE_NAME_TO_ID[(req as any).role] || undefined;
+    const endpoints = await getAllEndpointsQuery(req.organizationId!, roleId);
     logStructured("successful", "gateway endpoints fetched", fn, fileName);
     return res.status(200).json(STATUS_CODE[200](endpoints));
   } catch (error) {

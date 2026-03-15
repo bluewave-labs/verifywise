@@ -12,7 +12,10 @@
 
 import { Readable } from "stream";
 import logger from "../utils/logger/fileLogger";
-import { getEndpointBySlugQuery } from "../utils/aiGatewayEndpoint.utils";
+import {
+  getEndpointBySlugQuery,
+  getEndpointByIdQuery,
+} from "../utils/aiGatewayEndpoint.utils";
 import { getApiKeyByIdQuery } from "../utils/aiGatewayApiKey.utils";
 import { insertSpendLogQuery } from "../utils/aiGatewaySpendLog.utils";
 import {
@@ -469,6 +472,22 @@ export async function proxyCompletion(
       }
     );
 
+    // Fallback: if the endpoint has a fallback and the error is from the LLM provider, retry
+    if (
+      err instanceof ExternalServiceException &&
+      endpoint.fallback_endpoint_id
+    ) {
+      try {
+        const fallbackEp = await getEndpointByIdQuery(organizationId, endpoint.fallback_endpoint_id);
+        if (fallbackEp && fallbackEp.is_active) {
+          logger.info(`Falling back from ${endpointSlug} to ${fallbackEp.slug}`);
+          return proxyCompletion(organizationId, fallbackEp.slug, messages, options, userId);
+        }
+      } catch (fallbackErr) {
+        logger.error("Fallback resolution failed:", fallbackErr);
+      }
+    }
+
     throw err;
   }
 }
@@ -620,7 +639,8 @@ export async function proxyStream(
       totalCostUsd,
       latencyMs,
       200,
-      estimatedCost
+      estimatedCost,
+      { request_messages: finalMessages }
     );
   };
 

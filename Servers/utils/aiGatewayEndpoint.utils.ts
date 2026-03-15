@@ -31,8 +31,10 @@ export interface IAiGatewayEndpoint {
  * Get all active endpoints for an organization with api key name joined
  */
 export const getAllEndpointsQuery = async (
-  organizationId: number
+  organizationId: number,
+  roleId?: number
 ): Promise<IAiGatewayEndpoint[]> => {
+  const roleFilter = roleId ? "AND :roleId = ANY(e.allowed_role_ids)" : "";
   const result = (await sequelize.query(
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
@@ -41,9 +43,9 @@ export const getAllEndpointsQuery = async (
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
      LEFT JOIN ai_gateway_api_keys k ON k.id = e.api_key_id AND k.organization_id = e.organization_id
-     WHERE e.organization_id = :organizationId
+     WHERE e.organization_id = :organizationId ${roleFilter}
      ORDER BY e.created_at DESC`,
-    { replacements: { organizationId } }
+    { replacements: { organizationId, ...(roleId ? { roleId } : {}) } }
   )) as [IAiGatewayEndpoint[], number];
 
   return result[0];

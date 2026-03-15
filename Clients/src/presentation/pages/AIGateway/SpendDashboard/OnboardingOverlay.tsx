@@ -285,6 +285,13 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
     setCopied(false);
   }, []);
 
+  // Guard against modal close triggered by MUI Select popover interactions
+  const safeCloseModal = useCallback(() => {
+    // If a MUI Select menu is currently open, skip the close
+    if (document.querySelector(".MuiPopover-root, .MuiMenu-root")) return;
+    closeModal();
+  }, [closeModal]);
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(createdKey);
     setCopied(true);
@@ -417,7 +424,7 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
       {/* ── Modal 1: Add API key ── */}
       <StandardModal
         isOpen={activeModal === "api-key"}
-        onClose={closeModal}
+        onClose={safeCloseModal}
         title="Add API key"
         description="Add a provider API key for your gateway endpoints"
         onSubmit={handleCreateKey}
@@ -436,7 +443,7 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
       {/* ── Modal 2: Create endpoint ── */}
       <StandardModal
         isOpen={activeModal === "endpoint"}
-        onClose={closeModal}
+        onClose={safeCloseModal}
         title="Create endpoint"
         description="Configure a new LLM provider endpoint"
         onSubmit={handleCreateEndpoint}

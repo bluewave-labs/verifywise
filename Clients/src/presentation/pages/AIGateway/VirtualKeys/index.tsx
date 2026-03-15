@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Box, Typography, Stack, IconButton } from "@mui/material";
 import { CirclePlus, KeyRound, Trash2, Ban, Copy, Check, Server } from "lucide-react";
 import { EmptyState } from "../../../components/EmptyState";
@@ -13,6 +13,21 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
 import { sectionTitleSx, useCardSx } from "../shared";
 import dayjs from "dayjs";
+
+const CODE_BLOCK_BG = "#1E1E1E";
+const CODE_BLOCK_TEXT = "#D4D4D4";
+const WARNING_BG = "#FFFAEB";
+const WARNING_BORDER = "#FEDF89";
+const WARNING_TEXT = "#B54708";
+const KEY_DISPLAY_BG = "#F9FAFB";
+const gatewayUrl = window.location.origin.replace(/:\d+$/, ":3000");
+
+interface CreateVirtualKeyPayload {
+  name: string;
+  max_budget_usd?: number;
+  rate_limit_rpm?: number;
+  expires_at?: string;
+}
 
 interface VirtualKey {
   id: number;
@@ -54,6 +69,14 @@ export default function AIGatewayVirtualKeysPage() {
   // Revoke confirmation modal
   const [revokeTarget, setRevokeTarget] = useState<VirtualKey | null>(null);
 
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
+
   const loadData = useCallback(async () => {
     try {
       const res = await apiServices.get("/ai-gateway/virtual-keys");
@@ -77,7 +100,7 @@ export default function AIGatewayVirtualKeysPage() {
     setCreateSubmitting(true);
     setCreateError("");
     try {
-      const payload: Record<string, any> = { name: createForm.name.trim() };
+      const payload: CreateVirtualKeyPayload = { name: createForm.name.trim() };
       if (createForm.max_budget_usd) payload.max_budget_usd = Number(createForm.max_budget_usd);
       if (createForm.rate_limit_rpm) payload.rate_limit_rpm = Number(createForm.rate_limit_rpm);
       if (createForm.expires_at) payload.expires_at = new Date(createForm.expires_at).toISOString();
@@ -93,8 +116,8 @@ export default function AIGatewayVirtualKeysPage() {
       }
 
       await loadData();
-    } catch (err: any) {
-      setCreateError(err?.response?.data?.message || "Failed to create virtual key");
+    } catch (err: unknown) {
+      setCreateError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create virtual key");
     } finally {
       setCreateSubmitting(false);
     }
@@ -123,7 +146,8 @@ export default function AIGatewayVirtualKeysPage() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(newKey);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   const getStatusLabel = (key: VirtualKey): string => {
@@ -132,8 +156,6 @@ export default function AIGatewayVirtualKeysPage() {
     if (key.is_active) return "Active";
     return "Inactive";
   };
-
-  const gatewayUrl = window.location.origin.replace(/:\d+$/, ":3000");
 
   return (
     <PageHeaderExtended
@@ -157,7 +179,7 @@ export default function AIGatewayVirtualKeysPage() {
         <Stack gap="12px">
           <Typography sx={sectionTitleSx}>Virtual keys</Typography>
 
-          {loading ? null : keys.length === 0 ? (
+          {!loading && keys.length === 0 && (
             <EmptyState
               icon={KeyRound}
               message="Give your developers a single API key to access any LLM through the gateway — no VerifyWise account needed."
@@ -174,7 +196,8 @@ export default function AIGatewayVirtualKeysPage() {
                 description="Each virtual key can have its own monthly spending cap and request-per-minute limit. When a key hits its budget, only that key is blocked — other keys and the rest of the gateway keep running."
               />
             </EmptyState>
-          ) : (
+          )}
+          {!loading && keys.length > 0 && (
             <Stack gap="8px">
               {keys.map((key) => {
                 const status = getStatusLabel(key);
@@ -264,7 +287,7 @@ export default function AIGatewayVirtualKeysPage() {
                           size="small"
                           onClick={() => setRevokeTarget(key)}
                           sx={{ p: 0.5 }}
-                          title="Revoke"
+                          aria-label="Revoke key"
                         >
                           <Ban size={14} strokeWidth={1.5} color={palette.text.tertiary} />
                         </IconButton>
@@ -274,7 +297,7 @@ export default function AIGatewayVirtualKeysPage() {
                           size="small"
                           onClick={() => handleDelete(key.id)}
                           sx={{ p: 0.5 }}
-                          title="Delete"
+                          aria-label="Delete key"
                         >
                           <Trash2 size={14} strokeWidth={1.5} color={palette.text.tertiary} />
                         </IconButton>
@@ -351,7 +374,7 @@ export default function AIGatewayVirtualKeysPage() {
           <Box
             sx={{
               p: "12px 16px",
-              backgroundColor: "#F9FAFB",
+              backgroundColor: KEY_DISPLAY_BG,
               border: `1px solid ${palette.border.dark}`,
               borderRadius: "4px",
               fontFamily: "monospace",
@@ -365,7 +388,7 @@ export default function AIGatewayVirtualKeysPage() {
               size="small"
               onClick={copyToClipboard}
               sx={{ position: "absolute", top: 8, right: 8, p: 0.5 }}
-              title="Copy"
+              aria-label="Copy key"
             >
               {copied ? (
                 <Check size={14} strokeWidth={1.5} color={palette.status.success.text} />
@@ -378,12 +401,12 @@ export default function AIGatewayVirtualKeysPage() {
           <Box
             sx={{
               p: "12px 16px",
-              backgroundColor: "#FFFAEB",
-              border: "1px solid #FEDF89",
+              backgroundColor: WARNING_BG,
+              border: `1px solid ${WARNING_BORDER}`,
               borderRadius: "4px",
             }}
           >
-            <Typography sx={{ fontSize: 12, color: "#B54708", fontWeight: 500 }}>
+            <Typography sx={{ fontSize: 12, color: WARNING_TEXT, fontWeight: 500 }}>
               This key will not be shown again. Store it securely.
             </Typography>
           </Box>
@@ -393,11 +416,11 @@ export default function AIGatewayVirtualKeysPage() {
             <Box
               sx={{
                 p: "12px 16px",
-                backgroundColor: "#1E1E1E",
+                backgroundColor: CODE_BLOCK_BG,
                 borderRadius: "4px",
                 fontFamily: "monospace",
                 fontSize: 12,
-                color: "#D4D4D4",
+                color: CODE_BLOCK_TEXT,
                 lineHeight: 1.6,
                 whiteSpace: "pre-wrap",
                 overflow: "auto",

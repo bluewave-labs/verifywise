@@ -43,6 +43,30 @@ interface RequestMessage {
   content: unknown;
 }
 
+interface GatewayLog {
+  id: number;
+  endpoint_id: number;
+  endpoint_name: string;
+  endpoint_slug: string;
+  model: string;
+  provider: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  cost_usd: number;
+  latency_ms: number;
+  status_code: number;
+  metadata: Record<string, string>;
+  request_messages: unknown;
+  response_text: string | null;
+  error_message: string | null;
+  created_at: string;
+  virtual_key_id: number | null;
+  user_name: string;
+  virtual_key_name: string | null;
+  virtual_key_prefix: string | null;
+}
+
 function isMessageArray(value: unknown): value is RequestMessage[] {
   return (
     Array.isArray(value) &&
@@ -69,22 +93,22 @@ function getDayKey(dateStr: string): string {
   return new Date(dateStr).toDateString();
 }
 
-const roleLabelColor: Record<string, string> = {
-  system: palette.text.disabled,
-  user: palette.brand?.primary ?? "#13715B",
-  assistant: palette.text.secondary,
-};
-
 function ConversationView({ messages }: { messages: RequestMessage[] }) {
+  const roleLabelColor: Record<string, string> = {
+    system: palette.text.disabled,
+    user: palette.brand.primary,
+    assistant: palette.text.secondary,
+  };
+
   return (
-    <Stack gap="10px">
+    <Stack gap="8px">
       {messages.map((msg, i) => (
         <Box key={`${msg.role}-${i}`}>
           <Typography
             component="span"
             sx={{
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 600,
               color: roleLabelColor[msg.role] ?? palette.text.secondary,
               textTransform: "capitalize",
               display: "block",
@@ -127,7 +151,7 @@ export default function LogsPage() {
   const theme = useTheme();
   const cardSx = useCardSx();
 
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<GatewayLog[]>([]);
   const [total, setTotal] = useState(0);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -327,7 +351,7 @@ export default function LogsPage() {
                 arrow
                 placement="top"
               >
-                <Box sx={{ display: "flex", cursor: "help" }}>
+                <Box sx={{ display: "flex", cursor: "help" }} tabIndex={0} aria-label="Log details info">
                   <Info size={14} color={palette.text.disabled} />
                 </Box>
               </MuiTooltip>
@@ -363,7 +387,15 @@ export default function LogsPage() {
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedId(expandedId === log.id ? null : log.id);
+                      }
+                    }}
                     sx={{
                       p: "10px 14px",
                       borderRadius: "4px",
@@ -416,7 +448,7 @@ export default function LogsPage() {
                         uppercase={false}
                       />
 
-                      <Typography sx={{ fontSize: 10, color: palette.text.disabled, minWidth: 65 }}>
+                      <Typography sx={{ fontSize: 11, color: palette.text.disabled, minWidth: 65 }}>
                         {new Date(log.created_at).toLocaleTimeString()}
                       </Typography>
                     </Stack>

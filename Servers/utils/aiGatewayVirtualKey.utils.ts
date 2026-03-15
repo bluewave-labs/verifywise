@@ -7,6 +7,7 @@
  */
 
 import crypto from "crypto";
+import { QueryTypes } from "sequelize";
 import { sequelize } from "../database/db";
 
 export interface IAiGatewayVirtualKey {
@@ -116,10 +117,10 @@ export const getAllVirtualKeysQuery = async (
      LEFT JOIN users u ON u.id = vk.created_by
      WHERE vk.organization_id = :organizationId
      ORDER BY vk.created_at DESC`,
-    { replacements: { organizationId } }
-  )) as [any[], number];
+    { replacements: { organizationId }, type: QueryTypes.SELECT }
+  )) as any[];
 
-  return result[0];
+  return result;
 };
 
 /**
@@ -129,12 +130,16 @@ export const getAllVirtualKeysQuery = async (
 export const getVirtualKeyByHashQuery = async (
   keyHash: string
 ): Promise<IAiGatewayVirtualKey | null> => {
-  const result = (await sequelize.query(
-    `SELECT * FROM ai_gateway_virtual_keys WHERE key_hash = :keyHash`,
-    { replacements: { keyHash } }
-  )) as [IAiGatewayVirtualKey[], number];
+  const result = await sequelize.query<IAiGatewayVirtualKey>(
+    `SELECT id, organization_id, key_prefix, name, allowed_endpoint_ids,
+            max_budget_usd, current_spend_usd, budget_reset_at, rate_limit_rpm,
+            metadata, expires_at, is_active, revoked_at, created_by,
+            created_at, updated_at
+     FROM ai_gateway_virtual_keys WHERE key_hash = :keyHash`,
+    { replacements: { keyHash }, type: QueryTypes.SELECT }
+  );
 
-  return result[0].length > 0 ? result[0][0] : null;
+  return result.length > 0 ? result[0] : null;
 };
 
 /**

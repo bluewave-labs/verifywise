@@ -413,8 +413,8 @@ export async function getSpendLogs(req: Request, res: Response) {
   const fn = "getSpendLogs";
   logStructured("processing", "fetching spend logs", fn, fileName);
   try {
-    const limit = Math.min(Number(req.query.limit) || 50, 200);
-    const offset = Number(req.query.offset) || 0;
+    const limit = Math.max(1, Math.min(Number(req.query.limit) || 50, 200));
+    const offset = Math.max(0, Number(req.query.offset) || 0);
 
     // Build optional filters from query params
     const filters: Partial<ISpendLogFilters> = {};
@@ -885,8 +885,8 @@ export async function testGuardrails(req: Request, res: Response) {
 export async function getGuardrailLogs(req: Request, res: Response) {
   const fn = "getGuardrailLogs";
   try {
-    const limit = Math.min(Number(req.query.limit) || 50, 200);
-    const offset = Number(req.query.offset) || 0;
+    const limit = Math.max(1, Math.min(Number(req.query.limit) || 50, 200));
+    const offset = Math.max(0, Number(req.query.offset) || 0);
     const logs = await getGuardrailLogsQuery(req.organizationId!, limit, offset);
     return res.status(200).json(STATUS_CODE[200](logs));
   } catch (error) {
@@ -952,6 +952,11 @@ export async function createVirtualKey(req: Request, res: Response) {
     if (!name) {
       throw new ValidationException("name is required");
     }
+    if (typeof name !== "string") throw new ValidationException("name must be a string");
+    if (name.trim().length > 255) throw new ValidationException("name must be 255 characters or fewer");
+    if (expires_at && isNaN(Date.parse(expires_at))) {
+      throw new ValidationException("expires_at must be a valid date");
+    }
 
     const { plainKey, hash, prefix } = generateVirtualKey();
 
@@ -994,13 +999,47 @@ export async function updateVirtualKey(req: Request, res: Response) {
   logStructured("processing", "updating virtual key", fn, fileName);
   try {
     const id = parseId(req.params.id);
-    const updated = await updateVirtualKeyQuery(req.organizationId!, id, req.body);
+
+    const { name, allowed_endpoint_ids, max_budget_usd, rate_limit_rpm, metadata, expires_at } = req.body;
+    const data: Record<string, any> = {};
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) throw new ValidationException("name must be a non-empty string");
+      data.name = name.trim();
+    }
+    if (allowed_endpoint_ids !== undefined) {
+      if (!Array.isArray(allowed_endpoint_ids)) throw new ValidationException("allowed_endpoint_ids must be an array");
+      data.allowed_endpoint_ids = allowed_endpoint_ids;
+    }
+    if (max_budget_usd !== undefined) {
+      data.max_budget_usd = max_budget_usd === null ? null : Number(max_budget_usd);
+      if (data.max_budget_usd !== null && (isNaN(data.max_budget_usd) || data.max_budget_usd < 0)) {
+        throw new ValidationException("max_budget_usd must be a non-negative number or null");
+      }
+    }
+    if (rate_limit_rpm !== undefined) {
+      data.rate_limit_rpm = rate_limit_rpm === null ? null : Number(rate_limit_rpm);
+      if (data.rate_limit_rpm !== null && (isNaN(data.rate_limit_rpm) || data.rate_limit_rpm < 0)) {
+        throw new ValidationException("rate_limit_rpm must be a non-negative number or null");
+      }
+    }
+    if (metadata !== undefined) data.metadata = metadata;
+    if (expires_at !== undefined) {
+      data.expires_at = expires_at === null ? null : expires_at;
+      if (data.expires_at !== null && isNaN(Date.parse(data.expires_at))) {
+        throw new ValidationException("expires_at must be a valid date or null");
+      }
+    }
+
+    const updated = await updateVirtualKeyQuery(req.organizationId!, id, data);
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Virtual key not found"));
     }
     logStructured("successful", `virtual key updated: ${id}`, fn, fileName);
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
     logStructured("error", "failed to update virtual key", fn, fileName);
     logger.error("Error updating virtual key:", error);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));

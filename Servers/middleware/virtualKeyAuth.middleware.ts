@@ -95,6 +95,7 @@ const authenticateVirtualKey = async (
 
     // Set organizationId for downstream services
     req.organizationId = virtualKey.organization_id;
+    req.userId = 0;  // Virtual key requests have no associated user
 
     next();
   } catch (error) {

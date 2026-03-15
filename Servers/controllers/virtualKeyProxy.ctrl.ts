@@ -54,7 +54,7 @@ export async function chatCompletions(req: Request, res: Response) {
   try {
     const { model, messages, max_tokens, temperature, top_p, stream } = req.body;
 
-    if (!model || !messages) {
+    if (!model || !Array.isArray(messages)) {
       return openAIError(res, 400, "'model' and 'messages' are required", "invalid_request_error", "invalid_request");
     }
 
@@ -94,19 +94,19 @@ export async function chatCompletions(req: Request, res: Response) {
     return res.status(200).json(result);
   } catch (error: any) {
     if (error.message?.includes("blocked by guardrail")) {
-      return openAIError(res, 400, error.message, "invalid_request_error", "content_policy_violation");
+      return openAIError(res, 400, "Request blocked by content policy", "invalid_request_error", "content_policy_violation");
     }
     if (error.code === "budget_exceeded") {
-      return openAIError(res, 429, error.message, "insufficient_quota", "budget_exceeded");
+      return openAIError(res, 429, "Budget limit exceeded", "insufficient_quota", "budget_exceeded");
     }
     if (error.code === "rate_limited") {
-      return openAIError(res, 429, error.message, "rate_limit_error", "rate_limit_exceeded");
+      return openAIError(res, 429, "Rate limit exceeded", "rate_limit_error", "rate_limit_exceeded");
     }
-    if (error.message?.includes("not found")) {
-      return openAIError(res, 404, error.message, "invalid_request_error", "model_not_found");
+    if (error.code === "endpoint_inactive" || error.message?.includes("inactive")) {
+      return openAIError(res, 400, "The requested model is not available", "invalid_request_error", "model_not_available");
     }
-    if (error.message?.includes("inactive")) {
-      return openAIError(res, 400, error.message, "invalid_request_error", "model_not_available");
+    if (error.name === "NotFoundException" || error.message?.includes("not found")) {
+      return openAIError(res, 404, "The requested model was not found", "invalid_request_error", "model_not_found");
     }
     logger.error("Virtual key chat completion error:", error);
     return openAIError(res, 500, "Internal server error", "api_error", "internal_error");
@@ -145,8 +145,20 @@ export async function embeddings(req: Request, res: Response) {
 
     return res.status(200).json(result);
   } catch (error: any) {
-    if (error.message?.includes("not found")) {
-      return openAIError(res, 404, error.message, "invalid_request_error", "model_not_found");
+    if (error.message?.includes("blocked by guardrail")) {
+      return openAIError(res, 400, "Request blocked by content policy", "invalid_request_error", "content_policy_violation");
+    }
+    if (error.code === "budget_exceeded") {
+      return openAIError(res, 429, "Budget limit exceeded", "insufficient_quota", "budget_exceeded");
+    }
+    if (error.code === "rate_limited") {
+      return openAIError(res, 429, "Rate limit exceeded", "rate_limit_error", "rate_limit_exceeded");
+    }
+    if (error.code === "endpoint_inactive" || error.message?.includes("inactive")) {
+      return openAIError(res, 400, "The requested model is not available", "invalid_request_error", "model_not_available");
+    }
+    if (error.name === "NotFoundException" || error.message?.includes("not found")) {
+      return openAIError(res, 404, "The requested model was not found", "invalid_request_error", "model_not_found");
     }
     logger.error("Virtual key embedding error:", error);
     return openAIError(res, 500, "Internal server error", "api_error", "internal_error");

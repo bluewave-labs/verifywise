@@ -410,10 +410,48 @@ export async function getSpendByUser(req: Request, res: Response) {
 
 export async function getSpendLogs(req: Request, res: Response) {
   const fn = "getSpendLogs";
+  logStructured("processing", "fetching spend logs", fn, fileName);
   try {
     const limit = Math.min(Number(req.query.limit) || 50, 200);
     const offset = Number(req.query.offset) || 0;
-    const { rows, total } = await getSpendLogsDetailQuery(req.organizationId!, limit, offset);
+
+    // Build optional filters from query params
+    const filters: Record<string, any> = {};
+
+    if (req.query.endpoint_id) {
+      const eid = Number(req.query.endpoint_id);
+      if (!isNaN(eid) && eid > 0) filters.endpoint_id = eid;
+    }
+
+    if (req.query.status === "success" || req.query.status === "error") {
+      filters.status = req.query.status;
+    }
+
+    if (req.query.source === "playground" || req.query.source === "virtual-key") {
+      filters.source = req.query.source;
+    }
+
+    if (req.query.start_date) {
+      filters.start_date = req.query.start_date as string;
+    }
+
+    if (req.query.end_date) {
+      filters.end_date = req.query.end_date as string;
+    }
+
+    if (req.query.search && typeof req.query.search === "string" && req.query.search.trim()) {
+      filters.search = req.query.search.trim();
+    }
+
+    const hasFilters = Object.keys(filters).length > 0;
+    const { rows, total } = await getSpendLogsDetailQuery(
+      req.organizationId!,
+      limit,
+      offset,
+      hasFilters ? filters : undefined
+    );
+
+    logStructured("successful", `spend logs fetched: ${rows.length} of ${total}`, fn, fileName);
     return res.status(200).json(STATUS_CODE[200]({ rows, total }));
   } catch (error) {
     logStructured("error", "failed to fetch spend logs", fn, fileName);

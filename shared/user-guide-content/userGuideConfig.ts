@@ -437,7 +437,7 @@ export const collections: Collection[] = [
     title: 'AI Gateway',
     description: 'Route, monitor, and protect LLM requests through a unified gateway with cost tracking and guardrails.',
     icon: 'Router',
-    articleCount: 5,
+    articleCount: 6,
     articles: [
       {
         id: 'analytics',
@@ -468,6 +468,12 @@ export const collections: Collection[] = [
         title: 'Gateway settings',
         description: 'Manage API keys, budget limits, and guardrail configuration.',
         keywords: ['settings', 'api key', 'budget', 'limit', 'encryption', 'retention', 'guardrail config'],
+      },
+      {
+        id: 'virtual-keys',
+        title: 'Virtual keys',
+        description: 'Generate API keys for developers to access the gateway with any OpenAI-compatible SDK.',
+        keywords: ['virtual key', 'api key', 'developer', 'sdk', 'openai', 'bearer', 'budget', 'rate limit', 'revoke'],
       },
     ],
   },

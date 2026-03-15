@@ -105,14 +105,67 @@ export const insertSpendLogQuery = async (
   return result[0][0];
 };
 
+export interface ISpendLogFilters {
+  endpoint_id?: number;
+  status?: "success" | "error";
+  source?: "playground" | "virtual-key";
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+}
+
 /**
- * Get paginated spend logs with full request/response data (for log viewer)
+ * Get paginated spend logs with full request/response data (for log viewer).
+ * Supports optional server-side filters for endpoint, status, source, date range, and search.
  */
 export const getSpendLogsDetailQuery = async (
   organizationId: number,
   limit: number = 50,
-  offset: number = 0
+  offset: number = 0,
+  filters?: ISpendLogFilters
 ): Promise<{ rows: any[]; total: number }> => {
+  // Build dynamic WHERE conditions
+  const conditions: string[] = ["s.organization_id = :organizationId"];
+  const replacements: Record<string, any> = { organizationId, limit, offset };
+
+  if (filters?.endpoint_id) {
+    conditions.push("s.endpoint_id = :endpoint_id");
+    replacements.endpoint_id = filters.endpoint_id;
+  }
+
+  if (filters?.status === "success") {
+    conditions.push("s.status_code = 200");
+  } else if (filters?.status === "error") {
+    conditions.push("s.status_code != 200");
+  }
+
+  if (filters?.source === "playground") {
+    conditions.push("s.user_id > 0 AND s.virtual_key_id IS NULL");
+  } else if (filters?.source === "virtual-key") {
+    conditions.push("s.virtual_key_id IS NOT NULL");
+  }
+
+  if (filters?.start_date) {
+    conditions.push("s.created_at >= :start_date");
+    replacements.start_date = filters.start_date;
+  }
+
+  if (filters?.end_date) {
+    conditions.push("s.created_at <= :end_date");
+    replacements.end_date = filters.end_date;
+  }
+
+  if (filters?.search) {
+    conditions.push(
+      `(e.display_name ILIKE :search OR s.model ILIKE :search
+        OR COALESCE(u.name, '') || ' ' || COALESCE(u.surname, '') ILIKE :search
+        OR vk.name ILIKE :search)`
+    );
+    replacements.search = `%${filters.search}%`;
+  }
+
+  const whereClause = conditions.join(" AND ");
+
   const [rows, countResult] = await Promise.all([
     sequelize.query(
       `SELECT s.id, s.endpoint_id, e.display_name AS endpoint_name, e.slug AS endpoint_slug,
@@ -126,14 +179,19 @@ export const getSpendLogsDetailQuery = async (
        LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
        LEFT JOIN users u ON u.id = s.user_id
        LEFT JOIN ai_gateway_virtual_keys vk ON vk.id = s.virtual_key_id
-       WHERE s.organization_id = :organizationId
+       WHERE ${whereClause}
        ORDER BY s.created_at DESC
        LIMIT :limit OFFSET :offset`,
-      { replacements: { organizationId, limit, offset }, type: QueryTypes.SELECT }
+      { replacements, type: QueryTypes.SELECT }
     ),
     sequelize.query(
-      `SELECT COUNT(*)::int AS total FROM ai_gateway_spend_logs WHERE organization_id = :organizationId`,
-      { replacements: { organizationId }, type: QueryTypes.SELECT }
+      `SELECT COUNT(*)::int AS total
+       FROM ai_gateway_spend_logs s
+       LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
+       LEFT JOIN users u ON u.id = s.user_id
+       LEFT JOIN ai_gateway_virtual_keys vk ON vk.id = s.virtual_key_id
+       WHERE ${whereClause}`,
+      { replacements, type: QueryTypes.SELECT }
     ),
   ]);
   return { rows: rows as any[], total: (countResult as any[])[0]?.total || 0 };

@@ -56,6 +56,7 @@ import { endpointsContent as aiGatewayEndpointsContent } from './ai-gateway/endp
 import { playgroundContent as aiGatewayPlaygroundContent } from './ai-gateway/playground';
 import { guardrailsContent as aiGatewayGuardrailsContent } from './ai-gateway/guardrails';
 import { aiGatewaySettingsContent } from './ai-gateway/settings';
+import { virtualKeysContent as aiGatewayVirtualKeysContent } from './ai-gateway/virtual-keys';
 
 // Map of article IDs to their content
 // Format: 'collectionId/articleId': ArticleContent
@@ -130,6 +131,7 @@ export const articleContentMap: Record<string, ArticleContent> = {
   'ai-gateway/playground': aiGatewayPlaygroundContent,
   'ai-gateway/guardrails': aiGatewayGuardrailsContent,
   'ai-gateway/settings': aiGatewaySettingsContent,
+  'ai-gateway/virtual-keys': aiGatewayVirtualKeysContent,
 };
 
 // Helper to get article content

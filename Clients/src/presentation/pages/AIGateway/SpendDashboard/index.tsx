@@ -15,7 +15,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Cell,
 } from "recharts";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { EmptyState } from "../../../components/EmptyState";
@@ -207,38 +206,46 @@ export default function SpendDashboardPage() {
                     <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
                   </MuiTooltip>
                 </Stack>
-                <Box sx={{ "& *:focus": { outline: "none" }, "& .recharts-wrapper": { outline: "none" } }}>
-                <ResponsiveContainer width="100%" height={Math.max(200, byModel.length * 38)} style={{ outline: "none" }}>
-                  <BarChart data={byModel} layout="vertical" margin={{ left: 10, right: 16, top: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} horizontal={false} />
-                    <XAxis
-                      type="number"
-                      tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                      tickLine={false}
-                      axisLine={{ stroke: palette.border.light }}
-                      tickFormatter={(v) => `$${v}`}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="group_key"
-                      tick={{ fontSize: 10, fill: palette.text.tertiary }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={210}
-                      tickFormatter={(v) => v.length > 35 ? v.slice(0, 32) + "..." : v}
-                    />
-                    <Tooltip
-                      contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
-                      formatter={(value: number) => [`$${Number(value).toFixed(6)}`, "Cost"]}
-                    />
-                    <Bar dataKey="total_cost" radius={[0, 4, 4, 0]} barSize={20}>
-                      {byModel.map((_: any, i: number) => (
-                        <Cell key={i} fill={chartPalette[i % chartPalette.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                </Box>
+                <Stack gap="6px">
+                  {byModel.map((m: any, i: number) => (
+                    <Stack
+                      key={m.group_key}
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      sx={{
+                        p: "8px 12px",
+                        borderRadius: "4px",
+                        border: `1px solid ${palette.border.light}`,
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" gap="8px" sx={{ flex: 1, minWidth: 0 }}>
+                        <Box
+                          sx={{
+                            width: 8, height: 8,
+                            borderRadius: "50%",
+                            backgroundColor: chartPalette[i % chartPalette.length],
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography sx={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {m.group_key}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" gap="12px" alignItems="center" sx={{ flexShrink: 0 }}>
+                        <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
+                          {Number(m.total_requests).toLocaleString()} req
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
+                          {Number(m.total_tokens).toLocaleString()} tok
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600, minWidth: 70, textAlign: "right" }}>
+                          ${Number(m.total_cost).toFixed(4)}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  ))}
+                </Stack>
               </Stack>
             </Box>
           )}

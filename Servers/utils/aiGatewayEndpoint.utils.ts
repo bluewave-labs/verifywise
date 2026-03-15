@@ -232,16 +232,15 @@ export const updateEndpointQuery = async (
 };
 
 /**
- * Soft delete an endpoint (set is_active = false)
+ * Hard delete an endpoint
  */
 export const deleteEndpointQuery = async (
   organizationId: number,
   id: number
 ): Promise<boolean> => {
   const result = (await sequelize.query(
-    `UPDATE ai_gateway_endpoints
-     SET is_active = false, updated_at = NOW()
-     WHERE organization_id = :organizationId AND id = :id AND is_active = true
+    `DELETE FROM ai_gateway_endpoints
+     WHERE organization_id = :organizationId AND id = :id
      RETURNING id`,
     { replacements: { organizationId, id } }
   )) as [{ id: number }[], number];

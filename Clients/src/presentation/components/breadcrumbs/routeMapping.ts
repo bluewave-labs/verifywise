@@ -130,6 +130,7 @@ export const routeMapping: Record<string, string> = {
   "/ai-gateway/endpoints": "Endpoints",
   "/ai-gateway/playground": "Playground",
   "/ai-gateway/guardrails": "Guardrails",
+  "/ai-gateway/logs": "Logs",
   "/ai-gateway/settings": "Settings",
 
   // Shadow AI
@@ -262,6 +263,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/ai-gateway/endpoints": () => React.createElement(Router, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/playground": () => React.createElement(MessageSquare, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/guardrails": () => React.createElement(ShieldCheck, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/logs": () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // Shadow AI

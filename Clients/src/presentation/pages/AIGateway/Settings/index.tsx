@@ -430,7 +430,7 @@ export default function AIGatewaySettingsPage() {
               <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 1.5 }}>
                 How long to keep guardrail detection logs. These logs record every blocked or masked request for compliance auditing (EU AI Act Art. 12).
               </Typography>
-              <Stack direction="row" gap="16px" alignItems="flex-end">
+              <Stack direction="row" gap={2} alignItems="flex-end">
                 <Box sx={{ maxWidth: 200 }}>
                   <Field
                     label="Retention period (days)"
@@ -439,7 +439,7 @@ export default function AIGatewaySettingsPage() {
                     onChange={(e) => setGsForm((p) => ({ ...p, log_retention_days: e.target.value }))}
                   />
                 </Box>
-              <CustomizableButton
+                <CustomizableButton
                 text="Purge old logs"
                 onClick={async () => {
                   try {

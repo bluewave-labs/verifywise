@@ -6,6 +6,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { CirclePlus, Router, Trash2, Zap, Settings, Shield } from "lucide-react";
+import Toggle from "../../../components/Inputs/Toggle";
 import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
@@ -78,6 +79,7 @@ export default function EndpointsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   const [form, setForm] = useState({
     display_name: "",
@@ -160,9 +162,20 @@ export default function EndpointsPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await apiServices.delete(`/ai-gateway/endpoints/${id}`);
+      await apiServices.delete(`/ai-gateway/endpoints/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      await loadData();
+    } catch {
+      // Silently handle
+    }
+  };
+
+  const handleToggleActive = async (id: number, isActive: boolean) => {
+    try {
+      await apiServices.patch(`/ai-gateway/endpoints/${id}`, { is_active: !isActive });
       await loadData();
     } catch {
       // Silently handle
@@ -256,16 +269,16 @@ export default function EndpointsPage() {
                     </Box>
                   </Stack>
                   <Stack direction="row" alignItems="center" gap="8px">
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        color: ep.is_active ? palette.status.success.text : palette.text.disabled,
-                        fontWeight: 500,
-                      }}
+                    <Toggle
+                      checked={ep.is_active}
+                      onChange={() => handleToggleActive(ep.id, ep.is_active)}
+                      size="small"
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => setDeleteTarget({ id: ep.id, name: ep.display_name })}
+                      sx={{ p: 0.5 }}
                     >
-                      {ep.is_active ? "Active" : "Inactive"}
-                    </Typography>
-                    <IconButton size="small" onClick={() => handleDelete(ep.id)} sx={{ p: 0.5 }}>
                       <Trash2 size={14} strokeWidth={1.5} color={palette.text.tertiary} />
                     </IconButton>
                   </Stack>
@@ -407,6 +420,20 @@ export default function EndpointsPage() {
             </Typography>
           )}
         </Stack>
+      </StandardModal>
+      {/* Delete confirmation modal */}
+      <StandardModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete endpoint"
+        description={`Are you sure you want to delete "${deleteTarget?.name}"? This will permanently remove the endpoint and any requests using its slug will fail.`}
+        onSubmit={handleDelete}
+        submitButtonText="Delete"
+        maxWidth="400px"
+      >
+        <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>
+          This action cannot be undone.
+        </Typography>
       </StandardModal>
     </PageHeaderExtended>
   );

@@ -170,9 +170,11 @@ export function ContextSidebar({
             ? "playground"
             : location.pathname.includes("/ai-gateway/guardrails")
               ? "guardrails"
-              : location.pathname.includes("/ai-gateway/settings")
-                ? "settings"
-                : "analytics";
+              : location.pathname.includes("/ai-gateway/logs")
+                ? "logs"
+                : location.pathname.includes("/ai-gateway/settings")
+                  ? "settings"
+                  : "analytics";
 
       const handleGatewayTabChange = (newTab: string) => {
         navigate(`/ai-gateway/${newTab}`);

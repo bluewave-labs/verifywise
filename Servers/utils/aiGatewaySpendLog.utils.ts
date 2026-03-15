@@ -166,6 +166,16 @@ export const getSpendLogsDetailQuery = async (
 
   const whereClause = conditions.join(" AND ");
 
+  const joins = `FROM ai_gateway_spend_logs s
+       LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
+       LEFT JOIN users u ON u.id = s.user_id
+       LEFT JOIN ai_gateway_virtual_keys vk ON vk.id = s.virtual_key_id`;
+
+  // COUNT query: skip JOINs when no search filter (all other filters use columns on s.*)
+  const countSql = filters?.search
+    ? `SELECT COUNT(*)::int AS total ${joins} WHERE ${whereClause}`
+    : `SELECT COUNT(*)::int AS total FROM ai_gateway_spend_logs s WHERE ${whereClause}`;
+
   const [rows, countResult] = await Promise.all([
     sequelize.query(
       `SELECT s.id, s.endpoint_id, e.display_name AS endpoint_name, e.slug AS endpoint_slug,
@@ -175,24 +185,13 @@ export const getSpendLogsDetailQuery = async (
               s.created_at, s.virtual_key_id,
               COALESCE(NULLIF(TRIM(COALESCE(u.name, '') || ' ' || COALESCE(u.surname, '')), ''), 'unknown') AS user_name,
               vk.name AS virtual_key_name, vk.key_prefix AS virtual_key_prefix
-       FROM ai_gateway_spend_logs s
-       LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
-       LEFT JOIN users u ON u.id = s.user_id
-       LEFT JOIN ai_gateway_virtual_keys vk ON vk.id = s.virtual_key_id
+       ${joins}
        WHERE ${whereClause}
        ORDER BY s.created_at DESC
        LIMIT :limit OFFSET :offset`,
       { replacements, type: QueryTypes.SELECT }
     ),
-    sequelize.query(
-      `SELECT COUNT(*)::int AS total
-       FROM ai_gateway_spend_logs s
-       LEFT JOIN ai_gateway_endpoints e ON e.id = s.endpoint_id
-       LEFT JOIN users u ON u.id = s.user_id
-       LEFT JOIN ai_gateway_virtual_keys vk ON vk.id = s.virtual_key_id
-       WHERE ${whereClause}`,
-      { replacements, type: QueryTypes.SELECT }
-    ),
+    sequelize.query(countSql, { replacements, type: QueryTypes.SELECT }),
   ]);
   return { rows: rows as any[], total: (countResult as any[])[0]?.total || 0 };
 };

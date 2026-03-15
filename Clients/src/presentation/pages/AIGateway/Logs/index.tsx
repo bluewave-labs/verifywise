@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Tooltip as MuiTooltip } from "@mui/material";
 import { CustomizableButton } from "../../../components/button/customizable-button";
+import { ButtonToggle } from "../../../components/button-toggle";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
@@ -27,18 +28,19 @@ import TablePaginationActions from "../../../components/TablePagination";
 import SearchBox from "../../../components/Search/SearchBox";
 import Chip from "../../../components/Chip";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 import palette from "../../../themes/palette";
 import { sectionTitleSx, useCardSx } from "../shared";
 
-const ROWS_PER_PAGE_KEY = "vw_ai_gateway_logs_rows_per_page";
 const AUTO_REFRESH_INTERVAL_MS = 10_000;
+const SEARCH_DEBOUNCE_MS = 300;
 
 type StatusFilter = "all" | "success" | "error";
 type SourceFilter = "all" | "playground" | "virtual-key";
 
 interface RequestMessage {
   role: string;
-  content: string;
+  content: unknown;
 }
 
 function isMessageArray(value: unknown): value is RequestMessage[] {
@@ -46,7 +48,7 @@ function isMessageArray(value: unknown): value is RequestMessage[] {
     Array.isArray(value) &&
     value.length > 0 &&
     typeof (value[0] as Record<string, unknown>).role === "string" &&
-    typeof (value[0] as Record<string, unknown>).content === "string"
+    (value[0] as Record<string, unknown>).content !== undefined
   );
 }
 
@@ -77,7 +79,7 @@ function ConversationView({ messages }: { messages: RequestMessage[] }) {
   return (
     <Stack gap="10px">
       {messages.map((msg, i) => (
-        <Box key={i}>
+        <Box key={`${msg.role}-${i}`}>
           <Typography
             component="span"
             sx={{
@@ -101,7 +103,7 @@ function ConversationView({ messages }: { messages: RequestMessage[] }) {
               lineHeight: 1.6,
             }}
           >
-            {msg.content}
+            {typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content, null, 2)}
           </Box>
         </Box>
       ))}
@@ -109,63 +111,13 @@ function ConversationView({ messages }: { messages: RequestMessage[] }) {
   );
 }
 
-function ToggleGroup<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { label: string; value: T }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <Stack direction="row" gap="0px">
-      {options.map((opt, i) => {
-        const isActive = opt.value === value;
-        const isFirst = i === 0;
-        const isLast = i === options.length - 1;
-        return (
-          <Box
-            key={opt.value}
-            component="button"
-            onClick={() => onChange(opt.value)}
-            sx={{
-              background: "none",
-              border: `1px solid ${palette.border.light}`,
-              borderLeft: isFirst ? `1px solid ${palette.border.light}` : "none",
-              borderRadius: isFirst ? "4px 0 0 4px" : isLast ? "0 4px 4px 0" : "0",
-              cursor: "pointer",
-              px: "12px",
-              height: "34px",
-              fontSize: 13,
-              fontFamily: "inherit",
-              fontWeight: isActive ? 600 : 400,
-              color: isActive ? palette.brand?.primary ?? "#13715B" : palette.text.secondary,
-              borderBottom: isActive
-                ? `2px solid ${palette.brand?.primary ?? "#13715B"}`
-                : `1px solid ${palette.border.light}`,
-              transition: "color 0.15s, border-bottom 0.15s",
-              "&:hover": {
-                color: palette.brand?.primary ?? "#13715B",
-                backgroundColor: palette.background.hover,
-              },
-            }}
-          >
-            {opt.label}
-          </Box>
-        );
-      })}
-    </Stack>
-  );
-}
-
-const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
+const STATUS_OPTIONS = [
   { label: "All", value: "all" },
   { label: "Success", value: "success" },
   { label: "Error", value: "error" },
 ];
 
-const SOURCE_OPTIONS: { label: string; value: SourceFilter }[] = [
+const SOURCE_OPTIONS = [
   { label: "All", value: "all" },
   { label: "Playground", value: "playground" },
   { label: "Virtual key", value: "virtual-key" },
@@ -180,31 +132,40 @@ export default function LogsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => {
-    const saved = localStorage.getItem(ROWS_PER_PAGE_KEY);
-    return saved ? Number(saved) : 25;
-  });
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("aiGatewayLogs", 25)
+  );
 
   // Filter state
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
 
   // Auto-refresh
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pageRef = useRef(page);
+  const rowsPerPageRef = useRef(rowsPerPage);
+  pageRef.current = page;
+  rowsPerPageRef.current = rowsPerPage;
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const buildQuery = useCallback(
     (p: number, rpp: number) => {
       const params = new URLSearchParams();
       params.set("limit", String(rpp));
       params.set("offset", String(p * rpp));
-      if (search.trim()) params.set("search", search.trim());
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (sourceFilter !== "all") params.set("source", sourceFilter);
       return params.toString();
     },
-    [search, statusFilter, sourceFilter]
+    [debouncedSearch, statusFilter, sourceFilter]
   );
 
   const loadLogs = useCallback(
@@ -225,35 +186,28 @@ export default function LogsPage() {
     [buildQuery]
   );
 
-  // Reload when filters or pagination change
+  // Reset page when filters change
   useEffect(() => {
     setPage(0);
     setExpandedId(null);
-  }, [search, statusFilter, sourceFilter]);
+  }, [debouncedSearch, statusFilter, sourceFilter]);
 
+  // Reload when page/pagination/filters change
   useEffect(() => {
     loadLogs(page, rowsPerPage);
   }, [page, rowsPerPage, loadLogs]);
 
-  // Auto-refresh interval management
+  // Auto-refresh: only restarts when toggled, reads page/rpp from refs
+  const loadLogsRef = useRef(loadLogs);
+  loadLogsRef.current = loadLogs;
+
   useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(() => {
-        loadLogs(page, rowsPerPage);
-      }, AUTO_REFRESH_INTERVAL_MS);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [autoRefresh, page, rowsPerPage, loadLogs]);
+    if (!autoRefresh) return;
+    const id = setInterval(() => {
+      loadLogsRef.current(pageRef.current, rowsPerPageRef.current);
+    }, AUTO_REFRESH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [autoRefresh]);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -264,11 +218,11 @@ export default function LogsPage() {
     const rpp = parseInt(e.target.value, 10);
     setRowsPerPage(rpp);
     setPage(0);
-    localStorage.setItem(ROWS_PER_PAGE_KEY, String(rpp));
+    setPaginationRowCount("aiGatewayLogs", rpp);
   };
 
-  // Group logs by calendar day
-  const groupedLogs = (() => {
+  // Group logs by calendar day (memoized)
+  const groupedLogs = useMemo(() => {
     const seenDays = new Set<string>();
     return logs.map((log) => {
       const dayKey = getDayKey(log.created_at);
@@ -276,7 +230,7 @@ export default function LogsPage() {
       if (isFirstOfDay) seenDays.add(dayKey);
       return { log, isFirstOfDay, dayKey };
     });
-  })();
+  }, [logs]);
 
   const hasLogs = logs.length > 0 || (total > 0 && loading);
 
@@ -288,29 +242,14 @@ export default function LogsPage() {
       helpArticlePath="ai-gateway/analytics"
       actionButton={
         <Stack direction="row" gap="8px" alignItems="center">
-          <Box
-            component="button"
+          <CustomizableButton
+            text="Auto"
             onClick={() => setAutoRefresh((prev) => !prev)}
             sx={{
-              background: "none",
-              border: `1px solid ${palette.border.light}`,
-              borderRadius: "4px",
-              cursor: "pointer",
-              height: "34px",
-              px: "12px",
-              fontSize: 12,
-              fontFamily: "inherit",
               fontWeight: autoRefresh ? 600 : 400,
-              color: autoRefresh ? (palette.brand?.primary ?? "#13715B") : palette.text.secondary,
-              transition: "color 0.15s",
-              "&:hover": {
-                color: palette.brand?.primary ?? "#13715B",
-                backgroundColor: palette.background.hover,
-              },
+              color: autoRefresh ? palette.brand?.primary : palette.text.secondary,
             }}
-          >
-            Auto
-          </Box>
+          />
           <CustomizableButton
             text={loading ? "Loading..." : "Refresh"}
             icon={<RefreshCw size={14} strokeWidth={1.5} />}
@@ -343,20 +282,22 @@ export default function LogsPage() {
             <Typography sx={{ fontSize: 12, color: palette.text.disabled, mr: "2px" }}>
               Status
             </Typography>
-            <ToggleGroup
+            <ButtonToggle
               options={STATUS_OPTIONS}
               value={statusFilter}
-              onChange={(v) => setStatusFilter(v)}
+              onChange={(v) => setStatusFilter(v as StatusFilter)}
+              height={34}
             />
           </Stack>
           <Stack direction="row" gap="8px" alignItems="center" flexWrap="wrap">
             <Typography sx={{ fontSize: 12, color: palette.text.disabled, mr: "2px" }}>
               Source
             </Typography>
-            <ToggleGroup
+            <ButtonToggle
               options={SOURCE_OPTIONS}
               value={sourceFilter}
-              onChange={(v) => setSourceFilter(v)}
+              onChange={(v) => setSourceFilter(v as SourceFilter)}
+              height={34}
             />
           </Stack>
         </Stack>

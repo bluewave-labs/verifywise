@@ -62,6 +62,7 @@ import {
   getSpendByDayQuery,
   getSpendByTagQuery,
   getSpendLogsDetailQuery,
+  ISpendLogFilters,
   purgeSpendLogsQuery,
 } from "../utils/aiGatewaySpendLog.utils";
 
@@ -416,7 +417,7 @@ export async function getSpendLogs(req: Request, res: Response) {
     const offset = Number(req.query.offset) || 0;
 
     // Build optional filters from query params
-    const filters: Record<string, any> = {};
+    const filters: Partial<ISpendLogFilters> = {};
 
     if (req.query.endpoint_id) {
       const eid = Number(req.query.endpoint_id);
@@ -431,11 +432,11 @@ export async function getSpendLogs(req: Request, res: Response) {
       filters.source = req.query.source;
     }
 
-    if (req.query.start_date) {
+    if (req.query.start_date && !isNaN(Date.parse(req.query.start_date as string))) {
       filters.start_date = req.query.start_date as string;
     }
 
-    if (req.query.end_date) {
+    if (req.query.end_date && !isNaN(Date.parse(req.query.end_date as string))) {
       filters.end_date = req.query.end_date as string;
     }
 

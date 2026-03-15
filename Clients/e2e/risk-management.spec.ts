@@ -136,15 +136,12 @@ test.describe("Risk Management", () => {
       await addBtn.click();
       await page.waitForTimeout(300);
 
-      // Look for manual/custom risk option or the modal itself
-      const manualOption = page
-        .getByText(/add manually/i)
-        .or(page.getByText(/custom risk/i))
-        .or(page.getByText(/add a new risk/i));
-      if (await manualOption.first().isVisible().catch(() => false)) {
-        await manualOption.first().click();
+      // Look for manual/custom risk option
+      const manualOption = page.getByRole("menuitem", { name: /add new risk manually/i });
+      if (await manualOption.isVisible().catch(() => false)) {
+        await manualOption.click();
         await expect(
-          page.getByText(/add a new risk/i).first()
+          page.getByText(/add new risk/i).first()
         ).toBeVisible({ timeout: 10_000 });
       }
       await page.keyboard.press("Escape");
@@ -163,12 +160,10 @@ test.describe("Risk Management", () => {
     await addBtn.click();
     await page.waitForTimeout(300);
 
-    // Click "Add manually" option to open the form modal
-    const manualOption = page
-      .getByText(/add manually/i)
-      .or(page.getByText(/add a new risk/i));
-    if (await manualOption.first().isVisible().catch(() => false)) {
-      await manualOption.first().click();
+    // Click "Add new risk manually" option to open the form modal
+    const manualOption = page.getByRole("menuitem", { name: /add new risk manually/i });
+    if (await manualOption.isVisible().catch(() => false)) {
+      await manualOption.click();
     }
 
     // --- Risks tab ---
@@ -311,23 +306,20 @@ test.describe("Risk Management", () => {
       await page.waitForTimeout(500);
     }
 
-    // Clean up: delete via row action menu
-    const moreBtn = page
-      .getByRole("button", { name: /more/i })
-      .or(page.locator('[aria-label="more"]'))
-      .or(page.locator('[data-testid="MoreVertIcon"]'));
-    if (await moreBtn.first().isVisible().catch(() => false)) {
-      await moreBtn.first().click();
+    // Clean up: delete via row action button (Settings gear icon)
+    const settingsBtn = page.locator("button:has(.lucide-settings)").first();
+    if (await settingsBtn.isVisible().catch(() => false)) {
+      await settingsBtn.click();
       const deleteBtn = page.getByRole("menuitem", {
         name: /delete|remove/i,
       });
       if (await deleteBtn.first().isVisible().catch(() => false)) {
         await deleteBtn.first().click();
-        const confirmBtn = page.getByRole("button", {
-          name: /confirm|yes|delete/i,
-        });
-        if (await confirmBtn.first().isVisible().catch(() => false)) {
-          await confirmBtn.first().click();
+        // Wait for the menu to close and confirmation dialog to appear
+        await page.waitForTimeout(500);
+        const confirmBtn = page.locator('button:text("Delete")').last();
+        if (await confirmBtn.isVisible().catch(() => false)) {
+          await confirmBtn.click();
         }
         await page.waitForTimeout(500);
       } else {

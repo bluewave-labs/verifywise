@@ -177,23 +177,20 @@ test.describe("Datasets", () => {
       await page.waitForTimeout(500);
     }
 
-    // Clean up: delete via row action menu
-    const moreBtn = page
-      .getByRole("button", { name: /more/i })
-      .or(page.locator('[aria-label="more"]'))
-      .or(page.locator('[data-testid="MoreVertIcon"]'));
-    if (await moreBtn.first().isVisible().catch(() => false)) {
-      await moreBtn.first().click();
+    // Clean up: delete via row action button (Settings gear icon)
+    const settingsBtn = page.locator("button:has(.lucide-settings)").first();
+    if (await settingsBtn.isVisible().catch(() => false)) {
+      await settingsBtn.click();
       const deleteBtn = page.getByRole("menuitem", {
         name: /delete|remove/i,
       });
       if (await deleteBtn.first().isVisible().catch(() => false)) {
         await deleteBtn.first().click();
-        const confirmBtn = page.getByRole("button", {
-          name: /confirm|yes|delete/i,
-        });
-        if (await confirmBtn.first().isVisible().catch(() => false)) {
-          await confirmBtn.first().click();
+        // Wait for the menu to close and confirmation dialog to appear
+        await page.waitForTimeout(500);
+        const confirmBtn = page.locator('button:text("Delete")').last();
+        if (await confirmBtn.isVisible().catch(() => false)) {
+          await confirmBtn.click();
         }
         await page.waitForTimeout(500);
       } else {

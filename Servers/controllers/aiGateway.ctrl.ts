@@ -4,6 +4,7 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import {
   ValidationException,
 } from "../domain.layer/exceptions/custom.exception";
+import { recordEntityChange } from "../utils/changeHistory.base.utils";
 
 // Guardrail utils
 import {
@@ -227,10 +228,24 @@ export async function updateEndpoint(req: Request, res: Response) {
     if (req.body.slug && !SLUG_PATTERN.test(req.body.slug)) {
       throw new ValidationException("slug must be lowercase alphanumeric with hyphens (e.g., prod-gpt4o)");
     }
+    // Read current values for change history
+    const before = await getEndpointByIdQuery(req.organizationId!, id);
     const updated = await updateEndpointQuery(req.organizationId!, id, req.body);
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Endpoint not found"));
     }
+
+    // Record changes
+    if (before) {
+      for (const field of Object.keys(req.body)) {
+        const oldVal = String((before as any)[field] ?? "");
+        const newVal = String((updated as any)[field] ?? "");
+        if (oldVal !== newVal) {
+          await recordEntityChange("ai_gateway_endpoint", id, "updated", Number(req.userId), req.organizationId!, field, oldVal, newVal).catch(() => {});
+        }
+      }
+    }
+
     logStructured("successful", `gateway endpoint updated: ${id}`, fn, fileName);
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
@@ -639,6 +654,12 @@ export async function updateGuardrail(req: Request, res: Response) {
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Guardrail rule not found"));
     }
+
+    // Record change for audit trail
+    for (const field of Object.keys(req.body)) {
+      await recordEntityChange("ai_gateway_guardrail", id, "updated", Number(req.userId), req.organizationId!, field).catch(() => {});
+    }
+
     logStructured("successful", `guardrail rule updated: ${id}`, fn, fileName);
     return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {

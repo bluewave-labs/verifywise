@@ -558,8 +558,21 @@ export async function proxyStream(
 
   if (!response.ok) {
     const errorBody = await response.text();
-    // Adjust budget back since we reserved
     await adjustBudgetSpendQuery(organizationId, estimatedCost, 0);
+
+    // Fallback: if endpoint has a fallback and the error is from the provider, retry
+    if (endpoint.fallback_endpoint_id) {
+      try {
+        const fallbackEp = await getEndpointByIdQuery(organizationId, endpoint.fallback_endpoint_id);
+        if (fallbackEp && fallbackEp.is_active) {
+          logger.info(`Stream falling back from ${endpointSlug} to ${fallbackEp.slug}`);
+          return proxyStream(organizationId, fallbackEp.slug, messages, options, userId);
+        }
+      } catch (fallbackErr) {
+        logger.error("Stream fallback resolution failed:", fallbackErr);
+      }
+    }
+
     throw new ExternalServiceException(
       `AI Gateway returned ${response.status}: ${errorBody}`,
       "ai-gateway-fastapi",

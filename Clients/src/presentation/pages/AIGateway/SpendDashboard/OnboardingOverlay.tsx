@@ -286,10 +286,21 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
   }, []);
 
   // Guard against modal close triggered by MUI Select popover interactions
+  const selectOpenRef = useRef(false);
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      selectOpenRef.current = !!document.querySelector(".MuiPopover-root, .MuiMenu-root");
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   const safeCloseModal = useCallback(() => {
-    // If a MUI Select menu is currently open, skip the close
-    if (document.querySelector(".MuiPopover-root, .MuiMenu-root")) return;
-    closeModal();
+    if (selectOpenRef.current) return;
+    // Small delay to let MUI finish removing the popover before checking
+    setTimeout(() => {
+      if (!selectOpenRef.current) closeModal();
+    }, 50);
   }, [closeModal]);
 
   const copyToClipboard = () => {

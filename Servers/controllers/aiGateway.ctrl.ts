@@ -373,6 +373,7 @@ export async function getSpendLogs(req: Request, res: Response) {
 
 export async function purgeSpendLogs(req: Request, res: Response) {
   const fn = "purgeSpendLogs";
+  logStructured("processing", "purging old spend logs", fn, fileName);
   try {
     const settings = await getGuardrailSettingsQuery(req.organizationId!);
     const retentionDays = (settings as any)?.log_retention_days || 90;

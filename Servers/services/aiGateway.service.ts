@@ -95,6 +95,9 @@ async function runGuardrails(
     getGuardrailSettingsQuery(organizationId),
   ]);
 
+  // Cache settings for finalizeSpend (avoids second DB query)
+  if (settings) setCachedSettings(organizationId, settings);
+
   // No active guardrails — pass through
   if (!rules || (rules as any[]).length === 0) {
     return messages;
@@ -263,6 +266,17 @@ async function tryReserveBudget(
   return true;
 }
 
+/** Settings cache to avoid DB query on every request (60s TTL) */
+const settingsCache = new Map<number, { data: any; expiry: number }>();
+function getCachedSettings(organizationId: number): any | null {
+  const cached = settingsCache.get(organizationId);
+  if (cached && cached.expiry > Date.now()) return cached.data;
+  return null;
+}
+function setCachedSettings(organizationId: number, data: any): void {
+  settingsCache.set(organizationId, { data, expiry: Date.now() + 60_000 });
+}
+
 /** Max chars for stored prompt/response text (LiteLLM uses 2048) */
 const MAX_LOG_TEXT_LENGTH = 2048;
 
@@ -273,7 +287,7 @@ const MAX_LOG_TEXT_LENGTH = 2048;
 function truncateLogText(text: string, maxLen: number = MAX_LOG_TEXT_LENGTH): string {
   if (!text || text.length <= maxLen) return text;
   const startChars = Math.floor(maxLen * 0.8);
-  const endChars = maxLen - startChars - 60; // leave room for marker
+  const endChars = Math.max(0, maxLen - startChars - 60);
   const skipped = text.length - startChars - endChars;
   return `${text.slice(0, startChars)} ... (truncated ${skipped} chars) ... ${text.slice(-endChars)}`;
 }
@@ -312,17 +326,18 @@ async function finalizeSpend(
   }
 ): Promise<void> {
   try {
-    // Check org settings for body logging opt-in
-    let logBodies = { request: false, response: false };
-    try {
-      const settings = await getGuardrailSettingsQuery(organizationId);
-      if (settings) {
-        logBodies.request = (settings as any).log_request_body === true;
-        logBodies.response = (settings as any).log_response_body === true;
-      }
-    } catch {
-      // If settings query fails, default to not logging bodies
+    // Use cached settings (populated by runGuardrails or fetched here with 60s TTL)
+    let settings = getCachedSettings(organizationId);
+    if (!settings) {
+      try {
+        settings = await getGuardrailSettingsQuery(organizationId);
+        if (settings) setCachedSettings(organizationId, settings);
+      } catch { /* default to not logging */ }
     }
+    const logBodies = {
+      request: settings?.log_request_body === true,
+      response: settings?.log_response_body === true,
+    };
 
     await insertSpendLogQuery(organizationId, {
       endpoint_id: endpointId,
@@ -337,7 +352,7 @@ async function finalizeSpend(
       status_code: statusCode,
       metadata: extra?.metadata,
       request_messages: logBodies.request ? truncateMessages(extra?.request_messages) : undefined,
-      response_text: logBodies.response ? truncateLogText(extra?.response_text || "") || undefined : undefined,
+      response_text: logBodies.response && extra?.response_text ? truncateLogText(extra.response_text) : undefined,
       error_message: extra?.error_message ? truncateLogText(extra.error_message, 500) : undefined,
     });
   } catch (err) {

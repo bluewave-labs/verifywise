@@ -301,11 +301,24 @@ export async function purgeGuardrailLogsQuery(
   organizationId: number,
   retentionDays: number
 ) {
-  const [, meta] = await sequelize.query(
-    `DELETE FROM ai_gateway_guardrail_logs
-     WHERE organization_id = :organizationId
-       AND created_at < NOW() - (:days || ' days')::interval`,
-    { replacements: { organizationId, days: retentionDays } }
-  );
-  return (meta as any)?.rowCount || 0;
+  let totalDeleted = 0;
+  const maxBatches = 50;
+
+  for (let i = 0; i < maxBatches; i++) {
+    const [, meta] = await sequelize.query(
+      `DELETE FROM ai_gateway_guardrail_logs
+       WHERE id IN (
+         SELECT id FROM ai_gateway_guardrail_logs
+         WHERE organization_id = :organizationId
+           AND created_at < NOW() - (:days || ' days')::interval
+         LIMIT 1000
+       )`,
+      { replacements: { organizationId, days: retentionDays } }
+    );
+    const deleted = (meta as any)?.rowCount || 0;
+    totalDeleted += deleted;
+    if (deleted < 1000) break;
+  }
+
+  return totalDeleted;
 }

@@ -105,6 +105,25 @@ export default function SpendDashboardPage() {
 
   const hasData = byDay.length > 0 || byModel.length > 0 || byEndpoint.length > 0;
 
+  const refreshSetupStatus = async () => {
+    const [keysRes, endpointsRes, vkeysRes, logsCheck] = await Promise.all([
+      apiServices.get("/ai-gateway/keys").catch(() => null),
+      apiServices.get("/ai-gateway/endpoints").catch(() => null),
+      apiServices.get("/ai-gateway/virtual-keys").catch(() => null),
+      apiServices.get("/ai-gateway/spend/logs?limit=1").catch(() => null),
+    ]);
+    const newStatus = {
+      hasApiKey: (keysRes?.data?.data || []).length > 0,
+      hasEndpoint: (endpointsRes?.data?.data || []).length > 0,
+      hasVirtualKey: (vkeysRes?.data?.data || []).length > 0,
+      hasRequests: (logsCheck?.data?.data?.total || 0) > 0,
+    };
+    setSetupStatus(newStatus);
+    if (newStatus.hasRequests) {
+      setIsFirstTime(false);
+    }
+  };
+
   if (isFirstTime === true) {
     return (
       <PageHeaderExtended
@@ -114,7 +133,7 @@ export default function SpendDashboardPage() {
         helpArticlePath="ai-gateway/analytics"
       >
         <Box sx={{ position: "relative" }}>
-          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none" }}>
+          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", border: `1px solid ${palette.border.light}`, borderRadius: "4px", overflow: "hidden" }}>
             <MockDashboard />
           </Box>
           <OnboardingOverlay
@@ -124,6 +143,7 @@ export default function SpendDashboardPage() {
               userGuideSidebar.close();
               setTimeout(() => userGuideSidebar.open("ai-gateway/getting-started"), 50);
             }}
+            onStepCompleted={refreshSetupStatus}
           />
         </Box>
       </PageHeaderExtended>

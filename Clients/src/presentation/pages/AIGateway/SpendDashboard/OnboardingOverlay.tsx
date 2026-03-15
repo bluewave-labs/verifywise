@@ -210,6 +210,10 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
   const [keyError, setKeyError] = useState("");
   const [keySubmitting, setKeySubmitting] = useState(false);
 
+  // ── Provider list (dynamic, fetched when API key modal opens) ──
+  const [providerItems, setProviderItems] = useState(TOP_PROVIDERS);
+  const [topProviderCount, setTopProviderCount] = useState(TOP_PROVIDERS.length);
+
   // ── Endpoint modal state ──
   const [endpointForm, setEndpointForm] = useState({ display_name: "", slug: "", model: "", api_key_id: "" });
   const [endpointError, setEndpointError] = useState("");
@@ -223,6 +227,23 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
   const [createdKey, setCreatedKey] = useState("");
   const [copied, setCopied] = useState(false);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch dynamic providers when API key modal opens
+  useEffect(() => {
+    if (activeModal !== "api-key") return;
+    const topIds = new Set(TOP_PROVIDERS.map((p) => p._id));
+    apiServices.get("/ai-gateway/providers").then((res) => {
+      const dynamic: string[] = res?.data?.data?.providers || [];
+      const others = dynamic
+        .filter((p) => !topIds.has(p))
+        .sort()
+        .map((p) => ({ _id: p, name: p }));
+      if (others.length > 0) {
+        setProviderItems([...TOP_PROVIDERS, ...others]);
+        setTopProviderCount(TOP_PROVIDERS.length);
+      }
+    }).catch(() => {});
+  }, [activeModal]);
 
   // Fetch available keys when endpoint modal opens (with abort guard)
   useEffect(() => {
@@ -406,7 +427,7 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
       >
         <Stack gap="16px">
           <Field label="Key name" placeholder="e.g., Production OpenAI key" value={keyForm.key_name} onChange={(e) => setKeyForm((p) => ({ ...p, key_name: e.target.value }))} isRequired />
-          <Select id="onboarding-provider" label="Provider" placeholder="Select provider" value={keyForm.provider} items={TOP_PROVIDERS} onChange={(e) => setKeyForm((p) => ({ ...p, provider: e.target.value as string }))} getOptionValue={(item) => item._id} isRequired />
+          <Select id="onboarding-provider" label="Provider" placeholder="Select provider" value={keyForm.provider} items={providerItems} onChange={(e) => setKeyForm((p) => ({ ...p, provider: e.target.value as string }))} getOptionValue={(item) => item._id} dividerAfterIndex={topProviderCount} dividerLabel="Other providers" isRequired />
           <Field label="API key" placeholder="sk-..." value={keyForm.api_key} onChange={(e) => setKeyForm((p) => ({ ...p, api_key: e.target.value }))} autoComplete="off" isRequired />
           {keyError && <Typography sx={{ fontSize: 12, color: palette.status.error.text }}>{keyError}</Typography>}
         </Stack>

@@ -19,6 +19,9 @@ import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette, { chart as chartPalette } from "../../../themes/palette";
 import { sectionTitleSx, useCardSx } from "../shared";
+import { useUserGuideSidebarContext } from "../../../components/UserGuide/UserGuideSidebarContext";
+import MockDashboard from "./MockDashboard";
+import OnboardingOverlay from "./OnboardingOverlay";
 
 const PERIOD_OPTIONS = [
   { _id: "1d", name: "Today" },
@@ -29,6 +32,7 @@ const PERIOD_OPTIONS = [
 
 export default function SpendDashboardPage() {
   const cardSx = useCardSx();
+  const userGuideSidebar = useUserGuideSidebarContext();
   const [period, setPeriod] = useState(() => {
     return localStorage.getItem("vw_ai_gateway_analytics_period") || "1d";
   });
@@ -37,11 +41,39 @@ export default function SpendDashboardPage() {
   const [byUser, setByUser] = useState<any[]>([]);
   const [guardrailStats, setGuardrailStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
+  const [setupStatus, setSetupStatus] = useState({
+    hasApiKey: false,
+    hasEndpoint: false,
+    hasVirtualKey: false,
+    hasRequests: false,
+  });
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
+        // Check first-time status before loading period-based data
+        const logsCheck = await apiServices.get("/ai-gateway/spend/logs?limit=1").catch(() => null);
+        const totalLogs = logsCheck?.data?.data?.total || 0;
+        if (totalLogs === 0) {
+          const [keysRes, endpointsRes, vkeysRes] = await Promise.all([
+            apiServices.get("/ai-gateway/keys").catch(() => null),
+            apiServices.get("/ai-gateway/endpoints").catch(() => null),
+            apiServices.get("/ai-gateway/virtual-keys").catch(() => null),
+          ]);
+          setSetupStatus({
+            hasApiKey: (keysRes?.data?.data || []).length > 0,
+            hasEndpoint: (endpointsRes?.data?.data || []).length > 0,
+            hasVirtualKey: (vkeysRes?.data?.data || []).length > 0,
+            hasRequests: false,
+          });
+          setIsFirstTime(true);
+          setLoading(false);
+          return;
+        }
+        setIsFirstTime(false);
+
         const [spendRes, endpointRes, userRes, gsRes] = await Promise.all([
           apiServices.get(`/ai-gateway/spend?period=${period}`),
           apiServices.get(`/ai-gateway/spend/by-endpoint?period=${period}`).catch(() => null),
@@ -54,6 +86,7 @@ export default function SpendDashboardPage() {
         setGuardrailStats(gsRes?.data?.data || null);
       } catch {
         setData(null);
+        setIsFirstTime(false);
       } finally {
         setLoading(false);
       }
@@ -71,6 +104,27 @@ export default function SpendDashboardPage() {
   const avgLatency = summary ? `${Math.round(summary.avg_latency_ms || 0)}ms` : "0ms";
 
   const hasData = byDay.length > 0 || byModel.length > 0 || byEndpoint.length > 0;
+
+  if (isFirstTime === true) {
+    return (
+      <PageHeaderExtended
+        title="Analytics"
+        description="Monitor LLM usage and costs across your organization."
+        tipBoxEntity="ai-gateway-analytics"
+        helpArticlePath="ai-gateway/analytics"
+      >
+        <Box sx={{ position: "relative" }}>
+          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none" }}>
+            <MockDashboard />
+          </Box>
+          <OnboardingOverlay
+            setupStatus={setupStatus}
+            onGetStarted={() => userGuideSidebar.open("ai-gateway/getting-started")}
+          />
+        </Box>
+      </PageHeaderExtended>
+    );
+  }
 
   return (
     <PageHeaderExtended

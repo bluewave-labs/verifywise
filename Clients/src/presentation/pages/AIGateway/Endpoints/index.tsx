@@ -16,58 +16,7 @@ import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-import { sectionTitleSx, useCardSx, ProviderIcon } from "../shared";
-
-interface ModelOption {
-  id: string;
-  provider: string;
-  mode: string;
-}
-
-const MODEL_OPTIONS: ModelOption[] = [
-  { id: "openai/gpt-4o", provider: "openai", mode: "chat" },
-  { id: "openai/gpt-4o-mini", provider: "openai", mode: "chat" },
-  { id: "openai/gpt-4.1", provider: "openai", mode: "chat" },
-  { id: "openai/gpt-4.1-mini", provider: "openai", mode: "chat" },
-  { id: "openai/gpt-4.1-nano", provider: "openai", mode: "chat" },
-  { id: "openai/o3", provider: "openai", mode: "chat" },
-  { id: "openai/o3-mini", provider: "openai", mode: "chat" },
-  { id: "openai/o4-mini", provider: "openai", mode: "chat" },
-  { id: "anthropic/claude-opus-4-20250514", provider: "anthropic", mode: "chat" },
-  { id: "anthropic/claude-sonnet-4-20250514", provider: "anthropic", mode: "chat" },
-  { id: "anthropic/claude-haiku-4-20250414", provider: "anthropic", mode: "chat" },
-  { id: "anthropic/claude-3.5-sonnet-20240620", provider: "anthropic", mode: "chat" },
-  { id: "gemini/gemini-2.5-pro-preview-06-05", provider: "gemini", mode: "chat" },
-  { id: "gemini/gemini-2.5-flash-preview-05-20", provider: "gemini", mode: "chat" },
-  { id: "gemini/gemini-2.0-flash", provider: "gemini", mode: "chat" },
-  { id: "mistral/mistral-large-latest", provider: "mistral", mode: "chat" },
-  { id: "mistral/mistral-medium-latest", provider: "mistral", mode: "chat" },
-  { id: "mistral/mistral-small-latest", provider: "mistral", mode: "chat" },
-  { id: "xai/grok-3", provider: "xai", mode: "chat" },
-  { id: "xai/grok-3-mini", provider: "xai", mode: "chat" },
-  { id: "bedrock/anthropic.claude-sonnet-4-20250514-v1:0", provider: "bedrock", mode: "chat" },
-  { id: "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0", provider: "bedrock", mode: "chat" },
-  { id: "bedrock/amazon.nova-pro-v1:0", provider: "bedrock", mode: "chat" },
-  { id: "together_ai/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
-  { id: "together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", provider: "together_ai", mode: "chat" },
-  { id: "openrouter/openai/gpt-4o", provider: "openrouter", mode: "chat" },
-  { id: "openrouter/anthropic/claude-sonnet-4", provider: "openrouter", mode: "chat" },
-].sort((a, b) => a.provider.localeCompare(b.provider));  // toSorted not available pre-ES2023
-
-/** Build Select-compatible items with divider indices between provider groups */
-const MODEL_SELECT_ITEMS = MODEL_OPTIONS.map((m) => ({
-  _id: m.id,
-  name: m.id,
-}));
-
-const MODEL_DIVIDERS: { index: number; label: string }[] = [];
-let prevProvider = "";
-MODEL_OPTIONS.forEach((m, i) => {
-  if (m.provider !== prevProvider && i > 0) {
-    MODEL_DIVIDERS.push({ index: i, label: m.provider.toUpperCase() });
-  }
-  prevProvider = m.provider;
-});
+import { sectionTitleSx, useCardSx, ProviderIcon, MODEL_SELECT_ITEMS, MODEL_DIVIDERS, slugify } from "../shared";
 
 export default function EndpointsPage() {
   const cardSx = useCardSx();
@@ -117,14 +66,7 @@ export default function EndpointsPage() {
   }, [loadData]);
 
   const handleNameChange = (value: string) => {
-    setForm((p) => ({
-      ...p,
-      display_name: value,
-      slug: value
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, ""),
-    }));
+    setForm((p) => ({ ...p, display_name: value, slug: slugify(value) }));
   };
 
   const handleModelSelect = (model: string) => {

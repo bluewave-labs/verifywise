@@ -11,16 +11,18 @@ import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-import { sectionTitleSx, useCardSx } from "../shared";
+import {
+  sectionTitleSx,
+  useCardSx,
+  GATEWAY_URL,
+  CODE_BLOCK_BG,
+  CODE_BLOCK_TEXT,
+  WARNING_BG,
+  WARNING_BORDER,
+  WARNING_TEXT,
+  KEY_DISPLAY_BG,
+} from "../shared";
 import dayjs from "dayjs";
-
-const CODE_BLOCK_BG = "#1E1E1E";
-const CODE_BLOCK_TEXT = "#D4D4D4";
-const WARNING_BG = "#FFFAEB";
-const WARNING_BORDER = "#FEDF89";
-const WARNING_TEXT = "#B54708";
-const KEY_DISPLAY_BG = "#F9FAFB";
-const gatewayUrl = window.location.origin.replace(/:\d+$/, ":3000");
 
 interface CreateVirtualKeyPayload {
   name: string;
@@ -429,7 +431,7 @@ export default function AIGatewayVirtualKeysPage() {
 {`from openai import OpenAI
 
 client = OpenAI(
-    base_url="${gatewayUrl}/v1",
+    base_url="${GATEWAY_URL}/v1",
     api_key="${newKey}"
 )
 

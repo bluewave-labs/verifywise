@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import { DollarSign, Hash, Layers, Clock, BarChart3, Router, Users, ShieldCheck, ShieldOff, Info } from "lucide-react";
 import { Tooltip as MuiTooltip } from "@mui/material";
@@ -105,7 +105,7 @@ export default function SpendDashboardPage() {
 
   const hasData = byDay.length > 0 || byModel.length > 0 || byEndpoint.length > 0;
 
-  const refreshSetupStatus = async () => {
+  const refreshSetupStatus = useCallback(async () => {
     const [keysRes, endpointsRes, vkeysRes, logsCheck] = await Promise.all([
       apiServices.get("/ai-gateway/keys").catch(() => null),
       apiServices.get("/ai-gateway/endpoints").catch(() => null),
@@ -122,7 +122,7 @@ export default function SpendDashboardPage() {
     if (newStatus.hasRequests) {
       setIsFirstTime(false);
     }
-  };
+  }, []);
 
   if (isFirstTime === true) {
     return (
@@ -133,7 +133,7 @@ export default function SpendDashboardPage() {
         helpArticlePath="ai-gateway/analytics"
       >
         <Box sx={{ position: "relative" }}>
-          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", border: `1px solid ${palette.border.light}`, borderRadius: "4px", overflow: "hidden" }}>
+          <Box sx={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", border: `1px solid ${palette.border.dark}`, borderRadius: "4px", overflow: "hidden" }}>
             <MockDashboard />
           </Box>
           <OnboardingOverlay

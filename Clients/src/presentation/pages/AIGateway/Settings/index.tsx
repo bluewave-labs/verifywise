@@ -11,21 +11,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
-import { sectionTitleSx, useCardSx, ProviderIcon } from "../shared";
-
-/** Top providers shown above the divider */
-const TOP_PROVIDERS = [
-  { _id: "openai", name: "OpenAI" },
-  { _id: "anthropic", name: "Anthropic" },
-  { _id: "gemini", name: "Google Gemini" },
-  { _id: "mistral", name: "Mistral" },
-  { _id: "xai", name: "xAI" },
-  { _id: "openrouter", name: "OpenRouter" },
-  { _id: "bedrock", name: "AWS Bedrock" },
-  { _id: "azure", name: "Azure OpenAI" },
-  { _id: "together_ai", name: "Together AI" },
-  { _id: "cohere", name: "Cohere" },
-];
+import { sectionTitleSx, useCardSx, ProviderIcon, TOP_PROVIDERS } from "../shared";
 
 const TOP_IDS = new Set(TOP_PROVIDERS.map((p) => p._id));
 

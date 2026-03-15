@@ -27,6 +27,7 @@ import {
   embeddingProxy,
   // Providers
   getProviders,
+  getSpendByTag,
   // Guardrails
   getGuardrails,
   createGuardrail,
@@ -60,6 +61,7 @@ router.delete("/endpoints/:id", deleteEndpoint);
 router.get("/spend", getSpendSummary);
 router.get("/spend/by-endpoint", getSpendByEndpoint);
 router.get("/spend/by-user", getSpendByUser);
+router.get("/spend/by-tag", getSpendByTag);
 
 // Budget management
 router.get("/budget", getBudget);

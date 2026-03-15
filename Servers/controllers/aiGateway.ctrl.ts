@@ -45,6 +45,7 @@ import {
   getSpendByEndpointQuery,
   getSpendByUserQuery,
   getSpendByDayQuery,
+  getSpendByTagQuery,
 } from "../utils/aiGatewaySpendLog.utils";
 
 // Budget utils
@@ -332,6 +333,20 @@ export async function getSpendByUser(req: Request, res: Response) {
   } catch (error) {
     logStructured("error", "failed to fetch spend by user", fn, fileName);
     logger.error("Error fetching spend by user:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function getSpendByTag(req: Request, res: Response) {
+  const fn = "getSpendByTag";
+  try {
+    const period = (req.query.period as string) || "7d";
+    const tagKey = (req.query.tag as string) || "department";
+    const { startDate, endDate } = getDateRange(period);
+    const data = await getSpendByTagQuery(req.organizationId!, tagKey, startDate, endDate);
+    return res.status(200).json(STATUS_CODE[200](data));
+  } catch (error) {
+    logStructured("error", "failed to fetch spend by tag", fn, fileName);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 }

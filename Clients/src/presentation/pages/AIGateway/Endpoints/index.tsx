@@ -88,6 +88,7 @@ export default function EndpointsPage() {
     max_tokens: "",
     temperature: "",
     system_prompt: "",
+    rate_limit_rpm: "",
   });
 
   const loadData = useCallback(async () => {
@@ -145,6 +146,7 @@ export default function EndpointsPage() {
         max_tokens: form.max_tokens ? Number(form.max_tokens) : null,
         temperature: form.temperature ? Number(form.temperature) : null,
         system_prompt: form.system_prompt || null,
+        rate_limit_rpm: form.rate_limit_rpm ? Number(form.rate_limit_rpm) : null,
       });
       setIsCreateOpen(false);
       resetForm();
@@ -168,7 +170,7 @@ export default function EndpointsPage() {
   const resetForm = () => {
     setForm({
       display_name: "", slug: "", provider: "", model: "",
-      api_key_id: "", max_tokens: "", temperature: "", system_prompt: "",
+      api_key_id: "", max_tokens: "", temperature: "", system_prompt: "", rate_limit_rpm: "",
     });
     setFormError("");
   };
@@ -239,8 +241,11 @@ export default function EndpointsPage() {
                       </Typography>
                       <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
                         {ep.provider} / {ep.model} &middot; {ep.api_key_name || "No key"}
+                      {ep.rate_limit_rpm > 0 && (
+                        <span> &middot; {ep.rate_limit_rpm} RPM</span>
+                      )}
                       {activeGuardrailCount > 0 && (
-                        <span> &middot; {activeGuardrailCount} guardrail{activeGuardrailCount !== 1 ? "s" : ""} active</span>
+                        <span> &middot; {activeGuardrailCount} guardrail{activeGuardrailCount !== 1 ? "s" : ""}</span>
                       )}
                     </Typography>
                     </Box>
@@ -347,13 +352,26 @@ export default function EndpointsPage() {
             </Box>
           </Stack>
 
-          <Field
-            label="System prompt"
-            placeholder="Optional system prompt prepended to all requests"
-            value={form.system_prompt}
-            onChange={(e) => setForm((p) => ({ ...p, system_prompt: e.target.value }))}
-            isOptional
-          />
+          <Stack direction="row" gap="12px">
+            <Box sx={{ flex: 1 }}>
+              <Field
+                label="System prompt"
+                placeholder="Optional system prompt prepended to all requests"
+                value={form.system_prompt}
+                onChange={(e) => setForm((p) => ({ ...p, system_prompt: e.target.value }))}
+                isOptional
+              />
+            </Box>
+            <Box sx={{ width: 120 }}>
+              <Field
+                label="Rate limit (RPM)"
+                placeholder="e.g., 60"
+                value={form.rate_limit_rpm}
+                onChange={(e) => setForm((p) => ({ ...p, rate_limit_rpm: e.target.value }))}
+                isOptional
+              />
+            </Box>
+          </Stack>
 
           {form.slug && (
             <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>

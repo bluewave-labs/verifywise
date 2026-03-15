@@ -60,6 +60,8 @@ export default function AIGatewaySettingsPage() {
     pii_replacement_format: "<ENTITY_TYPE>",
     content_filter_replacement: "[REDACTED]",
     log_retention_days: "90",
+    log_request_body: false,
+    log_response_body: false,
   });
   const [gsSaving, setGsSaving] = useState(false);
 
@@ -96,6 +98,8 @@ export default function AIGatewaySettingsPage() {
           pii_replacement_format: gs.pii_replacement_format || "<ENTITY_TYPE>",
           content_filter_replacement: gs.content_filter_replacement || "[REDACTED]",
           log_retention_days: String(gs.log_retention_days ?? 90),
+          log_request_body: gs.log_request_body || false,
+          log_response_body: gs.log_response_body || false,
         });
       }
     } catch {
@@ -450,6 +454,50 @@ export default function AIGatewaySettingsPage() {
                 }}
               />
             </Stack>
+            </Box>
+
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1 }}>Request body logging</Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 1.5 }}>
+                When enabled, full request prompts and LLM responses are stored in the spend logs. Disabled by default for privacy. Bodies are truncated to 2,048 characters and only the last 3 messages are kept.
+              </Typography>
+              <Stack gap="12px">
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography sx={{ fontSize: 13 }}>Log request body (prompts)</Typography>
+                  <Toggle
+                    checked={gsForm.log_request_body}
+                    onChange={() => setGsForm((p) => ({ ...p, log_request_body: !p.log_request_body }))}
+                  />
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography sx={{ fontSize: 13 }}>Log response body (LLM output)</Typography>
+                  <Toggle
+                    checked={gsForm.log_response_body}
+                    onChange={() => setGsForm((p) => ({ ...p, log_response_body: !p.log_response_body }))}
+                  />
+                </Stack>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1 }}>Spend log cleanup</Typography>
+              <Typography sx={{ fontSize: 12, color: palette.text.tertiary, mb: 1.5 }}>
+                Delete old spend log entries based on the retention period above. Uses the same retention days as guardrail logs.
+              </Typography>
+              <CustomizableButton
+                text="Purge old spend logs"
+                onClick={async () => {
+                  try {
+                    const res = await apiServices.post("/ai-gateway/spend/logs/purge");
+                    const count = res?.data?.data?.deleted_count || 0;
+                    if (count > 0) {
+                      await loadData();
+                    }
+                  } catch {
+                    // Silently handle
+                  }
+                }}
+              />
             </Box>
           </Stack>
         </Stack>

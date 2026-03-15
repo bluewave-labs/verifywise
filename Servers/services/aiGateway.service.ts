@@ -263,6 +263,33 @@ async function tryReserveBudget(
   return true;
 }
 
+/** Max chars for stored prompt/response text (LiteLLM uses 2048) */
+const MAX_LOG_TEXT_LENGTH = 2048;
+
+/**
+ * Smart truncation: keep 80% from start + 20% from end with marker.
+ * Same pattern as LiteLLM's spend_tracking_utils.
+ */
+function truncateLogText(text: string, maxLen: number = MAX_LOG_TEXT_LENGTH): string {
+  if (!text || text.length <= maxLen) return text;
+  const startChars = Math.floor(maxLen * 0.8);
+  const endChars = maxLen - startChars - 60; // leave room for marker
+  const skipped = text.length - startChars - endChars;
+  return `${text.slice(0, startChars)} ... (truncated ${skipped} chars) ... ${text.slice(-endChars)}`;
+}
+
+/**
+ * Truncate request messages: keep last 3 messages, truncate each content.
+ */
+function truncateMessages(messages: any): any {
+  if (!messages || !Array.isArray(messages)) return messages;
+  const lastN = messages.slice(-3);
+  return lastN.map((m: any) => ({
+    ...m,
+    content: typeof m.content === "string" ? truncateLogText(m.content) : m.content,
+  }));
+}
+
 /**
  * Log spend and adjust budget after request completes
  */
@@ -285,6 +312,18 @@ async function finalizeSpend(
   }
 ): Promise<void> {
   try {
+    // Check org settings for body logging opt-in
+    let logBodies = { request: false, response: false };
+    try {
+      const settings = await getGuardrailSettingsQuery(organizationId);
+      if (settings) {
+        logBodies.request = (settings as any).log_request_body === true;
+        logBodies.response = (settings as any).log_response_body === true;
+      }
+    } catch {
+      // If settings query fails, default to not logging bodies
+    }
+
     await insertSpendLogQuery(organizationId, {
       endpoint_id: endpointId,
       user_id: userId,
@@ -297,9 +336,9 @@ async function finalizeSpend(
       latency_ms: latencyMs,
       status_code: statusCode,
       metadata: extra?.metadata,
-      request_messages: extra?.request_messages,
-      response_text: extra?.response_text,
-      error_message: extra?.error_message,
+      request_messages: logBodies.request ? truncateMessages(extra?.request_messages) : undefined,
+      response_text: logBodies.response ? truncateLogText(extra?.response_text || "") || undefined : undefined,
+      error_message: extra?.error_message ? truncateLogText(extra.error_message, 500) : undefined,
     });
   } catch (err) {
     logger.error("Failed to insert spend log:", err);

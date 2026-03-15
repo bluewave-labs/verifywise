@@ -135,16 +135,20 @@ export async function upsertGuardrailSettingsQuery(
   const [rows] = await sequelize.query(
     `INSERT INTO ai_gateway_guardrail_settings
        (organization_id, pii_on_error, content_filter_on_error,
-        pii_replacement_format, content_filter_replacement, log_retention_days)
+        pii_replacement_format, content_filter_replacement, log_retention_days,
+        log_request_body, log_response_body)
      VALUES
        (:organizationId, :pii_on_error, :content_filter_on_error,
-        :pii_replacement_format, :content_filter_replacement, :log_retention_days)
+        :pii_replacement_format, :content_filter_replacement, :log_retention_days,
+        :log_request_body, :log_response_body)
      ON CONFLICT (organization_id) DO UPDATE SET
        pii_on_error = EXCLUDED.pii_on_error,
        content_filter_on_error = EXCLUDED.content_filter_on_error,
        pii_replacement_format = EXCLUDED.pii_replacement_format,
        content_filter_replacement = EXCLUDED.content_filter_replacement,
        log_retention_days = EXCLUDED.log_retention_days,
+       log_request_body = EXCLUDED.log_request_body,
+       log_response_body = EXCLUDED.log_response_body,
        updated_at = NOW()
      RETURNING *`,
     {
@@ -155,6 +159,8 @@ export async function upsertGuardrailSettingsQuery(
         pii_replacement_format: data.pii_replacement_format || "<ENTITY_TYPE>",
         content_filter_replacement: data.content_filter_replacement || "[REDACTED]",
         log_retention_days: data.log_retention_days ?? 90,
+        log_request_body: data.log_request_body ?? false,
+        log_response_body: data.log_response_body ?? false,
       },
     }
   );

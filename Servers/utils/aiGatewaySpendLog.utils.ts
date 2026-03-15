@@ -315,3 +315,33 @@ export const getSpendByTagQuery = async (
 
   return result[0];
 };
+
+/**
+ * Purge old spend logs based on retention period.
+ * Batch deletes 1,000 at a time (same pattern as LiteLLM).
+ */
+export const purgeSpendLogsQuery = async (
+  organizationId: number,
+  retentionDays: number
+): Promise<number> => {
+  let totalDeleted = 0;
+  const maxBatches = 50;
+
+  for (let i = 0; i < maxBatches; i++) {
+    const [, meta] = await sequelize.query(
+      `DELETE FROM ai_gateway_spend_logs
+       WHERE id IN (
+         SELECT id FROM ai_gateway_spend_logs
+         WHERE organization_id = :organizationId
+           AND created_at < NOW() - (:days || ' days')::interval
+         LIMIT 1000
+       )`,
+      { replacements: { organizationId, days: retentionDays } }
+    );
+    const deleted = (meta as any)?.rowCount || 0;
+    totalDeleted += deleted;
+    if (deleted < 1000) break;
+  }
+
+  return totalDeleted;
+};

@@ -48,6 +48,7 @@ import {
   getSpendByDayQuery,
   getSpendByTagQuery,
   getSpendLogsDetailQuery,
+  purgeSpendLogsQuery,
 } from "../utils/aiGatewaySpendLog.utils";
 
 // Budget utils
@@ -366,6 +367,20 @@ export async function getSpendLogs(req: Request, res: Response) {
     return res.status(200).json(STATUS_CODE[200](logs));
   } catch (error) {
     logStructured("error", "failed to fetch spend logs", fn, fileName);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function purgeSpendLogs(req: Request, res: Response) {
+  const fn = "purgeSpendLogs";
+  try {
+    const settings = await getGuardrailSettingsQuery(req.organizationId!);
+    const retentionDays = (settings as any)?.log_retention_days || 90;
+    const deleted = await purgeSpendLogsQuery(req.organizationId!, retentionDays);
+    logStructured("successful", `purged ${deleted} spend logs`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200]({ deleted_count: deleted }));
+  } catch (error) {
+    logStructured("error", "failed to purge spend logs", fn, fileName);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 }

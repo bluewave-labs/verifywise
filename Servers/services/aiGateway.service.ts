@@ -387,24 +387,25 @@ async function checkBudgetAlert(organizationId: number): Promise<void> {
 
   if (spendPct < threshold) return;
 
-  // Check if we already sent an alert this month
-  const alertKey = `gw:alert:${organizationId}:${new Date().toISOString().slice(0, 7)}`;
-  const alreadySent = await redisClient.get(alertKey);
-  if (alreadySent) return;
-
-  // Mark as sent (expire at end of month)
+  const month = new Date().toISOString().slice(0, 7);
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const daysRemaining = daysInMonth - new Date().getDate() + 1;
-  await redisClient.set(alertKey, "1", "EX", daysRemaining * 86400);
+  const ttl = daysRemaining * 86400;
 
   logger.info(`Budget alert: org ${organizationId} at ${spendPct.toFixed(1)}% (threshold: ${threshold}%)`);
 
-  // Send email + in-app notification to org admins
+  // Separate Redis keys so both warning AND exhausted can fire in the same month
   if (spendPct >= 100 && budget.is_hard_limit) {
+    const exhaustedKey = `gw:alert:exhausted:${organizationId}:${month}`;
+    if (await redisClient.get(exhaustedKey)) return;
+    await redisClient.set(exhaustedKey, "1", "EX", ttl);
     notifyBudgetExhausted(organizationId, budget).catch((err) =>
       logger.error("Failed to send budget exhausted notification:", err)
     );
   } else {
+    const warningKey = `gw:alert:warning:${organizationId}:${month}`;
+    if (await redisClient.get(warningKey)) return;
+    await redisClient.set(warningKey, "1", "EX", ttl);
     notifyBudgetWarning(organizationId, budget).catch((err) =>
       logger.error("Failed to send budget warning notification:", err)
     );

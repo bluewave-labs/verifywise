@@ -18,14 +18,15 @@ import logger from "../../utils/logger/fileLogger";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 /**
- * Get all admin user IDs for an organization.
+ * Get all admin users for an organization (ID + name).
  */
-async function getOrgAdminIds(organizationId: number): Promise<number[]> {
+async function getOrgAdmins(organizationId: number): Promise<Array<{ id: number; name: string }>> {
   const users = await sequelize.query(
-    `SELECT id FROM users WHERE organization_id = :organizationId AND role_id = 1`,
+    `SELECT id, COALESCE(NULLIF(TRIM(COALESCE(name, '') || ' ' || COALESCE(surname, '')), ''), 'Admin') AS name
+     FROM users WHERE organization_id = :organizationId AND role_id = 1`,
     { replacements: { organizationId }, type: QueryTypes.SELECT }
   );
-  return (users as any[]).map((u) => u.id);
+  return (users as any[]).map((u) => ({ id: Number(u.id), name: u.name }));
 }
 
 /**
@@ -40,45 +41,39 @@ export async function notifyBudgetWarning(
     is_hard_limit: boolean;
   }
 ): Promise<void> {
-  const adminIds = await getOrgAdminIds(organizationId);
+  const admins = await getOrgAdmins(organizationId);
   const spendPct = Math.round(
     (Number(budget.current_spend_usd) / Number(budget.monthly_limit_usd)) * 100
   );
 
-  for (const adminId of adminIds) {
-    try {
-      await sendInAppNotification(
-        organizationId,
-        {
-          user_id: adminId,
-          type: NotificationType.AI_GATEWAY_BUDGET_WARNING,
-          title: "AI Gateway budget warning",
-          message: `Spend has reached ${spendPct}% of the $${Number(budget.monthly_limit_usd).toFixed(2)} monthly limit.`,
-          entity_type: NotificationEntityType.AI_GATEWAY,
-          action_url: `${FRONTEND_URL}/ai-gateway/settings`,
+  await Promise.allSettled(admins.map((admin) =>
+    sendInAppNotification(
+      organizationId,
+      {
+        user_id: admin.id,
+        type: NotificationType.AI_GATEWAY_BUDGET_WARNING,
+        title: "AI Gateway budget warning",
+        message: `Spend has reached ${spendPct}% of the $${Number(budget.monthly_limit_usd).toFixed(2)} monthly limit.`,
+        entity_type: NotificationEntityType.AI_GATEWAY,
+        action_url: `${FRONTEND_URL}/ai-gateway/settings`,
+      },
+      true,
+      {
+        template: EMAIL_TEMPLATES.AI_GATEWAY_BUDGET_WARNING,
+        subject: `AI Gateway: spend at ${spendPct}% of monthly budget`,
+        variables: {
+          recipient_name: admin.name,
+          spend_percentage: String(spendPct),
+          current_spend: Number(budget.current_spend_usd).toFixed(2),
+          monthly_limit: Number(budget.monthly_limit_usd).toFixed(2),
+          threshold: String(budget.alert_threshold_pct),
+          hard_limit_status: budget.is_hard_limit ? "Enabled (requests will be rejected)" : "Disabled (requests continue)",
+          total_requests: "—",
+          gateway_url: `${FRONTEND_URL}/ai-gateway/analytics`,
         },
-        true,
-        {
-          template: EMAIL_TEMPLATES.AI_GATEWAY_BUDGET_WARNING,
-          subject: `AI Gateway: spend at ${spendPct}% of monthly budget`,
-          variables: {
-            recipient_name: "Admin",
-            spend_percentage: String(spendPct),
-            current_spend: Number(budget.current_spend_usd).toFixed(2),
-            monthly_limit: Number(budget.monthly_limit_usd).toFixed(2),
-            threshold: String(budget.alert_threshold_pct),
-            hard_limit_status: budget.is_hard_limit
-              ? "Enabled (requests will be rejected)"
-              : "Disabled (requests continue)",
-            total_requests: "—",
-            gateway_url: `${FRONTEND_URL}/ai-gateway/analytics`,
-          },
-        }
-      );
-    } catch (err) {
-      logger.error(`Failed to send budget warning to admin ${adminId}:`, err);
-    }
-  }
+      }
+    ).catch((err) => logger.error(`Failed to send budget warning to admin ${admin.id}:`, err))
+  ));
 }
 
 /**
@@ -91,36 +86,32 @@ export async function notifyBudgetExhausted(
     monthly_limit_usd: number;
   }
 ): Promise<void> {
-  const adminIds = await getOrgAdminIds(organizationId);
+  const admins = await getOrgAdmins(organizationId);
 
-  for (const adminId of adminIds) {
-    try {
-      await sendInAppNotification(
-        organizationId,
-        {
-          user_id: adminId,
-          type: NotificationType.AI_GATEWAY_BUDGET_EXHAUSTED,
-          title: "AI Gateway budget exhausted",
-          message: `Monthly budget of $${Number(budget.monthly_limit_usd).toFixed(2)} is exhausted. All requests are being rejected.`,
-          entity_type: NotificationEntityType.AI_GATEWAY,
-          action_url: `${FRONTEND_URL}/ai-gateway/settings`,
+  await Promise.allSettled(admins.map((admin) =>
+    sendInAppNotification(
+      organizationId,
+      {
+        user_id: admin.id,
+        type: NotificationType.AI_GATEWAY_BUDGET_EXHAUSTED,
+        title: "AI Gateway budget exhausted",
+        message: `Monthly budget of $${Number(budget.monthly_limit_usd).toFixed(2)} is exhausted. All requests are being rejected.`,
+        entity_type: NotificationEntityType.AI_GATEWAY,
+        action_url: `${FRONTEND_URL}/ai-gateway/settings`,
+      },
+      true,
+      {
+        template: EMAIL_TEMPLATES.AI_GATEWAY_BUDGET_EXHAUSTED,
+        subject: "AI Gateway: budget exhausted, requests rejected",
+        variables: {
+          recipient_name: admin.name,
+          current_spend: Number(budget.current_spend_usd).toFixed(2),
+          monthly_limit: Number(budget.monthly_limit_usd).toFixed(2),
+          settings_url: `${FRONTEND_URL}/ai-gateway/settings`,
         },
-        true,
-        {
-          template: EMAIL_TEMPLATES.AI_GATEWAY_BUDGET_EXHAUSTED,
-          subject: "AI Gateway: budget exhausted, requests rejected",
-          variables: {
-            recipient_name: "Admin",
-            current_spend: Number(budget.current_spend_usd).toFixed(2),
-            monthly_limit: Number(budget.monthly_limit_usd).toFixed(2),
-            settings_url: `${FRONTEND_URL}/ai-gateway/settings`,
-          },
-        }
-      );
-    } catch (err) {
-      logger.error(`Failed to send budget exhausted to admin ${adminId}:`, err);
-    }
-  }
+      }
+    ).catch((err) => logger.error(`Failed to send budget exhausted to admin ${admin.id}:`, err))
+  ));
 }
 
 /**
@@ -136,39 +127,35 @@ export async function notifyGuardrailSpike(
     active_rules: number;
   }
 ): Promise<void> {
-  const adminIds = await getOrgAdminIds(organizationId);
+  const admins = await getOrgAdmins(organizationId);
 
-  for (const adminId of adminIds) {
-    try {
-      await sendInAppNotification(
-        organizationId,
-        {
-          user_id: adminId,
-          type: NotificationType.AI_GATEWAY_GUARDRAIL_SPIKE,
-          title: "Guardrail activity spike",
-          message: `${stats.blocked_count} blocked and ${stats.masked_count} masked requests in the last hour.`,
-          entity_type: NotificationEntityType.AI_GATEWAY,
-          action_url: `${FRONTEND_URL}/ai-gateway/guardrails`,
+  await Promise.allSettled(admins.map((admin) =>
+    sendInAppNotification(
+      organizationId,
+      {
+        user_id: admin.id,
+        type: NotificationType.AI_GATEWAY_GUARDRAIL_SPIKE,
+        title: "Guardrail activity spike",
+        message: `${stats.blocked_count} blocked and ${stats.masked_count} masked requests in the last hour.`,
+        entity_type: NotificationEntityType.AI_GATEWAY,
+        action_url: `${FRONTEND_URL}/ai-gateway/guardrails`,
+      },
+      true,
+      {
+        template: EMAIL_TEMPLATES.AI_GATEWAY_GUARDRAIL_SPIKE,
+        subject: `AI Gateway: ${stats.blocked_count + stats.masked_count} guardrail triggers in the last hour`,
+        variables: {
+          recipient_name: admin.name,
+          blocked_count: String(stats.blocked_count),
+          masked_count: String(stats.masked_count),
+          pii_count: String(stats.pii_count),
+          content_filter_count: String(stats.content_filter_count),
+          active_rules: String(stats.active_rules),
+          guardrails_url: `${FRONTEND_URL}/ai-gateway/guardrails`,
         },
-        true,
-        {
-          template: EMAIL_TEMPLATES.AI_GATEWAY_GUARDRAIL_SPIKE,
-          subject: `AI Gateway: ${stats.blocked_count + stats.masked_count} guardrail triggers in the last hour`,
-          variables: {
-            recipient_name: "Admin",
-            blocked_count: String(stats.blocked_count),
-            masked_count: String(stats.masked_count),
-            pii_count: String(stats.pii_count),
-            content_filter_count: String(stats.content_filter_count),
-            active_rules: String(stats.active_rules),
-            guardrails_url: `${FRONTEND_URL}/ai-gateway/guardrails`,
-          },
-        }
-      );
-    } catch (err) {
-      logger.error(`Failed to send guardrail spike to admin ${adminId}:`, err);
-    }
-  }
+      }
+    ).catch((err) => logger.error(`Failed to send guardrail spike to admin ${admin.id}:`, err))
+  ));
 }
 
 /**
@@ -189,7 +176,7 @@ export async function notifyConfigChange(
     actionLabel: string;   // button text e.g., "View endpoints"
   }
 ): Promise<void> {
-  const adminIds = await getOrgAdminIds(organizationId);
+  const admins = await getOrgAdmins(organizationId);
 
   // Look up who made the change
   let changedByName = "A user";
@@ -212,39 +199,37 @@ export async function notifyConfigChange(
 
   const changeDescription = descriptions[event.action] || `${changedByName} changed ${event.entityType.toLowerCase()} "${event.entityName}".`;
 
-  for (const adminId of adminIds) {
-    if (adminId === changedByUserId) continue; // don't notify the person who made the change
-
-    try {
-      await sendInAppNotification(
-        organizationId,
-        {
-          user_id: adminId,
-          type: NotificationType.AI_GATEWAY_CONFIG_CHANGE,
-          title: `${event.entityType} ${event.action}`,
-          message: changeDescription,
-          entity_type: NotificationEntityType.AI_GATEWAY,
-          action_url: event.actionUrl,
-        },
-        true,
-        {
-          template: EMAIL_TEMPLATES.AI_GATEWAY_CONFIG_CHANGE,
-          subject: `AI Gateway: ${event.entityType.toLowerCase()} ${event.action}`,
-          variables: {
-            recipient_name: "Admin",
-            change_description: changeDescription,
-            entity_type: event.entityType,
-            entity_name: event.entityName,
-            change_detail: event.detail || "",
-            changed_by: changedByName,
-            changed_at: new Date().toLocaleString(),
+  await Promise.allSettled(
+    admins
+      .filter((admin) => admin.id !== changedByUserId)
+      .map((admin) =>
+        sendInAppNotification(
+          organizationId,
+          {
+            user_id: admin.id,
+            type: NotificationType.AI_GATEWAY_CONFIG_CHANGE,
+            title: `${event.entityType} ${event.action}`,
+            message: changeDescription,
+            entity_type: NotificationEntityType.AI_GATEWAY,
             action_url: event.actionUrl,
-            action_label: event.actionLabel,
           },
-        }
-      );
-    } catch (err) {
-      logger.error(`Failed to send config change notification to admin ${adminId}:`, err);
-    }
-  }
+          true,
+          {
+            template: EMAIL_TEMPLATES.AI_GATEWAY_CONFIG_CHANGE,
+            subject: `AI Gateway: ${event.entityType.toLowerCase()} ${event.action}`,
+            variables: {
+              recipient_name: admin.name,
+              change_description: changeDescription,
+              entity_type: event.entityType,
+              entity_name: event.entityName,
+              change_detail: event.detail || "",
+              changed_by: changedByName,
+              changed_at: new Date().toLocaleString(),
+              action_url: event.actionUrl,
+              action_label: event.actionLabel,
+            },
+          }
+        ).catch((err) => logger.error(`Failed to send config change to admin ${admin.id}:`, err))
+      )
+  );
 }

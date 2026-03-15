@@ -368,13 +368,13 @@ export default function EndpointsPage() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title="Delete endpoint"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This will permanently remove the endpoint and any requests using its slug will fail.`}
+        description=""
         onSubmit={handleDelete}
         submitButtonText="Delete"
         maxWidth="400px"
       >
-        <Typography sx={{ fontSize: 13, color: palette.text.tertiary }}>
-          This action cannot be undone.
+        <Typography sx={{ fontSize: 13, color: palette.text.secondary }}>
+          Are you sure you want to delete "{deleteTarget?.name}"? This will permanently remove the endpoint and any requests using its slug will fail.
         </Typography>
       </StandardModal>
     </PageHeaderExtended>

@@ -15,9 +15,17 @@ import { PlaygroundComposer } from "./PlaygroundComposer";
 
 export default function PlaygroundPage() {
   const [endpoints, setEndpoints] = useState<any[]>([]);
-  const [selectedEndpoint, setSelectedEndpoint] = useState("");
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(4096);
+  const [selectedEndpoint, setSelectedEndpoint] = useState(() =>
+    localStorage.getItem("vw_playground_endpoint") || ""
+  );
+  const [temperature, setTemperature] = useState(() => {
+    const saved = localStorage.getItem("vw_playground_temperature");
+    return saved ? Number(saved) : 0.7;
+  });
+  const [maxTokens, setMaxTokens] = useState(() => {
+    const saved = localStorage.getItem("vw_playground_max_tokens");
+    return saved ? Number(saved) : 4096;
+  });
   const [showSettings, setShowSettings] = useState(false);
   const [tempTemperature, setTempTemperature] = useState(0.7);
   const [tempMaxTokens, setTempMaxTokens] = useState(4096);
@@ -70,7 +78,11 @@ export default function PlaygroundPage() {
               placeholder="Select endpoint"
               value={selectedEndpoint}
               items={endpointItems}
-              onChange={(e) => setSelectedEndpoint(e.target.value as string)}
+              onChange={(e) => {
+                const val = e.target.value as string;
+                setSelectedEndpoint(val);
+                localStorage.setItem("vw_playground_endpoint", val);
+              }}
               getOptionValue={(item) => item._id}
             />
           </Box>
@@ -101,6 +113,8 @@ export default function PlaygroundPage() {
           onSubmit={() => {
             setTemperature(tempTemperature);
             setMaxTokens(tempMaxTokens);
+            localStorage.setItem("vw_playground_temperature", String(tempTemperature));
+            localStorage.setItem("vw_playground_max_tokens", String(tempMaxTokens));
             setShowSettings(false);
           }}
           submitButtonText="Save"

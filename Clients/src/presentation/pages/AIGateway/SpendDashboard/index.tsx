@@ -7,10 +7,8 @@ import Select from "../../../components/Inputs/Select";
 import { StatCard } from "../../../components/Cards/StatCard";
 import {
   ResponsiveContainer,
-  LineChart,
   BarChart,
   Bar,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -141,53 +139,31 @@ export default function SpendDashboardPage() {
               </MuiTooltip>
             </Stack>
             <ResponsiveContainer width="100%" height={260} style={{ outline: "none" }}>
-              {period === "1d" ? (
-                <BarChart data={byDay}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                    tickLine={false}
-                    axisLine={{ stroke: palette.border.light }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                    tickLine={false}
-                    axisLine={{ stroke: palette.border.light }}
-                    tickFormatter={(v) => `$${v}`}
-                  />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
-                    formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
-                  />
-                  <Bar dataKey="total_cost" fill={chartPalette[0]} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              ) : (
-                <LineChart data={byDay}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                    tickLine={false}
-                    axisLine={{ stroke: palette.border.light }}
-                    tickFormatter={(v) => {
-                      const d = new Date(v + "T00:00:00");
-                      return isNaN(d.getTime()) ? v : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                    }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: palette.text.tertiary }}
-                    tickLine={false}
-                    axisLine={{ stroke: palette.border.light }}
-                    tickFormatter={(v) => `$${v}`}
-                  />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
-                    formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
-                  />
-                  <Line type="monotone" dataKey="total_cost" stroke={chartPalette[0]} strokeWidth={2} dot={false} />
-                </LineChart>
-              )}
+              <BarChart data={byDay}>
+                <CartesianGrid strokeDasharray="3 3" stroke={palette.border.light} />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                  tickLine={false}
+                  axisLine={{ stroke: palette.border.light }}
+                  tickFormatter={(v) => {
+                    if (period === "1d") return v;
+                    const d = new Date(v + "T00:00:00");
+                    return isNaN(d.getTime()) ? v : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                  }}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: palette.text.tertiary }}
+                  tickLine={false}
+                  axisLine={{ stroke: palette.border.light }}
+                  tickFormatter={(v) => `$${v}`}
+                />
+                <Tooltip
+                  contentStyle={{ fontSize: 12, borderRadius: 4, border: `1px solid ${palette.border.light}` }}
+                  formatter={(value: number) => [`$${value.toFixed(6)}`, "Cost"]}
+                />
+                <Bar dataKey="total_cost" fill={chartPalette[0]} radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </Stack>
         </Box>
@@ -206,8 +182,12 @@ export default function SpendDashboardPage() {
                     <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
                   </MuiTooltip>
                 </Stack>
-                <Stack gap="6px">
-                  {byModel.map((m: any, i: number) => (
+                <Stack gap="6px" sx={{ maxHeight: 270, overflowY: "auto" }}>
+                  {(() => {
+                    const maxCost = Math.max(...byModel.map((m: any) => Number(m.total_cost)), 0.000001);
+                    return byModel.map((m: any, i: number) => {
+                      const pct = (Number(m.total_cost) / maxCost) * 100;
+                      return (
                     <Stack
                       key={m.group_key}
                       direction="row"
@@ -217,9 +197,18 @@ export default function SpendDashboardPage() {
                         p: "8px 12px",
                         borderRadius: "4px",
                         border: `1px solid ${palette.border.light}`,
+                        position: "relative",
+                        overflow: "hidden",
                       }}
                     >
-                      <Stack direction="row" alignItems="center" gap="8px" sx={{ flex: 1, minWidth: 0 }}>
+                      <Box sx={{
+                        position: "absolute", left: 0, top: 0, bottom: 0,
+                        width: `${pct}%`,
+                        backgroundColor: palette.border.light,
+                        opacity: 0.4,
+                        transition: "width 0.3s",
+                      }} />
+                      <Stack direction="row" alignItems="center" gap="8px" sx={{ flex: 1, minWidth: 0, position: "relative", zIndex: 1 }}>
                         <Box
                           sx={{
                             width: 8, height: 8,
@@ -232,7 +221,7 @@ export default function SpendDashboardPage() {
                           {m.group_key}
                         </Typography>
                       </Stack>
-                      <Stack direction="row" gap="12px" alignItems="center" sx={{ flexShrink: 0 }}>
+                      <Stack direction="row" gap="12px" alignItems="center" sx={{ flexShrink: 0, position: "relative", zIndex: 1 }}>
                         <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
                           {Number(m.total_requests).toLocaleString()} req
                         </Typography>
@@ -244,7 +233,9 @@ export default function SpendDashboardPage() {
                         </Typography>
                       </Stack>
                     </Stack>
-                  ))}
+                      );
+                    });
+                  })()}
                 </Stack>
               </Stack>
             </Box>
@@ -260,8 +251,12 @@ export default function SpendDashboardPage() {
                     <Box sx={{ display: "flex", cursor: "help" }}><Info size={14} color={palette.text.disabled} /></Box>
                   </MuiTooltip>
                 </Stack>
-                <Stack gap="8px">
-                  {byEndpoint.map((ep: any, i: number) => (
+                <Stack gap="6px" sx={{ maxHeight: 270, overflowY: "auto" }}>
+                  {(() => {
+                    const maxCost = Math.max(...byEndpoint.map((ep: any) => Number(ep.total_cost)), 0.000001);
+                    return byEndpoint.map((ep: any, i: number) => {
+                      const pct = (Number(ep.total_cost) / maxCost) * 100;
+                      return (
                     <Stack
                       key={ep.group_key}
                       direction="row"
@@ -271,30 +266,33 @@ export default function SpendDashboardPage() {
                         p: "8px 12px",
                         borderRadius: "4px",
                         border: `1px solid ${palette.border.light}`,
+                        position: "relative",
+                        overflow: "hidden",
                       }}
                     >
-                      <Stack direction="row" alignItems="center" gap="8px">
-                        <Box
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: "50%",
-                            backgroundColor: chartPalette[i % chartPalette.length],
-                            flexShrink: 0,
-                          }}
-                        />
-                        <Typography sx={{ fontSize: 13 }}>{ep.group_key}</Typography>
+                      <Box sx={{
+                        position: "absolute", left: 0, top: 0, bottom: 0,
+                        width: `${pct}%`,
+                        backgroundColor: palette.border.light,
+                        opacity: 0.4,
+                        transition: "width 0.3s",
+                      }} />
+                      <Stack direction="row" alignItems="center" gap="8px" sx={{ position: "relative", zIndex: 1 }}>
+                        <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: chartPalette[i % chartPalette.length], flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: 12 }}>{ep.group_key}</Typography>
                       </Stack>
-                      <Stack direction="row" gap="16px" alignItems="center">
-                        <Typography sx={{ fontSize: 12, color: palette.text.tertiary }}>
+                      <Stack direction="row" gap="12px" alignItems="center" sx={{ position: "relative", zIndex: 1 }}>
+                        <Typography sx={{ fontSize: 11, color: palette.text.tertiary }}>
                           {Number(ep.total_requests).toLocaleString()} req
                         </Typography>
-                        <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 600, minWidth: 70, textAlign: "right" }}>
                           ${Number(ep.total_cost).toFixed(4)}
                         </Typography>
                       </Stack>
                     </Stack>
-                  ))}
+                      );
+                    });
+                  })()}
                 </Stack>
               </Stack>
             </Box>

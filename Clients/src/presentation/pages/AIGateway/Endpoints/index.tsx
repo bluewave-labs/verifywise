@@ -357,17 +357,16 @@ export default function EndpointsPage() {
             </Box>
           </Stack>
 
+          <Field
+            label="System prompt"
+            placeholder="Optional system prompt prepended to all requests"
+            value={form.system_prompt}
+            onChange={(e) => setForm((p) => ({ ...p, system_prompt: e.target.value }))}
+            isOptional
+          />
+
           <Stack direction="row" gap="12px">
             <Box sx={{ flex: 1 }}>
-              <Field
-                label="System prompt"
-                placeholder="Optional system prompt prepended to all requests"
-                value={form.system_prompt}
-                onChange={(e) => setForm((p) => ({ ...p, system_prompt: e.target.value }))}
-                isOptional
-              />
-            </Box>
-            <Box sx={{ width: 120 }}>
               <Field
                 label="Rate limit (RPM)"
                 placeholder="e.g., 60"

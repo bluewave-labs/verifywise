@@ -137,7 +137,7 @@ export function slugify(value: string): string {
 
 /** Gateway base URL for code examples */
 export const GATEWAY_URL = (() => {
-  const apiUrl = typeof import !== "undefined" && (import.meta as any)?.env?.VITE_APP_API_URL;
+  const apiUrl = (import.meta as any)?.env?.VITE_APP_API_URL as string | undefined;
   if (apiUrl) return apiUrl.replace(/\/api\/?$/, "");
   if (typeof window !== "undefined") return window.location.origin.replace(/:\d+$/, ":3000");
   return "https://your-verifywise-host";

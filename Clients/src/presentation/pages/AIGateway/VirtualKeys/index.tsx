@@ -124,11 +124,13 @@ export default function AIGatewayVirtualKeysPage() {
   };
 
   const getStatusLabel = (key: VirtualKey) => {
-    if (key.revoked_at) return { label: "Revoked", color: palette.status.error.text };
+    if (key.revoked_at)
+      return { label: "Revoked", color: palette.status.error.text, bg: `${palette.status.error.text}14` };
     if (key.expires_at && new Date(key.expires_at) < new Date())
-      return { label: "Expired", color: palette.text.disabled };
-    if (key.is_active) return { label: "Active", color: palette.status.success.text };
-    return { label: "Inactive", color: palette.text.disabled };
+      return { label: "Expired", color: palette.text.disabled, bg: `${palette.text.disabled}0A` };
+    if (key.is_active)
+      return { label: "Active", color: palette.status.success.text, bg: `${palette.status.success.text}14` };
+    return { label: "Inactive", color: palette.text.disabled, bg: `${palette.text.disabled}0A` };
   };
 
   const gatewayUrl = window.location.origin.replace(/:\d+$/, ":3000");
@@ -208,12 +210,7 @@ export default function AIGatewayVirtualKeysPage() {
                               px: "6px",
                               py: "1px",
                               borderRadius: "3px",
-                              backgroundColor:
-                                status.label === "Active"
-                                  ? "rgba(19, 113, 91, 0.08)"
-                                  : status.label === "Revoked"
-                                    ? "rgba(217, 45, 32, 0.08)"
-                                    : "rgba(0,0,0,0.04)",
+                              backgroundColor: status.bg,
                             }}
                           >
                             {status.label}
@@ -262,7 +259,7 @@ export default function AIGatewayVirtualKeysPage() {
                                   budgetPct >= 100
                                     ? palette.status.error.text
                                     : budgetPct >= 80
-                                      ? "#F79009"
+                                      ? palette.status.warning?.text || "#F79009"
                                       : palette.brand.primary,
                                 borderRadius: 2,
                                 transition: "width 0.3s",

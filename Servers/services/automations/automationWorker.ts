@@ -23,6 +23,7 @@ import {
 import { runAgentDiscoverySync } from "../agentDiscovery/agentDiscoverySync.service";
 import { processScheduledAiDetectionScans } from "../aiDetection/scheduledScanProcessor";
 import { resetAllBudgets } from "../../utils/aiGatewayBudget.utils";
+import { resetVirtualKeyBudgets } from "../../utils/aiGatewayVirtualKey.utils";
 import { compileMjmlToHtml } from "../../tools/mjmlCompiler";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -465,8 +466,6 @@ export const createAutomationWorker = () => {
           await processScheduledAiDetectionScans();
         } else if (name === "ai_gateway_budget_reset") {
           await resetAllBudgets();
-          // Also reset virtual key budgets
-          const { resetVirtualKeyBudgets } = require("../../utils/aiGatewayVirtualKey.utils");
           await resetVirtualKeyBudgets();
         } else if (name === "send_pmm_notification") {
           // PMM notification handling - send email using MJML templates

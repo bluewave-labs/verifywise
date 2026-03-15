@@ -9,16 +9,8 @@
 import { Request, Response, NextFunction } from "express";
 import { hashVirtualKey, getVirtualKeyByHashQuery } from "../utils/aiGatewayVirtualKey.utils";
 import { checkRateLimit } from "../utils/aiGatewayRateLimit.utils";
+import { openAIError } from "../utils/openAIErrorResponse";
 import logger from "../utils/logger/fileLogger";
-
-/**
- * OpenAI-compatible error response shape.
- */
-function openAIError(res: Response, status: number, message: string, type: string, code: string) {
-  return res.status(status).json({
-    error: { message, type, code },
-  });
-}
 
 /**
  * Express middleware for virtual key authentication.
@@ -81,10 +73,10 @@ const authenticateVirtualKey = async (
       }
     }
 
-    // Check rate limit
+    // Check rate limit (use "vk:" prefix to avoid collision with endpoint rate limit keys)
     if (virtualKey.rate_limit_rpm && virtualKey.rate_limit_rpm > 0) {
       const rl = await checkRateLimit(
-        -virtualKey.id, // Negative ID to avoid collision with endpoint rate limit keys
+        `vk:${virtualKey.id}`,
         virtualKey.rate_limit_rpm
       );
       if (!rl.allowed) {
@@ -93,7 +85,7 @@ const authenticateVirtualKey = async (
     }
 
     // Attach virtual key info to request
-    (req as any).virtualKey = {
+    req.virtualKey = {
       id: virtualKey.id,
       organizationId: virtualKey.organization_id,
       name: virtualKey.name,

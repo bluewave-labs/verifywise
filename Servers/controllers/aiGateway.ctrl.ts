@@ -6,6 +6,7 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import { recordEntityChange } from "../utils/changeHistory.base.utils";
 import { notifyConfigChange } from "../services/aiGateway/aiGatewayNotifications";
+import { pipeStreamWithCleanup } from "../utils/streamCleanup.utils";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -554,36 +555,7 @@ export async function chatCompletionStream(req: Request, res: Response) {
       Number(req.userId)
     );
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    stream.pipe(res);
-
-    let cleanedUp = false;
-    const doCleanup = async () => {
-      if (cleanedUp) return;
-      cleanedUp = true;
-      await cleanup();
-    };
-
-    stream.on("end", doCleanup);
-    stream.on("error", async (err) => {
-      logger.error("Stream error:", err);
-      await doCleanup();
-      if (!res.headersSent) {
-        res.status(500).end();
-      }
-    });
-
-    // Handle client disconnect mid-stream
-    req.on("close", async () => {
-      if (!res.writableEnded) {
-        stream.destroy();
-        await doCleanup();
-      }
-    });
-
+    pipeStreamWithCleanup(stream, req, res, cleanup);
     return;
   } catch (error: any) {
     if (error instanceof ValidationException) {
@@ -964,9 +936,8 @@ export async function createVirtualKey(req: Request, res: Response) {
     }).catch(() => {});
 
     // Return the plaintext key (shown once) along with the created record
-    const { key_hash, ...safeKey } = virtualKey;
     return res.status(201).json(STATUS_CODE[201]({
-      ...safeKey,
+      ...virtualKey,
       key: plainKey,
     }));
   } catch (error) {
@@ -989,8 +960,7 @@ export async function updateVirtualKey(req: Request, res: Response) {
       return res.status(404).json(STATUS_CODE[404]("Virtual key not found"));
     }
     logStructured("successful", `virtual key updated: ${id}`, fn, fileName);
-    const { key_hash, ...safeKey } = updated;
-    return res.status(200).json(STATUS_CODE[200](safeKey));
+    return res.status(200).json(STATUS_CODE[200](updated));
   } catch (error) {
     logStructured("error", "failed to update virtual key", fn, fileName);
     logger.error("Error updating virtual key:", error);

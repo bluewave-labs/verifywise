@@ -21,5 +21,13 @@ declare module 'express' {
      * For new code, use organizationId instead.
      */
     tenantId?: number;
+    /** Virtual key context, set by virtualKeyAuth middleware for /v1/* proxy routes */
+    virtualKey?: {
+      id: number;
+      organizationId: number;
+      name: string;
+      allowed_endpoint_ids: number[];
+      metadata: Record<string, string>;
+    };
   }
 }

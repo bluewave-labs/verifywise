@@ -381,11 +381,16 @@ async function finalizeSpend(
   // Increment virtual key spend if applicable
   if (virtualKeyId && costUsd > 0) {
     try {
-      await incrementVirtualKeySpend(virtualKeyId, costUsd);
-      // Check virtual key budget alert (non-blocking)
-      checkVirtualKeyBudgetAlert(virtualKeyId, organizationId).catch((err) =>
-        logger.error("Failed to check virtual key budget alert:", err)
-      );
+      const updated = await incrementVirtualKeySpend(virtualKeyId, costUsd);
+      // Check virtual key budget alert using returned values (no extra DB query)
+      if (updated) {
+        checkVirtualKeyBudgetAlert(
+          virtualKeyId, organizationId, updated.name,
+          Number(updated.current_spend_usd), updated.max_budget_usd ? Number(updated.max_budget_usd) : null
+        ).catch((err) =>
+          logger.error("Failed to check virtual key budget alert:", err)
+        );
+      }
     } catch (err) {
       logger.error("Failed to increment virtual key spend:", err);
     }
@@ -397,6 +402,17 @@ async function finalizeSpend(
   } catch (err) {
     logger.error("Failed to check budget alert:", err);
   }
+}
+
+/**
+ * Get the current month key and TTL for monthly Redis alert deduplication.
+ */
+function getMonthlyAlertTtl(): { month: string; ttl: number } {
+  const now = new Date();
+  const month = now.toISOString().slice(0, 7);
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysRemaining = daysInMonth - now.getDate() + 1;
+  return { month, ttl: daysRemaining * 86400 };
 }
 
 /**
@@ -412,10 +428,7 @@ async function checkBudgetAlert(organizationId: number): Promise<void> {
 
   if (spendPct < threshold) return;
 
-  const month = new Date().toISOString().slice(0, 7);
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-  const daysRemaining = daysInMonth - new Date().getDate() + 1;
-  const ttl = daysRemaining * 86400;
+  const { month, ttl } = getMonthlyAlertTtl();
 
   logger.info(`Budget alert: org ${organizationId} at ${spendPct.toFixed(1)}% (threshold: ${threshold}%)`);
 
@@ -439,32 +452,24 @@ async function checkBudgetAlert(organizationId: number): Promise<void> {
 
 /**
  * Check if virtual key budget is exhausted and send notification.
+ * Accepts spend/limit values from incrementVirtualKeySpend to avoid a second DB query.
  */
-async function checkVirtualKeyBudgetAlert(virtualKeyId: number, organizationId: number): Promise<void> {
-  // Look up key by ID directly
-  const { sequelize } = require("../database/db");
-  const result = (await sequelize.query(
-    `SELECT id, name, key_prefix, max_budget_usd, current_spend_usd
-     FROM ai_gateway_virtual_keys WHERE id = :id`,
-    { replacements: { id: virtualKeyId } }
-  )) as [any[], number];
+async function checkVirtualKeyBudgetAlert(
+  virtualKeyId: number,
+  organizationId: number,
+  keyName: string,
+  spend: number,
+  limit: number | null
+): Promise<void> {
+  if (!limit || spend < limit) return;
 
-  const key = result[0]?.[0];
-  if (!key || !key.max_budget_usd) return;
-
-  const spend = Number(key.current_spend_usd);
-  const limit = Number(key.max_budget_usd);
-  if (spend < limit) return;
-
-  const month = new Date().toISOString().slice(0, 7);
+  const { month, ttl } = getMonthlyAlertTtl();
   const alertKey = `gw:alert:vk:exhausted:${virtualKeyId}:${month}`;
   if (await redisClient.get(alertKey)) return;
 
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-  const daysRemaining = daysInMonth - new Date().getDate() + 1;
-  await redisClient.set(alertKey, "1", "EX", daysRemaining * 86400);
+  await redisClient.set(alertKey, "1", "EX", ttl);
 
-  notifyVirtualKeyBudgetExhausted(organizationId, key.name, spend, limit).catch((err) =>
+  notifyVirtualKeyBudgetExhausted(organizationId, keyName, spend, limit).catch((err) =>
     logger.error("Failed to send virtual key budget exhausted notification:", err)
   );
 }

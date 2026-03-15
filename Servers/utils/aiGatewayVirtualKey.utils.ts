@@ -74,7 +74,10 @@ export const createVirtualKeyQuery = async (
        (:organizationId, :key_hash, :key_prefix, :name, :allowed_endpoint_ids,
         :max_budget_usd, :rate_limit_rpm, :metadata, :expires_at, :created_by,
         NOW(), NOW())
-     RETURNING *`,
+     RETURNING id, organization_id, key_prefix, name, allowed_endpoint_ids,
+              max_budget_usd, current_spend_usd, budget_reset_at, rate_limit_rpm,
+              metadata, expires_at, is_active, revoked_at, created_by,
+              created_at, updated_at`,
     {
       replacements: {
         organizationId,
@@ -188,7 +191,10 @@ export const updateVirtualKeyQuery = async (
     `UPDATE ai_gateway_virtual_keys
      SET ${setClauses.join(", ")}
      WHERE organization_id = :organizationId AND id = :id
-     RETURNING *`,
+     RETURNING id, organization_id, key_prefix, name, allowed_endpoint_ids,
+              max_budget_usd, current_spend_usd, budget_reset_at, rate_limit_rpm,
+              metadata, expires_at, is_active, revoked_at, created_by,
+              created_at, updated_at`,
     { replacements }
   )) as [IAiGatewayVirtualKey[], number];
 
@@ -249,16 +255,20 @@ export const resetVirtualKeyBudgets = async (): Promise<number> => {
 
 /**
  * Atomically increment a virtual key's current spend.
+ * Returns the updated spend and budget limit for alert checking.
  */
 export const incrementVirtualKeySpend = async (
   id: number,
   amount: number
-): Promise<void> => {
-  await sequelize.query(
+): Promise<{ name: string; current_spend_usd: number; max_budget_usd: number | null } | null> => {
+  const result = (await sequelize.query(
     `UPDATE ai_gateway_virtual_keys
      SET current_spend_usd = current_spend_usd + :amount,
          updated_at = NOW()
-     WHERE id = :id`,
+     WHERE id = :id
+     RETURNING name, current_spend_usd, max_budget_usd`,
     { replacements: { id, amount } }
-  );
+  )) as [any[], number];
+
+  return result[0].length > 0 ? result[0][0] : null;
 };

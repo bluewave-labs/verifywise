@@ -16,10 +16,10 @@ const WINDOW_SECONDS = 60;
  * Returns { allowed, remaining, resetMs }
  */
 export async function checkRateLimit(
-  endpointId: number,
+  keyId: number | string,
   rpm: number
 ): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
-  const key = `gw:rate:${endpointId}`;
+  const key = `gw:rate:${keyId}`;
   const now = Date.now();
   const windowStart = now - WINDOW_SECONDS * 1000;
 

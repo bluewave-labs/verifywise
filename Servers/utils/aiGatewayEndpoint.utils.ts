@@ -20,6 +20,8 @@ export interface IAiGatewayEndpoint {
   temperature: number | null;
   system_prompt: string | null;
   rate_limit_rpm: number | null;
+  fallback_endpoint_id: number | null;
+  allowed_role_ids: number[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -35,6 +37,7 @@ export const getAllEndpointsQuery = async (
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
             e.max_tokens, e.temperature, e.system_prompt, e.rate_limit_rpm,
+            e.fallback_endpoint_id, e.allowed_role_ids,
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
      LEFT JOIN ai_gateway_api_keys k ON k.id = e.api_key_id AND k.organization_id = e.organization_id
@@ -57,6 +60,7 @@ export const getEndpointBySlugQuery = async (
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
             e.max_tokens, e.temperature, e.system_prompt, e.rate_limit_rpm,
+            e.fallback_endpoint_id, e.allowed_role_ids,
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
      LEFT JOIN ai_gateway_api_keys k ON k.id = e.api_key_id AND k.organization_id = e.organization_id
@@ -78,6 +82,7 @@ export const getEndpointByIdQuery = async (
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
             e.max_tokens, e.temperature, e.system_prompt, e.rate_limit_rpm,
+            e.fallback_endpoint_id, e.allowed_role_ids,
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
      LEFT JOIN ai_gateway_api_keys k ON k.id = e.api_key_id AND k.organization_id = e.organization_id
@@ -149,6 +154,8 @@ export const updateEndpointQuery = async (
     temperature?: number | null;
     system_prompt?: string | null;
     rate_limit_rpm?: number | null;
+    fallback_endpoint_id?: number | null;
+    allowed_role_ids?: number[];
     is_active?: boolean;
   }
 ): Promise<IAiGatewayEndpoint | null> => {
@@ -190,6 +197,14 @@ export const updateEndpointQuery = async (
   if (data.rate_limit_rpm !== undefined) {
     setClauses.push("rate_limit_rpm = :rate_limit_rpm");
     replacements.rate_limit_rpm = data.rate_limit_rpm;
+  }
+  if (data.fallback_endpoint_id !== undefined) {
+    setClauses.push("fallback_endpoint_id = :fallback_endpoint_id");
+    replacements.fallback_endpoint_id = data.fallback_endpoint_id;
+  }
+  if (data.allowed_role_ids !== undefined) {
+    setClauses.push("allowed_role_ids = :allowed_role_ids");
+    replacements.allowed_role_ids = `{${data.allowed_role_ids.join(",")}}`;
   }
   if (data.is_active !== undefined) {
     setClauses.push("is_active = :is_active");

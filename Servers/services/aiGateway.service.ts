@@ -272,7 +272,13 @@ async function finalizeSpend(
   costUsd: number,
   latencyMs: number,
   statusCode: number,
-  estimatedCost: number
+  estimatedCost: number,
+  extra?: {
+    metadata?: object;
+    request_messages?: object;
+    response_text?: string;
+    error_message?: string;
+  }
 ): Promise<void> {
   try {
     await insertSpendLogQuery(organizationId, {
@@ -286,6 +292,10 @@ async function finalizeSpend(
       cost_usd: costUsd,
       latency_ms: latencyMs,
       status_code: statusCode,
+      metadata: extra?.metadata,
+      request_messages: extra?.request_messages,
+      response_text: extra?.response_text,
+      error_message: extra?.error_message,
     });
   } catch (err) {
     logger.error("Failed to insert spend log:", err);
@@ -430,7 +440,11 @@ export async function proxyCompletion(
       costUsd,
       latencyMs,
       statusCode,
-      estimatedCost
+      estimatedCost,
+      {
+        request_messages: finalMessages,
+        response_text: data.choices?.[0]?.message?.content,
+      }
     );
 
     return data;
@@ -448,7 +462,11 @@ export async function proxyCompletion(
       0,
       latencyMs,
       statusCode >= 400 ? statusCode : 500,
-      estimatedCost
+      estimatedCost,
+      {
+        request_messages: finalMessages,
+        error_message: (err as Error).message?.slice(0, 500),
+      }
     );
 
     throw err;

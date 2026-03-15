@@ -54,7 +54,7 @@ interface OnboardingOverlayProps {
 function ArchDiagram() {
   const cardBase = {
     background: "linear-gradient(180deg, #ffffff 0%, #fafbfc 100%)",
-    border: `1px solid ${palette.border.dark}`,
+    border: `0.5px solid #c0c5cc`,
     borderRadius: "4px",
     p: "14px 18px",
     boxShadow: "0 1px 3px rgba(16,24,40,0.05)",

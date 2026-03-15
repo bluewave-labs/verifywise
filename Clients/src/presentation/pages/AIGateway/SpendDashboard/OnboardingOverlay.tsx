@@ -510,7 +510,9 @@ export default function OnboardingOverlay({ onGetStarted, setupStatus, onStepCom
         title="Virtual key created"
         description="Copy the key below. It won't be shown again."
         maxWidth="560px"
-        hideSubmitButton
+        onSubmit={closeModal}
+        submitButtonText="I copied, continue"
+        showCancelButton={false}
       >
         <Stack gap="16px">
           <Box sx={{ p: "12px 16px", backgroundColor: KEY_DISPLAY_BG, border: `1px solid ${palette.border.dark}`, borderRadius: "4px", fontFamily: "monospace", fontSize: 13, wordBreak: "break-all", position: "relative" }}>

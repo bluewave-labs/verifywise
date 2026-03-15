@@ -38,6 +38,7 @@ test.describe("Tasks", () => {
         "scrollable-region-focusable",
         "aria-progressbar-name",
         "aria-prohibited-attr",
+        "aria-input-field-name",
       ])
       .analyze();
     expect(results.violations).toEqual([]);

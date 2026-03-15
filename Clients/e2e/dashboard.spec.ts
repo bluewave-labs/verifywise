@@ -57,6 +57,13 @@ test.describe("Dashboard", () => {
   test("sidebar contains main navigation links", async ({
     authedPage: page,
   }) => {
+    // Dismiss the "Welcome to VerifyWise" modal if it appears
+    const skipBtn = page.getByText(/skip for now/i);
+    if (await skipBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await skipBtn.click();
+      await page.waitForTimeout(500);
+    }
+
     // Verify key sidebar links are present
     const sidebar = page
       .getByRole("navigation")
@@ -64,12 +71,14 @@ test.describe("Dashboard", () => {
       .or(page.locator('[class*="Sidebar" i]'));
     await expect(sidebar.first()).toBeVisible({ timeout: 10_000 });
 
-    // At least some key menu items should be present in the sidebar area
-    const menuItems = page.locator(
-      '[class*="sidebar" i] a, [class*="Sidebar" i] a, nav a'
-    );
-    const count = await menuItems.count();
-    expect(count).toBeGreaterThan(3);
+    // At least some key navigation items should be present in the sidebar
+    // Sidebar uses MUI ListItemButton elements (not <a> tags) with onClick + navigate()
+    const expectedItems = ["Dashboard", "Tasks", "Datasets", "Risk management"];
+    for (const label of expectedItems) {
+      await expect(
+        sidebar.first().getByText(label, { exact: true })
+      ).toBeVisible({ timeout: 5_000 });
+    }
   });
 
   // --- Tier 1: Widget/card visibility ---

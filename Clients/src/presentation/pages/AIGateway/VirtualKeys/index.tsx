@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Stack, IconButton } from "@mui/material";
-import { CirclePlus, KeyRound, Trash2, Ban, Copy, Check, Server, Clock } from "lucide-react";
+import { CirclePlus, KeyRound, Trash2, Ban, Copy, Check, Server } from "lucide-react";
 import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Field from "../../../components/Inputs/Field";
+import DatePicker from "../../../components/Inputs/Datepicker";
+import Chip from "../../../components/Chip";
 import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import palette from "../../../themes/palette";
 import { sectionTitleSx, useCardSx } from "../shared";
+import dayjs from "dayjs";
 
 interface VirtualKey {
   id: number;
@@ -123,14 +126,11 @@ export default function AIGatewayVirtualKeysPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getStatusLabel = (key: VirtualKey) => {
-    if (key.revoked_at)
-      return { label: "Revoked", color: palette.status.error.text, bg: `${palette.status.error.text}14` };
-    if (key.expires_at && new Date(key.expires_at) < new Date())
-      return { label: "Expired", color: palette.text.disabled, bg: `${palette.text.disabled}0A` };
-    if (key.is_active)
-      return { label: "Active", color: palette.status.success.text, bg: `${palette.status.success.text}14` };
-    return { label: "Inactive", color: palette.text.disabled, bg: `${palette.text.disabled}0A` };
+  const getStatusLabel = (key: VirtualKey): string => {
+    if (key.revoked_at) return "Revoked";
+    if (key.expires_at && new Date(key.expires_at) < new Date()) return "Expired";
+    if (key.is_active) return "Active";
+    return "Inactive";
   };
 
   const gatewayUrl = window.location.origin.replace(/:\d+$/, ":3000");
@@ -202,19 +202,7 @@ export default function AIGatewayVirtualKeysPage() {
                           <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                             {key.name}
                           </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: 11,
-                              color: status.color,
-                              fontWeight: 500,
-                              px: "6px",
-                              py: "1px",
-                              borderRadius: "3px",
-                              backgroundColor: status.bg,
-                            }}
-                          >
-                            {status.label}
-                          </Typography>
+                          <Chip label={status} size="small" uppercase={false} />
                         </Stack>
                         <Stack direction="row" gap="12px" alignItems="center" mt="2px">
                           <Typography
@@ -331,12 +319,12 @@ export default function AIGatewayVirtualKeysPage() {
             value={createForm.rate_limit_rpm}
             onChange={(e) => setCreateForm((p) => ({ ...p, rate_limit_rpm: e.target.value }))}
           />
-          <Field
+          <DatePicker
             label="Expiry date"
-            placeholder="YYYY-MM-DD"
-            value={createForm.expires_at}
-            onChange={(e) => setCreateForm((p) => ({ ...p, expires_at: e.target.value }))}
-            type="date"
+            date={createForm.expires_at ? dayjs(createForm.expires_at) : null}
+            handleDateChange={(value) =>
+              setCreateForm((p) => ({ ...p, expires_at: value ? value.format("YYYY-MM-DD") : "" }))
+            }
           />
           {createError && (
             <Typography sx={{ fontSize: 12, color: palette.status.error.text }}>

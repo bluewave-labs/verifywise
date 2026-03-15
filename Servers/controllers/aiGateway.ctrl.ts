@@ -339,11 +339,16 @@ export async function getSpendByUser(req: Request, res: Response) {
 
 export async function getSpendByTag(req: Request, res: Response) {
   const fn = "getSpendByTag";
+  logStructured("processing", "fetching spend by tag", fn, fileName);
   try {
     const period = (req.query.period as string) || "7d";
     const tagKey = (req.query.tag as string) || "department";
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(tagKey)) {
+      return res.status(400).json(STATUS_CODE[400]("Invalid tag key"));
+    }
     const { startDate, endDate } = getDateRange(period);
     const data = await getSpendByTagQuery(req.organizationId!, tagKey, startDate, endDate);
+    logStructured("successful", "spend by tag fetched", fn, fileName);
     return res.status(200).json(STATUS_CODE[200](data));
   } catch (error) {
     logStructured("error", "failed to fetch spend by tag", fn, fileName);

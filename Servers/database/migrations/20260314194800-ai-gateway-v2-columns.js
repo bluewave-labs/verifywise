@@ -83,6 +83,8 @@ module.exports = {
       ALTER TABLE ai_gateway_budgets DROP COLUMN IF EXISTS alert_slack_enabled;
       ALTER TABLE ai_gateway_guardrail_settings DROP COLUMN IF EXISTS log_request_body;
       ALTER TABLE ai_gateway_guardrail_settings DROP COLUMN IF EXISTS log_response_body;
+      DROP TABLE IF EXISTS ai_gateway_guardrail_change_history CASCADE;
+      DROP TABLE IF EXISTS ai_gateway_endpoint_change_history CASCADE;
     `);
   }
 };

@@ -15,6 +15,8 @@ export interface IAiGatewayBudget {
   alert_threshold_pct: number;
   is_hard_limit: boolean;
   period_start: string;
+  alert_email_enabled: boolean;
+  alert_slack_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -118,32 +120,28 @@ export const adjustBudgetSpendQuery = async (
 };
 
 /**
- * Reset current spend to 0 (used for monthly resets)
+ * Reset budget spend to 0 and update period_start.
+ * If organizationId is provided, resets that org only.
+ * If omitted, resets all orgs where period_start is before the current month
+ * (used by the monthly BullMQ cron job).
  */
-export const resetBudgetSpendQuery = async (
-  organizationId: number
-): Promise<void> => {
-  await sequelize.query(
-    `UPDATE ai_gateway_budgets
-     SET current_spend_usd = 0,
-         period_start = DATE_TRUNC('month', NOW()),
-         updated_at = NOW()
-     WHERE organization_id = :organizationId`,
-    { replacements: { organizationId } }
-  );
-};
-
-/**
- * Reset all budgets where period_start is before the current month.
- * Called by the monthly BullMQ cron job.
- */
-export const resetAllBudgets = async (): Promise<number> => {
+export const resetBudgetSpend = async (
+  organizationId?: number
+): Promise<number> => {
+  const where = organizationId
+    ? "organization_id = :organizationId"
+    : "period_start < DATE_TRUNC('month', NOW())";
   const [, meta] = await sequelize.query(
     `UPDATE ai_gateway_budgets
      SET current_spend_usd = 0,
          period_start = DATE_TRUNC('month', NOW()),
          updated_at = NOW()
-     WHERE period_start < DATE_TRUNC('month', NOW())`
+     WHERE ${where}`,
+    { replacements: organizationId ? { organizationId } : {} }
   );
   return (meta as any)?.rowCount || 0;
 };
+
+// Aliases for backward compatibility
+export const resetBudgetSpendQuery = (organizationId: number) => resetBudgetSpend(organizationId);
+export const resetAllBudgets = () => resetBudgetSpend();

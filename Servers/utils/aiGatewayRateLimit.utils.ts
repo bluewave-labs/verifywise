@@ -23,22 +23,20 @@ export async function checkRateLimit(
   const now = Date.now();
   const windowStart = now - WINDOW_SECONDS * 1000;
 
+  const memberId = `${now}:${Math.random().toString(36).slice(2)}`;
+
   const pipeline = redisClient.pipeline();
-  // Remove expired entries
-  pipeline.zremrangebyscore(key, 0, windowStart);
-  // Count current window
-  pipeline.zcard(key);
-  // Add this request
-  pipeline.zadd(key, now.toString(), `${now}:${Math.random()}`);
-  // Set TTL
-  pipeline.expire(key, WINDOW_SECONDS);
+  pipeline.zremrangebyscore(key, 0, windowStart);   // [0] remove expired
+  pipeline.zadd(key, now.toString(), memberId);       // [1] add this request
+  pipeline.zcard(key);                                // [2] count AFTER add
+  pipeline.expire(key, WINDOW_SECONDS);               // [3] set TTL
 
   const results = await pipeline.exec();
-  const currentCount = (results?.[1]?.[1] as number) || 0;
+  const postAddCount = (results?.[2]?.[1] as number) || 0;
 
-  if (currentCount >= rpm) {
+  if (postAddCount > rpm) {
     // Over limit — remove the entry we just added
-    await redisClient.zremrangebyscore(key, now, now + 1);
+    await redisClient.zrem(key, memberId);
     return {
       allowed: false,
       remaining: 0,
@@ -48,7 +46,7 @@ export async function checkRateLimit(
 
   return {
     allowed: true,
-    remaining: rpm - currentCount - 1,
+    remaining: rpm - postAddCount,
     resetMs: WINDOW_SECONDS * 1000,
   };
 }

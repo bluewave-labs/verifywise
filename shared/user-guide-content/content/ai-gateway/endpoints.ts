@@ -89,7 +89,7 @@ export const endpointsContent: ArticleContent = {
       type: 'callout',
       variant: 'info',
       title: 'Fallback chain',
-      text: 'The fallback endpoint can itself have a fallback, forming a chain. The gateway tries up to 3 endpoints before giving up. Guardrails only run once (on the original request), not on each retry.',
+      text: 'The fallback endpoint can itself have a fallback, forming a chain. The gateway follows the chain until it finds a working endpoint or runs out of fallbacks. Guardrails run on each attempt in the chain. Avoid circular fallback chains (A to B to A) as they will loop.',
     },
     {
       type: 'heading',

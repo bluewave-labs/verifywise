@@ -21,7 +21,7 @@ export const playgroundContent: ArticleContent = {
     {
       type: 'ordered-list',
       items: [
-        { text: 'Select an endpoint from the dropdown. Only active endpoints with valid API keys appear.' },
+        { text: 'Select an endpoint from the dropdown. Only active endpoints appear, filtered by your role.' },
         { text: 'Type a message and press Enter (or click the send button).' },
         { text: 'The response streams in real-time with markdown rendering.' },
         { text: 'Continue the conversation. Full message history is sent with each request.' },

@@ -1,20 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Stack,
-  IconButton,
-  Chip,
-} from "@mui/material";
-import { CirclePlus, Trash2, BookOpen } from "lucide-react";
+import { Box, Typography, Stack, IconButton } from "@mui/material";
+import { CirclePlus, Trash2, BookOpen, FileText, Link } from "lucide-react";
 import { EmptyState } from "../../../components/EmptyState";
 import EmptyStateTip from "../../../components/EmptyState/EmptyStateTip";
 import { CustomizableButton } from "../../../components/button/customizable-button";
+import Chip from "../../../components/Chip";
 import Field from "../../../components/Inputs/Field";
 import StandardModal from "../../../components/Modals/StandardModal";
 import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { displayFormattedDate } from "../../../tools/isoDateToString";
 import palette from "../../../themes/palette";
 import { useCardSx, slugify, ProviderIcon } from "../shared";
 
@@ -62,6 +58,11 @@ export default function PromptsPage() {
     setForm((p) => ({ ...p, name: value, slug: slugify(value) }));
   };
 
+  const closeCreateModal = () => {
+    setIsCreateOpen(false);
+    setFormError("");
+  };
+
   const handleCreate = async () => {
     if (!form.name || !form.slug) {
       setFormError("Name is required");
@@ -96,8 +97,8 @@ export default function PromptsPage() {
     if (!deleteTarget) return;
     try {
       await apiServices.delete(`/ai-gateway/prompts/${deleteTarget.id}`);
+      setPrompts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
-      loadData();
     } catch {
       // silently handle
     }
@@ -107,10 +108,10 @@ export default function PromptsPage() {
 
   if (prompts.length === 0 && !isCreateOpen) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 2 }}>
         <PageHeaderExtended entity="ai-gateway-prompts" />
         <EmptyState
-          icon={<BookOpen size={36} strokeWidth={1.2} />}
+          icon={BookOpen}
           title="No prompts yet"
           description="Create your first prompt template to centralize and version-control system instructions."
           action={
@@ -123,26 +124,28 @@ export default function PromptsPage() {
           }
         >
           <EmptyStateTip
-            header="Prompts are reusable message templates."
-            content="Define system and user messages with {{variables}} that get resolved at request time. Each prompt tracks versions so you can test, compare, and roll back."
+            icon={FileText}
+            title="Prompts are reusable message templates"
+            description="Define system and user messages with {{variables}} that get resolved at request time. Each prompt tracks versions so you can test, compare, and roll back."
           />
           <EmptyStateTip
-            header="Bind prompts to endpoints."
-            content="Once published, a prompt can be bound to any endpoint. Every request through that endpoint automatically uses the prompt's messages as a base."
+            icon={Link}
+            title="Bind prompts to endpoints"
+            description="Once published, a prompt can be bound to any endpoint. Every request through that endpoint automatically uses the prompt's messages as a base."
           />
         </EmptyState>
 
-        {/* Create modal rendered even in empty state */}
+        {/* Modals hoisted outside conditional */}
         <StandardModal
-          open={isCreateOpen}
-          onClose={() => { setIsCreateOpen(false); setFormError(""); }}
+          isOpen={isCreateOpen}
+          onClose={closeCreateModal}
           title="Create prompt"
+          description="Set up a new prompt template with a name and slug."
           onSubmit={handleCreate}
-          submitText="Create"
-          loading={isSubmitting}
-          submitDisabled={!form.name}
+          submitButtonText="Create"
+          isSubmitting={isSubmitting}
         >
-          <Stack spacing={2}>
+          <Stack spacing={6}>
             {formError && (
               <Typography color="error" fontSize={13}>{formError}</Typography>
             )}
@@ -156,25 +159,27 @@ export default function PromptsPage() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <PageHeaderExtended entity="ai-gateway-prompts" />
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <CustomizableButton
-          text="Create prompt"
-          icon={<CirclePlus size={14} strokeWidth={1.5} />}
-          onClick={() => setIsCreateOpen(true)}
-          sx={{ height: 34 }}
-        />
-      </Box>
+    <Box sx={{ p: 2 }}>
+      <PageHeaderExtended
+        entity="ai-gateway-prompts"
+        actionButton={
+          <CustomizableButton
+            text="Create prompt"
+            icon={<CirclePlus size={14} strokeWidth={1.5} />}
+            onClick={() => setIsCreateOpen(true)}
+            sx={{ height: 34 }}
+          />
+        }
+      />
 
-      <Box sx={{ ...cardSx, p: 0 }}>
+      <Box sx={{ ...cardSx, p: 0, mt: 2 }}>
         {/* Header row */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 48px",
-            px: 3,
-            py: 1.5,
+            px: 2,
+            py: 1,
             borderBottom: `1px solid ${palette.border.light}`,
           }}
         >
@@ -198,8 +203,8 @@ export default function PromptsPage() {
               sx={{
                 display: "grid",
                 gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 48px",
-                px: 3,
-                py: 1.5,
+                px: 2,
+                py: 1,
                 cursor: "pointer",
                 "&:hover": { bgcolor: "action.hover" },
                 borderBottom: `1px solid ${palette.border.light}`,
@@ -217,41 +222,19 @@ export default function PromptsPage() {
               <Typography fontSize={13} color="text.secondary" fontFamily="monospace">
                 {p.slug}
               </Typography>
-              <Box>
-                {p.published_version ? (
-                  <Chip
-                    label={`v${p.published_version}`}
-                    size="small"
-                    sx={{
-                      bgcolor: "#ECFDF3",
-                      color: "#027A48",
-                      fontWeight: 500,
-                      fontSize: 12,
-                      height: 22,
-                    }}
-                  />
-                ) : (
-                  <Chip
-                    label={p.version_count > 0 ? "Draft" : "No versions"}
-                    size="small"
-                    sx={{
-                      bgcolor: "#F2F4F7",
-                      color: "#344054",
-                      fontWeight: 500,
-                      fontSize: 12,
-                      height: 22,
-                    }}
-                  />
-                )}
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+              {p.published_version ? (
+                <Chip label={`v${p.published_version}`} variant="success" />
+              ) : (
+                <Chip label={p.version_count > 0 ? "Draft" : "No versions"} />
+              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 {provider && <ProviderIcon provider={provider} size={14} />}
                 <Typography fontSize={12} color="text.secondary" noWrap>
                   {p.published_model || "-"}
                 </Typography>
               </Box>
               <Typography fontSize={12} color="text.secondary">
-                {new Date(p.updated_at).toLocaleDateString()}
+                {displayFormattedDate(p.updated_at)}
               </Typography>
               <IconButton
                 size="small"
@@ -268,17 +251,17 @@ export default function PromptsPage() {
         })}
       </Box>
 
-      {/* Create modal */}
+      {/* Create modal — single instance */}
       <StandardModal
-        open={isCreateOpen}
-        onClose={() => { setIsCreateOpen(false); setFormError(""); }}
+        isOpen={isCreateOpen}
+        onClose={closeCreateModal}
         title="Create prompt"
+        description="Set up a new prompt template with a name and slug."
         onSubmit={handleCreate}
-        submitText="Create"
-        loading={isSubmitting}
-        submitDisabled={!form.name}
+        submitButtonText="Create"
+        isSubmitting={isSubmitting}
       >
-        <Stack spacing={2}>
+        <Stack spacing={6}>
           {formError && (
             <Typography color="error" fontSize={13}>{formError}</Typography>
           )}
@@ -290,12 +273,13 @@ export default function PromptsPage() {
 
       {/* Delete modal */}
       <StandardModal
-        open={!!deleteTarget}
+        isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         title="Delete prompt"
+        description="This action cannot be undone."
         onSubmit={handleDelete}
-        submitText="Delete"
-        submitColor="error"
+        submitButtonText="Delete"
+        submitButtonColor="#c62828"
       >
         <Typography fontSize={13}>
           Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?

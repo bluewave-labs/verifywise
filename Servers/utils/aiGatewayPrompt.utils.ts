@@ -222,18 +222,6 @@ export const deletePromptQuery = async (
   organizationId: number,
   id: number
 ): Promise<boolean> => {
-  // Clear prompt_id from any endpoints referencing this prompt
-  try {
-    await sequelize.query(
-      `UPDATE ai_gateway_endpoints
-       SET prompt_id = NULL, updated_at = NOW()
-       WHERE organization_id = :organizationId AND prompt_id = :id`,
-      { replacements: { organizationId, id } }
-    );
-  } catch {
-    /* non-blocking — FK ON DELETE SET NULL handles it too */
-  }
-
   const result = (await sequelize.query(
     `DELETE FROM ai_gateway_prompts
      WHERE organization_id = :organizationId AND id = :id

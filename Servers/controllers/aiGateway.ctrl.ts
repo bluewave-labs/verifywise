@@ -1190,7 +1190,8 @@ export async function updatePrompt(req: Request, res: Response) {
   logStructured("processing", "updating gateway prompt", fn, fileName);
   try {
     const id = parseId(req.params.id);
-    const updated = await updatePromptQuery(req.organizationId!, id, req.body);
+    const { name, description } = req.body;
+    const updated = await updatePromptQuery(req.organizationId!, id, { name, description });
     if (!updated) {
       return res.status(404).json(STATUS_CODE[404]("Prompt not found"));
     }

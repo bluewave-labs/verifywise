@@ -178,7 +178,7 @@ export const getSpendLogsDetailQuery = async (
 
   const [rows, countResult] = await Promise.all([
     sequelize.query(
-      `SELECT s.id, s.endpoint_id, e.display_name AS endpoint_name, e.slug AS endpoint_slug,
+      `SELECT s.id, s.endpoint_id, COALESCE(e.display_name, 'Deleted endpoint') AS endpoint_name, e.slug AS endpoint_slug,
               s.model, s.provider, s.prompt_tokens, s.completion_tokens, s.total_tokens,
               s.cost_usd, s.latency_ms, s.status_code, s.metadata,
               s.request_messages, s.response_text, s.error_message,
@@ -258,7 +258,7 @@ export const getSpendByEndpointQuery = async (
 ): Promise<ISpendByGroup[]> => {
   const result = (await sequelize.query(
     `SELECT
-       COALESCE(e.display_name, 'unknown') AS group_key,
+       COALESCE(e.display_name, 'Deleted endpoint') AS group_key,
        COALESCE(SUM(s.cost_usd), 0)::float AS total_cost,
        COUNT(*)::int AS total_requests,
        COALESCE(SUM(s.total_tokens), 0)::int AS total_tokens

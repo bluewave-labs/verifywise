@@ -211,7 +211,7 @@ export async function getGuardrailLogsQuery(
   offset: number = 0
 ) {
   const rows = await sequelize.query(
-    `SELECT gl.*, g.name AS guardrail_name
+    `SELECT gl.*, COALESCE(g.name, 'Deleted rule') AS guardrail_name
      FROM ai_gateway_guardrail_logs gl
      LEFT JOIN ai_gateway_guardrails g ON g.id = gl.guardrail_id
      WHERE gl.organization_id = :organizationId

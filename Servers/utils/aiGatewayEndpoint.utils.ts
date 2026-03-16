@@ -6,6 +6,7 @@
  */
 
 import { sequelize } from "../database/db";
+import logger from "./logger/fileLogger";
 
 export interface IAiGatewayEndpoint {
   id: number;
@@ -232,12 +233,40 @@ export const updateEndpointQuery = async (
 };
 
 /**
- * Hard delete an endpoint
+ * Hard delete an endpoint.
+ * Also cleans up:
+ * - Virtual key allowed_endpoint_ids arrays (removes the deleted ID)
+ * - Logs a warning if other endpoints had this as a fallback (FK SET NULL handles it)
  */
 export const deleteEndpointQuery = async (
   organizationId: number,
   id: number
 ): Promise<boolean> => {
+  // Check if any endpoints use this as a fallback (will be SET NULL by FK, but log it)
+  try {
+    const fallbackRefs = (await sequelize.query(
+      `SELECT id, display_name FROM ai_gateway_endpoints
+       WHERE organization_id = :organizationId AND fallback_endpoint_id = :id`,
+      { replacements: { organizationId, id } }
+    )) as [any[], number];
+    if (fallbackRefs[0].length > 0) {
+      const names = fallbackRefs[0].map((e: any) => e.display_name).join(", ");
+      logger.warn(`Deleting endpoint ${id} which is used as fallback by: ${names}`);
+    }
+  } catch { /* non-blocking */ }
+
+  // Remove this endpoint ID from virtual key allowed_endpoint_ids arrays
+  try {
+    await sequelize.query(
+      `UPDATE ai_gateway_virtual_keys
+       SET allowed_endpoint_ids = array_remove(allowed_endpoint_ids, :id),
+           updated_at = NOW()
+       WHERE organization_id = :organizationId
+         AND :id = ANY(allowed_endpoint_ids)`,
+      { replacements: { organizationId, id } }
+    );
+  } catch { /* non-blocking */ }
+
   const result = (await sequelize.query(
     `DELETE FROM ai_gateway_endpoints
      WHERE organization_id = :organizationId AND id = :id

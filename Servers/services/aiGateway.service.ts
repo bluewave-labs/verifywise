@@ -40,6 +40,10 @@ import {
   getGuardrailSettingsQuery,
   insertGuardrailLogQuery,
 } from "../utils/aiGatewayGuardrail.utils";
+import {
+  resolvePromptQuery,
+  resolveVariables,
+} from "../utils/aiGatewayPrompt.utils";
 
 const AI_GATEWAY_URL =
   process.env.AI_GATEWAY_URL || "http://localhost:8100";
@@ -516,11 +520,35 @@ export async function proxyCompletion(
   const startTime = Date.now();
   let statusCode = 200;
 
-  // Prepend system prompt if configured on the endpoint
-  const finalMessages =
-    endpoint.system_prompt
-      ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
-      : scannedMessages;
+  // Resolve prompt template if endpoint has a prompt_id bound
+  let finalMessages: Array<{ role: string; content: string }>;
+  if (endpoint.prompt_id) {
+    try {
+      const promptData = await resolvePromptQuery(organizationId, endpoint.prompt_id);
+      if (promptData?.content) {
+        // Use published prompt messages as base, resolve variables from metadata
+        const vars = (options.metadata as Record<string, string>) || {};
+        finalMessages = [
+          ...resolveVariables(promptData.content, vars),
+          ...scannedMessages,
+        ];
+      } else {
+        // No published version — fall back to system_prompt or raw messages
+        finalMessages = endpoint.system_prompt
+          ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
+          : scannedMessages;
+      }
+    } catch (err) {
+      logger.error("Failed to resolve prompt template:", err);
+      finalMessages = endpoint.system_prompt
+        ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
+        : scannedMessages;
+    }
+  } else if (endpoint.system_prompt) {
+    finalMessages = [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages];
+  } else {
+    finalMessages = scannedMessages;
+  }
 
   try {
     const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
@@ -665,10 +693,33 @@ export async function proxyStream(
 
   const startTime = Date.now();
 
-  const finalMessages =
-    endpoint.system_prompt
-      ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
-      : scannedMessages;
+  // Resolve prompt template if endpoint has a prompt_id bound
+  let finalMessages: Array<{ role: string; content: string }>;
+  if (endpoint.prompt_id) {
+    try {
+      const promptData = await resolvePromptQuery(organizationId, endpoint.prompt_id);
+      if (promptData?.content) {
+        const vars = (options.metadata as Record<string, string>) || {};
+        finalMessages = [
+          ...resolveVariables(promptData.content, vars),
+          ...scannedMessages,
+        ];
+      } else {
+        finalMessages = endpoint.system_prompt
+          ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
+          : scannedMessages;
+      }
+    } catch (err) {
+      logger.error("Failed to resolve prompt template (stream):", err);
+      finalMessages = endpoint.system_prompt
+        ? [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages]
+        : scannedMessages;
+    }
+  } else if (endpoint.system_prompt) {
+    finalMessages = [{ role: "system", content: endpoint.system_prompt }, ...scannedMessages];
+  } else {
+    finalMessages = scannedMessages;
+  }
 
   const response = await fetch(`${AI_GATEWAY_URL}/v1/chat/completions`, {
     method: "POST",

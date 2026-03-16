@@ -46,6 +46,7 @@ import {
   MessageSquare,
   ShieldCheck,
   KeyRound,
+  BookOpen,
 } from "lucide-react";
 
 /**
@@ -132,6 +133,7 @@ export const routeMapping: Record<string, string> = {
   "/ai-gateway/playground": "Playground",
   "/ai-gateway/guardrails": "Guardrails",
   "/ai-gateway/logs": "Logs",
+  "/ai-gateway/prompts": "Prompts",
   "/ai-gateway/virtual-keys": "Virtual keys",
   "/ai-gateway/settings": "Settings",
 
@@ -266,6 +268,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/ai-gateway/playground": () => React.createElement(MessageSquare, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/guardrails": () => React.createElement(ShieldCheck, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/logs": () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
+  "/ai-gateway/prompts": () => React.createElement(BookOpen, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/virtual-keys": () => React.createElement(KeyRound, { size: 14, strokeWidth: 1.5 }),
   "/ai-gateway/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
@@ -321,6 +324,12 @@ export const dynamicRoutePatterns = [
     label: "Scan details",
     description: "Detailed view of specific scan results",
     icon: () => React.createElement(FileSearch, { size: 14, strokeWidth: 1.5 }),
+  },
+  {
+    pattern: /\/ai-gateway\/prompts\/\d+/,
+    label: "Prompt editor",
+    description: "Edit a specific prompt",
+    icon: () => React.createElement(BookOpen, { size: 14, strokeWidth: 1.5 }),
   },
   {
     pattern: /\/shadow-ai\/tools\/\d+/,

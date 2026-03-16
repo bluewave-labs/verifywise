@@ -170,13 +170,15 @@ export function ContextSidebar({
             ? "playground"
             : location.pathname.includes("/ai-gateway/guardrails")
               ? "guardrails"
-              : location.pathname.includes("/ai-gateway/logs")
-                ? "logs"
-                : location.pathname.includes("/ai-gateway/virtual-keys")
-                  ? "virtual-keys"
-                  : location.pathname.includes("/ai-gateway/settings")
-                    ? "settings"
-                    : "analytics";
+              : location.pathname.includes("/ai-gateway/prompts")
+                ? "prompts"
+                : location.pathname.includes("/ai-gateway/logs")
+                  ? "logs"
+                  : location.pathname.includes("/ai-gateway/virtual-keys")
+                    ? "virtual-keys"
+                    : location.pathname.includes("/ai-gateway/settings")
+                      ? "settings"
+                      : "analytics";
 
       const handleGatewayTabChange = (newTab: string) => {
         navigate(`/ai-gateway/${newTab}`);
@@ -187,6 +189,7 @@ export function ContextSidebar({
           activeTab={gatewayTab}
           onTabChange={handleGatewayTabChange}
           endpointsCount={aiGatewaySidebarContext?.endpointsCount ?? 0}
+          promptsCount={aiGatewaySidebarContext?.promptsCount ?? 0}
           virtualKeysCount={aiGatewaySidebarContext?.virtualKeysCount ?? 0}
         />
       );

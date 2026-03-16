@@ -386,6 +386,20 @@ export const ENTITY_TIPS: EntityTips = {
       content: "Virtual keys follow the OpenAI API format. Set the base URL to the gateway, pass the virtual key as the API key, and use your endpoint slug as the model name. Python, Node, Go, curl — anything that speaks the OpenAI protocol works out of the box.",
     },
   ],
+  "ai-gateway-prompts": [
+    {
+      header: "Centralize and version-control your system prompts.",
+      content: "Create prompt templates with {{variables}} that get resolved at request time. Version each change so you can compare, roll back, or A/B test different instructions without touching application code.",
+    },
+    {
+      header: "Test prompts with real variables before publishing.",
+      content: "The split-panel editor lets you fill in variable values and send test requests against any endpoint. See streaming responses, token counts, and costs before pushing a prompt to production.",
+    },
+    {
+      header: "Bind prompts to endpoints for automatic resolution.",
+      content: "Once a prompt version is published, bind it to an endpoint. Every request through that endpoint will automatically use the prompt's messages as a base, with variables resolved from request metadata.",
+    },
+  ],
   "ai-gateway-guardrails": [
     {
       header: "Guardrails protect every AI request automatically.",

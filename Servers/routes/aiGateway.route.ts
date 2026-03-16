@@ -49,6 +49,16 @@ import {
   updateVirtualKey,
   revokeVirtualKey,
   deleteVirtualKey,
+  // Prompts
+  getPrompts,
+  createPrompt,
+  getPrompt,
+  updatePrompt,
+  deletePrompt,
+  createPromptVersion,
+  getPromptVersions,
+  publishPromptVersion,
+  testPrompt,
 } from "../controllers/aiGateway.ctrl";
 
 // All routes require authentication
@@ -95,6 +105,17 @@ router.get("/guardrails", getGuardrails);
 router.post("/guardrails", authorize(["Admin"]), createGuardrail);
 router.patch("/guardrails/:id", authorize(["Admin"]), updateGuardrail);
 router.delete("/guardrails/:id", authorize(["Admin"]), deleteGuardrail);
+
+// Prompt management — test route BEFORE :id to avoid param capture
+router.post("/prompts/test", testPrompt);
+router.get("/prompts", getPrompts);
+router.post("/prompts", authorize(["Admin"]), createPrompt);
+router.get("/prompts/:id", getPrompt);
+router.patch("/prompts/:id", authorize(["Admin"]), updatePrompt);
+router.delete("/prompts/:id", authorize(["Admin"]), deletePrompt);
+router.get("/prompts/:id/versions", getPromptVersions);
+router.post("/prompts/:id/versions", authorize(["Admin"]), createPromptVersion);
+router.post("/prompts/:id/versions/:v/publish", authorize(["Admin"]), publishPromptVersion);
 
 // Virtual key management — Admin only for write
 router.get("/virtual-keys", getVirtualKeys);

@@ -79,6 +79,19 @@ import {
   proxyEmbedding,
 } from "../services/aiGateway.service";
 
+// Prompt utils
+import {
+  getAllPromptsQuery,
+  getPromptByIdQuery,
+  createPromptQuery,
+  updatePromptQuery,
+  deletePromptQuery,
+  createVersionQuery,
+  getVersionsQuery,
+  publishVersionQuery,
+  resolveVariables,
+} from "../utils/aiGatewayPrompt.utils";
+
 const fileName = "aiGateway.ctrl.ts";
 const ROLE_NAME_TO_ID: Record<string, number> = {
   Admin: 1, Reviewer: 2, Editor: 3, Auditor: 4,
@@ -1091,5 +1104,261 @@ export async function deleteVirtualKey(req: Request, res: Response) {
     logStructured("error", "failed to delete virtual key", fn, fileName);
     logger.error("Error deleting virtual key:", error);
     return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+// ─── Prompts ──────────────────────────────────────────────────────────────────
+
+export async function getPrompts(req: Request, res: Response) {
+  const fn = "getPrompts";
+  logStructured("processing", "fetching all gateway prompts", fn, fileName);
+  try {
+    const prompts = await getAllPromptsQuery(req.organizationId!);
+    logStructured("successful", "gateway prompts fetched", fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](prompts));
+  } catch (error) {
+    logStructured("error", "failed to fetch gateway prompts", fn, fileName);
+    logger.error("Error fetching gateway prompts:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function createPrompt(req: Request, res: Response) {
+  const fn = "createPrompt";
+  logStructured("processing", "creating gateway prompt", fn, fileName);
+  try {
+    const { slug, name, description } = req.body;
+    if (!slug || !name) {
+      throw new ValidationException("slug and name are required");
+    }
+    if (!SLUG_PATTERN.test(slug)) {
+      throw new ValidationException(
+        "Slug must contain only lowercase letters, numbers, and hyphens (min 2 chars)"
+      );
+    }
+
+    const prompt = await createPromptQuery(req.organizationId!, {
+      slug,
+      name,
+      description,
+      created_by: Number(req.userId),
+    });
+    logStructured("successful", `gateway prompt created: ${name}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Prompt", entityName: name, action: "created",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/prompts/${prompt.id}`, actionLabel: "View prompt",
+    }).catch(() => {});
+
+    return res.status(201).json(STATUS_CODE[201](prompt));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to create gateway prompt", fn, fileName);
+    logger.error("Error creating gateway prompt:", error);
+    if ((error as any)?.original?.constraint === "uq_ai_gateway_prompts_org_slug") {
+      return res.status(409).json(STATUS_CODE[409]("A prompt with this slug already exists"));
+    }
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function getPrompt(req: Request, res: Response) {
+  const fn = "getPrompt";
+  logStructured("processing", "fetching gateway prompt", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const prompt = await getPromptByIdQuery(req.organizationId!, id);
+    if (!prompt) {
+      return res.status(404).json(STATUS_CODE[404]("Prompt not found"));
+    }
+    logStructured("successful", `gateway prompt fetched: ${id}`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](prompt));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to fetch gateway prompt", fn, fileName);
+    logger.error("Error fetching gateway prompt:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function updatePrompt(req: Request, res: Response) {
+  const fn = "updatePrompt";
+  logStructured("processing", "updating gateway prompt", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const updated = await updatePromptQuery(req.organizationId!, id, req.body);
+    if (!updated) {
+      return res.status(404).json(STATUS_CODE[404]("Prompt not found"));
+    }
+    logStructured("successful", `gateway prompt updated: ${id}`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](updated));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to update gateway prompt", fn, fileName);
+    logger.error("Error updating gateway prompt:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function deletePrompt(req: Request, res: Response) {
+  const fn = "deletePrompt";
+  logStructured("processing", "deleting gateway prompt", fn, fileName);
+  try {
+    const id = parseId(req.params.id);
+    const deleted = await deletePromptQuery(req.organizationId!, id);
+    if (!deleted) {
+      return res.status(404).json(STATUS_CODE[404]("Prompt not found"));
+    }
+    logStructured("successful", `gateway prompt deleted: ${id}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Prompt", entityName: `Prompt #${id}`, action: "deleted",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/prompts`, actionLabel: "View prompts",
+    }).catch(() => {});
+
+    return res.status(200).json(STATUS_CODE[200]({ deleted: true }));
+  } catch (error) {
+    logStructured("error", "failed to delete gateway prompt", fn, fileName);
+    logger.error("Error deleting gateway prompt:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function createPromptVersion(req: Request, res: Response) {
+  const fn = "createPromptVersion";
+  logStructured("processing", "creating prompt version", fn, fileName);
+  try {
+    const promptId = parseId(req.params.id);
+    const { content, model, config } = req.body;
+    if (!content || !Array.isArray(content) || content.length === 0) {
+      throw new ValidationException("content must be a non-empty array of messages");
+    }
+
+    // Verify prompt exists
+    const prompt = await getPromptByIdQuery(req.organizationId!, promptId);
+    if (!prompt) {
+      return res.status(404).json(STATUS_CODE[404]("Prompt not found"));
+    }
+
+    const version = await createVersionQuery(req.organizationId!, promptId, {
+      content,
+      model,
+      config,
+      created_by: Number(req.userId),
+    });
+    logStructured("successful", `prompt version created: v${version.version}`, fn, fileName);
+    return res.status(201).json(STATUS_CODE[201](version));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to create prompt version", fn, fileName);
+    logger.error("Error creating prompt version:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function getPromptVersions(req: Request, res: Response) {
+  const fn = "getPromptVersions";
+  logStructured("processing", "fetching prompt versions", fn, fileName);
+  try {
+    const promptId = parseId(req.params.id);
+    const versions = await getVersionsQuery(req.organizationId!, promptId);
+    logStructured("successful", `prompt versions fetched for prompt ${promptId}`, fn, fileName);
+    return res.status(200).json(STATUS_CODE[200](versions));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to fetch prompt versions", fn, fileName);
+    logger.error("Error fetching prompt versions:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function publishPromptVersion(req: Request, res: Response) {
+  const fn = "publishPromptVersion";
+  logStructured("processing", "publishing prompt version", fn, fileName);
+  try {
+    const promptId = parseId(req.params.id);
+    const versionNumber = Number(req.params.v);
+    if (isNaN(versionNumber) || versionNumber <= 0) {
+      throw new ValidationException("Invalid version number");
+    }
+
+    const published = await publishVersionQuery(
+      req.organizationId!,
+      promptId,
+      versionNumber,
+      Number(req.userId)
+    );
+    if (!published) {
+      return res.status(404).json(STATUS_CODE[404]("Version not found"));
+    }
+    logStructured("successful", `prompt version published: v${versionNumber}`, fn, fileName);
+
+    notifyConfigChange(req.organizationId!, Number(req.userId), {
+      entityType: "Prompt version", entityName: `v${versionNumber}`, action: "published",
+      actionUrl: `${FRONTEND_URL}/ai-gateway/prompts/${promptId}`, actionLabel: "View prompt",
+    }).catch(() => {});
+
+    return res.status(200).json(STATUS_CODE[200](published));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+    logStructured("error", "failed to publish prompt version", fn, fileName);
+    logger.error("Error publishing prompt version:", error);
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+}
+
+export async function testPrompt(req: Request, res: Response) {
+  const fn = "testPrompt";
+  logStructured("processing", "testing prompt", fn, fileName);
+  try {
+    const { content, variables, config, endpoint_slug } = req.body;
+    if (!content || !Array.isArray(content) || content.length === 0) {
+      throw new ValidationException("content must be a non-empty array of messages");
+    }
+    if (!endpoint_slug) {
+      throw new ValidationException("endpoint_slug is required");
+    }
+
+    // Resolve variables in content
+    const resolvedMessages = variables
+      ? resolveVariables(content, variables)
+      : content;
+
+    // Use proxyStream with the selected endpoint
+    const options: any = {};
+    if (config?.temperature !== undefined) options.temperature = config.temperature;
+    if (config?.max_tokens !== undefined) options.max_tokens = config.max_tokens;
+    if (config?.top_p !== undefined) options.top_p = config.top_p;
+
+    const { stream, cleanup } = await proxyStream(
+      req.organizationId!,
+      endpoint_slug,
+      resolvedMessages,
+      options,
+      Number(req.userId)
+    );
+
+    pipeStreamWithCleanup(stream, req, res, cleanup);
+    return;
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      res.status(400).json(STATUS_CODE[400](error.message));
+      return;
+    }
+    logStructured("error", "failed to test prompt", fn, fileName);
+    logger.error("Error testing prompt:", error);
+    res.status(500).json(STATUS_CODE[500]((error as Error).message || "Internal server error"));
   }
 }

@@ -5,7 +5,7 @@
  * Follows the SidebarShell pattern established by ShadowAISidebar.
  */
 
-import { Router, BarChart3, MessageSquare, ShieldCheck, FileText, Settings, KeyRound } from "lucide-react";
+import { Router, BarChart3, MessageSquare, ShieldCheck, FileText, Settings, KeyRound, BookOpen } from "lucide-react";
 import SidebarShell, {
   SidebarMenuItem,
 } from "../../components/Sidebar/SidebarShell";
@@ -14,6 +14,7 @@ interface AIGatewaySidebarProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   endpointsCount?: number;
+  promptsCount?: number;
   virtualKeysCount?: number;
 }
 
@@ -21,6 +22,7 @@ export default function AIGatewaySidebar({
   activeTab,
   onTabChange,
   endpointsCount = 0,
+  promptsCount = 0,
   virtualKeysCount = 0,
 }: AIGatewaySidebarProps) {
   const flatItems: SidebarMenuItem[] = [
@@ -48,6 +50,13 @@ export default function AIGatewaySidebar({
       label: "Guardrails",
       value: "guardrails",
       icon: <ShieldCheck size={16} strokeWidth={1.5} />,
+    },
+    {
+      id: "prompts",
+      label: "Prompts",
+      value: "prompts",
+      icon: <BookOpen size={16} strokeWidth={1.5} />,
+      count: promptsCount,
     },
     {
       id: "logs",

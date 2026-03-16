@@ -21,6 +21,7 @@ export interface IAiGatewayEndpoint {
   temperature: number | null;
   system_prompt: string | null;
   rate_limit_rpm: number | null;
+  prompt_id: number | null;
   fallback_endpoint_id: number | null;
   allowed_role_ids: number[];
   is_active: boolean;
@@ -39,7 +40,7 @@ export const getAllEndpointsQuery = async (
   const result = (await sequelize.query(
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
-            e.max_tokens, e.temperature, e.system_prompt, e.rate_limit_rpm,
+            e.max_tokens, e.temperature, e.system_prompt, e.prompt_id, e.rate_limit_rpm,
             e.fallback_endpoint_id, e.allowed_role_ids,
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
@@ -62,7 +63,7 @@ export const getEndpointBySlugQuery = async (
   const result = (await sequelize.query(
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
-            e.max_tokens, e.temperature, e.system_prompt, e.rate_limit_rpm,
+            e.max_tokens, e.temperature, e.system_prompt, e.prompt_id, e.rate_limit_rpm,
             e.fallback_endpoint_id, e.allowed_role_ids,
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
@@ -84,7 +85,7 @@ export const getEndpointByIdQuery = async (
   const result = (await sequelize.query(
     `SELECT e.id, e.organization_id, e.slug, e.display_name, e.provider, e.model,
             e.api_key_id, k.key_name AS api_key_name,
-            e.max_tokens, e.temperature, e.system_prompt, e.rate_limit_rpm,
+            e.max_tokens, e.temperature, e.system_prompt, e.prompt_id, e.rate_limit_rpm,
             e.fallback_endpoint_id, e.allowed_role_ids,
             e.is_active, e.created_at, e.updated_at
      FROM ai_gateway_endpoints e
@@ -121,7 +122,7 @@ export const createEndpointQuery = async (
        (:organizationId, :slug, :display_name, :provider, :model, :api_key_id,
         :max_tokens, :temperature, :system_prompt, :rate_limit_rpm, true, NOW(), NOW())
      RETURNING id, organization_id, slug, display_name, provider, model, api_key_id,
-               max_tokens, temperature, system_prompt, rate_limit_rpm, is_active, created_at, updated_at`,
+               max_tokens, temperature, system_prompt, prompt_id, rate_limit_rpm, is_active, created_at, updated_at`,
     {
       replacements: {
         organizationId,
@@ -157,6 +158,7 @@ export const updateEndpointQuery = async (
     temperature?: number | null;
     system_prompt?: string | null;
     rate_limit_rpm?: number | null;
+    prompt_id?: number | null;
     fallback_endpoint_id?: number | null;
     allowed_role_ids?: number[];
     is_active?: boolean;
@@ -201,6 +203,10 @@ export const updateEndpointQuery = async (
     setClauses.push("rate_limit_rpm = :rate_limit_rpm");
     replacements.rate_limit_rpm = data.rate_limit_rpm;
   }
+  if (data.prompt_id !== undefined) {
+    setClauses.push("prompt_id = :prompt_id");
+    replacements.prompt_id = data.prompt_id;
+  }
   if (data.fallback_endpoint_id !== undefined) {
     setClauses.push("fallback_endpoint_id = :fallback_endpoint_id");
     replacements.fallback_endpoint_id = data.fallback_endpoint_id;
@@ -225,7 +231,7 @@ export const updateEndpointQuery = async (
      SET ${setClauses.join(", ")}
      WHERE organization_id = :organizationId AND id = :id
      RETURNING id, organization_id, slug, display_name, provider, model, api_key_id,
-               max_tokens, temperature, system_prompt, rate_limit_rpm, is_active, created_at, updated_at`,
+               max_tokens, temperature, system_prompt, prompt_id, rate_limit_rpm, is_active, created_at, updated_at`,
     { replacements }
   )) as [IAiGatewayEndpoint[], number];
 

@@ -109,12 +109,9 @@ export default function PromptsPage() {
   if (prompts.length === 0 && !isCreateOpen) {
     return (
       <Box sx={{ p: 2 }}>
-        <PageHeaderExtended entity="ai-gateway-prompts" />
-        <EmptyState
-          icon={BookOpen}
-          title="No prompts yet"
-          description="Create your first prompt template to centralize and version-control system instructions."
-          action={
+        <PageHeaderExtended
+          entity="ai-gateway-prompts"
+          actionButton={
             <CustomizableButton
               text="Create prompt"
               icon={<CirclePlus size={14} strokeWidth={1.5} />}
@@ -122,6 +119,10 @@ export default function PromptsPage() {
               sx={{ height: 34 }}
             />
           }
+        />
+        <EmptyState
+          icon={BookOpen}
+          message="No prompts yet. Create your first prompt template to centralize and version-control system instructions."
         >
           <EmptyStateTip
             icon={FileText}
@@ -135,7 +136,6 @@ export default function PromptsPage() {
           />
         </EmptyState>
 
-        {/* Modals hoisted outside conditional */}
         <StandardModal
           isOpen={isCreateOpen}
           onClose={closeCreateModal}

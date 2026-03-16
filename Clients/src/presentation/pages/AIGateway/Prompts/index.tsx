@@ -119,6 +119,7 @@ export default function PromptsPage() {
       onSubmit={handleCreate}
       submitButtonText="Create"
       isSubmitting={isSubmitting}
+      maxWidth="480px"
     >
       <Stack spacing={6}>
         {formError && <Typography color="error" fontSize={13}>{formError}</Typography>}

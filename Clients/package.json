@@ -126,7 +126,7 @@
     "baseline-browser-mapping": "^2.10.0",
     "concurrently": "^9.2.1",
     "dotenv-webpack": "^9.0.0",
-    "jsdom": "^28.1.0",
+    "jsdom": "^29.0.0",
     "typescript": "^5.5.3",
     "url-loader": "^4.1.1",
     "vitest": "^4.0.18"

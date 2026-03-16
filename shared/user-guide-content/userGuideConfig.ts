@@ -437,7 +437,7 @@ export const collections: Collection[] = [
     title: 'AI Gateway',
     description: 'Route, monitor, and protect LLM requests through a unified gateway with cost tracking and guardrails.',
     icon: 'Router',
-    articleCount: 8,
+    articleCount: 9,
     articles: [
       {
         id: 'getting-started',
@@ -486,6 +486,12 @@ export const collections: Collection[] = [
         title: 'Logs',
         description: 'View, filter, and inspect every request that flows through the AI Gateway.',
         keywords: ['logs', 'request', 'response', 'audit', 'filter', 'search', 'status', 'error', 'auto-refresh', 'conversation'],
+      },
+      {
+        id: 'prompts',
+        title: 'Prompts',
+        description: 'Create versioned prompt templates with variables, test them with streaming responses, and bind them to endpoints.',
+        keywords: ['prompt', 'template', 'variable', 'version', 'publish', 'draft', 'system prompt', 'message', 'test', 'editor'],
       },
     ],
   },

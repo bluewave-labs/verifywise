@@ -137,6 +137,7 @@ export default function PromptsPage() {
       onSubmit={handleDelete}
       submitButtonText="Delete"
       submitButtonColor="#c62828"
+      maxWidth="480px"
     >
       <Typography fontSize={13}>
         Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?

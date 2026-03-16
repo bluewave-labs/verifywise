@@ -388,16 +388,16 @@ export const ENTITY_TIPS: EntityTips = {
   ],
   "ai-gateway-prompts": [
     {
-      header: "Centralize and version-control your system prompts.",
-      content: "Create prompt templates with {{variables}} that get resolved at request time. Version each change so you can compare, roll back, or A/B test different instructions without touching application code.",
+      header: "Version your system prompts without changing application code.",
+      content: "Create message templates with {{variables}} that get resolved at request time. Each save creates a new version, so you can compare results, roll back, or A/B test different instructions.",
     },
     {
-      header: "Test prompts with real variables before publishing.",
-      content: "The split-panel editor lets you fill in variable values and send test requests against any endpoint. See streaming responses, token counts, and costs before pushing a prompt to production.",
+      header: "Test with real responses before you publish.",
+      content: "The editor has a built-in test chat. Pick an endpoint, fill in your variables, and send a message. You'll see the streaming response, token count, and cost right there.",
     },
     {
-      header: "Bind prompts to endpoints for automatic resolution.",
-      content: "Once a prompt version is published, bind it to an endpoint. Every request through that endpoint will automatically use the prompt's messages as a base, with variables resolved from request metadata.",
+      header: "Bind a prompt to an endpoint and it just works.",
+      content: "Published prompts are resolved server-side. The gateway prepends the prompt's messages to every request through the bound endpoint. Variables come from the request metadata.",
     },
   ],
   "ai-gateway-guardrails": [

@@ -54,7 +54,8 @@ export default function PromptsPage() {
     loadData();
   }, [loadData]);
 
-  const handleNameChange = (value: string) => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     setForm((p) => ({ ...p, name: value, slug: slugify(value) }));
   };
 
@@ -150,8 +151,8 @@ export default function PromptsPage() {
               <Typography color="error" fontSize={13}>{formError}</Typography>
             )}
             <Field label="Name" value={form.name} onChange={handleNameChange} placeholder="e.g. Customer support agent" />
-            <Field label="Slug" value={form.slug} onChange={(v) => setForm((p) => ({ ...p, slug: v }))} placeholder="e.g. customer-support" />
-            <Field label="Description" value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} placeholder="Optional description" />
+            <Field label="Slug" value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} placeholder="e.g. customer-support" />
+            <Field label="Description" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Optional description" />
           </Stack>
         </StandardModal>
       </Box>
@@ -266,8 +267,8 @@ export default function PromptsPage() {
             <Typography color="error" fontSize={13}>{formError}</Typography>
           )}
           <Field label="Name" value={form.name} onChange={handleNameChange} placeholder="e.g. Customer support agent" />
-          <Field label="Slug" value={form.slug} onChange={(v) => setForm((p) => ({ ...p, slug: v }))} placeholder="e.g. customer-support" />
-          <Field label="Description" value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} placeholder="Optional description" />
+          <Field label="Slug" value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} placeholder="e.g. customer-support" />
+          <Field label="Description" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Optional description" />
         </Stack>
       </StandardModal>
 

@@ -458,7 +458,7 @@ export default function PromptEditorPage() {
                     key={v}
                     label={v}
                     value={variableValues[v] || ""}
-                    onChange={(val) => setVariableValues((prev) => ({ ...prev, [v]: val }))}
+                    onChange={(e) => setVariableValues((prev) => ({ ...prev, [v]: e.target.value }))}
                     placeholder={`Value for {{${v}}}`}
                   />
                 ))}
@@ -558,21 +558,21 @@ export default function PromptEditorPage() {
           <Field
             label="Temperature"
             value={String(tempConfig.temperature ?? "")}
-            onChange={(v) => setTempConfig((p) => ({ ...p, temperature: v ? parseFloat(v) : undefined }))}
+            onChange={(e) => setTempConfig((p) => ({ ...p, temperature: e.target.value ? parseFloat(e.target.value) : undefined }))}
             placeholder="0.0 - 2.0"
             type="number"
           />
           <Field
             label="Max tokens"
             value={String(tempConfig.max_tokens ?? "")}
-            onChange={(v) => setTempConfig((p) => ({ ...p, max_tokens: v ? parseInt(v) : undefined }))}
+            onChange={(e) => setTempConfig((p) => ({ ...p, max_tokens: e.target.value ? parseInt(e.target.value) : undefined }))}
             placeholder="e.g. 4096"
             type="number"
           />
           <Field
             label="Top P"
             value={String(tempConfig.top_p ?? "")}
-            onChange={(v) => setTempConfig((p) => ({ ...p, top_p: v ? parseFloat(v) : undefined }))}
+            onChange={(e) => setTempConfig((p) => ({ ...p, top_p: e.target.value ? parseFloat(e.target.value) : undefined }))}
             placeholder="0.0 - 1.0"
             type="number"
           />

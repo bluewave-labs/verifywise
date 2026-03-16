@@ -7,9 +7,9 @@ import {
   IconButton,
   Drawer,
   TextareaAutosize,
+  Slider,
 } from "@mui/material";
 import {
-  ArrowLeft,
   Plus,
   Trash2,
   History,
@@ -24,6 +24,7 @@ import Chip from "../../../components/Chip";
 import Field from "../../../components/Inputs/Field";
 import Select from "../../../components/Inputs/Select";
 import StandardModal from "../../../components/Modals/StandardModal";
+import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtended";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import palette from "../../../themes/palette";
@@ -304,36 +305,24 @@ export default function PromptEditorPage() {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", overflow: "hidden" }}>
-      {/* ─── Top bar ───────────────────────────────────────────────── */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          px: 2,
-          py: 1,
-          borderBottom: `1px solid ${palette.border.light}`,
-          bgcolor: "background.paper",
-          flexShrink: 0,
-        }}
-      >
-        <IconButton size="small" onClick={() => navigate("/ai-gateway/prompts")}>
-          <ArrowLeft size={16} strokeWidth={1.5} />
-        </IconButton>
-        <Typography fontSize={15} fontWeight={600}>{prompt.name}</Typography>
-        {currentVersion && <Chip label={`v${currentVersion}`} variant="info" />}
-        <Chip label={currentStatus === "published" ? "Published" : "Draft"} />
-        <Box sx={{ flex: 1 }} />
-        <CustomizableButton text="Save draft" onClick={handleSave} isDisabled={isSaving} variant="outlined" sx={{ height: 34 }} />
-        <CustomizableButton text="Publish" icon={<Upload size={14} strokeWidth={1.5} />} onClick={handlePublish} isDisabled={isPublishing || !currentVersion} sx={{ height: 34 }} />
-        <IconButton size="small" onClick={() => setIsHistoryOpen(true)}>
-          <History size={16} strokeWidth={1.5} />
-        </IconButton>
-      </Box>
-
+    <PageHeaderExtended
+      title={prompt.name}
+      description={`Slug: ${prompt.slug}`}
+      tipBoxEntity="ai-gateway-prompts"
+      actionButton={
+        <Stack direction="row" alignItems="center" spacing={1}>
+          {currentVersion && <Chip label={`v${currentVersion}`} variant="info" />}
+          <Chip label={currentStatus === "published" ? "Published" : "Draft"} />
+          <CustomizableButton text="Save draft" onClick={handleSave} isDisabled={isSaving} variant="outlined" sx={{ height: 34 }} />
+          <CustomizableButton text="Publish" icon={<Upload size={14} strokeWidth={1.5} />} onClick={handlePublish} isDisabled={isPublishing || !currentVersion} sx={{ height: 34 }} />
+          <IconButton size="small" onClick={() => setIsHistoryOpen(true)}>
+            <History size={16} strokeWidth={1.5} />
+          </IconButton>
+        </Stack>
+      }
+    >
       {/* ─── Split panel ───────────────────────────────────────────── */}
-      <Box sx={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      <Box sx={{ display: "flex", flex: 1, overflow: "hidden", border: `1px solid ${palette.border.light}`, borderRadius: 1 }}>
         {/* ─── LEFT: Editor ──────────────────────────────────────── */}
         <Box sx={{ width: "50%", borderRight: `1px solid ${palette.border.light}`, overflow: "auto", p: 2 }}>
           {/* Model + config */}
@@ -550,32 +539,50 @@ export default function PromptEditorPage() {
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}
         title="Model parameters"
-        description="Configure temperature, max tokens, and top P."
+        description="Fine-tune how the model generates responses."
         onSubmit={() => { setConfig(tempConfig); setIsConfigOpen(false); }}
         submitButtonText="Apply"
       >
         <Stack spacing={6}>
-          <Field
-            label="Temperature"
-            value={String(tempConfig.temperature ?? "")}
-            onChange={(e) => setTempConfig((p) => ({ ...p, temperature: e.target.value ? parseFloat(e.target.value) : undefined }))}
-            placeholder="0.0 - 2.0"
-            type="number"
-          />
-          <Field
-            label="Max tokens"
-            value={String(tempConfig.max_tokens ?? "")}
-            onChange={(e) => setTempConfig((p) => ({ ...p, max_tokens: e.target.value ? parseInt(e.target.value) : undefined }))}
-            placeholder="e.g. 4096"
-            type="number"
-          />
-          <Field
-            label="Top P"
-            value={String(tempConfig.top_p ?? "")}
-            onChange={(e) => setTempConfig((p) => ({ ...p, top_p: e.target.value ? parseFloat(e.target.value) : undefined }))}
-            placeholder="0.0 - 1.0"
-            type="number"
-          />
+          <Box>
+            <Typography fontSize={13} fontWeight={500} mb={0.5}>Temperature: {tempConfig.temperature ?? 1.0}</Typography>
+            <Typography fontSize={12} color="text.secondary" mb={1}>
+              Controls randomness. Lower values (0.0) make responses more focused and deterministic. Higher values (2.0) make output more random and creative.
+            </Typography>
+            <Slider
+              value={tempConfig.temperature ?? 1.0}
+              onChange={(_, val) => setTempConfig((p) => ({ ...p, temperature: val as number }))}
+              min={0}
+              max={2}
+              step={0.1}
+              valueLabelDisplay="auto"
+              sx={{ color: "#13715B" }}
+            />
+          </Box>
+          <Box>
+            <Field
+              label="Max tokens"
+              value={String(tempConfig.max_tokens ?? "")}
+              onChange={(e) => setTempConfig((p) => ({ ...p, max_tokens: e.target.value ? parseInt(e.target.value) : undefined }))}
+              placeholder="e.g. 4096"
+              type="number"
+            />
+            <Typography fontSize={12} color="text.secondary" mt={0.5}>
+              Maximum number of tokens to generate in the response. Higher values allow longer outputs but increase cost and latency.
+            </Typography>
+          </Box>
+          <Box>
+            <Field
+              label="Top P"
+              value={String(tempConfig.top_p ?? "")}
+              onChange={(e) => setTempConfig((p) => ({ ...p, top_p: e.target.value ? parseFloat(e.target.value) : undefined }))}
+              placeholder="0.0 - 1.0"
+              type="number"
+            />
+            <Typography fontSize={12} color="text.secondary" mt={0.5}>
+              Nucleus sampling. The model considers tokens with top_p cumulative probability. Lower values (e.g. 0.1) make output more focused. Use either temperature or top P, not both.
+            </Typography>
+          </Box>
         </Stack>
       </StandardModal>
 
@@ -638,6 +645,6 @@ export default function PromptEditorPage() {
           </Stack>
         </Box>
       </Drawer>
-    </Box>
+    </PageHeaderExtended>
   );
 }

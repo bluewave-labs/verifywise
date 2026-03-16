@@ -19,6 +19,23 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { CustomizableButton } from "../../../components/button/customizable-button";
 import Chip from "../../../components/Chip";
 import Field from "../../../components/Inputs/Field";
@@ -42,7 +59,95 @@ function extractVars(messages: Array<{ content: string }>): string[] {
   return Array.from(vars);
 }
 
-interface Message { role: string; content: string }
+interface Message { role: string; content: string; _id?: string }
+
+/** Sortable wrapper for a message block */
+function SortableMessageBlock({
+  msg,
+  idx,
+  total,
+  cardSx,
+  onUpdate,
+  onRemove,
+}: {
+  msg: Message;
+  idx: number;
+  total: number;
+  cardSx: any;
+  onUpdate: (index: number, field: "role" | "content", value: string) => void;
+  onRemove: (index: number) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: msg._id || String(idx),
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Box ref={setNodeRef} style={style} sx={{ ...cardSx, p: 0, overflow: "hidden" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          px: 2,
+          py: 1,
+          borderBottom: `1px solid ${palette.border.light}`,
+          bgcolor: "#F9FAFB",
+        }}
+      >
+        <Box {...attributes} {...listeners} sx={{ cursor: "grab", display: "flex", alignItems: "center" }}>
+          <GripVertical size={14} strokeWidth={1.5} color={palette.border.dark} />
+        </Box>
+        <select
+          value={msg.role}
+          onChange={(e) => onUpdate(idx, "role", e.target.value)}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 13,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            color: "#344054",
+            cursor: "pointer",
+            outline: "none",
+          }}
+        >
+          <option value="system">SYSTEM</option>
+          <option value="user">USER</option>
+          <option value="assistant">ASSISTANT</option>
+        </select>
+        <Box sx={{ flex: 1 }} />
+        {total > 1 && (
+          <IconButton size="small" onClick={() => onRemove(idx)}>
+            <Trash2 size={13} strokeWidth={1.5} />
+          </IconButton>
+        )}
+      </Box>
+      <TextareaAutosize
+        value={msg.content}
+        onChange={(e) => onUpdate(idx, "content", e.target.value)}
+        minRows={3}
+        placeholder={`Enter ${msg.role} message...`}
+        style={{
+          width: "100%",
+          border: "none",
+          outline: "none",
+          resize: "vertical",
+          padding: 16,
+          fontSize: 13,
+          fontFamily: "inherit",
+          lineHeight: 1.6,
+          boxSizing: "border-box",
+        }}
+      />
+    </Box>
+  );
+}
 
 interface Version {
   id: number;
@@ -76,8 +181,11 @@ export default function PromptEditorPage() {
   const [prompt, setPrompt] = useState<PromptData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const idCounter = useRef(1);
+  const assignId = () => `msg-${idCounter.current++}`;
+
   // Editor state
-  const [messages, setMessages] = useState<Message[]>([{ role: "system", content: "" }]);
+  const [messages, setMessages] = useState<Message[]>([{ role: "system", content: "", _id: "msg-0" }]);
   const [model, setModel] = useState("");
   const [config, setConfig] = useState<Record<string, any>>({});
   const [currentVersion, setCurrentVersion] = useState<number | null>(null);
@@ -103,10 +211,19 @@ export default function PromptEditorPage() {
   const [selectedEndpoint, setSelectedEndpoint] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const detectedVars = useMemo(() => extractVars(messages), [messages]);
 
   const loadVersionIntoEditor = (v: Version) => {
-    setMessages(v.content?.length ? v.content : [{ role: "system", content: "" }]);
+    setMessages(
+      v.content?.length
+        ? v.content.map((m) => ({ ...m, _id: assignId() }))
+        : [{ role: "system", content: "", _id: assignId() }]
+    );
     setModel(v.model || "");
     setConfig(v.config || {});
     setCurrentVersion(v.version);
@@ -135,13 +252,23 @@ export default function PromptEditorPage() {
 
   // ─── Editor actions ─────────────────────────────────────────────────
 
-  const addMessage = () => setMessages((p) => [...p, { role: "user", content: "" }]);
+  const addMessage = () => setMessages((p) => [...p, { role: "user", content: "", _id: assignId() }]);
 
   const updateMessage = (index: number, field: "role" | "content", value: string) => {
     setMessages((p) => p.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
   };
 
   const removeMessage = (index: number) => setMessages((p) => p.filter((_, i) => i !== index));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setMessages((prev) => {
+      const oldIndex = prev.findIndex((m) => (m._id || String(prev.indexOf(m))) === active.id);
+      const newIndex = prev.findIndex((m) => (m._id || String(prev.indexOf(m))) === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
 
   const handleSave = async () => {
     if (!id || messages.length === 0) return;
@@ -306,13 +433,17 @@ export default function PromptEditorPage() {
 
   return (
     <PageHeaderExtended
-      title={prompt.name}
+      title={
+        <Stack direction="row" alignItems="center" gap={1}>
+          {prompt.name}
+          {currentVersion && <Chip label={`v${currentVersion}`} variant="info" />}
+          <Chip label={currentStatus === "published" ? "Published" : "Draft"} />
+        </Stack> as any
+      }
       description={prompt.description || "Edit prompt messages, test with variables, and publish versions."}
       tipBoxEntity="ai-gateway-prompts"
       actionButton={
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {currentVersion && <Chip label={`v${currentVersion}`} variant="info" />}
-          <Chip label={currentStatus === "published" ? "Published" : "Draft"} />
+        <Stack direction="row" alignItems="center" gap="8px">
           <CustomizableButton text="Save draft" onClick={handleSave} isDisabled={isSaving} variant="outlined" sx={{ height: 34 }} />
           <CustomizableButton text="Publish" icon={<Upload size={14} strokeWidth={1.5} />} onClick={handlePublish} isDisabled={isPublishing || !currentVersion} sx={{ height: 34 }} />
           <IconButton size="small" onClick={() => setIsHistoryOpen(true)}>
@@ -344,67 +475,24 @@ export default function PromptEditorPage() {
             </IconButton>
           </Box>
 
-          {/* Message blocks */}
-          <Stack spacing={2}>
-            {messages.map((msg, idx) => (
-              <Box key={idx} sx={{ ...cardSx, p: 0, overflow: "hidden" }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    px: 2,
-                    py: 1,
-                    borderBottom: `1px solid ${palette.border.light}`,
-                    bgcolor: "#F9FAFB",
-                  }}
-                >
-                  <GripVertical size={14} strokeWidth={1.5} color={palette.border.dark} />
-                  <select
-                    value={msg.role}
-                    onChange={(e) => updateMessage(idx, "role", e.target.value)}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      color: "#344054",
-                      cursor: "pointer",
-                      outline: "none",
-                    }}
-                  >
-                    <option value="system">SYSTEM</option>
-                    <option value="user">USER</option>
-                    <option value="assistant">ASSISTANT</option>
-                  </select>
-                  <Box sx={{ flex: 1 }} />
-                  {messages.length > 1 && (
-                    <IconButton size="small" onClick={() => removeMessage(idx)}>
-                      <Trash2 size={13} strokeWidth={1.5} />
-                    </IconButton>
-                  )}
-                </Box>
-                <TextareaAutosize
-                  value={msg.content}
-                  onChange={(e) => updateMessage(idx, "content", e.target.value)}
-                  minRows={3}
-                  placeholder={`Enter ${msg.role} message...`}
-                  style={{
-                    width: "100%",
-                    border: "none",
-                    outline: "none",
-                    resize: "vertical",
-                    padding: 16,
-                    fontSize: 13,
-                    fontFamily: "inherit",
-                    lineHeight: 1.6,
-                    boxSizing: "border-box",
-                  }}
-                />
-              </Box>
-            ))}
-          </Stack>
+          {/* Message blocks — drag-droppable */}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={messages.map((m) => m._id || "")} strategy={verticalListSortingStrategy}>
+              <Stack spacing={2}>
+                {messages.map((msg, idx) => (
+                  <SortableMessageBlock
+                    key={msg._id || idx}
+                    msg={msg}
+                    idx={idx}
+                    total={messages.length}
+                    cardSx={cardSx}
+                    onUpdate={updateMessage}
+                    onRemove={removeMessage}
+                  />
+                ))}
+              </Stack>
+            </SortableContext>
+          </DndContext>
 
           {/* Add message */}
           <Box
@@ -592,24 +680,34 @@ export default function PromptEditorPage() {
         onClose={() => setIsHistoryOpen(false)}
         PaperProps={{ sx: { width: 380 } }}
       >
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        <Box sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}>
+          {/* Header */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
             <Typography fontSize={15} fontWeight={600}>Version history</Typography>
             <IconButton size="small" onClick={() => setIsHistoryOpen(false)}>
               <X size={16} strokeWidth={1.5} />
             </IconButton>
           </Box>
-          <Stack spacing={2}>
+          <Typography fontSize={12} color="text.secondary" mb={2}>
+            Each save creates a new version. Publish a version to make it active on bound endpoints. Click any version to load it into the editor.
+          </Typography>
+
+          {/* Versions list */}
+          <Stack spacing={1.5} sx={{ flex: 1, overflow: "auto" }}>
             {versions.map((v) => (
               <Box
                 key={v.id}
                 onClick={() => { loadVersionIntoEditor(v); setIsHistoryOpen(false); }}
                 sx={{
-                  ...cardSx,
                   p: 2,
                   cursor: "pointer",
-                  "&:hover": { bgcolor: "action.hover" },
-                  border: v.version === currentVersion ? "1.5px solid #13715B" : `1.5px solid ${palette.border.light}`,
+                  borderRadius: 1,
+                  border: v.version === currentVersion
+                    ? `1px solid #13715B`
+                    : `1px solid ${palette.border.light}`,
+                  bgcolor: v.version === currentVersion ? "#F6FEF9" : "background.paper",
+                  "&:hover": { bgcolor: v.version === currentVersion ? "#ECFDF3" : "action.hover" },
+                  transition: "background-color 150ms ease",
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
@@ -637,9 +735,15 @@ export default function PromptEditorPage() {
               </Box>
             ))}
             {versions.length === 0 && (
-              <Typography fontSize={13} color="text.secondary" textAlign="center" py={4}>
-                No versions yet. Save a draft to create the first version.
-              </Typography>
+              <Box sx={{ textAlign: "center", py: 6 }}>
+                <History size={32} strokeWidth={1} color={palette.border.dark} />
+                <Typography fontSize={13} color="text.secondary" mt={2}>
+                  No versions yet
+                </Typography>
+                <Typography fontSize={12} color="text.disabled" mt={0.5}>
+                  Click "Save draft" to create your first version.
+                </Typography>
+              </Box>
             )}
           </Stack>
         </Box>

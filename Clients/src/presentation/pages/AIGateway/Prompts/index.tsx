@@ -134,15 +134,15 @@ export default function PromptsPage() {
       isOpen={!!deleteTarget}
       onClose={() => setDeleteTarget(null)}
       title="Delete prompt"
-      description="This action cannot be undone."
+      description={`Are you sure you want to delete "${deleteTarget?.name || ""}"?`}
       onSubmit={handleDelete}
       submitButtonText="Delete"
       submitButtonColor="#c62828"
       maxWidth="480px"
     >
       <Typography fontSize={13}>
-        Are you sure you want to delete <strong>{deleteTarget?.name}</strong>?
         All versions will be removed and any endpoints using this prompt will be unlinked.
+        This action cannot be undone.
       </Typography>
     </StandardModal>
   );

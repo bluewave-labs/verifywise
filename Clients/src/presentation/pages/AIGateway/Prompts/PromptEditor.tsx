@@ -28,7 +28,7 @@ import { PageHeaderExtended } from "../../../components/Layout/PageHeaderExtende
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { displayFormattedDate } from "../../../tools/isoDateToString";
 import palette from "../../../themes/palette";
-import { useCardSx, MODEL_SELECT_ITEMS, MODEL_DIVIDERS, ProviderIcon, GATEWAY_URL } from "../shared";
+import { useCardSx, MODEL_SELECT_ITEMS, ProviderIcon, GATEWAY_URL } from "../shared";
 
 /** Extract {{varName}} tokens from message content. */
 function extractVars(messages: Array<{ content: string }>): string[] {
@@ -332,7 +332,6 @@ export default function PromptEditorPage() {
               value={model}
               onChange={setModel}
               items={MODEL_SELECT_ITEMS}
-              dividers={MODEL_DIVIDERS}
               placeholder="Select model"
               sx={{ flex: 1 }}
             />

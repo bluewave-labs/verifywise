@@ -2,6 +2,8 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    await queryInterface.sequelize.query('SET search_path TO verifywise, public;');
+
     // Create virtual keys table
     await queryInterface.sequelize.query(`
       CREATE TABLE ai_gateway_virtual_keys (
@@ -42,6 +44,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
+    await queryInterface.sequelize.query('SET search_path TO verifywise, public;');
     await queryInterface.sequelize.query(`
       ALTER TABLE ai_gateway_spend_logs DROP COLUMN IF EXISTS virtual_key_id;
     `);

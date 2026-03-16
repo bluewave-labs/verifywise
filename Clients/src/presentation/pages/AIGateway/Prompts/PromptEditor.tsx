@@ -307,7 +307,7 @@ export default function PromptEditorPage() {
   return (
     <PageHeaderExtended
       title={prompt.name}
-      description={`Slug: ${prompt.slug}`}
+      description={prompt.description || "Edit prompt messages, test with variables, and publish versions."}
       tipBoxEntity="ai-gateway-prompts"
       actionButton={
         <Stack direction="row" alignItems="center" spacing={1}>
@@ -330,7 +330,7 @@ export default function PromptEditorPage() {
             <Select
               label="Model"
               value={model}
-              onChange={setModel}
+              onChange={(e) => setModel(e.target.value as string)}
               items={MODEL_SELECT_ITEMS}
               placeholder="Select model"
               sx={{ flex: 1 }}
@@ -433,7 +433,7 @@ export default function PromptEditorPage() {
             <Select
               label="Test endpoint"
               value={selectedEndpoint}
-              onChange={setSelectedEndpoint}
+              onChange={(e) => setSelectedEndpoint(e.target.value as string)}
               items={endpoints.map((e: any) => ({ _id: e.slug, name: `${e.display_name} (${e.slug})` }))}
               placeholder="Select endpoint"
               sx={{ mb: detectedVars.length > 0 ? 2 : 0, width: "100%" }}

@@ -115,7 +115,7 @@ export default function PromptsPage() {
       isOpen={isCreateOpen}
       onClose={closeCreateModal}
       title="Create prompt"
-      description="Set up a new prompt template with a name and slug."
+      description="Set up a new prompt template."
       onSubmit={handleCreate}
       submitButtonText="Create"
       isSubmitting={isSubmitting}
@@ -123,7 +123,6 @@ export default function PromptsPage() {
       <Stack spacing={6}>
         {formError && <Typography color="error" fontSize={13}>{formError}</Typography>}
         <Field label="Name" value={form.name} onChange={handleNameChange} placeholder="e.g. Customer support agent" />
-        <Field label="Slug" value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} placeholder="e.g. customer-support" />
         <Field label="Description" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Optional description" />
       </Stack>
     </StandardModal>
@@ -172,7 +171,6 @@ export default function PromptsPage() {
           <TableHead>
             <TableRow>
               <TableCell sx={HEAD_SX}>Name</TableCell>
-              <TableCell sx={HEAD_SX}>Slug</TableCell>
               <TableCell sx={HEAD_SX}>Version</TableCell>
               <TableCell sx={HEAD_SX}>Model</TableCell>
               <TableCell sx={HEAD_SX}>Updated</TableCell>
@@ -195,7 +193,6 @@ export default function PromptsPage() {
                       <Typography fontSize={12} color="text.secondary" sx={{ mt: 0.25 }} noWrap>{p.description}</Typography>
                     )}
                   </TableCell>
-                  <TableCell sx={{ ...CELL_SX, fontFamily: "monospace", color: "text.secondary" }}>{p.slug}</TableCell>
                   <TableCell sx={CELL_SX}>
                     {p.published_version
                       ? <Chip label={`v${p.published_version}`} variant="success" />
